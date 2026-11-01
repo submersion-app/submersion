@@ -34,19 +34,12 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 
 import '../../../../../helpers/test_database.dart';
 
-/// The report's dive: 200/80 bar on EAN32 with the cylinder size left blank.
-const _blankSizeCsv =
+/// The report's dive: 200/80 bar on EAN32 with the given cylinder size cell.
+String _subsurfaceCsv({required String size}) =>
     'dive number,date,time,duration [min],maxdepth [m],avgdepth [m],'
     'cylinder size (1) [l],startpressure (1) [bar],endpressure (1) [bar],'
     'o2 (1) [%],he (1) [%],location\n'
-    '1,2026-01-01,10:00,40,20,15,,200,80,32,0,Test Site\n';
-
-/// The same dive with the size filled in.
-const _sizedCsv =
-    'dive number,date,time,duration [min],maxdepth [m],avgdepth [m],'
-    'cylinder size (1) [l],startpressure (1) [bar],endpressure (1) [bar],'
-    'o2 (1) [%],he (1) [%],location\n'
-    '1,2026-01-01,10:00,40,20,15,12,200,80,32,0,Test Site\n';
+    '1,2026-01-01,10:00,40,20,15,$size,200,80,32,0,Test Site\n';
 
 /// Diving Log writes one cylinder's pressures and has no size column at all.
 const _divingLogCsv =
@@ -94,7 +87,7 @@ Map<String, dynamic> _onlyTank(ImportPayload payload) {
 void main() {
   group('CSV pipeline', () {
     test('a Subsurface cylinder with a blank size keeps its readings', () {
-      final payload = _execute(_blankSizeCsv, 'subsurface');
+      final payload = _execute(_subsurfaceCsv(size: ''), 'subsurface');
 
       final tank = _onlyTank(payload);
       expect(tank['volume'], isNull);
@@ -104,8 +97,10 @@ void main() {
     });
 
     test('the size is the only difference from a sized cylinder', () {
-      final blank = _onlyTank(_execute(_blankSizeCsv, 'subsurface'));
-      final sized = _onlyTank(_execute(_sizedCsv, 'subsurface'));
+      final blank = _onlyTank(_execute(_subsurfaceCsv(size: ''), 'subsurface'));
+      final sized = _onlyTank(
+        _execute(_subsurfaceCsv(size: '12'), 'subsurface'),
+      );
 
       expect(sized['volume'], 12.0);
       expect(blank['startPressure'], sized['startPressure']);
@@ -144,7 +139,7 @@ void main() {
         ),
       );
 
-      final payload = _execute(_blankSizeCsv, 'subsurface');
+      final payload = _execute(_subsurfaceCsv(size: ''), 'subsurface');
       final data = UddfImportResult(
         dives: payload.entitiesOf(ImportEntityType.dives),
         sites: payload.entitiesOf(ImportEntityType.sites),

@@ -201,6 +201,38 @@ void main() {
         expect(tanks[0]['volume'], 12.0);
       });
 
+      test('reads a zero size beside real readings as unknown', () {
+        final tanks = extractor.extract({
+          'tankVolume_1': '0',
+          'startPressure_1': '200',
+          'endPressure_1': '80',
+        }, diveId);
+
+        expect(tanks.single['volume'], isNull);
+        expect(tanks.single['startPressure'], 200.0);
+      });
+
+      test('reads a zero pressure beside real readings as unknown', () {
+        final tanks = extractor.extract({
+          'startPressure_1': '200',
+          'endPressure_1': '0',
+        }, diveId);
+
+        expect(tanks.single['startPressure'], 200.0);
+        expect(tanks.single['endPressure'], isNull);
+      });
+
+      test('reads a zero oxygen cell as air, not as no oxygen', () {
+        final tanks = extractor.extract({
+          'startPressure_1': '200',
+          'o2Percent_1': '0',
+          'hePercent_1': '0',
+        }, diveId);
+
+        expect(tanks.single['o2Percent'], 21.0);
+        expect(tanks.single['gasMix'], const GasMix());
+      });
+
       test('does not invent a tank from unreadable cells', () {
         final tanks = extractor.extract({
           'startPressure_1': 'n/a',
@@ -315,14 +347,11 @@ void main() {
         expect(tanks[0]['endPressure'], isNull);
       });
 
-      test('numbered tanks take priority over flat fallback', () {
+      test('a numbered value takes priority over its flat field', () {
         final row = <String, dynamic>{
-          // Numbered tank data.
           'tankVolume_1': 12.0,
           'startPressure_1': 200.0,
-          // Flat fallback data (should be ignored).
           'startPressure': 150.0,
-          'endPressure': 30.0,
           'tankVolume': 8.0,
         };
 
@@ -331,6 +360,37 @@ void main() {
         expect(tanks, hasLength(1));
         expect(tanks[0]['volume'], 12.0);
         expect(tanks[0]['startPressure'], 200);
+      });
+
+      test('flat fields fill the gaps in the first numbered group', () {
+        // A preset's numbered pressures beside columns mapped by hand: the
+        // field mapping step only offers the flat targets.
+        final row = <String, dynamic>{
+          'startPressure_1': 200.0,
+          'endPressure_1': 80.0,
+          'tankVolume': 12.0,
+          'o2Percent': 32.0,
+        };
+
+        final tanks = extractor.extract(row, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['volume'], 12.0);
+        expect(tanks[0]['startPressure'], 200.0);
+        expect(tanks[0]['endPressure'], 80.0);
+        expect(tanks[0]['gasMix'], const GasMix(o2: 32));
+      });
+
+      test('flat fields fill only the first numbered group', () {
+        final tanks = extractor.extract({
+          'startPressure_1': 200.0,
+          'startPressure_2': 180.0,
+          'tankVolume': 12.0,
+        }, diveId);
+
+        expect(tanks, hasLength(2));
+        expect(tanks[0]['volume'], 12.0);
+        expect(tanks[1]['volume'], isNull);
       });
     });
 

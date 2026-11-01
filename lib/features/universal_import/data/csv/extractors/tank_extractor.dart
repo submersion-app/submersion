@@ -4,10 +4,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Extracts tank records from a transformed CSV row.
 ///
-/// Two strategies are tried in order:
-/// 1. Numbered groups: tankVolume_1..6 with matching pressure/gas fields, any
-///    of which may be missing. A cylinder of unknown size has a null volume.
-/// 2. Flat fallback: single-tank fields (startPressure, endPressure, etc.).
+/// A row holds up to six numbered groups, tankVolume_1..6 with matching
+/// pressure and gas fields, any of which may be missing. A cylinder of unknown
+/// size has a null volume. The unnumbered fields (startPressure, tankVolume,
+/// etc.) are the first group under another name, and supply only what its
+/// numbered fields leave out.
 class TankExtractor {
   final Uuid _uuid;
 
@@ -17,41 +18,29 @@ class TankExtractor {
   ///
   /// Returns an empty list when no tank data is present.
   List<Map<String, dynamic>> extract(Map<String, dynamic> row, String diveId) {
-    final numbered = _extractNumbered(row, diveId);
-    if (numbered.isNotEmpty) return numbered;
-    return _extractFlat(row, diveId);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
-
-  List<Map<String, dynamic>> _extractNumbered(
-    Map<String, dynamic> row,
-    String diveId,
-  ) {
     final tanks = <Map<String, dynamic>>[];
 
     for (var i = 1; i <= 6; i++) {
-      final volume = _toDouble(row['tankVolume_$i']);
-      final start = _toDouble(row['startPressure_$i']);
-      final end = _toDouble(row['endPressure_$i']);
-      final o2 = _toDouble(row['o2Percent_$i']);
-      final he = _toDouble(row['hePercent_$i']);
+      double? reading(String field) =>
+          _reading(row['${field}_$i']) ??
+          (i == 1 ? _reading(row[field]) : null);
+
+      final volume = reading('tankVolume');
+      final start = reading('startPressure');
+      final end = reading('endPressure');
+      final o2 = reading('o2Percent');
+      final he = reading('hePercent');
 
       // A group is a cylinder as soon as it records anything about one. A
       // missing size rules out volume-based consumption, not the measured
-      // pressures or the gas (#3930). A zero records nothing: it is how an
-      // unused group can read, and the importer treats a zero size as unknown
-      // too.
-      final recordsCylinder = [
-        volume,
-        start,
-        end,
-        o2,
-        he,
-      ].any((value) => value != null && value > 0);
-      if (!recordsCylinder) continue;
+      // pressures or the gas (#3930).
+      if (volume == null &&
+          start == null &&
+          end == null &&
+          o2 == null &&
+          he == null) {
+        continue;
+      }
 
       tanks.add(
         _buildTank(
@@ -69,31 +58,9 @@ class TankExtractor {
     return tanks;
   }
 
-  List<Map<String, dynamic>> _extractFlat(
-    Map<String, dynamic> row,
-    String diveId,
-  ) {
-    final start = row['startPressure'];
-    final end = row['endPressure'];
-    final volume = row['tankVolume'];
-    final o2 = row['o2Percent'];
-
-    if (start == null && end == null && volume == null && o2 == null) {
-      return const [];
-    }
-
-    return [
-      _buildTank(
-        diveId: diveId,
-        order: 0,
-        volume: _toDouble(volume),
-        startPressure: _toDouble(start),
-        endPressure: _toDouble(end),
-        o2Percent: _toDouble(o2),
-        hePercent: _toDouble(row['hePercent']),
-      ),
-    ];
-  }
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
 
   Map<String, dynamic> _buildTank({
     required String diveId,
@@ -118,6 +85,14 @@ class TankExtractor {
       'gasMix': GasMix(o2: o2, he: he),
       'order': order,
     };
+  }
+
+  /// [value] as a number, or null when it records nothing. A zero is how an
+  /// unused group or an unknown reading can read: no cylinder has a zero size
+  /// and no gas has no oxygen, so it must not reach the tank as a measurement.
+  double? _reading(dynamic value) {
+    final number = _toDouble(value);
+    return number != null && number > 0 ? number : null;
   }
 
   double? _toDouble(dynamic value) {
