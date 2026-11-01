@@ -1117,6 +1117,43 @@ class ProfileSeriesRepository {
     return _rowsForDives(diveIds);
   }
 
+  /// Every series of [diveIds] as [undecodedProfileSeriesRow] gives it, in
+  /// [getRowsForDives]' order, with each blob left in the table.
+  ///
+  /// [getRowsForDives] plus [undecodedProfileSeriesRow] is the same answer
+  /// but still copies every blob out of SQLite, which is what a read over a
+  /// whole selection exists to avoid (issue #3856). A repeated id is read
+  /// once, as one `IN (...)` read it.
+  Future<List<ProfileSeries>> getUndecodedSeriesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const [];
+    final table = _db.diveProfileSeries;
+    final columns = [
+      for (final column in table.$columns)
+        if (column != table.samples) column.$name,
+    ].join(', ');
+    final rows = <DiveProfileSeriesRow>[];
+    for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final selected = await _db
+          .customSelect(
+            'SELECT $columns FROM ${table.actualTableName} '
+            'WHERE dive_id IN ($placeholders)',
+            variables: [for (final diveId in chunk) Variable<String>(diveId)],
+            readsFrom: {table},
+          )
+          .get();
+      rows.addAll(
+        selected.map(
+          (row) => table.map({...row.data, table.samples.$name: Uint8List(0)}),
+        ),
+      );
+    }
+    rows.sort(_byDiveStartId);
+    return rows.map(undecodedProfileSeriesRow).toList();
+  }
+
   /// The ids of [diveIds]'s series whose packed blob does not decode.
   ///
   /// Reads swallow an unreadable blob so one bad row cannot blank a whole
