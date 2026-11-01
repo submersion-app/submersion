@@ -44,7 +44,9 @@ class MemberGasService {
       final sac = sacFor(row);
       final breakSeconds = row.airBreakSeconds;
       charge(row.tankId, row.durationSeconds - breakSeconds, depth, sac);
-      charge(row.airBreakTankId ?? row.tankId, breakSeconds, depth, sac);
+      if (breakSeconds > 0) {
+        charge(row.airBreakTankId ?? row.tankId, breakSeconds, depth, sac);
+      }
     }
     return liters;
   }

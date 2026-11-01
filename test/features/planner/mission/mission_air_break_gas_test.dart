@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
@@ -200,6 +201,7 @@ void main() {
       expect(waypoint.members.single.swim.feasible, isFalse);
       expect(waypoint.survivable, isFalse);
       expect(result.abandonmentIndex, isNull);
+      expect(result.members.single.bindingFactor, MissionBindingFactor.ownGas);
     });
 
     test('leaves the waypoint open when the fill covers the break', () {

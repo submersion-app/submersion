@@ -2684,14 +2684,9 @@ class PlanEngine {
       final onLoop = ascentPlan is LoopAscentGas;
       final fO2 = onLoop ? ascentPlan.supplyFO2 : 1.0 - gas.fN2 - gas.fHe;
       final fHe = onLoop ? ascentPlan.supplyFHe : gas.fHe;
+      final isCcr = plan.mode == domain.PlanMode.ccr;
       final tankId =
-          loopSupplyTankId ??
-          _tankForGas(
-            plan.tanks,
-            fO2,
-            fHe,
-            isCcr: plan.mode == domain.PlanMode.ccr,
-          );
+          loopSupplyTankId ?? _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr);
       stops.add(
         PlanStop(
           depthMeters: stop.depthMeters,
@@ -2704,7 +2699,8 @@ class PlanEngine {
             stop,
             plan: ascentPlan,
             stopTankId: tankId,
-            tankForGas: (fO2, fHe) => _tankForGas(plan.tanks, fO2, fHe),
+            tankForGas: (fO2, fHe) =>
+                _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr),
           ),
           arrivalRuntimeSeconds: arrival,
         ),

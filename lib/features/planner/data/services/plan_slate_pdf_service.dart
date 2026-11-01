@@ -337,7 +337,7 @@ class PlanSlatePdfService {
                 '${_pdfGlyph(line.row.kind)} '
                 '${units.formatDepth(line.row.depthMeters, decimals: 0)}',
               ),
-              cell('${line.durationMinutes}'),
+              cell(line.durationLabel()),
               cell('${line.runtimeMinutes}'),
               cell(
                 GasMix(
