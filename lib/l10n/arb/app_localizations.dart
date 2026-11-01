@@ -92494,6 +92494,12 @@ abstract class AppLocalizations {
   /// **'Library restored from a backup'**
   String get changeLog_label_libraryRestored;
 
+  /// No description provided for @changeLog_label_tableEditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get changeLog_label_tableEditor;
+
   /// No description provided for @changeLog_label_reparse.
   ///
   /// In en, this message translates to:

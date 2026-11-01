@@ -58259,6 +58259,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Bibliotheek hersteld uit een back-up';
 
   @override
+  String get changeLog_label_tableEditor => 'Tabelbewerker';
+
+  @override
   String get changeLog_label_reparse => 'Duiken opnieuw verwerkt';
 
   @override

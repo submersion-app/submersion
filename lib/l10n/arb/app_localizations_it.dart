@@ -58628,6 +58628,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Libreria ripristinata da un backup';
 
   @override
+  String get changeLog_label_tableEditor => 'Editor tabellare';
+
+  @override
   String get changeLog_label_reparse => 'Immersioni rianalizzate';
 
   @override

@@ -17358,6 +17358,7 @@
   "changeLog_label_libraryAdopted": "تمت إضافة المكتبة إلى هذا الجهاز",
   "changeLog_label_libraryReplaced": "تم استبدال المكتبة",
   "changeLog_label_libraryRestored": "تمت استعادة المكتبة من نسخة احتياطية",
+  "changeLog_label_tableEditor": "محرر الجدول",
   "changeLog_label_reparse": "تمت إعادة تحليل الغطسات",
   "changeLog_label_splitDive": "تم تقسيم غطسة",
   "changeLog_label_gearTransfer": "تم نقل المعدات",

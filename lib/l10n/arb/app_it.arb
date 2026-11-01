@@ -17358,6 +17358,7 @@
   "changeLog_label_libraryAdopted": "Libreria aggiunta a questo dispositivo",
   "changeLog_label_libraryReplaced": "Libreria sostituita",
   "changeLog_label_libraryRestored": "Libreria ripristinata da un backup",
+  "changeLog_label_tableEditor": "Editor tabellare",
   "changeLog_label_reparse": "Immersioni rianalizzate",
   "changeLog_label_splitDive": "Immersione divisa",
   "changeLog_label_gearTransfer": "Attrezzatura trasferita",

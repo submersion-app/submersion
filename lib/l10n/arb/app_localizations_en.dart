@@ -57697,6 +57697,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Library restored from a backup';
 
   @override
+  String get changeLog_label_tableEditor => 'Table editor';
+
+  @override
   String get changeLog_label_reparse => 'Reparsed dives';
 
   @override

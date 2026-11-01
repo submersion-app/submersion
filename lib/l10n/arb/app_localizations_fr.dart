@@ -58754,6 +58754,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Bibliothèque restaurée depuis une sauvegarde';
 
   @override
+  String get changeLog_label_tableEditor => 'Éditeur de tableau';
+
+  @override
   String get changeLog_label_reparse => 'Plongées réanalysées';
 
   @override

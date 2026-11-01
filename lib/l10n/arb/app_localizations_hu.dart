@@ -58290,6 +58290,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Könyvtár visszaállítva biztonsági mentésből';
 
   @override
+  String get changeLog_label_tableEditor => 'Táblázatszerkesztő';
+
+  @override
   String get changeLog_label_reparse => 'Merülések újraelemezve';
 
   @override

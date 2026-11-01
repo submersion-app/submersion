@@ -58669,6 +58669,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Biblioteca restaurada desde una copia';
 
   @override
+  String get changeLog_label_tableEditor => 'Editor de tabla';
+
+  @override
   String get changeLog_label_reparse => 'Inmersiones reanalizadas';
 
   @override

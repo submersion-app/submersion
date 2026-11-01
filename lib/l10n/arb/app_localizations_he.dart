@@ -57385,6 +57385,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_libraryRestored => 'הספרייה שוחזרה מגיבוי';
 
   @override
+  String get changeLog_label_tableEditor => 'עורך הטבלה';
+
+  @override
   String get changeLog_label_reparse => 'צלילות נותחו מחדש';
 
   @override

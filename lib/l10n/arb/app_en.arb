@@ -34269,6 +34269,7 @@
   "changeLog_label_libraryAdopted": "Library added to this device",
   "changeLog_label_libraryReplaced": "Library replaced",
   "changeLog_label_libraryRestored": "Library restored from a backup",
+  "changeLog_label_tableEditor": "Table editor",
   "changeLog_label_reparse": "Reparsed dives",
   "changeLog_label_splitDive": "Split a dive",
   "changeLog_label_gearTransfer": "Transferred gear",

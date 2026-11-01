@@ -17483,6 +17483,7 @@
   "changeLog_label_libraryAdopted": "Bibliothek auf dieses Gerät übernommen",
   "changeLog_label_libraryReplaced": "Bibliothek ersetzt",
   "changeLog_label_libraryRestored": "Bibliothek aus Backup wiederhergestellt",
+  "changeLog_label_tableEditor": "Tabelleneditor",
   "changeLog_label_reparse": "Tauchgänge neu ausgewertet",
   "changeLog_label_splitDive": "Tauchgang geteilt",
   "changeLog_label_gearTransfer": "Ausrüstung übertragen",

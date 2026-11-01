@@ -17358,6 +17358,7 @@
   "changeLog_label_libraryAdopted": "Bibliothèque ajoutée à cet appareil",
   "changeLog_label_libraryReplaced": "Bibliothèque remplacée",
   "changeLog_label_libraryRestored": "Bibliothèque restaurée depuis une sauvegarde",
+  "changeLog_label_tableEditor": "Éditeur de tableau",
   "changeLog_label_reparse": "Plongées réanalysées",
   "changeLog_label_splitDive": "Plongée scindée",
   "changeLog_label_gearTransfer": "Équipement transféré",

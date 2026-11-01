@@ -17358,6 +17358,7 @@
   "changeLog_label_libraryAdopted": "资料库已添加到此设备",
   "changeLog_label_libraryReplaced": "资料库已替换",
   "changeLog_label_libraryRestored": "资料库已从备份恢复",
+  "changeLog_label_tableEditor": "表格编辑器",
   "changeLog_label_reparse": "已重新解析潜水",
   "changeLog_label_splitDive": "已拆分潜水",
   "changeLog_label_gearTransfer": "已转移装备",

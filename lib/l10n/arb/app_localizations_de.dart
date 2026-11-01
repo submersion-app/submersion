@@ -58496,6 +58496,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bibliothek aus Backup wiederhergestellt';
 
   @override
+  String get changeLog_label_tableEditor => 'Tabelleneditor';
+
+  @override
   String get changeLog_label_reparse => 'Tauchgänge neu ausgewertet';
 
   @override

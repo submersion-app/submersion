@@ -55021,6 +55021,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_label_libraryRestored => '资料库已从备份恢复';
 
   @override
+  String get changeLog_label_tableEditor => '表格编辑器';
+
+  @override
   String get changeLog_label_reparse => '已重新解析潜水';
 
   @override

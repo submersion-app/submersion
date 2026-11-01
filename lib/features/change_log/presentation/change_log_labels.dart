@@ -53,6 +53,7 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
       ChangeLogLabels.galleryBackfill => l.changeLog_label_galleryBackfill,
       ChangeLogLabels.mediaCleanup => l.changeLog_label_mediaCleanup,
       ChangeLogLabels.accountMigration => l.changeLog_label_accountMigration,
+      ChangeLogLabels.tableEditor => l.changeLog_label_tableEditor,
       _ => label,
     };
 

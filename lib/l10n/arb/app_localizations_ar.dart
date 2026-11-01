@@ -59395,6 +59395,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تمت استعادة المكتبة من نسخة احتياطية';
 
   @override
+  String get changeLog_label_tableEditor => 'محرر الجدول';
+
+  @override
   String get changeLog_label_reparse => 'تمت إعادة تحليل الغطسات';
 
   @override

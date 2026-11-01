@@ -17358,6 +17358,7 @@
   "changeLog_label_libraryAdopted": "Bibliotheek toegevoegd aan dit apparaat",
   "changeLog_label_libraryReplaced": "Bibliotheek vervangen",
   "changeLog_label_libraryRestored": "Bibliotheek hersteld uit een back-up",
+  "changeLog_label_tableEditor": "Tabelbewerker",
   "changeLog_label_reparse": "Duiken opnieuw verwerkt",
   "changeLog_label_splitDive": "Duik gesplitst",
   "changeLog_label_gearTransfer": "Uitrusting overgedragen",

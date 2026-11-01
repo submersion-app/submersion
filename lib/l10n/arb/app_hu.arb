@@ -17358,6 +17358,7 @@
   "changeLog_label_libraryAdopted": "Könyvtár hozzáadva ehhez az eszközhöz",
   "changeLog_label_libraryReplaced": "Könyvtár lecserélve",
   "changeLog_label_libraryRestored": "Könyvtár visszaállítva biztonsági mentésből",
+  "changeLog_label_tableEditor": "Táblázatszerkesztő",
   "changeLog_label_reparse": "Merülések újraelemezve",
   "changeLog_label_splitDive": "Merülés szétválasztva",
   "changeLog_label_gearTransfer": "Felszerelés átadva",

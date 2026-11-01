@@ -17358,6 +17358,7 @@
   "changeLog_label_libraryAdopted": "הספרייה נוספה למכשיר הזה",
   "changeLog_label_libraryReplaced": "הספרייה הוחלפה",
   "changeLog_label_libraryRestored": "הספרייה שוחזרה מגיבוי",
+  "changeLog_label_tableEditor": "עורך הטבלה",
   "changeLog_label_reparse": "צלילות נותחו מחדש",
   "changeLog_label_splitDive": "צלילה פוצלה",
   "changeLog_label_gearTransfer": "ציוד הועבר",
