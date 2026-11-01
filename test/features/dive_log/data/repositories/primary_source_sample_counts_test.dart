@@ -360,6 +360,17 @@ void main() {
       });
     });
 
+    test('a failed read reaches the caller', () async {
+      await insertDive('d1');
+      await insertSeries('d1', 3);
+      await db.customStatement('DROP TABLE dive_data_sources');
+
+      await expectLater(
+        repository.getPrimarySourceSampleCounts(['d1']),
+        throwsA(anything),
+      );
+    });
+
     test('an empty selection asks nothing', () async {
       expect(await repository.getPrimarySourceSampleCounts(const []), isEmpty);
     });
