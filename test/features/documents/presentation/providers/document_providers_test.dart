@@ -128,6 +128,31 @@ void main() {
       expect(repo.contentReads, hasLength(1));
     });
 
+    test('a content write in the same millisecond gets a new key', () async {
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      c.listen(documentPagesProvider(saved.id), (_, _) {});
+      final page = (await settledPages(saved.id)).single;
+
+      await repo.save(saved, [
+        page.copyWith(bytes: Uint8List.fromList([3])),
+      ]);
+      // Puts the clock back: the second write stamped the first's millisecond.
+      await DatabaseService.instance.database.customStatement(
+        'UPDATE document_pages SET updated_at = ? WHERE id = ?',
+        [page.updatedAt.millisecondsSinceEpoch, page.id],
+      );
+
+      final changed = (await settledPages(saved.id)).single;
+      expect(changed.updatedAt, page.updatedAt);
+      expect(changed.contentKey, isNot(page.contentKey));
+      expect(
+        await c.read(documentPageContentProvider(changed.contentKey).future),
+        [3],
+      );
+    });
+
     test('releasing a page drops its decoded images from the cache', () async {
       TestWidgetsFlutterBinding.ensureInitialized();
       final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [

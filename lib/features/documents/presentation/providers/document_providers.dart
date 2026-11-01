@@ -90,9 +90,9 @@ void _evictDecodedImages(Uint8List bytes) {
 
 /// One stored page's content (up to 10 MB), released with its decoded images
 /// once nothing shows the page.
-// no-tick: the key is the page's version. Every write to a page moves its
-// updated_at (a save, a sync pull, a change log revert), and the ticking page
-// list then asks for a new key, so an unrelated write rereads no content.
+// no-tick: the key is the page's version. Every write to a page moves its hlc
+// (a save, a sync pull, a change log revert), and the ticking page list then
+// asks for a new key, so an unrelated write rereads no content.
 final documentPageContentProvider = FutureProvider.autoDispose
     .family<Uint8List?, DocumentPageContentKey>((ref, key) async {
       Uint8List? content;

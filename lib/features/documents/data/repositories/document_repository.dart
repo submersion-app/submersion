@@ -306,6 +306,7 @@ class DocumentRepository {
         t.sizeBytes,
         t.createdAt,
         t.updatedAt,
+        t.hlc,
       ])
       ..where(t.documentId.equals(documentId))
       ..orderBy([OrderingTerm(expression: t.pageIndex)]);
@@ -322,6 +323,7 @@ class DocumentRepository {
           sizeBytes: r.read(t.sizeBytes)!,
           createdAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.createdAt)!),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.updatedAt)!),
+          hlc: r.read(t.hlc),
         ),
     ];
   }
