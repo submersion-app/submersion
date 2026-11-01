@@ -49,7 +49,9 @@ class AgentAccessStatusCard extends ConsumerWidget {
             if (s?.error != null) ...[
               const SizedBox(height: 8),
               Text(
-                l10n.settings_agentAccess_portInUse(s!.port),
+                s!.portInUse
+                    ? l10n.settings_agentAccess_portInUse(s.port)
+                    : s.error!,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.error,
                 ),

@@ -42,7 +42,7 @@ class GetRecordsTool implements AgentTool {
   String get description =>
       'Fetch full records by id (up to $kGetRecordsMaxIds per call). Values '
       'are metric with the unit in the key name (max_depth_m, water_temp_c, '
-      'start_pressure_bar, weight_kg); dates are ISO 8601. Child blocks '
+      'start_pressure_bar, weight_kg); Dates are ISO 8601 strings of the dive\'s local wall clock carried with a nominal Z suffix; they are not UTC instants, so do not shift them to another time zone. Child blocks '
       '(tanks, buddies, tags, types, weights, sightings, media, profile) are '
       'returned only when listed in include; profile samples are paged with '
       'profile_offset and profile_limit. Ids the named diver cannot see are '

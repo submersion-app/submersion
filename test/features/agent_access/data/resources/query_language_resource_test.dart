@@ -37,6 +37,7 @@ void main() {
       expect(text, contains('query      := or'));
       expect(text, contains(':none'));
       expect(text, contains('list_divers'));
+      expect(text, contains('local wall clock'));
     });
 
     test('does not list child-only subjects as roots', () async {

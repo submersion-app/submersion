@@ -5,6 +5,7 @@ import 'package:mcp_dart/mcp_dart.dart' show McpServer;
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/agent_access/data/agent_access_preferences.dart';
 import 'package:submersion/features/agent_access/data/agent_access_token_store.dart';
@@ -85,6 +86,8 @@ final agentAccessControllerProvider = Provider<AgentAccessController>((ref) {
 class AgentAccessController {
   AgentAccessController(this._ref);
 
+  static const _log = LoggerService('AgentAccess');
+
   final Ref _ref;
   Future<void> _queue = Future.value();
   String? _token;
@@ -93,9 +96,27 @@ class AgentAccessController {
   /// serialised so a burst of settings changes never interleaves starts
   /// and stops.
   Future<void> sync() {
-    final next = _queue.then((_) => _syncOnce());
-    _queue = next.catchError((_) {});
+    final next = _queue.then((_) => _guardedSync());
+    _queue = next;
     return next;
+  }
+
+  /// A failure anywhere in [_syncOnce] (the keychain refusing the token, a
+  /// bind error the server did not classify) must reach the settings page
+  /// and the log; the diver's one action on this feature never fails quietly.
+  Future<void> _guardedSync() async {
+    try {
+      await _syncOnce();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Agent access could not start',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      AgentAccessServer.instance.publishError(
+        'Could not start agent access: $e',
+      );
+    }
   }
 
   /// Rotates the bearer token. Running sessions see the new token on their
@@ -116,7 +137,11 @@ class AgentAccessController {
     // Tools read diver unit preferences; before the first load those are
     // placeholders.
     await awaitCurrentDiverSettings(_ref);
-    _token = await _ref.read(agentAccessTokenStoreProvider).ensure();
+    try {
+      _token = await _ref.read(agentAccessTokenStoreProvider).ensure();
+    } catch (e) {
+      throw StateError('Could not read the access token: $e');
+    }
     final status = server.status;
     if (status.listening && status.port == settings.port) return;
     final appVersion = await _appVersion();

@@ -12,12 +12,20 @@ class AgentAccessStatus {
     required this.listening,
     required this.port,
     this.error,
+    this.portInUse = false,
     this.lastRequestAt,
   });
 
   final bool listening;
   final int port;
+
+  /// Why the server is not listening, in English, for logs and as a last
+  /// resort on the settings page.
   final String? error;
+
+  /// True when [error] is a bind failure on [port], which the settings page
+  /// can say in the diver's language.
+  final bool portInUse;
   final DateTime? lastRequestAt;
 
   String get url => 'http://127.0.0.1:$port/mcp';
@@ -26,11 +34,13 @@ class AgentAccessStatus {
     bool? listening,
     int? port,
     String? error,
+    bool? portInUse,
     DateTime? lastRequestAt,
   }) => AgentAccessStatus(
     listening: listening ?? this.listening,
     port: port ?? this.port,
     error: error ?? this.error,
+    portInUse: portInUse ?? this.portInUse,
     lastRequestAt: lastRequestAt ?? this.lastRequestAt,
   );
 }
@@ -86,15 +96,17 @@ class AgentAccessServer {
       // Typed dynamic because the package's non-IO stub declares it so; on
       // desktop it is always a dart:io HttpRequest.
       authenticationHandler: (dynamic request) {
-        _touch();
         final header = (request as HttpRequest).headers.value(
           HttpHeaders.authorizationHeader,
         );
-        return authenticator.accepts(header)
-            ? const StreamableMcpAuthenticationResult.allow()
-            : const StreamableMcpAuthenticationResult.unauthorized(
-                errorDescription: 'Missing or invalid bearer token.',
-              );
+        if (!authenticator.accepts(header)) {
+          return const StreamableMcpAuthenticationResult.unauthorized(
+            errorDescription: 'Missing or invalid bearer token.',
+          );
+        }
+        // Only an accepted request counts as "the agent got through".
+        _touch();
+        return const StreamableMcpAuthenticationResult.allow();
       },
       enableDnsRebindingProtection: true,
       allowedHosts: const {'localhost', '127.0.0.1', '::1'},
@@ -113,6 +125,7 @@ class AgentAccessServer {
           listening: false,
           port: effectivePort,
           error: 'Port $effectivePort is already in use (${e.message}).',
+          portInUse: true,
         ),
       );
       return;
@@ -136,6 +149,12 @@ class AgentAccessServer {
     });
     return stopping;
   }
+
+  /// Records why the server is not running when the failure happened
+  /// outside [start] (reading the token, resolving the app version).
+  void publishError(String message) => _publish(
+    AgentAccessStatus(listening: false, port: _status.port, error: message),
+  );
 
   void _touch() => _publish(_status.copyWith(lastRequestAt: DateTime.now()));
 

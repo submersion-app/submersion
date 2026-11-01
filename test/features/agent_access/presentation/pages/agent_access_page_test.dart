@@ -150,10 +150,28 @@ void main() {
           listening: false,
           port: 47831,
           error: 'Port 47831 is already in use (Address already in use).',
+          portInUse: true,
         ),
       );
       expect(find.text('Stopped'), findsOneWidget);
       expect(find.text('Port 47831 is already in use'), findsOneWidget);
+    });
+
+    testWidgets('any other error is shown as written', (tester) async {
+      await pump(
+        tester,
+        status: const AgentAccessStatus(
+          listening: false,
+          port: 47831,
+          error: 'Could not read the access token: keychain down',
+        ),
+      );
+      expect(find.text('Stopped'), findsOneWidget);
+      expect(find.text('Port 47831 is already in use'), findsNothing);
+      expect(
+        find.text('Could not read the access token: keychain down'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('regenerate asks first, then rotates the token', (

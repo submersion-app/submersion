@@ -43,7 +43,10 @@ Everything is under `lib/features/agent_access/`:
 3. Register it in `AgentToolRegistry.standard`.
 4. Emit metric values with the unit in the key (`max_depth_m`,
    `water_temp_c`, `start_pressure_bar`, `weight_kg`) and ISO 8601 dates
-   from the wall-clock UTC values without `toLocal()`.
+   from the wall-clock UTC values without `toLocal()`. Those strings carry
+   a nominal `Z` but are the dive's local wall clock, not UTC instants; every
+   tool description and the query-language resource say so, and a new tool
+   that emits times must keep saying so.
 5. Test it against a real in-memory database (`setUpTestDatabase()`), and
    add an end-to-end case to `agent_access_server_e2e_test.dart` when the
    tool changes what a client can observe.

@@ -118,6 +118,10 @@ void main() {
   AgentToolContext ctx() => AgentToolContext(db: db, clientName: 'test');
 
   group('GetRecordsTool', () {
+    test('describes the wall-clock time convention', () {
+      expect(tool().description, contains('local wall clock'));
+    });
+
     test('is named get_records and requires entity and ids', () {
       expect(tool().name, 'get_records');
       expect(tool().inputSchema['required'], ['entity', 'ids']);

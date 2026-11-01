@@ -220,6 +220,22 @@ void main() {
       }
     });
 
+    test('a resource read in demo mode names the refusal', () async {
+      DemoModeGate.instance.debugActive = true;
+      await expectLater(
+        client.readResource(
+          const ReadResourceRequest(uri: 'submersion://units'),
+        ),
+        throwsA(
+          isA<McpError>().having(
+            (e) => e.message,
+            'message',
+            contains('demo_mode'),
+          ),
+        ),
+      );
+    });
+
     test(
       'a semantically invalid argument is a tool error, not a crash',
       () async {

@@ -43,7 +43,7 @@ class QueryTool implements AgentTool {
       '100" means feet for a diver who logs in feet; add a unit suffix (m, ft, '
       'c, f, bar, psi, kg, lb, min) to be explicit. An empty query matches '
       'everything. include_summaries adds a compact row per dive (dives root '
-      'only in this version).';
+      'only in this version). Dates are ISO 8601 strings of the dive\'s local wall clock carried with a nominal Z suffix; they are not UTC instants, so do not shift them to another time zone.';
 
   @override
   Map<String, Object?> get inputSchema => {

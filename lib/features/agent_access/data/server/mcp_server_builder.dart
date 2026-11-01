@@ -80,8 +80,19 @@ Future<ReadResourceResult> _readResource(
   AgentToolGate gate,
   AgentResource resource,
 ) async {
-  final db = gate.open();
-  final text = await resource.read(AgentToolContext(db: db, clientName: null));
+  final String text;
+  try {
+    final db = gate.open();
+    text = await resource.read(AgentToolContext(db: db, clientName: null));
+  } on AgentToolException catch (e) {
+    // Resources have no isError result; the refusal travels as a JSON-RPC
+    // error whose message starts with the same wire code a tool would use.
+    throw McpError(
+      ErrorCode.invalidRequest.value,
+      '${e.code.wire}: ${e.message}',
+      e.toJson(),
+    );
+  }
   return ReadResourceResult(
     contents: [
       TextResourceContents(

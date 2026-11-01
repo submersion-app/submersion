@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/agent_access/data/agent_access_token_store.dart';
@@ -11,6 +12,20 @@ import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../support/fake_keychain_storage.dart';
+
+/// A keychain whose every operation fails, like a locked or absent store.
+class _ThrowingKeychain extends InMemoryKeychain {
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => throw StateError('keychain down');
+}
 
 Future<void> pumpUntil(bool Function() condition) async {
   for (var i = 0; i < 100 && !condition(); i++) {
@@ -104,6 +119,37 @@ void main() {
       await pumpUntil(() => AgentAccessServer.instance.status.listening);
       c.dispose();
       await pumpUntil(() => !AgentAccessServer.instance.status.listening);
+    });
+
+    test('a token store failure surfaces as a status error', () async {
+      final c = await container(platform: TargetPlatform.macOS);
+      final broken = ProviderContainer(
+        parent: null,
+        overrides: [
+          ...await getBaseOverrides(),
+          agentAccessTokenStoreProvider.overrideWithValue(
+            AgentAccessTokenStore(storage: _ThrowingKeychain()),
+          ),
+          packageInfoProvider.overrideWith(
+            (ref) async => PackageInfo(
+              appName: 'Submersion',
+              packageName: 'app.submersion',
+              version: '1.2.3',
+              buildNumber: '7',
+            ),
+          ),
+        ],
+      );
+      addTearDown(broken.dispose);
+      c.dispose();
+      broken.read(agentAccessControllerProvider);
+      await broken.read(agentAccessSettingsProvider.notifier).setPort(0);
+      await broken.read(agentAccessSettingsProvider.notifier).setEnabled(true);
+      await pumpUntil(() => AgentAccessServer.instance.status.error != null);
+      final status = AgentAccessServer.instance.status;
+      expect(status.listening, isFalse);
+      expect(status.portInUse, isFalse);
+      expect(status.error, contains('keychain down'));
     });
 
     test('regenerateToken rotates the stored token', () async {

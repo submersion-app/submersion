@@ -57,6 +57,9 @@ site.country = Mexico AND depth > 30
 
 Field keys are lowerCamel (`waterTemp`, `bottomTime`) with aliases listed
 below. An empty query matches every record.
+
+Times in tool results are the dive's local wall clock, carried as ISO 8601
+with a nominal Z suffix. They are not UTC instants: do not shift them.
 ''';
 
 /// Serves the grammar plus a field and relation list generated from the

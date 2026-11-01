@@ -94,6 +94,10 @@ void main() {
   AgentToolContext ctx() => AgentToolContext(db: db, clientName: 'test');
 
   group('QueryTool', () {
+    test('describes the wall-clock time convention', () {
+      expect(tool().description, contains('local wall clock'));
+    });
+
     test('is named query and requires root', () {
       expect(tool().name, 'query');
       expect(tool().inputSchema['required'], ['root']);

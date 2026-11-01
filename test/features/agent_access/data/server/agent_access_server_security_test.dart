@@ -184,5 +184,11 @@ void main() {
       await rawRequest(port, auth: 'Bearer $_token');
       expect(AgentAccessServer.instance.status.lastRequestAt, isNotNull);
     });
+
+    test('a refused request does not count as a request', () async {
+      await rawRequest(port, auth: 'Bearer nope');
+      await rawRequest(port);
+      expect(AgentAccessServer.instance.status.lastRequestAt, isNull);
+    });
   });
 }
