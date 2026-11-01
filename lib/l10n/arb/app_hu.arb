@@ -12688,7 +12688,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "Ez az eszköz nem tud videót tömöríteni. Róla az eredetik töltődnek fel.",
   "reef_section_title": "Ökoszisztéma",
   "reef_section_sourcesTooltip": "Adatforrások",
-  "reef_section_loadError": "Az ökoszisztéma-adatok jelenleg nem tölthetők be",
+  "reef_section_checking": "Ellenőrzés…",
   "reef_habitat_title": "Zátony élőhely",
   "reef_habitat_onReef": "Korallzátonyon",
   "reef_habitat_onReefWithThreat": "Korallzátonyon, veszélyeztetettségi szint: {threat}",

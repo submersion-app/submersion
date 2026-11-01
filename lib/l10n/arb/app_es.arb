@@ -12688,7 +12688,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "Este dispositivo no puede comprimir vídeo. Desde él se suben los originales.",
   "reef_section_title": "Ecosistema",
   "reef_section_sourcesTooltip": "Fuentes de datos",
-  "reef_section_loadError": "No se pudieron cargar los datos del ecosistema en este momento",
+  "reef_section_checking": "Comprobando…",
   "reef_habitat_title": "Hábitat del arrecife",
   "reef_habitat_onReef": "En un arrecife de coral",
   "reef_habitat_onReefWithThreat": "En un arrecife de coral, nivel de amenaza {threat}",

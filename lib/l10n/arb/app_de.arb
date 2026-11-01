@@ -12842,7 +12842,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "Dieses Gerät kann keine Videos komprimieren. Von ihm werden Originale hochgeladen.",
   "reef_section_title": "Ökosystem",
   "reef_section_sourcesTooltip": "Datenquellen",
-  "reef_section_loadError": "Ökosystemdaten konnten gerade nicht geladen werden",
+  "reef_section_checking": "Wird geprüft…",
   "reef_habitat_title": "Riff-Lebensraum",
   "reef_habitat_onReef": "Auf einem Korallenriff",
   "reef_habitat_onReefWithThreat": "Auf einem Korallenriff, Gefährdungsstufe {threat}",

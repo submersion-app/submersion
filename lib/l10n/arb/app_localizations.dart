@@ -65990,11 +65990,11 @@ abstract class AppLocalizations {
   /// **'Data sources'**
   String get reef_section_sourcesTooltip;
 
-  /// No description provided for @reef_section_loadError.
+  /// No description provided for @reef_section_checking.
   ///
   /// In en, this message translates to:
-  /// **'Could not load ecosystem data right now'**
-  String get reef_section_loadError;
+  /// **'Checking…'**
+  String get reef_section_checking;
 
   /// No description provided for @reef_habitat_title.
   ///
