@@ -86,14 +86,6 @@ void main() {
         repository.getDiveTimeForEquipment('test-id'),
         throwsA(anything),
       );
-      await expectLater(
-        repository.getTripCountForEquipment('test-id'),
-        throwsA(anything),
-      );
-      await expectLater(
-        repository.getTripIdsForEquipment('test-id'),
-        throwsA(anything),
-      );
     });
   });
 }

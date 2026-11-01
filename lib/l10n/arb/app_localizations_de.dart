@@ -41838,8 +41838,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Datenquellen';
 
   @override
-  String get reef_section_loadError =>
-      'Ökosystemdaten konnten gerade nicht geladen werden';
+  String get reef_section_checking => 'Wird geprüft…';
 
   @override
   String get reef_habitat_title => 'Riff-Lebensraum';

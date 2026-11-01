@@ -12688,7 +12688,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "Dit apparaat kan geen video comprimeren. Vanaf dit apparaat worden originelen geüpload.",
   "reef_section_title": "Ecosysteem",
   "reef_section_sourcesTooltip": "Gegevensbronnen",
-  "reef_section_loadError": "Ecosysteemgegevens konden nu niet worden geladen",
+  "reef_section_checking": "Bezig met controleren…",
   "reef_habitat_title": "Rifhabitat",
   "reef_habitat_onReef": "Op een koraalrif",
   "reef_habitat_onReefWithThreat": "Op een koraalrif, dreigingsniveau {threat}",

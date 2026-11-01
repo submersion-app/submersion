@@ -12688,7 +12688,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "מכשיר זה אינו יכול לדחוס וידאו. ממנו מועלים הקבצים המקוריים.",
   "reef_section_title": "מערכת אקולוגית",
   "reef_section_sourcesTooltip": "מקורות נתונים",
-  "reef_section_loadError": "לא ניתן לטעון נתוני מערכת אקולוגית כרגע",
+  "reef_section_checking": "בודק…",
   "reef_habitat_title": "בית גידול השונית",
   "reef_habitat_onReef": "על שונית אלמוגים",
   "reef_habitat_onReefWithThreat": "על שונית אלמוגים, רמת איום {threat}",

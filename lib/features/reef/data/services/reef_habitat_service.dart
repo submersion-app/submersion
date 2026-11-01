@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/reef/data/services/arcgis_feature_query.dart';
+import 'package:submersion/features/reef/data/services/reef_request_timeout.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 
@@ -14,6 +15,7 @@ import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 /// `reef_attribution_sheet.dart`.
 class ReefHabitatService {
   final http.Client _client;
+  final Duration _timeout;
 
   static const String endpoint =
       'https://data-gis.unep-wcmc.org/server/rest/services/Hosted/'
@@ -21,7 +23,11 @@ class ReefHabitatService {
 
   static const List<String> _outFields = ['threat_txt'];
 
-  ReefHabitatService({http.Client? client}) : _client = client ?? http.Client();
+  ReefHabitatService({
+    http.Client? client,
+    Duration timeout = reefRequestTimeout,
+  }) : _client = client ?? http.Client(),
+       _timeout = timeout;
 
   Future<ReefPart<ReefHabitat>> fetch(GeoPoint point) async {
     try {
@@ -31,7 +37,7 @@ class ReefHabitatService {
         where: '1=1',
         outFields: _outFields,
       );
-      final response = await _client.get(uri);
+      final response = await _client.get(uri).timeout(_timeout);
       if (response.statusCode != 200) {
         developer.log(
           'Reef habitat HTTP ${response.statusCode}',

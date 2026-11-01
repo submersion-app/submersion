@@ -12688,7 +12688,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "此设备无法压缩视频。将从此设备上传原始文件。",
   "reef_section_title": "生态系统",
   "reef_section_sourcesTooltip": "数据来源",
-  "reef_section_loadError": "目前无法加载生态系统数据",
+  "reef_section_checking": "正在检查…",
   "reef_habitat_title": "珊瑚礁生境",
   "reef_habitat_onReef": "位于珊瑚礁上",
   "reef_habitat_onReefWithThreat": "位于珊瑚礁上，威胁等级 {threat}",
