@@ -67112,6 +67112,66 @@ abstract class AppLocalizations {
   /// **'Humid'**
   String get enum_diveField_humidity_short;
 
+  /// No description provided for @enum_diveField_excludedFromStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from Stats'**
+  String get enum_diveField_excludedFromStats;
+
+  /// No description provided for @enum_diveField_excludedFromStats_short.
+  ///
+  /// In en, this message translates to:
+  /// **'No Stats'**
+  String get enum_diveField_excludedFromStats_short;
+
+  /// No description provided for @enum_diveField_excludedFromGasStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from Gas Stats'**
+  String get enum_diveField_excludedFromGasStats;
+
+  /// No description provided for @enum_diveField_excludedFromGasStats_short.
+  ///
+  /// In en, this message translates to:
+  /// **'No Gas Stats'**
+  String get enum_diveField_excludedFromGasStats_short;
+
+  /// No description provided for @enum_diveField_windDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Direction'**
+  String get enum_diveField_windDirection;
+
+  /// No description provided for @enum_diveField_windDirection_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Dir'**
+  String get enum_diveField_windDirection_short;
+
+  /// No description provided for @enum_diveField_scrubberType.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Type'**
+  String get enum_diveField_scrubberType;
+
+  /// No description provided for @enum_diveField_scrubberType_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber'**
+  String get enum_diveField_scrubberType_short;
+
+  /// No description provided for @enum_diveField_scrubberDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Duration'**
+  String get enum_diveField_scrubberDuration;
+
+  /// No description provided for @enum_diveField_scrubberDuration_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Min'**
+  String get enum_diveField_scrubberDuration_short;
+
   /// No description provided for @enum_diveField_weatherDescription_short.
   ///
   /// In en, this message translates to:

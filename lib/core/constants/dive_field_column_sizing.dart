@@ -120,6 +120,15 @@ extension DiveFieldColumnSizing on DiveField {
         return 80;
       case DiveField.isFavorite:
         return 60;
+      case DiveField.excludedFromStats:
+      case DiveField.excludedFromGasStats:
+        return 80;
+      case DiveField.windDirection:
+        return 90;
+      case DiveField.scrubberType:
+        return 110;
+      case DiveField.scrubberDuration:
+        return 90;
       case DiveField.notes:
         return 200;
       case DiveField.tags:
@@ -251,6 +260,12 @@ extension DiveFieldColumnSizing on DiveField {
         return 60;
       case DiveField.isFavorite:
         return 40;
+      case DiveField.excludedFromStats:
+      case DiveField.excludedFromGasStats:
+      case DiveField.windDirection:
+      case DiveField.scrubberType:
+      case DiveField.scrubberDuration:
+        return 60;
       case DiveField.notes:
         return 80;
       case DiveField.tags:

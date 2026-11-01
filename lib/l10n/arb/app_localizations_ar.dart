@@ -43107,6 +43107,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_diveField_humidity_short => 'الرطوبة';
 
   @override
+  String get enum_diveField_excludedFromStats => 'مستبعدة من الإحصائيات';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'بلا إحصاء';
+
+  @override
+  String get enum_diveField_excludedFromGasStats => 'مستبعدة من إحصائيات الغاز';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'بلا إحصاء غاز';
+
+  @override
+  String get enum_diveField_windDirection => 'اتجاه الرياح';
+
+  @override
+  String get enum_diveField_windDirection_short => 'اتجاه الرياح';
+
+  @override
+  String get enum_diveField_scrubberType => 'نوع الممتص';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'الممتص';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'مدة الممتص';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'دقائق الممتص';
+
+  @override
   String get enum_diveField_weatherDescription_short => 'الطقس';
 
   @override

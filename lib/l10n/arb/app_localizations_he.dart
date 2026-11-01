@@ -41530,6 +41530,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'לחות';
 
   @override
+  String get enum_diveField_excludedFromStats => 'לא נכלל בסטטיסטיקה';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'ללא סטט.';
+
+  @override
+  String get enum_diveField_excludedFromGasStats => 'לא נכלל בסטטיסטיקת גז';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'ללא סטט. גז';
+
+  @override
+  String get enum_diveField_windDirection => 'כיוון הרוח';
+
+  @override
+  String get enum_diveField_windDirection_short => 'כיוון רוח';
+
+  @override
+  String get enum_diveField_scrubberType => 'סוג סקרבר';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'סקרבר';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'משך סקרבר';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'דקות סקרבר';
+
+  @override
   String get enum_diveField_weatherDescription_short => 'מזג אוויר';
 
   @override

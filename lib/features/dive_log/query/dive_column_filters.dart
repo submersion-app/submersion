@@ -155,6 +155,10 @@ const Map<DiveField, DiveColumnFilter> kDiveColumnFilters = {
     'favorite',
     DiveColumnFilterKind.boolean,
   ),
+  DiveField.excludedFromStats: DiveColumnFilter(
+    'excludedFromStats',
+    DiveColumnFilterKind.boolean,
+  ),
   DiveField.notes: DiveColumnFilter('notes', DiveColumnFilterKind.headerOnly),
   DiveField.diveMaster: DiveColumnFilter(
     'diveMaster',
@@ -194,4 +198,8 @@ const Set<DiveField> kUnfilterableDiveColumns = {
   DiveField.siteLatitude,
   DiveField.siteLongitude,
   DiveField.importSource,
+  DiveField.excludedFromGasStats,
+  DiveField.windDirection,
+  DiveField.scrubberType,
+  DiveField.scrubberDuration,
 };

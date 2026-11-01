@@ -40112,6 +40112,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveField_humidity_short => '湿度';
 
   @override
+  String get enum_diveField_excludedFromStats => '排除在统计之外';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => '不计统计';
+
+  @override
+  String get enum_diveField_excludedFromGasStats => '排除在气体统计之外';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => '不计气体统计';
+
+  @override
+  String get enum_diveField_windDirection => '风向';
+
+  @override
+  String get enum_diveField_windDirection_short => '风向';
+
+  @override
+  String get enum_diveField_scrubberType => '吸收罐类型';
+
+  @override
+  String get enum_diveField_scrubberType_short => '吸收罐';
+
+  @override
+  String get enum_diveField_scrubberDuration => '吸收罐时长';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => '吸收罐分钟';
+
+  @override
   String get enum_diveField_weatherDescription_short => '天气';
 
   @override

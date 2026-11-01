@@ -42337,6 +42337,36 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Pára';
 
   @override
+  String get enum_diveField_excludedFromStats => 'Statisztikából kizárva';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'Nincs stat.';
+
+  @override
+  String get enum_diveField_excludedFromGasStats => 'Gázstatisztikából kizárva';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'Nincs gázstat.';
+
+  @override
+  String get enum_diveField_windDirection => 'Szélirány';
+
+  @override
+  String get enum_diveField_windDirection_short => 'Szélir.';
+
+  @override
+  String get enum_diveField_scrubberType => 'Scrubber típusa';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'Scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'Scrubber időtartama';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'Scrubber perc';
+
+  @override
   String get enum_diveField_weatherDescription_short => 'Időjárás';
 
   @override

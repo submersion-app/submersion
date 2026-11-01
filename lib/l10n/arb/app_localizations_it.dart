@@ -42585,6 +42585,37 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Umid.';
 
   @override
+  String get enum_diveField_excludedFromStats => 'Esclusa dalle statistiche';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'No stat.';
+
+  @override
+  String get enum_diveField_excludedFromGasStats =>
+      'Esclusa dalle statistiche gas';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'No stat. gas';
+
+  @override
+  String get enum_diveField_windDirection => 'Direzione del vento';
+
+  @override
+  String get enum_diveField_windDirection_short => 'Dir. vento';
+
+  @override
+  String get enum_diveField_scrubberType => 'Tipo di scrubber';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'Scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'Durata scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'Min scrubber';
+
+  @override
   String get enum_diveField_weatherDescription_short => 'Meteo';
 
   @override
