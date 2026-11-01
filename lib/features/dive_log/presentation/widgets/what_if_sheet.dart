@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -11,6 +10,8 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/services/dive_to_plan_converter.dart';
+import 'package:submersion/features/planner/domain/services/logged_dive_chain.dart';
+import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Present the "What if..." sheet as a modal bottom sheet.
@@ -169,11 +170,8 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
         if (analysis != null && analysis.decoStatuses.isNotEmpty) {
           tissueCompartments = analysis.decoStatuses.last.compartments;
         }
-        final precedingEnd = (preceding.entryTime ?? preceding.dateTime).add(
-          preceding.effectiveRuntime ?? Duration.zero,
-        );
         final diveStart = dive.entryTime ?? dive.dateTime;
-        var interval = diveStart.difference(precedingEnd);
+        var interval = diveStart.difference(diveEnd(preceding));
         if (interval.isNegative) interval = Duration.zero;
         surfaceInterval = interval;
       }
@@ -210,7 +208,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
 
     if (!mounted) return;
     Navigator.of(context).pop();
-    context.push('/planning/dive-planner');
+    openDivePlanner(context);
   }
 }
 
@@ -229,9 +227,7 @@ final _precedingDiveWithin24hProvider = FutureProvider.family<Dive?, String>((
   Dive? best;
   for (final other in dives) {
     if (other.id == diveId) continue;
-    final otherEnd = (other.entryTime ?? other.dateTime).add(
-      other.effectiveRuntime ?? Duration.zero,
-    );
+    final otherEnd = diveEnd(other);
     if (otherEnd.isAfter(entry)) continue;
     if (entry.difference(otherEnd) > const Duration(hours: 24)) continue;
     if (best == null) {
