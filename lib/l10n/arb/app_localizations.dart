@@ -33216,6 +33216,12 @@ abstract class AppLocalizations {
   /// **'Decompression plan carries no bailout gas'**
   String get plannerCanvas_issue_noBailout;
 
+  /// No description provided for @plannerCanvas_issue_bailoutHypoxic.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout gas is hypoxic at {depth} (ppO₂ {value} bar). Carry a gas breathable to the surface.'**
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value);
+
   /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
   ///
   /// In en, this message translates to:
