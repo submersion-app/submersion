@@ -11806,8 +11806,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_gps_lookupFromCoordinates => 'البحث من الإحداثيات';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'أضف الإحداثيات في قسم الموقع الجغرافي لاستخدام هذا الخيار.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'لم يتم العثور على تفاصيل موقع لهذه الإحداثيات';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'تفاصيل الموقع تطابق هذه الإحداثيات بالفعل';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>

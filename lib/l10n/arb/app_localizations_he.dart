@@ -11400,8 +11400,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש לפי קואורדינטות';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'הוסיפו קואורדינטות בקטע מיקום כדי להשתמש באפשרות זו.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'לא נמצאו פרטי מיקום לקואורדינטות אלה';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'פרטי המיקום כבר תואמים לקואורדינטות אלה';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>

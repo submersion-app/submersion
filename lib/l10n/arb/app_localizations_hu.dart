@@ -11630,8 +11630,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Lekérdezés a koordinátákból';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'A használatához adjon meg koordinátákat a Helyzet részben.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'Nem található helyadat ezekhez a koordinátákhoz';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'A helyadatok már megegyeznek ezekkel a koordinátákkal';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
