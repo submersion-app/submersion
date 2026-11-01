@@ -48249,6 +48249,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_revisionSwitchFailed => '无法切换剖面版本。';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      '删除此轮廓版本是永久性的、无法撤销，并且会立即生效。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      '此轮廓从潜水电脑导入，很可能包含原始源数据。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow => '立即永久删除';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint => '保存于版本历史之前；未关联潜水电脑';
 
   @override

@@ -48,6 +48,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   late StateNotifierProvider<ProfileEditorNotifier, ProfileEditorState>
   _editorProvider;
   List<DiveProfilePoint>? _lastProfile;
+  bool _didApplyProfileChange = false;
 
   void _initializeProvider(List<DiveProfilePoint> profile) {
     final previous = _lastProfile;
@@ -152,7 +153,101 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     }
 
     if (mounted) {
+      _didApplyProfileChange = true;
       context.pop(true);
+    }
+  }
+
+  Future<void> _handleDeleteProfileSeries({
+    required String diveId,
+    required String seriesId,
+    required bool isComputerImport,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final l10n = context.l10n;
+        return AlertDialog(
+          title: Text(l10n.common_action_delete),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.diveLog_profileEditor_deleteProfile_permanentWarning),
+              if (isComputerImport) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.diveLog_profileEditor_deleteProfile_computerImportWarning,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.common_action_cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.diveLog_profileEditor_deleteProfile_confirmNow),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final repository = ref.read(diveRepositoryProvider);
+      await repository.deleteProfileSeriesWithHistoryForDive(diveId, seriesId);
+
+      if (!mounted) return;
+      ref.invalidate(diveProvider(diveId));
+      ref.invalidate(diveProfileProvider(diveId));
+      ref.invalidate(profileSeriesHistoryProvider(diveId));
+      ref.invalidate(sourceProfilesProvider(diveId));
+      ref.invalidate(diveDataSourcesProvider(diveId));
+
+      _didApplyProfileChange = true;
+      context.pop(true);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.diveLog_profileEditor_revisionSwitchFailed,
+          ),
+        ),
+      );
     }
   }
 
@@ -241,6 +336,18 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   Widget _buildEditor({bool showRevisions = true}) {
     final state = ref.watch(_editorProvider);
     final notifier = ref.read(_editorProvider.notifier);
+    final history = showRevisions
+        ? ref.watch(profileSeriesHistoryProvider(widget.diveId)).valueOrNull
+        : null;
+    final activeRevision = (history == null || history.isEmpty)
+        ? null
+        : history.firstWhere((r) => r.isActive, orElse: () => history.first);
+    final canDeleteProfile =
+        showRevisions &&
+        !state.hasChanges &&
+        history != null &&
+        history.length > 1 &&
+        activeRevision != null;
 
     return PopScope(
       canPop: !state.hasChanges,
@@ -248,7 +355,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         if (didPop) return;
         final shouldPop = await _onWillPop();
         if (shouldPop && mounted) {
-          context.pop();
+          context.pop(_didApplyProfileChange);
         }
       },
       child: Scaffold(
@@ -320,6 +427,15 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
               outlierCount: state.detectedOutliers?.length,
               selectedRange: state.selectedRange,
               hasWaypoints: state.waypoints?.isNotEmpty ?? false,
+              canDeleteProfile: canDeleteProfile,
+              onDeleteProfile: canDeleteProfile
+                  ? () => _handleDeleteProfileSeries(
+                      diveId: widget.diveId,
+                      seriesId: activeRevision.seriesId,
+                      isComputerImport:
+                          activeRevision.revisionKind == 'computer_import',
+                    )
+                  : null,
             ),
           ],
         ),
@@ -374,6 +490,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
               await ref
                   .read(diveRepositoryProvider)
                   .setActiveProfileSeries(diveId, seriesId);
+              _didApplyProfileChange = true;
               // Invalidate profile-related providers to refresh the editor.
               // The switch can change the primary source too (issue #3067).
               ref.invalidate(diveProvider(diveId));

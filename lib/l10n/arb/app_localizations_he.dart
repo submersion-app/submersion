@@ -50344,6 +50344,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן להחליף את גרסת הפרופיל.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'מחיקת גרסת הפרופיל הזו היא סופית, אינה ניתנת לביטול ונכנסת לתוקף באופן מיידי.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'הפרופיל הזה יובא ממחשב צלילה וככל הנראה מכיל את נתוני המקור המקוריים.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'מחיקה סופית עכשיו';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'נשמר לפני היסטוריית הגרסאות; לא מקושר למחשב צלילה';
 

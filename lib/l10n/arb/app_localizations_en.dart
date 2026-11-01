@@ -50633,6 +50633,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not switch profile revision.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'This profile was imported from a dive computer and likely contains the original source data.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Delete permanently now';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Saved before revision history; not linked to a computer';
 

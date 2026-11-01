@@ -51103,6 +51103,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan niet wisselen van profielrevisie.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'Het verwijderen van deze profielrevisie is permanent, kan niet ongedaan worden gemaakt en gaat direct in.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Dit profiel is geïmporteerd vanaf een duikcomputer en bevat waarschijnlijk de oorspronkelijke brongegevens.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Nu permanent verwijderen';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Opgeslagen vóór de revisiegeschiedenis; niet gekoppeld aan een computer';
 

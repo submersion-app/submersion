@@ -52087,6 +52087,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تبديل مراجعة الملف الشخصي.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'حذف مراجعة ملف الغوص هذه نهائي، ولا يمكن التراجع عنه، ويسري مفعوله فورًا.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'تم استيراد هذا الملف من حاسوب غوص ومن المحتمل أن يحتوي على بيانات المصدر الأصلية.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow => 'حذف نهائي الآن';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص';
 

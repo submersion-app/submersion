@@ -919,6 +919,31 @@ class ProfileSeriesRepository {
   Future<List<String>> deleteByIds(List<String> ids) =>
       ids.isEmpty ? Future.value(const []) : _delete((t) => t.id.isIn(ids));
 
+  /// Deletes a single series [seriesId] and its history entry [dive_profile_series_history].
+  /// Also deletes any associated profile events and gas switches for this series.
+  /// Throws if [seriesId] does not exist.
+  Future<void> deleteSeriesWithHistory(String seriesId) async {
+    await _db.transaction(() async {
+      // Log the deletion for sync tombstone
+      await _syncRepository.logDeletion(
+        entityType: entityType,
+        recordId: seriesId,
+      );
+
+      // Delete the series row
+      await (_db.delete(
+        _db.diveProfileSeries,
+      )..where((t) => t.id.equals(seriesId))).go();
+
+      // Delete the history entry
+      await _db.customStatement(
+        'DELETE FROM $_historyTable WHERE series_id = ?',
+        [seriesId],
+      );
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Nulls `source_id` on every series of [sourceId] and restamps each, the
   /// `clearComputer` rule applied to the other identity column.
   ///

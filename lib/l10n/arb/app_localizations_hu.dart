@@ -51138,6 +51138,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült a profilverzió váltása.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'A profilverzió törlése végleges, nem vonható vissza, és azonnal életbe lép.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Ezt a profilt búvárkomputerből importálták, és valószínűleg az eredeti forrásadatokat tartalmazza.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Végleges törlés most';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'A verzióelőzmények előtt mentve; nincs számítógéphez kapcsolva';
 

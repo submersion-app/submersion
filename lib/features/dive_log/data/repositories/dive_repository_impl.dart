@@ -1948,6 +1948,64 @@ class DiveRepository {
     return ownerRow;
   }
 
+  /// Deletes a profile series (revision) for [diveId] and its history entry.
+  ///
+  /// Validates that at least 2 revisions exist (cannot delete the only revision).
+  /// Throws [ArgumentError] if the series does not exist or if it's the only revision.
+  ///
+  /// Also deletes associated gas switches and profile events for this series.
+  /// After deletion, if the deleted series was the active primary, the newest
+  /// remaining revision becomes primary.
+  Future<void> deleteProfileSeriesWithHistoryForDive(
+    String diveId,
+    String seriesId,
+  ) async {
+    _log.info('Deleting profile series $seriesId for dive $diveId');
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // Get all revisions to check if more than 1 exists
+    final revisions = await getProfileHistory(diveId);
+    if (revisions.length < 2) {
+      throw ArgumentError(
+        'Cannot delete the only profile revision. At least 1 revision must remain.',
+      );
+    }
+
+    // Verify the seriesId exists in revisions for this dive
+    final seriesExists = revisions.any((r) => r.seriesId == seriesId);
+    if (!seriesExists) {
+      throw ArgumentError(
+        'Series $seriesId not found in revisions for dive $diveId',
+      );
+    }
+
+    await _db.transaction(() async {
+      // Check if this series is the active primary - if so, activate the newest remaining
+      final primarySeries = await _profileSeries.primarySeriesIdForDive(diveId);
+      if (primarySeries == seriesId) {
+        // Find the newest remaining revision (history order is newest first)
+        final remainingRevisions = revisions
+            .where((r) => r.seriesId != seriesId)
+            .toList();
+        if (remainingRevisions.isNotEmpty) {
+          final newestRevision = remainingRevisions.first;
+          await _profileSeries.activateSeriesForDive(
+            diveId: diveId,
+            seriesId: newestRevision.seriesId,
+            now: now,
+          );
+        }
+      }
+
+      // Delete the series and its history entry
+      await _profileSeries.deleteSeriesWithHistory(seriesId);
+    });
+
+    // Refresh dive data (update depth stats, clear safety review)
+    await _refreshDiveAfterProfileSwitch(diveId, now: now);
+  }
+
   /// Brings the dive in line with a profile that a restore or a revision
   /// switch just made live, as [saveEditedProfileWithKind] does for an edit:
   /// depth stats from the live samples, the safety review dropped so it

@@ -51427,6 +51427,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível alternar a revisão do perfil.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'A exclusão desta revisão de perfil é permanente, não pode ser desfeita e entra em vigor imediatamente.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Este perfil foi importado de um computador de mergulho e provavelmente contém os dados originais de origem.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Excluir permanentemente agora';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Guardado antes do histórico de revisões; sem ligação a um computador';
 

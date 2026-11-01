@@ -51306,6 +51306,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Profilrevision konnte nicht gewechselt werden.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'Das Löschen dieser Profilrevision ist dauerhaft, kann nicht rückgängig gemacht werden und wird sofort wirksam.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Dieses Profil wurde von einem Tauchcomputer importiert und enthält wahrscheinlich die ursprünglichen Quelldaten.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Jetzt dauerhaft löschen';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Vor der Revisionshistorie gespeichert; mit keinem Tauchcomputer verknüpft';
 

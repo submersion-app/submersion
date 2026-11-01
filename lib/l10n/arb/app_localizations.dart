@@ -81405,6 +81405,24 @@ abstract class AppLocalizations {
   /// **'Could not switch profile revision.'**
   String get diveLog_profileEditor_revisionSwitchFailed;
 
+  /// No description provided for @diveLog_profileEditor_deleteProfile_permanentWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.'**
+  String get diveLog_profileEditor_deleteProfile_permanentWarning;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_computerImportWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile was imported from a dive computer and likely contains the original source data.'**
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_confirmNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently now'**
+  String get diveLog_profileEditor_deleteProfile_confirmNow;
+
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
   ///
   /// In en, this message translates to:
