@@ -7,7 +7,6 @@
 #include <optional>
 #include <set>
 #include <string>
-#include <utility>
 
 #include <winrt/Windows.Devices.Bluetooth.Advertisement.h>
 #include <winrt/Windows.Foundation.h>
@@ -70,34 +69,6 @@ class BleScanner {
   // FH025918). Returns the two-byte model code, or 0 if not a match.
   static uint32_t ParsePelagicModelCode(const std::string& name);
 
-  // Matches a single candidate name against the descriptor database, trying
-  // the Pelagic model-code scheme first. Empty when [name] is empty, so a
-  // caller can try it unconditionally without a separate emptiness check.
-  static std::optional<libdc_descriptor_info_t> MatchDescriptorName(
-      const std::string& name);
-
-  // Logs an advertisement that was received but not recognized as a
-  // supported dive computer, once per address per scan. Diagnostic only:
-  // helps tell "nothing is advertising" apart from "something is
-  // advertising but this scanner does not recognize its name" (triage for
-  // a Perdix 2 that Windows' own Bluetooth settings list but this scanner
-  // never reports).
-  void LogUnmatchedOnce(uint64_t address, const std::string& name);
-
-  // Matches [address] against a supported descriptor, trying
-  // [primary_name] (the raw advertisement's local name, which may be
-  // empty) first and, only if that does not match, the name Windows'
-  // Bluetooth stack has separately resolved and cached for the address.
-  // Some dive computers advertise with no name, or a name the matcher does
-  // not recognize, in the specific packets this watcher sees, while
-  // Windows' own Bluetooth settings reliably resolve a name for the same
-  // address from its broader, longer-running scan -- this mirrors that
-  // fallback (Android's BleScanner.kt already falls back from
-  // scanRecord.deviceName to device.name the same way). Returns the
-  // matched descriptor and the name that matched, or nullopt.
-  std::optional<std::pair<libdc_descriptor_info_t, std::string>> MatchName(
-      uint64_t address, const std::string& primary_name);
-
   winrt::Windows::Devices::Bluetooth::Advertisement::
       BluetoothLEAdvertisementWatcher watcher_{nullptr};
   winrt::event_token received_token_;
@@ -108,14 +79,6 @@ class BleScanner {
 
   std::mutex seen_mutex_;
   std::set<uint64_t> seen_addresses_;
-  // Addresses already logged as unmatched or unnamed, so a device that
-  // keeps advertising without a recognized name does not spam the debug
-  // log once per packet.
-  std::set<uint64_t> logged_unmatched_;
-  // Addresses already sent through the OS name resolution fallback this
-  // scan, win or lose: that call blocks on a Windows round trip, so it
-  // must run at most once per address, not once per advertisement packet.
-  std::set<uint64_t> resolve_attempted_;
 };
 
 }  // namespace libdivecomputer_plugin
