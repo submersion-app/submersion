@@ -11,14 +11,22 @@ const int kGasSwitchClaimSeconds = 60;
 /// the rest of the form down.
 const int kGasSwitchMaxSuggestions = 3;
 
+/// Whether a falling pressure on [tank] means it was breathed. A cylinder that
+/// feeds a rebreather loop falls with the loop's demand, whatever the diver is
+/// breathing, so its pressure says nothing about a switch.
+bool hasBreathingStarts(DiveTank? tank) =>
+    tank != null &&
+    tank.role != TankRole.diluent &&
+    tank.role != TankRole.oxygenSupply;
+
 /// The times [row] offers as one-tap fills, in time order, from the [starts]
 /// of its cylinder [tank] (issue #4089).
 ///
 /// Left out: the second the row already holds, a start another row in
-/// [switches] claims, and a start past [maxTimestamp], which a series that
-/// outlasts the profile can give. A cylinder that feeds a rebreather loop
-/// offers nothing, since its pressure says nothing about a switch. When more
-/// than [kGasSwitchMaxSuggestions] remain, the nearest the row's time stay.
+/// [switches] claims, the second any other row sits on, since two switches
+/// cannot share one, and a start past [maxTimestamp], which a series that
+/// outlasts the profile can give. When more than [kGasSwitchMaxSuggestions]
+/// remain, the nearest the row's time stay.
 List<int> gasSwitchTimeSuggestions({
   required GasSwitch row,
   required DiveTank? tank,
@@ -26,18 +34,19 @@ List<int> gasSwitchTimeSuggestions({
   required List<GasSwitch> switches,
   required int? maxTimestamp,
 }) {
-  if (tank == null ||
-      tank.role == TankRole.diluent ||
-      tank.role == TankRole.oxygenSupply) {
-    return const [];
-  }
-  final claimedBy = [
+  if (!hasBreathingStarts(tank)) return const [];
+  final others = [
     for (final s in switches)
-      if (s.id != row.id && s.tankId == row.tankId) s.timestamp,
+      if (s.id != row.id) s,
+  ];
+  final claimedBy = [
+    for (final s in others)
+      if (s.tankId == row.tankId) s.timestamp,
   ];
   final open = [
     for (final start in starts)
       if (start != row.timestamp &&
+          !others.any((s) => s.timestamp == start) &&
           (maxTimestamp == null || start <= maxTimestamp) &&
           !claimedBy.any((t) => (t - start).abs() <= kGasSwitchClaimSeconds))
         start,

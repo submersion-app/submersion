@@ -54,9 +54,20 @@ void main() {
         _offer(
           row: _sw('a', 2400),
           starts: [900],
-          others: [_sw('b', 900, tankId: 'back')],
+          others: [_sw('b', 901, tankId: 'back')],
         ),
         [900],
+      );
+    });
+
+    test('leaves out the second another row sits on', () {
+      expect(
+        _offer(
+          row: _sw('a', 2400),
+          starts: [900],
+          others: [_sw('b', 900, tankId: 'back')],
+        ),
+        isEmpty,
       );
     });
 
@@ -73,6 +84,21 @@ void main() {
       expect(_offer(row: _sw('a', 900), starts: [4000], maxTimestamp: null), [
         4000,
       ]);
+    });
+
+    test('a cylinder that feeds the loop has no breathing starts', () {
+      expect(hasBreathingStarts(_deco), isTrue);
+      expect(hasBreathingStarts(null), isFalse);
+      expect(
+        hasBreathingStarts(const DiveTank(id: 'd', role: TankRole.diluent)),
+        isFalse,
+      );
+      expect(
+        hasBreathingStarts(
+          const DiveTank(id: 'o', role: TankRole.oxygenSupply),
+        ),
+        isFalse,
+      );
     });
 
     test('offers nothing for a cylinder that feeds the loop', () {

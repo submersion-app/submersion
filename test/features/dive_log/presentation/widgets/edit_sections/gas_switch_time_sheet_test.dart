@@ -27,6 +27,7 @@ Future<_Sheet> _open(
   int initialSeconds = 900,
   List<DiveProfilePoint> profile = _profile,
   bool imperial = false,
+  Locale locale = const Locale('en'),
 }) async {
   tester.view.physicalSize = const Size(800, 900);
   tester.view.devicePixelRatio = 1.0;
@@ -37,7 +38,7 @@ Future<_Sheet> _open(
   );
   await tester.pumpWidget(
     MaterialApp(
-      locale: const Locale('en'),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -210,6 +211,30 @@ void main() {
       );
 
       expect(find.text('0:05 at --'), findsOneWidget);
+    });
+
+    testWidgets('a profile with no depth still opens', (tester) async {
+      await _open(
+        tester,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 3000, depth: 0),
+        ],
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('15:00 at 0.0m'), findsOneWidget);
+    });
+
+    testWidgets('the slider runs left to right in a right-to-left language', (
+      tester,
+    ) async {
+      await _open(tester, locale: const Locale('he'));
+
+      expect(
+        Directionality.of(tester.element(find.byType(Slider))),
+        TextDirection.ltr,
+      );
     });
 
     testWidgets('reads depth in the diver\'s unit', (tester) async {

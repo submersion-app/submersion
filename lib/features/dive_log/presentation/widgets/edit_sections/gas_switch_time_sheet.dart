@@ -17,6 +17,10 @@ const double _cursorDotSize = 10;
 /// run along the chart's bottom edge.
 const double _depthHeadroom = 1.1;
 
+/// The shallowest depth the chart spans, in metres, so a profile that never
+/// left the surface still has a scale.
+const double _minChartDepth = 1;
+
 /// Whether [profile] has a span of time to pick on.
 bool canPickOnProfile(List<DiveProfilePoint> profile) =>
     profile.length >= 2 && profile.last.timestamp > 0;
@@ -69,7 +73,8 @@ class _GasSwitchTimeSheet extends StatefulWidget {
 class _GasSwitchTimeSheetState extends State<_GasSwitchTimeSheet> {
   late final int _span = widget.profile.last.timestamp;
   late final double _chartDepth =
-      widget.profile.map((p) => p.depth).reduce(math.max) * _depthHeadroom;
+      widget.profile.map((p) => p.depth).fold(_minChartDepth, math.max) *
+      _depthHeadroom;
   late int _seconds = widget.initialSeconds.clamp(0, _span);
 
   // Built once: a drag moves only the cursor above it, so a long profile is
@@ -145,14 +150,19 @@ class _GasSwitchTimeSheetState extends State<_GasSwitchTimeSheet> {
             ),
             Semantics(
               label: l10n.diveLog_edit_gasSwitches_pickTitle,
-              child: Slider(
-                value: _seconds.toDouble(),
-                max: _span.toDouble(),
-                // No inset, so the thumb sits under the chart's cursor.
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                semanticFormatterCallback: (value) =>
-                    formatMinutesSeconds(value.round()),
-                onChanged: (value) => setState(() => _seconds = value.round()),
+              // Time runs left to right on the chart in every language, so the
+              // slider must too. No inset, so its thumb sits under the cursor.
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: Slider(
+                  value: _seconds.toDouble(),
+                  max: _span.toDouble(),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  semanticFormatterCallback: (value) =>
+                      formatMinutesSeconds(value.round()),
+                  onChanged: (value) =>
+                      setState(() => _seconds = value.round()),
+                ),
               ),
             ),
             OverflowBar(

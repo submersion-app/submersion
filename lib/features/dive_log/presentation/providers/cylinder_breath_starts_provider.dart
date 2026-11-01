@@ -6,8 +6,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 /// with a cylinder that shows no start left out (issue #4089). Derived here
 /// so typing in the dive edit form does not run the detector again. Reads the
 /// recorded series only, never an estimated one.
-final cylinderBreathStartsProvider =
-    FutureProvider.family<Map<String, List<int>>, String>((ref, diveId) async {
+final cylinderBreathStartsProvider = FutureProvider.autoDispose
+    .family<Map<String, List<int>>, String>((ref, diveId) async {
       final pressures = await ref.watch(tankPressuresProvider(diveId).future);
       return {
         for (final MapEntry(key: tankId, value: series) in pressures.entries)

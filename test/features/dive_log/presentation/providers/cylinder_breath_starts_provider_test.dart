@@ -10,6 +10,21 @@ List<TankPressurePoint> _series(String tankId, double Function(int t) bar) => [
 ];
 
 void main() {
+  test('lets go of a dive once nothing reads it', () async {
+    final container = ProviderContainer(
+      overrides: [
+        tankPressuresProvider('dive-1').overrideWith((ref) async => {}),
+      ],
+    );
+    addTearDown(container.dispose);
+    final provider = cylinderBreathStartsProvider('dive-1');
+
+    container.listen(provider, (_, _) {}).close();
+    await container.pump();
+
+    expect(container.exists(provider), isFalse);
+  });
+
   test(
     'gives each cylinder that was breathed after a hold its starts',
     () async {
@@ -28,9 +43,12 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final starts = await container.read(
+      final sub = container.listen(
         cylinderBreathStartsProvider('dive-1').future,
+        (_, _) {},
       );
+      addTearDown(sub.close);
+      final starts = await sub.read();
 
       expect(starts.keys, ['deco']);
       expect(starts['deco'], hasLength(1));

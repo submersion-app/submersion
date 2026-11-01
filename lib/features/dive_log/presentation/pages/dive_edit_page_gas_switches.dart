@@ -92,6 +92,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
     final starts = diveId == null
         ? null
         : ref.read(cylinderBreathStartsProvider(diveId)).valueOrNull;
+    final tank = _tanks.where((t) => t.id == sw.tankId).firstOrNull;
     final seconds = await showGasSwitchTimeSheet(
       context,
       profile: profile,
@@ -101,7 +102,9 @@ extension _GasSwitchEditing on _DiveEditPageState {
         for (final other in _gasSwitches)
           if (other.id != sw.id) other.timestamp,
       ],
-      breathStarts: starts?[sw.tankId] ?? const [],
+      breathStarts: hasBreathingStarts(tank)
+          ? (starts?[sw.tankId] ?? const [])
+          : const [],
     );
     if (!mounted || seconds == null || seconds == sw.timestamp) return;
     _onGasSwitchChanged(sw.copyWith(timestamp: seconds), GasSwitchField.time);
