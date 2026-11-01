@@ -1789,19 +1789,22 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
       dive.id,
       window: const Duration(hours: 48),
       readPrevious: (previousDiveId) async {
-        // One-shot awaits (not watch), as in [_knownCnsEnd].
-        final previousDive = await ref.container.awaitFuture(
-          analysisDiveProvider(previousDiveId).future,
+        // One-shot await (not watch), as in [_knownCnsEnd].
+        final previousAnalysis = await ref.container.awaitFuture(
+          profileAnalysisProvider(previousDiveId).future,
         );
+        // Loaded by that analysis. Read as a value, not awaited: a dive that
+        // failed to load is an unknown dive to walk past, as the analysis
+        // reports it, not a failed lookback.
+        final previousDive = ref.container
+            .read(analysisDiveProvider(previousDiveId))
+            .valueOrNull;
         if (previousDive != null) {
           surface = DiveEnvironment.surfaceIntervalBetween(
             previousDive.environment,
             surface,
           );
         }
-        final previousAnalysis = await ref.container.awaitFuture(
-          profileAnalysisProvider(previousDiveId).future,
-        );
         // Extract end-of-dive compartment state
         return previousAnalysis?.decoStatuses.lastOrNull?.compartments;
       },

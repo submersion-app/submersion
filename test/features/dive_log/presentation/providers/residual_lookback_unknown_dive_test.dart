@@ -587,6 +587,23 @@ void main() {
         );
       });
 
+      test('a dive that cannot be read is walked past too', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
+        await seedDive('manual', middleStart, 10, samples: shallowAir);
+
+        await expectTissuesOffGassedFor(
+          50,
+          containerFor(
+            overrides: [
+              analysisDiveProvider(
+                'manual',
+              ).overrideWith((ref) async => throw StateError('unreadable')),
+            ],
+          ),
+          surface: highSurface,
+        );
+      });
+
       test('a dive walked past counts: the diver was at its surface', () async {
         await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
         await seedDive('manual', middleStart, 10, surfacePressure: 1.0);

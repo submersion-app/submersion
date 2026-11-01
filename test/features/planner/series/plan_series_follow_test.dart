@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -106,10 +108,18 @@ void main() {
         waterType: WaterType.salt,
       );
 
-      expect(
-        tensions(seedFor(atAltitude, altitude: 3000)),
-        isNot(tensions(seedFor(DiveEnvironment.standard, altitude: 3000))),
-      );
+      final offGassed = BuhlmannAlgorithm(environment: atAltitude)
+        ..restoreState(endTissues)
+        ..calculateSegment(
+          depthMeters: 0,
+          durationSeconds: const Duration(hours: 1).inSeconds,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+
+      expect(tensions(seedFor(atAltitude, altitude: 3000)), [
+        for (final c in offGassed.compartments) c.currentPN2,
+      ]);
     });
 
     test('the environment is carried with a copy', () {
