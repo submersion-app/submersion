@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
@@ -69,6 +71,56 @@ void main() {
     surfaceInterval: interval,
     newId: idSequence('t'),
   );
+
+  group('the surface a followed dive\'s tissues off-gas at (#3925)', () {
+    /// The first dive's seed in a series following a dive in [followedIn],
+    /// when that first dive is planned at [altitude].
+    BuhlmannState seedFor(DiveEnvironment followedIn, {double? altitude}) {
+      final series = followed(
+        PlanSeries.single(seriesDiveState().copyWith(altitude: altitude)),
+        using: follow().copyWith(endEnvironment: followedIn),
+      );
+      final state = carriedState(
+        series.dives,
+        0,
+        const [],
+        follow: series.follow,
+      );
+      return startStateForPlan(state, config: _config)! as BuhlmannState;
+    }
+
+    List<double> tensions(BuhlmannState state) => [
+      for (final c in state.compartments) c.currentPN2,
+    ];
+
+    test('a plan at altitude after a dive at sea level waits at sea level', () {
+      expect(
+        tensions(seedFor(DiveEnvironment.standard, altitude: 3000)),
+        tensions(seedFor(DiveEnvironment.standard)),
+      );
+    });
+
+    test('a plan at the followed dive\'s altitude waits at that altitude', () {
+      final atAltitude = DiveEnvironment.forConditions(
+        altitudeMeters: 3000,
+        waterType: WaterType.salt,
+      );
+
+      expect(
+        tensions(seedFor(atAltitude, altitude: 3000)),
+        isNot(tensions(seedFor(DiveEnvironment.standard, altitude: 3000))),
+      );
+    });
+
+    test('the environment is carried with a copy', () {
+      const altitude = DiveEnvironment(surfacePressureBar: 0.7);
+      final copy = follow().copyWith(endEnvironment: altitude);
+
+      expect(copy.endEnvironment, altitude);
+      expect(copy.copyWith(endCns: 5).endEnvironment, altitude);
+      expect(copy, isNot(follow()));
+    });
+  });
 
   group('the first dive of a series that follows a logged dive', () {
     test('starts from its end tissues, CNS and tank pressures', () {
