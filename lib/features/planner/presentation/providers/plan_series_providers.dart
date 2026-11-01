@@ -345,15 +345,17 @@ final selectedSeriesIssuesProvider = Provider<List<PlanIssue>>((ref) {
   return index < results.length ? results[index].seriesIssues : const [];
 });
 
-/// The series as a whole, for its summary; null on a single dive.
+/// The series as a whole, for its summary: more than one dive, or one that
+/// follows a logged dive. Null on a single dive on its own.
 final planSeriesSummaryProvider = Provider<SeriesSummary?>((ref) {
-  final isSeries = ref.watch(
-    planSeriesNotifierProvider.select((s) => s.isSeries),
+  final (isSeries, follow) = ref.watch(
+    planSeriesNotifierProvider.select((s) => (s.isSeries, s.follow)),
   );
-  if (!isSeries) return null;
+  if (!isSeries && follow == null) return null;
   return seriesSummary(
     ref.watch(planSeriesResultsProvider),
     preset: ref.watch(settingsProvider.select((s) => s.noFlyPreset)),
+    follow: follow,
   );
 });
 

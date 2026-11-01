@@ -261,7 +261,7 @@ so its dot, the warnings list and the count all include them.
 | Short surface interval | Under 10 minutes | Warning |
 | Starts before the previous dive ends | A fixed start earlier than that end | Critical |
 | Starts owing deco | Off-gassed tissues still can't surface at the high GF | Critical |
-| Reverse profile | More than 3 m deeper than the dive before | Warning |
+| Reverse profile | More than 12 m deeper than the dive before | Warning |
 
 A planned dive's stops always clear the ceiling before it surfaces, so owing deco
 comes only from a followed logged dive that left it, or a later dive with a
@@ -271,11 +271,13 @@ CNS and OTU need no warning of their own: the engine starts each dive from the
 carried exposure, so its existing warnings already count earlier dives. The OTU
 limit stays 300 against the rolling 24-hour total.
 
-The **Series** card sits above the selected dive's results, only on a series:
-total time (dives and intervals), highest CNS, daily OTU, and no-fly. No-fly is
-the published interval for repetitive diving, or deco when any dive has stops,
-after the last dive: a clock time when the series has a start, else a duration.
-It doesn't count a followed dive's own deco, which the plan doesn't compute.
+The **Series** card sits above the selected dive's results, on a series or a
+dive following a logged one: total time (dives and intervals), highest CNS, daily
+OTU, and no-fly. No-fly is the published interval after the last dive: the
+repetitive one, or when any planned dive has stops or the followed dive had deco
+(or a dive within a day before it, as the log analyses those), the greater of
+that and the deco one. It shows a clock time when the series has a start, else a
+duration.
 
 ## Design
 

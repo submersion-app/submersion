@@ -1,4 +1,5 @@
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 
@@ -30,16 +31,19 @@ class SeriesSummary {
 }
 
 /// The summary of a computed series of at least one dive. The no-fly wait is
-/// the published interval for repetitive diving, or for deco when any dive
-/// has stops, not a tissue calculation, the same as the rest of the app.
+/// the published interval, not a tissue calculation, the same as the rest of
+/// the app: the repetitive one, or when any dive has stops or the logged dive
+/// it [follow]s had deco, the greater of that and the deco one. It runs from
+/// the end of the last dive.
 SeriesSummary seriesSummary(
   List<SeriesDiveResult> results, {
   required NoFlyPreset preset,
+  SeriesFollow? follow,
 }) {
   var total = 0;
   var cns = 0.0;
   var otu = 0.0;
-  var deco = false;
+  var deco = follow?.hadDeco ?? false;
   for (final (index, result) in results.indexed) {
     final outcome = result.outcome;
     if (index > 0) total += result.state.surfaceInterval?.inSeconds ?? 0;
@@ -49,10 +53,9 @@ SeriesSummary seriesSummary(
     deco = deco || outcome.stops.isNotEmpty;
   }
 
-  final wait = NoFlyService.intervalFor(
-    preset,
-    deco ? NoFlyCategory.deco : NoFlyCategory.repetitive,
-  );
+  final repetitive = NoFlyService.intervalFor(preset, NoFlyCategory.repetitive);
+  final decoWait = NoFlyService.intervalFor(preset, NoFlyCategory.deco);
+  final wait = deco && decoWait > repetitive ? decoWait : repetitive;
   final last = results.last;
   final start = last.state.startDateTime;
   return SeriesSummary(

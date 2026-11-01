@@ -32,9 +32,8 @@ class SeriesDiveResult {
 /// A surface interval shorter than this is flagged.
 const shortSurfaceIntervalLimit = Duration(minutes: 10);
 
-/// How much deeper than the dive before counts as a reverse profile. A few
-/// metres between two dives to the same site is not a change of plan.
-const reverseProfileMarginMeters = 3.0;
+/// How much deeper than the dive before counts as a reverse profile.
+const reverseProfileMarginMeters = 12.0;
 
 /// What the series raises about the dive at [index], whose inputs with its
 /// carry applied are [state], from [earlier]: the dives before it, in order.

@@ -89,6 +89,10 @@ class SeriesFollow extends Equatable {
   /// The followed dive's tanks as logged, end pressures included.
   final List<DiveTank> endTanks;
 
+  /// Whether the followed dive, or one within a day before it, had a deco
+  /// obligation, which sets how long to wait before flying.
+  final bool hadDeco;
+
   /// The first planned dive's own tank start pressures from before it
   /// followed a dive, keyed by tank id: what Fill fills to, and what the
   /// tanks go back to when the dive is no longer followed. A tank added
@@ -100,6 +104,7 @@ class SeriesFollow extends Equatable {
     this.endTissues,
     this.endCns = 0,
     this.endTanks = const [],
+    this.hadDeco = false,
     this.ownStartPressures = const {},
   }) : assert(loggedDives.isNotEmpty);
 
@@ -111,6 +116,7 @@ class SeriesFollow extends Equatable {
     bool clearEndTissues = false,
     double? endCns,
     List<DiveTank>? endTanks,
+    bool? hadDeco,
     Map<String, double>? ownStartPressures,
   }) {
     return SeriesFollow(
@@ -118,6 +124,7 @@ class SeriesFollow extends Equatable {
       endTissues: clearEndTissues ? null : (endTissues ?? this.endTissues),
       endCns: endCns ?? this.endCns,
       endTanks: endTanks ?? this.endTanks,
+      hadDeco: hadDeco ?? this.hadDeco,
       ownStartPressures: ownStartPressures ?? this.ownStartPressures,
     );
   }
@@ -128,6 +135,7 @@ class SeriesFollow extends Equatable {
     endTissues,
     endCns,
     endTanks,
+    hadDeco,
     ownStartPressures,
   ];
 }

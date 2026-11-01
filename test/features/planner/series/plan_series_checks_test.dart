@@ -141,17 +141,17 @@ void main() {
     });
 
     test('a dive deeper than the one before warns of a reverse profile', () {
-      final results = compute(_two(firstDepth: 18, secondDepth: 30));
+      final results = compute(_two(firstDepth: 15, secondDepth: 30));
       final issue = results[1].seriesIssues.firstWhere(
         (i) => i.type == PlanIssueType.reverseProfile,
       );
       expect(issue.severity, PlanIssueSeverity.warning);
       expect(issue.value, 30);
-      expect(issue.threshold, 18);
+      expect(issue.threshold, 15);
     });
 
-    test('a little deeper is not a reverse profile', () {
-      final results = compute(_two(firstDepth: 28, secondDepth: 30));
+    test('up to 12 m deeper is not a reverse profile', () {
+      final results = compute(_two(firstDepth: 18, secondDepth: 30));
       expect(_types(results[1]), isNot(contains(PlanIssueType.reverseProfile)));
     });
 
@@ -227,6 +227,44 @@ void main() {
           NoFlyPreset.standard,
           NoFlyCategory.repetitive,
         ),
+      );
+    });
+
+    test('a followed dive with deco waits the deco no-fly time', () {
+      final series = _two(firstDepth: 12, secondDepth: 10, firstMinutes: 10);
+      final follow = SeriesFollow(
+        loggedDives: [seriesLoggedDive('d1', DateTime(2026, 10, 27, 8))],
+        hadDeco: true,
+      );
+      final results = computeSeries(series.dives, config: _config);
+
+      final summary = seriesSummary(
+        results,
+        preset: NoFlyPreset.standard,
+        follow: follow,
+      );
+
+      expect(
+        summary.noFlyWait,
+        NoFlyService.intervalFor(NoFlyPreset.standard, NoFlyCategory.deco),
+      );
+    });
+
+    test('a followed dive with no deco waits the repetitive time', () {
+      final series = _two(firstDepth: 12, secondDepth: 10, firstMinutes: 10);
+      final results = computeSeries(series.dives, config: _config);
+
+      final summary = seriesSummary(
+        results,
+        preset: NoFlyPreset.strict,
+        follow: SeriesFollow(
+          loggedDives: [seriesLoggedDive('d1', DateTime(2026, 10, 27, 8))],
+        ),
+      );
+
+      expect(
+        summary.noFlyWait,
+        NoFlyService.intervalFor(NoFlyPreset.strict, NoFlyCategory.repetitive),
       );
     });
 
