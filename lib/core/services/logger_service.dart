@@ -8,6 +8,9 @@ import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/log_redactor.dart';
 
+/// A line held until it can be written, with how it was logged.
+typedef _HeldLine = ({LogEntry entry, bool alwaysPersist});
+
 /// Simple logging service for the application.
 /// Uses Dart's developer.log for structured logging and writes to a
 /// persistent log file via [LogFileService].
@@ -42,7 +45,7 @@ class LoggerService {
   static const startupBufferLimit = 500;
 
   /// Lines logged before a file was attached, while startup buffering is on.
-  static ListQueue<({LogEntry entry, bool alwaysPersist})>? _startupBuffer;
+  static ListQueue<_HeldLine>? _startupBuffer;
 
   /// Lowest severity written to the log file. Live listeners on [logStream]
   /// see every level regardless.
@@ -90,8 +93,7 @@ class LoggerService {
     // just chosen and redacted like any other persisted line.
     final buffered = _startupBuffer;
     _startupBuffer = null;
-    for (final line
-        in buffered ?? const <({LogEntry entry, bool alwaysPersist})>[]) {
+    for (final line in buffered ?? const <_HeldLine>[]) {
       if (_persists(
         line.entry.level,
         line.alwaysPersist,
@@ -347,8 +349,12 @@ class LoggerService {
   /// lines would reach the console alone. They are held there and recorded
   /// here instead, under the file level this isolate chose and redacted like
   /// any other line, so a problem found on a worker can still reach the log a
-  /// user attaches to a bug report. Lines from a [work] that throws are lost
-  /// with it.
+  /// user attaches to a bug report.
+  ///
+  /// They arrive together once [work] finishes, so they can sit after newer
+  /// lines from this isolate, carrying the times they were logged. Only the
+  /// newest [startupBufferLimit] are kept, and lines from a [work] that throws
+  /// are lost with it.
   static Future<R> isolateRunKeepingLogs<R>(FutureOr<R> Function() work) async {
     final (:value, :lines) = await _runHoldingLines(work);
     for (final line in lines) {
@@ -359,8 +365,9 @@ class LoggerService {
 
   /// Minimal-scope hop to the worker isolate: Dart closures capture their
   /// enclosing scope, and this one holds [work] alone.
-  static Future<({R value, List<({LogEntry entry, bool alwaysPersist})> lines})>
-  _runHoldingLines<R>(FutureOr<R> Function() work) => Isolate.run(() async {
+  static Future<({R value, List<_HeldLine> lines})> _runHoldingLines<R>(
+    FutureOr<R> Function() work,
+  ) => Isolate.run(() async {
     bufferUntilFileAttached();
     final value = await work();
     return (value: value, lines: _startupBuffer!.toList(growable: false));

@@ -19,6 +19,9 @@ String? _logAndNameIsolate() {
 
 Never _failOnWorker() => throw const FormatException('bad input');
 
+void _logSessionMarker() =>
+    const LoggerService('Worker').info('worker marker', alwaysPersist: true);
+
 void main() {
   group('LoggerService', () {
     late Directory tempDir;
@@ -500,6 +503,16 @@ void main() {
 
         expect(seen, hasLength(2));
         expect(seen.first, 'worker chatter');
+      });
+
+      test('keeps a worker line that must always persist', () async {
+        LoggerService.configureFileLogging(fileService, verbose: false);
+
+        await LoggerService.isolateRunKeepingLogs(_logSessionMarker);
+        await flushLogs();
+
+        final entries = await fileService.readEntries();
+        expect(entries.map((e) => e.message), ['worker marker']);
       });
 
       test('holds a worker line until startup attaches a file', () async {
