@@ -134,7 +134,7 @@ final findingsByRuleProvider = FutureProvider.family<List<RankingItem>, Locale>(
     };
     final l10n = lookupAppLocalizations(locale);
     final counts = <ConditionRuleId, int>{};
-    for (final f in await findings.getAllUndismissed()) {
+    for (final f in await findings.getUndismissedSummaries()) {
       if (!mine.contains(f.equipmentId)) continue;
       if (disabled.contains(f.ruleId.dbValue)) continue;
       counts[f.ruleId] = (counts[f.ruleId] ?? 0) + 1;

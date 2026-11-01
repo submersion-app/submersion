@@ -13,6 +13,55 @@ void main() {
     ],
   );
 
+  group('straightAscentSpans', () {
+    List<AscentLeg> spans(double from, double to, int seconds) =>
+        straightAscentSpans(
+          airAndEan50,
+          fromDepth: from,
+          toDepth: to,
+          seconds: seconds,
+        );
+
+    test('a leg with no switch is one span, end to end', () {
+      expect(spans(60, 30, 200), [
+        (fromDepth: 60.0, toDepth: 30.0, seconds: 200),
+      ]);
+    });
+
+    test('a switch inside the leg cuts it there', () {
+      expect(spans(30, 12, 180), [
+        (fromDepth: 30.0, toDepth: 21.0, seconds: 90),
+        (fromDepth: 21.0, toDepth: 12.0, seconds: 90),
+      ]);
+    });
+
+    test('a cut rounded to a whole second stays on the line', () {
+      // 21 m is 31.8 s into the 60 s leg, so the cut lands on 32 s: on the
+      // leg's own line that is 20.93 m, a hair past the switch.
+      final cut = spans(30, 13, 60);
+
+      expect(cut.map((span) => span.seconds), [32, 28]);
+      expect(cut.first.fromDepth, 30);
+      expect(cut.first.toDepth, closeTo(30 - 17 * 32 / 60, 1e-9));
+      expect(cut.last.fromDepth, cut.first.toDepth);
+      expect(cut.last.toDepth, closeTo(13, 1e-9));
+    });
+
+    test('a span rounded away to no time leaves no depth behind', () {
+      // The 21 m switch sits 0.01 m above the end of this 60 s leg, so the
+      // last span gets no seconds and the first must reach the end itself.
+      final cut = spans(30, 20.99, 60);
+
+      expect(cut.map((span) => span.seconds), [60]);
+      expect(cut.single.toDepth, closeTo(20.99, 1e-9));
+    });
+
+    test('a leg with no time has nothing to walk', () {
+      expect(spans(21, 21, 0), isEmpty);
+      expect(spans(30, 12, 0), isEmpty);
+    });
+  });
+
   group('ascentTravelSpans', () {
     test('a dive with no stops is one span to the surface', () {
       final spans = ascentTravelSpans(

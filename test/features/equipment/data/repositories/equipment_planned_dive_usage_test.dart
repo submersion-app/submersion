@@ -60,7 +60,7 @@ void main() {
         DiveEquipmentCompanion.insert(diveId: diveId, equipmentId: equipmentId),
       );
 
-  Future<void> addTrip(String id) => db
+  Future<void> addTrip(String id, {String? diver}) => db
       .into(db.trips)
       .insert(
         TripsCompanion.insert(
@@ -70,7 +70,7 @@ void main() {
           endDate: 1,
           createdAt: 1,
           updatedAt: 1,
-        ),
+        ).copyWith(diverId: Value(diver)),
       );
 
   /// Item-page exposure and the list-wide read, which must agree (their SQL
@@ -258,9 +258,17 @@ void main() {
     await addDive('plan', planDate, planned: true, tripId: 'upcoming');
     await link('actual', item.id);
     await link('plan', item.id);
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    addTearDown(container.dispose);
 
-    expect(await repo.getTripCountForEquipment(item.id), 1);
-    expect(await repo.getTripIdsForEquipment(item.id), ['been']);
+    expect(await container.read(equipmentTripCountProvider(item.id).future), 1);
+    expect(await container.read(equipmentTripIdsProvider(item.id).future), {
+      'been',
+    });
   });
 
   test(
@@ -277,9 +285,21 @@ void main() {
             ).copyWith(regulatorEquipmentId: Value(item.id)),
           );
 
+      final container = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+      );
+      addTearDown(container.dispose);
+
       expect(await repo.getDiveCountForEquipment(item.id), 1);
-      expect(await repo.getTripCountForEquipment(item.id), 1);
-      expect(await repo.getTripIdsForEquipment(item.id), ['been']);
+      expect(
+        await container.read(equipmentTripCountProvider(item.id).future),
+        1,
+      );
+      expect(await container.read(equipmentTripIdsProvider(item.id).future), {
+        'been',
+      });
     },
   );
 
@@ -296,8 +316,8 @@ void main() {
             ),
           );
     }
-    await addTrip('mine');
-    await addTrip('theirs');
+    await addTrip('mine', diver: 'me');
+    await addTrip('theirs', diver: 'me');
     await addDive('d1', actualDate, tripId: 'mine', diver: 'me');
     await addDive('d2', actualDate, tripId: 'theirs', diver: 'buddy');
     await link('d1', item.id);
@@ -310,10 +330,9 @@ void main() {
     addTearDown(container.dispose);
 
     expect(await container.read(equipmentTripCountProvider(item.id).future), 1);
-    expect(await container.read(equipmentTripIdsProvider(item.id).future), [
+    expect(await container.read(equipmentTripIdsProvider(item.id).future), {
       'mine',
-    ]);
-    expect(await repo.getTripCountForEquipment(item.id), 2);
+    });
   });
 
   test('the Trips row refreshes when a plan on the trip is logged', () async {
@@ -334,7 +353,10 @@ void main() {
     final ids = container.listen(equipmentTripIdsProvider(item.id), (_, _) {});
     addTearDown(ids.close);
     expect(await container.read(equipmentTripCountProvider(item.id).future), 0);
-    expect(await container.read(equipmentTripIdsProvider(item.id).future), []);
+    expect(
+      await container.read(equipmentTripIdsProvider(item.id).future),
+      isEmpty,
+    );
 
     await (db.update(db.dives)..where((t) => t.id.equals('plan'))).write(
       const DivesCompanion(isPlanned: Value(false)),
@@ -342,9 +364,9 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 600));
 
     expect(await container.read(equipmentTripCountProvider(item.id).future), 1);
-    expect(await container.read(equipmentTripIdsProvider(item.id).future), [
+    expect(await container.read(equipmentTripIdsProvider(item.id).future), {
       'upcoming',
-    ]);
+    });
   });
 
   group('a two-dive service clock', () {

@@ -77,6 +77,14 @@ class DiveFilterState {
 
   // v1.5: Additional filter criteria
   final List<String> equipmentIds;
+
+  /// With [equipmentIds], keep only the dives they were used on: a plan has
+  /// not used them (issue #3932). The item page's links set it, through
+  /// [DiveFilterState.itemUse], so the list shows what their counts read. The
+  /// diver's own equipment filter leaves it off, because it finds plans too.
+  /// It narrows [equipmentIds], so it is no axis of its own, and it ends with
+  /// them: changing the items drops it.
+  final bool equipmentUsedOnly;
   final String? buddyNameFilter;
 
   /// Linked buddy to restrict to: a live check against the `dive_buddies`
@@ -176,6 +184,7 @@ class DiveFilterState {
     this.tagIds = const [],
     this.weekdays = const [],
     this.equipmentIds = const [],
+    this.equipmentUsedOnly = false,
     this.buddyNameFilter,
     this.buddyId,
     this.diveIds = const [],
@@ -202,6 +211,10 @@ class DiveFilterState {
     this.query,
     this.axesSuspended = false,
   });
+
+  /// The dives item [equipmentId] was used on, as its page counts them.
+  factory DiveFilterState.itemUse(String equipmentId) =>
+      DiveFilterState(equipmentIds: [equipmentId], equipmentUsedOnly: true);
 
   /// Inclusive lower bound for `dives.dive_date_time`, in the wall-clock-as-UTC
   /// epoch milliseconds that column stores. Null when [startDate] is unset.
@@ -299,6 +312,7 @@ class DiveFilterState {
           listEquals(other.tagIds, tagIds) &&
           listEquals(other.weekdays, weekdays) &&
           listEquals(other.equipmentIds, equipmentIds) &&
+          other.equipmentUsedOnly == equipmentUsedOnly &&
           other.buddyNameFilter == buddyNameFilter &&
           other.buddyId == buddyId &&
           listEquals(other.diveIds, diveIds) &&
@@ -344,6 +358,7 @@ class DiveFilterState {
     Object.hashAll(tagIds),
     Object.hashAll(weekdays),
     Object.hashAll(equipmentIds),
+    equipmentUsedOnly,
     buddyNameFilter,
     buddyId,
     Object.hashAll(diveIds),
@@ -389,6 +404,7 @@ class DiveFilterState {
     List<String>? tagIds,
     List<int>? weekdays,
     List<String>? equipmentIds,
+    bool? equipmentUsedOnly,
     String? buddyNameFilter,
     String? buddyId,
     List<String>? diveIds,
@@ -503,6 +519,11 @@ class DiveFilterState {
       equipmentIds: clearEquipmentIds
           ? const []
           : (equipmentIds ?? this.equipmentIds),
+      equipmentUsedOnly:
+          equipmentUsedOnly ??
+          (!clearEquipmentIds &&
+              equipmentIds == null &&
+              this.equipmentUsedOnly),
       buddyNameFilter: clearBuddyNameFilter
           ? null
           : (buddyNameFilter ?? this.buddyNameFilter),

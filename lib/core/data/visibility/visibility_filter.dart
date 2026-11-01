@@ -153,7 +153,8 @@ class VisibilityFilter {
   /// * `tableAlias` qualifies the column names (e.g. `"t"` in
   ///   `FROM trips t`, or `"trips"` when the table is unaliased).
   /// * `conjunction` is `"AND"` when other WHERE clauses precede this
-  ///   fragment, or `"WHERE"` when this is the first predicate.
+  ///   fragment, `"WHERE"` when this is the first predicate, or empty when
+  ///   the caller joins the clause itself (a query scope).
   /// * `kind` names the hides table to exclude.
   ///
   /// When `diverId` is `null`, the fragment is empty (no text, no vars),

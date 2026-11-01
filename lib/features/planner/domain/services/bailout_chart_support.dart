@@ -1,4 +1,5 @@
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/ascent/ascent_travel_spans.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
@@ -82,13 +83,26 @@ List<(int, double)> worstCaseCeilingTrace({
     }
   }
 
+  // A travel leg cut wherever the ascent changes gas, as PlanEngine's own
+  // ceiling trace cuts it.
+  void sampleTravel(double fromDepth, double toDepth, int seconds) {
+    for (final span in straightAscentSpans(
+      bailoutPlan,
+      fromDepth: fromDepth,
+      toDepth: toDepth,
+      seconds: seconds,
+    )) {
+      sampleLeg(span.fromDepth, span.toDepth, span.seconds);
+    }
+  }
+
   for (final stop in points[worstIndex].schedule.stops) {
     final legSeconds = policy.ascentSeconds(
       fromDepth: depth,
       toDepth: stop.depthMeters,
       phase: phase,
     );
-    if (legSeconds > 0) sampleLeg(depth, stop.depthMeters, legSeconds);
+    sampleTravel(depth, stop.depthMeters, legSeconds);
     // A stop with air breaks is breathed in the scheduler's own runs, so the
     // ceiling falls as it did when the stop was timed.
     final breakGas = bailoutPlan.breakGasForDepth(stop.depthMeters);
@@ -115,7 +129,7 @@ List<(int, double)> worstCaseCeilingTrace({
       toDepth: 0,
       phase: AscentPhase.surfacingAfter(phase),
     );
-    if (legSeconds > 0) sampleLeg(depth, 0, legSeconds);
+    sampleTravel(depth, 0, legSeconds);
   }
 
   return trace;

@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -57,6 +58,71 @@ void main() {
       DiveTank(id: 'back', name: 'Primary', volume: 11.1, startPressure: 200),
     ],
   );
+
+  testWidgets('a preceding dive ends at its recorded exit time', (
+    tester,
+  ) async {
+    // Its runtime says 08:00, its exit says 06:40.
+    final preceding = Dive(
+      id: 'dive-6',
+      dateTime: DateTime(2026, 7, 1, 6),
+      entryTime: DateTime(2026, 7, 1, 6),
+      exitTime: DateTime(2026, 7, 1, 6, 40),
+      runtime: const Duration(hours: 2),
+    );
+    final router = GoRouter(
+      initialLocation: '/dives/dive-7',
+      routes: [
+        GoRoute(
+          path: '/dives/:id',
+          builder: (_, _) => Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => showWhatIfSheet(context, dive),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/planning/dive-planner',
+          builder: (_, _) => const Scaffold(body: Text('planner page')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          diveProvider.overrideWith((ref, id) async => dive),
+          divesProvider.overrideWith((ref) async => [preceding]),
+          diveProfileProvider.overrideWith((ref, id) async => profile),
+          gasSwitchesProvider.overrideWith(
+            (ref, id) async => <GasSwitchWithTank>[],
+          ),
+          profileAnalysisProvider.overrideWith((ref, id) async => null),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('open')),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open in planner'));
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(divePlanNotifierProvider).surfaceInterval,
+      const Duration(hours: 2, minutes: 20),
+    );
+  });
 
   testWidgets(
     'Open in planner loads a what-if plan and navigates to the planner',

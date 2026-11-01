@@ -16,6 +16,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -62,6 +63,10 @@ import 'package:submersion/features/media/presentation/helpers/photo_import_help
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/planner_navigation.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
@@ -458,6 +463,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _unlinkPreDiveChecklist(linkedPreDive!);
       case 'whatIf':
         openWhatIf(context, dive);
+      case 'planRepetitive':
+        logFailure(
+          _planRepetitiveDive(dive),
+          _DiveDetailPageState,
+          'plan a repetitive dive',
+        );
       case 'delete':
         _showDeleteConfirmation();
       case 'open':

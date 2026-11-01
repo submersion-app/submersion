@@ -7150,6 +7150,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Inmersiones restauradas';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Inmersiones restauradas, pero no se pudieron recuperar algunos datos registrados';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20678,11 +20682,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Siguiendo $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Aún no hay inmersiones registradas';
 
   @override
@@ -20724,6 +20723,41 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Inmersión registrada $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Abrir en el registro';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Dejar de seguir';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Se traslada a $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS al final';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive terminó hace $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Inmersión #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Seguir';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Intervalo en superficie';
 
   @override
@@ -20762,8 +20796,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Una serie de inmersiones no se puede planificar como misión DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Solo la primera inmersión de una serie puede seguir una inmersión registrada';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Una replanificación no puede seguir otra inmersión';
 
   @override
   String get plannerCanvas_follow_title => 'Seguir una inmersión';
@@ -41919,8 +41953,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Fuentes de datos';
 
   @override
-  String get reef_section_loadError =>
-      'No se pudieron cargar los datos del ecosistema en este momento';
+  String get reef_section_checking => 'Comprobando…';
 
   @override
   String get reef_habitat_title => 'Hábitat del arrecife';
@@ -55082,6 +55115,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Comparar…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive =>
+      'Planificar inmersión sucesiva';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. inmersión original';
