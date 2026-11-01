@@ -112,6 +112,7 @@ Future<MoveDraft?> showMoveEquipmentSheet(
   return showModalBottomSheet<MoveDraft>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => _MoveEquipmentSheet(itemCount: itemCount),
   );
 }

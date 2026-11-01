@@ -23,6 +23,7 @@ Future<void> showLabAddInterventionSheet(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => LabAddInterventionSheet(diveId: diveId, inputs: inputs),
   );
 }

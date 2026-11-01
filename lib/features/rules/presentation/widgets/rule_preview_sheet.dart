@@ -21,6 +21,7 @@ Future<bool> showRulePreviewSheet(
     await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _PreviewSheet(
         subject: subject,
         preview: preview,

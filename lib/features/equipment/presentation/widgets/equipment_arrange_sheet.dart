@@ -19,6 +19,7 @@ Future<void> showEquipmentArrangeSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => const EquipmentArrangeSheet(),
   );
 }

@@ -36,6 +36,7 @@ Future<void> showRouteLinkSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => _RouteLinkSheet(
       draft: draft,
       entryTime: entryTime,

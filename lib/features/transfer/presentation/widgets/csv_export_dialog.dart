@@ -84,6 +84,7 @@ class CsvExportDialog extends StatefulWidget {
     return showModalBottomSheet<CsvExportRequest>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => CsvExportDialog(initialUnitMode: initialUnitMode),
     );

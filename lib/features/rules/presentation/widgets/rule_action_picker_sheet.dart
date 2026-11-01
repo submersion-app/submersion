@@ -133,6 +133,7 @@ Future<RuleActionTemplate?> showRuleActionPicker(
 ) => showModalBottomSheet<RuleActionTemplate>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   builder: (_) => _PickerSheet(templates: ruleActionTemplates(subject)),
 );
 

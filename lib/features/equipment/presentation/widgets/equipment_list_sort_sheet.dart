@@ -26,6 +26,7 @@ Future<void> showEquipmentListSortSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => EquipmentListSortSheet(showGrouping: showGrouping),
   );
 }

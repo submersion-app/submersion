@@ -30,6 +30,7 @@ Future<GeofenceDraft?> showGeofenceEditor(
   return showModalBottomSheet<GeofenceDraft>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => _GeofenceEditorSheet(initial: initial),
   );
 }

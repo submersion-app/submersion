@@ -203,6 +203,7 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
     final preset = await showModalBottomSheet<CsvPreset>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => SelectPresetSheet(csvHeaders: headers),
     );
     if (preset == null || !mounted) return;

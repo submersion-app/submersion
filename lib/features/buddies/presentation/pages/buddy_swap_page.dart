@@ -264,6 +264,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => ShareChoicesSheet(
         initial: choices,
         available: available,

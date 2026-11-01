@@ -289,6 +289,7 @@ class SharedLibraryPage extends ConsumerWidget {
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => SafeArea(
           child: Column(

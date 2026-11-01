@@ -33,6 +33,7 @@ Future<LocationPick?> showEquipmentLocationPickerSheet(
   return showModalBottomSheet<LocationPick>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => const FractionallySizedBox(
       heightFactor: 0.8,
       child: _EquipmentLocationPicker(),

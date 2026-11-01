@@ -22,6 +22,7 @@ Future<EquipmentPickerFilter?> showEquipmentPickerFilterSheet(
   return showModalBottomSheet<EquipmentPickerFilter>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => EquipmentPickerFilterSheet(
       current: current,
       availableTypes: availableTypes,

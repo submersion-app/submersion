@@ -19,6 +19,7 @@ Future<String?> showDivePickerSheet(BuildContext context) {
   return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => const _DivePickerSheet(),
   );
 }

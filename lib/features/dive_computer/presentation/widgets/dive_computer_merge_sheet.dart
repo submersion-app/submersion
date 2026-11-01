@@ -33,6 +33,7 @@ class DiveComputerMergeSheet extends ConsumerStatefulWidget {
     return showModalBottomSheet<DiveComputerMergeResult>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => DiveComputerMergeSheet(computers: computers),
     );
   }

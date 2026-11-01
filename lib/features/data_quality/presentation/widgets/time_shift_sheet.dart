@@ -23,6 +23,7 @@ Future<({Duration offset, bool widen})?> showTimeShiftSheet(
   return showModalBottomSheet<({Duration offset, bool widen})>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) {
       final l10n = context.l10n;
       return StatefulBuilder(

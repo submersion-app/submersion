@@ -75,6 +75,7 @@ class CertificationWalletPage extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => CertificationShareSheet(
         certification: certification,
         diverName: diverName,

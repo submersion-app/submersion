@@ -189,6 +189,7 @@ class BuddyPicker extends ConsumerWidget {
     final result = await showModalBottomSheet<List<BuddyWithRole>>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) =>
           _BuddySelectionSheet(selectedBuddies: selectedBuddies),
     );

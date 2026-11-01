@@ -17,6 +17,7 @@ Future<bool> pickPlanAndLink(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => LinkPlanSheet(diveId: diveId),
   );
   if (planId == null || !context.mounted) return false;
