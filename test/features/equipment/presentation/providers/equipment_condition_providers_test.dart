@@ -168,6 +168,32 @@ void main() {
     expect(review, isNotNull);
   });
 
+  test('a rewritten marker alone does not recompute an open item', () async {
+    final sub = container.listen(equipmentConditionProvider('reg'), (_, _) {});
+    addTearDown(sub.close);
+    await read();
+    await pumpEventQueue();
+    await read();
+    expect(engine.calls, 1);
+
+    // A marker that matches nothing: anything reacting to it would run the
+    // engine again. The findings are stored as they stand, so no row moves.
+    final findings = EquipmentFindingsRepository(db: db);
+    await findings.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'written-elsewhere',
+      findings: await findings.getFindings('reg'),
+      engineVersion: EquipmentConditionEngine.engineVersion,
+      now: DateTime.utc(2026),
+    );
+
+    expect(
+      (await findings.getReview('reg'))?.inputFingerprint,
+      'written-elsewhere',
+    );
+    expect(await untilSettled(), 1);
+  });
+
   test('an unknown item yields null and never computes', () async {
     expect(
       await container.read(equipmentConditionProvider('x').future),

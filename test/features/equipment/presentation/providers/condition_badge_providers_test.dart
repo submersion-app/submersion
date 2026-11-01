@@ -8,20 +8,9 @@ import 'package:submersion/features/equipment/presentation/providers/condition_b
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/counting_findings_repository.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
-
-class _CountingFindings extends EquipmentFindingsRepository {
-  _CountingFindings({super.db});
-
-  int reads = 0;
-
-  @override
-  Future<List<FindingSummary>> getUndismissedSummaries() {
-    reads++;
-    return super.getUndismissedSummaries();
-  }
-}
 
 /// One read for every list tile: the worst undismissed caution or
 /// significant finding per item, after the display-time filters.
@@ -189,12 +178,12 @@ void main() {
   });
 
   group('on a stored change', () {
-    late _CountingFindings findings;
+    late CountingFindingsRepository findings;
     late ProviderContainer watching;
     final now = DateTime(2026, 2, 1);
 
     setUp(() async {
-      findings = _CountingFindings(db: db);
+      findings = CountingFindingsRepository(db: db);
       watching = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith((ref) => settings),

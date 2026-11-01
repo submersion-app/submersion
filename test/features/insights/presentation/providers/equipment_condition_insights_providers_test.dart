@@ -19,20 +19,9 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/insights/presentation/providers/equipment_condition_insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 
+import '../../../../helpers/counting_findings_repository.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
-
-class _CountingFindings extends EquipmentFindingsRepository {
-  _CountingFindings({super.db});
-
-  int reads = 0;
-
-  @override
-  Future<List<FindingSummary>> getUndismissedSummaries() {
-    reads++;
-    return super.getUndismissedSummaries();
-  }
-}
 
 /// The three ranking cards on the equipment statistics page.
 void main() {
@@ -182,7 +171,7 @@ void main() {
   );
 
   test('a marker-only review does not reload the ranking', () async {
-    final findings = _CountingFindings(db: db);
+    final findings = CountingFindingsRepository(db: db);
     final watching = ProviderContainer(
       overrides: [
         settingsProvider.overrideWith((ref) => settings),
