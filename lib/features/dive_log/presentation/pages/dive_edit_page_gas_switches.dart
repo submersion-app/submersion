@@ -16,11 +16,20 @@ extension _GasSwitchEditing on _DiveEditPageState {
         .read(diveRepositoryProvider)
         .getGasSwitchesForDive(dive.id);
     final computer = dive.computerId;
-    return [
+    return _inTimeOrder([
       for (final g in withTank)
         if (computer == null || g.gasSwitch.appliesTo(computer)) g.gasSwitch,
-    ];
+    ]);
   }
+
+  /// Time order, ties broken by id so two rows at one second (a time being
+  /// typed over another) never swap between builds.
+  static List<GasSwitch> _inTimeOrder(List<GasSwitch> switches) =>
+      [...switches]..sort(
+        (a, b) => a.timestamp != b.timestamp
+            ? a.timestamp.compareTo(b.timestamp)
+            : a.id.compareTo(b.id),
+      );
 
   /// The latest second a switch may fall on: the profile's last sample,
   /// else the runtime field, else the bottom time, else exit minus entry;
@@ -55,7 +64,16 @@ extension _GasSwitchEditing on _DiveEditPageState {
       onChanged: _onGasSwitchChanged,
       onRemove: _removeGasSwitch,
       onAdd: _addGasSwitch,
+      onTimeSettled: _onGasSwitchTimeSettled,
     );
+  }
+
+  /// A time field was left: now the row takes its place in time order,
+  /// which it must not do while the time is still being typed.
+  void _onGasSwitchTimeSettled(String id) {
+    final ordered = _inTimeOrder(_gasSwitches);
+    if (listEquals(ordered, _gasSwitches)) return;
+    _updateGasSwitches(() => _gasSwitches = ordered);
   }
 
   /// The profile's depth at [timestamp], or null; with no profile there is
@@ -124,7 +142,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
       _markDirty();
       _gasSwitchesDirty = true;
       _removedSwitchNotice = 0;
-      _gasSwitches = [..._gasSwitches, added];
+      _gasSwitches = _inTimeOrder([..._gasSwitches, added]);
     });
   }
 

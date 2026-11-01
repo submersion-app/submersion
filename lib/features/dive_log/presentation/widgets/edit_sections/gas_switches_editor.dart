@@ -19,10 +19,12 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 enum GasSwitchField { time, tank, depth }
 
 /// The gas switch list under the cylinders on the dive edit page (issue
-/// #32): one row per switch in time order, each with the time from the
-/// start of the dive, the cylinder switched to and the depth, plus a line
-/// naming the cylinder the dive starts on. Validation runs through the
-/// enclosing [Form], which is how the page blocks Save.
+/// #32): one row per switch, each with the time from the start of the
+/// dive, the cylinder switched to and the depth, plus a line naming the
+/// cylinder the dive starts on. The page owns the order: rows are shown as
+/// given, and [onTimeSettled] tells the page a time field was left so it
+/// can re-sort then, not while a time is still being typed. Validation
+/// runs through the enclosing [Form], which is how the page blocks Save.
 class GasSwitchesEditor extends StatelessWidget {
   const GasSwitchesEditor({
     super.key,
@@ -35,9 +37,10 @@ class GasSwitchesEditor extends StatelessWidget {
     required this.onChanged,
     required this.onRemove,
     required this.onAdd,
+    this.onTimeSettled,
   });
 
-  /// The switches in any order; the editor shows them by time.
+  /// The switches in the order to show them.
   final List<GasSwitch> switches;
 
   /// The dive's cylinders in editor order, which numbers them.
@@ -59,11 +62,12 @@ class GasSwitchesEditor extends StatelessWidget {
   final ValueChanged<String> onRemove;
   final VoidCallback onAdd;
 
+  /// A time field was left; the argument is the switch id.
+  final ValueChanged<String>? onTimeSettled;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final sorted = [...switches]
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     final start = startingTank;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,7 +84,7 @@ class GasSwitchesEditor extends StatelessWidget {
           FormCaption(
             l10n.diveLog_edit_gasSwitches_removedWithTank(removedWithTankCount),
           ),
-        for (final sw in sorted)
+        for (final sw in switches)
           _GasSwitchRow(
             key: ValueKey('gas-switch-row-${sw.id}'),
             gasSwitch: sw,
@@ -88,11 +92,12 @@ class GasSwitchesEditor extends StatelessWidget {
             units: units,
             maxTimestamp: maxTimestamp,
             otherTimestamps: {
-              for (final other in sorted)
+              for (final other in switches)
                 if (other.id != sw.id) other.timestamp,
             },
             onChanged: onChanged,
             onRemove: onRemove,
+            onTimeSettled: onTimeSettled,
           ),
         FormAppendRow(label: l10n.diveLog_edit_gasSwitches_add, onTap: onAdd),
       ],
@@ -122,6 +127,7 @@ class _GasSwitchRow extends StatefulWidget {
     required this.otherTimestamps,
     required this.onChanged,
     required this.onRemove,
+    required this.onTimeSettled,
   });
 
   final GasSwitch gasSwitch;
@@ -131,6 +137,7 @@ class _GasSwitchRow extends StatefulWidget {
   final Set<int> otherTimestamps;
   final void Function(GasSwitch updated, GasSwitchField field) onChanged;
   final ValueChanged<String> onRemove;
+  final ValueChanged<String>? onTimeSettled;
 
   @override
   State<_GasSwitchRow> createState() => _GasSwitchRowState();
@@ -202,6 +209,7 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
               label: l10n.diveLog_edit_gasSwitches_time,
               formatErrorText: l10n.diveLog_edit_gasSwitches_timeFormatError,
               validator: (seconds) => _timeError(l10n, seconds),
+              onSettled: () => widget.onTimeSettled?.call(sw.id),
               onChanged: (seconds) {
                 if (seconds == null) return;
                 widget.onChanged(

@@ -75,6 +75,37 @@ void main() {
     expect(find.text('Use minutes:seconds'), findsOneWidget);
   });
 
+  testWidgets('leaving the field reports that the time settled', (
+    tester,
+  ) async {
+    final formKey = GlobalKey<FormState>();
+    var settled = 0;
+    await tester.pumpWidget(
+      host(
+        Column(
+          children: [
+            MinutesSecondsField(
+              seconds: 600,
+              onChanged: (_) {},
+              onSettled: () => settled++,
+              label: 'Time',
+              formatErrorText: 'Use minutes:seconds',
+            ),
+            const TextField(key: Key('other')),
+          ],
+        ),
+        formKey,
+      ),
+    );
+
+    await tester.enterText(find.byType(TextFormField), '12:30');
+    expect(settled, 0);
+    await tester.tap(find.byKey(const Key('other')));
+    await tester.pump();
+
+    expect(settled, 1);
+  });
+
   testWidgets('a parsed value still runs the extra rule', (tester) async {
     final formKey = GlobalKey<FormState>();
     await tester.pumpWidget(

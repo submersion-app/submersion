@@ -20,8 +20,10 @@ String formatMinutesSeconds(int seconds) =>
 /// [formatMinutesSeconds] of [seconds] (empty for null) and reports the
 /// parsed value on every edit, null while the text does not parse. Its
 /// validator returns [formatErrorText] for text that does not parse, else
-/// what [validator] says about the parsed seconds. No strings of its own:
-/// the labels are passed in.
+/// what [validator] says about the parsed seconds. [onSettled] fires when
+/// the field loses focus, for a parent that reorders on a finished edit
+/// rather than on every keystroke. No strings of its own: the labels are
+/// passed in.
 class MinutesSecondsField extends StatefulWidget {
   const MinutesSecondsField({
     super.key,
@@ -30,10 +32,12 @@ class MinutesSecondsField extends StatefulWidget {
     required this.label,
     required this.formatErrorText,
     this.validator,
+    this.onSettled,
   });
 
   final int? seconds;
   final ValueChanged<int?> onChanged;
+  final VoidCallback? onSettled;
   final String label;
   final String formatErrorText;
   final String? Function(int seconds)? validator;
@@ -47,8 +51,14 @@ class _MinutesSecondsFieldState extends State<MinutesSecondsField> {
     text: _text(widget.seconds),
   );
 
+  late final FocusNode _focus = FocusNode()..addListener(_onFocusChange);
+
   static String _text(int? seconds) =>
       seconds == null ? '' : formatMinutesSeconds(seconds);
+
+  void _onFocusChange() {
+    if (!_focus.hasFocus) widget.onSettled?.call();
+  }
 
   @override
   void didUpdateWidget(MinutesSecondsField oldWidget) {
@@ -68,6 +78,9 @@ class _MinutesSecondsFieldState extends State<MinutesSecondsField> {
 
   @override
   void dispose() {
+    _focus
+      ..removeListener(_onFocusChange)
+      ..dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -76,6 +89,7 @@ class _MinutesSecondsFieldState extends State<MinutesSecondsField> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: _controller,
+      focusNode: _focus,
       decoration: InputDecoration(labelText: widget.label, isDense: true),
       keyboardType: TextInputType.datetime,
       validator: (text) {

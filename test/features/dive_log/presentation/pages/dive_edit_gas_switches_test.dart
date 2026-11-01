@@ -216,6 +216,51 @@ void main() {
     expect(tombstones, hasLength(1));
   });
 
+  testWidgets('a typed time reorders its row only once the field is left', (
+    tester,
+  ) async {
+    final dive = await seedDive();
+    for (final (id, t, tank) in [
+      ('gs-a', 600, 'tank-deco'),
+      ('gs-b', 1200, 'tank-back'),
+    ]) {
+      await repository.createGasSwitch(
+        GasSwitch(
+          id: id,
+          diveId: dive.id,
+          timestamp: t,
+          tankId: tank,
+          createdAt: DateTime.utc(2026, 5, 3, 11),
+        ),
+      );
+    }
+    await pumpEditor(tester, dive.id);
+    await openGasGear(tester);
+
+    List<String> rowIds() => tester
+        .widgetList<MinutesSecondsField>(find.byType(MinutesSecondsField))
+        .map((f) => (f.key as ValueKey<String>).value)
+        .toList();
+    expect(rowIds(), ['gas-switch-time-gs-a', 'gas-switch-time-gs-b']);
+
+    final first = find.descendant(
+      of: find.byKey(const ValueKey('gas-switch-time-gs-a')),
+      matching: find.byType(TextFormField),
+    );
+    await tester.ensureVisible(first);
+    await tester.enterText(first, '25:00');
+    await tester.pumpAndSettle();
+    expect(rowIds(), ['gas-switch-time-gs-a', 'gas-switch-time-gs-b']);
+
+    final second = find.descendant(
+      of: find.byKey(const ValueKey('gas-switch-time-gs-b')),
+      matching: find.byType(TextFormField),
+    );
+    await tester.tap(second);
+    await tester.pumpAndSettle();
+    expect(rowIds(), ['gas-switch-time-gs-b', 'gas-switch-time-gs-a']);
+  });
+
   testWidgets('a dive with one tank shows no gas switch list', (tester) async {
     final dive = await seedDive(tanks: const [back]);
     await pumpEditor(tester, dive.id);

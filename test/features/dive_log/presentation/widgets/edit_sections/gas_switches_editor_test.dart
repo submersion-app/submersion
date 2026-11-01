@@ -35,6 +35,7 @@ class _Harness {
   final formKey = GlobalKey<FormState>();
   final changes = <_Change>[];
   final removed = <String>[];
+  final settled = <String>[];
   var added = 0;
 }
 
@@ -71,6 +72,7 @@ Future<_Harness> _pump(
               onChanged: (updated, field) =>
                   h.changes.add((updated: updated, field: field)),
               onRemove: h.removed.add,
+              onTimeSettled: h.settled.add,
               onAdd: () => h.added++,
             ),
           ),
@@ -90,9 +92,11 @@ Finder _timeField(String id) => find.descendant(
 Finder _depthField(String id) => find.byKey(ValueKey('gas-switch-depth-$id'));
 
 void main() {
-  testWidgets('rows sort by time and show the starting cylinder', (
+  testWidgets('rows keep the order given and show the starting cylinder', (
     tester,
   ) async {
+    // The page owns the order, so a time being typed does not move its row;
+    // the editor never re-sorts on its own.
     await _pump(
       tester,
       switches: [_sw('gs-b', 1200, 'back'), _sw('gs-a', 600, 'deco')],
@@ -102,8 +106,24 @@ void main() {
         .widgetList<MinutesSecondsField>(find.byType(MinutesSecondsField))
         .map((f) => f.seconds)
         .toList();
-    expect(times, [600, 1200]);
+    expect(times, [1200, 600]);
     expect(find.text('Starts on Tank 1 · Back Gas · Air'), findsOneWidget);
+  });
+
+  testWidgets('leaving a time field reports the settled switch', (
+    tester,
+  ) async {
+    final h = await _pump(
+      tester,
+      switches: [_sw('gs-1', 600, 'deco'), _sw('gs-2', 900, 'back')],
+    );
+
+    await tester.enterText(_timeField('gs-1'), '20:00');
+    expect(h.settled, isEmpty);
+    await tester.tap(_timeField('gs-2'));
+    await tester.pump();
+
+    expect(h.settled, ['gs-1']);
   });
 
   testWidgets(
