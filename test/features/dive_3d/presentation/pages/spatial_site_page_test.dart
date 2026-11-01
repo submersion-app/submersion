@@ -118,6 +118,38 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('play toggles to pause and back', (tester) async {
+    final overrides = await getBaseOverrides();
+    final path = reckoned();
+    final scene = const SpatialGeometryService().build(path, siteMaxDepth: 30);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          spatialReckonedPathProvider('d1').overrideWith((ref) async => path),
+          spatialGeometryProvider(
+            'd1',
+          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
+        ],
+        child: const SpatialSitePage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+    await tester.tap(find.byIcon(Icons.pause));
+    await tester.pump();
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('synthesized scene hides chips and legend', (tester) async {
     final overrides = await getBaseOverrides();
     final path = reckoned();

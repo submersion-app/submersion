@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
@@ -123,15 +124,16 @@ class _DiveSeascapeStandaloneState
     SceneOverlay.markers,
     SceneOverlay.contours,
   };
-  late final AnimationController _player;
+  late final ScenePlayer _player;
 
   @override
   void initState() {
     super.initState();
-    _player = AnimationController(
+    _player = ScenePlayer(
       vsync: this,
       duration: const Duration(seconds: 45),
-    )..addListener(() => _position.value = _player.value);
+      position: _position,
+    );
   }
 
   @override
@@ -142,16 +144,7 @@ class _DiveSeascapeStandaloneState
     super.dispose();
   }
 
-  void _togglePlay() {
-    setState(() {
-      if (_player.isAnimating) {
-        _player.stop();
-      } else {
-        if (_position.value >= 1.0) _player.value = 0;
-        _player.forward(from: _position.value);
-      }
-    });
-  }
+  void _togglePlay() => setState(_player.togglePlay);
 
   @override
   Widget build(BuildContext context) {
@@ -340,10 +333,10 @@ class _DiveSeascapeStandaloneState
                       ),
                     TimeScrubBar(
                       position: _position,
-                      playing: _player.isAnimating,
+                      playing: _player.isPlaying,
                       onPlayPause: _togglePlay,
                       onScrubStart: () {
-                        if (_player.isAnimating) setState(() => _player.stop());
+                        if (_player.isPlaying) setState(_player.stop);
                       },
                     ),
                   ],

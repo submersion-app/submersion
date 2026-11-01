@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/site_scape/presentation/patch_aware_hover_picker.dart';
 import 'package:submersion/features/site_scape/presentation/seascape_source_chip.dart';
@@ -129,7 +130,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   /// The playback timeline's driver, created only when
   /// [SiteTerrainPane.playbackContext] is set (see [_syncPlayer]); null for
   /// the plain site view, which has no timeline to drive.
-  AnimationController? _player;
+  ScenePlayer? _player;
 
   @override
   void initState() {
@@ -164,34 +165,25 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
       return;
     }
     if (_player != null) return;
-    _player =
-        AnimationController(vsync: this, duration: const Duration(seconds: 45))
-          ..addListener(() => _scrub.value = _player!.value)
-          // Playback reaching the end stops the controller on its own, with no
-          // call to _togglePlay -- without this, the pane never rebuilds for
-          // that, so _timeline()'s cached `player.isAnimating` read (captured
-          // at the last build) keeps reading true and the pause icon stays up
-          // forever after the timeline finishes (code review).
-          ..addStatusListener((status) {
-            if ((status == AnimationStatus.completed ||
-                    status == AnimationStatus.dismissed) &&
-                mounted) {
-              setState(() {});
-            }
-          });
+    // Playback reaching the end stops the controller on its own, with no
+    // call to _togglePlay -- without this, the pane never rebuilds for that,
+    // so _timeline()'s cached `player.isPlaying` read (captured at the last
+    // build) keeps reading true and the pause icon stays up forever after
+    // the timeline finishes (code review).
+    _player = ScenePlayer(
+      vsync: this,
+      duration: const Duration(seconds: 45),
+      position: _scrub,
+      onEdgeReached: () {
+        if (mounted) setState(() {});
+      },
+    );
   }
 
   void _togglePlay() {
     final player = _player;
     if (player == null) return;
-    setState(() {
-      if (player.isAnimating) {
-        player.stop();
-      } else {
-        if (_scrub.value >= 1.0) player.value = 0;
-        player.forward(from: _scrub.value);
-      }
-    });
+    setState(player.togglePlay);
   }
 
   @override
@@ -630,10 +622,10 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
     if (player == null) return const SizedBox.shrink();
     return TimeScrubBar(
       position: _scrub,
-      playing: player.isAnimating,
+      playing: player.isPlaying,
       onPlayPause: _togglePlay,
       onScrubStart: () {
-        if (player.isAnimating) setState(() => player.stop());
+        if (player.isPlaying) setState(player.stop);
       },
     );
   }

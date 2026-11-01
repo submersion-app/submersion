@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/dive_axes.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/presentation/dive_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
@@ -35,7 +36,7 @@ class NavTrack3dPage extends ConsumerStatefulWidget {
 class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
-  late final AnimationController _player;
+  late final ScenePlayer _player;
   TrackSceneMetric _colorMetric = TrackSceneMetric.depth;
   TrackSceneMetric? _zMetric;
   bool _zInitialized = false;
@@ -89,10 +90,11 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
   @override
   void initState() {
     super.initState();
-    _player = AnimationController(
+    _player = ScenePlayer(
       vsync: this,
       duration: const Duration(seconds: 45),
-    )..addListener(() => _position.value = _player.value);
+      position: _position,
+    );
   }
 
   @override
@@ -102,16 +104,7 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
     super.dispose();
   }
 
-  void _togglePlay() {
-    setState(() {
-      if (_player.isAnimating) {
-        _player.stop();
-      } else {
-        if (_position.value >= 1.0) _player.value = 0;
-        _player.forward(from: _position.value);
-      }
-    });
-  }
+  void _togglePlay() => setState(_player.togglePlay);
 
   @override
   Widget build(BuildContext context) {
@@ -228,10 +221,10 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
           top: false,
           child: TimeScrubBar(
             position: _position,
-            playing: _player.isAnimating,
+            playing: _player.isPlaying,
             onPlayPause: _togglePlay,
             onScrubStart: () {
-              if (_player.isAnimating) setState(() => _player.stop());
+              if (_player.isPlaying) setState(_player.stop);
             },
           ),
         ),

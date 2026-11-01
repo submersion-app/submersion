@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.d
 import 'package:submersion/features/dive_3d/presentation/renderer/tissue_chrome_painters.dart';
 import 'package:submersion/features/dive_3d/presentation/dive_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/compare_profile_3d_view.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_hover_tooltip.dart';
@@ -43,7 +44,7 @@ enum SceneKind { dive, tissue, computers }
 
 /// Fullscreen interactive 3D scene for one dive. Pushed via a plain
 /// Navigator route from the dive detail page. Owns the scrub ValueNotifier
-/// and the playback AnimationController; the viewport and readout observe
+/// and the playback [ScenePlayer]; the viewport and readout observe
 /// them without provider round-trips. The profile chart opens the dive
 /// scene (switchable to the computers comparison on multi-source dives);
 /// the tissue loading card opens the tissue landscape directly.
@@ -65,7 +66,7 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
-  late final AnimationController _player;
+  late final ScenePlayer _player;
   late SceneKind _sceneKind;
   SceneMetric _colorMetric = SceneMetric.depth;
   SceneMetric? _zMetric;
@@ -115,10 +116,11 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
   void initState() {
     super.initState();
     _sceneKind = widget.initialMode;
-    _player = AnimationController(
+    _player = ScenePlayer(
       vsync: this,
       duration: const Duration(seconds: 45),
-    )..addListener(() => _position.value = _player.value);
+      position: _position,
+    );
   }
 
   @override
@@ -129,16 +131,7 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     super.dispose();
   }
 
-  void _togglePlay() {
-    setState(() {
-      if (_player.isAnimating) {
-        _player.stop();
-      } else {
-        if (_position.value >= 1.0) _player.value = 0;
-        _player.forward(from: _position.value);
-      }
-    });
-  }
+  void _togglePlay() => setState(_player.togglePlay);
 
   @override
   Widget build(BuildContext context) {
@@ -367,10 +360,10 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
           top: false,
           child: TimeScrubBar(
             position: _position,
-            playing: _player.isAnimating,
+            playing: _player.isPlaying,
             onPlayPause: _togglePlay,
             onScrubStart: () {
-              if (_player.isAnimating) setState(() => _player.stop());
+              if (_player.isPlaying) setState(_player.stop);
             },
           ),
         ),

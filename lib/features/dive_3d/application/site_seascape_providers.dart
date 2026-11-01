@@ -587,9 +587,13 @@ final siteActivePathOverlayProvider = FutureProvider.autoDispose
             spatialReckonedPathProvider(request.pathId).future,
           );
           if (path == null || path.points.length < 2) return null;
-          final route = await ref.watch(
-            primaryNavTrackForDiveProvider(request.pathId).future,
-          );
+          // Independent of each other (both key only on request.pathId):
+          // resolved concurrently, mirroring siteSeascapeProvider's own
+          // Future.wait above, instead of stacking their latency.
+          final (route, dive) = await (
+            ref.watch(primaryNavTrackForDiveProvider(request.pathId).future),
+            ref.watch(diveProvider(request.pathId).future),
+          ).wait;
           // Mirrors spatialReckonedPathProvider's own check (spatial_
           // providers.dart): the raw sample count is not enough, the
           // adapter truncates to the active underwater/surfaceReckoned
@@ -604,7 +608,6 @@ final siteActivePathOverlayProvider = FutureProvider.autoDispose
               route != null &&
               (path.provenance == PathProvenance.measured ||
                   NavTrackPathAdapter.toReckonedPath(route).points.length >= 2);
-          final dive = await ref.watch(diveProvider(request.pathId).future);
           anchorPoint = _divePathAnchor(
             path,
             routeAnchor: route?.anchor,
