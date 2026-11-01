@@ -20757,6 +20757,28 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pas de données de profil pour cette plongée — intervalle de surface défini sans saturation des tissus';
 
   @override
+  String get plannerCanvas_link_action => 'Lier à une plongée enregistrée';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Changer la plongée liée';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Dissocier la plongée';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Réalisée comme n° $number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Réalisée le $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Enregistrez d\'abord le plan';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Plongée $letter';
   }
@@ -53041,11 +53063,93 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Nouveau scénario';
+  String get diveLab_compare_line_planned => 'Prévu';
 
   @override
-  String get diveLab_section_hint =>
-      'Bifurquez cette plongée à n\'importe quel moment et comparez ce qui se serait passé.';
+  String get diveLab_compare_line_asDived => 'Réalisée';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'Et si';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Prof. max.';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Temps au fond';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL en quittant le fond';
+
+  @override
+  String get diveLab_compare_row_deco => 'Déco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return '$minutes min restantes';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Déco à $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done effectués';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Aucune';
+
+  @override
+  String get diveLab_compare_empty => 'Rien à comparer pour l\'instant';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Poser un et si';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Lier un plan';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Dissocier le plan';
+
+  @override
+  String get diveLab_compare_planTable => 'Plan et plongée';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programme prévu';
+
+  @override
+  String get diveLab_compare_waiting => 'En attente de la plongée';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Dissocier ce plan ?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'Le plan et la plongée sont conservés. Ils ne sont simplement plus comparés.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Dissocier';
+
+  @override
+  String get diveLab_link_moveTitle => 'Déplacer le lien de ce plan ?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Ce plan est lié à une autre plongée. Le lier ici supprime ce lien.';
+
+  @override
+  String get diveLab_link_replaceTitle =>
+      'Remplacer le plan de cette plongée ?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Cette plongée est comparée à \"$plan\". Lier un autre plan le dissocie.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Lier';
 
   @override
   String get diveDetailSection_diveLab_name => 'Comparer';

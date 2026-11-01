@@ -342,6 +342,18 @@ void main() {
   });
 
   group('saved what-ifs', () {
+    test('Compare has a dived plan and one still waiting', () async {
+      final linked = await rows('''
+        SELECT d.is_planned AS planned, d.dive_number AS number
+        FROM dive_plans p JOIN dives d ON d.id = p.linked_dive_id
+      ''');
+
+      expect(linked.where((row) => row['planned'] == 0), isNotEmpty);
+      final waiting = linked.where((row) => row['planned'] == 1).toList();
+      expect(waiting, hasLength(1));
+      expect(waiting.single['number'], isNull);
+    });
+
     Future<List<DiveScenario>> saved() async {
       final repository = DiveScenarioRepository();
       final ids = await rows('SELECT id FROM dive_scenarios ORDER BY id');

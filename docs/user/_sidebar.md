@@ -24,6 +24,7 @@
 - [The Dashboard](dashboard.md)
 - [Logging Dives](dive-logging.md)
 - [Dive Profiles & Deco](dive-profiles.md)
+- [Compare](compare.md)
 - [Dive Computers](dive-computer.md)
 - [Import & Export](import-export.md)
 - [Data Quality Assistant](data-quality-assistant.md)

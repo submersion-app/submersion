@@ -505,7 +505,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
               continue;
             }
 
-            // A same-day planned dive of the target profile (issue #2002):
+            // A planned dive of the target profile fits (issue #2002):
             // default to filling it. The row stays selected and needs no
             // decision; the card offers Change and Import as new.
             if (match.isPlannedFill) {
