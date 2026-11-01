@@ -1,11 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/core/deco/entities/breathing_config.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/bailout_chart_support.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
@@ -82,6 +87,37 @@ double _usedFrom(BailoutOutcome outcome, String tankId) => outcome
     .firstWhere((usage) => usage.tankId == tankId)
     .litersUsed;
 
+class _State extends TissueState {
+  const _State();
+}
+
+/// Records what each second of a replayed stop is breathed from, in order.
+class _BreathingLog extends Fake implements DecoModel {
+  final fO2BySecondsBreathed = <(double, int)>[];
+
+  @override
+  TissueState applySegment(
+    TissueState state,
+    DecoSegment segment,
+    BreathingConfig breathing,
+  ) {
+    final fO2 = (breathing as OpenCircuit).fO2;
+    final last = fO2BySecondsBreathed.lastOrNull;
+    if (last != null && (last.$1 - fO2).abs() < 1e-9) {
+      fO2BySecondsBreathed.last = (fO2, last.$2 + segment.durationSeconds);
+    } else {
+      fO2BySecondsBreathed.add((fO2, segment.durationSeconds));
+    }
+    return state;
+  }
+
+  @override
+  double ceilingMeters(TissueState state) => 0;
+
+  @override
+  double surfaceCeilingMeters(TissueState state) => 0;
+}
+
 void main() {
   const solver = BailoutSolver();
   final environment = PlanEngine.environmentFor(_plan());
@@ -147,6 +183,51 @@ void main() {
               _stressedAmv *
               environment.pressureAtDepth(3);
       expect(_usedFrom(outcome, 'o2'), closeTo(expectedOxygen, 1e-6));
+    });
+
+    test('is breathed in its own runs on the ceiling trace', () {
+      final log = _BreathingLog();
+      const point = BailoutPoint(
+        runtimeSeconds: 0,
+        depthMeters: 6,
+        ttsSeconds: 1800,
+        litersRequired: 0,
+        schedule: DecoSchedule(
+          stops: [
+            DecoStop(
+              depthMeters: 6,
+              durationSeconds: 1800,
+              airBreakSeconds: 360,
+            ),
+          ],
+          ttsSeconds: 1800,
+        ),
+      );
+
+      worstCaseCeilingTrace(
+        model: log,
+        points: [point],
+        states: const [_State()],
+        worstIndex: 0,
+        bailoutPlan: OptimalOcAscentGas(
+          gases: const [
+            AvailableGas(fN2: 0.79, fHe: 0, maxPpO2Mod: 66),
+            AvailableGas(fN2: 0, fHe: 0, maxPpO2Mod: 6),
+          ],
+          maxPpO2: 1.6,
+        ),
+        policy: const SchedulePolicy(airBreaks: AirBreakPolicy()),
+      );
+
+      // The last run carries on up the leg to the surface, still on oxygen.
+      final runs = log.fO2BySecondsBreathed;
+      expect(runs, hasLength(3));
+      expect(runs[0].$1, closeTo(1, 1e-9));
+      expect(runs[0].$2, 720);
+      expect(runs[1].$1, closeTo(0.21, 1e-9));
+      expect(runs[1].$2, 360);
+      expect(runs[2].$1, closeTo(1, 1e-9));
+      expect(runs[2].$2, greaterThan(720));
     });
 
     test('keeps the worst case total the cylinders add up to', () {

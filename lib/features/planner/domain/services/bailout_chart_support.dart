@@ -50,7 +50,12 @@ List<(int, double)> worstCaseCeilingTrace({
   var depth = points[worstIndex].depthMeters;
   var phase = AscentPhase.toFirstStop;
 
-  void sampleLeg(double startDepth, double endDepth, int durationSeconds) {
+  void sampleLeg(
+    double startDepth,
+    double endDepth,
+    int durationSeconds, {
+    BreathingConfig? breathing,
+  }) {
     var elapsed = 0;
     while (elapsed < durationSeconds) {
       final remaining = durationSeconds - elapsed;
@@ -69,7 +74,7 @@ List<(int, double)> worstCaseCeilingTrace({
           endDepth: legEnd,
           durationSeconds: step,
         ),
-        ascentBreathingAt((legStart + legEnd) / 2.0),
+        breathing ?? ascentBreathingAt((legStart + legEnd) / 2.0),
       );
       runtime += step;
       elapsed += step;
@@ -84,7 +89,21 @@ List<(int, double)> worstCaseCeilingTrace({
       phase: phase,
     );
     if (legSeconds > 0) sampleLeg(depth, stop.depthMeters, legSeconds);
-    if (stop.durationSeconds > 0) {
+    // A stop with air breaks is breathed in the scheduler's own runs, so the
+    // ceiling falls as it did when the stop was timed.
+    final breakGas = bailoutPlan.breakGasForDepth(stop.depthMeters);
+    final airBreaks = policy.airBreaks;
+    if (stop.airBreakSeconds > 0 && breakGas != null && airBreaks != null) {
+      final onBreak = OpenCircuit(fO2: breakGas.fO2, fHe: breakGas.fHe);
+      for (final run in airBreakRuns(stop.durationSeconds, airBreaks)) {
+        sampleLeg(
+          stop.depthMeters,
+          stop.depthMeters,
+          run.seconds,
+          breathing: run.onBreak ? onBreak : null,
+        );
+      }
+    } else if (stop.durationSeconds > 0) {
       sampleLeg(stop.depthMeters, stop.depthMeters, stop.durationSeconds);
     }
     depth = stop.depthMeters;

@@ -2699,8 +2699,8 @@ class PlanEngine {
             stop,
             plan: ascentPlan,
             stopTankId: tankId,
-            tankForGas: (fO2, fHe) =>
-                _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr),
+            tankForGas: (breakFO2, breakFHe) =>
+                _tankForGas(plan.tanks, breakFO2, breakFHe, isCcr: isCcr),
           ),
           arrivalRuntimeSeconds: arrival,
         ),
