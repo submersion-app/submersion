@@ -170,7 +170,12 @@ From the menu you can also:
   it.
 - **Convert to Dive** turns the plan into a planned dive in your log, with its
   full computed profile, linked back to the plan. It is not offered for a plan
-  with no segments or with critical warnings.
+  with no segments or with critical warnings. A download from your dive computer
+  on that day or the next fills the planned dive in place.
+- **Link to a logged dive** joins a saved plan to a dive you have already
+  logged, from the saved plans list or the plan's menu. The dive's
+  [Compare](compare.md) section then shows the plan beside what you did, and the
+  plan shows **Dived as #N**.
 
 Your current plan stays as you left it while you move around the app.
 

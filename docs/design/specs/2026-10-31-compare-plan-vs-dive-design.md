@@ -1,7 +1,7 @@
 # Compare: plan, dive and what-ifs on one dive
 
 Date: 2026-10-31
-Status: Approved design, pending implementation planning
+Status: Implemented for #4003 (plan: `docs/design/plans/2026-10-31-compare-plan-vs-dive.md`)
 Branch / worktree: `ericgriffin/counterfactual-dive-lab-rethink-f2b015` at
 `.claude/worktrees/counterfactual-dive-lab-rethink-f2b015`, PR #2407
 Amends: `2026-09-25-counterfactual-dive-lab-rethink-design.md` (the Lab
