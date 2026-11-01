@@ -138,6 +138,12 @@ class _UnifiedImportWizardBodyState
   /// the whole advance (bundle build included) a second time.
   bool _advancing = false;
 
+  /// True while a step's work runs, which is what the bottom bar shows: a
+  /// large file can take a while on a worker, with the app live around it.
+  /// Back is held as well as Next, because [_advance] carries on from
+  /// wherever the wizard is when that work ends.
+  bool _stepWorking = false;
+
   /// Why the last Next tap did not move the wizard on, shown above the bottom
   /// bar until the next attempt. Null while nothing has failed.
   String? _advanceError;
@@ -295,12 +301,20 @@ class _UnifiedImportWizardBodyState
       });
     } finally {
       _advancing = false;
+      _setStepWorking(false);
     }
+  }
+
+  void _setStepWorking(bool working) {
+    if (!mounted || _stepWorking == working) return;
+    setState(() => _stepWorking = working);
   }
 
   Future<void> _advance() async {
     _navigatingForward = true;
     if (_currentPage < _reviewIndex) {
+      _setStepWorking(true);
+
       // Let the current step commit any pending state before we leave it.
       await _beforeAdvance(_acquisitionSteps[_currentPage]);
       if (!mounted) return;
@@ -360,6 +374,7 @@ class _UnifiedImportWizardBodyState
               autoTagImports: ref.read(settingsProvider).autoTagImports,
             );
       }
+      _setStepWorking(false);
       await _animateToPage(nextPage);
     } else if (_currentPage == _reviewIndex) {
       await _startImport();
@@ -612,11 +627,12 @@ class _UnifiedImportWizardBodyState
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(100, 48),
                 ),
-                onPressed: () {
-                  _navigatingForward = false;
-                  _advancingStep?.onCancelAdvance?.call();
-                  _animateToPage(_currentPage - 1);
-                },
+                onPressed: _stepWorking
+                    ? null
+                    : () {
+                        _navigatingForward = false;
+                        _animateToPage(_currentPage - 1);
+                      },
                 child: Text(context.l10n.common_action_back),
               ),
             const Spacer(),
@@ -624,6 +640,7 @@ class _UnifiedImportWizardBodyState
               _AcquisitionNextButton(
                 stepIndex: _currentPage,
                 step: _acquisitionSteps[_currentPage],
+                working: _stepWorking,
                 onNext: _onNext,
               )
             else if (_currentPage == _reviewIndex)
@@ -739,21 +756,33 @@ class _AcquisitionNextButton extends ConsumerWidget {
   const _AcquisitionNextButton({
     required this.stepIndex,
     required this.step,
+    required this.working,
     required this.onNext,
   });
 
   final int stepIndex;
   final WizardStepDef step;
+  final bool working;
   final VoidCallback onNext;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final canAdvance = ref.watch(step.canAdvance);
 
-    return FilledButton(
+    return FilledButton.icon(
       style: FilledButton.styleFrom(minimumSize: const Size(120, 48)),
-      onPressed: canAdvance ? onNext : null,
-      child: Text(context.l10n.universalImport_action_next),
+      onPressed: canAdvance && !working ? onNext : null,
+      icon: working
+          ? SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                semanticsLabel: context.l10n.common_label_loading,
+              ),
+            )
+          : null,
+      label: Text(context.l10n.universalImport_action_next),
     );
   }
 }

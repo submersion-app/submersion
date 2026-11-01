@@ -660,6 +660,13 @@ class DivePlanSummary extends Equatable {
   final int? ttsSeconds;
   final PlanMode mode;
 
+  /// The dive this plan is linked to (issue #4003), and what the saved plans
+  /// list needs to say so without loading it.
+  final String? linkedDiveId;
+  final int? linkedDiveNumber;
+  final bool linkedDiveIsPlanned;
+  final DateTime? linkedDiveDate;
+
   const DivePlanSummary({
     required this.id,
     required this.name,
@@ -668,6 +675,10 @@ class DivePlanSummary extends Equatable {
     this.runtimeSeconds,
     this.ttsSeconds,
     this.mode = PlanMode.oc,
+    this.linkedDiveId,
+    this.linkedDiveNumber,
+    this.linkedDiveIsPlanned = false,
+    this.linkedDiveDate,
   });
 
   @override
@@ -679,5 +690,9 @@ class DivePlanSummary extends Equatable {
     runtimeSeconds,
     ttsSeconds,
     mode,
+    linkedDiveId,
+    linkedDiveNumber,
+    linkedDiveIsPlanned,
+    linkedDiveDate,
   ];
 }

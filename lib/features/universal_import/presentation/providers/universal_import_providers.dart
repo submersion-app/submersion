@@ -287,7 +287,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     // Reset to a clean slate so stale fileBytes/detectionResult from a
     // previous run don't leak through if detection fails or is unsupported.
     final staleTempDirs = state.zipTempDirPaths;
-    _abandonParse();
     state = const UniversalImportState().copyWith(isLoading: true);
     _deleteTempDirs(staleTempDirs);
 
@@ -478,7 +477,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// not reset it on init.
   Future<void> loadFilesFromPaths(List<String> paths) async {
     final staleTempDirs = state.zipTempDirPaths;
-    _abandonParse();
     state = const UniversalImportState().copyWith(isLoading: true);
     _deleteTempDirs(staleTempDirs);
     final expansion = await _zipExpansion.expandAll(paths);
@@ -866,7 +864,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// in [ImportStepCancelled]. A parse commits nothing, so there is nothing to
   /// undo. One already on a worker isolate cannot be stopped: it runs out
   /// unseen and its result is dropped.
+  ///
+  /// A large file parses on a worker, so the app stays responsive and the
+  /// diver can leave the wizard and start again before it returns (#3865).
   void cancelParse() => _parseToken?.cancel();
+
+  /// The state the parse in flight started from, which says what it is reading.
+  UniversalImportState? _parseStartedFrom;
 
   /// Whether [token] still speaks for this notifier. Once a reset or a new
   /// file has replaced it, the state belongs to whatever came next, and a
@@ -874,26 +878,39 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   bool _ownsState(ImportCancellationToken token) =>
       identical(token, _parseToken);
 
-  /// Drops the parse in flight for something that replaces the file it reads.
-  void _abandonParse() {
-    _parseToken?.cancel();
-    _parseToken = null;
+  /// Drops the parse in flight as soon as anything replaces what it is reading,
+  /// whichever way it arrives. A parse's own last write replaces the files too,
+  /// by which point it has nothing left to do.
+  @override
+  set state(UniversalImportState value) {
+    final started = _parseStartedFrom;
+    if (started != null &&
+        !(identical(value.fileBytes, started.fileBytes) &&
+            identical(value.files, started.files))) {
+      _parseToken?.cancel();
+      _parseToken = null;
+      _parseStartedFrom = null;
+    }
+    super.state = value;
   }
 
   /// Runs [parse] as the parse in flight, under a token of its own.
   ///
-  /// Whatever way it ends, it does not leave the step loading: Next waits on
-  /// that, so an error nothing else caught would hold the wizard for good.
+  /// Whatever way it ends, it does not leave the step loading: an error nothing
+  /// else caught would keep the progress row running, with a Cancel that has
+  /// nothing left to stop.
   Future<void> _underNewParse(
     Future<void> Function(ImportCancellationToken token) parse,
   ) async {
     _parseToken?.cancel();
     final token = _parseToken = ImportCancellationToken();
+    _parseStartedFrom = state;
     try {
       await parse(token);
     } finally {
       if (_ownsState(token)) {
         _parseToken = null;
+        _parseStartedFrom = null;
         if (state.isLoading) state = state.copyWith(isLoading: false);
       }
     }
@@ -914,16 +931,19 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final result = await _batchParseService.parseAll(
       state.files,
       onProgress: (current, total) {
+        if (!_ownsState(token)) return;
         state = state.copyWith(parseCurrent: current, parseTotal: total);
       },
       cancelToken: token,
     );
 
-    if (result.cancelled) throw _batchCancelled(token, result);
+    if (result.cancelled || token.isCancelled) {
+      throw _batchCancelled(token, result);
+    }
 
     if (result.parsed.isEmpty) {
       // Clear the detection result so the Confirm Source / triage step's
-      // canAdvance gate (universalAdapterSourceReadyProvider, which checks
+      // canAdvance gate (universalAdapterSourceReadyProvider, which only checks
       // detectionResult.isFormatSupported) goes false -- there is no payload to
       // review, so Next must not stay enabled.
       state = state.copyWith(
@@ -1367,7 +1387,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   void reset() {
     final staleTempDirs = state.zipTempDirPaths;
-    _abandonParse();
     state = const UniversalImportState();
     _deleteTempDirs(staleTempDirs);
   }

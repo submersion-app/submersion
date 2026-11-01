@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -81,6 +82,43 @@ void main() {
       expect(
         results[1].outcome.totalDecoSeconds,
         greaterThan(fresh.totalDecoSeconds),
+      );
+    });
+
+    test('the next dive off-gasses the previous dive\'s tissues at the higher '
+        'of the two surfaces', () {
+      final atSeaLevel = _series([
+        seriesDiveState(),
+        seriesDiveState(
+          id: 'dive-b',
+          surfaceInterval: const Duration(hours: 1),
+        ),
+      ]);
+      final upTheMountain = updateDiveState(
+        atSeaLevel,
+        1,
+        atSeaLevel.dives[1].state.copyWith(altitude: 3000),
+        pinTypedPressures: false,
+      );
+
+      final results = computeSeries(upTheMountain.dives, config: _config);
+
+      expect(
+        results[1].state.initialTissueEnvironment,
+        environmentForPlan(results[0].state),
+      );
+      final offGassed =
+          startStateForPlan(
+                results[1].state.copyWith(altitude: 0),
+                config: _config,
+              )!
+              as BuhlmannState;
+      final seeded =
+          startStateForPlan(results[1].state, config: _config)!
+              as BuhlmannState;
+      expect(
+        [for (final c in seeded.compartments) c.currentPN2],
+        [for (final c in offGassed.compartments) c.currentPN2],
       );
     });
 

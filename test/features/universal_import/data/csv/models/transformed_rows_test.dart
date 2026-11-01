@@ -159,11 +159,18 @@ void main() {
         dateOrder: DateOrder.dayFirst,
       );
 
-      expect(rows.props, hasLength(4));
+      expect(rows.props, hasLength(5));
       expect(rows.props[0], rows.rows);
       expect(rows.props[1], rows.warnings);
       expect(rows.props[2], rows.fileRole);
       expect(rows.props[3], DateOrder.dayFirst);
+      expect(rows.props[4], rows.sourceRows);
+    });
+
+    test('sourceRowOf reads the recorded row, else counts from the header', () {
+      const rows = TransformedRows(rows: [{}, {}], sourceRows: [5]);
+      expect(rows.sourceRowOf(0), 5);
+      expect(rows.sourceRowOf(1), 3);
     });
   });
 }

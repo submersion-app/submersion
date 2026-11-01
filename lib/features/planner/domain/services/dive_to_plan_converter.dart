@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -84,6 +85,7 @@ class DiveToPlanConverter {
     required String planName,
     required DivePlanState defaults,
     List<TissueCompartment>? initialTissueState,
+    DiveEnvironment? initialTissueEnvironment,
     Duration? surfaceInterval,
     String Function()? idGenerator,
     int? throughTimestamp,
@@ -134,6 +136,7 @@ class DiveToPlanConverter {
       reservePressure: defaults.reservePressure,
       surfaceInterval: surfaceInterval,
       initialTissueState: initialTissueState,
+      initialTissueEnvironment: initialTissueEnvironment,
       sourceDiveId: dive.id,
       createdAt: now,
       updatedAt: now,

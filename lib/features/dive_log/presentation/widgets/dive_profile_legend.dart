@@ -41,6 +41,9 @@ class DiveProfileLegend extends ConsumerWidget {
   final VoidCallback onResetZoom;
   final double leftPadding;
 
+  /// Off for a chart that takes no gestures, where they would do nothing.
+  final bool showZoomControls;
+
   const DiveProfileLegend({
     super.key,
     required this.config,
@@ -51,6 +54,7 @@ class DiveProfileLegend extends ConsumerWidget {
     required this.onZoomOut,
     required this.onResetZoom,
     this.leftPadding = 0.0,
+    this.showZoomControls = true,
   });
 
   @override
@@ -111,19 +115,21 @@ class DiveProfileLegend extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(width: 4),
-          ValueListenableBuilder<double>(
-            valueListenable: zoomLevel,
-            builder: (context, zoom, _) => ChartZoomControls(
-              dense: true,
-              zoomLevel: zoom,
-              minZoom: minZoom,
-              maxZoom: maxZoom,
-              onZoomIn: onZoomIn,
-              onZoomOut: onZoomOut,
-              onResetZoom: onResetZoom,
+          if (showZoomControls) ...[
+            const SizedBox(width: 4),
+            ValueListenableBuilder<double>(
+              valueListenable: zoomLevel,
+              builder: (context, zoom, _) => ChartZoomControls(
+                dense: true,
+                zoomLevel: zoom,
+                minZoom: minZoom,
+                maxZoom: maxZoom,
+                onZoomIn: onZoomIn,
+                onZoomOut: onZoomOut,
+                onResetZoom: onResetZoom,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

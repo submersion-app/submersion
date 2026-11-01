@@ -17,6 +17,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -1323,7 +1324,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // Compute residual tissue state from previous dives (48h cutoff)
     final startCompartments = await _computeResidualTissueState(
       ref,
-      diveId,
+      dive,
       inputs,
     );
 
@@ -1771,25 +1772,41 @@ Future<double?> _highestSourceCnsEnd(Ref ref, String diveId) async {
 /// Mirrors the recursive CNS lookback pattern: fetches the full analysis of
 /// the nearest dive with tissue data (which recursively accounts for even
 /// earlier dives), extracts end-of-dive compartments, then applies Schreiner
-/// off-gassing for the surface time since.
+/// off-gassing for the surface time since, at the surface
+/// [DiveEnvironment.surfaceIntervalBetween] picks across every dive in that
+/// time: [dive], the known dive, and any walked past to reach it.
 ///
 /// Returns null if no earlier dive has tissue data within 48 hours of surface
 /// time (tissues are effectively surface-saturated).
 Future<List<TissueCompartment>?> _computeResidualTissueState(
   Ref ref,
-  String diveId,
+  Dive dive,
   AnalysisSettings inputs,
 ) async {
   try {
+    var surface = dive.environment;
     final lookback = await _lookBackPastUnknownDives<List<TissueCompartment>>(
       ref,
-      diveId,
-      window: const Duration(hours: 48),
+      dive.id,
+      window: kResidualLookback,
       readPrevious: (previousDiveId) async {
         // One-shot await (not watch), as in [_knownCnsEnd].
         final previousAnalysis = await ref.container.awaitFuture(
           profileAnalysisProvider(previousDiveId).future,
         );
+        // Loaded by that analysis. Read as a value, not awaited: a dive that
+        // failed to load is an unknown dive to walk past, as the analysis
+        // reports it, not a failed lookback. `value`, not `valueOrNull`, keeps
+        // the dive through a reload.
+        final previousDive = ref.container
+            .read(analysisDiveProvider(previousDiveId))
+            .value;
+        if (previousDive != null) {
+          surface = DiveEnvironment.surfaceIntervalBetween(
+            previousDive.environment,
+            surface,
+          );
+        }
         // Extract end-of-dive compartment state
         return previousAnalysis?.decoStatuses.lastOrNull?.compartments;
       },
@@ -1801,6 +1818,7 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     final algorithm = BuhlmannAlgorithm(
       gfLow: inputs.gfLowFraction,
       gfHigh: inputs.gfHighFraction,
+      environment: surface,
     );
     algorithm.setCompartments(List.from(endOfDiveCompartments));
     algorithm.calculateSegment(
@@ -1813,7 +1831,7 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     return algorithm.compartments;
   } catch (e, stackTrace) {
     _log.error(
-      'Failed to calculate residual tissue state for: $diveId',
+      'Failed to calculate residual tissue state for: ${dive.id}',
       error: e,
       stackTrace: stackTrace,
     );
@@ -1838,7 +1856,7 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
     final currentDive = await repository.getDiveTimes(diveId);
     if (currentDive == null) return 0.0;
 
-    final diveDate = currentDive.entryTime ?? currentDive.dateTime;
+    final diveDate = currentDive.effectiveEntryTime;
     final startOfDay = DateTime.utc(
       diveDate.year,
       diveDate.month,
@@ -1853,10 +1871,9 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
 
     // Only dives that began BEFORE this one count toward its residual.
     return await sumOtuInWindow(
-      dives: nearbyDives.where(
+      dives: withoutUndivedPlans(currentDive, nearbyDives).where(
         (dive) =>
-            dive.id != diveId &&
-            (dive.entryTime ?? dive.dateTime).isBefore(diveDate),
+            dive.id != diveId && dive.effectiveEntryTime.isBefore(diveDate),
       ),
       from: startOfDay,
       to: diveDate,
@@ -1897,9 +1914,11 @@ final residualTissueStateProvider =
       diveId,
     ) async {
       await awaitCurrentDiverSettings(ref);
+      final dive = await ref.watch(analysisDiveProvider(diveId).future);
+      if (dive == null) return null;
       return _computeResidualTissueState(
         ref,
-        diveId,
+        dive,
         ref.watch(analysisSettingsProvider),
       );
     });
@@ -1921,6 +1940,8 @@ final residualOtuProvider = FutureProvider.family<double, String>((
 /// of the current dive plus any dive that occurred at or before it. Dives
 /// logged LATER than the current dive (e.g. later the same day) are excluded
 /// so the displayed "Prior" never borrows OTU from the future (issue #407).
+/// A plan a logged dive never followed is excluded too (issue #3924, see
+/// [withoutUndivedPlans]).
 /// Used by O2ToxicityCard for REPEX compliance display.
 final weeklyOtuProvider = FutureProvider.family<double, String>((
   ref,
@@ -1939,7 +1960,7 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     final currentDive = await repository.getDiveTimes(diveId);
     if (currentDive == null) return 0.0;
 
-    final diveDate = currentDive.entryTime ?? currentDive.dateTime;
+    final diveDate = currentDive.effectiveEntryTime;
     final endOfDay = DateTime.utc(
       diveDate.year,
       diveDate.month,
@@ -1959,10 +1980,8 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     // "Prior" as (weekly - thisDive), wrongly attributing the future dive's
     // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
     // ordering discipline in [_computeResidualOtu].
-    final counted = weekDives.where(
-      (dive) =>
-          dive.id == diveId ||
-          !(dive.entryTime ?? dive.dateTime).isAfter(diveDate),
+    final counted = withoutUndivedPlans(currentDive, weekDives).where(
+      (dive) => dive.id == diveId || !dive.effectiveEntryTime.isAfter(diveDate),
     );
 
     // The window closes at the end of the dive's day, or at the dive's own

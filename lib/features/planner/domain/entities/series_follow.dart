@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -76,6 +77,9 @@ class SeriesFollow extends Equatable {
   /// profile to analyse.
   final List<TissueCompartment>? endTissues;
 
+  /// The conditions the followed dive ended [endTissues] in.
+  final DiveEnvironment endEnvironment;
+
   /// The followed dive's end CNS%, residual from the dives before it included.
   final double endCns;
 
@@ -91,6 +95,7 @@ class SeriesFollow extends Equatable {
   SeriesFollow({
     required this.loggedDives,
     this.endTissues,
+    this.endEnvironment = DiveEnvironment.standard,
     this.endCns = 0,
     this.endTanks = const [],
     this.ownStartPressures = const {},
@@ -102,6 +107,7 @@ class SeriesFollow extends Equatable {
     List<SeriesLoggedDive>? loggedDives,
     List<TissueCompartment>? endTissues,
     bool clearEndTissues = false,
+    DiveEnvironment? endEnvironment,
     double? endCns,
     List<DiveTank>? endTanks,
     Map<String, double>? ownStartPressures,
@@ -109,6 +115,7 @@ class SeriesFollow extends Equatable {
     return SeriesFollow(
       loggedDives: loggedDives ?? this.loggedDives,
       endTissues: clearEndTissues ? null : (endTissues ?? this.endTissues),
+      endEnvironment: endEnvironment ?? this.endEnvironment,
       endCns: endCns ?? this.endCns,
       endTanks: endTanks ?? this.endTanks,
       ownStartPressures: ownStartPressures ?? this.ownStartPressures,
@@ -119,6 +126,7 @@ class SeriesFollow extends Equatable {
   List<Object?> get props => [
     loggedDives,
     endTissues,
+    endEnvironment,
     endCns,
     endTanks,
     ownStartPressures,

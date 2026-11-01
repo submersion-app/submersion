@@ -103,5 +103,28 @@ void main() {
     test('forConditions: null altitude keeps legacy 1.0 bar', () {
       expect(DiveEnvironment.forConditions().surfacePressureBar, 1.0);
     });
+
+    group('surfaceIntervalBetween', () {
+      const seaLevel = DiveEnvironment.standard;
+      const altitude = DiveEnvironment(surfacePressureBar: 0.7);
+
+      test('one surface is that surface', () {
+        expect(
+          DiveEnvironment.surfaceIntervalBetween(altitude, altitude),
+          altitude,
+        );
+      });
+
+      test('takes the higher surface in either order', () {
+        expect(
+          DiveEnvironment.surfaceIntervalBetween(altitude, seaLevel),
+          seaLevel,
+        );
+        expect(
+          DiveEnvironment.surfaceIntervalBetween(seaLevel, altitude),
+          seaLevel,
+        );
+      });
+    });
   });
 }

@@ -1,13 +1,10 @@
 // The wizard only knows `onCancelAdvance`. These steps are what connects it to
-// the parse, so Back during a real import stops it rather than letting the
-// wizard jump forward when the parse ends.
+// the parse, so leaving the wizard during a real import stops waiting for it.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
-import 'package:submersion/features/universal_import/data/models/detection_result.dart';
-import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 class _CountingNotifier extends UniversalImportNotifier {
@@ -50,22 +47,4 @@ void main() {
       expect(notifier.cancels, 1);
     });
   }
-
-  test('Confirm Source holds Next while a parse runs', () {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final notifier = container.read(universalImportNotifierProvider.notifier);
-
-    notifier.state = notifier.state.copyWith(
-      detectionResult: const DetectionResult(
-        format: ImportFormat.subsurfaceXml,
-        confidence: 1,
-      ),
-      isLoading: true,
-    );
-    expect(container.read(universalAdapterSourceReadyProvider), isFalse);
-
-    notifier.state = notifier.state.copyWith(isLoading: false);
-    expect(container.read(universalAdapterSourceReadyProvider), isTrue);
-  });
 }

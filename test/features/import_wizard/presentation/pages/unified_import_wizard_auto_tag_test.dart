@@ -125,8 +125,9 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Next'));
-    // Everything up to the settings read runs here; the load is still out.
-    await tester.pumpAndSettle();
+    // Everything up to the settings read runs here; the load is still out,
+    // so the bottom bar's spinner is running and nothing would settle.
+    await tester.pump();
   }
 
   testWidgets('a saved "off" that loads after Next still leaves the import '

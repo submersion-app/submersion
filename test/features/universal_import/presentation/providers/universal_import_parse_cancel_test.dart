@@ -1,6 +1,6 @@
 // A large file now parses on a worker, so the wizard stays live while it runs.
-// That opens a window the old freeze kept shut: the diver can cancel, go back,
-// leave or drop in another file with a parse still in flight. Each test here
+// That opens a window the old freeze kept shut: the diver can cancel, leave or
+// drop in another file with a parse still in flight. Each test here
 // holds a parse open and acts in that window. Whatever happens, a parse that
 // was given up on must never reach the state, because a late payload would
 // land on a file it does not belong to.
@@ -316,7 +316,7 @@ void main() {
 
     await expectLater(notifier.confirmSource(), throwsStateError);
 
-    // Next waits on this, so left set it would hold the wizard for good.
+    // Left set, the progress row would run on with a Cancel that stops nothing.
     expect(notifier.state.isLoading, isFalse);
   });
 

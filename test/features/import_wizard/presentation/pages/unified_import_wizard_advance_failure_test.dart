@@ -28,16 +28,11 @@ class _FailingStepAdapter implements ImportSourceAdapter {
     required this.onAdvance,
     this.duplicateCheck,
     this.onCancelAdvance,
-    this.leadingStep = false,
   });
 
   final Future<void> Function() onAdvance;
   final Future<ImportBundle> Function(ImportBundle)? duplicateCheck;
   final VoidCallback? onCancelAdvance;
-
-  /// Puts a plain step in front, so the Back button shows on the one under
-  /// test.
-  final bool leadingStep;
 
   int buildBundleCalls = 0;
   ImportBundle? bundleGivenToWizard;
@@ -56,12 +51,6 @@ class _FailingStepAdapter implements ImportSourceAdapter {
 
   @override
   List<WizardStepDef> get acquisitionSteps => [
-    if (leadingStep)
-      WizardStepDef(
-        label: 'Pick File',
-        builder: (_) => const Center(child: Text('Step 0')),
-        canAdvance: _canAdvance,
-      ),
     WizardStepDef(
       label: 'Confirm Source',
       builder: (_) => const Center(child: Text('Step 1')),
@@ -176,52 +165,6 @@ void main() {
     await _tapNext(tester);
 
     expect(adapter.buildBundleCalls, 1);
-  });
-
-  testWidgets('Back stops a step that is still running, and stays back', (
-    tester,
-  ) async {
-    final running = Completer<void>();
-    var cancels = 0;
-    final adapter = _FailingStepAdapter(
-      leadingStep: true,
-      onAdvance: () => running.future,
-      onCancelAdvance: () {
-        cancels++;
-        running.completeError(const ImportStepCancelled());
-      },
-    );
-    await tester.pumpWidget(_wizard(adapter));
-    await tester.pumpAndSettle();
-    await _tapNext(tester);
-    expect(find.text('Step 1'), findsOneWidget);
-
-    await tester.tap(find.text('Next'));
-    await tester.pump();
-    await tester.tap(find.text('Back'));
-    await tester.pumpAndSettle();
-
-    expect(cancels, 1);
-    expect(find.text('Step 0'), findsOneWidget);
-    expect(find.text('Step 1'), findsNothing);
-    expect(adapter.buildBundleCalls, 0);
-  });
-
-  testWidgets('Back with no step running stops nothing', (tester) async {
-    var cancels = 0;
-    final adapter = _FailingStepAdapter(
-      leadingStep: true,
-      onAdvance: () async {},
-      onCancelAdvance: () => cancels++,
-    );
-    await tester.pumpWidget(_wizard(adapter));
-    await tester.pumpAndSettle();
-    await _tapNext(tester);
-
-    await tester.tap(find.text('Back'));
-    await tester.pumpAndSettle();
-
-    expect(cancels, 0);
   });
 
   testWidgets('leaving the wizard stops a step that is still running', (

@@ -6,12 +6,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_lab/domain/entities/branch_state.dart';
+import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_consumption.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_delta.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_buoyancy_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/compare_table.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_runtime_table.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
@@ -33,6 +35,8 @@ class LabDeltaPanel extends ConsumerWidget {
     this.recomputing = false,
     this.buoyancy,
     this.error,
+    this.planColumns = const [],
+    this.plannedOutcome,
   });
 
   final LabRequestInputs inputs;
@@ -46,6 +50,13 @@ class LabDeltaPanel extends ConsumerWidget {
 
   /// The latest outcome; null until the first run completes.
   final ScenarioOutcome? outcome;
+
+  /// Planned, As dived and the current what-if, shown above the delta table;
+  /// empty with no plan showing.
+  final List<CompareColumn> planColumns;
+
+  /// The linked plan's outcome, for its schedule; null with no plan showing.
+  final PlanOutcome? plannedOutcome;
 
   /// True while a newer outcome is being computed: the panel dims and shows
   /// a thin progress bar instead of flashing empty.
@@ -107,6 +118,11 @@ class LabDeltaPanel extends ConsumerWidget {
               ?.id,
         ),
         const SizedBox(height: 16),
+        if (planColumns.isNotEmpty) ...[
+          PlanSectionHeader(l10n.diveLab_compare_planTable),
+          CompareTable(columns: planColumns, units: units),
+          const SizedBox(height: 16),
+        ],
         PlanSectionHeader(l10n.diveLab_panel_delta),
         _DeltaTable(outcome: value, units: units, tankName: tankName),
         const SizedBox(height: 16),
@@ -131,6 +147,11 @@ class LabDeltaPanel extends ConsumerWidget {
             units: units,
             runtimeOffsetSeconds: value.branch.runtimeSeconds,
           ),
+        ],
+        if (plannedOutcome != null) ...[
+          const SizedBox(height: 16),
+          PlanSectionHeader(l10n.diveLab_compare_plannedSchedule),
+          LabRuntimeTable(outcome: plannedOutcome!, units: units),
         ],
         if (value.flags.isNotEmpty) ...[
           const SizedBox(height: 16),

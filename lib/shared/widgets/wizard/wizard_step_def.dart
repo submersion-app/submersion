@@ -45,10 +45,9 @@ class WizardStepDef {
   /// proceeding.
   final AsyncCallback? onBeforeAdvance;
 
-  /// Optional callback invoked when the diver leaves while [onBeforeAdvance]
-  /// is still running, by going back or out of the wizard. An adapter whose
-  /// [onBeforeAdvance] can take a while uses this to stop it, so the wizard
-  /// does not advance from under the diver once it finishes.
+  /// Optional callback invoked when the diver leaves the wizard while
+  /// [onBeforeAdvance] is still running. An adapter whose [onBeforeAdvance] can
+  /// take a while uses this to stop it, so it does not finish for nobody.
   final VoidCallback? onCancelAdvance;
 
   /// When true, the wizard hides the standard bottom bar (Back/Next) for this

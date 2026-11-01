@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/models/log_entry.dart';
@@ -7,6 +8,19 @@ import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 Future<void> flushLogs() => LoggerService.flushPendingWrites();
+
+/// Logs from wherever it runs, and says where that was.
+String? _logAndNameIsolate() {
+  const LoggerService('Worker')
+    ..debug('worker chatter')
+    ..warning('worker warning for https://x.test/cb?access_token=leak3');
+  return Isolate.current.debugName;
+}
+
+Never _failOnWorker() => throw const FormatException('bad input');
+
+void _logSessionMarker() =>
+    const LoggerService('Worker').info('worker marker', alwaysPersist: true);
 
 void main() {
   group('LoggerService', () {
@@ -455,6 +469,71 @@ void main() {
       final messages = (await fileService.readEntries()).map((e) => e.message);
       expect(messages, hasLength(LoggerService.startupBufferLimit));
       expect(messages.first, 'line 5');
+    });
+
+    group('isolateRunKeepingLogs', () {
+      test('runs on another isolate and hands back the value', () async {
+        final name = await LoggerService.isolateRunKeepingLogs(
+          _logAndNameIsolate,
+        );
+
+        expect(name, isNot(Isolate.current.debugName));
+      });
+
+      test('writes a worker line here, filtered and redacted', () async {
+        LoggerService.configureFileLogging(fileService, verbose: false);
+
+        await LoggerService.isolateRunKeepingLogs(_logAndNameIsolate);
+        await flushLogs();
+
+        final raw = File(fileService.logFilePath).readAsStringSync();
+        expect(raw, contains('worker warning'));
+        expect(raw, isNot(contains('leak3')));
+        expect(raw, isNot(contains('worker chatter')));
+      });
+
+      test('shows every worker line to live listeners', () async {
+        LoggerService.configureFileLogging(fileService, verbose: false);
+        final seen = <String>[];
+        final sub = LoggerService.logStream.listen((e) => seen.add(e.message));
+        addTearDown(sub.cancel);
+
+        await LoggerService.isolateRunKeepingLogs(_logAndNameIsolate);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(seen, hasLength(2));
+        expect(seen.first, 'worker chatter');
+      });
+
+      test('keeps a worker line that must always persist', () async {
+        LoggerService.configureFileLogging(fileService, verbose: false);
+
+        await LoggerService.isolateRunKeepingLogs(_logSessionMarker);
+        await flushLogs();
+
+        final entries = await fileService.readEntries();
+        expect(entries.map((e) => e.message), ['worker marker']);
+      });
+
+      test('holds a worker line until startup attaches a file', () async {
+        LoggerService.setFileService(null);
+        LoggerService.bufferUntilFileAttached();
+
+        await LoggerService.isolateRunKeepingLogs(_logAndNameIsolate);
+        LoggerService.configureFileLogging(fileService, verbose: false);
+        await flushLogs();
+
+        final entries = await fileService.readEntries();
+        expect(entries, hasLength(1));
+        expect(entries.single.message, contains('worker warning'));
+      });
+
+      test('passes a worker error to the caller', () async {
+        await expectLater(
+          LoggerService.isolateRunKeepingLogs<void>(_failOnWorker),
+          throwsFormatException,
+        );
+      });
     });
 
     test('persistedLogStream fires after a line is written, and only for '

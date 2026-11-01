@@ -140,6 +140,16 @@ String planSlateHeaderLine(
     'RT ${planSlateMinutes(outcome.runtimeSeconds, labels)}   '
     'CNS ${outcome.cnsEnd.toStringAsFixed(0)}%';
 
+/// One line of the slate's runtime table, in column order: depth, duration,
+/// runtime, gas. Top-level for the reason [planSlateHeaderLine] gives.
+List<String> planSlateRuntimeCells(ScheduleLine line, UnitFormatter units) => [
+  '${PlanSlatePdfService._pdfGlyph(line.row.kind)} '
+      '${units.formatDepth(line.row.depthMeters, decimals: 0)}',
+  line.durationLabel(),
+  '${line.runtimeMinutes}',
+  GasMix(o2: line.row.gasFO2 * 100.0, he: line.row.gasFHe * 100.0).name,
+];
+
 /// Whole minutes, rounded up, as the slate prints durations.
 String planSlateMinutes(int seconds, PlanSlateLabels labels) =>
     labels.minutes('${(seconds / 60).ceil()}');
@@ -333,18 +343,7 @@ class PlanSlatePdfService {
         for (final line in scheduleLines(outcome.schedule))
           pw.TableRow(
             children: [
-              cell(
-                '${_pdfGlyph(line.row.kind)} '
-                '${units.formatDepth(line.row.depthMeters, decimals: 0)}',
-              ),
-              cell('${line.durationMinutes}'),
-              cell('${line.runtimeMinutes}'),
-              cell(
-                GasMix(
-                  o2: line.row.gasFO2 * 100.0,
-                  he: line.row.gasFHe * 100.0,
-                ).name,
-              ),
+              for (final text in planSlateRuntimeCells(line, units)) cell(text),
             ],
           ),
       ],

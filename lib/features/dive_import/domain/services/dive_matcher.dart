@@ -127,10 +127,10 @@ class DiveMatchResult {
   final int? inBatchIndex;
 
   /// When non-null, [diveId] is an unfilled PLANNED dive of the target
-  /// profile on the same local day as the download (issue #2002). The
-  /// wizard defaults such a row to [DuplicateAction.fillPlanned]: the
-  /// planned dive keeps its human-entered facts and the download supplies
-  /// the measured ones. Never set together with [matchedExistingSource] or
+  /// profile on the download's local day or the day before (issues #2002 and
+  /// #4003). The wizard defaults such a row to
+  /// [DuplicateAction.fillPlanned]: the planned dive keeps its human-entered
+  /// facts and the download supplies the measured ones. Never set together with [matchedExistingSource] or
   /// [inBatchIndex]; the planned pass runs only for otherwise unmatched
   /// downloads.
   final String? plannedDiveId;

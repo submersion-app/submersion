@@ -370,6 +370,93 @@ void main() {
     );
   });
 
+  group('gas mixes (issue #4007)', () {
+    Future<GasMix> roundTrip(GasMix mix) async {
+      final dive = Dive(
+        id: 'd',
+        dateTime: DateTime.utc(2026, 10, 31, 10),
+        tanks: [DiveTank(id: 't', volume: 12, gasMix: mix)],
+      );
+      final csv = CsvDivesWriter(CsvExportUnits.metric).write([dive]);
+      final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+      expect(payload.warnings, isEmpty);
+      final parsed = payload.entitiesOf(ImportEntityType.dives).single;
+      return (parsed['tanks'] as List).single['gasMix'] as GasMix;
+    }
+
+    test('a mix with no nitrogen comes back exactly', () async {
+      final mix = await roundTrip(const GasMix(o2: 10.5, he: 89.5));
+      expect(mix, const GasMix(o2: 10.5, he: 89.5));
+      expect(mix.n2, 0);
+    });
+
+    test('a fractional trimix comes back exactly', () async {
+      expect(
+        await roundTrip(const GasMix(o2: 32.6, he: 17.4)),
+        const GasMix(o2: 32.6, he: 17.4),
+      );
+    });
+
+    test('a mix too fine for one decimal keeps a possible total', () async {
+      final mix = await roundTrip(const GasMix(o2: 10.25, he: 89.75));
+      expect(mix, const GasMix(o2: 10.3, he: 89.7));
+      expect(mix.n2, greaterThanOrEqualTo(-1e-9));
+    });
+
+    test('a file already exported at 101% caps helium and says so', () async {
+      final payload = await const SubmersionDivesCsvParser().parse(
+        _bytes(
+          'Dive Number,Date,Time,O2 %,He %\n'
+          '1,2025-03-15,09:05,21,35\n'
+          '2,2025-03-16,09:05,11,90\n',
+        ),
+      );
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      GasMix gasOf(int i) =>
+          (dives[i]['tanks'] as List).single['gasMix'] as GasMix;
+      expect(gasOf(0), const GasMix(o2: 21, he: 35));
+      expect(gasOf(1), const GasMix(o2: 11, he: 89));
+      expect(gasOf(1).n2, 0);
+
+      final warning = payload.warnings.single;
+      expect(warning.severity, ImportWarningSeverity.warning);
+      expect(warning.code, ImportWarningCode.gasMixesCapped);
+      expect(warning.entityType, ImportEntityType.dives);
+      expect(warning.itemIndex, 1);
+      expect(warning.sourceRow, 3);
+      expect(warning.field, 'He %');
+      expect(
+        warning.message,
+        'Row 3 has O2 11 % and He 90 %, over 100 % together; '
+        'He was reduced to 89 %',
+      );
+    });
+
+    test('a helium-only overflow from a blank O2 is capped too', () async {
+      final payload = await const SubmersionDivesCsvParser().parse(
+        _bytes('Date,O2 %,He %\n2025-03-15,,90\n'),
+      );
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(
+        (dive['tanks'] as List).single['gasMix'],
+        const GasMix(o2: 21, he: 79),
+      );
+      expect(payload.warnings.single.code, ImportWarningCode.gasMixesCapped);
+    });
+
+    test('oxygen alone over 100 leaves nothing for helium to give', () async {
+      final payload = await const SubmersionDivesCsvParser().parse(
+        _bytes('Date,O2 %,He %\n2025-03-15,120,0\n'),
+      );
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(
+        (dive['tanks'] as List).single['gasMix'],
+        const GasMix(o2: 120, he: 0),
+      );
+      expect(payload.warnings, isEmpty);
+    });
+  });
+
   test('ids that cannot pair with the names keep a rebuilt name', () async {
     final payload = await const SubmersionDivesCsvParser().parse(
       _bytes(

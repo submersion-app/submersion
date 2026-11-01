@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/link_dive_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Present the follow-a-dive picker as a modal bottom sheet.
@@ -86,20 +87,11 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
   }
 
   Widget _diveTile(Dive dive, UnitFormatter units) {
-    final date = units.formatDate(dive.entryTime ?? dive.dateTime);
-    final subtitleParts = <String>[
-      date,
-      if (dive.maxDepth != null) units.formatDepth(dive.maxDepth!),
-      if (dive.effectiveRuntime != null) '${dive.effectiveRuntime!.inMinutes}′',
-    ];
-    final title = (dive.name?.isNotEmpty ?? false)
-        ? dive.name!
-        : (dive.diveNumber != null ? '#${dive.diveNumber}' : date);
-
+    final labels = diveRowLabels(dive, units);
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(title),
-      subtitle: Text(subtitleParts.join(' · ')),
+      title: Text(labels.title),
+      subtitle: Text(labels.subtitle),
       trailing: _loadingDiveId == dive.id
           ? const SizedBox(
               width: 18,

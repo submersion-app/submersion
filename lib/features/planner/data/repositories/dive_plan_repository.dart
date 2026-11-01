@@ -19,6 +19,17 @@ import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 
+/// What [DivePlanRepository.linkPlanToDive] changed besides the link it set.
+class PlanLinkResult {
+  /// The dive this plan named before, if any.
+  final String? previousDiveId;
+
+  /// Plans that named the dive and lost their link to it.
+  final List<String> displacedPlanIds;
+
+  const PlanLinkResult({this.previousDiveId, this.displacedPlanIds = const []});
+}
+
 /// Denormalized summary numbers written on save so the saved-plans list
 /// renders without running the engine per row.
 class PlanSummaryData {
@@ -54,6 +65,12 @@ class DivePlanRepository {
       _db.divePlanMissionLegs,
       _db.divePlanMissionMembers,
     ]),
+  );
+
+  /// Fires on any change the saved plans list shows: the plan tables, and the
+  /// dives a plan's link badge describes, which a fill changes on its own.
+  Stream<void> watchPlanSummaryChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([_db.divePlans, _db.dives]),
   );
 
   /// Upserts the plan and its children; children removed since the last save
@@ -475,11 +492,12 @@ class DivePlanRepository {
     }
   }
 
-  /// The plan converted into [diveId] via convert-to-dive, or null.
-  /// Backs the plan-vs-actual overlay on the dive detail chart.
+  /// The plan linked to [diveId], by convert-to-dive or by hand, or null.
+  /// Backs the plan-vs-actual overlay on the dive detail chart and Compare.
   Future<domain.DivePlan?> getPlanByLinkedDiveId(String diveId) async {
     try {
-      // Newest first: a duplicated plan can share the link, take the latest.
+      // Newest first: two devices linking while apart can share the link;
+      // take the latest.
       final rows =
           await (_db.select(_db.divePlans)
                 ..where((t) => t.linkedDiveId.equals(diveId))
@@ -491,6 +509,118 @@ class DivePlanRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to load plan linked to dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Links [planId] to [diveId] by hand (issue #4003). One dive has one plan,
+  /// so any other plan naming the dive loses its link here, or unlinking this
+  /// one later would bring the older plan back to the dive.
+  ///
+  /// Writes the two columns directly: [savePlan] rewrites the plan's children
+  /// and its summary numbers. Throws [ArgumentError] when either row is gone.
+  Future<PlanLinkResult> linkPlanToDive(String planId, String diveId) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final result = await _db.transaction(() async {
+        final plan = await (_db.select(
+          _db.divePlans,
+        )..where((t) => t.id.equals(planId))).getSingleOrNull();
+        if (plan == null) {
+          throw ArgumentError.value(planId, 'planId', 'No such plan');
+        }
+        if (!await _diveExists(diveId)) {
+          throw ArgumentError.value(diveId, 'diveId', 'No such dive');
+        }
+        final displaced =
+            await (_db.select(_db.divePlans)..where(
+                  (t) =>
+                      t.linkedDiveId.equals(diveId) & t.id.equals(planId).not(),
+                ))
+                .get();
+        for (final other in displaced) {
+          await (_db.update(
+            _db.divePlans,
+          )..where((t) => t.id.equals(other.id))).write(
+            db.DivePlansCompanion(
+              linkedDiveId: const Value(null),
+              updatedAt: Value(now),
+            ),
+          );
+        }
+        await (_db.update(
+          _db.divePlans,
+        )..where((t) => t.id.equals(planId))).write(
+          db.DivePlansCompanion(
+            linkedDiveId: Value(diveId),
+            updatedAt: Value(now),
+          ),
+        );
+        return PlanLinkResult(
+          previousDiveId: plan.linkedDiveId,
+          displacedPlanIds: [for (final other in displaced) other.id],
+        );
+      });
+      for (final id in [...result.displacedPlanIds, planId]) {
+        await _syncRepository.markRecordPending(
+          entityType: 'divePlans',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
+      return result;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to link plan $planId to dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Clears [planId]'s link, and any other plan's link to the same dive, so a
+  /// duplicate two devices made while apart does not come back to the dive as
+  /// its plan. Returns the plans that changed. Neither a plan nor the dive
+  /// goes anywhere.
+  Future<List<String>> unlinkPlan(String planId) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final cleared = await _db.transaction(() async {
+        final plan = await (_db.select(
+          _db.divePlans,
+        )..where((t) => t.id.equals(planId))).getSingleOrNull();
+        final diveId = plan?.linkedDiveId;
+        if (diveId == null) return const <String>[];
+        final holders = await (_db.select(
+          _db.divePlans,
+        )..where((t) => t.linkedDiveId.equals(diveId))).get();
+        await (_db.update(
+          _db.divePlans,
+        )..where((t) => t.linkedDiveId.equals(diveId))).write(
+          db.DivePlansCompanion(
+            linkedDiveId: const Value(null),
+            updatedAt: Value(now),
+          ),
+        );
+        return [for (final holder in holders) holder.id];
+      });
+      for (final id in cleared) {
+        await _syncRepository.markRecordPending(
+          entityType: 'divePlans',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      if (cleared.isNotEmpty) SyncEventBus.notifyLocalChange();
+      return cleared;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to unlink plan $planId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -515,22 +645,44 @@ class DivePlanRepository {
   }
 
   Future<List<domain.DivePlanSummary>> getAllPlanSummaries() async {
-    final rows = await (_db.select(
-      _db.divePlans,
-    )..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])).get();
-    return rows
-        .map(
-          (r) => domain.DivePlanSummary(
-            id: r.id,
-            name: r.name,
-            updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
-            maxDepth: r.summaryMaxDepth,
-            runtimeSeconds: r.summaryRuntimeSeconds,
-            ttsSeconds: r.summaryTtsSeconds,
-            mode: domain.PlanMode.values.byName(r.mode),
-          ),
-        )
-        .toList();
+    final dives = _db.dives;
+    final query =
+        _db.select(_db.divePlans).join([
+            leftOuterJoin(
+              dives,
+              dives.id.equalsExp(_db.divePlans.linkedDiveId),
+              useColumns: false,
+            ),
+          ])
+          ..addColumns([
+            dives.diveNumber,
+            dives.isPlanned,
+            dives.entryTime,
+            dives.diveDateTime,
+          ])
+          ..orderBy([OrderingTerm.desc(_db.divePlans.updatedAt)]);
+    final rows = await query.get();
+    return rows.map((row) {
+      final r = row.readTable(_db.divePlans);
+      final diveMillis =
+          row.read(dives.entryTime) ?? row.read(dives.diveDateTime);
+      return domain.DivePlanSummary(
+        id: r.id,
+        name: r.name,
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
+        maxDepth: r.summaryMaxDepth,
+        runtimeSeconds: r.summaryRuntimeSeconds,
+        ttsSeconds: r.summaryTtsSeconds,
+        mode: domain.PlanMode.values.byName(r.mode),
+        linkedDiveId: r.linkedDiveId,
+        linkedDiveNumber: row.read(dives.diveNumber),
+        linkedDiveIsPlanned: row.read(dives.isPlanned) ?? false,
+        // Dive times are the wall clock flagged UTC.
+        linkedDiveDate: diveMillis == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(diveMillis, isUtc: true),
+      );
+    }).toList();
   }
 
   Future<void> deletePlan(String id) async {
