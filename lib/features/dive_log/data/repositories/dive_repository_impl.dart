@@ -1594,9 +1594,11 @@ class DiveRepository {
   /// trip (issue #3857).
   ///
   /// Two statements for up to [kSeriesIdChunkSize] dives, however many that
-  /// is, and the decoding, grouping and [reduce] all run on a background
-  /// isolate, so [reduce] must be a top-level function (see [SeriesReduce]):
-  /// a closure over the caller's state cannot be sent there.
+  /// is, and the decoding, grouping and [reduce] all run off the UI isolate
+  /// once the blobs are worth the hand-off ([reduceSeriesRowsInBackground]
+  /// keeps a read under [kInlineSeriesSampleLimit] samples inline), so
+  /// [reduce] must be a top-level function (see [SeriesReduce]): a closure
+  /// over the caller's state cannot be sent there.
   ///
   /// Every id gets an entry; a dive with no series, or whose sources own
   /// none, reduces an empty list, so a caller that drops some dives decides

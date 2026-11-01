@@ -30,9 +30,10 @@ CareerQuery careerRangeQuery(DateTime from, DateTime to, {int cap = 60}) =>
 /// Two repository reads, both bounded to the set (issue #3857): the newest
 /// matching dives as id and start, then every kept dive's primary-source
 /// profile in one batch, decoded and reduced to [kCareerPointsPerDive]
-/// points on a background isolate. The rest of the logbook is never read
-/// or hydrated, so a large logbook outside the site or date range costs
-/// this terrain nothing.
+/// points off the UI isolate (inline only when the whole set is a few
+/// hundred samples). The rest of the logbook is never read or hydrated, so
+/// a large logbook outside the site or date range costs this terrain
+/// nothing.
 ///
 /// Follows the analysis-input tick: it covers the dives table, the profile
 /// series and the data sources, which are exactly what this reads.
