@@ -97,6 +97,7 @@ void main() {
   ProviderContainer makeContainer({
     List<DiveComputer> computers = const [],
     bool autoConnectEnabled = true,
+    bool failToReadComputers = false,
   }) {
     hostApi = _FakeHostApi();
     downloadNotifier = _FakeDownloadNotifier();
@@ -110,7 +111,10 @@ void main() {
           pigeon.DiveComputerService(hostApi: hostApi),
         ),
         downloadNotifierProvider.overrideWith((ref) => downloadNotifier),
-        allDiveComputersProvider.overrideWith((ref) async => computers),
+        allDiveComputersProvider.overrideWith((ref) async {
+          if (failToReadComputers) throw StateError('database unavailable');
+          return computers;
+        }),
         autoConnectKnownComputersProvider.overrideWith(
           (ref) =>
               AutoConnectKnownComputersNotifier.unstored(autoConnectEnabled),
@@ -184,6 +188,21 @@ void main() {
     await pumpEventQueue();
 
     expect(requested, ['c1']);
+  });
+
+  test('a failure reading the known computers requests nothing and keeps '
+      'scanning', () async {
+    final container = makeContainer(failToReadComputers: true);
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    controller.activate();
+    await pumpEventQueue();
+
+    final service = container.read(diveComputerServiceProvider);
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+    await pumpEventQueue();
+
+    expect(requested, isEmpty);
+    expect(container.read(autoConnectControllerProvider).isActive, isTrue);
   });
 
   test('autoDownloadDisabled: skipped even with the switch on', () async {

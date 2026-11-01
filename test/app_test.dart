@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:submersion/core/providers/root_overlay_providers.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
@@ -504,6 +505,34 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('That is not a Submersion tag'), findsOneWidget);
+  });
+
+  testWidgets('a buddy card link arriving at the running app is opened, and '
+      'the overlay flag is cleared once it is done (issue #3361)', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      extraOverrides: [
+        diverCountProvider.overrideWith((ref) async => 1),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+
+    // A card link whose payload is not valid base64: it reaches the card
+    // handling, which refuses it with a message instead of navigating.
+    links.controller.add('https://submersion.app/b#%%%');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final message = find.text('This buddy card could not be read.');
+    expect(message, findsOneWidget);
+    final container = ProviderScope.containerOf(tester.element(message));
+    expect(container.read(rootOverlayActiveProvider), isFalse);
   });
 
   testWidgets('a tag link during setup waits until setup is left', (

@@ -2345,4 +2345,25 @@ void main() {
       expect(pending, isNotEmpty, reason: 'the cleared link never left here');
     },
   );
+
+  test('updateComputer persists the per-computer auto-connect opt-out '
+      '(issue #3361)', () async {
+    final now = DateTime(2026, 1, 1);
+    final created = await repository.createComputer(
+      domain.DiveComputer(
+        id: 'computer-opt-out',
+        name: 'Shearwater Perdix 2',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    expect(created.autoDownloadDisabled, isFalse);
+
+    await repository.updateComputer(
+      created.copyWith(autoDownloadDisabled: true),
+    );
+
+    final reloaded = await repository.getComputerById(created.id);
+    expect(reloaded?.autoDownloadDisabled, isTrue);
+  });
 }
