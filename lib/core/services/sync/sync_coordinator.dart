@@ -47,7 +47,11 @@ abstract final class SyncCoordinator {
   }
 
   static Future<T> run<T>(Future<T> Function() body) {
-    final previous = _tail;
+    // With no turn running there is nothing to wait for. A fresh future says
+    // so without depending on the zone the last turn ran in, which a future
+    // schedules its listeners in, and which may have stopped running (a
+    // widget test's fake zone, when many test files share an isolate).
+    final previous = _depth == 0 ? Future<void>.value() : _tail;
     final done = Completer<void>();
     _tail = done.future;
     _depth++;

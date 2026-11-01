@@ -26931,7 +26931,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung neu zuordnen, Datenqualität';
+      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung umtypen, Datenqualität, Tabelleneditor';
 
   @override
   String get settings_agentAccess_title => 'Agentenzugriff';
@@ -42646,6 +42646,269 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_diveField_humidity_short => 'Luftf.';
+
+  @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key bezeichnet mehr als eine Zeile';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: diese Zelle ist schreibgeschützt';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'Änderung verwerfen';
+
+  @override
+  String get tableEditor_changeLog => 'Änderungsprotokoll';
+
+  @override
+  String get settings_tableEditor_title => 'Tabelleneditor';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'Viele Tauchgänge, Plätze oder Basen in einer Tabelle bearbeiten';
+
+  @override
+  String get tableEditor_title => 'Tabelleneditor';
+
+  @override
+  String get tableEditor_tab_dives => 'Tauchgänge';
+
+  @override
+  String get tableEditor_tab_sites => 'Plätze';
+
+  @override
+  String get tableEditor_tab_centers => 'Basen';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'Der Tabelleneditor braucht ein breiteres Fenster. Öffne ihn auf einem Tablet oder Computer.';
+
+  @override
+  String get tableEditor_saveAll => 'Alle speichern';
+
+  @override
+  String get tableEditor_paste => 'Einfügen';
+
+  @override
+  String get tableEditor_clearFilters => 'Filter löschen';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ungespeichert',
+      one: '$count ungespeichert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'Änderungen speichern?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zellen ändern sich',
+      one: '$count Zelle ändert sich',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count brauchen Aufmerksamkeit und werden nicht gespeichert',
+      one: '$count braucht Aufmerksamkeit und wird nicht gespeichert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ersetzen einen vorhandenen Wert',
+      one: '$count ersetzt einen vorhandenen Wert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wurden seit deiner Änderung anderswo geändert',
+      one: '$count wurde seit deiner Änderung anderswo geändert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'Eingefügte Zeilen nach Tauchgangsnummer zugeordnet';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'Eingefügte Zeilen nach Name zugeordnet';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'Eingefügte Zeilen nach Position platziert';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column ist schreibgeschützt';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'Keine Zeile für $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key ist durch den Filter verborgen';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen über das Ende der Tabelle hinaus',
+      one: '$count Zeile über das Ende der Tabelle hinaus',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'Keine Spalte namens $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Änderungen gespeichert',
+      one: '$count Änderung gespeichert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'Nichts wurde gespeichert. Behebe den Fehler und versuche es erneut.';
+
+  @override
+  String get tableEditor_undo => 'Rückgängig';
+
+  @override
+  String get tableEditor_undoneAll => 'Änderungen rückgängig gemacht';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return '$reverted von $total Änderungen rückgängig gemacht';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'Alle speichern und öffnen';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'Verwerfen und öffnen';
+
+  @override
+  String get tableEditor_open_stay => 'Bleiben';
+
+  @override
+  String tableEditor_original(String value) {
+    return 'Vorher: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'Kein gültiger Wert';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'Nicht in der Liste';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'Breiten- und Längengrad nötig';
+
+  @override
+  String get tableEditor_flag_scrubberNeedsType =>
+      'Benötigt einen Scrubber-Typ';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'Seit deiner Änderung anderswo geändert';
+
+  @override
+  String get tableEditor_multiChoice_done => 'Fertig';
+
+  @override
+  String get tableEditor_libraryReadOnly =>
+      'Bibliotheksplatz: hier sind nur Notizen und Bewertung bearbeitbar';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'Das Löschen einer Koordinate löscht beide';
+
+  @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewichtszeilen, im Tauchgang bearbeiten',
+      one: '$count Gewichtszeile, im Tauchgang bearbeiten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Beim Setzen eines Platzes werden auch Wasserart, Ein- und Ausstieg und Tauchgangsarten übernommen';
+
+  @override
+  String get enum_diveField_excludedFromStats => 'Von Statistik ausgeschlossen';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'Keine Stat.';
+
+  @override
+  String get enum_diveField_excludedFromGasStats =>
+      'Von Gasstatistik ausgeschlossen';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'Keine Gasstat.';
+
+  @override
+  String get enum_diveField_windDirection => 'Windrichtung';
+
+  @override
+  String get enum_diveField_windDirection_short => 'Windricht.';
+
+  @override
+  String get enum_diveField_scrubberType => 'Scrubber-Typ';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'Scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'Scrubber-Dauer';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'Scrubber-Min';
 
   @override
   String get enum_diveField_weatherDescription_short => 'Wetter';
@@ -58597,6 +58860,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get changeLog_label_libraryRestored =>
       'Bibliothek aus Backup wiederhergestellt';
+
+  @override
+  String get changeLog_label_tableEditor => 'Tabelleneditor';
 
   @override
   String get changeLog_label_reparse => 'Tauchgänge neu ausgewertet';

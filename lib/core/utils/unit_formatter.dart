@@ -538,6 +538,17 @@ class UnitFormatter {
   String get surfacePressureSymbol =>
       settings.depthUnit == DepthUnit.meters ? 'mbar' : 'inHg';
 
+  /// A stored surface pressure (bar) in the diver's barometric unit: mbar
+  /// for a metric diver, inHg for an imperial one.
+  double convertSurfacePressure(double bar) =>
+      settings.depthUnit == DepthUnit.meters ? bar * 1000 : bar * _inHgPerBar;
+
+  /// The diver's barometric unit back to bar.
+  double surfacePressureToBar(double value) =>
+      settings.depthUnit == DepthUnit.meters
+      ? value / 1000
+      : value / _inHgPerBar;
+
   /// Format a surface (barometric) pressure stored in bar.
   String formatSurfacePressure(double? bar) {
     if (bar == null) return '--';

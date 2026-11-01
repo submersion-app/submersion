@@ -43239,7 +43239,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_dataTools_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Fix dive times, link buddies, retype gear, data quality'**
+  /// **'Fix dive times, link buddies, retype gear, data quality, table editor'**
   String get settings_data_dataTools_subtitle;
 
   /// No description provided for @settings_agentAccess_title.
@@ -67357,6 +67357,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Humid'**
   String get enum_diveField_humidity_short;
+
+  /// No description provided for @tableEditor_skip_ambiguousRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{key} names more than one row'**
+  String tableEditor_skip_ambiguousRow(String key);
+
+  /// No description provided for @tableEditor_skip_readOnlyCell.
+  ///
+  /// In en, this message translates to:
+  /// **'{key}: that cell is read-only'**
+  String tableEditor_skip_readOnlyCell(String key);
+
+  /// No description provided for @tableEditor_discardDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard change'**
+  String get tableEditor_discardDraft;
+
+  /// No description provided for @tableEditor_changeLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Change log'**
+  String get tableEditor_changeLog;
+
+  /// No description provided for @settings_tableEditor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get settings_tableEditor_title;
+
+  /// No description provided for @settings_tableEditor_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit many dives, sites or centers in a spreadsheet'**
+  String get settings_tableEditor_subtitle;
+
+  /// No description provided for @tableEditor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get tableEditor_title;
+
+  /// No description provided for @tableEditor_tab_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get tableEditor_tab_dives;
+
+  /// No description provided for @tableEditor_tab_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get tableEditor_tab_sites;
+
+  /// No description provided for @tableEditor_tab_centers.
+  ///
+  /// In en, this message translates to:
+  /// **'Centers'**
+  String get tableEditor_tab_centers;
+
+  /// No description provided for @tableEditor_needsWiderScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'The table editor needs a wider window. Open it on a tablet or a computer.'**
+  String get tableEditor_needsWiderScreen;
+
+  /// No description provided for @tableEditor_saveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all'**
+  String get tableEditor_saveAll;
+
+  /// No description provided for @tableEditor_paste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get tableEditor_paste;
+
+  /// No description provided for @tableEditor_clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get tableEditor_clearFilters;
+
+  /// No description provided for @tableEditor_draftCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} unsaved} other{{count} unsaved}}'**
+  String tableEditor_draftCount(int count);
+
+  /// No description provided for @tableEditor_summary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes?'**
+  String get tableEditor_summary_title;
+
+  /// No description provided for @tableEditor_summary_changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} cell changes} other{{count} cells change}}'**
+  String tableEditor_summary_changed(int count);
+
+  /// No description provided for @tableEditor_summary_attention.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} needs attention and will not be saved} other{{count} need attention and will not be saved}}'**
+  String tableEditor_summary_attention(int count);
+
+  /// No description provided for @tableEditor_summary_overwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} replaces an existing value} other{{count} replace an existing value}}'**
+  String tableEditor_summary_overwrite(int count);
+
+  /// No description provided for @tableEditor_summary_changedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} changed elsewhere since you edited it} other{{count} changed elsewhere since you edited them}}'**
+  String tableEditor_summary_changedElsewhere(int count);
+
+  /// No description provided for @tableEditor_summary_matching_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows matched by dive number'**
+  String get tableEditor_summary_matching_number;
+
+  /// No description provided for @tableEditor_summary_matching_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows matched by name'**
+  String get tableEditor_summary_matching_name;
+
+  /// No description provided for @tableEditor_summary_matching_position.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows placed by position'**
+  String get tableEditor_summary_matching_position;
+
+  /// No description provided for @tableEditor_skip_readOnlyColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'{column} is read-only'**
+  String tableEditor_skip_readOnlyColumn(String column);
+
+  /// No description provided for @tableEditor_skip_unknownRow.
+  ///
+  /// In en, this message translates to:
+  /// **'No row for {key}'**
+  String tableEditor_skip_unknownRow(String key);
+
+  /// No description provided for @tableEditor_skip_hiddenRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{key} is hidden by the filter'**
+  String tableEditor_skip_hiddenRow(String key);
+
+  /// No description provided for @tableEditor_skip_truncated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} row past the end of the sheet} other{{count} rows past the end of the sheet}}'**
+  String tableEditor_skip_truncated(int count);
+
+  /// No description provided for @tableEditor_skip_unknownColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'No column named {header}'**
+  String tableEditor_skip_unknownColumn(String header);
+
+  /// No description provided for @tableEditor_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} change saved} other{{count} changes saved}}'**
+  String tableEditor_saved(int count);
+
+  /// No description provided for @tableEditor_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was saved. Fix the error and try again.'**
+  String get tableEditor_saveFailed;
+
+  /// No description provided for @tableEditor_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get tableEditor_undo;
+
+  /// No description provided for @tableEditor_undoneAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes undone'**
+  String get tableEditor_undoneAll;
+
+  /// No description provided for @tableEditor_undonePartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Undid {reverted} of {total} changes'**
+  String tableEditor_undonePartial(int reverted, int total);
+
+  /// No description provided for @tableEditor_open_saveAndOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all and open'**
+  String get tableEditor_open_saveAndOpen;
+
+  /// No description provided for @tableEditor_open_discardAndOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard and open'**
+  String get tableEditor_open_discardAndOpen;
+
+  /// No description provided for @tableEditor_open_stay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get tableEditor_open_stay;
+
+  /// No description provided for @tableEditor_original.
+  ///
+  /// In en, this message translates to:
+  /// **'Was: {value}'**
+  String tableEditor_original(String value);
+
+  /// No description provided for @tableEditor_flag_unparsable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid value'**
+  String get tableEditor_flag_unparsable;
+
+  /// No description provided for @tableEditor_flag_unknownValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the list'**
+  String get tableEditor_flag_unknownValue;
+
+  /// No description provided for @tableEditor_flag_pairIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs both latitude and longitude'**
+  String get tableEditor_flag_pairIncomplete;
+
+  /// No description provided for @tableEditor_flag_scrubberNeedsType.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a scrubber type'**
+  String get tableEditor_flag_scrubberNeedsType;
+
+  /// No description provided for @tableEditor_flag_changedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed elsewhere since you edited it'**
+  String get tableEditor_flag_changedElsewhere;
+
+  /// No description provided for @tableEditor_multiChoice_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tableEditor_multiChoice_done;
+
+  /// No description provided for @tableEditor_libraryReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Library site: only notes and rating can be edited here'**
+  String get tableEditor_libraryReadOnly;
+
+  /// No description provided for @tableEditor_summary_pairClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clearing one coordinate clears both'**
+  String get tableEditor_summary_pairClear;
+
+  /// No description provided for @tableEditor_weightRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}'**
+  String tableEditor_weightRows(int count);
+
+  /// No description provided for @tableEditor_summary_siteSnap.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting a site also sets its water type, entry, exit and dive types on the dive'**
+  String get tableEditor_summary_siteSnap;
+
+  /// No description provided for @enum_diveField_excludedFromStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from Stats'**
+  String get enum_diveField_excludedFromStats;
+
+  /// No description provided for @enum_diveField_excludedFromStats_short.
+  ///
+  /// In en, this message translates to:
+  /// **'No Stats'**
+  String get enum_diveField_excludedFromStats_short;
+
+  /// No description provided for @enum_diveField_excludedFromGasStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from Gas Stats'**
+  String get enum_diveField_excludedFromGasStats;
+
+  /// No description provided for @enum_diveField_excludedFromGasStats_short.
+  ///
+  /// In en, this message translates to:
+  /// **'No Gas Stats'**
+  String get enum_diveField_excludedFromGasStats_short;
+
+  /// No description provided for @enum_diveField_windDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Direction'**
+  String get enum_diveField_windDirection;
+
+  /// No description provided for @enum_diveField_windDirection_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Dir'**
+  String get enum_diveField_windDirection_short;
+
+  /// No description provided for @enum_diveField_scrubberType.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Type'**
+  String get enum_diveField_scrubberType;
+
+  /// No description provided for @enum_diveField_scrubberType_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber'**
+  String get enum_diveField_scrubberType_short;
+
+  /// No description provided for @enum_diveField_scrubberDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Duration'**
+  String get enum_diveField_scrubberDuration;
+
+  /// No description provided for @enum_diveField_scrubberDuration_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Min'**
+  String get enum_diveField_scrubberDuration_short;
 
   /// No description provided for @enum_diveField_weatherDescription_short.
   ///
@@ -92661,6 +93003,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Library restored from a backup'**
   String get changeLog_label_libraryRestored;
+
+  /// No description provided for @changeLog_label_tableEditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get changeLog_label_tableEditor;
 
   /// No description provided for @changeLog_label_reparse.
   ///

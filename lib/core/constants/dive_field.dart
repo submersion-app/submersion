@@ -119,7 +119,15 @@ enum DiveField implements EntityField {
   tags,
   importSource,
   diveTypeName,
-  surfaceInterval;
+  surfaceInterval,
+
+  // Appended for the table editor (#3422); saved layouts store members by
+  // name, so new members always go last.
+  excludedFromStats,
+  excludedFromGasStats,
+  windDirection,
+  scrubberType,
+  scrubberDuration;
 
   /// Set of fields available on [DiveSummary] (used for optimized list display).
   static const Set<DiveField> summaryFields = {
@@ -256,6 +264,7 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.altitude:
       case DiveField.surfacePressure:
       case DiveField.windSpeed:
+      case DiveField.windDirection:
       case DiveField.cloudCover:
       case DiveField.precipitation:
       case DiveField.humidity:
@@ -296,6 +305,8 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.setpointLow:
       case DiveField.setpointHigh:
       case DiveField.setpointDeco:
+      case DiveField.scrubberType:
+      case DiveField.scrubberDuration:
         return DiveFieldCategory.rebreather;
 
       case DiveField.buddy:
@@ -316,6 +327,8 @@ extension DiveFieldMetadata on DiveField {
 
       case DiveField.ratingStars:
       case DiveField.isFavorite:
+      case DiveField.excludedFromStats:
+      case DiveField.excludedFromGasStats:
         return DiveFieldCategory.rating;
 
       case DiveField.notes:
@@ -446,6 +459,16 @@ extension DiveFieldMetadata on DiveField {
         return 'Rating';
       case DiveField.isFavorite:
         return 'Favorite';
+      case DiveField.excludedFromStats:
+        return 'Excluded from Stats';
+      case DiveField.excludedFromGasStats:
+        return 'Excluded from Gas Stats';
+      case DiveField.windDirection:
+        return 'Wind Direction';
+      case DiveField.scrubberType:
+        return 'Scrubber Type';
+      case DiveField.scrubberDuration:
+        return 'Scrubber Duration';
       case DiveField.notes:
         return 'Notes';
       case DiveField.tags:
@@ -578,6 +601,16 @@ extension DiveFieldMetadata on DiveField {
         return 'Rating';
       case DiveField.isFavorite:
         return 'Fav';
+      case DiveField.excludedFromStats:
+        return 'No Stats';
+      case DiveField.excludedFromGasStats:
+        return 'No Gas Stats';
+      case DiveField.windDirection:
+        return 'Wind Dir';
+      case DiveField.scrubberType:
+        return 'Scrubber';
+      case DiveField.scrubberDuration:
+        return 'Scrubber Min';
       case DiveField.notes:
         return 'Notes';
       case DiveField.tags:
@@ -626,6 +659,14 @@ extension DiveFieldMetadata on DiveField {
         return Icons.star;
       case DiveField.isFavorite:
         return Icons.favorite;
+      case DiveField.excludedFromStats:
+      case DiveField.excludedFromGasStats:
+        return Icons.block;
+      case DiveField.windDirection:
+        return Icons.explore;
+      case DiveField.scrubberType:
+      case DiveField.scrubberDuration:
+        return Icons.filter_alt;
       case DiveField.notes:
         return Icons.notes;
       case DiveField.tags:

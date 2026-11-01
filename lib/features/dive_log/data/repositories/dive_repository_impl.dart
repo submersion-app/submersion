@@ -5694,6 +5694,69 @@ class DiveRepository {
     return byDive;
   }
 
+  /// Weights for [diveIds] grouped by dive, for a sheet that shows many
+  /// dives at once (issue #3422). A dive with no weights has no entry.
+  Future<Map<String, List<domain.DiveWeight>>> getWeightsForDives(
+    List<String> diveIds,
+  ) => _weightsForDives(diveIds);
+
+  /// The type of the weight row on [diverId]'s most recent dive that has one,
+  /// or null when they have none (issue #3422). Asks the log rather than a
+  /// sheet, since a sheet filtered to weightless dives holds no answer.
+  Future<WeightType?> latestWeightType(String? diverId) async {
+    final query =
+        _db.select(_db.diveWeights).join([
+            innerJoin(
+              _db.dives,
+              _db.dives.id.equalsExp(_db.diveWeights.diveId),
+            ),
+          ])
+          ..orderBy([OrderingTerm.desc(_db.dives.diveDateTime)])
+          ..limit(1);
+    if (diverId != null) query.where(_db.dives.diverId.equals(diverId));
+    final row = await query.getSingleOrNull();
+    return row == null
+        ? null
+        : _mapWeightRow(row.readTable(_db.diveWeights)).weightType;
+  }
+
+  /// Sets the amount of a dive's single weight row in place, keeping its id
+  /// (issue #3422). No rows: inserts one of [newRowType]. One row: updates
+  /// it, or deletes it (tombstoned) when [amountKg] is null. Two or more
+  /// rows: throws [StateError], since the cell cannot say which row it
+  /// means. No transaction, no notify: the caller owns those.
+  Future<void> setSingleWeightAmount(
+    String diveId,
+    double? amountKg, {
+    required WeightType newRowType,
+  }) async {
+    final existing = await _loadWeightsForDive(diveId);
+    if (existing.length > 1) {
+      throw StateError(
+        'Dive $diveId has ${existing.length} weight rows; '
+        'a single amount cannot choose one',
+      );
+    }
+    final List<domain.DiveWeight> desired;
+    if (amountKg == null) {
+      desired = const [];
+    } else if (existing.isEmpty) {
+      desired = [
+        domain.DiveWeight(
+          id: '',
+          diveId: diveId,
+          weightType: newRowType,
+          amountKg: amountKg,
+        ),
+      ];
+    } else {
+      desired = [existing.single.copyWith(amountKg: amountKg)];
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _writeWeightDiff(diveId, desired, now);
+    await _bumpDives([diveId], now);
+  }
+
   domain.DiveWeight _mapWeightRow(DiveWeight row) => domain.DiveWeight(
     id: row.id,
     diveId: row.diveId,

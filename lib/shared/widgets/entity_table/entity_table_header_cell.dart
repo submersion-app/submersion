@@ -34,6 +34,10 @@ class EntityTableHeaderCell extends StatelessWidget {
   /// Shows a filter icon: the list has a filter on this column.
   final bool isFiltered;
 
+  /// Shown in brackets after the label, such as the unit an editable column
+  /// is typed in.
+  final String? labelSuffix;
+
   const EntityTableHeaderCell({
     super.key,
     required this.field,
@@ -47,12 +51,17 @@ class EntityTableHeaderCell extends StatelessWidget {
     this.showResizeHandle = true,
     this.onOpenMenu,
     this.isFiltered = false,
+    this.labelSuffix,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final labelStyle = theme.textTheme.labelSmall?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: colorScheme.onSurfaceVariant,
+    );
 
     // Wider hit target on mobile for easier resizing.
     final isMobile =
@@ -98,12 +107,13 @@ class EntityTableHeaderCell extends StatelessWidget {
                           field.localizedDisplayName(context.l10n),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: labelStyle,
                         ),
                       ),
+                      // Apart from the label, so a narrow column cuts the
+                      // label short and keeps the suffix.
+                      if (labelSuffix case final suffix?)
+                        Text(' ($suffix)', maxLines: 1, style: labelStyle),
                       if (isFiltered)
                         Padding(
                           key: ValueKey('entity-table-filtered-${field.name}'),

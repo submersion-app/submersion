@@ -90,8 +90,16 @@ extension DiveFieldFormatter on DiveField {
         return '--';
 
       case DiveField.isFavorite:
+      case DiveField.excludedFromStats:
+      case DiveField.excludedFromGasStats:
         if (value is bool) {
           return value ? 'Yes' : 'No';
+        }
+        return '--';
+
+      case DiveField.scrubberDuration:
+        if (value is int) {
+          return '$value min';
         }
         return '--';
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
@@ -118,5 +119,20 @@ void main() {
     await holder;
     await late_;
     expect(log, ['holder', 'holder-end', 'late']);
+  });
+
+  test('an idle queue does not wait on the zone of its last turn', () async {
+    fakeAsync((async) {
+      unawaited(SyncCoordinator.run(() async {}));
+      async.flushMicrotasks();
+    });
+
+    // That zone has stopped running: a turn chained to it would never start.
+    var ran = false;
+    await SyncCoordinator.run(
+      () async => ran = true,
+    ).timeout(const Duration(seconds: 1));
+
+    expect(ran, isTrue);
   });
 }

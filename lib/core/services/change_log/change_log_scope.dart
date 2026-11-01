@@ -55,6 +55,7 @@ abstract final class ChangeLogLabels {
   static const libraryAdopted = 'library_adopted';
   static const libraryReplaced = 'library_replaced';
   static const libraryRestored = 'library_restored';
+  static const tableEditor = 'table_editor';
 }
 
 /// Tells the change log triggers what is happening (issue #3922).

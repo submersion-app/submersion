@@ -153,6 +153,16 @@ extension DiveFieldExtractor on DiveField {
         return dive.rating;
       case DiveField.isFavorite:
         return dive.isFavorite;
+      case DiveField.excludedFromStats:
+        return dive.excludedFromStats;
+      case DiveField.excludedFromGasStats:
+        return dive.excludedFromGasStats;
+      case DiveField.windDirection:
+        return dive.windDirection?.displayName;
+      case DiveField.scrubberType:
+        return dive.scrubber?.type;
+      case DiveField.scrubberDuration:
+        return dive.scrubber?.ratedMinutes;
       case DiveField.notes:
         return dive.notes.isNotEmpty ? markdownToPlainText(dive.notes) : null;
       case DiveField.tags:
