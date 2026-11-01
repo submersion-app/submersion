@@ -261,10 +261,20 @@ void main() {
     );
     final edited = await membership(ids);
     expect(edited['full']!.keys, unorderedEquals(['ana', 'cara', 'dan']));
+    expect(edited['full']!['ana'], ['diveGuide']);
+    expect(edited['partial']!['ana'], ['diveGuide']);
     expect(edited['empty']!.keys, unorderedEquals(['cara', 'dan']));
 
     await service.undo(snapshot);
 
-    expect(await membership(ids), original);
+    final restored = await membership(ids);
+    expect(restored, original);
+    // Literals too: original came through the reader the snapshot uses, so a
+    // reader that lost a role id would otherwise agree with itself.
+    expect(
+      restored['full']!['ana'],
+      unorderedEquals(['diveMaster', 'instructor']),
+    );
+    expect(restored['partial']!['ana'], ['roleNoLongerInCatalog']);
   });
 }
