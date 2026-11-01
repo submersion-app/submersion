@@ -178,7 +178,7 @@ stepper and field logic is the builder's call.
 The scale joins the in-memory correction: Save persists it, "open in 3D" persists
 it, Cancel discards it, and Reset returns it to 1.0.
 
-`_transientRoute` must carry it, or the live map will not move. The detail page's
+`NavTrack.withCorrection` must carry it, or the live map will not move. The detail page's
 `_RouteMap._framingOf` must include it, or a saved scale will not reframe the map.
 
 ### Detail page

@@ -288,6 +288,8 @@ git add lib/features/nav_track/domain/nav_track_scale_handle.dart test/features/
 git commit -m "feat(nav-track): add the scale handle's maths"
 ```
 
+> **Corrected while building:** Step 3 below proposed a `GestureDetector` pan on the grounds that its slop is smaller than the map's. The reverse is true: `flutter_map` teams drag recognizers at touch slop with its scale recognizer, so a pan never wins. The handle uses `NavTrackMapDragTarget`, an `EagerGestureRecognizer` plus a `Listener`. Later, `_transientRoute` became `NavTrack.withCorrection`.
+
 ### Task 5: The handle on the map
 
 **Files:**

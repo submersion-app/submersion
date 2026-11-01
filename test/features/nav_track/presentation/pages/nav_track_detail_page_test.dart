@@ -531,6 +531,25 @@ void main() {
       expect(find.text('Track scale: 103.5%'), findsOneWidget);
     });
 
+    testWidgets('a scaled track does not also say nothing was corrected', (
+      tester,
+    ) async {
+      await _pump(tester, route: _route().copyWith(scaleFactor: 1.38));
+      expect(find.text('No correction applied yet.'), findsNothing);
+      expect(find.text('Track scale: 138%'), findsOneWidget);
+    });
+
+    testWidgets('an end correction still shows beside a scale', (tester) async {
+      await _pump(
+        tester,
+        route: _route(
+          endMode: NavTrackEndMode.sameAsStart,
+        ).copyWith(scaleFactor: 1.38),
+      );
+      expect(find.text('End set to same as start.'), findsOneWidget);
+      expect(find.text('Track scale: 138%'), findsOneWidget);
+    });
+
     testWidgets('no scale line at 100%', (tester) async {
       await _pump(tester, route: _route());
       expect(find.byKey(line), findsNothing);

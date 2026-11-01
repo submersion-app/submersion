@@ -369,7 +369,11 @@ class NavTrackDetailPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(_correctionStatus(l10n, route)),
+                            // A scale is a correction, so "none yet" is only
+                            // true without one.
+                            if (route.endMode != NavTrackEndMode.none ||
+                                route.scaleFactor == 1)
+                              Text(_correctionStatus(l10n, route)),
                             // The drawn track no longer matches the recorded
                             // distance above, so the page says why.
                             if (route.scaleFactor != 1)
