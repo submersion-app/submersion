@@ -5,7 +5,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// How many row numbers are listed before the rest are summarised as a count.
-const _maxListedRows = 10;
+const maxListedRows = 10;
 
 /// Reports dives that are missing from the import: CSV rows whose date could
 /// not be read (issue #1828), with the spreadsheet rows to go and fix, and
@@ -100,15 +100,15 @@ class MissingDivesCard extends StatelessWidget {
   /// not come from spreadsheet rows).
   static String? _rowsLine(AppLocalizations l10n, List<int> rows) {
     if (rows.isEmpty) return null;
-    if (rows.length <= _maxListedRows) {
+    if (rows.length <= maxListedRows) {
       return l10n.universalImport_summary_unreadableDatesRows(
         rows.length,
         rows.join(', '),
       );
     }
     return l10n.universalImport_summary_unreadableDatesRowsMore(
-      rows.length - _maxListedRows,
-      rows.take(_maxListedRows).join(', '),
+      rows.length - maxListedRows,
+      rows.take(maxListedRows).join(', '),
     );
   }
 }

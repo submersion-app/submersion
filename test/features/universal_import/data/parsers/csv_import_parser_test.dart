@@ -161,7 +161,83 @@ void main() {
       expect(gasOf(dive), const GasMix(o2: 18, he: 45));
     });
 
-    test('a column named over 100 by auto-mapping is capped', () async {
+    for (final header in [
+      'He',
+      'He %',
+      'He%',
+      'He (%)',
+      'Helium',
+      'Helium %',
+      'Helium Percent',
+    ]) {
+      test('auto-mapping reads "$header" as helium', () async {
+        final result = await parser.parse(
+          csvBytes(
+            'Date,Time,Max Depth (m),Oxygen,$header\n'
+            '2025-03-15,09:05,20,18,45\n',
+          ),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(gasOf(dive), const GasMix(o2: 18, he: 45));
+      });
+    }
+
+    test('auto-mapping leaves a helium cost out of the gas', () async {
+      final result = await parser.parse(
+        csvBytes(
+          'Date,Time,Max Depth (m),Oxygen,He Cost,Helium Price\n'
+          '2025-03-15,09:05,20,18,12.5,30\n',
+        ),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(gasOf(dive), const GasMix(o2: 18));
+    });
+
+    test('helium with no tank to belong to raises no warning', () async {
+      final result = await parser.parse(
+        csvBytes(
+          'Date,Time,Max Depth (m),He %\n'
+          '2025-03-15,09:05,20,90\n',
+        ),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['tanks'], isNull);
+      expect(
+        result.warnings.where(
+          (w) => w.code == ImportWarningCode.gasMixesCapped,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a numbered gas with no volume raises no warning', () async {
+      const mapping = FieldMapping(
+        name: 'Numbered',
+        sourceApp: SourceApp.generic,
+        columns: [
+          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'V1', targetField: 'tankVolume_1'),
+          ColumnMapping(sourceColumn: 'O1', targetField: 'o2Percent_1'),
+          ColumnMapping(sourceColumn: 'H1', targetField: 'hePercent_1'),
+          ColumnMapping(sourceColumn: 'O2', targetField: 'o2Percent_2'),
+          ColumnMapping(sourceColumn: 'H2', targetField: 'hePercent_2'),
+        ],
+      );
+      final result = await CsvImportParser(customMapping: mapping).parse(
+        csvBytes(
+          'Date,V1,O1,H1,O2,H2\n'
+          '2025-03-15,12,18,45,11,90\n',
+        ),
+      );
+      expect(
+        result.warnings.where(
+          (w) => w.code == ImportWarningCode.gasMixesCapped,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('an auto-mapped total over 100 is capped', () async {
       final result = await parser.parse(
         csvBytes(
           'Dive Number,Date,Time,Max Depth (m),O2 %,He %\n'
@@ -215,7 +291,7 @@ void main() {
             .where((w) => w.code == ImportWarningCode.gasMixesCapped)
             .single
             .field,
-        'hePercent_2',
+        'hePercent',
       );
     });
 

@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/buddy_extractor.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/dive_center_extractor.dart';
@@ -13,6 +14,8 @@ import 'package:submersion/features/universal_import/data/csv/models/import_conf
 import 'package:submersion/features/universal_import/data/csv/models/transformed_rows.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/buddy_instructor_center.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/services/gas_mix_cap.dart';
 
 /// Stage 5: Extract and correlate entities from transformed CSV rows.
 ///
@@ -55,9 +58,14 @@ class CsvCorrelator {
     // Step 3: Extract tanks keyed by dive ID.
     const tankExtractor = TankExtractor();
     final tanksByDiveId = <String, List<Map<String, dynamic>>>{};
+    final gasWarnings = <ImportWarning>[];
     for (var i = 0; i < rows.length; i++) {
       final diveId = dives[i]['id'] as String;
       final tanks = tankExtractor.extract(rows[i], diveId);
+      for (final tank in tanks) {
+        final warning = _capHelium(tank, i, diveListRows.sourceRowOf(i));
+        if (warning != null) gasWarnings.add(warning);
+      }
       if (tanks.isNotEmpty) {
         tanksByDiveId[diveId] = tanks;
       }
@@ -184,6 +192,7 @@ class CsvCorrelator {
     final warnings = [
       ...diveListRows.warnings,
       if (profileRows != null) ...profileRows.warnings,
+      ...gasWarnings,
     ];
 
     return CorrelatedPayload(
@@ -196,6 +205,28 @@ class CsvCorrelator {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  /// Reduces the helium of [tank] when its gas totals more than 100 %, and
+  /// returns the warning that says so.
+  ImportWarning? _capHelium(
+    Map<String, dynamic> tank,
+    int index,
+    int sourceRow,
+  ) {
+    final mix = tank['gasMix'] as GasMix;
+    final keptHe = cappedHelium(mix.o2, mix.he);
+    if (keptHe == null) return null;
+    tank['hePercent'] = keptHe;
+    tank['gasMix'] = GasMix(o2: mix.o2, he: keptHe);
+    return gasMixCappedWarning(
+      o2: mix.o2,
+      he: mix.he,
+      keptHe: keptHe,
+      sourceRow: sourceRow,
+      itemIndex: index,
+      field: 'hePercent',
+    );
+  }
 
   /// Set `equipmentRefs` on each dive to the gear extracted from the suit on
   /// the same row. [dives] and [rows] share an index: every dive is

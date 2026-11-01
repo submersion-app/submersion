@@ -1757,6 +1757,20 @@ void main() {
       );
     });
 
+    testWidgets('stops naming capped rows after the first ten', (tester) async {
+      await expectCard(
+        tester,
+        ImportNotice(
+          kind: ImportNoticeKind.gasMixesCapped,
+          count: 12,
+          rowNumbers: [for (var row = 2; row <= 13; row++) row],
+        ),
+        title: 'Some gas mixes were corrected',
+        bodyFragment: 'in these rows: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, +2.',
+        countLine: 'Affects 12 dives',
+      );
+    });
+
     testWidgets('counts skipped photos in the singular', (tester) async {
       await expectCard(
         tester,
