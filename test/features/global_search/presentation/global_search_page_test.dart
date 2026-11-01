@@ -30,6 +30,7 @@ import 'package:submersion/features/global_search/domain/global_search_models.da
 import 'package:submersion/features/global_search/presentation/global_search_navigation.dart';
 import 'package:submersion/features/global_search/presentation/pages/global_search_page.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
+import 'package:submersion/core/constants/enums.dart' show SpeciesCategory;
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
@@ -515,10 +516,31 @@ void main() {
       expect(container.read(courseFilterProvider).query, _query);
     });
 
-    testWidgets('species, to the catalog', (tester) async {
-      final container = await seeAll(tester, GlobalSearchKind.species);
+    testWidgets('species, to the catalog, its category chip cleared', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app((_) async => [_section(GlobalSearchKind.species, 5, total: 9)]),
+      );
+      await _search(tester, 'reef');
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GlobalSearchPage)),
+      );
+      // A catalog already under the results keeps its chip alive; stand in
+      // for it, since the stub page here watches nothing.
+      final chip = container.listen(
+        speciesCatalogCategoryProvider,
+        (previous, next) {},
+      );
+      addTearDown(chip.close);
+      container.read(speciesCatalogCategoryProvider.notifier).state =
+          SpeciesCategory.fish;
+      await tester.tap(find.text('See all 9'));
+      await tester.pumpAndSettle();
+
       expect(find.text('page /species/manage'), findsOneWidget);
       expect(container.read(speciesCatalogQueryProvider), _query);
+      expect(container.read(speciesCatalogCategoryProvider), isNull);
     });
   });
 

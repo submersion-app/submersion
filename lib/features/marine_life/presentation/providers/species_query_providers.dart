@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart' show SpeciesCategory;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
@@ -13,6 +14,13 @@ final seenSpeciesQueryProvider = StateProvider<QueryNode?>((ref) => null);
 
 /// The species catalog's (Manage page) query.
 final speciesCatalogQueryProvider = StateProvider<QueryNode?>((ref) => null);
+
+/// The catalog's selected category chip. It lives only while the Manage page
+/// does, as the page's own state did, and sits here so global search's See
+/// all can clear it (#3882): the handoff may return to a catalog already
+/// under the results, whose chip would otherwise hide matching species.
+final speciesCatalogCategoryProvider =
+    StateProvider.autoDispose<SpeciesCategory?>((ref) => null);
 
 /// The diver's sighted species narrowed to the query's ids; the page's own
 /// search, category chips and sort still apply on top, in Dart.

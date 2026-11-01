@@ -102,6 +102,9 @@ void openGlobalSearchList(
       );
       _openTrainingTab(context, TrainingTab.courses);
     case GlobalSearchKind.species:
+      // The catalog may already sit under the results with a category chip
+      // selected, which would hide matches the section counted.
+      ref.read(speciesCatalogCategoryProvider.notifier).state = null;
       ref.read(speciesCatalogQueryProvider.notifier).state = query;
       open('/species/manage');
     case GlobalSearchKind.equipmentSets:

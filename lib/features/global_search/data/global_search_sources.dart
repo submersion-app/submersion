@@ -196,7 +196,9 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
   GlobalSearchSource(
     kind: GlobalSearchKind.underwaterRoutes,
     entity: navTrackQueryEntity,
-    orderBy: 'r0.start_time DESC',
+    // As `NavTrackRepository.getAll` sorts the Tracks list: routes not yet
+    // linked to a dive first, newest first within each group.
+    orderBy: '(r0.dive_id IS NULL) DESC, r0.start_time DESC',
     scope: _ownOrUnownedRows,
     previewLimit: null,
   ),

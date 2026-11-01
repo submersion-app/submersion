@@ -32,8 +32,6 @@ class SpeciesManagePage extends ConsumerStatefulWidget {
 }
 
 class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
-  SpeciesCategory? _selectedCategory;
-
   /// Owns the bulk-selection state machine for this page.
   final SelectionController _selection = SelectionController();
 
@@ -70,16 +68,21 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
     _sightingCounts =
         ref.watch(speciesSightingCountsProvider).value ?? const {};
     _tagCounts = ref.watch(speciesTagCountsProvider).value ?? const {};
+    final category = ref.watch(speciesCatalogCategoryProvider);
 
     final selectableIds = _visibleSpecies(
       speciesAsync.value ?? const [],
+      category,
     ).where(_isSelectable).map((s) => s.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _selection.pruneToSettled(
           speciesAsync,
-          (rows) => _visibleSpecies(rows).where(_isSelectable).map((s) => s.id),
+          (rows) => _visibleSpecies(
+            rows,
+            category,
+          ).where(_isSelectable).map((s) => s.id),
         );
       }
     });
@@ -158,9 +161,10 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                 alwaysShown: true,
               ),
               SpeciesCategoryChips(
-                selected: _selectedCategory,
+                selected: category,
                 onSelected: (category) =>
-                    setState(() => _selectedCategory = category),
+                    ref.read(speciesCatalogCategoryProvider.notifier).state =
+                        category,
               ),
               Expanded(
                 child: QueryChipsFrame(
@@ -178,7 +182,8 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                         ),
                       ),
                     ),
-                    data: (allSpecies) => _buildSpeciesList(allSpecies),
+                    data: (allSpecies) =>
+                        _buildSpeciesList(allSpecies, category),
                   ),
                 ),
               ),
@@ -193,18 +198,18 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
   ///
   /// Shared by the list and by the pruning in [build] so the selection can
   /// never hold a species the filter has hidden.
-  List<Species> _visibleSpecies(List<Species> allSpecies) {
-    var filtered = allSpecies;
-
-    if (_selectedCategory != null) {
-      filtered = filtered
-          .where((s) => s.category == _selectedCategory)
-          .toList();
-    }
-    return filtered;
+  List<Species> _visibleSpecies(
+    List<Species> allSpecies,
+    SpeciesCategory? category,
+  ) {
+    if (category == null) return allSpecies;
+    return allSpecies.where((s) => s.category == category).toList();
   }
 
-  Widget _buildSpeciesList(List<Species> allSpecies) {
+  Widget _buildSpeciesList(
+    List<Species> allSpecies,
+    SpeciesCategory? category,
+  ) {
     // A query that hid the whole catalog is not an empty catalog.
     if (allSpecies.isEmpty && ref.watch(speciesCatalogQueryProvider) != null) {
       return QueryNoMatchState(
@@ -212,7 +217,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
             ref.read(speciesCatalogQueryProvider.notifier).state = null,
       );
     }
-    final filtered = _visibleSpecies(allSpecies);
+    final filtered = _visibleSpecies(allSpecies, category);
 
     if (filtered.isEmpty) {
       return Center(

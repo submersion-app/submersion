@@ -262,6 +262,23 @@ void main() {
       expect(await ids(GlobalSearchKind.underwaterRoutes, 'loop'), {'free'});
     });
 
+    test(
+      'routes keep the Tracks list order: unlinked first, then newest',
+      () async {
+        await seedDive(db, 'd1', diver: 'me');
+        await db.customStatement(
+          "INSERT INTO nav_tracks (id, diver_id, dive_id, source, name, "
+          "start_time, end_time, point_count, points, created_at, updated_at) "
+          "VALUES "
+          "('linked', 'me', 'd1', 'file', 'Loop a', 9, 10, 0, x'', 1, 1), "
+          "('older', 'me', NULL, 'file', 'Loop b', 1, 2, 0, x'', 1, 1), "
+          "('newer', 'me', NULL, 'file', 'Loop c', 5, 6, 0, x'', 1, 1)",
+        );
+        final section = await search(GlobalSearchKind.underwaterRoutes, 'loop');
+        expect(section.ids, ['newer', 'older', 'linked']);
+      },
+    );
+
     test('no diver reads every row', () async {
       await seedSite(db, 'a', owner: 'me', name: 'Reef a');
       await seedSite(db, 'b', owner: 'other', name: 'Reef b');
