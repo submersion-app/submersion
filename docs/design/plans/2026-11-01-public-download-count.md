@@ -10,6 +10,11 @@
 
 **Spec:** `docs/design/specs/2026-11-01-public-download-count-design.md`. The approved mockups are in `docs/design/specs/2026-11-01-public-download-count-mockups/`.
 
+**Changed during review:** the steps below match what was built for the collector. On the website, review also added these:
+- `parseSummary` needs a text `generated_at`, real calendar days in date order, a history ending on the total, and recent releases adding up to no more than the total.
+- `trendEnds(history)` labels both ends of the chart with their date and total.
+- `/downloads/` shows a loading message, and `tests/downloads-render.test.mjs` runs the page scripts from a fixture.
+
 ## Global Constraints
 
 - Count only non-draft releases in `submersion-app/submersion`, by case-insensitive suffix: macOS `.dmg`; Windows `.exe`; Android `.apk`; Linux `.tar.gz`, `.deb`, `.rpm`.
@@ -62,7 +67,7 @@ Work in this worktree, on branch `ericgriffin/submersion-github-downloads-a9780e
 - [ ] **Step 1: Commit the approved design and this plan**
 
 ```bash
-git add docs/design/specs/2026-11-01-public-download-count-design.md docs/design/specs/2026-11-01-public-download-count-mockups docs/superpowers/plans/2026-11-01-public-download-count.md
+git add docs/design/specs/2026-11-01-public-download-count-design.md docs/design/specs/2026-11-01-public-download-count-mockups docs/design/plans/2026-11-01-public-download-count.md
 git commit -m "docs: add public download count design and plan"
 ```
 
@@ -174,51 +179,44 @@ git commit -m "feat(metrics): classify release files and build the download summ
 **Interfaces:**
 - Consumes: everything from Task 1.
 - Produces:
-  - `fetch_all_releases(get_page: Callable[[int], list[dict]]) -> list[dict]`, asking for pages from 1 and stopping at a page shorter than 100
-  - `github_get_page(repo: str, token: str, page: int) -> list[dict]`, using `urllib.request` with `per_page=100` and a 30 second timeout
+  - `gh_cli(args: list[str]) -> str`, running `gh` as the repo's other GitHub scripts do, and raising `CalledProcessError` on failure
+  - `fetch_all_releases(gh: Callable[[list[str]], str], repo: str) -> list[dict]`, running `gh api --paginate --slurp repos/<repo>/releases?per_page=100` and flattening the pages
   - `load_snapshots(root: Path) -> list[dict]`, reading `downloads/YYYY/MM/*.json`, oldest first
   - `write_outputs(root: Path, snapshot: dict) -> list[str]`, returning workflow warnings
-  - `main(argv: list[str] | None = None, get_page: Callable | None = None, now: datetime | None = None) -> int`
-  - CLI: `python3 scripts/snapshot_downloads.py --repo owner/name --out DIR`, reading the token from `GH_TOKEN`
+  - `main(argv: list[str] | None = None, gh: Callable[[list[str]], str] | None = None, now: datetime | None = None) -> int`, using `gh_cli` unless a reader is passed
+  - CLI: `python3 scripts/snapshot_downloads.py --repo owner/name --out DIR`. `gh` takes its token from `GH_TOKEN` or its own login.
 
 - [ ] **Step 1: Write the failing tests**
 
-Add these, using `tempfile.TemporaryDirectory`, a fake `get_page`, and `contextlib.redirect_stdout` where output is asserted:
+Add these, using `tempfile.TemporaryDirectory`, a fake `gh`, and `contextlib.redirect_stdout` where output is asserted:
 
 ```python
 class FetchTest(unittest.TestCase):
-    def test_reads_every_page(self):
-        pages = {1: [{"id": i} for i in range(100)], 2: [{"id": 100}]}
-        asked = []
-        def get_page(n):
-            asked.append(n)
-            return pages[n]
-        self.assertEqual(len(mod.fetch_all_releases(get_page)), 101)
-        self.assertEqual(asked, [1, 2])
-
-    def test_exactly_full_last_page_stops_on_the_empty_one(self):
-        pages = {1: [{"id": i} for i in range(100)], 2: []}
-        self.assertEqual(len(mod.fetch_all_releases(pages.__getitem__)), 100)
+    def test_flattens_every_page_gh_returns(self):
+        calls = []
+        def gh(args):
+            calls.append(args)
+            return json.dumps([[{"id": 1}, {"id": 2}], [{"id": 3}]])
+        self.assertEqual(mod.fetch_all_releases(gh, "o/r"), [{"id": 1}, {"id": 2}, {"id": 3}])
+        self.assertEqual(calls, [["api", "--paginate", "--slurp", "repos/o/r/releases?per_page=100"]])
 
     def test_error_propagates(self):
-        def get_page(_):
-            raise urllib.error.URLError("down")
-        with self.assertRaises(urllib.error.URLError):
-            mod.fetch_all_releases(get_page)
+        def gh(_):
+            raise subprocess.CalledProcessError(1, "gh")
+        with self.assertRaises(subprocess.CalledProcessError):
+            mod.fetch_all_releases(gh, "o/r")
 
 
-class GitHubPageTest(unittest.TestCase):
-    def test_request_is_authenticated_and_paged(self):
-        response = io.BytesIO(b"[]")
-        with mock.patch("urllib.request.urlopen", return_value=response) as urlopen:
-            self.assertEqual(mod.github_get_page("o/r", "tok", 3), [])
-        request = urlopen.call_args.args[0]
-        self.assertIn("/repos/o/r/releases?per_page=100&page=3", request.full_url)
-        self.assertEqual(request.get_header("Authorization"), "Bearer tok")
+class GhCliTest(unittest.TestCase):
+    def test_returns_stdout_and_fails_loudly(self):
+        finished = subprocess.CompletedProcess([], 0, stdout="[]")
+        with mock.patch("subprocess.run", return_value=finished) as run:
+            self.assertEqual(mod.gh_cli(["api", "x"]), "[]")
+        self.assertEqual(run.call_args.args[0], ["gh", "api", "x"])
+        self.assertTrue(run.call_args.kwargs["check"])
 
 
-class OutputTest(unittest.TestCase):
-    # setUp: self.root is a temporary Path
+class OutputTest(WorkspaceTest):  # WorkspaceTest's setUp makes self.root a temporary Path
     def test_writes_snapshot_summary_and_readme(self):
         mod.write_outputs(self.root, mod.build_snapshot(RELEASES, NOW))
         self.assertTrue((self.root / "downloads/2026/11/2026-11-01.json").is_file())
@@ -248,34 +246,50 @@ class OutputTest(unittest.TestCase):
         self.assertEqual(json.loads((self.root / "downloads/summary.json").read_text())["total"], 225)
 
 
-class MainTest(unittest.TestCase):
-    def run_main(self, get_page):
-        with mock.patch.dict(os.environ, {"GH_TOKEN": "tok"}):
-            return mod.main(["--repo", "o/r", "--out", str(self.root)], get_page=get_page, now=NOW)
+def gh_returning(releases):
+    return lambda _: json.dumps([releases])
+
+
+class MainTest(WorkspaceTest):
+    def run_main(self, gh):
+        return mod.main(["--repo", "o/r", "--out", str(self.root)], gh=gh, now=NOW)
 
     def test_success_writes_files(self):
-        self.assertEqual(self.run_main(lambda page: RELEASES if page == 1 else []), 0)
+        self.assertEqual(self.run_main(gh_returning(RELEASES)), 0)
         self.assertTrue((self.root / "downloads/summary.json").is_file())
 
+    def test_default_reader_uses_gh_with_the_requested_repo(self):
+        ...  # patch mod.gh_cli; assert the path holds repos/o/r/releases?per_page=100
+
     def test_failed_fetch_writes_nothing(self):
-        def get_page(_):
-            raise urllib.error.URLError("down")
-        self.assertEqual(self.run_main(get_page), 1)
+        def gh(_):
+            raise subprocess.CalledProcessError(1, "gh")
+        self.assertEqual(self.run_main(gh), 1)
         self.assertEqual(list(self.root.iterdir()), [])
 
+    def test_missing_gh_writes_nothing(self):
+        ...  # gh raises FileNotFoundError; exit 1, ::error::, empty directory
+
+    def test_unreadable_response_writes_nothing(self):
+        ...  # gh returns "not json"; exit 1, ::error::, empty directory
+
+    def test_malformed_release_writes_nothing(self):
+        ...  # a release missing its fields; exit 1, ::error::, empty directory
+
+    def test_missing_count_writes_nothing(self):
+        ...  # a download_count of None; exit 1, ::error::, empty directory
+
     def test_no_releases_writes_nothing(self):  # Review Focus 1
-        self.assertEqual(self.run_main(lambda _: []), 1)
+        self.assertEqual(self.run_main(gh_returning([])), 1)
         self.assertEqual(list(self.root.iterdir()), [])
 
     def test_no_counted_files_writes_nothing(self):  # Review Focus 1
-        self.assertEqual(self.run_main(lambda _: [RELEASES[3]]), 1)
+        self.assertEqual(self.run_main(gh_returning([RELEASES[3]])), 1)
         self.assertEqual(list(self.root.iterdir()), [])
 
     def test_new_installer_type_prints_a_workflow_warning(self):  # Review Focus 2
         ...  # one release with a .dmg and a .pkg; stdout contains "::warning::" and the .pkg name
 ```
-
-`mock.patch` on `urlopen` returns a context manager in real use, so build the fake with `MagicMock` if `io.BytesIO` does not fit how the implementation reads it. The assertions above do not change.
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
@@ -286,7 +300,7 @@ Expected: FAIL, the new functions are missing.
 
 `write_outputs` reads the newest stored snapshot from before `snapshot["date"]` for the falling-total check, writes the day file, writes `README.md` only if missing (a short note that this branch holds machine-written download counts, with no shared history with `main`), then writes `summary.json` from `load_snapshots`. Write JSON with `indent=2` and a trailing newline, so the daily diffs stay readable.
 
-`main` fetches first and writes last. On `urllib.error.URLError`, `TimeoutError`, `ValueError`, a missing `GH_TOKEN`, no releases, or a zero total, it prints a `::error::` line and returns 1. Warnings print as `::warning::` lines.
+`main` fetches first and writes last. On `CalledProcessError`, `OSError`, `ValueError`, `KeyError`, `TypeError`, or a zero total, it prints a `::error::` line and returns 1. Warnings print as `::warning::` lines.
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
@@ -297,7 +311,7 @@ Expected: `OK`
 
 ```bash
 rm -rf "$TMPDIR/metrics-check" && mkdir -p "$TMPDIR/metrics-check"
-GH_TOKEN=$(gh auth token) python3.14 scripts/snapshot_downloads.py --repo submersion-app/submersion --out "$TMPDIR/metrics-check"
+python3.14 scripts/snapshot_downloads.py --repo submersion-app/submersion --out "$TMPDIR/metrics-check"
 python3.14 -c "import json,os;s=json.load(open(os.environ['TMPDIR']+'/metrics-check/downloads/summary.json'));print(s['total'],s['platforms'],[r['tag'] for r in s['recent_releases']])"
 ```
 
@@ -378,7 +392,7 @@ jobs:
           cd metrics-data
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           if git ls-remote --exit-code --heads origin metrics; then
-            git fetch origin metrics
+            git fetch --depth=1 origin metrics
             git checkout -B metrics FETCH_HEAD
           fi
 
@@ -393,7 +407,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md downloads
-          git commit -m "Download snapshot $(date -u +%F)"
+          git commit -m "Download snapshot $(jq -r '.history[-1].date' downloads/summary.json)"
           git push origin metrics
 ```
 
@@ -529,7 +543,7 @@ Expected: FAIL, cannot find `downloads/data.js`.
 
 - [ ] **Step 3: Implement `downloads/data.js`**
 
-Counts must be positive-or-zero integers, and the total must be above 0 and equal the sum of the four platforms. History entries need a `YYYY-MM-DD` date and an integer total. `loadSummary` fetches with `{ cache: "no-cache", signal }`, using an `AbortController`, and its default `fetchFn` calls the global `fetch`. Start the file with a comment in the style of `computers/render.js`.
+Counts must be positive-or-zero integers, and the total must be above 0 and equal the sum of the four platforms. History entries need a `YYYY-MM-DD` date and an integer total. `loadSummary` fetches with `{ signal }`, leaving the browser's normal cache in place, using an `AbortController`, and its default `fetchFn` calls the global `fetch`. Start the file with a comment in the style of `computers/render.js`.
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
