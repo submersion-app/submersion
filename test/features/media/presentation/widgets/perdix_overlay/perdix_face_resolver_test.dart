@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
@@ -246,6 +247,40 @@ void main() {
         final d = r.resolve(35);
         expect(d.gasLabel, 'Air');
         expect(d.tankPressureBar, isNull);
+      });
+
+      test('a rebreather does not show oxygen beside its diluent', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: const [
+            DiveTank(
+              id: 'diluent',
+              gasMix: GasMix(o2: 21.0, he: 0.0),
+              role: TankRole.diluent,
+              order: 0,
+            ),
+            DiveTank(
+              id: 'oxygen',
+              gasMix: GasMix(o2: 100.0, he: 0.0),
+              role: TankRole.oxygenSupply,
+              order: 1,
+            ),
+          ],
+          tankPressures: const {
+            'oxygen': [
+              TankPressurePoint(
+                tankId: 'oxygen',
+                timestamp: 0,
+                pressure: 180.0,
+              ),
+            ],
+          },
+        );
+
+        final d = r.resolve(20);
+        expect(d.gasLabel, 'Air');
+        expect(d.tankPressureBar, isNull);
+        expect(d.tankPressureMissing, isTrue);
       });
 
       test('a switch back brings the measured cylinder back', () {
