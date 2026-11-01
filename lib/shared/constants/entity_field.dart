@@ -75,6 +75,9 @@ bool isBlankFieldValue(String formatted) {
 /// Each entity type provides one adapter. The generic table widget uses
 /// this adapter to extract cell values from entities and format them
 /// for display, without knowing the concrete entity or field types.
+///
+/// Immutable: the table keeps its sort while the adapter stays the same
+/// instance, so an adapter whose values change is replaced by a new one.
 abstract class EntityFieldAdapter<T, F extends EntityField> {
   /// All fields available for this entity type.
   List<F> get allFields;

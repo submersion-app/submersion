@@ -25,11 +25,16 @@ List<T> sortTableEntities<T, F extends EntityField>(
   final field = config.sortField;
   if (field == null) return entities;
   final ascending = config.sortAscending;
-  final sorted = List<T>.from(entities);
+  // Each row's value is read and formatted once, not once per comparison.
+  final rows = <(T, Object?)>[
+    for (final entity in entities)
+      (entity, adapter.extractValue(field, entity)),
+  ];
   final collator = TextCollator();
-  sorted.sort((a, b) {
-    final va = adapter.extractValue(field, a);
-    final vb = adapter.extractValue(field, b);
+  final formattedValues = <Object, String>{};
+  rows.sort((a, b) {
+    final va = a.$2;
+    final vb = b.$2;
     if (va == null && vb == null) return 0;
     if (va == null) return 1;
     if (vb == null) return -1;
@@ -37,11 +42,14 @@ List<T> sortTableEntities<T, F extends EntityField>(
       va,
       vb,
       collator: collator,
-      formatted: (value) => adapter.formatValue(field, value, units),
+      formatted: (value) => formattedValues.putIfAbsent(
+        value,
+        () => adapter.formatValue(field, value, units),
+      ),
     );
     return ascending ? cmp : -cmp;
   });
-  return sorted;
+  return [for (final row in rows) row.$1];
 }
 
 /// Row height for each row in the table.
@@ -61,7 +69,8 @@ const double kEntityTableMutedOpacity = 0.6;
 /// Trips, Equipment, etc.). Entity-specific behavior is provided via the
 /// [adapter] and callbacks.
 class EntityTableView<T, F extends EntityField> extends StatefulWidget {
-  /// The entities to display as rows.
+  /// The entities to display as rows. Changed rows arrive as a new list: the
+  /// table keeps its sort while this one stays, so it is never edited in place.
   final List<T> entities;
 
   /// Extract a unique string ID from an entity (for selection/highlight).
@@ -331,12 +340,34 @@ class _EntityTableViewState<T, F extends EntityField>
   // Sorting
   // ---------------------------------------------------------------------------
 
-  List<T> _sortedEntities() => sortTableEntities(
-    widget.entities,
-    widget.adapter,
-    widget.config,
-    widget.units,
-  );
+  /// What [_sorted] was sorted from, so a rebuild that changes none of it
+  /// (hover, a live column width) keeps the order (#3850). The rows, adapter
+  /// and units compare by identity: an edit arrives as a new list, and
+  /// anything an adapter reads, such as labels or a catalog, as a new adapter.
+  (List<T>, EntityFieldAdapter<T, F>, UnitFormatter, F, bool)? _sortInputs;
+  List<T> _sorted = const [];
+
+  List<T> _sortedEntities() {
+    final config = widget.config;
+    final field = config.sortField;
+    if (field == null) return widget.entities;
+    final inputs = (
+      widget.entities,
+      widget.adapter,
+      widget.units,
+      field,
+      config.sortAscending,
+    );
+    if (inputs == _sortInputs) return _sorted;
+    _sortInputs = inputs;
+    _sorted = sortTableEntities(
+      widget.entities,
+      widget.adapter,
+      config,
+      widget.units,
+    );
+    return _sorted;
+  }
 
   // ---------------------------------------------------------------------------
   // Column helpers

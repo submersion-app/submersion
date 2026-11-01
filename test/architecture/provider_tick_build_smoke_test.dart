@@ -277,6 +277,10 @@ void main() {
       read: (c) => c.read(certificationByIdProvider(_id).future),
     ),
     (
+      name: 'certificationMetadataProvider',
+      read: (c) => c.read(certificationMetadataProvider.future),
+    ),
+    (
       name: 'certificationSearchProvider',
       read: (c) => c.read(certificationSearchProvider(_id).future),
     ),
@@ -285,6 +289,10 @@ void main() {
       read: (c) => c.read(
         certificationsByAgencyProvider(CertificationAgency.padi.name).future,
       ),
+    ),
+    (
+      name: 'walletCertificationsProvider',
+      read: (c) => c.read(walletCertificationsProvider.future),
     ),
     (
       name: 'expiredCertificationsProvider',
