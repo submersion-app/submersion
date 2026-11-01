@@ -53,6 +53,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_scrubber_entry.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_start.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_times.dart'
     as domain;
@@ -1545,17 +1547,10 @@ class DiveRepository {
 
   /// Every source row of [diveId], primary first and then oldest: the order
   /// [_canonicalDataSourceRows] needs to keep the shown row of each strand.
-  Future<List<DiveDataSourcesData>> _sourceRowsInShownOrder(String diveId) =>
-      (_db.select(_db.diveDataSources)
-            ..where((t) => t.diveId.equals(diveId))
-            ..orderBy([
-              (t) => OrderingTerm.desc(t.isPrimary),
-              (t) => OrderingTerm.asc(t.createdAt),
-              // Combine copies rows with one createdAt; the id keeps the row
-              // that speaks for a strand the same on every read.
-              (t) => OrderingTerm.asc(t.id),
-            ]))
-          .get();
+  Future<List<DiveDataSourcesData>> _sourceRowsInShownOrder(
+    String diveId,
+  ) async =>
+      (await _sourceRowsInShownOrderForDives([diveId]))[diveId] ?? const [];
 
   /// Get profile samples grouped by owning data source.
   ///
@@ -1574,21 +1569,13 @@ class DiveRepository {
   ) async {
     try {
       final rows = await _profileSeries.getRowsForDives([diveId]);
-      final allRows = await _sourceRowsInShownOrder(diveId);
-      // A series owned by a row that collapsed into another's chip belongs
-      // to the row that speaks for that strand (issue #3654), not to the
-      // primary, which may be a different computer.
-      final shownIdByRow = _shownIdByRow(allRows);
+      final shown = _shownSourcesOf(await _sourceRowsInShownOrder(diveId));
       return await _reduceRows(
         rows,
         sourceProfilesReduction(
           diveId: diveId,
-          shownSources: [
-            for (final row in allRows)
-              if (shownIdByRow[row.id] == row.id)
-                (id: row.id, computerId: row.computerId),
-          ],
-          shownIdByRow: shownIdByRow,
+          shownSources: shown.shownSources,
+          shownIdByRow: shown.shownIdByRow,
         ),
         offUiIsolate: true,
       );
@@ -1600,6 +1587,100 @@ class DiveRepository {
       );
       return {};
     }
+  }
+
+  /// [reduce] over the primary source's profile of each of [diveIds]: the
+  /// first entry [getProfilesByDataSource] returns for that dive, samples for
+  /// samples, read for every dive at once rather than one dive per round
+  /// trip (issue #3857).
+  ///
+  /// Two statements per chunk of [kSeriesIdChunkSize] dives (so two in all
+  /// for any set the terrain draws), and the decoding, grouping and
+  /// [reduce] all run off the UI isolate
+  /// once the blobs are worth the hand-off ([reduceSeriesRowsInBackground]
+  /// keeps a read under [kInlineSeriesSampleLimit] samples inline), so
+  /// [reduce] must be a top-level function (see [SeriesReduce]): a closure
+  /// over the caller's state cannot be sent there.
+  ///
+  /// Every id gets an entry; a dive with no series, or whose sources own
+  /// none, reduces an empty list, so a caller that drops some dives decides
+  /// that itself rather than inferring it from a missing key. An unreadable
+  /// blob skips its own series, as every read does. Empty on a failed read,
+  /// like [getProfilesByDataSource].
+  Future<Map<String, R>> reducePrimarySourceProfiles<R>(
+    List<String> diveIds,
+    R Function(List<domain.DiveProfilePoint> points) reduce,
+  ) async {
+    if (diveIds.isEmpty) return {};
+    try {
+      return await PerfTimer.measure('primarySourceProfiles', () async {
+        final rows = await _profileSeries.getRowsForDives(diveIds);
+        final sourceRows = await _sourceRowsInShownOrderForDives(diveIds);
+        return await _reduceRows(
+          rows,
+          primarySourceProfilesReduction(
+            shownByDive: {
+              for (final id in diveIds)
+                id: _shownSourcesOf(sourceRows[id] ?? const []),
+            },
+            reduce: reduce,
+          ),
+          offUiIsolate: true,
+        );
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get primary source profiles for ${diveIds.length} dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return {};
+    }
+  }
+
+  /// The sources one dive's [allRows] (in shown order) show, and the shown
+  /// row each row speaks through.
+  ///
+  /// A series owned by a row that collapsed into another's chip belongs to
+  /// the row that speaks for that strand (issue #3654), not to the primary,
+  /// which may be a different computer.
+  static DiveShownSources _shownSourcesOf(List<DiveDataSourcesData> allRows) {
+    final shownIdByRow = _shownIdByRow(allRows);
+    return (
+      shownSources: [
+        for (final row in allRows)
+          if (shownIdByRow[row.id] == row.id)
+            (id: row.id, computerId: row.computerId),
+      ],
+      shownIdByRow: shownIdByRow,
+    );
+  }
+
+  /// Every source row of each dive of [diveIds], keyed by dive and in shown
+  /// order within it (primary first, then oldest), one chunked statement; a
+  /// dive with no source row is absent. The single-dive
+  /// [_sourceRowsInShownOrder] reads through this so the two cannot drift.
+  Future<Map<String, List<DiveDataSourcesData>>>
+  _sourceRowsInShownOrderForDives(List<String> diveIds) async {
+    final byDive = <String, List<DiveDataSourcesData>>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final rows =
+          await (_db.select(_db.diveDataSources)
+                ..where((t) => t.diveId.isIn(chunk))
+                ..orderBy([
+                  (t) => OrderingTerm.asc(t.diveId),
+                  (t) => OrderingTerm.desc(t.isPrimary),
+                  (t) => OrderingTerm.asc(t.createdAt),
+                  // Combine copies rows with one createdAt; the id keeps the
+                  // row that speaks for a strand the same on every read.
+                  (t) => OrderingTerm.asc(t.id),
+                ]))
+              .get();
+      for (final row in rows) {
+        byDive.putIfAbsent(row.diveId, () => []).add(row);
+      }
+    }
+    return byDive;
   }
 
   /// Restore the original profile as primary.
@@ -3389,6 +3470,80 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dives for site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The [limit] newest dives at [siteId], or when it is null the newest
+  /// that started between [from] and [to] (each bound optional, inclusive),
+  /// as id and start only, newest first.
+  ///
+  /// The start is `entry_time`, else the dive date, the key [getAllDives]
+  /// orders by; ties fall to the higher dive number. [diverId] scopes the
+  /// read to one diver as every diverId-scoped query here does, and null
+  /// reads every diver's dives.
+  ///
+  /// One statement with the window applied in SQL, for a reader such as the
+  /// career terrain (issue #3857) that wants a bounded, ordered set of dives
+  /// and will fetch what it draws separately: nothing is hydrated, and only
+  /// id and start leave the database. The site form seeks
+  /// `idx_dives_site_id`; the date form compares the coalesced start, which
+  /// no index serves, so it scans `dives` once. Empty for a [limit] of zero
+  /// or less, which SQLite would otherwise read as no limit at all.
+  // stats-scope-exempt: backs a displayed set (the career terrain's ribbons),
+  // not a statistic; an excluded dive is still a dive the diver made there.
+  Future<List<domain.DiveStart>> getNewestDiveStarts({
+    String? diverId,
+    String? siteId,
+    DateTime? from,
+    DateTime? to,
+    required int limit,
+  }) async {
+    if (limit <= 0) return const [];
+    try {
+      final start = diveStartMillisSql('d');
+      final clauses = <String>[];
+      final args = <Variable<Object>>[];
+      if (diverId != null) {
+        clauses.add('d.diver_id = ?');
+        args.add(Variable<String>(diverId));
+      }
+      if (siteId != null) {
+        clauses.add('d.site_id = ?');
+        args.add(Variable<String>(siteId));
+      } else {
+        if (from != null) {
+          clauses.add('$start >= ?');
+          args.add(Variable<int>(from.millisecondsSinceEpoch));
+        }
+        if (to != null) {
+          clauses.add('$start <= ?');
+          args.add(Variable<int>(to.millisecondsSinceEpoch));
+        }
+      }
+      args.add(Variable<int>(limit));
+      final rows = await _db
+          .customSelect(
+            'SELECT d.id, $start AS start_ms FROM dives d '
+            '${clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')} '}'
+            'ORDER BY start_ms DESC, d.dive_number DESC LIMIT ?',
+            variables: args,
+            readsFrom: {_db.dives},
+          )
+          .get();
+      return [
+        for (final row in rows)
+          (
+            id: row.read<String>('id'),
+            start: wallClockUtcFromMillis(row.read<int>('start_ms')),
+          ),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get newest dive starts',
         error: e,
         stackTrace: stackTrace,
       );
