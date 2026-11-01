@@ -85,14 +85,22 @@ starts the download on its own.
    using the existing reacquisition matcher. A match that belongs to a
    computer with auto-download opted out is ignored for this purpose (it
    still shows up for manual download as today).
-4. On a match that is not opted out: connect, then start the download
-   automatically, exactly as `DownloadNotifier.startDownload()` does today,
-   and surface a snackbar/toast ("Downloading from <computer name>...") so
-   the action is never silent.
+4. On a match that is not opted out: open that computer's download page
+   automatically (`/dive-computers/<id>/download`, the page its own
+   "Download dives" button opens), and surface a snackbar/toast
+   ("Downloading from <computer name>...") so the action is never silent.
+   Calling `DownloadNotifier.startDownload()` directly is not enough: it
+   only collects the dives, while importing them and updating the dive
+   count, last download time, resume fingerprint and connection record all
+   happen in that page's import steps. The page also asks for a date
+   cutoff on a computer's first download, as it does for a manual one.
+   The passive scan pauses before the page opens, so it neither competes
+   with the page's own scan nor opens a second page.
 5. If more than one known, non-opted-out computer is reachable at once,
-   downloads run one at a time, in the order discovered (reusing whatever
-   queuing/sequencing already exists for multi-computer downloads, if any -
-   to confirm during implementation).
+   their pages open one at a time, in the order the devices were
+   discovered: the next one opens once the diver comes back from the
+   previous one. A computer already opened is not reopened during the same
+   visit to the section.
 6. If a manual download or the manual discovery wizard is already in
    progress when a match would otherwise trigger, the automatic trigger is
    suppressed for that cycle rather than interrupting the manual action.

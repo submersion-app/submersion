@@ -223,6 +223,13 @@ confirmed it holds single `_computer`/`_device` fields, no queue, in
 4. Mark the id in `triggeredComputerIds` (so a repeat advertisement from the
    same device during this visit is not retried), then call
    `ref.read(downloadNotifierProvider.notifier).startDownload(device, computer: computer)`.
+
+   **Superseded during review:** calling `startDownload` directly downloaded
+   the dives but never imported them, since importing (and the dive count,
+   fingerprint and connection updates) happens only in the download page's
+   import steps. The controller now opens the computer's download page
+   instead, pausing its own scan first, and picks computers in the order
+   they were discovered; see the design spec, Behavior items 4 and 5.
 5. Surface the "Downloading from <name>..." feedback (Task 6) via a
    side-channel the widget listens to - e.g. a
    `StreamController<DiveComputer>` or a transient field on the state - since
