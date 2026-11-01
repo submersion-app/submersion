@@ -90,10 +90,20 @@ void main() {
     return container;
   }
 
-  /// Lets rebuilds scheduled by a tick run. Real time, because the cache
-  /// answers from its own database connection.
+  /// Lets rebuilds scheduled by a tick run, for a check that something did
+  /// NOT happen. Real time, because the cache answers from its own database
+  /// connection.
   Future<void> settle() =>
       Future<void>.delayed(const Duration(milliseconds: 50));
+
+  /// Waits for something that must happen, however loaded the machine is.
+  Future<void> until(FutureOr<bool> Function() condition) async {
+    final deadline = DateTime.now().add(const Duration(seconds: 10));
+    while (!await condition()) {
+      if (DateTime.now().isAfter(deadline)) fail('Condition never held');
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+  }
 
   /// 08:00-12:00, a zigzag fix every hour wide enough that simplification
   /// keeps all five at the detail tolerance.
@@ -174,20 +184,19 @@ void main() {
         final key = gpsTrackGeometryProvider((id, TrackLod.thumbnail));
         addTearDown(container.listen(key, (_, _) {}).close);
       }
-      await settle();
-      expect(simplifier.runs, ids.length);
+      await until(() => simplifier.runs == ids.length);
 
       // One at a time: each finished preview writes to the cache while the
       // rest are still running, which is what restarted them.
-      for (final gate in simplifier.waiting.toList()) {
+      for (final (i, gate) in simplifier.waiting.toList().indexed) {
         gate.complete();
+        await until(
+          () async => await cache.read(ids[i], TrackLod.thumbnail) != null,
+        );
         await settle();
       }
 
       expect(simplifier.runs, ids.length);
-      for (final id in ids) {
-        expect(await cache.read(id, TrackLod.thumbnail), isNotNull);
-      }
     });
 
     test('a track write during a cold load does not restart it', () async {
@@ -197,8 +206,7 @@ void main() {
       final container = newContainer();
       final key = gpsTrackGeometryProvider((id, TrackLod.thumbnail));
       addTearDown(container.listen(key, (_, _) {}).close);
-      await settle();
-      expect(simplifier.runs, 1);
+      await until(() => simplifier.runs == 1);
 
       final serializer = SyncDataSerializer();
       await serializer.upsertRecord('gpsTracks', {
@@ -228,10 +236,10 @@ void main() {
       final evictedReads = cache.reads[evicted]!;
 
       await cache.invalidate(evicted);
+      await until(() => cache.reads[evicted]! > evictedReads);
       await settle();
 
       expect(cache.reads[kept], keptReads);
-      expect(cache.reads[evicted], greaterThan(evictedReads));
     });
 
     test('an eviction made on another repository reaches the map', () async {
@@ -245,9 +253,8 @@ void main() {
 
       // Sync builds its own repository rather than reading the provider.
       await TrackGeometryCacheRepository().invalidate(id);
-      await settle();
 
-      expect(cache.reads[id], greaterThan(before));
+      await until(() => cache.reads[id]! > before);
     });
 
     test('a trim during a simplify does not cache the old line', () async {
@@ -256,18 +263,16 @@ void main() {
       final container = newContainer();
       final key = gpsTrackGeometryProvider((id, TrackLod.detail));
       addTearDown(container.listen(key, (_, _) {}).close);
-      await settle();
-      expect(simplifier.waiting, hasLength(1));
+      await until(() => simplifier.waiting.length == 1);
 
       await container.read(trimTrackProvider)(id, startMs: trimMs);
-      await settle();
-      expect(simplifier.waiting, hasLength(2));
+      await until(() => simplifier.waiting.length == 2);
 
       // The job that read the old points finishes last, so without the guard
       // its write is the one left in the cache.
       final [superseded, current] = simplifier.waiting;
       current.complete();
-      await settle();
+      await until(() async => await cache.read(id, TrackLod.detail) != null);
       superseded.complete();
       await settle();
 

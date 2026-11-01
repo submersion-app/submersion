@@ -149,9 +149,9 @@ final trackDateFilterProvider = StateProvider<DateTimeRange?>((ref) => null);
 ///
 /// gpsTrackGeometryProvider does not watch gpsTrackDetailProvider, so there is
 /// no dependency edge for a detail invalidation to travel along. The cache's
-/// eviction tick reaches each LOD, but after this returns; invalidating them
-/// by name means a read straight after a trim is already fresh, rather than
-/// the map drawing the pre-trim polyline while the stats header updates.
+/// eviction tick does reach each LOD, but asynchronously; invalidating them by
+/// name means a read straight after a trim is already fresh, rather than the
+/// map drawing the pre-trim polyline while the stats header updates.
 Future<void> _evictTrack(Ref ref, String id) async {
   await ref.read(trackGeometryCacheRepositoryProvider).invalidate(id);
   for (final lod in TrackLod.values) {

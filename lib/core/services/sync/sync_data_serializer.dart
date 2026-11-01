@@ -4,7 +4,7 @@ import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show listEquals, visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -934,7 +934,7 @@ class SyncDataSerializer {
             row.pointCount == next.pointCount &&
             // A null blob is left out of the upsert, so the stored points
             // stand and the cached lines still match them.
-            (next.points == null || _sameBytes(row.points, next.points))) {
+            (next.points == null || listEquals(row.points, next.points))) {
           geometryChanged.remove(row.id);
         }
       }
@@ -954,15 +954,6 @@ class SyncDataSerializer {
         trimStartTime: Value(track.trimStartTime),
         trimEndTime: Value(track.trimEndTime),
       );
-
-  static bool _sameBytes(Uint8List? a, Uint8List? b) {
-    if (identical(a, b)) return true;
-    if (a == null || b == null || a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
 
   Future<List<Map<String, dynamic>>> _safeExport(
     String label,
