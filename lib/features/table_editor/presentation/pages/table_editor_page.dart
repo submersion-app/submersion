@@ -19,8 +19,10 @@ import 'package:submersion/features/table_editor/presentation/table_editor_save_
 import 'package:submersion/features/table_editor/presentation/widgets/table_editor_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Settings, Data tools, Table editor (#3422): a spreadsheet per entity
@@ -40,6 +42,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     vsync: this,
   );
   final _lastPaste = <TableEditorTab, PastePlan<EntityField>>{};
+  final _focus = FocusNode(debugLabel: 'table editor');
 
   TableEditorTab get _tab => TableEditorTab.values[_tabs.index];
 
@@ -54,11 +57,15 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   @override
   void dispose() {
     _tabs.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
   bool _hasDrafts(TableEditorTab tab) =>
       !ref.read(tableEditorDraftsProvider(tab)).isEmpty;
+
+  void _clearDrafts(TableEditorTab tab) =>
+      ref.read(tableEditorDraftsProvider(tab).notifier).clear();
 
   /// The same dialog the edit forms show; true means discard.
   Future<bool> _confirmDiscard() async {
@@ -84,13 +91,34 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   }
 
   Future<void> _handlePop(bool didPop) async {
-    if (didPop) return;
+    if (didPop) {
+      for (final tab in TableEditorTab.values) {
+        _clearDrafts(tab);
+      }
+      return;
+    }
     final navigator = Navigator.of(context);
     if (await _confirmDiscard() && mounted) {
-      ref.read(tableEditorDraftsProvider(_tab).notifier).clear();
+      for (final tab in TableEditorTab.values) {
+        _clearDrafts(tab);
+      }
       navigator.pop();
     }
   }
+
+  /// The tab bar has already moved to [index] when this runs, so the tab
+  /// being left is the previous one. With drafts there, go back and ask.
+  Future<void> _onTabTap(int index) async {
+    final from = _tabs.previousIndex;
+    if (index == from || !_hasDrafts(TableEditorTab.values[from])) return;
+    _tabs.index = from;
+    if (await _confirmDiscard() && mounted) {
+      _clearDrafts(TableEditorTab.values[from]);
+      _tabs.animateTo(index);
+    }
+  }
+
+  void _openChangeLog() => context.push('/settings/change-log');
 
   /// The active tab's entity, rows and columns, erased of their types so
   /// the toolbar can act on whichever tab is open.
@@ -178,6 +206,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         entity: entity,
         rows: rows,
         refresh: refresh,
+        openChangeLog: _openChangeLog,
         lastPaste: _lastPaste[tab] as PastePlan<F>?,
         confirm: confirm,
       ),
@@ -188,13 +217,19 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         final text = await readClipboardText();
         if (text == null || !mounted) return;
         final l10n = context.l10n;
-        final visible = [
-          for (final c in ref.read(configProvider).columns) c.field,
-        ];
+        final config = ref.read(configProvider);
+        final visible = [for (final c in config.columns) c.field];
+        // The block lands in the order on screen.
+        final shown = sortTableEntities(
+          rows,
+          entity.adapter,
+          config,
+          ref.read(unitFormatterProvider),
+        );
         final plan = planClipboardPaste<T, F>(
           text: text,
           entity: entity,
-          rows: rows,
+          rows: shown,
           visibleColumns: visible,
           selected: selected,
           l10n: l10n,
@@ -202,16 +237,23 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         );
         final notifier = ref.read(tableEditorDraftsProvider(tab).notifier);
         notifier.setEditing(null);
-        applyPastePlan<T, F>(
+        final extra = applyPastePlan<T, F>(
           plan: plan,
           entity: entity,
           rowsById: {for (final r in rows) entity.idOf(r): r},
           units: ref.read(unitFormatterProvider),
           l10n: l10n,
           notifier: notifier,
-          existing: drafts,
+          existing: ref.read(tableEditorDraftsProvider(tab)),
         );
-        setState(() => _lastPaste[tab] = plan);
+        setState(
+          () => _lastPaste[tab] = PastePlan<F>(
+            matching: plan.matching,
+            hadHeader: plan.hadHeader,
+            cells: plan.cells,
+            skipped: [...plan.skipped, ...extra],
+          ),
+        );
       },
     );
   }
@@ -247,7 +289,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         case null || _OpenChoice.stay:
           return;
         case _OpenChoice.discard:
-          ref.read(tableEditorDraftsProvider(_tab).notifier).clear();
+          _clearDrafts(_tab);
         case _OpenChoice.save:
           if (!await handle.saveAll(confirm: false) || !mounted) return;
       }
@@ -255,18 +297,15 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     if (mounted) context.push(handle.route(id));
   }
 
-  Future<void> _onTabTap(int index) async {
-    if (index == _tabs.index || !_hasDrafts(_tab)) return;
-    _tabs.index = _tabs.previousIndex;
-    if (await _confirmDiscard() && mounted) {
-      ref.read(tableEditorDraftsProvider(_tab).notifier).clear();
-      _tabs.animateTo(index);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // Watched before the width gate, so narrowing the window (a tablet
+    // turned to portrait) keeps every tab's drafts alive.
+    final drafts = ref.watch(tableEditorDraftsProvider(_tab));
+    for (final tab in TableEditorTab.values) {
+      ref.watch(tableEditorDraftsProvider(tab));
+    }
     if (!ResponsiveBreakpoints.isDesktop(context)) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.tableEditor_title)),
@@ -281,74 +320,79 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         ),
       );
     }
-    final drafts = ref.watch(tableEditorDraftsProvider(_tab));
     final handle = _handle();
     final diveFilter = ref.watch(tableEditorDiveFilterProvider);
     final canPaste =
         handle != null && (drafts.editing ?? drafts.selected) != null;
+    // While a text cell is open its own field handles Ctrl+V.
+    final shortcutPaste = canPaste && drafts.editing == null;
     return PopScope(
       canPop: drafts.isEmpty,
       onPopInvokedWithResult: (didPop, _) => _handlePop(didPop),
       child: CallbackShortcuts(
         bindings: {
           const SingleActivator(LogicalKeyboardKey.keyV, control: true): () {
-            if (canPaste) handle.paste();
+            if (shortcutPaste) handle.paste();
           },
           const SingleActivator(LogicalKeyboardKey.keyV, meta: true): () {
-            if (canPaste) handle.paste();
+            if (shortcutPaste) handle.paste();
           },
         },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(l10n.tableEditor_title),
-            actions: [
-              if (!drafts.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Text(l10n.tableEditor_draftCount(drafts.count)),
+        child: Focus(
+          focusNode: _focus,
+          autofocus: true,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(l10n.tableEditor_title),
+              actions: [
+                if (!drafts.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Text(l10n.tableEditor_draftCount(drafts.count)),
+                    ),
+                  ),
+                if (_tab == TableEditorTab.dives && diveFilter.hasActiveFilters)
+                  AppBarTextAction(
+                    label: l10n.tableEditor_clearFilters,
+                    onPressed: () =>
+                        ref.read(tableEditorDiveFilterProvider.notifier).state =
+                            const DiveFilterState(),
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.content_paste),
+                  tooltip: l10n.tableEditor_paste,
+                  onPressed: canPaste ? handle.paste : null,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: FilledButton(
+                    onPressed: handle != null && drafts.saveable.isNotEmpty
+                        ? () => handle.saveAll()
+                        : null,
+                    child: Text(l10n.tableEditor_saveAll),
                   ),
                 ),
-              if (_tab == TableEditorTab.dives && diveFilter.hasActiveFilters)
-                TextButton(
-                  onPressed: () =>
-                      ref.read(tableEditorDiveFilterProvider.notifier).state =
-                          const DiveFilterState(),
-                  child: Text(l10n.tableEditor_clearFilters),
-                ),
-              IconButton(
-                icon: const Icon(Icons.content_paste),
-                tooltip: l10n.tableEditor_paste,
-                onPressed: canPaste ? handle.paste : null,
+              ],
+              bottom: TabBar(
+                controller: _tabs,
+                onTap: _onTabTap,
+                tabs: [
+                  Tab(text: l10n.tableEditor_tab_dives),
+                  Tab(text: l10n.tableEditor_tab_sites),
+                  Tab(text: l10n.tableEditor_tab_centers),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: FilledButton(
-                  onPressed: handle != null && drafts.saveable.isNotEmpty
-                      ? () => handle.saveAll()
-                      : null,
-                  child: Text(l10n.tableEditor_saveAll),
-                ),
-              ),
-            ],
-            bottom: TabBar(
+            ),
+            body: TabBarView(
               controller: _tabs,
-              onTap: _onTabTap,
-              tabs: [
-                Tab(text: l10n.tableEditor_tab_dives),
-                Tab(text: l10n.tableEditor_tab_sites),
-                Tab(text: l10n.tableEditor_tab_centers),
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                DiveEditorTab(onOpenRecord: _openRecord),
+                SiteEditorTab(onOpenRecord: _openRecord),
+                CenterEditorTab(onOpenRecord: _openRecord),
               ],
             ),
-          ),
-          body: TabBarView(
-            controller: _tabs,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              DiveEditorTab(onOpenRecord: _openRecord),
-              SiteEditorTab(onOpenRecord: _openRecord),
-              CenterEditorTab(onOpenRecord: _openRecord),
-            ],
           ),
         ),
       ),

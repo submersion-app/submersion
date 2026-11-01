@@ -80,7 +80,11 @@ void main() {
   });
   tearDown(() async => tearDownTestDatabase());
 
-  Future<void> pumpSheet(WidgetTester tester) async {
+  Future<void> pumpSheet(
+    WidgetTester tester, {
+    EntityTableViewConfig<DiveField>? sheetConfig,
+    List<Dive>? sheetRows,
+  }) async {
     final diveRepo = DiveRepository();
     final entity = DiveTableEditorEntity(
       diveRepo: diveRepo,
@@ -98,7 +102,7 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           tableEditorDiveConfigProvider.overrideWith(
-            (ref) => _TestConfigNotifier(config),
+            (ref) => _TestConfigNotifier(sheetConfig ?? config),
           ),
         ],
         child: SizedBox(
@@ -107,7 +111,7 @@ void main() {
           child: TableEditorSheet<Dive, DiveField>(
             tab: TableEditorTab.dives,
             entity: entity,
-            rows: [d1, d2],
+            rows: sheetRows ?? [d1, d2],
             configProvider: tableEditorDiveConfigProvider,
             isColumnFiltered: (_) => false,
             onOpenRecord: opened.add,
@@ -229,5 +233,98 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(opened, ['d2']);
+  });
+
+  testWidgets('Enter follows the order the sheet shows, not the list order', (
+    tester,
+  ) async {
+    // Sorted by visibility descending, d2 (20 m) sits above d1 (15 m).
+    await pumpSheet(
+      tester,
+      sheetConfig: config.copyWith(
+        sortField: DiveField.visibility,
+        sortAscending: false,
+      ),
+    );
+    await tapCell(tester, cell(vis(20)));
+    await tester.enterText(find.byType(TextField), '21');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    final state = containerOf(
+      tester,
+    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    expect(state.editing, CellPosition('d1', DiveField.visibility.name));
+  });
+
+  testWidgets('Enter from a weight cell skips the dive with two weight rows', (
+    tester,
+  ) async {
+    // d2 above d1; d1's weight cell is read-only.
+    await pumpSheet(tester, sheetRows: [d2, d1]);
+    await tapCell(tester, cell('--').first);
+    await tester.enterText(find.byType(TextField), '5');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    final state = containerOf(
+      tester,
+    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    expect(state.at('d2', DiveField.totalWeight.name)?.value, 5.0);
+    expect(state.editing, isNull);
+    expect(find.byType(TextField), findsNothing);
+  });
+
+  testWidgets('tapping a toggle cell flips it without opening an editor', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      sheetConfig: EntityTableViewConfig<DiveField>(
+        columns: [
+          EntityTableColumnConfig(field: DiveField.diveNumber, isPinned: true),
+          EntityTableColumnConfig(field: DiveField.isFavorite),
+        ],
+      ),
+    );
+    await tapCell(tester, find.text('No').first);
+
+    expect(find.byType(TextField), findsNothing);
+    expect(find.byType(Checkbox), findsNothing);
+    final state = containerOf(
+      tester,
+    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    expect(state.forEntity('d1').single.value, isTrue);
+  });
+
+  testWidgets('tapping another cell commits the open text', (tester) async {
+    await pumpSheet(tester);
+    await tapCell(tester, cell(vis(15)));
+    await tester.enterText(find.byType(TextField), '12');
+
+    await tapCell(tester, cell(vis(20)));
+
+    expect(draftOf(tester, 'd1', DiveField.visibility)?.value, 12.0);
+    final state = containerOf(
+      tester,
+    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    expect(state.editing, CellPosition('d2', DiveField.visibility.name));
+  });
+
+  testWidgets('the cell menu can discard a draft', (tester) async {
+    await pumpSheet(tester);
+    await tapCell(tester, cell(vis(15)));
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    expect(draftOf(tester, 'd1', DiveField.visibility), isNotNull);
+
+    await tester.longPress(find.text(vis(12)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard change'));
+    await tester.pumpAndSettle();
+
+    expect(draftOf(tester, 'd1', DiveField.visibility), isNull);
+    expect(find.text(vis(15)), findsOneWidget);
   });
 }

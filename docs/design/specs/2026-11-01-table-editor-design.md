@@ -350,6 +350,21 @@ authoritative where the body above differs.
   toolbar. The app has no platform menu bar to add an Edit item to.
 - **Library sites.** Editability is resolved once per sheet through
   `LibraryEditStamper.mayEdit`, so a cell's read-only state is synchronous.
+- **Toggles.** A yes/no cell flips on the tap itself rather than opening an
+  editor; reached by keyboard it shows a checkbox, and Tab moves on without
+  flipping it.
+- **Leaving a cell.** Clicking elsewhere, pasting or saving while a text cell
+  is open commits what was typed, as a spreadsheet does. Only Escape drops it.
+- **Discarding a draft.** A drafted cell's menu offers Discard change, which
+  returns the cell to its stored value.
+- **Dive tab chips.** The chips show the query rules only. An axis set in the
+  Refine panel still filters the rows, and a Clear filters button in the
+  toolbar resets the editor's whole dive filter.
+- **Paste matching.** A blank first line is data, never a header; a key
+  shared by two rows is reported as ambiguous and matched to nothing; a cell
+  the row cannot edit is reported by its row's key.
+- **Row order.** Enter, Tab and a positional paste follow the order the
+  sheet shows (its sort), not the order the list loaded.
 
 ## Out of scope, noted for later
 

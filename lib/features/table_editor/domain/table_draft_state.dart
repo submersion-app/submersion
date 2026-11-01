@@ -107,6 +107,10 @@ class TableDraftsNotifier extends StateNotifier<TableDraftState> {
   void setEditing(CellPosition? cell) =>
       state = state.copyWith(editing: cell, clearEditing: cell == null);
 
+  /// Whether [cell] is the open cell right now, for a commit that must not
+  /// close an editor the sheet has already moved elsewhere.
+  bool editingIs(CellPosition cell) => state.editing == cell;
+
   void setSelected(CellPosition? cell) =>
       state = state.copyWith(selected: cell, clearSelected: cell == null);
 

@@ -33,10 +33,15 @@ import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 enum TableEditorTab { dives, sites, centers }
 
-final tableEditorDraftsProvider = StateNotifierProvider.autoDispose
-    .family<TableDraftsNotifier, TableDraftState, TableEditorTab>(
-      (ref, tab) => TableDraftsNotifier(),
-    );
+/// Not autoDispose: a tab's sheet is torn down when the diver switches tab
+/// or narrows the window, and its drafts must outlive that. The page clears
+/// them when it is left.
+final tableEditorDraftsProvider =
+    StateNotifierProvider.family<
+      TableDraftsNotifier,
+      TableDraftState,
+      TableEditorTab
+    >((ref, tab) => TableDraftsNotifier());
 
 // ---------------------------------------------------------------------------
 // Filters, one per tab

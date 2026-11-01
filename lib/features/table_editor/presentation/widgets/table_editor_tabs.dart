@@ -35,17 +35,27 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
 
 /// The dive tab reuses the dive list's own header and cell menus over the
 /// editor's filter, so every rule the list offers works here too.
-class DiveEditorTab extends ConsumerWidget {
+class DiveEditorTab extends ConsumerStatefulWidget {
   final void Function(String id) onOpenRecord;
   const DiveEditorTab({super.key, required this.onOpenRecord});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiveEditorTab> createState() => _DiveEditorTabState();
+}
+
+class _DiveEditorTabState extends ConsumerState<DiveEditorTab> {
+  /// The rows last shown: a reload after a save keeps them on screen
+  /// instead of a spinner.
+  List<Dive>? _lastRows;
+
+  @override
+  Widget build(BuildContext context) {
+    final onOpenRecord = widget.onOpenRecord;
     final entityAsync = ref.watch(tableEditorDiveEntityProvider);
     final rowsAsync = ref.watch(tableEditorDivesProvider);
     final filter = ref.watch(tableEditorDiveFilterProvider);
     final entity = entityAsync.value;
-    final rows = rowsAsync.value;
+    final rows = _lastRows = rowsAsync.value ?? _lastRows;
     if (entity == null || rows == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -120,14 +130,23 @@ const kCenterColumnKeys = <DiveCenterField, String>{
   DiveCenterField.longitude: 'coordinates',
 };
 
-class SiteEditorTab extends ConsumerWidget {
+class SiteEditorTab extends ConsumerStatefulWidget {
   final void Function(String id) onOpenRecord;
   const SiteEditorTab({super.key, required this.onOpenRecord});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SiteEditorTab> createState() => _SiteEditorTabState();
+}
+
+class _SiteEditorTabState extends ConsumerState<SiteEditorTab> {
+  List<SiteWithCount>? _lastRows;
+
+  @override
+  Widget build(BuildContext context) {
+    final onOpenRecord = widget.onOpenRecord;
     final entity = ref.watch(tableEditorSiteEntityProvider).value;
-    final rows = ref.watch(tableEditorSitesProvider).value;
+    final rows = _lastRows =
+        ref.watch(tableEditorSitesProvider).value ?? _lastRows;
     if (entity == null || rows == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -144,14 +163,23 @@ class SiteEditorTab extends ConsumerWidget {
   }
 }
 
-class CenterEditorTab extends ConsumerWidget {
+class CenterEditorTab extends ConsumerStatefulWidget {
   final void Function(String id) onOpenRecord;
   const CenterEditorTab({super.key, required this.onOpenRecord});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CenterEditorTab> createState() => _CenterEditorTabState();
+}
+
+class _CenterEditorTabState extends ConsumerState<CenterEditorTab> {
+  List<DiveCenterRow>? _lastRows;
+
+  @override
+  Widget build(BuildContext context) {
+    final onOpenRecord = widget.onOpenRecord;
     final entity = ref.watch(tableEditorCenterEntityProvider);
-    final rows = ref.watch(tableEditorCentersProvider).value;
+    final rows = _lastRows =
+        ref.watch(tableEditorCentersProvider).value ?? _lastRows;
     if (rows == null) return const Center(child: CircularProgressIndicator());
     return _QueryTab<DiveCenterRow, DiveCenterField>(
       tab: TableEditorTab.centers,

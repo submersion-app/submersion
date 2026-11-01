@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
+import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/table_editor/data/table_editor_save_service.dart';
 import 'package:submersion/features/table_editor/domain/paste_planner.dart';
@@ -29,6 +31,7 @@ class TableEditorSaveFlow {
     required TableEditorEntity<T, F> entity,
     required List<T> rows,
     required VoidCallback refresh,
+    required VoidCallback openChangeLog,
     PastePlan<F>? lastPaste,
     bool confirm = true,
   }) async {
@@ -82,6 +85,9 @@ class TableEditorSaveFlow {
     }
     refresh();
     final operationId = result.operationId;
+    // The snackbar outlives the page: capture what Undo needs now.
+    final changeLog = ref.read(changeLogRepositoryProvider);
+    final revert = ref.read(changeLogRevertServiceProvider);
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.tableEditor_saved(result.saved)),
@@ -92,11 +98,14 @@ class TableEditorSaveFlow {
             : SnackBarAction(
                 label: l10n.tableEditor_undo,
                 onPressed: () => _undo(
-                  ref,
                   messenger,
+                  changeLog: changeLog,
+                  revert: revert,
                   operationId: operationId,
                   total: result.saved,
                   refresh: refresh,
+                  openChangeLog: openChangeLog,
+                  changeLogLabel: l10n.tableEditor_changeLog,
                   undoneAll: l10n.tableEditor_undoneAll,
                   undonePartial: l10n.tableEditor_undonePartial,
                 ),
@@ -107,25 +116,40 @@ class TableEditorSaveFlow {
   }
 
   static Future<void> _undo(
-    WidgetRef ref,
     ScaffoldMessengerState messenger, {
+    required ChangeLogRepository changeLog,
+    required ChangeLogRevertService revert,
     required String operationId,
     required int total,
     required VoidCallback refresh,
+    required VoidCallback openChangeLog,
+    required String changeLogLabel,
     required String undoneAll,
     required String Function(int reverted, int total) undonePartial,
   }) async {
-    await ref.read(changeLogRepositoryProvider).settleAll();
-    final revert = ref.read(changeLogRevertServiceProvider);
-    final result = await revert.execute(
-      await revert.planOperation(operationId),
-    );
+    var reverted = 0;
+    var kept = total;
+    try {
+      await changeLog.settleAll();
+      final result = await revert.execute(
+        await revert.planOperation(operationId),
+      );
+      reverted = result.reverted;
+      kept = result.kept;
+    } catch (e, stackTrace) {
+      _log.error('Table editor undo failed', error: e, stackTrace: stackTrace);
+    }
     refresh();
+    // A partial undo points at the change log, where each kept change can
+    // be looked at on its own.
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          result.kept == 0 ? undoneAll : undonePartial(result.reverted, total),
-        ),
+        content: Text(kept == 0 ? undoneAll : undonePartial(reverted, total)),
+        duration: const Duration(seconds: 5),
+        persist: false,
+        action: kept == 0
+            ? null
+            : SnackBarAction(label: changeLogLabel, onPressed: openChangeLog),
       ),
     );
   }
