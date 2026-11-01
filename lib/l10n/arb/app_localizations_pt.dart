@@ -35624,6 +35624,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Ligou-se ao computador de mergulho, mas ele deixou de responder antes de a transferência começar. Normalmente isto significa que o emparelhamento Bluetooth está desatualizado: esqueça o computador de mergulho nas definições de Bluetooth do seu dispositivo e tente novamente.';
 
   @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Não foi possível encontrar este computador de mergulho por Bluetooth LE. Ative o modo Bluetooth e pesquise novamente. Se aparecer nas definições de Bluetooth do seu dispositivo, remova-o primeiro daí: pode ser conhecido apenas como dispositivo Bluetooth clássico.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'O seu dispositivo só comunicará com este computador de mergulho depois de emparelhados. Ative o modo Bluetooth do computador de mergulho, emparelhe-o nas definições de Bluetooth do seu dispositivo e tente novamente.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'O computador de mergulho não respondeu por Bluetooth. Verifique se o modo Bluetooth ainda está ativo e se está perto do seu dispositivo, e tente novamente.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'Não foi possível conectar ao computador de mergulho.\n\nDetalhes de diagnóstico (compartilhe com os desenvolvedores):\n$details';
   }

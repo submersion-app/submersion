@@ -35443,6 +35443,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'A merülőkomputer csatlakozott, de a letöltés megkezdése előtt nem válaszolt tovább. Ez általában azt jelenti, hogy a Bluetooth-párosítás elavult: felejtesd el a merülőkomputert az eszközöd Bluetooth-beállításaiban, majd próbáld újra.';
 
   @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Ez a merülőkomputer nem található Bluetooth LE-n. Kapcsold be a Bluetooth módját, és keress újra. Ha szerepel az eszközöd Bluetooth-beállításaiban, előbb távolítsd el onnan: lehet, hogy ott csak klasszikus Bluetooth-eszközként ismert.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Az eszközöd addig nem kommunikál ezzel a merülőkomputerrel, amíg nincsenek párosítva. Kapcsold be a merülőkomputer Bluetooth módját, párosítsd az eszközöd Bluetooth-beállításaiban, majd próbáld újra.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'A merülőkomputer nem válaszolt Bluetooth-on. Ellenőrizd, hogy a Bluetooth módja még be van-e kapcsolva, és hogy közel van-e az eszközödhöz, majd próbáld újra.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'Nem sikerült csatlakozni a búvárszámítógéphez.\n\nDiagnosztikai részletek (ossza meg a fejlesztőkkel):\n$details';
   }
