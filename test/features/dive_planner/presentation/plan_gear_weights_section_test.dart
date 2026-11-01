@@ -16,6 +16,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
@@ -459,7 +460,7 @@ void main() {
     ) async {
       await pumpSeeded(tester, [
         ...overridesFor(await getBaseOverrides()),
-        planResultsProvider.overrideWith(
+        planOutcomeProvider.overrideWith(
           (ref) => throw StateError('deco engine failed'),
         ),
       ]);

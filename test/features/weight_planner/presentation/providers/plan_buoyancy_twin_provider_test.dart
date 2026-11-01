@@ -14,6 +14,9 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -115,12 +118,13 @@ void main() {
     expect(outputs.verdict.anchor.depthM, closeTo(5.0, 0.5));
   });
 
-  /// A plan with an al80 tank and [plan]'s segments. settingsProvider reaches
-  /// the database through DiverRepository, and the plan notifier is built
-  /// from settings; the pure cases above do not need it, so only the cases
-  /// below set up the database.
+  /// A plan with an al80 tank and [segments], [plan] unless given.
+  /// settingsProvider reaches the database through DiverRepository, and the
+  /// plan notifier is built from settings; the pure cases above do not need
+  /// it, so only the cases below set up the database.
   Future<(ProviderContainer, DivePlanNotifier)> planContainer({
     List<EquipmentItem> equipment = const [],
+    List<PlanSegment>? segments,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -160,7 +164,7 @@ void main() {
         gasMix: GasMix(o2: 21),
       ),
     );
-    for (final s in plan) {
+    for (final s in segments ?? plan) {
       notifier.addSegment(s);
     }
     return (container, notifier);
@@ -219,6 +223,112 @@ void main() {
       ).waterDensityKgM3,
     );
     expect(saltLead - outcome.result.input.leadKg, greaterThan(1.5));
+  });
+
+  group('end pressures come from the plan engine (issue #4010)', () {
+    TwinTankInput twinTank(ProviderContainer container) => container
+        .read(planBuoyancyTwinProvider)!
+        .result
+        .input
+        .tanks
+        .firstWhere((t) => t.id == 't1');
+
+    double? engineRemaining(ProviderContainer container) => container
+        .read(planOutcomeProvider)
+        .tankUsages
+        .firstWhere((u) => u.tankId == 't1')
+        .remainingPressure;
+
+    test('the computed ascent is breathed from the tank', () async {
+      final (container, notifier) = await planContainer(
+        segments: [seg(30, 120), seg(30, 1500)],
+      );
+      notifier.setPlannedWeight(6.0, null);
+      expect(container.read(planOutcomeProvider).stops, isNotEmpty);
+
+      final tank = twinTank(container);
+
+      expect(tank.startPressureBar, 200);
+      expect(tank.endPressureBar, closeTo(engineRemaining(container)!, 1e-9));
+    });
+
+    test(
+      'the profile runs through the computed stops to the surface',
+      () async {
+        final (container, notifier) = await planContainer(
+          segments: [seg(30, 120), seg(30, 1500)],
+        );
+        notifier.setPlannedWeight(6.0, null);
+        final outcome = container.read(planOutcomeProvider);
+
+        final twin = container.read(planBuoyancyTwinProvider)!;
+        final profile = twin.result.input.profile;
+
+        expect(outcome.stops, isNotEmpty);
+        expect(profile.last.depthM, 0);
+        expect(profile.last.timestamp, outcome.runtimeSeconds);
+        for (var i = 1; i < profile.length; i++) {
+          expect(profile[i].timestamp, greaterThan(profile[i - 1].timestamp));
+        }
+        expect(twin.outputs.verdict.anchor.kind, TwinAnchorKind.detectedStop);
+        expect(
+          twin.outputs.verdict.anchor.depthM,
+          closeTo(outcome.stops.last.depthMeters, 0.5),
+        );
+      },
+    );
+
+    test('a no-stop ascent is sampled on the way up', () async {
+      final (container, notifier) = await planContainer(
+        segments: [seg(18, 60), seg(18, 300)],
+      );
+      notifier.setPlannedWeight(6.0, null);
+      expect(container.read(planOutcomeProvider).stops, isEmpty);
+
+      final profile = container
+          .read(planBuoyancyTwinProvider)!
+          .result
+          .input
+          .profile;
+
+      final inWater = profile.where(
+        (s) => s.depthM > TwinAnalyzer.kSurfaceDepthM,
+      );
+      expect(inWater.last.depthM, lessThan(6));
+    });
+
+    test('a shortfall reads as an empty tank, not negative gas', () async {
+      final (container, notifier) = await planContainer(
+        segments: [seg(40, 120), seg(40, 7200)],
+      );
+      notifier.setPlannedWeight(6.0, null);
+      expect(engineRemaining(container), lessThan(0));
+
+      expect(twinTank(container).endPressureBar, 0);
+    });
+
+    test('an altitude of 0 is the same water the engine reads', () async {
+      final (container, notifier) = await planContainer();
+      notifier.setPlannedWeight(6.0, null);
+      notifier.updateAltitude(0);
+
+      expect(
+        container.read(planBuoyancyTwinProvider)!.result.input.environment,
+        PlanEngine.environmentFor(
+          divePlanFromState(container.read(divePlanNotifierProvider)),
+        ),
+      );
+    });
+
+    test('a plan with no segments has no end pressure yet', () async {
+      final (container, notifier) = await planContainer(segments: const []);
+      notifier.setPlannedWeight(6.0, null);
+
+      final tank = twinTank(container);
+
+      expect(tank.startPressureBar, isNull);
+      expect(tank.endPressureBar, isNull);
+    });
   });
 }
 
