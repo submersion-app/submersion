@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
@@ -94,20 +95,22 @@ class _FakeRepository extends Fake implements NetworkCredentialsRepository {
 /// rebuild under test.
 Widget _rebuiltThumbnail(String url) => NetworkThumbnail(url: url);
 
-Widget _app(Widget child, List overrides) => ProviderScope(
-  overrides: [...overrides],
+Widget _app(Widget child, List<Override> overrides) => ProviderScope(
+  overrides: overrides,
   child: MaterialApp(home: Scaffold(body: child)),
 );
 
-List _credentials(NetworkCredentialsService service) => [
+List<Override> _credentials(NetworkCredentialsService service) => [
   networkCredentialsServiceProvider.overrideWithValue(service),
 ];
 
 /// The real service behind the real providers, so a save reaches the
 /// thumbnails the way it does in the app.
-List _realCredentials() => [
+List<Override> _realCredentials([FlutterSecureStorage? keychain]) => [
   networkCredentialsRepositoryProvider.overrideWithValue(_FakeRepository()),
-  flutterSecureStorageProvider.overrideWithValue(InMemoryKeychain()),
+  flutterSecureStorageProvider.overrideWithValue(
+    keychain ?? InMemoryKeychain(),
+  ),
 ];
 
 CachedNetworkImage _image(WidgetTester tester, String url) =>
@@ -213,6 +216,22 @@ void main() {
         'public.example',
         'other.example',
       ]);
+    });
+
+    testWidgets('a malformed URL paints instead of failing the build', (
+      tester,
+    ) async {
+      const malformed = 'http://[not-a-host/a.jpg';
+      final credentials = _CountingCredentials();
+
+      await tester.pumpWidget(
+        _app(const NetworkThumbnail(url: malformed), _credentials(credentials)),
+      );
+      await _settleLookups(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(_image(tester, malformed).httpHeaders, isNull);
+      expect(credentials.lookups, isEmpty);
     });
 
     testWidgets('a failed lookup still paints, without headers or a retry', (
@@ -327,12 +346,7 @@ void main() {
             builder: (_, value, _) =>
                 UrlReviewPane(state: UrlTabState(draftLines: value)),
           ),
-          [
-            networkCredentialsRepositoryProvider.overrideWithValue(
-              _FakeRepository(),
-            ),
-            flutterSecureStorageProvider.overrideWithValue(keychain),
-          ],
+          _realCredentials(keychain),
         ),
       );
       await _settleLookups(tester);
@@ -349,14 +363,7 @@ void main() {
   });
 
   test('a service outliving its provider still saves', () async {
-    final container = ProviderContainer(
-      overrides: [
-        networkCredentialsRepositoryProvider.overrideWithValue(
-          _FakeRepository(),
-        ),
-        flutterSecureStorageProvider.overrideWithValue(InMemoryKeychain()),
-      ],
-    );
+    final container = ProviderContainer(overrides: _realCredentials());
     final service = container.read(networkCredentialsServiceProvider);
     container.dispose();
 

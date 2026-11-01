@@ -635,6 +635,31 @@ void main() {
       expect(changes, 0);
     });
 
+    test('a failed keychain delete keeps the row for a retry', () async {
+      var keychainAvailable = false;
+      when(storage.delete(key: key)).thenAnswer((_) async {
+        if (!keychainAvailable) throw PlatformException(code: 'denied');
+      });
+
+      await expectLater(
+        service.delete('host-id-1'),
+        throwsA(isA<PlatformException>()),
+      );
+      verifyNever(repo.delete('host-id-1'));
+
+      keychainAvailable = true;
+      await service.delete('host-id-1');
+      verify(repo.delete('host-id-1')).called(1);
+    });
+
+    test('cached headers cannot be changed by a caller', () async {
+      when(storage.read(key: key)).thenAnswer((_) async => bearerSecret('t'));
+
+      final headers = await service.headersFor(uri);
+
+      expect(() => headers!['X-Other'] = 'x', throwsUnsupportedError);
+    });
+
     test('a lastUsedAt failure keeps the secret and its headers', () async {
       when(storage.read(key: key)).thenAnswer((_) async => bearerSecret('t'));
       when(

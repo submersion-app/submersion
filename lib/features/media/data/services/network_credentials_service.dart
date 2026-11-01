@@ -153,21 +153,18 @@ class NetworkCredentialsService {
     } on FormatException {
       return null;
     }
-    return switch (decoded) {
+    final authorization = switch (decoded) {
       {
         'authType': 'basic',
         'username': final String username,
         'password': final String password,
       } =>
-        {
-          'Authorization':
-              'Basic ${base64Encode(utf8.encode('$username:$password'))}',
-        },
-      {'authType': 'bearer', 'token': final String token} => {
-        'Authorization': 'Bearer $token',
-      },
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}',
+      {'authType': 'bearer', 'token': final String token} => 'Bearer $token',
       _ => null,
     };
+    if (authorization == null) return null;
+    return Map.unmodifiable({'Authorization': authorization});
   }
 
   /// `lastUsedAt` is display metadata, so failing to record it must not cost
@@ -192,13 +189,14 @@ class NetworkCredentialsService {
 
   /// Deletes the row for [id] and the associated secret blob, and
   /// invalidates any cached headers for the row's hostname. No-op if the
-  /// row is already gone.
+  /// row is already gone. The secret goes first: the row is what lets the
+  /// user retry, so it must outlive a keychain failure.
   Future<void> delete(String id) async {
     final row = await _repo.findById(id);
     if (row == null) return;
-    await _repo.delete(id);
     await _storage.delete(key: _keyPrefix + row.hostname);
     _invalidate(row.hostname);
+    await _repo.delete(id);
   }
 
   /// Returns all stored credential-host rows. Used by the Settings page
