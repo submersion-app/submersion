@@ -74,9 +74,8 @@ enum FlightWindowState {
 /// surfacing time is the departure minus the guideline interval for the
 /// (preset, category) pair. Same fixed-interval doctrine as [NoFlyStatus].
 ///
-/// Its times are in the frame it was evaluated in: true UTC instants from
-/// `tripFlightWindowProvider`, which converts the stored wall-clock value
-/// first.
+/// Its times are true UTC instants: `tripFlightWindowProvider` converts the
+/// stored wall-clock value first.
 class FlightWindowStatus {
   final FlightWindowState state;
 
@@ -97,8 +96,7 @@ class FlightWindowStatus {
     required this.interval,
   });
 
-  /// Time left before [deadline]. [now] must be in the same frame: a true UTC
-  /// instant for a status from `tripFlightWindowProvider`.
+  /// Time left before [deadline]. [now] must be a true UTC instant too.
   Duration remaining(DateTime now) =>
       deadline.isAfter(now) ? deadline.difference(now) : Duration.zero;
 }
