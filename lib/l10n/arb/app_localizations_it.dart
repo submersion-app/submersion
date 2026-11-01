@@ -35625,6 +35625,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Connessione al computer subacqueo riuscita, ma ha smesso di rispondere prima dell\'avvio del download. Di solito significa che l\'associazione Bluetooth non è più valida: dimentica il computer subacqueo nelle impostazioni Bluetooth del tuo dispositivo e riprova.';
 
   @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Impossibile trovare questo computer subacqueo tramite Bluetooth LE. Attiva la sua modalità Bluetooth e ripeti la ricerca. Se compare nelle impostazioni Bluetooth del tuo dispositivo, rimuovilo prima da lì: potrebbe essere noto solo come dispositivo Bluetooth classico.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Il tuo dispositivo non comunicherà con questo computer subacqueo finché non saranno associati. Attiva la modalità Bluetooth del computer subacqueo, associalo nelle impostazioni Bluetooth del tuo dispositivo e riprova.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'Il computer subacqueo non ha risposto tramite Bluetooth. Verifica che la sua modalità Bluetooth sia ancora attiva e che sia vicino al tuo dispositivo, quindi riprova.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'Impossibile connettersi al computer subacqueo.\n\nDettagli diagnostici (da condividere con gli sviluppatori):\n$details';
   }

@@ -35717,6 +35717,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Connexion établie avec l\'ordinateur de plongée, mais il a cessé de répondre avant le début du téléchargement. Cela signifie généralement que l\'appairage Bluetooth n\'est plus valide : oubliez l\'ordinateur de plongée dans les réglages Bluetooth de votre appareil, puis réessayez.';
 
   @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Cet ordinateur de plongée est introuvable en Bluetooth LE. Activez son mode Bluetooth et relancez la recherche. S\'il apparaît dans les réglages Bluetooth de votre appareil, supprimez-le d\'abord : il n\'y est peut-être connu que comme appareil Bluetooth classique.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Votre appareil ne communiquera avec cet ordinateur de plongée qu\'une fois les deux appairés. Activez le mode Bluetooth de l\'ordinateur de plongée, appairez-le dans les réglages Bluetooth de votre appareil, puis réessayez.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'L\'ordinateur de plongée n\'a pas répondu en Bluetooth. Vérifiez que son mode Bluetooth est toujours activé et qu\'il est proche de votre appareil, puis réessayez.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'Impossible de se connecter à l\'ordinateur de plongée.\n\nDétails de diagnostic (à partager avec les développeurs) :\n$details';
   }

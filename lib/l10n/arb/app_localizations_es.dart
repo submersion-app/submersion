@@ -35640,6 +35640,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Se conectó al ordenador de buceo, pero dejó de responder antes de que comenzara la descarga. Normalmente esto significa que el emparejamiento Bluetooth está obsoleto: olvida el ordenador de buceo en los ajustes de Bluetooth de tu dispositivo y vuelve a intentarlo.';
 
   @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'No se encontró este ordenador de buceo por Bluetooth LE. Activa su modo Bluetooth y vuelve a buscar. Si aparece en los ajustes de Bluetooth de tu dispositivo, elimínalo primero de ahí: puede que solo figure como dispositivo Bluetooth clásico.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Tu dispositivo no se comunicará con este ordenador de buceo hasta que estén emparejados. Activa el modo Bluetooth del ordenador de buceo, emparéjalo en los ajustes de Bluetooth de tu dispositivo y vuelve a intentarlo.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'El ordenador de buceo no respondió por Bluetooth. Comprueba que su modo Bluetooth sigue activo y que está cerca de tu dispositivo, y vuelve a intentarlo.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'No se pudo conectar al ordenador de buceo.\n\nDetalles de diagnóstico (compartir con los desarrolladores):\n$details';
   }

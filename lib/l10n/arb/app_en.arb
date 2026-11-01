@@ -21148,6 +21148,9 @@
   },
   "diveComputer_download_stalePairing": "This dive computer's Bluetooth pairing is out of date. Forget the dive computer in your device's Bluetooth settings, then pair it again from the dive computer's Bluetooth menu.",
   "diveComputer_download_discoveryStalled": "Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device's Bluetooth settings, then try again.",
+  "diveComputer_download_bleDeviceNotFound": "Could not find this dive computer over Bluetooth LE. Turn on its Bluetooth mode and scan again. If it appears in your device's Bluetooth settings, remove it there first: it may be known there only as a classic Bluetooth device.",
+  "diveComputer_download_blePairingRequired": "Your device will not talk to this dive computer until they are paired. Turn on the dive computer's Bluetooth mode, pair it in your device's Bluetooth settings, then try again.",
+  "diveComputer_download_bleUnreachable": "The dive computer did not answer over Bluetooth. Check that its Bluetooth mode is still on and that it is close to your device, then try again.",
   "diveComputer_download_serialConnectFailedWithDetails": "Could not connect to dive computer.\n\nDiagnostic details (share with developers):\n{details}",
   "@diveComputer_download_serialConnectFailedWithDetails": {
     "placeholders": {

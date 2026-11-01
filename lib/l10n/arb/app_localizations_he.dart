@@ -34730,6 +34730,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'ההתחברות למחשב הצלילה הצליחה, אך הוא הפסיק להגיב לפני תחילת ההורדה. בדרך כלל המשמעות היא שהתאמת ה-Bluetooth אינה עדכנית: שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
 
   @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'מחשב הצלילה הזה לא נמצא ב-Bluetooth LE. הפעל את מצב ה-Bluetooth שלו וסרוק שוב. אם הוא מופיע בהגדרות ה-Bluetooth של המכשיר שלך, הסר אותו משם תחילה: ייתכן שהוא מוכר שם רק כמכשיר Bluetooth קלאסי.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'המכשיר שלך לא יתקשר עם מחשב הצלילה הזה עד שהם יותאמו. הפעל את מצב ה-Bluetooth של מחשב הצלילה, התאם אותו בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'מחשב הצלילה לא ענה דרך Bluetooth. ודא שמצב ה-Bluetooth שלו עדיין פעיל ושהוא קרוב למכשיר שלך, ונסה שוב.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'לא ניתן להתחבר למחשב הצלילה.\n\nפרטי אבחון (שתפו עם המפתחים):\n$details';
   }

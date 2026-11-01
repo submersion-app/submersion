@@ -148,6 +148,7 @@ add_library(${PLUGIN_NAME} SHARED
     dive_computer_host_api_impl.cc
     dive_converter.cc
     ble_scanner.cc
+    ble_connect_failure.cc
     ble_io_stream.cc
     ble_read_poll.cc
     native_logger.cc
