@@ -4786,54 +4786,55 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_empty_past => 'Nincsenek ellenőrzőlista-tételek';
 
   @override
-  String get checklists_addChecklist => 'Add checklist';
+  String get checklists_addChecklist => 'Ellenőrzőlista hozzáadása';
 
   @override
   String get checklists_noChecklists_upcoming =>
-      'No checklists yet - add one to start planning';
+      'Még nincs ellenőrzőlista - adjon hozzá egyet a tervezés megkezdéséhez';
 
   @override
-  String get checklists_noChecklists_past => 'No checklists';
+  String get checklists_noChecklists_past => 'Nincsenek ellenőrzőlisták';
 
   @override
-  String get checklists_nameLabel => 'Checklist name';
+  String get checklists_nameLabel => 'Ellenőrzőlista neve';
 
   @override
-  String get checklists_nameRequired => 'Name is required';
+  String get checklists_nameRequired => 'A név megadása kötelező';
 
   @override
-  String get checklists_renameChecklist_title => 'Rename checklist';
+  String get checklists_renameChecklist_title => 'Ellenőrzőlista átnevezése';
 
   @override
-  String get checklists_menu_rename => 'Rename...';
+  String get checklists_menu_rename => 'Átnevezés...';
 
   @override
-  String get checklists_menu_delete => 'Delete...';
+  String get checklists_menu_delete => 'Törlés...';
 
   @override
-  String get checklists_delete_title => 'Delete checklist';
+  String get checklists_delete_title => 'Ellenőrzőlista törlése';
 
   @override
   String checklists_delete_content(String name) {
-    return 'Delete \"$name\"? Its sections and items are removed too.';
+    return 'Törli a(z) \"$name\" listát? A szakaszai és tételei is törlődnek.';
   }
 
   @override
-  String get checklists_delete_confirm => 'Delete';
+  String get checklists_delete_confirm => 'Törlés';
 
   @override
-  String get checklists_replaceTemplate_title => 'Replace checklist content';
+  String get checklists_replaceTemplate_title =>
+      'Ellenőrzőlista tartalmának cseréje';
 
   @override
   String checklists_replaceTemplate_content(
     String checklistName,
     String templateName,
   ) {
-    return 'Replace all current items of \"$checklistName\" with the items from \"$templateName\"? This cannot be undone.';
+    return 'Lecseréli a(z) \"$checklistName\" összes jelenlegi tételét a(z) \"$templateName\" tételeire? Ez nem vonható vissza.';
   }
 
   @override
-  String get checklists_replaceTemplate_confirm => 'Replace';
+  String get checklists_replaceTemplate_confirm => 'Csere';
 
   @override
   String get checklists_addItem => 'Tétel hozzáadása';
@@ -26043,7 +26044,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ellenőrzőlista sablon szakasza';
 
   @override
-  String get settings_conflict_ref_tripChecklist => 'Checklist';
+  String get settings_conflict_ref_tripChecklist => 'Ellenőrzőlista';
 
   @override
   String get settings_conflict_ref_tripChecklistSection =>

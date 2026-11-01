@@ -17115,9 +17115,9 @@
   "demo_enter_confirm_body_firstRun": "Dabei wird ein Beispiel-Logbuch ({size}) heruntergeladen, mit dem du die App erkunden kannst. Beende den Demomodus, sobald du dein eigenes beginnen möchtest.",
   "demo_enter_changed_body": "Das Beispiel-Logbuch wurde aktualisiert und ist jetzt {size} groß. Herunterladen?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
-  "checklists_addChecklist": "Add checklist",
-  "checklists_delete_confirm": "Delete",
-  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "checklists_addChecklist": "Checkliste hinzufügen",
+  "checklists_delete_confirm": "Löschen",
+  "checklists_delete_content": "\"{name}\" löschen? Ihre Abschnitte und Einträge werden ebenfalls entfernt.",
   "@checklists_delete_content": {
     "placeholders": {
       "name": {
@@ -17125,16 +17125,16 @@
       }
     }
   },
-  "checklists_delete_title": "Delete checklist",
-  "checklists_menu_delete": "Delete...",
-  "checklists_menu_rename": "Rename...",
-  "checklists_nameLabel": "Checklist name",
-  "checklists_nameRequired": "Name is required",
-  "checklists_noChecklists_past": "No checklists",
-  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
-  "checklists_renameChecklist_title": "Rename checklist",
-  "checklists_replaceTemplate_confirm": "Replace",
-  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "checklists_delete_title": "Checkliste löschen",
+  "checklists_menu_delete": "Löschen...",
+  "checklists_menu_rename": "Umbenennen...",
+  "checklists_nameLabel": "Checklistenname",
+  "checklists_nameRequired": "Name ist erforderlich",
+  "checklists_noChecklists_past": "Keine Checklisten",
+  "checklists_noChecklists_upcoming": "Noch keine Checklisten - fügen Sie eine hinzu, um mit der Planung zu beginnen",
+  "checklists_renameChecklist_title": "Checkliste umbenennen",
+  "checklists_replaceTemplate_confirm": "Ersetzen",
+  "checklists_replaceTemplate_content": "Alle aktuellen Einträge von \"{checklistName}\" durch die Einträge aus \"{templateName}\" ersetzen? Dies kann nicht rückgängig gemacht werden.",
   "@checklists_replaceTemplate_content": {
     "placeholders": {
       "checklistName": {
@@ -17145,6 +17145,6 @@
       }
     }
   },
-  "checklists_replaceTemplate_title": "Replace checklist content",
-  "settings_conflict_ref_tripChecklist": "Checklist"
+  "checklists_replaceTemplate_title": "Checklisteninhalt ersetzen",
+  "settings_conflict_ref_tripChecklist": "Checkliste"
 }

@@ -16990,9 +16990,9 @@
   "demo_enter_confirm_body_firstRun": "سيتم تنزيل سجل تجريبي ({size}) لاستكشاف التطبيق. اخرج من الوضع التجريبي متى كنت مستعدًا لبدء سجلك الخاص.",
   "demo_enter_changed_body": "تم تحديث السجل التجريبي وأصبح حجمه الآن {size}. هل تريد تنزيله؟",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
-  "checklists_addChecklist": "Add checklist",
-  "checklists_delete_confirm": "Delete",
-  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "checklists_addChecklist": "إضافة قائمة تحقق",
+  "checklists_delete_confirm": "حذف",
+  "checklists_delete_content": "هل تريد حذف \"{name}\"؟ ستُحذف أقسامها وعناصرها أيضًا.",
   "@checklists_delete_content": {
     "placeholders": {
       "name": {
@@ -17000,16 +17000,16 @@
       }
     }
   },
-  "checklists_delete_title": "Delete checklist",
-  "checklists_menu_delete": "Delete...",
-  "checklists_menu_rename": "Rename...",
-  "checklists_nameLabel": "Checklist name",
-  "checklists_nameRequired": "Name is required",
-  "checklists_noChecklists_past": "No checklists",
-  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
-  "checklists_renameChecklist_title": "Rename checklist",
-  "checklists_replaceTemplate_confirm": "Replace",
-  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "checklists_delete_title": "حذف قائمة التحقق",
+  "checklists_menu_delete": "حذف...",
+  "checklists_menu_rename": "إعادة التسمية...",
+  "checklists_nameLabel": "اسم قائمة التحقق",
+  "checklists_nameRequired": "الاسم مطلوب",
+  "checklists_noChecklists_past": "لا توجد قوائم تحقق",
+  "checklists_noChecklists_upcoming": "لا توجد قوائم تحقق بعد - أضف واحدة لبدء التخطيط",
+  "checklists_renameChecklist_title": "إعادة تسمية قائمة التحقق",
+  "checklists_replaceTemplate_confirm": "استبدال",
+  "checklists_replaceTemplate_content": "استبدال جميع العناصر الحالية في \"{checklistName}\" بعناصر \"{templateName}\"؟ لا يمكن التراجع عن هذا الإجراء.",
   "@checklists_replaceTemplate_content": {
     "placeholders": {
       "checklistName": {
@@ -17020,6 +17020,6 @@
       }
     }
   },
-  "checklists_replaceTemplate_title": "Replace checklist content",
-  "settings_conflict_ref_tripChecklist": "Checklist"
+  "checklists_replaceTemplate_title": "استبدال محتوى قائمة التحقق",
+  "settings_conflict_ref_tripChecklist": "قائمة التحقق"
 }

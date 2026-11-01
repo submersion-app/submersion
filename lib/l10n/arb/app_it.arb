@@ -16990,9 +16990,9 @@
   "demo_enter_confirm_body_firstRun": "Verrà scaricato un logbook di esempio ({size}) per esplorare l'app. Esci dalla modalità demo quando vuoi iniziare il tuo.",
   "demo_enter_changed_body": "Il logbook di esempio è stato aggiornato e ora occupa {size}. Scaricarlo?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
-  "checklists_addChecklist": "Add checklist",
-  "checklists_delete_confirm": "Delete",
-  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "checklists_addChecklist": "Aggiungi lista di controllo",
+  "checklists_delete_confirm": "Elimina",
+  "checklists_delete_content": "Eliminare \"{name}\"? Anche le sue sezioni e i suoi elementi verranno eliminati.",
   "@checklists_delete_content": {
     "placeholders": {
       "name": {
@@ -17000,16 +17000,16 @@
       }
     }
   },
-  "checklists_delete_title": "Delete checklist",
-  "checklists_menu_delete": "Delete...",
-  "checklists_menu_rename": "Rename...",
-  "checklists_nameLabel": "Checklist name",
-  "checklists_nameRequired": "Name is required",
-  "checklists_noChecklists_past": "No checklists",
-  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
-  "checklists_renameChecklist_title": "Rename checklist",
-  "checklists_replaceTemplate_confirm": "Replace",
-  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "checklists_delete_title": "Elimina lista di controllo",
+  "checklists_menu_delete": "Elimina...",
+  "checklists_menu_rename": "Rinomina...",
+  "checklists_nameLabel": "Nome della lista di controllo",
+  "checklists_nameRequired": "Il nome è obbligatorio",
+  "checklists_noChecklists_past": "Nessuna lista di controllo",
+  "checklists_noChecklists_upcoming": "Ancora nessuna lista di controllo - aggiungine una per iniziare a pianificare",
+  "checklists_renameChecklist_title": "Rinomina lista di controllo",
+  "checklists_replaceTemplate_confirm": "Sostituisci",
+  "checklists_replaceTemplate_content": "Sostituire tutti gli elementi attuali di \"{checklistName}\" con gli elementi di \"{templateName}\"? Questa operazione non può essere annullata.",
   "@checklists_replaceTemplate_content": {
     "placeholders": {
       "checklistName": {
@@ -17020,6 +17020,6 @@
       }
     }
   },
-  "checklists_replaceTemplate_title": "Replace checklist content",
-  "settings_conflict_ref_tripChecklist": "Checklist"
+  "checklists_replaceTemplate_title": "Sostituisci il contenuto della lista di controllo",
+  "settings_conflict_ref_tripChecklist": "Lista di controllo"
 }

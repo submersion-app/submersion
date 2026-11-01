@@ -4782,54 +4782,54 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_empty_past => 'Geen checklist-items';
 
   @override
-  String get checklists_addChecklist => 'Add checklist';
+  String get checklists_addChecklist => 'Checklist toevoegen';
 
   @override
   String get checklists_noChecklists_upcoming =>
-      'No checklists yet - add one to start planning';
+      'Nog geen checklists - voeg er een toe om te beginnen met plannen';
 
   @override
-  String get checklists_noChecklists_past => 'No checklists';
+  String get checklists_noChecklists_past => 'Geen checklists';
 
   @override
-  String get checklists_nameLabel => 'Checklist name';
+  String get checklists_nameLabel => 'Checklistnaam';
 
   @override
-  String get checklists_nameRequired => 'Name is required';
+  String get checklists_nameRequired => 'Naam is verplicht';
 
   @override
-  String get checklists_renameChecklist_title => 'Rename checklist';
+  String get checklists_renameChecklist_title => 'Checklist hernoemen';
 
   @override
-  String get checklists_menu_rename => 'Rename...';
+  String get checklists_menu_rename => 'Naam wijzigen...';
 
   @override
-  String get checklists_menu_delete => 'Delete...';
+  String get checklists_menu_delete => 'Verwijderen...';
 
   @override
-  String get checklists_delete_title => 'Delete checklist';
+  String get checklists_delete_title => 'Checklist verwijderen';
 
   @override
   String checklists_delete_content(String name) {
-    return 'Delete \"$name\"? Its sections and items are removed too.';
+    return '\"$name\" verwijderen? De bijbehorende secties en items worden ook verwijderd.';
   }
 
   @override
-  String get checklists_delete_confirm => 'Delete';
+  String get checklists_delete_confirm => 'Verwijderen';
 
   @override
-  String get checklists_replaceTemplate_title => 'Replace checklist content';
+  String get checklists_replaceTemplate_title => 'Checklistinhoud vervangen';
 
   @override
   String checklists_replaceTemplate_content(
     String checklistName,
     String templateName,
   ) {
-    return 'Replace all current items of \"$checklistName\" with the items from \"$templateName\"? This cannot be undone.';
+    return 'Alle huidige items van \"$checklistName\" vervangen door de items uit \"$templateName\"? Dit kan niet ongedaan worden gemaakt.';
   }
 
   @override
-  String get checklists_replaceTemplate_confirm => 'Replace';
+  String get checklists_replaceTemplate_confirm => 'Vervangen';
 
   @override
   String get checklists_addItem => 'Item toevoegen';

@@ -16990,9 +16990,9 @@
   "demo_enter_confirm_body_firstRun": "Ez letölt egy mintanaplót ({size}), amellyel körülnézhetsz az alkalmazásban. Lépj ki a demó módból, amikor a sajátodat szeretnéd elkezdeni.",
   "demo_enter_changed_body": "A mintanapló frissült, és most {size} méretű. Letöltöd?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
-  "checklists_addChecklist": "Add checklist",
-  "checklists_delete_confirm": "Delete",
-  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "checklists_addChecklist": "Ellenőrzőlista hozzáadása",
+  "checklists_delete_confirm": "Törlés",
+  "checklists_delete_content": "Törli a(z) \"{name}\" listát? A szakaszai és tételei is törlődnek.",
   "@checklists_delete_content": {
     "placeholders": {
       "name": {
@@ -17000,16 +17000,16 @@
       }
     }
   },
-  "checklists_delete_title": "Delete checklist",
-  "checklists_menu_delete": "Delete...",
-  "checklists_menu_rename": "Rename...",
-  "checklists_nameLabel": "Checklist name",
-  "checklists_nameRequired": "Name is required",
-  "checklists_noChecklists_past": "No checklists",
-  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
-  "checklists_renameChecklist_title": "Rename checklist",
-  "checklists_replaceTemplate_confirm": "Replace",
-  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "checklists_delete_title": "Ellenőrzőlista törlése",
+  "checklists_menu_delete": "Törlés...",
+  "checklists_menu_rename": "Átnevezés...",
+  "checklists_nameLabel": "Ellenőrzőlista neve",
+  "checklists_nameRequired": "A név megadása kötelező",
+  "checklists_noChecklists_past": "Nincsenek ellenőrzőlisták",
+  "checklists_noChecklists_upcoming": "Még nincs ellenőrzőlista - adjon hozzá egyet a tervezés megkezdéséhez",
+  "checklists_renameChecklist_title": "Ellenőrzőlista átnevezése",
+  "checklists_replaceTemplate_confirm": "Csere",
+  "checklists_replaceTemplate_content": "Lecseréli a(z) \"{checklistName}\" összes jelenlegi tételét a(z) \"{templateName}\" tételeire? Ez nem vonható vissza.",
   "@checklists_replaceTemplate_content": {
     "placeholders": {
       "checklistName": {
@@ -17020,6 +17020,6 @@
       }
     }
   },
-  "checklists_replaceTemplate_title": "Replace checklist content",
-  "settings_conflict_ref_tripChecklist": "Checklist"
+  "checklists_replaceTemplate_title": "Ellenőrzőlista tartalmának cseréje",
+  "settings_conflict_ref_tripChecklist": "Ellenőrzőlista"
 }

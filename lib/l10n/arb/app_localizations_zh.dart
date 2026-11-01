@@ -4531,54 +4531,53 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_empty_past => '暂无清单事项';
 
   @override
-  String get checklists_addChecklist => 'Add checklist';
+  String get checklists_addChecklist => '添加清单';
 
   @override
-  String get checklists_noChecklists_upcoming =>
-      'No checklists yet - add one to start planning';
+  String get checklists_noChecklists_upcoming => '还没有清单 - 添加一个开始规划';
 
   @override
-  String get checklists_noChecklists_past => 'No checklists';
+  String get checklists_noChecklists_past => '暂无清单';
 
   @override
-  String get checklists_nameLabel => 'Checklist name';
+  String get checklists_nameLabel => '清单名称';
 
   @override
-  String get checklists_nameRequired => 'Name is required';
+  String get checklists_nameRequired => '名称为必填项';
 
   @override
-  String get checklists_renameChecklist_title => 'Rename checklist';
+  String get checklists_renameChecklist_title => '重命名清单';
 
   @override
-  String get checklists_menu_rename => 'Rename...';
+  String get checklists_menu_rename => '重命名…';
 
   @override
-  String get checklists_menu_delete => 'Delete...';
+  String get checklists_menu_delete => '删除…';
 
   @override
-  String get checklists_delete_title => 'Delete checklist';
+  String get checklists_delete_title => '删除清单';
 
   @override
   String checklists_delete_content(String name) {
-    return 'Delete \"$name\"? Its sections and items are removed too.';
+    return '删除“$name”？其分区和事项也会被一并删除。';
   }
 
   @override
-  String get checklists_delete_confirm => 'Delete';
+  String get checklists_delete_confirm => '删除';
 
   @override
-  String get checklists_replaceTemplate_title => 'Replace checklist content';
+  String get checklists_replaceTemplate_title => '替换清单内容';
 
   @override
   String checklists_replaceTemplate_content(
     String checklistName,
     String templateName,
   ) {
-    return 'Replace all current items of \"$checklistName\" with the items from \"$templateName\"? This cannot be undone.';
+    return '将“$checklistName”的所有当前事项替换为“$templateName”中的事项？此操作无法撤销。';
   }
 
   @override
-  String get checklists_replaceTemplate_confirm => 'Replace';
+  String get checklists_replaceTemplate_confirm => '更换';
 
   @override
   String get checklists_addItem => '添加事项';
@@ -24707,7 +24706,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_checklistTemplateSection => '清单模板的分区';
 
   @override
-  String get settings_conflict_ref_tripChecklist => 'Checklist';
+  String get settings_conflict_ref_tripChecklist => '清单';
 
   @override
   String get settings_conflict_ref_tripChecklistSection => '清单的分区';

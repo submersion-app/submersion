@@ -16990,9 +16990,9 @@
   "demo_enter_confirm_body_firstRun": "פעולה זו תוריד יומן דוגמה ({size}) כדי להכיר את האפליקציה. צאו ממצב ההדגמה כשתהיו מוכנים להתחיל יומן משלכם.",
   "demo_enter_changed_body": "יומן הדוגמה עודכן וגודלו כעת {size}. להוריד אותו?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
-  "checklists_addChecklist": "Add checklist",
-  "checklists_delete_confirm": "Delete",
-  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "checklists_addChecklist": "הוסף רשימת משימות",
+  "checklists_delete_confirm": "מחיקה",
+  "checklists_delete_content": "למחוק את \"{name}\"? גם הקטעים והפריטים שלה יימחקו.",
   "@checklists_delete_content": {
     "placeholders": {
       "name": {
@@ -17000,16 +17000,16 @@
       }
     }
   },
-  "checklists_delete_title": "Delete checklist",
-  "checklists_menu_delete": "Delete...",
-  "checklists_menu_rename": "Rename...",
-  "checklists_nameLabel": "Checklist name",
-  "checklists_nameRequired": "Name is required",
-  "checklists_noChecklists_past": "No checklists",
-  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
-  "checklists_renameChecklist_title": "Rename checklist",
-  "checklists_replaceTemplate_confirm": "Replace",
-  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "checklists_delete_title": "מחיקת רשימת משימות",
+  "checklists_menu_delete": "מחיקה...",
+  "checklists_menu_rename": "שינוי שם...",
+  "checklists_nameLabel": "שם רשימת המשימות",
+  "checklists_nameRequired": "שם נדרש",
+  "checklists_noChecklists_past": "אין רשימות משימות",
+  "checklists_noChecklists_upcoming": "אין עדיין רשימות משימות - הוסף אחת כדי להתחיל לתכנן",
+  "checklists_renameChecklist_title": "שינוי שם רשימת המשימות",
+  "checklists_replaceTemplate_confirm": "החלפה",
+  "checklists_replaceTemplate_content": "להחליף את כל הפריטים הנוכחיים של \"{checklistName}\" בפריטים מ-\"{templateName}\"? לא ניתן לבטל פעולה זו.",
   "@checklists_replaceTemplate_content": {
     "placeholders": {
       "checklistName": {
@@ -17020,6 +17020,6 @@
       }
     }
   },
-  "checklists_replaceTemplate_title": "Replace checklist content",
-  "settings_conflict_ref_tripChecklist": "Checklist"
+  "checklists_replaceTemplate_title": "החלפת תוכן רשימת המשימות",
+  "settings_conflict_ref_tripChecklist": "רשימת משימות"
 }

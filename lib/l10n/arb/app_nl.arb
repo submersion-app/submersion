@@ -16990,9 +16990,9 @@
   "demo_enter_confirm_body_firstRun": "Er wordt een voorbeeldlogboek ({size}) gedownload om de app mee te verkennen. Sluit de demomodus af zodra je met je eigen logboek wilt beginnen.",
   "demo_enter_changed_body": "Het voorbeeldlogboek is bijgewerkt en is nu {size}. Downloaden?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
-  "checklists_addChecklist": "Add checklist",
-  "checklists_delete_confirm": "Delete",
-  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "checklists_addChecklist": "Checklist toevoegen",
+  "checklists_delete_confirm": "Verwijderen",
+  "checklists_delete_content": "\"{name}\" verwijderen? De bijbehorende secties en items worden ook verwijderd.",
   "@checklists_delete_content": {
     "placeholders": {
       "name": {
@@ -17000,16 +17000,16 @@
       }
     }
   },
-  "checklists_delete_title": "Delete checklist",
-  "checklists_menu_delete": "Delete...",
-  "checklists_menu_rename": "Rename...",
-  "checklists_nameLabel": "Checklist name",
-  "checklists_nameRequired": "Name is required",
-  "checklists_noChecklists_past": "No checklists",
-  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
-  "checklists_renameChecklist_title": "Rename checklist",
-  "checklists_replaceTemplate_confirm": "Replace",
-  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "checklists_delete_title": "Checklist verwijderen",
+  "checklists_menu_delete": "Verwijderen...",
+  "checklists_menu_rename": "Naam wijzigen...",
+  "checklists_nameLabel": "Checklistnaam",
+  "checklists_nameRequired": "Naam is verplicht",
+  "checklists_noChecklists_past": "Geen checklists",
+  "checklists_noChecklists_upcoming": "Nog geen checklists - voeg er een toe om te beginnen met plannen",
+  "checklists_renameChecklist_title": "Checklist hernoemen",
+  "checklists_replaceTemplate_confirm": "Vervangen",
+  "checklists_replaceTemplate_content": "Alle huidige items van \"{checklistName}\" vervangen door de items uit \"{templateName}\"? Dit kan niet ongedaan worden gemaakt.",
   "@checklists_replaceTemplate_content": {
     "placeholders": {
       "checklistName": {
@@ -17020,6 +17020,6 @@
       }
     }
   },
-  "checklists_replaceTemplate_title": "Replace checklist content",
+  "checklists_replaceTemplate_title": "Checklistinhoud vervangen",
   "settings_conflict_ref_tripChecklist": "Checklist"
 }

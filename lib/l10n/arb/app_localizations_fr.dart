@@ -4821,54 +4821,56 @@ class AppLocalizationsFr extends AppLocalizations {
   String get checklists_empty_past => 'Aucun élément de liste de contrôle';
 
   @override
-  String get checklists_addChecklist => 'Add checklist';
+  String get checklists_addChecklist => 'Ajouter une liste de contrôle';
 
   @override
   String get checklists_noChecklists_upcoming =>
-      'No checklists yet - add one to start planning';
+      'Aucune liste de contrôle pour le moment - ajoutez-en une pour commencer à planifier';
 
   @override
-  String get checklists_noChecklists_past => 'No checklists';
+  String get checklists_noChecklists_past => 'Aucune liste de contrôle';
 
   @override
-  String get checklists_nameLabel => 'Checklist name';
+  String get checklists_nameLabel => 'Nom de la liste de contrôle';
 
   @override
-  String get checklists_nameRequired => 'Name is required';
+  String get checklists_nameRequired => 'Le nom est requis';
 
   @override
-  String get checklists_renameChecklist_title => 'Rename checklist';
+  String get checklists_renameChecklist_title =>
+      'Renommer la liste de contrôle';
 
   @override
-  String get checklists_menu_rename => 'Rename...';
+  String get checklists_menu_rename => 'Renommer...';
 
   @override
-  String get checklists_menu_delete => 'Delete...';
+  String get checklists_menu_delete => 'Supprimer...';
 
   @override
-  String get checklists_delete_title => 'Delete checklist';
+  String get checklists_delete_title => 'Supprimer la liste de contrôle';
 
   @override
   String checklists_delete_content(String name) {
-    return 'Delete \"$name\"? Its sections and items are removed too.';
+    return 'Supprimer « $name » ? Ses sections et éléments seront également supprimés.';
   }
 
   @override
-  String get checklists_delete_confirm => 'Delete';
+  String get checklists_delete_confirm => 'Supprimer';
 
   @override
-  String get checklists_replaceTemplate_title => 'Replace checklist content';
+  String get checklists_replaceTemplate_title =>
+      'Remplacer le contenu de la liste de contrôle';
 
   @override
   String checklists_replaceTemplate_content(
     String checklistName,
     String templateName,
   ) {
-    return 'Replace all current items of \"$checklistName\" with the items from \"$templateName\"? This cannot be undone.';
+    return 'Remplacer tous les éléments actuels de « $checklistName » par les éléments de « $templateName » ? Cette action est irréversible.';
   }
 
   @override
-  String get checklists_replaceTemplate_confirm => 'Replace';
+  String get checklists_replaceTemplate_confirm => 'Remplacer';
 
   @override
   String get checklists_addItem => 'Ajouter un élément';
@@ -26243,7 +26245,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Section du modèle de liste de contrôle';
 
   @override
-  String get settings_conflict_ref_tripChecklist => 'Checklist';
+  String get settings_conflict_ref_tripChecklist => 'Liste de contrôle';
 
   @override
   String get settings_conflict_ref_tripChecklistSection =>

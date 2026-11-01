@@ -4700,54 +4700,54 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_empty_past => 'אין פריטים ברשימת המשימות';
 
   @override
-  String get checklists_addChecklist => 'Add checklist';
+  String get checklists_addChecklist => 'הוסף רשימת משימות';
 
   @override
   String get checklists_noChecklists_upcoming =>
-      'No checklists yet - add one to start planning';
+      'אין עדיין רשימות משימות - הוסף אחת כדי להתחיל לתכנן';
 
   @override
-  String get checklists_noChecklists_past => 'No checklists';
+  String get checklists_noChecklists_past => 'אין רשימות משימות';
 
   @override
-  String get checklists_nameLabel => 'Checklist name';
+  String get checklists_nameLabel => 'שם רשימת המשימות';
 
   @override
-  String get checklists_nameRequired => 'Name is required';
+  String get checklists_nameRequired => 'שם נדרש';
 
   @override
-  String get checklists_renameChecklist_title => 'Rename checklist';
+  String get checklists_renameChecklist_title => 'שינוי שם רשימת המשימות';
 
   @override
-  String get checklists_menu_rename => 'Rename...';
+  String get checklists_menu_rename => 'שינוי שם...';
 
   @override
-  String get checklists_menu_delete => 'Delete...';
+  String get checklists_menu_delete => 'מחיקה...';
 
   @override
-  String get checklists_delete_title => 'Delete checklist';
+  String get checklists_delete_title => 'מחיקת רשימת משימות';
 
   @override
   String checklists_delete_content(String name) {
-    return 'Delete \"$name\"? Its sections and items are removed too.';
+    return 'למחוק את \"$name\"? גם הקטעים והפריטים שלה יימחקו.';
   }
 
   @override
-  String get checklists_delete_confirm => 'Delete';
+  String get checklists_delete_confirm => 'מחיקה';
 
   @override
-  String get checklists_replaceTemplate_title => 'Replace checklist content';
+  String get checklists_replaceTemplate_title => 'החלפת תוכן רשימת המשימות';
 
   @override
   String checklists_replaceTemplate_content(
     String checklistName,
     String templateName,
   ) {
-    return 'Replace all current items of \"$checklistName\" with the items from \"$templateName\"? This cannot be undone.';
+    return 'להחליף את כל הפריטים הנוכחיים של \"$checklistName\" בפריטים מ-\"$templateName\"? לא ניתן לבטל פעולה זו.';
   }
 
   @override
-  String get checklists_replaceTemplate_confirm => 'Replace';
+  String get checklists_replaceTemplate_confirm => 'החלפה';
 
   @override
   String get checklists_addItem => 'הוסף פריט';
@@ -25505,7 +25505,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'קטע בתבנית רשימת משימות';
 
   @override
-  String get settings_conflict_ref_tripChecklist => 'Checklist';
+  String get settings_conflict_ref_tripChecklist => 'רשימת משימות';
 
   @override
   String get settings_conflict_ref_tripChecklistSection => 'קטע ברשימת משימות';

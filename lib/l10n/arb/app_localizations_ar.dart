@@ -4886,54 +4886,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_empty_past => 'لا توجد عناصر في قائمة التحقق';
 
   @override
-  String get checklists_addChecklist => 'Add checklist';
+  String get checklists_addChecklist => 'إضافة قائمة تحقق';
 
   @override
   String get checklists_noChecklists_upcoming =>
-      'No checklists yet - add one to start planning';
+      'لا توجد قوائم تحقق بعد - أضف واحدة لبدء التخطيط';
 
   @override
-  String get checklists_noChecklists_past => 'No checklists';
+  String get checklists_noChecklists_past => 'لا توجد قوائم تحقق';
 
   @override
-  String get checklists_nameLabel => 'Checklist name';
+  String get checklists_nameLabel => 'اسم قائمة التحقق';
 
   @override
-  String get checklists_nameRequired => 'Name is required';
+  String get checklists_nameRequired => 'الاسم مطلوب';
 
   @override
-  String get checklists_renameChecklist_title => 'Rename checklist';
+  String get checklists_renameChecklist_title => 'إعادة تسمية قائمة التحقق';
 
   @override
-  String get checklists_menu_rename => 'Rename...';
+  String get checklists_menu_rename => 'إعادة التسمية...';
 
   @override
-  String get checklists_menu_delete => 'Delete...';
+  String get checklists_menu_delete => 'حذف...';
 
   @override
-  String get checklists_delete_title => 'Delete checklist';
+  String get checklists_delete_title => 'حذف قائمة التحقق';
 
   @override
   String checklists_delete_content(String name) {
-    return 'Delete \"$name\"? Its sections and items are removed too.';
+    return 'هل تريد حذف \"$name\"؟ ستُحذف أقسامها وعناصرها أيضًا.';
   }
 
   @override
-  String get checklists_delete_confirm => 'Delete';
+  String get checklists_delete_confirm => 'حذف';
 
   @override
-  String get checklists_replaceTemplate_title => 'Replace checklist content';
+  String get checklists_replaceTemplate_title => 'استبدال محتوى قائمة التحقق';
 
   @override
   String checklists_replaceTemplate_content(
     String checklistName,
     String templateName,
   ) {
-    return 'Replace all current items of \"$checklistName\" with the items from \"$templateName\"? This cannot be undone.';
+    return 'استبدال جميع العناصر الحالية في \"$checklistName\" بعناصر \"$templateName\"؟ لا يمكن التراجع عن هذا الإجراء.';
   }
 
   @override
-  String get checklists_replaceTemplate_confirm => 'Replace';
+  String get checklists_replaceTemplate_confirm => 'استبدال';
 
   @override
   String get checklists_addItem => 'إضافة عنصر';
@@ -26391,7 +26391,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'قسم من قالب قائمة التحقق';
 
   @override
-  String get settings_conflict_ref_tripChecklist => 'Checklist';
+  String get settings_conflict_ref_tripChecklist => 'قائمة التحقق';
 
   @override
   String get settings_conflict_ref_tripChecklistSection =>

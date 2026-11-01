@@ -16990,9 +16990,9 @@
   "demo_enter_confirm_body_firstRun": "这将下载一个示例日志（{size}），供你浏览应用。准备好开始自己的日志时，随时退出演示模式。",
   "demo_enter_changed_body": "示例日志已更新，现在大小为 {size}。要下载吗？",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
-  "checklists_addChecklist": "Add checklist",
-  "checklists_delete_confirm": "Delete",
-  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "checklists_addChecklist": "添加清单",
+  "checklists_delete_confirm": "删除",
+  "checklists_delete_content": "删除“{name}”？其分区和事项也会被一并删除。",
   "@checklists_delete_content": {
     "placeholders": {
       "name": {
@@ -17000,16 +17000,16 @@
       }
     }
   },
-  "checklists_delete_title": "Delete checklist",
-  "checklists_menu_delete": "Delete...",
-  "checklists_menu_rename": "Rename...",
-  "checklists_nameLabel": "Checklist name",
-  "checklists_nameRequired": "Name is required",
-  "checklists_noChecklists_past": "No checklists",
-  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
-  "checklists_renameChecklist_title": "Rename checklist",
-  "checklists_replaceTemplate_confirm": "Replace",
-  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "checklists_delete_title": "删除清单",
+  "checklists_menu_delete": "删除…",
+  "checklists_menu_rename": "重命名…",
+  "checklists_nameLabel": "清单名称",
+  "checklists_nameRequired": "名称为必填项",
+  "checklists_noChecklists_past": "暂无清单",
+  "checklists_noChecklists_upcoming": "还没有清单 - 添加一个开始规划",
+  "checklists_renameChecklist_title": "重命名清单",
+  "checklists_replaceTemplate_confirm": "更换",
+  "checklists_replaceTemplate_content": "将“{checklistName}”的所有当前事项替换为“{templateName}”中的事项？此操作无法撤销。",
   "@checklists_replaceTemplate_content": {
     "placeholders": {
       "checklistName": {
@@ -17020,6 +17020,6 @@
       }
     }
   },
-  "checklists_replaceTemplate_title": "Replace checklist content",
-  "settings_conflict_ref_tripChecklist": "Checklist"
+  "checklists_replaceTemplate_title": "替换清单内容",
+  "settings_conflict_ref_tripChecklist": "清单"
 }
