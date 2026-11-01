@@ -35,6 +35,7 @@ class CompareChart extends StatelessWidget {
           showTemperature: false,
           overlays: overlays,
           highlightedTimestamp: decoStartSeconds,
+          showZoomControls: false,
         ),
       ),
     );

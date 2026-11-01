@@ -10,6 +10,11 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
+/// Seconds between points on a plan's chart line. The chart curves between
+/// points, so a flat bottom held by two far-apart points would bow past the
+/// depth the plan actually holds.
+const int kPlannedOverlayStepSeconds = 10;
+
 /// A dive's linked plan, run through the engine once: its outcome and its
 /// chart line, so the ghost line and Compare's table cannot disagree.
 class LinkedPlanComparison {
@@ -80,12 +85,37 @@ ChartSourceOverlay buildPlannedOverlay(
     // its own identity colour rather than a tint of each metric's colour.
     tintByMetric: false,
     computerId: null,
-    points: [
-      for (final point in series.profile)
-        DiveProfilePoint(
-          timestamp: point.timeSeconds.round(),
-          depth: point.depth,
-        ),
-    ],
+    points: _denseProfile(series.profile),
   );
+}
+
+/// [profile] with points added along each leg, [kPlannedOverlayStepSeconds]
+/// apart, keeping every corner.
+List<DiveProfilePoint> _denseProfile(List<CanvasPoint> profile) {
+  final points = <DiveProfilePoint>[];
+  for (var i = 0; i < profile.length; i++) {
+    final point = profile[i];
+    points.add(
+      DiveProfilePoint(
+        timestamp: point.timeSeconds.round(),
+        depth: point.depth,
+      ),
+    );
+    if (i == profile.length - 1) break;
+    final next = profile[i + 1];
+    final span = next.timeSeconds - point.timeSeconds;
+    for (
+      var t = kPlannedOverlayStepSeconds.toDouble();
+      t < span;
+      t += kPlannedOverlayStepSeconds
+    ) {
+      points.add(
+        DiveProfilePoint(
+          timestamp: (point.timeSeconds + t).round(),
+          depth: point.depth + (next.depth - point.depth) * (t / span),
+        ),
+      );
+    }
+  }
+  return points;
 }

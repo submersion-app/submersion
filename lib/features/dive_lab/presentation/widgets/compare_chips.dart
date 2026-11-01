@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// One line's chip. A null [onToggle] keeps the line on: As dived always is.
+/// One line's chip. A null [onToggle] keeps the line on, as As dived always
+/// is: the chip stays enabled, since a disabled chip reads as a line that is
+/// off, and ignores taps instead.
 class CompareChipData {
   const CompareChipData({
     required this.id,
@@ -36,13 +38,16 @@ class CompareChips extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         for (final chip in chips)
-          FilterChip(
-            key: ValueKey('compareChip_${chip.id}'),
-            avatar: _LineSwatch(color: chip.color, dashed: chip.dashed),
-            label: Text(chip.label),
-            selected: chip.selected,
-            showCheckmark: false,
-            onSelected: chip.onToggle,
+          IgnorePointer(
+            ignoring: chip.onToggle == null,
+            child: FilterChip(
+              key: ValueKey('compareChip_${chip.id}'),
+              avatar: _LineSwatch(color: chip.color, dashed: chip.dashed),
+              label: Text(chip.label),
+              selected: chip.selected,
+              showCheckmark: false,
+              onSelected: chip.onToggle ?? (_) {},
+            ),
           ),
         ...actions,
       ],

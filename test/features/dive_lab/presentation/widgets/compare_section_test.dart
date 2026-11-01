@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
@@ -252,13 +253,25 @@ void main() {
     expect(overlays(), 2);
   });
 
-  testWidgets('As dived cannot be turned off', (tester) async {
+  testWidgets('As dived cannot be turned off and does not look disabled', (
+    tester,
+  ) async {
     await pump(tester, comparison: _comparison());
 
     await tester.tap(chip('As dived'), warnIfMissed: false);
     await tester.pump();
 
     expect(columnIds(tester), contains('dived'));
+    final asDived = tester.widget<FilterChip>(chip('As dived'));
+    expect(asDived.selected, isTrue);
+    expect(asDived.isEnabled, isTrue);
+  });
+
+  testWidgets('the read-only chart has no zoom controls', (tester) async {
+    await pump(tester, comparison: _comparison());
+
+    expect(find.byType(DiveProfileChart), findsOneWidget);
+    expect(find.byType(ChartZoomControls), findsNothing);
   });
 
   testWidgets('the empty state offers both ways in', (tester) async {

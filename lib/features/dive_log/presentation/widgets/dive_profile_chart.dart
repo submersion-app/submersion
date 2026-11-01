@@ -292,6 +292,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Whether to show event markers
   final bool showEvents;
 
+  /// Off for a read-only chart, whose zoom buttons would do nothing.
+  final bool showZoomControls;
+
   /// Whether to show SAC curve by default
   final bool showSac;
 
@@ -739,6 +742,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showDecoStops = true,
     this.showAscentRateColors = false,
     this.showEvents = true,
+    this.showZoomControls = true,
     this.showSac = false,
     this.markers,
     this.photoMarkers,
@@ -3028,6 +3032,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     onZoomIn: _zoomIn,
                     onZoomOut: _zoomOut,
                     onResetZoom: _resetZoom,
+                    showZoomControls: widget.showZoomControls,
                     leftPadding: widget.legendLeading == null
                         ? legendLeftPadding
                         : 0,
