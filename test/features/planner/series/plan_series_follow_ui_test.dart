@@ -411,6 +411,20 @@ void main() {
     expect(await done, isNotNull);
   });
 
+  testWidgets('a follow records the conditions the dive ended in (#3925)', (
+    tester,
+  ) async {
+    final high = loggedDive('high', morning).copyWith(altitude: 3000);
+    await pumpPlan(tester, [high]);
+
+    final follow = await containerOf(
+      tester,
+    ).read(seriesFollowProvider('high').future);
+
+    expect(follow!.endEnvironment, high.environment);
+    expect(follow.endEnvironment.surfacePressureBar, lessThan(1.0));
+  });
+
   testWidgets('a follow finishes when its load is invalidated part way', (
     tester,
   ) async {

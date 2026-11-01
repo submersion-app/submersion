@@ -1324,7 +1324,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // Compute residual tissue state from previous dives (48h cutoff)
     final startCompartments = await _computeResidualTissueState(
       ref,
-      diveId,
+      dive,
       inputs,
     );
 
@@ -1772,25 +1772,41 @@ Future<double?> _highestSourceCnsEnd(Ref ref, String diveId) async {
 /// Mirrors the recursive CNS lookback pattern: fetches the full analysis of
 /// the nearest dive with tissue data (which recursively accounts for even
 /// earlier dives), extracts end-of-dive compartments, then applies Schreiner
-/// off-gassing for the surface time since.
+/// off-gassing for the surface time since, at the surface
+/// [DiveEnvironment.surfaceIntervalBetween] picks across every dive in that
+/// time: [dive], the known dive, and any walked past to reach it.
 ///
 /// Returns null if no earlier dive has tissue data within 48 hours of surface
 /// time (tissues are effectively surface-saturated).
 Future<List<TissueCompartment>?> _computeResidualTissueState(
   Ref ref,
-  String diveId,
+  Dive dive,
   AnalysisSettings inputs,
 ) async {
   try {
+    var surface = dive.environment;
     final lookback = await _lookBackPastUnknownDives<List<TissueCompartment>>(
       ref,
-      diveId,
+      dive.id,
       window: kResidualLookback,
       readPrevious: (previousDiveId) async {
         // One-shot await (not watch), as in [_knownCnsEnd].
         final previousAnalysis = await ref.container.awaitFuture(
           profileAnalysisProvider(previousDiveId).future,
         );
+        // Loaded by that analysis. Read as a value, not awaited: a dive that
+        // failed to load is an unknown dive to walk past, as the analysis
+        // reports it, not a failed lookback. `value`, not `valueOrNull`, keeps
+        // the dive through a reload.
+        final previousDive = ref.container
+            .read(analysisDiveProvider(previousDiveId))
+            .value;
+        if (previousDive != null) {
+          surface = DiveEnvironment.surfaceIntervalBetween(
+            previousDive.environment,
+            surface,
+          );
+        }
         // Extract end-of-dive compartment state
         return previousAnalysis?.decoStatuses.lastOrNull?.compartments;
       },
@@ -1802,6 +1818,7 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     final algorithm = BuhlmannAlgorithm(
       gfLow: inputs.gfLowFraction,
       gfHigh: inputs.gfHighFraction,
+      environment: surface,
     );
     algorithm.setCompartments(List.from(endOfDiveCompartments));
     algorithm.calculateSegment(
@@ -1814,7 +1831,7 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     return algorithm.compartments;
   } catch (e, stackTrace) {
     _log.error(
-      'Failed to calculate residual tissue state for: $diveId',
+      'Failed to calculate residual tissue state for: ${dive.id}',
       error: e,
       stackTrace: stackTrace,
     );
@@ -1897,9 +1914,11 @@ final residualTissueStateProvider =
       diveId,
     ) async {
       await awaitCurrentDiverSettings(ref);
+      final dive = await ref.watch(analysisDiveProvider(diveId).future);
+      if (dive == null) return null;
       return _computeResidualTissueState(
         ref,
-        diveId,
+        dive,
         ref.watch(analysisSettingsProvider),
       );
     });

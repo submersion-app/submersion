@@ -45,7 +45,10 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dar
 /// different depths (#3910).
 /// v4: a logged dive's residual load no longer starts from a plan that was
 /// never dived (#3924).
-const int analysisEngineVersion = 4;
+/// v5: tissues carried between dives off-gas at the dives' own surface, not at
+/// 1.0 bar, so a repetitive dive with a known surface pressure, at altitude
+/// above all, starts from different tissues (#3925).
+const int analysisEngineVersion = 5;
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {
