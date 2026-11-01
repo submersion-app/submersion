@@ -461,10 +461,12 @@ class CsvTransformer {
 
     // Gas percentages are plain numbers, read strictly: the lenient parser
     // below would turn "31,0" into 310. A null here warns about the cell,
-    // where text left in the row would silently read as air (#3930).
+    // where text left in the row would silently read as air (#3930). The
+    // range also refuses the NaN and Infinity that tryParse accepts.
     final base = _stripNumberSuffix(lower);
     if (base == 'o2percent' || base == 'hepercent') {
-      return double.tryParse(rawValue);
+      final percent = double.tryParse(rawValue);
+      return percent != null && percent >= 0 && percent <= 100 ? percent : null;
     }
 
     // Numeric (double) fields that may need unit conversion.

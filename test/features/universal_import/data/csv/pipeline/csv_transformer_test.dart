@@ -269,6 +269,23 @@ void main() {
         expect(result.warnings.single.field, 'o2Percent_1');
       });
 
+      for (final cell in ['NaN', 'Infinity', '-Infinity', '-5', '150']) {
+        test('warns about $cell, which is not a percentage', () {
+          final result = transformGas(cell, '0');
+
+          expect(result.rows.single.containsKey('o2Percent_1'), isFalse);
+          expect(result.warnings.single.field, 'o2Percent_1');
+        });
+      }
+
+      test('accepts both ends of the percentage range', () {
+        final result = transformGas('100', '0');
+
+        expect(result.rows.single['o2Percent_1'], 100.0);
+        expect(result.rows.single['hePercent_1'], 0.0);
+        expect(result.warnings, isEmpty);
+      });
+
       test('does not read a comma decimal as a larger number', () {
         final result = transformGas('31,0', '0');
 
