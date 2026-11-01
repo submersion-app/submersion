@@ -121,6 +121,7 @@ class CareerTerrainFixture {
 /// [count] samples one second apart: a descent to [maxDepth] at a third of
 /// the way, a plateau, and an ascent; more than one decimation window's worth.
 List<ProfileSample> denseProfile({int count = 600, double maxDepth = 30}) {
+  assert(count >= 3, 'the three phases need a sample each');
   final descentEnd = count ~/ 3;
   final ascentStart = (count * 2) ~/ 3;
   return [

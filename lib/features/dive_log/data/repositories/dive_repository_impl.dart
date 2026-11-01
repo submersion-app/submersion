@@ -1546,17 +1546,10 @@ class DiveRepository {
 
   /// Every source row of [diveId], primary first and then oldest: the order
   /// [_canonicalDataSourceRows] needs to keep the shown row of each strand.
-  Future<List<DiveDataSourcesData>> _sourceRowsInShownOrder(String diveId) =>
-      (_db.select(_db.diveDataSources)
-            ..where((t) => t.diveId.equals(diveId))
-            ..orderBy([
-              (t) => OrderingTerm.desc(t.isPrimary),
-              (t) => OrderingTerm.asc(t.createdAt),
-              // Combine copies rows with one createdAt; the id keeps the row
-              // that speaks for a strand the same on every read.
-              (t) => OrderingTerm.asc(t.id),
-            ]))
-          .get();
+  Future<List<DiveDataSourcesData>> _sourceRowsInShownOrder(
+    String diveId,
+  ) async =>
+      (await _sourceRowsInShownOrderForDives([diveId]))[diveId] ?? const [];
 
   /// Get profile samples grouped by owning data source.
   ///
@@ -1659,8 +1652,10 @@ class DiveRepository {
     );
   }
 
-  /// [_sourceRowsInShownOrder] for every dive of [diveIds] in one chunked
-  /// statement, keyed by dive; a dive with no source row is absent.
+  /// Every source row of each dive of [diveIds], keyed by dive and in shown
+  /// order within it (primary first, then oldest), one chunked statement; a
+  /// dive with no source row is absent. The single-dive
+  /// [_sourceRowsInShownOrder] reads through this so the two cannot drift.
   Future<Map<String, List<DiveDataSourcesData>>>
   _sourceRowsInShownOrderForDives(List<String> diveIds) async {
     final byDive = <String, List<DiveDataSourcesData>>{};
@@ -1672,6 +1667,8 @@ class DiveRepository {
                   (t) => OrderingTerm.asc(t.diveId),
                   (t) => OrderingTerm.desc(t.isPrimary),
                   (t) => OrderingTerm.asc(t.createdAt),
+                  // Combine copies rows with one createdAt; the id keeps the
+                  // row that speaks for a strand the same on every read.
                   (t) => OrderingTerm.asc(t.id),
                 ]))
               .get();
@@ -3485,10 +3482,13 @@ class DiveRepository {
   /// read to one diver as every diverId-scoped query here does, and null
   /// reads every diver's dives.
   ///
-  /// One statement over an indexed column with the window applied in SQL,
-  /// for a reader such as the career terrain (issue #3857) that wants a
-  /// bounded, ordered set of dives and will fetch what it draws separately:
-  /// nothing is hydrated, and the rest of the logbook is never read.
+  /// One statement with the window applied in SQL, for a reader such as the
+  /// career terrain (issue #3857) that wants a bounded, ordered set of dives
+  /// and will fetch what it draws separately: nothing is hydrated, and only
+  /// id and start leave the database. The site form seeks
+  /// `idx_dives_site_id`; the date form compares the coalesced start, which
+  /// no index serves, so it scans `dives` once. Empty for a [limit] of zero
+  /// or less, which SQLite would otherwise read as no limit at all.
   Future<List<domain.DiveStart>> getNewestDiveStarts({
     String? diverId,
     String? siteId,
@@ -3496,6 +3496,7 @@ class DiveRepository {
     DateTime? to,
     required int limit,
   }) async {
+    if (limit <= 0) return const [];
     try {
       final start = diveStartMillisSql('d');
       final clauses = <String>[];

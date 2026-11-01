@@ -174,6 +174,21 @@ void main() {
     );
   });
 
+  test('a limit of zero or less reads nothing, never everything', () async {
+    await dive('a', date: base, siteId: 'reef');
+    await dive('b', date: base, siteId: 'reef');
+
+    expect(
+      await repository.getNewestDiveStarts(siteId: 'reef', limit: 0),
+      isEmpty,
+    );
+    // SQLite reads a negative LIMIT as no limit at all.
+    expect(
+      await repository.getNewestDiveStarts(siteId: 'reef', limit: -1),
+      isEmpty,
+    );
+  });
+
   test('empty when nothing matches', () async {
     await dive('wall', date: base, siteId: 'wall');
 
