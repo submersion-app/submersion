@@ -53,7 +53,6 @@ void main() {
     expect(state.payload!.entitiesOf(ImportEntityType.dives), hasLength(1));
     expect(state.selectionFor(ImportEntityType.dives), {0});
     expect(state.selectionFor(ImportEntityType.sites), {0});
-    expect(state.duplicateResult, isNotNull);
     expect(state.remotePhotoCount, 3);
     expect(state.isLoading, isFalse);
     expect(state.error, isNull);

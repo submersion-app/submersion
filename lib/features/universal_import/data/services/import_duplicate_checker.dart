@@ -6,8 +6,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_start_time_index.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -90,7 +91,7 @@ class ImportDuplicateChecker {
   /// notation; the default keeps decimal degrees for callers without settings.
   ImportDuplicateResult check({
     required ImportPayload payload,
-    required List<Dive> existingDives,
+    required List<DiveMatchRecord> existingDives,
     required List<DiveSite> existingSites,
     required List<Trip> existingTrips,
     required List<EquipmentItem> existingEquipment,
@@ -730,7 +731,7 @@ class ImportDuplicateChecker {
 
   Map<int, DiveMatchResult> _checkDiveDuplicates(
     List<Map<String, dynamic>> importedDives,
-    List<Dive> existingDives,
+    List<DiveMatchRecord> existingDives,
     Map<String, String> existingSourceUuidByDiveId,
     DiveMatcher matcher, {
     bool checkIntraBatch = false,
@@ -768,6 +769,10 @@ class ImportDuplicateChecker {
         }
       }
 
+      final importedByStart = DiveStartTimeIndex(
+        importedDives.map((dive) => dive['dateTime'] as DateTime?),
+      );
+
       for (var i = 1; i < importedDives.length; i++) {
         if (handled.contains(i)) continue;
         final dateTime = importedDives[i]['dateTime'] as DateTime?;
@@ -779,10 +784,14 @@ class ImportDuplicateChecker {
                 ?.inSeconds ??
             0;
 
-        for (var j = 0; j < i; j++) {
+        final nearby = importedByStart.positionsNear(
+          dateTime,
+          DiveMatcher.candidateWindow,
+        );
+        for (final j in nearby) {
+          if (j >= i) break;
           if (handled.contains(j)) continue;
-          final otherDateTime = importedDives[j]['dateTime'] as DateTime?;
-          if (otherDateTime == null) continue;
+          final otherDateTime = importedDives[j]['dateTime'] as DateTime;
           final otherDepth = importedDives[j]['maxDepth'] as double? ?? 0;
           final otherDuration =
               ((importedDives[j]['runtime'] as Duration?) ??
@@ -832,9 +841,9 @@ class ImportDuplicateChecker {
     // same source UUID are definitionally the same dive. A mismatched (or
     // missing) UUID never vetoes a content match; it only upgrades likely
     // matches to certain ones.
-    final existingBySourceUuid = <String, Dive>{};
+    final existingBySourceUuid = <String, DiveMatchRecord>{};
     if (existingSourceUuidByDiveId.isNotEmpty) {
-      final existingById = <String, Dive>{
+      final existingById = <String, DiveMatchRecord>{
         for (final dive in existingDives) dive.id: dive,
       };
       existingSourceUuidByDiveId.forEach((diveId, uuid) {
@@ -858,7 +867,7 @@ class ImportDuplicateChecker {
           diveId: existing.id,
           score: _sourceUuidMatchScore,
           timeDifferenceMs: 0,
-          siteName: existing.site?.name,
+          siteName: existing.siteName,
           // The incoming dive's source data is already present on `existing`
           // (same source_uuid) — a re-import, not a new source. The wizard
           // defaults these to skip and excludes them from bulk-consolidate.
@@ -869,6 +878,9 @@ class ImportDuplicateChecker {
     }
 
     // Pass 1: content fuzzy matching for everything not already handled.
+    final existingByStart = DiveStartTimeIndex(
+      existingDives.map((dive) => dive.dateTime),
+    );
     for (var i = 0; i < importedDives.length; i++) {
       if (handled.contains(i)) continue;
 
@@ -882,8 +894,13 @@ class ImportDuplicateChecker {
       final durationSeconds = (runtime ?? duration)?.inSeconds ?? 0;
 
       DiveMatchResult? bestMatch;
-      for (final existing in existingDives) {
-        final existingDurationSeconds = _diveSeconds(existing);
+      final nearby = existingByStart.positionsNear(
+        dateTime,
+        DiveMatcher.candidateWindow,
+      );
+      for (final position in nearby) {
+        final existing = existingDives[position];
+        final existingDurationSeconds = existing.durationSeconds;
 
         final score = matcher.calculateMatchScore(
           wearableStartTime: dateTime,
@@ -909,7 +926,7 @@ class ImportDuplicateChecker {
               durationDifferenceSeconds: existingDurationSeconds > 0
                   ? (durationSeconds - existingDurationSeconds).abs()
                   : null,
-              siteName: existing.site?.name,
+              siteName: existing.siteName,
             );
           }
         }
@@ -921,17 +938,6 @@ class ImportDuplicateChecker {
     }
 
     return matches;
-  }
-
-  int _diveSeconds(Dive dive) {
-    // Use runtime (total time), not duration (bottom time), to match
-    // the incoming side which uses runtime ?? duration.
-    if (dive.runtime != null) return dive.runtime!.inSeconds;
-    if (dive.exitTime != null && dive.entryTime != null) {
-      return dive.exitTime!.difference(dive.entryTime!).inSeconds;
-    }
-    if (dive.bottomTime != null) return dive.bottomTime!.inSeconds;
-    return 0;
   }
 
   // ======================== Haversine ========================

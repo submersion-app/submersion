@@ -21045,6 +21045,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
 
   @override
+  String get plannerCanvas_link_action => 'ربط بغطسة مسجلة';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'تغيير الغطسة المرتبطة';
+
+  @override
+  String get plannerCanvas_unlink_action => 'إلغاء ربط الغطسة';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'نُفذت كغطسة #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'نُفذت في $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'احفظ الخطة أولاً';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'الغطسة $letter';
   }
@@ -34952,6 +34974,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>
       'تُركت بعض القيم فارغة';
+
+  @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'تم تصحيح بعض خلطات الغاز';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'تجاوز مجموع الأكسجين والهيليوم 100% في هذه الصفوف: $rows. تم تخفيض الهيليوم ليصبح المجموع 100%. راجع الغاز في هذه الغطسات.';
+  }
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
@@ -53599,11 +53630,92 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'سيناريو جديد';
+  String get diveLab_compare_line_planned => 'مخطط';
 
   @override
-  String get diveLab_section_hint =>
-      'تفرّع من هذه الغطسة في أي لحظة وقارن ما كان سيحدث.';
+  String get diveLab_compare_line_asDived => 'كما نُفذت';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'ماذا لو';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'أقصى عمق';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'زمن القاع';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL عند مغادرة القاع';
+
+  @override
+  String get diveLab_compare_row_deco => 'تخفيف الضغط';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'متبقي $minutes د';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'تخفيف الضغط عند $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required، تم $done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'لا يوجد';
+
+  @override
+  String get diveLab_compare_empty => 'لا يوجد ما تتم مقارنته بعد';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'اطرح سؤال ماذا لو';
+
+  @override
+  String get diveLab_compare_linkPlan => 'ربط خطة';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'إلغاء ربط الخطة';
+
+  @override
+  String get diveLab_compare_planTable => 'الخطة مقابل الغطسة';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'الجدول المخطط';
+
+  @override
+  String get diveLab_compare_waiting => 'بانتظار الغطسة';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'إلغاء ربط هذه الخطة؟';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'تبقى الخطة والغطسة معاً، لكن لن تتم مقارنتهما بعد الآن.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'إلغاء الربط';
+
+  @override
+  String get diveLab_link_moveTitle => 'نقل ربط هذه الخطة؟';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'هذه الخطة مرتبطة بغطسة أخرى. ربطها هنا يزيل ذلك الربط.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'استبدال خطة هذه الغطسة؟';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'تتم مقارنة هذه الغطسة مع \"$plan\". ربط خطة أخرى يلغي ربطها.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'ربط';
 
   @override
   String get diveDetailSection_diveLab_name => 'مقارنة';

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -5,11 +7,14 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -55,6 +60,8 @@ void main() {
     int minutes, {
     List<ProfileSample>? samples,
     String diveMode = 'oc',
+    double? altitude,
+    double? surfacePressure,
     bool isPlanned = false,
   }) async {
     final startMs = start.millisecondsSinceEpoch;
@@ -68,6 +75,8 @@ void main() {
             exitTime: Value(startMs + minutes * 60000),
             runtime: Value(minutes * 60),
             diveMode: Value(diveMode),
+            altitude: Value(altitude),
+            surfacePressure: Value(surfacePressure),
             isPlanned: Value(isPlanned),
             createdAt: Value(startMs),
             updatedAt: Value(startMs),
@@ -413,12 +422,13 @@ void main() {
     /// surface, breathing air.
     Future<List<double>> offGassed(
       ProviderContainer container,
-      int surfaceMinutes,
-    ) async {
+      int surfaceMinutes, {
+      DiveEnvironment surface = DiveEnvironment.standard,
+    }) async {
       final analysis = await container.read(
         profileAnalysisProvider('known').future,
       );
-      final algorithm = BuhlmannAlgorithm()
+      final algorithm = BuhlmannAlgorithm(environment: surface)
         ..setCompartments(List.of(analysis!.decoStatuses.last.compartments))
         ..calculateSegment(
           depthMeters: 0,
@@ -436,12 +446,17 @@ void main() {
 
     Future<void> expectTissuesOffGassedFor(
       int surfaceMinutes,
-      ProviderContainer container,
-    ) async {
+      ProviderContainer container, {
+      DiveEnvironment surface = DiveEnvironment.standard,
+    }) async {
       final residual = await container.read(
         residualTissueStateProvider('current').future,
       );
-      final expected = await offGassed(container, surfaceMinutes);
+      final expected = await offGassed(
+        container,
+        surfaceMinutes,
+        surface: surface,
+      );
       expect(residual, isNotNull);
       expect(
         [for (final c in residual!) c.currentPN2],
@@ -502,6 +517,164 @@ void main() {
       );
 
       expect(residual, isNull);
+    });
+
+    group('at altitude (#3925)', () {
+      /// Roughly the barometric pressure at 3,000 m.
+      const highSurface = DiveEnvironment(surfacePressureBar: 0.7);
+
+      /// Roughly the barometric pressure at 1,500 m.
+      const midSurface = DiveEnvironment(surfacePressureBar: 0.85);
+
+      Future<void> seedKnownAndCurrentAt({
+        double? knownSurface,
+        double? currentSurface,
+      }) async {
+        await seedDive(
+          'known',
+          knownStart,
+          30,
+          samples: deepAir,
+          surfacePressure: knownSurface,
+        );
+        await seedDive(
+          'current',
+          currentStart,
+          10,
+          samples: shallowAir,
+          surfacePressure: currentSurface,
+        );
+      }
+
+      test('two dives at one altitude off-gas at that altitude', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
+
+        await expectTissuesOffGassedFor(
+          60,
+          containerFor(),
+          surface: highSurface,
+        );
+      });
+
+      test('reads the surface from a logged altitude', () async {
+        const altitude = 3000.0;
+        await seedDive(
+          'known',
+          knownStart,
+          30,
+          samples: deepAir,
+          altitude: altitude,
+        );
+        await seedDive(
+          'current',
+          currentStart,
+          10,
+          samples: shallowAir,
+          altitude: altitude,
+        );
+
+        await expectTissuesOffGassedFor(
+          60,
+          containerFor(),
+          surface: DiveEnvironment.forConditions(altitudeMeters: altitude),
+        );
+      });
+
+      test('a dive after coming down off-gases at the lower site, where the '
+          'diver may have waited', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7);
+
+        await expectTissuesOffGassedFor(60, containerFor());
+      });
+
+      test('a dive after going up off-gases at the lower site, where the '
+          'interval began', () async {
+        await seedKnownAndCurrentAt(currentSurface: 0.7);
+
+        await expectTissuesOffGassedFor(60, containerFor());
+      });
+
+      test('two altitudes off-gas at the lower of the two sites', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.85);
+
+        await expectTissuesOffGassedFor(
+          60,
+          containerFor(),
+          surface: midSurface,
+        );
+      });
+
+      test('reads through a dive with no profile to the known dive', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
+        await seedDive('manual', middleStart, 10, surfacePressure: 0.7);
+
+        await expectTissuesOffGassedFor(
+          50,
+          containerFor(),
+          surface: highSurface,
+        );
+      });
+
+      test('a dive that cannot be read is walked past too', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
+        await seedDive('manual', middleStart, 10, samples: shallowAir);
+
+        await expectTissuesOffGassedFor(
+          50,
+          containerFor(
+            overrides: [
+              analysisDiveProvider(
+                'manual',
+              ).overrideWith((ref) async => throw StateError('unreadable')),
+            ],
+          ),
+          surface: highSurface,
+        );
+      });
+
+      test('a dive reloading mid-walk keeps the surface it had', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
+        await seedDive('manual', middleStart, 10);
+        // A change to something the provider watches, unlike an invalidation,
+        // leaves its previous value in a loading state.
+        final dependency = StateProvider<int>((ref) => 0);
+        final reload = Completer<domain.Dive?>();
+        var loads = 0;
+        final container = containerFor(
+          overrides: [
+            analysisDiveProvider('manual').overrideWith((ref) {
+              ref.watch(dependency);
+              loads++;
+              return loads == 1
+                  ? Future.value(
+                      domain.Dive(
+                        id: 'manual',
+                        dateTime: middleStart,
+                        surfacePressure: 1.0,
+                      ),
+                    )
+                  : reload.future;
+            }),
+            profileAnalysisProvider('manual').overrideWith((ref) async => null),
+          ],
+        );
+        final dive = container.listen(
+          analysisDiveProvider('manual').future,
+          (_, _) {},
+        );
+        addTearDown(dive.close);
+        await dive.read();
+        container.read(dependency.notifier).state++;
+
+        await expectTissuesOffGassedFor(50, container);
+      });
+
+      test('a dive walked past counts: the diver was at its surface', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
+        await seedDive('manual', middleStart, 10, surfacePressure: 1.0);
+
+        await expectTissuesOffGassedFor(50, containerFor());
+      });
     });
   });
 }

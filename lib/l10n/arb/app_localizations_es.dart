@@ -20738,6 +20738,28 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin datos de perfil en esa inmersión — intervalo en superficie establecido sin saturación de tejidos';
 
   @override
+  String get plannerCanvas_link_action => 'Vincular a una inmersión registrada';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Cambiar inmersión vinculada';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Desvincular inmersión';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Realizada como #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Realizada el $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Guarda primero el plan';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Inmersión $letter';
   }
@@ -34553,6 +34575,15 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>
       'Algunos valores quedaron en blanco';
+
+  @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Se corrigieron algunas mezclas de gas';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'El oxígeno y el helio sumaban más del 100 % en estas filas: $rows. Se redujo el helio para que el total sea del 100 %. Revisa el gas de estas inmersiones.';
+  }
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
@@ -53011,11 +53042,93 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Nuevo escenario';
+  String get diveLab_compare_line_planned => 'Planificado';
 
   @override
-  String get diveLab_section_hint =>
-      'Ramifica esta inmersión en cualquier momento y compara lo que habría pasado.';
+  String get diveLab_compare_line_asDived => 'Realizada';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'Qué pasaría si';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Prof. máx.';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Tiempo de fondo';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL al dejar el fondo';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'quedan $minutes min';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco a los $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done hechos';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Ninguna';
+
+  @override
+  String get diveLab_compare_empty => 'Aún no hay nada que comparar';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Plantear un qué pasaría si';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Vincular un plan';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Desvincular plan';
+
+  @override
+  String get diveLab_compare_planTable => 'Plan e inmersión';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programa planificado';
+
+  @override
+  String get diveLab_compare_waiting => 'A la espera de la inmersión';
+
+  @override
+  String get diveLab_link_unlinkTitle => '¿Desvincular este plan?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'El plan y la inmersión se conservan. Solo dejan de compararse.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Desvincular';
+
+  @override
+  String get diveLab_link_moveTitle => '¿Mover el vínculo de este plan?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Este plan está vinculado a otra inmersión. Vincularlo aquí elimina ese vínculo.';
+
+  @override
+  String get diveLab_link_replaceTitle =>
+      '¿Reemplazar el plan de esta inmersión?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Esta inmersión se compara con \"$plan\". Vincular otro plan lo desvincula.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Vincular';
 
   @override
   String get diveDetailSection_diveLab_name => 'Comparar';

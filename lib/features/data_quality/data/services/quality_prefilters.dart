@@ -2,8 +2,8 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/data_quality/data/services/quality_neighbor_sql.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
-import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 
 /// Cheap SQL passes that narrow the full library to per-detector candidate
 /// sets before any context is built. A dive absent from a detector's set is
@@ -55,22 +55,9 @@ class QualityPrefilters {
       'SELECT d.id AS id FROM dives d WHERE '
       '(SELECT COUNT(*) FROM dive_data_sources s WHERE s.dive_id = d.id) >= 2',
     );
-    // `IS` (not `=`) is intentional: unassigned dives (diver_id NULL) all
-    // belong to the implicit default diver -- the same scope `getAllDives(null)`
-    // and `DiveMatcher` use -- so both-NULL must match. `IS` still keeps a
-    // null-diver dive from pairing across into a specific diver's dives. Do not
-    // switch to `=`: it drops the common single-diver (all-NULL) library.
-    final pairWindow = await ids(
-      'SELECT DISTINCT a.id AS id FROM dives a JOIN dives b ON a.id != b.id '
-      'AND a.diver_id IS b.diver_id '
-      'AND ABS(COALESCE(a.entry_time, a.dive_date_time) - '
-      'COALESCE(b.entry_time, b.dive_date_time)) <= ?1',
-      [Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds)],
-    );
-    // Dives sharing an item with another profile's dive in the window
-    // (issue #2853). Dive pairs first, then shared gear per pair, so each
-    // gear branch filters through its dive_id index instead of joining
-    // every gear row in the library with every other.
+    final pairWindow = await ids(qualityPairWindowSql, [
+      Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds),
+    ]);
     // With fewer than two profiles no dive can share gear with another
     // profile's, so skip the pair join (most libraries have one profile).
     final profileCount =
@@ -78,19 +65,9 @@ class QualityPrefilters {
             .read<int>('n');
     final sharedGear = profileCount < 2
         ? const <String>{}
-        : await ids(
-            'SELECT DISTINCT da.id AS id FROM dives da '
-            'JOIN dives db ON db.id != da.id '
-            'AND da.diver_id IS NOT NULL AND db.diver_id IS NOT NULL '
-            'AND da.diver_id != db.diver_id '
-            'AND ABS(COALESCE(da.entry_time, da.dive_date_time) - '
-            'COALESCE(db.entry_time, db.dive_date_time)) <= ?1 '
-            'WHERE EXISTS (SELECT 1 FROM '
-            '(${diveGearUsageSql(diveIdPredicate: '= da.id')}) ga '
-            'JOIN (${diveGearUsageSql(diveIdPredicate: '= db.id')}) gb '
-            'ON gb.equipment_id = ga.equipment_id)',
-            [Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds)],
-          );
+        : await ids(qualitySharedGearWindowSql, [
+            Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds),
+          ]);
     final timeOutliers = await ids(
       'SELECT d.id AS id FROM dives d WHERE '
       'COALESCE(d.entry_time, d.dive_date_time) > ?1 OR '

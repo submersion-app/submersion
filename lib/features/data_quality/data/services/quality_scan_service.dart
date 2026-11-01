@@ -12,6 +12,7 @@ import 'package:submersion/features/data_quality/domain/quality_thresholds.dart'
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_toggles.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_context_builder.dart';
+import 'package:submersion/features/data_quality/data/services/quality_neighbor_sql.dart';
 import 'package:submersion/features/data_quality/data/services/quality_prefilters.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
@@ -20,10 +21,15 @@ class QualityScanSummary {
     required this.divesScanned,
     required this.findingsProduced,
     required this.detectorErrors,
+    this.cancelled = false,
   });
   final int divesScanned;
   final int findingsProduced;
   final int detectorErrors;
+
+  /// The scan stopped before reaching every dive, so it does not count as a
+  /// full scan. Only [QualityScanService.scanLibrary] can be cancelled.
+  final bool cancelled;
 }
 
 class QualityScanService {
@@ -120,8 +126,12 @@ class QualityScanService {
     var done = 0;
     var produced = 0;
     var errors = 0;
+    var cancelled = false;
     for (final batch in seriesIdChunks(allDiveIds, size: batchSize)) {
-      if (isCancelled?.call() ?? false) break;
+      if (isCancelled?.call() ?? false) {
+        cancelled = true;
+        break;
+      }
       final summary = await _scanBatch(
         batch,
         enabled: enabled,
@@ -143,6 +153,7 @@ class QualityScanService {
       divesScanned: done,
       findingsProduced: produced,
       detectorErrors: errors,
+      cancelled: cancelled,
     );
   }
 
@@ -217,14 +228,9 @@ class QualityScanService {
     final windowMs = QualityThresholds.neighborWindow.inMilliseconds;
     final expanded = {...diveIds};
     for (final chunk in seriesIdChunks(diveIds.toList())) {
-      final placeholders = List.filled(chunk.length, '?').join(',');
       final rows = await _db
           .customSelect(
-            'SELECT DISTINCT b.id AS id FROM dives a JOIN dives b '
-            'ON b.id != a.id AND a.diver_id IS b.diver_id '
-            'AND ABS(COALESCE(a.entry_time, a.dive_date_time) - '
-            'COALESCE(b.entry_time, b.dive_date_time)) <= $windowMs '
-            'WHERE a.id IN ($placeholders)',
+            qualityExpandNeighborsSql(chunk.length, windowMs),
             variables: [for (final id in chunk) Variable.withString(id)],
           )
           .get();

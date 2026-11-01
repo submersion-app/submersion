@@ -184,6 +184,35 @@ void main() {
     expect(summary.divesScanned, 5);
   });
 
+  test('a scan stopped before its last batch reports the cancel', () async {
+    await seedFutureDive('d1');
+    final summary = await QualityScanService().scanLibrary(
+      now: DateTime.utc(2026, 7, 17),
+      isCancelled: () => true,
+    );
+    expect(summary.cancelled, isTrue);
+    expect(summary.divesScanned, 0);
+  });
+
+  test('a scan that reached every dive is not cancelled, even if the cancel '
+      'arrived during its last batch', () async {
+    await seedFutureDive('d1');
+    var calls = 0;
+    final summary = await QualityScanService().scanLibrary(
+      now: DateTime.utc(2026, 7, 17),
+      onProgress: (_, _) => calls++,
+      isCancelled: () => calls > 0,
+    );
+    expect(summary.cancelled, isFalse);
+    expect(summary.divesScanned, 1);
+  });
+
+  test('a targeted scan is never cancelled', () async {
+    await seedFutureDive('d1');
+    final summary = await QualityScanService().scanDives({'d1'});
+    expect(summary.cancelled, isFalse);
+  });
+
   group('a targeted scan past one batch (issue #3864)', () {
     const overBatch = QualityScanService.batchSize * 2 + 50;
     final ids = {for (var i = 0; i < overBatch; i++) 'dive-$i'};

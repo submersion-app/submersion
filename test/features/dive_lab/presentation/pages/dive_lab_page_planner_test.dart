@@ -118,7 +118,8 @@ void main() {
     expect(find.text('Share PDF slate'), findsOneWidget);
     expect(find.text('Open in planner'), findsOneWidget);
     expect(find.text('Rebuild in planner...'), findsOneWidget);
-    expect(find.byType(PopupMenuDivider), findsOneWidget);
+    // One under the plan link entries, one under the share actions.
+    expect(find.byType(PopupMenuDivider), findsNWidgets(2));
   });
 
   testWidgets('the app bar is titled Compare', (tester) async {

@@ -513,6 +513,14 @@ void main() {
       read: (c) => c.read(weeklyOtuProvider(_id).future),
     ),
     (
+      name: 'residualOtuProvider',
+      read: (c) => c.read(residualOtuProvider(_id).future),
+    ),
+    (
+      name: 'residualTissueStateProvider',
+      read: (c) => c.read(residualTissueStateProvider(_id).future),
+    ),
+    (
       name: 'tablePresetsProvider',
       read: (c) => c.read(tablePresetsProvider(_id).future),
     ),

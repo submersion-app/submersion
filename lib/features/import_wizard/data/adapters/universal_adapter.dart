@@ -339,6 +339,7 @@ class UniversalAdapter implements ImportSourceAdapter {
           universalImportNotifierProvider.notifier,
         ).confirmSource();
       },
+      onCancelAdvance: _cancelParse,
     ),
     WizardStepDef(
       label: 'Map Fields',
@@ -353,9 +354,13 @@ class UniversalAdapter implements ImportSourceAdapter {
         await notifier.confirmFieldMapping();
         await _seedDiverMapping();
       },
+      onCancelAdvance: _cancelParse,
     ),
     ...payloadSteps,
   ];
+
+  void _cancelParse() =>
+      readProvider(universalImportNotifierProvider.notifier).cancelParse();
 
   /// The steps that act on a payload once it exists, whatever produced it.
   /// A subclass that fetches its payload rather than parsing a file keeps
@@ -638,18 +643,21 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// through its providers as always, another profile through the
   /// repositories, a profile the import creates against nothing (#1893).
   Future<ExistingImportRecords> _existingRecordsFor(
-    String? targetKey,
+    DiverSlice slice,
     String? activeDiverId,
   ) {
+    final targetKey = slice.targetKey;
     if (targetKey == null) {
-      return loadActiveDiverRecords(_container, activeDiverId);
+      return loadActiveDiverRecords(_container, slice.payload, activeDiverId);
     }
     final diverId = DiverTarget.diverIdOf(targetKey);
-    if (diverId == null) return loadNewProfileRecords(_container);
-    if (diverId == activeDiverId) {
-      return loadActiveDiverRecords(_container, activeDiverId);
+    if (diverId == null) {
+      return loadNewProfileRecords(_container, slice.payload);
     }
-    return loadProfileRecords(_container, diverId);
+    if (diverId == activeDiverId) {
+      return loadActiveDiverRecords(_container, slice.payload, activeDiverId);
+    }
+    return loadProfileRecords(_container, slice.payload, diverId);
   }
 
   @override
@@ -676,7 +684,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       for (final slice in slices)
         duplicatesToGlobal(
           slice,
-          (await _existingRecordsFor(slice.targetKey, activeDiverId)).check(
+          (await _existingRecordsFor(slice, activeDiverId)).check(
             slice.payload,
             checkIntraBatch: checkIntraBatch,
             units: units,

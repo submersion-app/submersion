@@ -114,18 +114,18 @@ void main() {
         expect(tanks[0]['endPressure'], 50.3);
       });
 
-      test('skips numbered tanks that have pressure but no volume', () {
+      test('keeps a numbered tank whose size is unknown (#3930)', () {
         final row = <String, dynamic>{
-          // Tank group 1: has volume => should be extracted.
+          // Tank group 1: has volume.
           'tankVolume_1': 12.0,
           'startPressure_1': 200.0,
           'endPressure_1': 50.0,
           'o2Percent_1': 21.0,
-          // Tank group 2: pressure only, no volume => should be skipped.
+          // Tank group 2: known pressures and gas, unknown size.
           'startPressure_2': 180.0,
           'endPressure_2': 30.0,
           'o2Percent_2': 32.0,
-          // Tank group 3: has volume => should be extracted.
+          // Tank group 3: has volume.
           'tankVolume_3': 7.0,
           'startPressure_3': 150.0,
           'endPressure_3': 20.0,
@@ -133,26 +133,113 @@ void main() {
 
         final tanks = extractor.extract(row, diveId);
 
-        expect(tanks, hasLength(2));
-        expect(tanks[0]['volume'], 12.0);
-        expect(tanks[1]['volume'], 7.0);
-        // Order should be sequential (0, 1), not (0, 2).
-        expect(tanks[0]['order'], 0);
-        expect(tanks[1]['order'], 1);
+        expect(tanks, hasLength(3));
+        expect(tanks[1]['volume'], isNull);
+        expect(tanks[1]['startPressure'], 180.0);
+        expect(tanks[1]['endPressure'], 30.0);
+        expect(tanks[1]['gasMix'], const GasMix(o2: 32));
+        expect(tanks.map((t) => t['order']), [0, 1, 2]);
       });
 
-      test('skips numbered tank with zero volume parsed from string', () {
+      test('reads a blank size cell as an unknown size', () {
         final row = <String, dynamic>{
-          'tankVolume_1': '12.0',
-          'startPressure_1': '200',
-          'tankVolume_2': '',
-          'startPressure_2': '180',
+          'tankVolume_1': '',
+          'startPressure_1': '180',
+        };
+
+        final tanks = extractor.extract(row, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['volume'], isNull);
+        expect(tanks[0]['startPressure'], 180.0);
+      });
+
+      test('keeps a numbered tank known only by its start pressure', () {
+        final tanks = extractor.extract({'startPressure_1': 200.0}, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['startPressure'], 200.0);
+        expect(tanks[0]['endPressure'], isNull);
+        expect(tanks[0]['gasMix'], const GasMix());
+      });
+
+      test('keeps a numbered tank known only by its end pressure', () {
+        final tanks = extractor.extract({'endPressure_1': 80.0}, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['endPressure'], 80.0);
+      });
+
+      test('keeps a numbered tank known only by its oxygen', () {
+        final tanks = extractor.extract({'o2Percent_1': 32.0}, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['gasMix'], const GasMix(o2: 32));
+      });
+
+      test('keeps a numbered tank known only by its helium', () {
+        final tanks = extractor.extract({'hePercent_1': 35.0}, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['hePercent'], 35.0);
+      });
+
+      test('does not invent a tank from an unused group of zeros', () {
+        final row = <String, dynamic>{
+          'tankVolume_1': 12.0,
+          'startPressure_1': 200.0,
+          'tankVolume_2': '0',
+          'startPressure_2': '0',
+          'endPressure_2': '0',
+          'o2Percent_2': '0',
+          'hePercent_2': '0',
         };
 
         final tanks = extractor.extract(row, diveId);
 
         expect(tanks, hasLength(1));
         expect(tanks[0]['volume'], 12.0);
+      });
+
+      test('reads a zero size beside real readings as unknown', () {
+        final tanks = extractor.extract({
+          'tankVolume_1': '0',
+          'startPressure_1': '200',
+          'endPressure_1': '80',
+        }, diveId);
+
+        expect(tanks.single['volume'], isNull);
+        expect(tanks.single['startPressure'], 200.0);
+      });
+
+      test('reads a zero pressure beside real readings as unknown', () {
+        final tanks = extractor.extract({
+          'startPressure_1': '200',
+          'endPressure_1': '0',
+        }, diveId);
+
+        expect(tanks.single['startPressure'], 200.0);
+        expect(tanks.single['endPressure'], isNull);
+      });
+
+      test('reads a zero oxygen cell as air, not as no oxygen', () {
+        final tanks = extractor.extract({
+          'startPressure_1': '200',
+          'o2Percent_1': '0',
+          'hePercent_1': '0',
+        }, diveId);
+
+        expect(tanks.single['o2Percent'], 21.0);
+        expect(tanks.single['gasMix'], const GasMix());
+      });
+
+      test('does not invent a tank from unreadable cells', () {
+        final tanks = extractor.extract({
+          'startPressure_1': 'n/a',
+          'o2Percent_1': 'air',
+        }, diveId);
+
+        expect(tanks, isEmpty);
       });
 
       test('converts integer volume to double', () {
@@ -188,7 +275,7 @@ void main() {
       });
     });
 
-    group('flat fallback fields', () {
+    group('unnumbered fields', () {
       test('extracts from legacy flat fields', () {
         final row = <String, dynamic>{
           'startPressure': 200.0,
@@ -217,7 +304,19 @@ void main() {
         expect(tanks, isEmpty);
       });
 
-      test('extracts flat fallback with only startPressure', () {
+      test('does not invent a tank from zeros', () {
+        final tanks = extractor.extract({
+          'tankVolume': 0.0,
+          'startPressure': 0.0,
+          'endPressure': 0.0,
+          'o2Percent': 0.0,
+          'hePercent': 0.0,
+        }, diveId);
+
+        expect(tanks, isEmpty);
+      });
+
+      test('extracts a tank with only startPressure', () {
         final row = <String, dynamic>{'startPressure': 200.0};
 
         final tanks = extractor.extract(row, diveId);
@@ -229,7 +328,7 @@ void main() {
         expect(tanks[0]['o2Percent'], 21.0);
       });
 
-      test('extracts flat fallback with only endPressure', () {
+      test('extracts a tank with only endPressure', () {
         final row = <String, dynamic>{'endPressure': 50.0};
 
         final tanks = extractor.extract(row, diveId);
@@ -239,7 +338,7 @@ void main() {
         expect(tanks[0]['startPressure'], isNull);
       });
 
-      test('extracts flat fallback with only o2Percent', () {
+      test('extracts a tank with only o2Percent', () {
         final row = <String, dynamic>{'o2Percent': 32.0};
 
         final tanks = extractor.extract(row, diveId);
@@ -249,7 +348,7 @@ void main() {
         expect(tanks[0]['volume'], isNull);
       });
 
-      test('extracts flat fallback with only tankVolume', () {
+      test('extracts a tank with only tankVolume', () {
         final row = <String, dynamic>{'tankVolume': 10.0};
 
         final tanks = extractor.extract(row, diveId);
@@ -260,14 +359,11 @@ void main() {
         expect(tanks[0]['endPressure'], isNull);
       });
 
-      test('numbered tanks take priority over flat fallback', () {
+      test('a numbered value takes priority over its flat field', () {
         final row = <String, dynamic>{
-          // Numbered tank data.
           'tankVolume_1': 12.0,
           'startPressure_1': 200.0,
-          // Flat fallback data (should be ignored).
           'startPressure': 150.0,
-          'endPressure': 30.0,
           'tankVolume': 8.0,
         };
 
@@ -276,6 +372,47 @@ void main() {
         expect(tanks, hasLength(1));
         expect(tanks[0]['volume'], 12.0);
         expect(tanks[0]['startPressure'], 200);
+      });
+
+      test('flat fields fill the gaps in the first numbered group', () {
+        // A preset's numbered pressures beside columns mapped by hand: the
+        // field mapping step only offers the flat targets.
+        final row = <String, dynamic>{
+          'startPressure_1': 200.0,
+          'endPressure_1': 80.0,
+          'tankVolume': 12.0,
+          'o2Percent': 32.0,
+        };
+
+        final tanks = extractor.extract(row, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['volume'], 12.0);
+        expect(tanks[0]['startPressure'], 200.0);
+        expect(tanks[0]['endPressure'], 80.0);
+        expect(tanks[0]['gasMix'], const GasMix(o2: 32));
+      });
+
+      test('a flat field fills in for a numbered zero', () {
+        final tanks = extractor.extract({
+          'tankVolume_1': '0',
+          'startPressure_1': 200.0,
+          'tankVolume': 12.0,
+        }, diveId);
+
+        expect(tanks.single['volume'], 12.0);
+      });
+
+      test('flat fields fill only the first numbered group', () {
+        final tanks = extractor.extract({
+          'startPressure_1': 200.0,
+          'startPressure_2': 180.0,
+          'tankVolume': 12.0,
+        }, diveId);
+
+        expect(tanks, hasLength(2));
+        expect(tanks[0]['volume'], 12.0);
+        expect(tanks[1]['volume'], isNull);
       });
     });
 

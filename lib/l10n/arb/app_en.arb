@@ -12873,6 +12873,14 @@
 
   "plannerCanvas_follow_empty": "No logged dives yet",
   "plannerCanvas_follow_noTissues": "No profile data on that dive — surface interval set without tissue seeding",
+  "plannerCanvas_link_action": "Link to a logged dive",
+  "plannerCanvas_link_changeAction": "Change linked dive",
+  "plannerCanvas_unlink_action": "Unlink dive",
+  "plannerCanvas_link_badge": "Dived as #{number}",
+  "@plannerCanvas_link_badge": {"placeholders": {"number": {"type": "int"}}},
+  "plannerCanvas_link_badgeDate": "Dived {date}",
+  "@plannerCanvas_link_badgeDate": {"placeholders": {"date": {"type": "String"}}},
+  "plannerCanvas_link_saveFirst": "Save the plan first",
   "plannerSeries_dive": "Dive {letter}",
   "@plannerSeries_dive": {
     "description": "The planned dive's letter within its series: A, B, C",
@@ -19899,6 +19907,15 @@
     }
   },
   "universalImport_summary_noticeValuesNotConvertedTitle": "Some values left blank",
+  "universalImport_summary_noticeGasMixesCappedTitle": "Some gas mixes were corrected",
+  "universalImport_summary_noticeGasMixesCappedBody": "Oxygen and helium added up to over 100% in these rows: {rows}. Helium was reduced so the total is 100%. Check the gas on these dives.",
+  "@universalImport_summary_noticeGasMixesCappedBody": {
+    "placeholders": {
+      "rows": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.} other{{count} values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.}}",
   "@universalImport_summary_noticeValuesNotConvertedBody": {
     "placeholders": {
@@ -20263,7 +20280,7 @@
     }
   },
   "@universalImport_triage_cancelParsing": {
-    "description": "Button that cancels a running batch parse at the next file boundary"
+    "description": "Button that stops a running file parse straight away, for one file or a batch"
   },
   "@universalImport_triage_allExcluded": {
     "description": "Shown when every selected file was excluded from the batch"
@@ -31152,8 +31169,36 @@
   "@diveLab_summary_replay": {"placeholders": {"time": {"type": "String"}}},
   "diveLab_summary_replan": "Re-plan at {time}",
   "@diveLab_summary_replan": {"placeholders": {"time": {"type": "String"}}},
-  "diveLab_section_new": "New scenario",
-  "diveLab_section_hint": "Branch this dive at any moment and compare what would have happened.",
+  "diveLab_compare_line_planned": "Planned",
+  "diveLab_compare_line_asDived": "As dived",
+  "diveLab_compare_addWhatIf": "What if",
+  "diveLab_compare_row_maxDepth": "Max depth",
+  "diveLab_compare_row_bottomTime": "Bottom time",
+  "diveLab_compare_row_ndl": "NDL on leaving bottom",
+  "diveLab_compare_row_deco": "Deco",
+  "diveLab_compare_ndlLeft": "{minutes} min left",
+  "@diveLab_compare_ndlLeft": {"placeholders": {"minutes": {"type": "int"}}},
+  "diveLab_compare_decoAt": "Deco at {time}",
+  "@diveLab_compare_decoAt": {"placeholders": {"time": {"type": "String"}}},
+  "diveLab_compare_decoDone": "{required}, {done} done",
+  "@diveLab_compare_decoDone": {"placeholders": {"required": {"type": "String"}, "done": {"type": "String"}}},
+  "diveLab_compare_noDeco": "None",
+  "diveLab_compare_empty": "Nothing to compare yet",
+  "diveLab_compare_askWhatIf": "Ask a what-if",
+  "diveLab_compare_linkPlan": "Link a plan",
+  "diveLab_compare_unlinkPlan": "Unlink plan",
+  "diveLab_compare_planTable": "Plan against dive",
+  "diveLab_compare_plannedSchedule": "Planned schedule",
+  "diveLab_compare_waiting": "Waiting for the dive",
+  "diveLab_link_unlinkTitle": "Unlink this plan?",
+  "diveLab_link_unlinkBody": "The plan and the dive both stay. They just stop being compared.",
+  "diveLab_link_unlinkConfirm": "Unlink",
+  "diveLab_link_moveTitle": "Move this plan's link?",
+  "diveLab_link_moveBody": "This plan is linked to another dive. Linking it here removes that link.",
+  "diveLab_link_replaceTitle": "Replace this dive's plan?",
+  "diveLab_link_replaceBody": "This dive is compared with \"{plan}\". Linking another plan unlinks that one.",
+  "@diveLab_link_replaceBody": {"placeholders": {"plan": {"type": "String"}}},
+  "diveLab_link_confirm": "Link",
   "diveDetailSection_diveLab_name": "Compare",
   "diveDetailSection_diveLab_description": "Plan, dive and saved what-ifs side by side",
   "diveLab_panel_buoyancy": "Buoyancy",

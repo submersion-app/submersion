@@ -1,6 +1,6 @@
 import 'package:submersion/core/profile/surfacing_pressure.dart';
-import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/services/payload_dive_rewrite.dart';
 
 /// Rewrite every dive's cylinder end pressures to the reading taken at the
 /// moment the diver surfaced, wherever the payload shows the source simply
@@ -19,24 +19,13 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 /// The payload is rebuilt rather than edited: nothing the caller passed in is
 /// mutated. A dive with no profile, no tanks, or no end pressure that matches
 /// the post-surfacing tail comes through untouched.
-ImportPayload trimTankPressuresAtSurfacing(ImportPayload payload) {
-  final dives = payload.entitiesOf(ImportEntityType.dives);
-  if (dives.isEmpty) {
-    return payload;
-  }
+ImportPayload trimTankPressuresAtSurfacing(ImportPayload payload) =>
+    rewriteDives(payload, trimDiveTankPressuresAtSurfacing);
 
-  return ImportPayload(
-    entities: {
-      ...payload.entities,
-      ImportEntityType.dives: [for (final dive in dives) _trimDive(dive)],
-    },
-    warnings: payload.warnings,
-    metadata: payload.metadata,
-    sourceDivers: payload.sourceDivers,
-  );
-}
-
-Map<String, dynamic> _trimDive(Map<String, dynamic> dive) {
+/// [trimTankPressuresAtSurfacing] for one dive map.
+Map<String, dynamic> trimDiveTankPressuresAtSurfacing(
+  Map<String, dynamic> dive,
+) {
   final tanks = dive['tanks'];
   final profile = dive['profile'];
   if (tanks is! List || tanks.isEmpty || profile is! List || profile.isEmpty) {

@@ -178,6 +178,32 @@ String earlierDivesRevisionSql(String alias) {
       'AND $h.dive_date_time >= $from AND $h.dive_date_time < $start')})';
 }
 
+/// The logged dives a downloaded dive could be, nearest in time first.
+///
+/// Binds the download's start, then the window's first and last millisecond,
+/// then the diver when [scopedToDiver]. total_seconds is the whole
+/// `Dive.effectiveRuntime` chain, because a download's duration is the
+/// computer's runtime rather than the bottom time.
+///
+/// This runs once per downloaded dive, so the filter is a range that seeks
+/// idx_dives_start or idx_dives_diver_start, not `ABS(start - ?) <= ?`, which
+/// reads every dive (issue #3863).
+String diveMatchCandidatesSql({required bool scopedToDiver}) {
+  final start = diveStartMillisSql('dives');
+  return '''
+SELECT id, dive_date_time, entry_time, max_depth,
+  ${effectiveRuntimeSecondsSql('dives')} AS total_seconds,
+  $start AS effective_time,
+  ABS($start - ?1) AS time_diff
+FROM dives
+WHERE $start BETWEEN ?2 AND ?3
+  AND is_planned = 0
+  ${scopedToDiver ? 'AND diver_id = ?4' : ''}
+ORDER BY time_diff ASC
+LIMIT 10
+''';
+}
+
 /// The alias the previous dive takes inside [diveSurfaceIntervalSecondsSql],
 /// exposed so a caller's `previousScope` can name it.
 const kSurfaceIntervalPreviousAlias = 'si_prev';
