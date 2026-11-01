@@ -132,6 +132,50 @@ void main() {
     expect(stored.dives[1].sourceTankIds.values.toSet(), firstTanks);
   });
 
+  group('the series\' diver', () {
+    Future<void> addDiver(String id) async {
+      final database = DatabaseService.instance.database;
+      await database
+          .into(database.divers)
+          .insert(
+            db.DiversCompanion(
+              id: Value(id),
+              name: Value(id),
+              createdAt: const Value(0),
+              updatedAt: const Value(0),
+            ),
+          );
+    }
+
+    test('is whoever saved it first, through later saves by others', () async {
+      await addDiver('first');
+      await addDiver('second');
+
+      final stored = await repo.saveSeries(
+        twoDives().copyWith(diverId: 'first'),
+      );
+      expect(stored.diverId, 'first');
+      final again = await repo.saveSeries(stored.copyWith(diverId: 'second'));
+      expect(again.diverId, 'first');
+
+      final database = DatabaseService.instance.database;
+      final rows = await (database.select(
+        database.divePlans,
+      )..where((p) => p.seriesId.equals('s1'))).get();
+      expect(rows.map((r) => r.diverId), everyElement('first'));
+      expect((await repo.getSeries('s1'))!.diverId, 'first');
+    });
+
+    test('is set by a later save when the first had none', () async {
+      await addDiver('second');
+      final stored = await repo.saveSeries(twoDives());
+
+      final again = await repo.saveSeries(stored.copyWith(diverId: 'second'));
+
+      expect(again.diverId, 'second');
+    });
+  });
+
   test('a setting group this build does not know is left out', () async {
     await repo.saveSeries(twoDives());
     final database = DatabaseService.instance.database;

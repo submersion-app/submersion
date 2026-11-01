@@ -16,11 +16,21 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 /// the OTU of those that can still count, and the followed dive's end
 /// tissues, CNS and tanks, from the same analysis the dive details page runs.
 /// Null when the dive is gone.
+///
+/// The dive is found whichever diver it belongs to. Saved plans are not scoped
+/// to a diver, so another profile can open a plan that follows this diver's
+/// dive, and it must carry the same load rather than read as a fresh diver.
 final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
   ref,
   diveId,
 ) async {
-  final dives = await ref.watch(divesProvider.future);
+  final repository = ref.watch(diveRepositoryProvider);
+  var dives = await ref.watch(divesProvider.future);
+  if (!dives.any((dive) => dive.id == diveId)) {
+    final dive = await repository.getDiveById(diveId);
+    if (dive == null) return null;
+    dives = await repository.getAllDives(diverId: dive.diverId);
+  }
   final chain = loggedDiveChain(dives, diveId);
   if (chain.isEmpty) return null;
   final followed = chain.last;

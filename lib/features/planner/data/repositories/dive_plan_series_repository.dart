@@ -29,6 +29,10 @@ class DivePlanSeriesRepository {
   /// followed dive that no longer exists is dropped, and a tank id another
   /// plan's row holds is re-minted by [DivePlanRepository.savePlan], with the
   /// links between dives moved to the new id. Callers should adopt the result.
+  ///
+  /// The diver is set when the series is first saved and kept from then on:
+  /// saved plans are open to every profile, so a later save by another one
+  /// does not take the series over.
   Future<StoredSeries> saveSeries(StoredSeries series) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     try {
@@ -38,13 +42,14 @@ class DivePlanSeriesRepository {
           _db.divePlanSeries,
         )..where((s) => s.id.equals(series.id))).getSingleOrNull();
         final followed = await _existingDive(series.followedDiveId);
+        final owner = existing?.diverId ?? series.diverId;
 
         await _db
             .into(_db.divePlanSeries)
             .insertOnConflictUpdate(
               db.DivePlanSeriesCompanion(
                 id: Value(series.id),
-                diverId: Value(series.diverId),
+                diverId: Value(owner),
                 name: Value(series.name),
                 followedDiveId: Value(followed),
                 createdAt: Value(existing?.createdAt ?? now),
@@ -90,9 +95,7 @@ class DivePlanSeriesRepository {
             db.DivePlansCompanion(
               seriesId: Value(series.id),
               seriesIndex: Value(i),
-              diverId: series.diverId == null
-                  ? const Value.absent()
-                  : Value(series.diverId),
+              diverId: owner == null ? const Value.absent() : Value(owner),
               diveName: Value(dive.name),
               fixedStart: Value(dive.fixedStart),
               settingOverrides: Value(_encode(dive.settingOverrides)),
@@ -120,7 +123,7 @@ class DivePlanSeriesRepository {
         stored = StoredSeries(
           id: series.id,
           name: series.name,
-          diverId: series.diverId,
+          diverId: owner,
           followedDiveId: followed,
           dives: dives,
         );
