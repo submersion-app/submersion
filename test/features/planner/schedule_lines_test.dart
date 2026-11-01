@@ -66,6 +66,36 @@ void main() {
     expect(lines[1].durationMinutes, 0);
   });
 
+  group('durationLabel', () {
+    ScheduleLine line({int airBreakSeconds = 0}) => scheduleLines([
+      PlanScheduleRow(
+        kind: PlanScheduleRowKind.stop,
+        depthMeters: 6,
+        durationSeconds: 1440,
+        runtimeSeconds: 1440,
+        gasFO2: 1,
+        gasFHe: 0,
+        airBreakSeconds: airBreakSeconds,
+      ),
+    ]).single;
+
+    test('is the printed minutes on a line with no air break', () {
+      expect(line().durationLabel(), '24');
+    });
+
+    test('adds the break after the minutes it is part of', () {
+      expect(line(airBreakSeconds: 360).durationLabel(), '24 (+6)');
+    });
+
+    test('closes both numbers with the minute mark', () {
+      expect(line(airBreakSeconds: 360).durationLabel('m'), '24m (+6m)');
+    });
+
+    test('rounds a part minute of break up', () {
+      expect(line(airBreakSeconds: 290).durationLabel(), '24 (+5)');
+    });
+  });
+
   test('half a minute rounds up', () {
     expect(ScheduleLine.minutesOf(30), 1);
     expect(ScheduleLine.minutesOf(29), 0);

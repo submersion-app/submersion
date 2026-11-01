@@ -85,13 +85,11 @@ class RuleRunRepository {
         ),
     ];
     await _db.batch((b) => b.insertAll(_db.ruleRunChanges, rows));
-    for (final row in rows) {
-      await _syncRepository.markRecordPending(
-        entityType: changeEntity,
-        recordId: row.id.value,
-        localUpdatedAt: now,
-      );
-    }
+    await _syncRepository.markRecordsPending(
+      entityType: changeEntity,
+      recordIds: [for (final row in rows) row.id.value],
+      localUpdatedAt: now,
+    );
     return id;
   }
 

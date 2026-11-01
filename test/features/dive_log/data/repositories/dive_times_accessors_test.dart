@@ -1,15 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
 import '../../../../helpers/test_database.dart';
 
 void main() {
+  late AppDatabase db;
   late DiveRepository repository;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     repository = DiveRepository();
   });
   tearDown(() async => tearDownTestDatabase());
@@ -55,7 +59,7 @@ void main() {
     expect(times.effectiveRuntime, isNull);
   });
 
-  test('getPreviousDiveTimes matches getPreviousDive', () async {
+  test('getPreviousDiveTimes walks back by effective start', () async {
     await repository.createDive(
       domain.Dive(id: 'p1', dateTime: DateTime.utc(2026, 5, 1, 9)),
     );
@@ -70,12 +74,281 @@ void main() {
       domain.Dive(id: 'p3', dateTime: DateTime.utc(2026, 5, 1, 14)),
     );
 
-    for (final id in ['p2', 'p3']) {
-      final legacy = await repository.getPreviousDive(id);
-      final slim = await repository.getPreviousDiveTimes(id);
-      expect(slim?.id, legacy?.id, reason: 'previous of $id');
-    }
+    expect((await repository.getPreviousDiveTimes('p3'))?.id, 'p2');
+    expect((await repository.getPreviousDiveTimes('p2'))?.id, 'p1');
     expect(await repository.getPreviousDiveTimes('p1'), isNull);
+  });
+
+  group('a plan that was never dived (#3924)', () {
+    final real = domain.Dive(
+      id: 'real',
+      dateTime: DateTime.utc(2026, 5, 1, 8),
+      exitTime: DateTime.utc(2026, 5, 1, 9),
+    );
+    final plan = domain.Dive(
+      id: 'plan',
+      dateTime: DateTime.utc(2026, 5, 1, 11),
+      exitTime: DateTime.utc(2026, 5, 1, 12),
+      isPlanned: true,
+    );
+    final laterReal = domain.Dive(
+      id: 'later-real',
+      dateTime: DateTime.utc(2026, 5, 1, 14),
+    );
+    final laterPlan = domain.Dive(
+      id: 'later-plan',
+      dateTime: DateTime.utc(2026, 5, 1, 13),
+      isPlanned: true,
+    );
+
+    test('getDiveTimes says which dives are undived plans', () async {
+      await repository.createDive(real);
+      await repository.createDive(plan);
+
+      expect((await repository.getDiveTimes('real'))!.isUndivedPlan, isFalse);
+      expect((await repository.getDiveTimes('plan'))!.isUndivedPlan, isTrue);
+    });
+
+    group('mirrored from a logged dive', () {
+      final source = real.copyWith(outingId: 'outing');
+      final mirror = plan.copyWith(
+        dateTime: DateTime.utc(2026, 5, 1, 8),
+        exitTime: DateTime.utc(2026, 5, 1, 9),
+        outingId: 'outing',
+      );
+
+      test('is not an undived plan', () async {
+        await repository.createDive(source);
+        await repository.createDive(mirror);
+
+        expect((await repository.getDiveTimes('plan'))!.isUndivedPlan, isFalse);
+      });
+
+      test('is the previous dive of a logged dive', () async {
+        await repository.createDive(
+          source.copyWith(
+            id: 'other-day',
+            dateTime: DateTime.utc(2026, 4, 1, 8),
+            exitTime: DateTime.utc(2026, 4, 1, 9),
+          ),
+        );
+        await repository.createDive(mirror);
+        await repository.createDive(laterReal);
+
+        expect(
+          (await repository.getPreviousDiveTimes('later-real'))?.id,
+          'plan',
+        );
+        expect(
+          await repository.getSurfaceInterval('later-real'),
+          const Duration(hours: 5),
+        );
+      });
+
+      test('looks past a plan nobody dived', () async {
+        await repository.createDive(source);
+        await repository.createDive(
+          mirror.copyWith(
+            dateTime: DateTime.utc(2026, 5, 1, 13),
+            exitTime: DateTime.utc(2026, 5, 1, 13, 30),
+          ),
+        );
+        await repository.createDive(plan.copyWith(id: 'stale'));
+
+        expect((await repository.getPreviousDiveTimes('plan'))?.id, 'real');
+      });
+
+      test(
+        'counts toward the executed range and the most recent dive',
+        () async {
+          await repository.createDive(source);
+          await repository.createDive(mirror);
+          const diver = 'mirror-diver';
+          await db.customStatement(
+            "INSERT INTO divers (id, name, created_at, updated_at) "
+            "VALUES ('$diver', '$diver', 0, 0)",
+          );
+          await db.customStatement(
+            "UPDATE dives SET diver_id = '$diver' WHERE id = 'plan'",
+          );
+
+          final range = await repository.getExecutedDiveTimesInRange(
+            DateTime.utc(2026, 5, 1),
+            DateTime.utc(2026, 5, 2),
+            diverId: diver,
+          );
+          final latest = await repository.getMostRecentDiveTimes(
+            diverId: diver,
+            notAfter: DateTime.utc(2026, 5, 2),
+          );
+
+          expect(range.map((d) => d.id), ['plan']);
+          expect(latest?.id, 'plan');
+        },
+      );
+    });
+
+    test('is not the previous dive of a logged dive', () async {
+      await repository.createDive(real);
+      await repository.createDive(plan);
+      await repository.createDive(laterReal);
+
+      expect((await repository.getPreviousDiveTimes('later-real'))?.id, 'real');
+    });
+
+    test('leaves the surface interval of a logged dive alone', () async {
+      await repository.createDive(real);
+      await repository.createDive(plan);
+      await repository.createDive(laterReal);
+
+      expect(
+        await repository.getSurfaceInterval('later-real'),
+        const Duration(hours: 5),
+      );
+    });
+
+    test(
+      'gives a logged dive no previous dive when it is all there is',
+      () async {
+        await repository.createDive(plan);
+        await repository.createDive(laterReal);
+
+        expect(await repository.getPreviousDiveTimes('later-real'), isNull);
+        expect(await repository.getSurfaceInterval('later-real'), isNull);
+      },
+    );
+
+    test('is still the previous dive of a later plan', () async {
+      await repository.createDive(plan);
+      await repository.createDive(laterPlan);
+
+      expect((await repository.getPreviousDiveTimes('later-plan'))?.id, 'plan');
+      expect(
+        await repository.getSurfaceInterval('later-plan'),
+        const Duration(hours: 1),
+      );
+    });
+  });
+
+  group('getResidualHistoryRevision (#3924)', () {
+    Future<void> touch(String id, int updatedAt) => db.customStatement(
+      "UPDATE dives SET updated_at = $updatedAt WHERE id = '$id'",
+    );
+
+    final start = DateTime.utc(2026, 5, 3, 12);
+    Future<int> revision() => repository.getResidualHistoryRevision('current');
+
+    Future<void> createEarlier(String id, {required Duration before}) =>
+        repository.createDive(
+          domain.Dive(
+            id: id,
+            dateTime: start.subtract(before),
+            entryTime: start.subtract(before),
+          ),
+        );
+
+    setUp(() async {
+      await repository.createDive(
+        domain.Dive(id: 'current', dateTime: start, entryTime: start),
+      );
+      await touch('current', 9000);
+    });
+
+    test('is zero with no dive in the lookback', () async {
+      expect(await revision(), 0);
+      expect(await repository.getResidualHistoryRevision('missing'), 0);
+    });
+
+    test('moves when an earlier dive is written', () async {
+      await createEarlier('earlier', before: const Duration(hours: 5));
+      await touch('earlier', 100);
+      final before = await revision();
+
+      await touch('earlier', 200);
+
+      expect(await revision(), isNot(before));
+    });
+
+    test('moves on a write stamped older than the last', () async {
+      // A peer's clock ran ahead, then a local edit stamped an earlier time.
+      await createEarlier('earlier', before: const Duration(hours: 5));
+      await touch('earlier', 2000);
+      final before = await revision();
+
+      await touch('earlier', 1000);
+
+      expect(await revision(), isNot(before));
+    });
+
+    test('moves on a dive with no entry time', () async {
+      await repository.createDive(
+        domain.Dive(
+          id: 'no-entry',
+          dateTime: start.subtract(const Duration(hours: 49)),
+        ),
+      );
+      await touch('no-entry', 100);
+      final before = await revision();
+
+      await touch('no-entry', 200);
+
+      expect(await revision(), isNot(before));
+    });
+
+    test(
+      'moves on an earlier profile, which never re-stamps its dive',
+      () async {
+        await createEarlier('earlier', before: const Duration(hours: 5));
+        final before = await revision();
+
+        await ProfileSeriesRepository().insertSeries(
+          diveId: 'earlier',
+          samples: const [ProfileSample(timestamp: 60, depth: 20)],
+          now: 500,
+        );
+
+        expect(await revision(), isNot(before));
+      },
+    );
+
+    test('moves when an earlier dive is deleted', () async {
+      await createEarlier('earlier', before: const Duration(hours: 5));
+      final before = await revision();
+
+      await repository.deleteDive('earlier');
+
+      expect(await revision(), isNot(before));
+    });
+
+    test('moves when the dive itself stops being a plan', () async {
+      // That decides which earlier dives count toward its load.
+      await db.customStatement(
+        "UPDATE dives SET is_planned = 1 WHERE id = 'current'",
+      );
+      final before = await revision();
+
+      await db.customStatement(
+        "UPDATE dives SET is_planned = 0 WHERE id = 'current'",
+      );
+
+      expect(await revision(), isNot(before));
+    });
+
+    test('ignores dives outside it, later ones and the dive itself', () async {
+      await createEarlier('too-old', before: const Duration(hours: 73));
+      await repository.createDive(
+        domain.Dive(
+          id: 'later',
+          dateTime: start.add(const Duration(hours: 1)),
+          entryTime: start.add(const Duration(hours: 1)),
+        ),
+      );
+      await touch('too-old', 100);
+      await touch('later', 200);
+      await touch('current', 300);
+
+      expect(await revision(), 0);
+    });
   });
 
   test('getDiveTimesInRange matches getDivesInRange ids and order', () async {
@@ -99,7 +372,11 @@ void main() {
     final start = DateTime.utc(2026, 6, 1);
     final end = DateTime.utc(2026, 6, 3);
     final legacy = await repository.getDivesInRange(start, end);
-    final slim = await repository.getDiveTimesInRange(start, end);
+    final slim = await repository.getDiveTimesInRange(
+      start,
+      end,
+      diverId: null,
+    );
 
     expect(slim.map((t) => t.id).toList(), legacy.map((d) => d.id).toList());
     expect(slim.map((t) => t.id), isNot(contains('outside')));

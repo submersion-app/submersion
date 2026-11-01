@@ -57,7 +57,7 @@ class EquipmentHistoryCard extends ConsumerWidget {
                   openDiveList(
                     context,
                     ref,
-                    DiveFilterState(equipmentIds: [equipmentId]),
+                    DiveFilterState.itemUse(equipmentId),
                   );
                 }
               : null,

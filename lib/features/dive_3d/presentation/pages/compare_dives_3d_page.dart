@@ -15,13 +15,14 @@ class CompareDives3dPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profiles = ref.watch(
+    final comparison = ref.watch(
       diveComparisonProfilesProvider(DiveIdSet(diveIds)),
     );
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.dive3d_compare_dives_title)),
       body: CompareProfile3dView(
-        profiles: profiles,
+        profiles: comparison.whenData((c) => c.profiles),
+        comparableCount: comparison.value?.comparableCount,
         initialLayout: CompareLayout.sideBySide,
       ),
     );

@@ -6,7 +6,9 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -282,6 +284,29 @@ void main() {
     }
   });
 
+  group('after the settings change', () {
+    test('editing the first dive keeps the dives after it', () async {
+      final c = await makeContainer();
+      series(c).addDive();
+      series(c).select(0);
+
+      series(c).configChanged();
+      c.read(divePlanNotifierProvider.notifier).updateGradientFactors(30, 70);
+
+      expect(c.read(planSeriesNotifierProvider).dives, hasLength(2));
+    });
+
+    test('editing a one-dive plan keeps its name', () async {
+      final c = await makeContainer();
+      series(c).renameSelected('Blue Hole');
+
+      series(c).configChanged();
+      c.read(divePlanNotifierProvider.notifier).updateGradientFactors(30, 70);
+
+      expect(c.read(planSeriesNotifierProvider).selected.name, 'Blue Hole');
+    });
+  });
+
   group('naming a dive', () {
     test('names the selected dive without touching the editor', () async {
       final c = await makeContainer();
@@ -401,6 +426,172 @@ void main() {
       series(c).renameSelected('Wreck');
 
       expect(c.read(planSeriesResultsProvider), same(before));
+    });
+  });
+
+  group('following a logged dive', () {
+    final end = DateTime(2026, 10, 25, 11);
+    SeriesFollow follow({double otu = 40}) => SeriesFollow(
+      loggedDives: [
+        SeriesLoggedDive(
+          id: 'logged',
+          diveNumber: 7,
+          start: end.subtract(const Duration(minutes: 45)),
+          end: end,
+          endInstant: end,
+          otu: otu,
+        ),
+      ],
+      endCns: 20,
+    );
+
+    test('the first dive starts from it in the editor', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+
+      expect(editor(c).surfaceInterval, const Duration(hours: 2));
+      expect(editor(c).initialCns, 20);
+      expect(editor(c).initialOtu, 40);
+      expect(editor(c).sourceDiveId, isNull);
+    });
+
+    test('holds Save back until it stops following', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+      expect(c.read(planSaveAllowedProvider), isFalse);
+
+      series(c).unfollow();
+      expect(c.read(planSaveAllowedProvider), isTrue);
+    });
+
+    test('applies from a later dive too', () async {
+      final c = await makeContainer();
+      series(c).addDive();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+
+      final s = c.read(planSeriesNotifierProvider);
+      expect(s.follow, isNotNull);
+      expect(s.dives.first.state.surfaceInterval, const Duration(hours: 2));
+    });
+
+    test('is refused for a replan, which keeps its own seed', () async {
+      final c = await makeContainer();
+      c.read(planSeriesNotifierProvider);
+      final notifier = c.read(divePlanNotifierProvider.notifier);
+      notifier.loadPlan(editor(c).copyWith(sourceDiveId: 'replanned'));
+      final before = editor(c);
+
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+
+      expect(c.read(planSeriesNotifierProvider).follow, isNull);
+      expect(editor(c), same(before));
+      expect(c.read(followAllowedProvider), isFalse);
+    });
+
+    test('is refused from a later dive of a replan too', () async {
+      final c = await makeContainer();
+      c.read(planSeriesNotifierProvider);
+      final notifier = c.read(divePlanNotifierProvider.notifier);
+      notifier.loadPlan(editor(c).copyWith(sourceDiveId: 'replanned'));
+      series(c).addDive();
+
+      expect(c.read(followAllowedProvider), isFalse);
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+
+      expect(c.read(planSeriesNotifierProvider).follow, isNull);
+    });
+
+    test('marks the plan as changed, as stopping does', () async {
+      final c = await makeContainer();
+      final notifier = c.read(divePlanNotifierProvider.notifier);
+      series(c);
+      notifier.loadPlan(editor(c).copyWith(isDirty: false));
+
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+      expect(editor(c).isDirty, isTrue);
+
+      notifier.markSaved();
+      series(c).unfollow();
+      expect(editor(c).isDirty, isTrue);
+    });
+
+    test('Fill marks the plan as changed', () async {
+      final c = await makeContainer();
+      final notifier = c.read(divePlanNotifierProvider.notifier);
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+      notifier.markSaved();
+
+      series(c).fillAllTanks();
+
+      expect(editor(c).isDirty, isTrue);
+    });
+
+    test(
+      'a logged dive picked in the last follow does not carry over',
+      () async {
+        final c = await makeContainer();
+        series(
+          c,
+        ).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+        c.read(viewedLoggedDiveIdProvider.notifier).state = 'logged';
+        expect(c.read(viewedLoggedDiveProvider)?.id, 'logged');
+
+        series(c).unfollow();
+        series(
+          c,
+        ).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+
+        expect(c.read(viewedLoggedDiveProvider), isNull);
+      },
+    );
+
+    test('a later dive still counts the logged dive', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+      series(c).addDive();
+
+      expect(editor(c).initialOtu, greaterThan(40));
+    });
+
+    test('the computed series counts it on a later dive too', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+      series(c).addDive();
+
+      final results = c.read(planSeriesResultsProvider);
+      expect(results[0].state.initialOtu, 40);
+      expect(results[1].state.initialOtu, greaterThan(40));
+    });
+
+    test('the first dive drops the logged OTU once its interval passes '
+        'a day', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+
+      c
+          .read(divePlanNotifierProvider.notifier)
+          .setSurfaceInterval(const Duration(hours: 25));
+
+      expect(editor(c).initialOtu, 0);
+    });
+
+    test('unfollowing clears what it carried in', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+      series(c).unfollow();
+
+      expect(c.read(planSeriesNotifierProvider).follow, isNull);
+      expect(editor(c).surfaceInterval, isNull);
+      expect(editor(c).initialCns, isNull);
+      expect(editor(c).initialOtu, isNull);
+    });
+
+    test('a new plan starts without it', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+      c.read(divePlanNotifierProvider.notifier).newPlan();
+
+      expect(c.read(planSeriesNotifierProvider).follow, isNull);
     });
   });
 }

@@ -1,3 +1,15 @@
+import 'package:intl/intl.dart';
+
+import 'package:submersion/core/utils/unit_formatter.dart';
+
+/// A no-fly boundary, given as a true instant, as the diver reads it on the
+/// device clock. The weekday has no ordering to respect, so it stays
+/// locale-derived; the clock half goes through the diver's 12h/24h preference.
+String formatNoFlyWhen(DateTime instant, UnitFormatter units) {
+  final local = instant.toLocal();
+  return '${DateFormat.E().format(local)} ${units.formatTime(local)}';
+}
+
 /// Remaining-time label shared by the safety hub and the dashboard alerts
 /// banner. Mirrors the app's duration convention (see
 /// `dive_field_formatter.dart`): "Xh Ym" once there is at least an hour left,

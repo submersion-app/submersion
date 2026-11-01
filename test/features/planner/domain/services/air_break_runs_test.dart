@@ -1,10 +1,64 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
 
 const _policy = AirBreakPolicy(o2Seconds: 720, breakSeconds: 360);
 
 void main() {
+  group('airBreakTankIdFor', () {
+    const breakStop = DecoStop(
+      depthMeters: 6,
+      durationSeconds: 1800,
+      airBreakSeconds: 360,
+    );
+    final offersAir = OptimalOcAscentGas(
+      gases: const [
+        AvailableGas(fN2: 0.79, fHe: 0, maxPpO2Mod: 66),
+        AvailableGas(fN2: 0, fHe: 0, maxPpO2Mod: 6),
+      ],
+      maxPpO2: 1.6,
+    );
+    String tankFor(double fO2, double fHe) => fO2 < 0.5 ? 'air' : 'rich';
+
+    test('finds the cylinder holding the break gas', () {
+      expect(
+        airBreakTankIdFor(
+          breakStop,
+          plan: offersAir,
+          stopTankId: 'o2',
+          tankForGas: tankFor,
+        ),
+        'air',
+      );
+    });
+
+    test('stays on the stop cylinder when no break gas is offered', () {
+      expect(
+        airBreakTankIdFor(
+          breakStop,
+          plan: FixedAscentGas(fN2: 0),
+          stopTankId: 'o2',
+          tankForGas: tankFor,
+        ),
+        'o2',
+      );
+    });
+
+    test('names no cylinder on a stop with no break', () {
+      expect(
+        airBreakTankIdFor(
+          const DecoStop(depthMeters: 6, durationSeconds: 1800),
+          plan: offersAir,
+          stopTankId: 'o2',
+          tankForGas: tankFor,
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('airBreakRuns', () {
     test('a stop shorter than one O2 period is all O2', () {
       expect(airBreakRuns(600, _policy), [(onBreak: false, seconds: 600)]);

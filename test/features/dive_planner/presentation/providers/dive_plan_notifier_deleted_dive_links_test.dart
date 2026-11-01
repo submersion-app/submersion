@@ -15,10 +15,10 @@ import '../../../../helpers/test_database.dart';
 /// [DivePlanRepository.savePlan] drops an id that no longer names a row, so
 /// the save succeeds. The notifier must then adopt what was actually stored,
 /// or its state keeps showing a dive the database no longer holds. A dropped
-/// source dive takes its seeded tissues and surface interval with it, as
-/// unfollowing the dive does: the tissues are never persisted, so keeping them
-/// would seed deco from a dive the plan no longer follows until the next
-/// reload silently changed the schedule.
+/// source dive takes its seeded tissues and surface interval with it: the
+/// tissues are never persisted, so keeping them would seed deco from a dive
+/// the plan no longer has until the next reload silently changed the
+/// schedule.
 void main() {
   late AppDatabase db;
   late DivePlanRepository repository;
@@ -34,6 +34,22 @@ void main() {
 
   DivePlanNotifier notifier() =>
       DivePlanNotifier(PlanCalculatorService(), repository: repository);
+
+  /// A plan with a source dive, as a replan seeded from the dive before the
+  /// replanned one has.
+  void seedSourceDive(
+    DivePlanNotifier planner, {
+    required String diveId,
+    List<TissueCompartment>? compartments,
+    required Duration surfaceInterval,
+  }) => planner.loadPlan(
+    planner.state.copyWith(
+      sourceDiveId: diveId,
+      initialTissueState: compartments,
+      surfaceInterval: surfaceInterval,
+      isDirty: true,
+    ),
+  );
 
   Future<void> seedDive(String id) => db
       .into(db.dives)
@@ -62,12 +78,36 @@ void main() {
     ),
   ];
 
+  test('save keeps what a plan with no source dive carries in', () async {
+    // A followed plan: the follow belongs to the series, so no source dive
+    // ever went away.
+    final planner = notifier();
+    addTearDown(planner.dispose);
+    planner.loadPlan(
+      planner.state.copyWith(
+        initialTissueState: tissues,
+        initialCns: 20,
+        initialOtu: 40,
+        surfaceInterval: const Duration(hours: 1),
+        isDirty: true,
+      ),
+    );
+
+    await planner.save();
+
+    expect(planner.state.initialTissueState, tissues);
+    expect(planner.state.initialCns, 20);
+    expect(planner.state.initialOtu, 40);
+    expect(planner.state.surfaceInterval, const Duration(hours: 1));
+  });
+
   test('save succeeds and clears the source dive when it was deleted '
       'meanwhile', () async {
     await seedDive('dive-1');
     final planner = notifier();
     addTearDown(planner.dispose);
-    planner.setFollowedDive(
+    seedSourceDive(
+      planner,
       diveId: 'dive-1',
       surfaceInterval: const Duration(hours: 2),
     );
@@ -89,7 +129,8 @@ void main() {
     await seedDive('dive-1');
     final planner = notifier();
     addTearDown(planner.dispose);
-    planner.setFollowedDive(
+    seedSourceDive(
+      planner,
       diveId: 'dive-1',
       compartments: tissues,
       surfaceInterval: const Duration(hours: 2),
@@ -120,7 +161,8 @@ void main() {
       await seedDive('dive-2');
       final planner = notifier();
       addTearDown(planner.dispose);
-      planner.setFollowedDive(
+      seedSourceDive(
+        planner,
         diveId: 'dive-1',
         compartments: tissues,
         surfaceInterval: const Duration(hours: 2),
@@ -157,7 +199,8 @@ void main() {
     await seedDive('dive-2');
     final planner = notifier();
     addTearDown(planner.dispose);
-    planner.setFollowedDive(
+    seedSourceDive(
+      planner,
       diveId: 'dive-1',
       surfaceInterval: const Duration(hours: 2),
     );
@@ -197,14 +240,16 @@ void main() {
     await seedDive('dive-2');
     final planner = notifier();
     addTearDown(planner.dispose);
-    planner.setFollowedDive(
+    seedSourceDive(
+      planner,
       diveId: 'dive-1',
       surfaceInterval: const Duration(hours: 2),
     );
     await deleteDive('dive-1');
 
     final saving = planner.save();
-    planner.setFollowedDive(
+    seedSourceDive(
+      planner,
       diveId: 'dive-2',
       compartments: tissues,
       surfaceInterval: const Duration(hours: 3),
@@ -222,7 +267,8 @@ void main() {
     await seedDive('dive-1');
     final planner = notifier();
     addTearDown(planner.dispose);
-    planner.setFollowedDive(
+    seedSourceDive(
+      planner,
       diveId: 'dive-1',
       compartments: tissues,
       surfaceInterval: const Duration(hours: 2),

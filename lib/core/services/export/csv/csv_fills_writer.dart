@@ -3,6 +3,7 @@ import 'package:csv/csv.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
+import 'package:submersion/core/services/export/shared/gas_percent_cells.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
@@ -47,6 +48,7 @@ class CsvFillsWriter {
       final cylinder = fill.equipmentId == null
           ? null
           : equipmentById[fill.equipmentId];
+      final gas = gasPercentCells(fill.o2Percent, fill.hePercent);
       rows.add([
         sanitizeCsvField(fill.id),
         sanitizeCsvField(fill.passportId),
@@ -54,8 +56,8 @@ class CsvFillsWriter {
         sanitizeCsvField(cylinder?.serialNumber),
         units.date(fill.filledAt),
         units.time(fill.filledAt),
-        trimFixed(fill.o2Percent, 1),
-        trimFixed(fill.hePercent, 1),
+        gas.o2,
+        gas.he,
         units.value(CsvColumns.fillPressure, fill.pressureBar),
         units.value(CsvColumns.fillTemperature, fill.temperatureC),
         sanitizeCsvField(fill.stationName),

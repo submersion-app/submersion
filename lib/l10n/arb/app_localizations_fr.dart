@@ -7165,6 +7165,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Plongées restaurées';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Plongées restaurées, mais certaines données enregistrées n\'ont pas pu être récupérées';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16972,6 +16976,216 @@ class AppLocalizationsFr extends AppLocalizations {
       'Journal d\'entretien enregistré';
 
   @override
+  String get transfer_export_inventoryTitle => 'Inventaire de l\'équipement';
+
+  @override
+  String get transfer_export_inventorySubtitle =>
+      'PDF avec numéros de série et prix payés';
+
+  @override
+  String get transfer_export_serviceReportTitle => 'Rapport d\'entretien';
+
+  @override
+  String get transfer_export_serviceReportSubtitle =>
+      'PDF des échéances, avec l\'historique d\'entretien';
+
+  @override
+  String get settings_export_progress_inventory =>
+      'Création de l\'inventaire...';
+
+  @override
+  String get settings_export_success_inventory => 'Inventaire exporté';
+
+  @override
+  String get settings_export_saved_inventory => 'Inventaire enregistré';
+
+  @override
+  String get settings_export_progress_serviceReport =>
+      'Création du rapport d\'entretien...';
+
+  @override
+  String get settings_export_success_serviceReport =>
+      'Rapport d\'entretien exporté';
+
+  @override
+  String get settings_export_saved_serviceReport =>
+      'Rapport d\'entretien enregistré';
+
+  @override
+  String get equipmentReport_sheet_continue => 'Continuer';
+
+  @override
+  String get equipmentReport_sheet_groupBy => 'Regrouper par';
+
+  @override
+  String get equipmentReport_sheet_groupByType => 'Type d\'équipement';
+
+  @override
+  String get equipmentReport_sheet_groupByLocation => 'Emplacement';
+
+  @override
+  String get equipmentReport_sheet_location => 'Emplacement';
+
+  @override
+  String get equipmentReport_sheet_allLocations => 'Tous les emplacements';
+
+  @override
+  String get equipmentReport_sheet_showPrices => 'Afficher les prix';
+
+  @override
+  String get equipmentReport_sheet_showPricesHelp =>
+      'À désactiver pour une liste douanière';
+
+  @override
+  String get equipmentReport_sheet_gear => 'Équipement';
+
+  @override
+  String get equipmentReport_sheet_gearAll => 'Tout l\'équipement';
+
+  @override
+  String get equipmentReport_sheet_gearTrip => 'Emporté pour un voyage';
+
+  @override
+  String get equipmentReport_sheet_gearItem => 'Un article';
+
+  @override
+  String get equipmentReport_sheet_trip => 'Voyage';
+
+  @override
+  String get equipmentReport_sheet_item => 'Article';
+
+  @override
+  String get equipmentReport_sheet_history => 'Historique d\'entretien';
+
+  @override
+  String get equipmentReport_sheet_showCosts => 'Afficher les coûts';
+
+  @override
+  String get equipmentReport_pdf_inventoryTitle =>
+      'Inventaire de l\'équipement';
+
+  @override
+  String get equipmentReport_pdf_serviceTitle => 'Rapport d\'entretien';
+
+  @override
+  String equipmentReport_pdf_printedOn(String date) {
+    return 'Imprimé le $date';
+  }
+
+  @override
+  String equipmentReport_pdf_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articles',
+      one: '$count article',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentReport_pdf_currencyTotal(String currency) {
+    return 'Total $currency';
+  }
+
+  @override
+  String get equipmentReport_pdf_noLocation => 'Aucun emplacement défini';
+
+  @override
+  String get equipmentReport_pdf_colItem => 'Article';
+
+  @override
+  String get equipmentReport_pdf_colSerial => 'N° de série';
+
+  @override
+  String get equipmentReport_pdf_colBought => 'Acheté';
+
+  @override
+  String get equipmentReport_pdf_colPaid => 'Payé';
+
+  @override
+  String get equipmentReport_pdf_pricesNote =>
+      'Les prix sont ceux payés, pas la valeur actuelle.';
+
+  @override
+  String equipmentReport_pdf_noPrice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articles n\'ont pas de prix.',
+      one: '$count article n\'a pas de prix.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_overdue => 'en retard';
+
+  @override
+  String get equipmentReport_pdf_dueSoon => 'bientôt dus';
+
+  @override
+  String get equipmentReport_pdf_upToDate => 'à jour';
+
+  @override
+  String get equipmentReport_pdf_colService => 'Entretien';
+
+  @override
+  String get equipmentReport_pdf_colDue => 'Échéance';
+
+  @override
+  String get equipmentReport_pdf_colStatus => 'Statut';
+
+  @override
+  String get equipmentReport_pdf_statusOverdue => 'En retard';
+
+  @override
+  String get equipmentReport_pdf_statusDueSoon => 'Bientôt dû';
+
+  @override
+  String get equipmentReport_pdf_statusUpToDate => 'À jour';
+
+  @override
+  String get equipmentReport_pdf_allUpToDate => 'Tout est à jour.';
+
+  @override
+  String equipmentReport_pdf_noSchedule(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articles n\'ont pas de calendrier d\'entretien.',
+      one: '$count article n\'a pas de calendrier d\'entretien.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_colDate => 'Date';
+
+  @override
+  String get equipmentReport_pdf_colWork => 'Travaux';
+
+  @override
+  String get equipmentReport_pdf_colShop => 'Atelier';
+
+  @override
+  String get equipmentReport_pdf_colCost => 'Coût';
+
+  @override
+  String get equipmentReport_pdf_noHistory => 'Aucun entretien enregistré';
+
+  @override
+  String equipmentReport_pdf_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '$count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_serviceKinds_defaultCurrencyInherit =>
       'Utiliser la devise par défaut';
 
@@ -20546,17 +20760,34 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Suit $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty =>
       'Aucune plongée enregistrée pour l\'instant';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'Pas de données de profil pour cette plongée — intervalle de surface défini sans saturation des tissus';
+
+  @override
+  String get plannerCanvas_link_action => 'Lier à une plongée enregistrée';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Changer la plongée liée';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Dissocier la plongée';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Réalisée comme n° $number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Réalisée le $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Enregistrez d\'abord le plan';
 
   @override
   String plannerSeries_dive(String letter) {
@@ -20591,6 +20822,41 @@ class AppLocalizationsFr extends AppLocalizations {
   String plannerSeries_diveNamed(String letter, String name) {
     return 'Plongée $letter : $name';
   }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Plongée enregistrée $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Ouvrir dans le carnet';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Ne plus suivre';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Reporté sur $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS en fin de plongée';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive s’est terminée il y a $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Plongée #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Suivre';
 
   @override
   String get plannerSeries_surfaceInterval => 'Intervalle de surface';
@@ -20631,8 +20897,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une série de plongées ne peut pas être planifiée comme mission DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Seule la première plongée d\'une série peut suivre une plongée enregistrée';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Une replanification ne peut pas suivre une autre plongée';
 
   @override
   String get plannerCanvas_follow_title => 'Suivre une plongée';
@@ -20714,6 +20980,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'Le plan de décompression n\'emporte aucun gaz de bailout';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'Le gaz de bailout est hypoxique à $depth (ppO₂ $value bar). Emportez un gaz respirable jusqu\'à la surface.';
+  }
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -29411,6 +29682,162 @@ class AppLocalizationsFr extends AppLocalizations {
       'Constats ouverts par règle, sur toutes les plongées';
 
   @override
+  String get insights_equipment_showAll => 'Tout afficher';
+
+  @override
+  String get insights_equipment_showLess => 'Afficher moins';
+
+  @override
+  String insights_equipment_mostUsedGear_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count heures',
+      one: '$count heure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_title => 'Coût de possession';
+
+  @override
+  String get insights_equipment_cost_subtitle =>
+      'Achat plus entretien, sur toutes vos plongées';
+
+  @override
+  String get insights_equipment_cost_spentTotal => 'Dépensé au total';
+
+  @override
+  String get insights_equipment_cost_perDive => 'Par plongée';
+
+  @override
+  String get insights_equipment_cost_byYear => 'Dépenses par année';
+
+  @override
+  String get insights_equipment_cost_metricPerDive => 'Par plongée';
+
+  @override
+  String get insights_equipment_cost_metricPerHour => 'Par heure';
+
+  @override
+  String get insights_equipment_cost_metricTotal => 'Total';
+
+  @override
+  String insights_equipment_cost_rowPerDive(String amount) {
+    return '$amount / plongée';
+  }
+
+  @override
+  String insights_equipment_cost_rowPerHour(String amount) {
+    return '$amount / heure';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverDives(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount sur $count plongées',
+      one: '$amount sur $count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverHours(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount sur $count heures',
+      one: '$amount sur $count heure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_noDives => 'pas encore de plongée';
+
+  @override
+  String insights_equipment_cost_undated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count achats n\'ont pas de date',
+      one: '$count achat n\'a pas de date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articles n\'ont pas de coût enregistré',
+      one: '$count article n\'a pas de coût enregistré',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_empty =>
+      'Aucun prix d\'achat ni coût d\'entretien enregistré pour l\'instant';
+
+  @override
+  String get insights_equipment_cost_error =>
+      'Impossible de charger les coûts de l\'équipement';
+
+  @override
+  String get insights_equipment_idle_title => 'Équipement inutilisé';
+
+  @override
+  String get insights_equipment_idle_subtitle =>
+      'Équipement que vous possédez et n\'avez pas utilisé récemment, sur toutes vos plongées';
+
+  @override
+  String get insights_equipment_idle_over6Months => 'Plus de 6 mois';
+
+  @override
+  String get insights_equipment_idle_over1Year => 'Plus d\'un an';
+
+  @override
+  String get insights_equipment_idle_over2Years => 'Plus de 2 ans';
+
+  @override
+  String get insights_equipment_idle_neverDived => 'Jamais utilisé';
+
+  @override
+  String insights_equipment_idle_years(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ans',
+      one: '$count an',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_idle_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mois',
+      one: '$count mois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_idle_empty =>
+      'Tout votre équipement a servi récemment';
+
+  @override
+  String get insights_equipment_idle_error =>
+      'Impossible de charger l\'équipement inutilisé';
+
+  @override
   String get insights_equipment_findings_empty => 'Aucun constat ouvert';
 
   @override
@@ -34182,6 +34609,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>
       'Certaines valeurs laissées vides';
+
+  @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Certains mélanges gazeux ont été corrigés';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'L\'oxygène et l\'hélium dépassaient 100 % au total dans ces lignes : $rows. L\'hélium a été réduit pour que le total soit de 100 %. Vérifiez le gaz de ces plongées.';
+  }
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
@@ -41649,8 +42085,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Sources de données';
 
   @override
-  String get reef_section_loadError =>
-      'Impossible de charger les données de l\'écosystème pour le moment';
+  String get reef_section_checking => 'Vérification…';
 
   @override
   String get reef_habitat_title => 'Habitat du récif';
@@ -52639,11 +53074,93 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Nouveau scénario';
+  String get diveLab_compare_line_planned => 'Prévu';
 
   @override
-  String get diveLab_section_hint =>
-      'Bifurquez cette plongée à n\'importe quel moment et comparez ce qui se serait passé.';
+  String get diveLab_compare_line_asDived => 'Réalisée';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'Et si';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Prof. max.';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Temps au fond';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL en quittant le fond';
+
+  @override
+  String get diveLab_compare_row_deco => 'Déco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return '$minutes min restantes';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Déco à $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done effectués';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Aucune';
+
+  @override
+  String get diveLab_compare_empty => 'Rien à comparer pour l\'instant';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Poser un et si';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Lier un plan';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Dissocier le plan';
+
+  @override
+  String get diveLab_compare_planTable => 'Plan et plongée';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programme prévu';
+
+  @override
+  String get diveLab_compare_waiting => 'En attente de la plongée';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Dissocier ce plan ?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'Le plan et la plongée sont conservés. Ils ne sont simplement plus comparés.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Dissocier';
+
+  @override
+  String get diveLab_link_moveTitle => 'Déplacer le lien de ce plan ?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Ce plan est lié à une autre plongée. Le lier ici supprime ce lien.';
+
+  @override
+  String get diveLab_link_replaceTitle =>
+      'Remplacer le plan de cette plongée ?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Cette plongée est comparée à \"$plan\". Lier un autre plan le dissocie.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Lier';
 
   @override
   String get diveDetailSection_diveLab_name => 'Comparer';
@@ -54799,6 +55316,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Comparer…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive =>
+      'Planifier une plongée successive';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs plongée d\'origine';

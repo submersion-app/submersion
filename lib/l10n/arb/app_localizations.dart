@@ -11225,6 +11225,12 @@ abstract class AppLocalizations {
   /// **'Dives restored'**
   String get diveLog_bulkDelete_restored;
 
+  /// No description provided for @diveLog_bulkDelete_restoredIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives restored, but some recorded data could not be recovered'**
+  String get diveLog_bulkDelete_restoredIncomplete;
+
   /// No description provided for @diveLog_bulkDelete_snackbar.
   ///
   /// In en, this message translates to:
@@ -27133,6 +27139,336 @@ abstract class AppLocalizations {
   /// **'Maintenance log saved'**
   String get settings_export_saved_maintenance;
 
+  /// No description provided for @transfer_export_inventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment Inventory'**
+  String get transfer_export_inventoryTitle;
+
+  /// No description provided for @transfer_export_inventorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF with serial numbers and what you paid'**
+  String get transfer_export_inventorySubtitle;
+
+  /// No description provided for @transfer_export_serviceReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Report'**
+  String get transfer_export_serviceReportTitle;
+
+  /// No description provided for @transfer_export_serviceReportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF of what is due, with service history'**
+  String get transfer_export_serviceReportSubtitle;
+
+  /// No description provided for @settings_export_progress_inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Building inventory...'**
+  String get settings_export_progress_inventory;
+
+  /// No description provided for @settings_export_success_inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory exported'**
+  String get settings_export_success_inventory;
+
+  /// No description provided for @settings_export_saved_inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory saved'**
+  String get settings_export_saved_inventory;
+
+  /// No description provided for @settings_export_progress_serviceReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Building service report...'**
+  String get settings_export_progress_serviceReport;
+
+  /// No description provided for @settings_export_success_serviceReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Service report exported'**
+  String get settings_export_success_serviceReport;
+
+  /// No description provided for @settings_export_saved_serviceReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Service report saved'**
+  String get settings_export_saved_serviceReport;
+
+  /// No description provided for @equipmentReport_sheet_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get equipmentReport_sheet_continue;
+
+  /// No description provided for @equipmentReport_sheet_groupBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get equipmentReport_sheet_groupBy;
+
+  /// No description provided for @equipmentReport_sheet_groupByType.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear type'**
+  String get equipmentReport_sheet_groupByType;
+
+  /// No description provided for @equipmentReport_sheet_groupByLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipmentReport_sheet_groupByLocation;
+
+  /// No description provided for @equipmentReport_sheet_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipmentReport_sheet_location;
+
+  /// No description provided for @equipmentReport_sheet_allLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'All locations'**
+  String get equipmentReport_sheet_allLocations;
+
+  /// No description provided for @equipmentReport_sheet_showPrices.
+  ///
+  /// In en, this message translates to:
+  /// **'Show prices'**
+  String get equipmentReport_sheet_showPrices;
+
+  /// No description provided for @equipmentReport_sheet_showPricesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off for a customs list'**
+  String get equipmentReport_sheet_showPricesHelp;
+
+  /// No description provided for @equipmentReport_sheet_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get equipmentReport_sheet_gear;
+
+  /// No description provided for @equipmentReport_sheet_gearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All gear'**
+  String get equipmentReport_sheet_gearAll;
+
+  /// No description provided for @equipmentReport_sheet_gearTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed for a trip'**
+  String get equipmentReport_sheet_gearTrip;
+
+  /// No description provided for @equipmentReport_sheet_gearItem.
+  ///
+  /// In en, this message translates to:
+  /// **'One item'**
+  String get equipmentReport_sheet_gearItem;
+
+  /// No description provided for @equipmentReport_sheet_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get equipmentReport_sheet_trip;
+
+  /// No description provided for @equipmentReport_sheet_item.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get equipmentReport_sheet_item;
+
+  /// No description provided for @equipmentReport_sheet_history.
+  ///
+  /// In en, this message translates to:
+  /// **'Service history'**
+  String get equipmentReport_sheet_history;
+
+  /// No description provided for @equipmentReport_sheet_showCosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show costs'**
+  String get equipmentReport_sheet_showCosts;
+
+  /// No description provided for @equipmentReport_pdf_inventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment inventory'**
+  String get equipmentReport_pdf_inventoryTitle;
+
+  /// No description provided for @equipmentReport_pdf_serviceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service report'**
+  String get equipmentReport_pdf_serviceTitle;
+
+  /// No description provided for @equipmentReport_pdf_printedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed {date}'**
+  String equipmentReport_pdf_printedOn(String date);
+
+  /// No description provided for @equipmentReport_pdf_items.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item} other{{count} items}}'**
+  String equipmentReport_pdf_items(int count);
+
+  /// No description provided for @equipmentReport_pdf_currencyTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{currency} total'**
+  String equipmentReport_pdf_currencyTotal(String currency);
+
+  /// No description provided for @equipmentReport_pdf_noLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'No location set'**
+  String get equipmentReport_pdf_noLocation;
+
+  /// No description provided for @equipmentReport_pdf_colItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get equipmentReport_pdf_colItem;
+
+  /// No description provided for @equipmentReport_pdf_colSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial'**
+  String get equipmentReport_pdf_colSerial;
+
+  /// No description provided for @equipmentReport_pdf_colBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought'**
+  String get equipmentReport_pdf_colBought;
+
+  /// No description provided for @equipmentReport_pdf_colPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get equipmentReport_pdf_colPaid;
+
+  /// No description provided for @equipmentReport_pdf_pricesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices are what was paid, not current value.'**
+  String get equipmentReport_pdf_pricesNote;
+
+  /// No description provided for @equipmentReport_pdf_noPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item has no price.} other{{count} items have no price.}}'**
+  String equipmentReport_pdf_noPrice(int count);
+
+  /// No description provided for @equipmentReport_pdf_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'overdue'**
+  String get equipmentReport_pdf_overdue;
+
+  /// No description provided for @equipmentReport_pdf_dueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'due soon'**
+  String get equipmentReport_pdf_dueSoon;
+
+  /// No description provided for @equipmentReport_pdf_upToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'up to date'**
+  String get equipmentReport_pdf_upToDate;
+
+  /// No description provided for @equipmentReport_pdf_colService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get equipmentReport_pdf_colService;
+
+  /// No description provided for @equipmentReport_pdf_colDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get equipmentReport_pdf_colDue;
+
+  /// No description provided for @equipmentReport_pdf_colStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get equipmentReport_pdf_colStatus;
+
+  /// No description provided for @equipmentReport_pdf_statusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get equipmentReport_pdf_statusOverdue;
+
+  /// No description provided for @equipmentReport_pdf_statusDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get equipmentReport_pdf_statusDueSoon;
+
+  /// No description provided for @equipmentReport_pdf_statusUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get equipmentReport_pdf_statusUpToDate;
+
+  /// No description provided for @equipmentReport_pdf_allUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is up to date.'**
+  String get equipmentReport_pdf_allUpToDate;
+
+  /// No description provided for @equipmentReport_pdf_noSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item has no service schedule.} other{{count} items have no service schedule.}}'**
+  String equipmentReport_pdf_noSchedule(int count);
+
+  /// No description provided for @equipmentReport_pdf_colDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get equipmentReport_pdf_colDate;
+
+  /// No description provided for @equipmentReport_pdf_colWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get equipmentReport_pdf_colWork;
+
+  /// No description provided for @equipmentReport_pdf_colShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop'**
+  String get equipmentReport_pdf_colShop;
+
+  /// No description provided for @equipmentReport_pdf_colCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get equipmentReport_pdf_colCost;
+
+  /// No description provided for @equipmentReport_pdf_noHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No service recorded'**
+  String get equipmentReport_pdf_noHistory;
+
+  /// No description provided for @equipmentReport_pdf_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive} other{{count} dives}}'**
+  String equipmentReport_pdf_dives(int count);
+
   /// No description provided for @equipment_serviceKinds_defaultCurrencyInherit.
   ///
   /// In en, this message translates to:
@@ -32598,12 +32934,6 @@ abstract class AppLocalizations {
   /// **'Export failed: {error}'**
   String plannerCanvas_export_failed(String error);
 
-  /// No description provided for @plannerCanvas_follow_chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Following {name}'**
-  String plannerCanvas_follow_chip(String name);
-
   /// No description provided for @plannerCanvas_follow_empty.
   ///
   /// In en, this message translates to:
@@ -32615,6 +32945,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No profile data on that dive — surface interval set without tissue seeding'**
   String get plannerCanvas_follow_noTissues;
+
+  /// No description provided for @plannerCanvas_link_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a logged dive'**
+  String get plannerCanvas_link_action;
+
+  /// No description provided for @plannerCanvas_link_changeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change linked dive'**
+  String get plannerCanvas_link_changeAction;
+
+  /// No description provided for @plannerCanvas_unlink_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink dive'**
+  String get plannerCanvas_unlink_action;
+
+  /// No description provided for @plannerCanvas_link_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Dived as #{number}'**
+  String plannerCanvas_link_badge(int number);
+
+  /// No description provided for @plannerCanvas_link_badgeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dived {date}'**
+  String plannerCanvas_link_badgeDate(String date);
+
+  /// No description provided for @plannerCanvas_link_saveFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the plan first'**
+  String get plannerCanvas_link_saveFirst;
 
   /// The planned dive's letter within its series: A, B, C
   ///
@@ -32663,6 +33029,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive {letter}: {name}'**
   String plannerSeries_diveNamed(String letter, String name);
+
+  /// A logged dive shown in the planner series bar, by its dive number, name or date
+  ///
+  /// In en, this message translates to:
+  /// **'Logged dive {label}'**
+  String plannerSeries_loggedDive(String label);
+
+  /// No description provided for @plannerSeries_openInLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in dive log'**
+  String get plannerSeries_openInLog;
+
+  /// No description provided for @plannerSeries_stopFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop following'**
+  String get plannerSeries_stopFollowing;
+
+  /// Heading over what a logged dive passes on to the dive after it
+  ///
+  /// In en, this message translates to:
+  /// **'Carried into {dive}'**
+  String plannerSeries_carriedInto(String dive);
+
+  /// No description provided for @plannerSeries_endCns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at the end'**
+  String get plannerSeries_endCns;
+
+  /// No description provided for @plannerSeries_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get plannerSeries_otu;
+
+  /// Offer to follow the most recent logged dive: its name or number, then h:mm since it ended
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} ended {time} ago.'**
+  String plannerSeries_followPrompt(String dive, String time);
+
+  /// A logged dive by its number in the log
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String plannerSeries_loggedDiveNumber(int number);
+
+  /// No description provided for @plannerSeries_follow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get plannerSeries_follow;
 
   /// No description provided for @plannerSeries_surfaceInterval.
   ///
@@ -32724,11 +33144,11 @@ abstract class AppLocalizations {
   /// **'A series of dives can\'t be planned as a DPV mission'**
   String get plannerSeries_missionUnavailable;
 
-  /// No description provided for @plannerSeries_followFirstDiveOnly.
+  /// No description provided for @plannerSeries_followUnavailableInReplan.
   ///
   /// In en, this message translates to:
-  /// **'Only the first dive of a series can follow a logged dive'**
-  String get plannerSeries_followFirstDiveOnly;
+  /// **'A replan can\'t follow another dive'**
+  String get plannerSeries_followUnavailableInReplan;
 
   /// No description provided for @plannerCanvas_follow_title.
   ///
@@ -32837,6 +33257,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Decompression plan carries no bailout gas'**
   String get plannerCanvas_issue_noBailout;
+
+  /// No description provided for @plannerCanvas_issue_bailoutHypoxic.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout gas is hypoxic at {depth} (ppO₂ {value} bar). Carry a gas breathable to the surface.'**
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value);
 
   /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
   ///
@@ -47019,6 +47445,186 @@ abstract class AppLocalizations {
   /// **'Open findings by rule, across all dives'**
   String get insights_equipment_findings_subtitleAllDives;
 
+  /// No description provided for @insights_equipment_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get insights_equipment_showAll;
+
+  /// No description provided for @insights_equipment_showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get insights_equipment_showLess;
+
+  /// No description provided for @insights_equipment_mostUsedGear_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} hour} other{{count} hours}}'**
+  String insights_equipment_mostUsedGear_hours(int count);
+
+  /// No description provided for @insights_equipment_cost_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost of ownership'**
+  String get insights_equipment_cost_title;
+
+  /// No description provided for @insights_equipment_cost_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase plus service, across all your dives'**
+  String get insights_equipment_cost_subtitle;
+
+  /// No description provided for @insights_equipment_cost_spentTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent in total'**
+  String get insights_equipment_cost_spentTotal;
+
+  /// No description provided for @insights_equipment_cost_perDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Per dive'**
+  String get insights_equipment_cost_perDive;
+
+  /// No description provided for @insights_equipment_cost_byYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by year'**
+  String get insights_equipment_cost_byYear;
+
+  /// No description provided for @insights_equipment_cost_metricPerDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Per dive'**
+  String get insights_equipment_cost_metricPerDive;
+
+  /// No description provided for @insights_equipment_cost_metricPerHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Per hour'**
+  String get insights_equipment_cost_metricPerHour;
+
+  /// No description provided for @insights_equipment_cost_metricTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get insights_equipment_cost_metricTotal;
+
+  /// No description provided for @insights_equipment_cost_rowPerDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} / dive'**
+  String insights_equipment_cost_rowPerDive(String amount);
+
+  /// No description provided for @insights_equipment_cost_rowPerHour.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} / hour'**
+  String insights_equipment_cost_rowPerHour(String amount);
+
+  /// No description provided for @insights_equipment_cost_rowOverDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{amount} over {count} dive} other{{amount} over {count} dives}}'**
+  String insights_equipment_cost_rowOverDives(String amount, int count);
+
+  /// No description provided for @insights_equipment_cost_rowOverHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{amount} over {count} hour} other{{amount} over {count} hours}}'**
+  String insights_equipment_cost_rowOverHours(String amount, int count);
+
+  /// No description provided for @insights_equipment_cost_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'no dives yet'**
+  String get insights_equipment_cost_noDives;
+
+  /// No description provided for @insights_equipment_cost_undated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} purchase has no date} other{{count} purchases have no date}}'**
+  String insights_equipment_cost_undated(int count);
+
+  /// No description provided for @insights_equipment_cost_leftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item has no cost recorded} other{{count} items have no cost recorded}}'**
+  String insights_equipment_cost_leftOut(int count);
+
+  /// No description provided for @insights_equipment_cost_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchase prices or service costs recorded yet'**
+  String get insights_equipment_cost_empty;
+
+  /// No description provided for @insights_equipment_cost_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load gear costs'**
+  String get insights_equipment_cost_error;
+
+  /// No description provided for @insights_equipment_idle_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Idle gear'**
+  String get insights_equipment_idle_title;
+
+  /// No description provided for @insights_equipment_idle_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear you own and have not dived lately, across all your dives'**
+  String get insights_equipment_idle_subtitle;
+
+  /// No description provided for @insights_equipment_idle_over6Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 6 months'**
+  String get insights_equipment_idle_over6Months;
+
+  /// No description provided for @insights_equipment_idle_over1Year.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 1 year'**
+  String get insights_equipment_idle_over1Year;
+
+  /// No description provided for @insights_equipment_idle_over2Years.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 2 years'**
+  String get insights_equipment_idle_over2Years;
+
+  /// No description provided for @insights_equipment_idle_neverDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Never dived'**
+  String get insights_equipment_idle_neverDived;
+
+  /// No description provided for @insights_equipment_idle_years.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} yr} other{{count} yrs}}'**
+  String insights_equipment_idle_years(int count);
+
+  /// No description provided for @insights_equipment_idle_months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} mo} other{{count} mo}}'**
+  String insights_equipment_idle_months(int count);
+
+  /// No description provided for @insights_equipment_idle_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'All your gear has been dived recently'**
+  String get insights_equipment_idle_empty;
+
+  /// No description provided for @insights_equipment_idle_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load idle gear'**
+  String get insights_equipment_idle_error;
+
   /// No description provided for @insights_equipment_findings_empty.
   ///
   /// In en, this message translates to:
@@ -53710,7 +54316,7 @@ abstract class AppLocalizations {
   /// **'Parsing file {current} of {total}…'**
   String universalImport_triage_parsing(int current, int total);
 
-  /// Button that cancels a running batch parse at the next file boundary
+  /// Button that stops a running file parse straight away, for one file or a batch
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
@@ -53919,6 +54525,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Some values left blank'**
   String get universalImport_summary_noticeValuesNotConvertedTitle;
+
+  /// No description provided for @universalImport_summary_noticeGasMixesCappedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some gas mixes were corrected'**
+  String get universalImport_summary_noticeGasMixesCappedTitle;
+
+  /// No description provided for @universalImport_summary_noticeGasMixesCappedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen and helium added up to over 100% in these rows: {rows}. Helium was reduced so the total is 100%. Check the gas on these dives.'**
+  String universalImport_summary_noticeGasMixesCappedBody(String rows);
 
   /// No description provided for @universalImport_summary_noticeValuesNotConvertedBody.
   ///
@@ -65432,11 +66050,11 @@ abstract class AppLocalizations {
   /// **'Data sources'**
   String get reef_section_sourcesTooltip;
 
-  /// No description provided for @reef_section_loadError.
+  /// No description provided for @reef_section_checking.
   ///
   /// In en, this message translates to:
-  /// **'Could not load ecosystem data right now'**
-  String get reef_section_loadError;
+  /// **'Checking…'**
+  String get reef_section_checking;
 
   /// No description provided for @reef_habitat_title.
   ///
@@ -83183,17 +83801,161 @@ abstract class AppLocalizations {
   /// **'Re-plan at {time}'**
   String diveLab_summary_replan(String time);
 
-  /// No description provided for @diveLab_section_new.
+  /// No description provided for @diveLab_compare_line_planned.
   ///
   /// In en, this message translates to:
-  /// **'New scenario'**
-  String get diveLab_section_new;
+  /// **'Planned'**
+  String get diveLab_compare_line_planned;
 
-  /// No description provided for @diveLab_section_hint.
+  /// No description provided for @diveLab_compare_line_asDived.
   ///
   /// In en, this message translates to:
-  /// **'Branch this dive at any moment and compare what would have happened.'**
-  String get diveLab_section_hint;
+  /// **'As dived'**
+  String get diveLab_compare_line_asDived;
+
+  /// No description provided for @diveLab_compare_addWhatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'What if'**
+  String get diveLab_compare_addWhatIf;
+
+  /// No description provided for @diveLab_compare_row_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get diveLab_compare_row_maxDepth;
+
+  /// No description provided for @diveLab_compare_row_bottomTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get diveLab_compare_row_bottomTime;
+
+  /// No description provided for @diveLab_compare_row_ndl.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL on leaving bottom'**
+  String get diveLab_compare_row_ndl;
+
+  /// No description provided for @diveLab_compare_row_deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco'**
+  String get diveLab_compare_row_deco;
+
+  /// No description provided for @diveLab_compare_ndlLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left'**
+  String diveLab_compare_ndlLeft(int minutes);
+
+  /// No description provided for @diveLab_compare_decoAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco at {time}'**
+  String diveLab_compare_decoAt(String time);
+
+  /// No description provided for @diveLab_compare_decoDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{required}, {done} done'**
+  String diveLab_compare_decoDone(String required, String done);
+
+  /// No description provided for @diveLab_compare_noDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get diveLab_compare_noDeco;
+
+  /// No description provided for @diveLab_compare_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to compare yet'**
+  String get diveLab_compare_empty;
+
+  /// No description provided for @diveLab_compare_askWhatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a what-if'**
+  String get diveLab_compare_askWhatIf;
+
+  /// No description provided for @diveLab_compare_linkPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a plan'**
+  String get diveLab_compare_linkPlan;
+
+  /// No description provided for @diveLab_compare_unlinkPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink plan'**
+  String get diveLab_compare_unlinkPlan;
+
+  /// No description provided for @diveLab_compare_planTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan against dive'**
+  String get diveLab_compare_planTable;
+
+  /// No description provided for @diveLab_compare_plannedSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned schedule'**
+  String get diveLab_compare_plannedSchedule;
+
+  /// No description provided for @diveLab_compare_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the dive'**
+  String get diveLab_compare_waiting;
+
+  /// No description provided for @diveLab_link_unlinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink this plan?'**
+  String get diveLab_link_unlinkTitle;
+
+  /// No description provided for @diveLab_link_unlinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan and the dive both stay. They just stop being compared.'**
+  String get diveLab_link_unlinkBody;
+
+  /// No description provided for @diveLab_link_unlinkConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get diveLab_link_unlinkConfirm;
+
+  /// No description provided for @diveLab_link_moveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move this plan\'s link?'**
+  String get diveLab_link_moveTitle;
+
+  /// No description provided for @diveLab_link_moveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan is linked to another dive. Linking it here removes that link.'**
+  String get diveLab_link_moveBody;
+
+  /// No description provided for @diveLab_link_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace this dive\'s plan?'**
+  String get diveLab_link_replaceTitle;
+
+  /// No description provided for @diveLab_link_replaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive is compared with \"{plan}\". Linking another plan unlinks that one.'**
+  String diveLab_link_replaceBody(String plan);
+
+  /// No description provided for @diveLab_link_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get diveLab_link_confirm;
 
   /// No description provided for @diveDetailSection_diveLab_name.
   ///
@@ -86454,6 +87216,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compare…'**
   String get diveLog_detail_menu_whatIf;
+
+  /// No description provided for @diveLog_detail_menu_planRepetitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan repetitive dive'**
+  String get diveLog_detail_menu_planRepetitive;
 
   /// No description provided for @plannerCanvas_sourceCompare_title.
   ///

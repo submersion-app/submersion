@@ -257,24 +257,46 @@ void main() {
         );
       });
 
-      testWidgets('Follow a dive is offered on the first dive only', (
+      testWidgets('Follow a dive is offered on every dive of a series', (
         tester,
       ) async {
         await pumpPlan(tester, size);
         await addDive(tester);
         await openMenu(tester);
+        expect(menuItem(tester, 'Follow a dive').enabled, isTrue);
+        expect(tooltipOn('Follow a dive'), findsNothing);
+      });
+
+      testWidgets('Follow a dive says why a replan cannot follow', (
+        tester,
+      ) async {
+        await pumpPlan(tester, size);
+        final notifier = containerOf(
+          tester,
+        ).read(divePlanNotifierProvider.notifier);
+        notifier.loadPlan(
+          containerOf(
+            tester,
+          ).read(divePlanNotifierProvider).copyWith(sourceDiveId: 'replanned'),
+        );
+        await tester.pumpAndSettle();
+
+        await openMenu(tester);
         expect(menuItem(tester, 'Follow a dive').enabled, isFalse);
         expect(
           tester.widget<Tooltip>(tooltipOn('Follow a dive')).message,
-          'Only the first dive of a series can follow a logged dive',
+          "A replan can't follow another dive",
         );
-        await closeMenu(tester);
 
-        await tester.tap(find.byTooltip('Dive A'));
+        // Leave as an ordinary plan: disposing a replan's page starts a new
+        // plan in a microtask, after this test's providers are gone.
+        await closeMenu(tester);
+        notifier.loadPlan(
+          containerOf(
+            tester,
+          ).read(divePlanNotifierProvider).copyWith(clearSourceDiveId: true),
+        );
         await tester.pumpAndSettle();
-        await openMenu(tester);
-        expect(menuItem(tester, 'Follow a dive').enabled, isTrue);
-        expect(tooltipOn('Follow a dive'), findsNothing);
       });
     });
   }

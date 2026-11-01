@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_protection.dart';
+import 'package:submersion/features/reef/presentation/widgets/reef_part_rows.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One row of the reef section: marine protected area identity.
@@ -13,7 +14,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class ReefProtectionCard extends StatelessWidget {
   final ReefPart<List<ReefProtection>> part;
 
-  const ReefProtectionCard({super.key, required this.part});
+  /// Offered when the lookup failed; a null callback shows no button.
+  final VoidCallback? onRetry;
+
+  const ReefProtectionCard({super.key, required this.part, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +32,7 @@ class ReefProtectionCard extends StatelessWidget {
           style: theme.textTheme.titleSmall,
         ),
         subtitle: Text(context.l10n.reef_protection_unavailable),
+        trailing: onRetry == null ? null : ReefRetryButton(onPressed: onRetry!),
         dense: true,
       );
     }

@@ -36,6 +36,8 @@ class DecoSegment {
   final double startDepth;
   final double endDepth;
   final int durationSeconds;
+
+  double get avgDepth => (startDepth + endDepth) / 2.0;
 }
 
 /// A computed decompression schedule.
@@ -150,9 +152,8 @@ class BuhlmannGf implements DecoModel {
 
     final isRamp = segment.startDepth != segment.endDepth;
     if (!isRamp || segment.durationSeconds <= _maxRampSliceSeconds) {
-      final avgDepth = (segment.startDepth + segment.endDepth) / 2.0;
       _algorithm.calculateSegment(
-        depthMeters: avgDepth,
+        depthMeters: segment.avgDepth,
         durationSeconds: segment.durationSeconds,
         breathing: breathing,
       );

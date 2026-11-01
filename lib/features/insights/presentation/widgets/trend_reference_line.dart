@@ -12,8 +12,7 @@ class TrendReferenceLine {
   final String label;
 }
 
-/// fl_chart's extra lines for [line]; none when it is null. Kept out of
-/// `dive_trend_chart.dart`, which sits at the file-size limit.
+/// fl_chart's extra lines for [line]; none when it is null.
 ExtraLinesData trendReferenceLines(
   BuildContext context,
   TrendReferenceLine? line,

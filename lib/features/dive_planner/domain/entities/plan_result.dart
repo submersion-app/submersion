@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -544,6 +545,12 @@ class DivePlanState extends Equatable {
   /// Initial tissue state from previous dive.
   final List<TissueCompartment>? initialTissueState;
 
+  /// The conditions [initialTissueState] ended in, for the surface the
+  /// [surfaceInterval] off-gasses it at. Null = not known, and the plan's own
+  /// surface stands. Goes with the tissues: `clearInitialTissueState` clears
+  /// this too.
+  final DiveEnvironment? initialTissueEnvironment;
+
   /// CNS% at the end of the previous dive in a repetitive series, before
   /// the [surfaceInterval] decays it (issue #3565). Null = none carried.
   final double? initialCns;
@@ -725,6 +732,7 @@ class DivePlanState extends Equatable {
     this.airBreaksExplicitlyOff = false,
     this.surfaceInterval,
     this.initialTissueState,
+    this.initialTissueEnvironment,
     this.initialCns,
     this.initialOtu,
     this.sourceDiveId,
@@ -832,6 +840,7 @@ class DivePlanState extends Equatable {
     bool? airBreaksExplicitlyOff,
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
+    DiveEnvironment? initialTissueEnvironment,
     double? initialCns,
     double? initialOtu,
     String? sourceDiveId,
@@ -943,6 +952,9 @@ class DivePlanState extends Equatable {
       initialTissueState: clearInitialTissueState
           ? null
           : (initialTissueState ?? this.initialTissueState),
+      initialTissueEnvironment: clearInitialTissueState
+          ? null
+          : (initialTissueEnvironment ?? this.initialTissueEnvironment),
       initialCns: clearInitialExposure ? null : (initialCns ?? this.initialCns),
       initialOtu: clearInitialExposure ? null : (initialOtu ?? this.initialOtu),
       sourceDiveId: clearSourceDiveId
@@ -1057,6 +1069,7 @@ class DivePlanState extends Equatable {
     airBreaksExplicitlyOff,
     surfaceInterval,
     initialTissueState,
+    initialTissueEnvironment,
     initialCns,
     initialOtu,
     sourceDiveId,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -13,9 +14,11 @@ import 'package:submersion/features/planner/presentation/chart/plan_profile_char
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/chart_mode_toggle.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_issue_text.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../helpers/mock_providers.dart';
 import '../../helpers/planner_results.dart';
@@ -115,6 +118,18 @@ Future<ProviderContainer> _mount(
 }
 
 void main() {
+  test('the depth rounds up and the MOD down in the diver\'s own unit', () {
+    final message = bailoutGasGapMessage(
+      AppLocalizationsEn(),
+      const UnitFormatter(AppSettings(depthUnit: DepthUnit.feet)),
+      depthMeters: 30,
+      deepestModMeters: 21,
+    );
+
+    expect(message, contains('reaches 99ft'));
+    expect(message, contains('carried is 68ft'));
+  });
+
   group('the results sheet', () {
     late PlanResultsSheet sheet;
 
@@ -148,6 +163,20 @@ void main() {
       expect(find.textContaining('Required'), findsOneWidget);
       expect(find.text('Schedule from the worst case'), findsOneWidget);
     });
+  });
+
+  testWidgets('a covered plan short of gas still says so', (tester) async {
+    await _mount(
+      tester,
+      PlanResultsSheet(controller: ScrollController()),
+      bailout: _ean32.copyWith(volume: 1),
+    );
+
+    expect(
+      find.text('Bailout gas insufficient for the worst case'),
+      findsOneWidget,
+    );
+    expect(find.text(_gapMessage), findsNothing);
   });
 
   group('the chart', () {
@@ -251,7 +280,7 @@ void main() {
       expect(line(_ean50), 'No gas: 30m, MOD 21m');
     });
 
-    test('a covered plan keeps its TTS and litres', () {
+    test('a covered plan keeps its TTS and liters', () {
       expect(line(_ean32), startsWith('TTS'));
     });
   });

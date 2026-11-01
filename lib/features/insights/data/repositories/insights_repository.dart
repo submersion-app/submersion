@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -26,7 +27,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
     show dartWhitespaceSqlChars;
-import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
+import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -58,10 +59,12 @@ part 'insights_repository_time_of_day.dart';
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
 /// The four groups partition the filtered dive library. [needsCompute] maps
-/// dive id to that dive's `dives.updated_at`, which the computed fallback
-/// uses as the profile revision in its cache fingerprint; the lean `Dive`
-/// hydration used by the analysis pipeline carries no `updatedAt`, so this
-/// scan is the only place that value is cheaply available. [noProfile] holds
+/// dive id to a version token for that dive and the dives in its residual
+/// lookback ([diveSourceStampSql] plus [earlierDivesRevisionSql]), which the
+/// computed fallback uses as the revision in its cache fingerprint; the lean
+/// `Dive` hydration used by the analysis pipeline carries none of those
+/// stamps, so this scan is the only place that value is cheaply available.
+/// Compare it only for equality. [noProfile] holds
 /// dives that can never be classified from stored data.
 typedef DecoSignalScan = ({
   Set<String> recordedDeco,
@@ -79,6 +82,10 @@ class RankingItem {
   final String? subtitle;
   final DateTime? date;
 
+  /// A stored category for the section to name in the viewer's language,
+  /// which a repository cannot do.
+  final String? kind;
+
   RankingItem({
     required this.id,
     required this.name,
@@ -86,6 +93,7 @@ class RankingItem {
     this.value,
     this.subtitle,
     this.date,
+    this.kind,
   });
 }
 
@@ -365,7 +373,7 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           d.id AS dive_id,
           d.dive_date_time,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec,
           t.start_pressure,
           t.end_pressure,
@@ -385,7 +393,7 @@ class InsightsRepository with InsightsChartDives {
       // SAC value and not two.
       final Map<
         String,
-        ({double gas, DateTime dateTime, int durationSec, double avgDepth})
+        ({double gas, DateTime dateTime, int durationSec, double ambientBar})
       >
       diveSacs = {};
 
@@ -425,14 +433,14 @@ class InsightsRepository with InsightsChartDives {
               isUtc: true,
             ),
             durationSec: row.read<int>('duration_sec'),
-            avgDepth: row.read<double>('avg_depth'),
+            ambientBar: row.read<double>('ambient_bar'),
           );
         } else {
           diveSacs[diveId] = (
             gas: existing.gas + gasUsed,
             dateTime: existing.dateTime,
             durationSec: existing.durationSec,
-            avgDepth: existing.avgDepth,
+            ambientBar: existing.ambientBar,
           );
         }
       }
@@ -440,8 +448,7 @@ class InsightsRepository with InsightsChartDives {
       final points = <TrendDataPoint>[];
       for (final entry in diveSacs.entries) {
         final d = entry.value;
-        final sac =
-            d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
+        final sac = d.gas / (d.durationSec / 60.0) / d.ambientBar;
         if (sac <= 0) continue;
         points.add(
           TrendDataPoint(date: d.dateTime, value: sac, diveId: entry.key),
@@ -577,7 +584,7 @@ class InsightsRepository with InsightsChartDives {
           d.id AS dive_id,
           d.dive_number,
           d.dive_date_time,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec,
           ds.name AS site_name,
           t.start_pressure,
@@ -602,7 +609,7 @@ class InsightsRepository with InsightsChartDives {
         ({
           double gas,
           int durationSec,
-          double avgDepth,
+          double ambientBar,
           int dateTimeMs,
           int? diveNum,
           String? siteName,
@@ -638,7 +645,7 @@ class InsightsRepository with InsightsChartDives {
           dives[diveId] = (
             gas: used,
             durationSec: row.read<int>('duration_sec'),
-            avgDepth: row.read<double>('avg_depth'),
+            ambientBar: row.read<double>('ambient_bar'),
             dateTimeMs: row.read<int>('dive_date_time'),
             diveNum: row.read<int?>('dive_number'),
             siteName: row.read<String?>('site_name'),
@@ -647,7 +654,7 @@ class InsightsRepository with InsightsChartDives {
           dives[diveId] = (
             gas: existing.gas + used,
             durationSec: existing.durationSec,
-            avgDepth: existing.avgDepth,
+            ambientBar: existing.ambientBar,
             dateTimeMs: existing.dateTimeMs,
             diveNum: existing.diveNum,
             siteName: existing.siteName,
@@ -661,8 +668,7 @@ class InsightsRepository with InsightsChartDives {
 
       for (final entry in dives.entries) {
         final d = entry.value;
-        final sac =
-            d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
+        final sac = d.gas / (d.durationSec / 60.0) / d.ambientBar;
         if (sac <= 0) continue;
 
         final item = RankingItem(
@@ -768,7 +774,7 @@ class InsightsRepository with InsightsChartDives {
           ${consumptionVolumeSql('t')} AS volume,
           t.o2_percent,
           t.he_percent,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec
         FROM dives d
         INNER JOIN dive_tanks t ON t.dive_id = d.id
@@ -807,7 +813,7 @@ class InsightsRepository with InsightsChartDives {
         if (used <= 0) continue;
 
         final durationMin = row.read<int>('duration_sec') / 60.0;
-        final ambientBar = (row.read<double>('avg_depth') / 10.0) + 1.0;
+        final ambientBar = row.read<double>('ambient_bar');
         final sac = used / durationMin / ambientBar;
         if (sac > 0) {
           sacsByRole.putIfAbsent(role, () => []).add(sac);
@@ -852,7 +858,7 @@ class InsightsRepository with InsightsChartDives {
           AVG(
             CASE
               WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
+                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ${diveAmbientBarSql('d', 'd.avg_depth')}
               ELSE NULL
             END
           ) AS avg_sac
@@ -2521,17 +2527,17 @@ class InsightsRepository with InsightsChartDives {
   // ============================================================================
 
   /// Get most used gear
+  ///
+  /// A null [limit] returns every item. `value` holds the item's hours.
   Future<List<RankingItem>> getMostUsedGear({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -2539,21 +2545,15 @@ class InsightsRepository with InsightsChartDives {
           e.name,
           e.type,
           e.brand,
-          COUNT(DISTINCT u.dive_id) AS use_count
+          COUNT(*) AS use_count,
+          SUM($diveLengthSql) AS use_seconds
         FROM equipment e
-        JOIN (
-          SELECT dive_id, equipment_id FROM dive_equipment
-          UNION
-          SELECT dive_id, equipment_id FROM dive_tanks
-          WHERE equipment_id IS NOT NULL
-          -- Tank regulators, first and extra (#3375).
-          UNION $tankRegulatorPairsSql
-        ) u ON u.equipment_id = e.id
+        JOIN ($distinctDiveGearPairsSql) u ON u.equipment_id = e.id
         JOIN dives d ON d.id = u.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY e.id
         ORDER BY use_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2563,7 +2563,9 @@ class InsightsRepository with InsightsChartDives {
           id: row.read<String>('id'),
           name: row.read<String>('name'),
           count: row.read<int>('use_count'),
-          subtitle: brand != null ? '$brand • $type' : type,
+          value: row.read<int>('use_seconds') / 3600,
+          subtitle: brand == null || brand.isEmpty ? null : brand,
+          kind: type,
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -2900,20 +2902,28 @@ class InsightsRepository with InsightsChartDives {
           FROM dive_profile_events e
           JOIN scoped s ON s.dive_id = e.dive_id
           WHERE e.event_type = 'decoStopStart'
+        ),
+        classified AS (
+          SELECT
+            sig.dive_id AS dive_id,
+            CASE
+              WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
+              WHEN sig.has_deco_type = 1 THEN 'no_deco'
+              WHEN sig.positive_ceiling = 1 THEN 'deco'
+              WHEN sig.has_profile = 1 THEN 'compute'
+              ELSE 'no_profile'
+            END AS classification
+          FROM signals sig
+          LEFT JOIN stop_events ev ON ev.dive_id = sig.dive_id
         )
         SELECT
-          sig.dive_id AS dive_id,
-          d.updated_at AS updated_at,
-          CASE
-            WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
-            WHEN sig.has_deco_type = 1 THEN 'no_deco'
-            WHEN sig.positive_ceiling = 1 THEN 'deco'
-            WHEN sig.has_profile = 1 THEN 'compute'
-            ELSE 'no_profile'
-          END AS classification
-        FROM signals sig
-        JOIN dives d ON d.id = sig.dive_id
-        LEFT JOIN stop_events ev ON ev.dive_id = sig.dive_id
+          c.dive_id AS dive_id,
+          c.classification AS classification,
+          CASE WHEN c.classification = 'compute' THEN
+            ${diveSourceStampSql('d')} + ${earlierDivesRevisionSql('d')}
+          END AS revision
+        FROM classified c
+        JOIN dives d ON d.id = c.dive_id
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       final recordedDeco = <String>{};
@@ -2929,12 +2939,12 @@ class InsightsRepository with InsightsChartDives {
             recordedNoDeco.add(id);
           case 'compute':
             // Non-null read on purpose. `dives.updated_at` is a non-nullable
-            // column and the query inner-joins dives, so a null here means the
-            // schema or the query drifted. Defaulting to 0 would silently
+            // column and the query inner-joins dives, so a null revision means
+            // the schema or the query drifted. Defaulting to 0 would silently
             // collapse every dive onto one fingerprint component and stop
             // edits invalidating the computed classification cache, so fail
             // loudly instead.
-            needsCompute[id] = row.read<int>('updated_at');
+            needsCompute[id] = row.read<int>('revision');
           default:
             noProfile.add(id);
         }

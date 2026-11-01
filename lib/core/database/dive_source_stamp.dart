@@ -32,7 +32,8 @@ import 'package:submersion/core/database/database.dart';
 ///
 /// Every writer and reader of one cache must use this same expression: a row
 /// written with it and compared against the bare `updated_at` reads as stale
-/// for good. The sensor summaries and the Explore derived metrics both do.
+/// for good. The sensor summaries do, and the Explore derived metrics add the
+/// dive's effective water type to it.
 String diveSourceStampSql([String dive = 'd']) =>
     '($dive.updated_at + '
     'COALESCE((SELECT SUM(stamp_p.updated_at) '

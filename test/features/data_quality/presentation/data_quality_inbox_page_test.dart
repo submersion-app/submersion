@@ -94,9 +94,13 @@ class _FakeScanService extends QualityScanService {
     DateTime? now,
   }) async {
     if (progress != null) onProgress?.call(progress!.done, progress!.total);
-    isCancelled?.call();
     if (gate != null) await gate!.future;
-    return summary;
+    return QualityScanSummary(
+      divesScanned: summary.divesScanned,
+      findingsProduced: summary.findingsProduced,
+      detectorErrors: summary.detectorErrors,
+      cancelled: isCancelled?.call() ?? false,
+    );
   }
 }
 
@@ -1443,9 +1447,46 @@ void main() {
     gate.complete();
     await tester.pumpAndSettle();
 
-    expect(store.recorded, isNotEmpty);
-    expect(find.textContaining('Scan complete'), findsOneWidget);
-    await tester.pumpAndSettle(const Duration(seconds: 6));
+    // Stopped partway, so it is not a full scan and must not read as one.
+    expect(store.recorded, isEmpty);
+    expect(find.textContaining('Scan complete'), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.byIcon(Icons.radar), findsOneWidget);
+  });
+
+  testWidgets('a cancelled scan keeps the new-checks banner', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'quality_last_full_scan_at': 1,
+      'quality_detector_versions': '{}',
+    });
+    addTearDown(() => SharedPreferences.setMockInitialValues({}));
+    final prefs = await SharedPreferences.getInstance();
+    final gate = Completer<void>();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        scanService: _FakeScanService(
+          summary: const QualityScanSummary(
+            divesScanned: 200,
+            findingsProduced: 1,
+            detectorErrors: 0,
+          ),
+          gate: gate,
+        ),
+        store: QualityScanStateStore(prefs),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Rescan'), findsOneWidget);
+
+    await tester.tap(find.text('Rescan'));
+    await tester.pump();
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rescan'), findsOneWidget);
   });
 
   testWidgets('scan shows determinate progress and reports detector errors', (

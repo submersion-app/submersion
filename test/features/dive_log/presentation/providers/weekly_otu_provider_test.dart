@@ -104,6 +104,109 @@ void main() {
     );
   });
 
+  group('a plan that was never dived (#3924)', () {
+    const planOtu = 200.0;
+    const realOtu = 16.0;
+
+    ProviderContainer planContainer() {
+      final container = ProviderContainer(
+        overrides: [
+          profileAnalysisProvider('plan').overrideWith(
+            (ref) async => ProfileAnalysis.empty().copyWith(
+              o2Exposure: const O2Exposure(otu: planOtu),
+            ),
+          ),
+          profileAnalysisProvider('real').overrideWith(
+            (ref) async => ProfileAnalysis.empty().copyWith(
+              o2Exposure: const O2Exposure(otu: realOtu),
+            ),
+          ),
+          profileAnalysisProvider('second-plan').overrideWith(
+            (ref) async => ProfileAnalysis.empty().copyWith(
+              o2Exposure: const O2Exposure(otu: planOtu),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    Future<void> createPlan() => repository.createDive(
+      Dive(
+        id: 'plan',
+        dateTime: DateTime.utc(2025, 9, 8, 8),
+        runtime: const Duration(minutes: 50),
+        isPlanned: true,
+      ),
+    );
+
+    Future<void> createReal() => repository.createDive(
+      Dive(id: 'real', dateTime: DateTime.utc(2025, 9, 8, 11)),
+    );
+
+    Future<void> createSecondPlan() => repository.createDive(
+      Dive(
+        id: 'second-plan',
+        dateTime: DateTime.utc(2025, 9, 8, 13),
+        isPlanned: true,
+      ),
+    );
+
+    test('adds nothing to a logged dive\'s residual OTU', () async {
+      await createPlan();
+      await createReal();
+      final container = planContainer();
+
+      final residual = await container.read(residualOtuProvider('real').future);
+
+      expect(residual, 0.0);
+    });
+
+    test('adds nothing to a logged dive\'s weekly OTU', () async {
+      await createPlan();
+      await createReal();
+      final container = planContainer();
+
+      final weekly = await container.read(weeklyOtuProvider('real').future);
+
+      expect(weekly, realOtu);
+    });
+
+    test('a logged dive overtakes it for a later plan', () async {
+      await createPlan();
+      await createReal();
+      await createSecondPlan();
+      final container = planContainer();
+
+      final residual = await container.read(
+        residualOtuProvider('second-plan').future,
+      );
+      final weekly = await container.read(
+        weeklyOtuProvider('second-plan').future,
+      );
+
+      expect(residual, realOtu);
+      expect(weekly, realOtu + planOtu);
+    });
+
+    test('still counts toward a later plan the same day', () async {
+      await createPlan();
+      await createSecondPlan();
+      final container = planContainer();
+
+      final residual = await container.read(
+        residualOtuProvider('second-plan').future,
+      );
+      final weekly = await container.read(
+        weeklyOtuProvider('second-plan').future,
+      );
+
+      expect(residual, planOtu);
+      expect(weekly, planOtu + planOtu);
+    });
+  });
+
   group('dives that cross midnight', () {
     // 23:30 to 00:20 with 100 OTU. The stubbed analysis has no OTU curve, so
     // the split falls back to elapsed time: 30 of its 50 minutes (60 OTU) on

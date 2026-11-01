@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/reef/data/services/reef_request_timeout.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
 import 'package:submersion/features/reef/domain/services/bleaching_alert_level.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/reef/domain/services/bleaching_alert_level.d
 /// works on mobile and desktop and fails only on web.
 class ReefHealthService {
   final http.Client _client;
+  final Duration _timeout;
 
   static const String _base = 'https://pae-paha.pacioos.hawaii.edu';
   static const String _path = '/erddap/griddap/dhw_5km.json';
@@ -38,7 +40,11 @@ class ReefHealthService {
   /// Half-width of the land-pixel fallback box, in degrees.
   static const double _fallbackSpan = 0.075;
 
-  ReefHealthService({http.Client? client}) : _client = client ?? http.Client();
+  ReefHealthService({
+    http.Client? client,
+    Duration timeout = reefRequestTimeout,
+  }) : _client = client ?? http.Client(),
+       _timeout = timeout;
 
   /// Fetches conditions at [point]. Pass [date] for a past dive; omit it for
   /// the latest available observation.
@@ -108,7 +114,7 @@ class ReefHealthService {
   /// ERDDAP answers out-of-range coordinates and future dates with HTTP 404
   /// and a non-JSON body, so the status code is checked before parsing.
   Future<Map<String, dynamic>?> _request(Uri uri) async {
-    final response = await _client.get(uri);
+    final response = await _client.get(uri).timeout(_timeout);
     if (response.statusCode != 200) {
       developer.log(
         'Reef health HTTP ${response.statusCode}',

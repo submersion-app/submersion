@@ -82,6 +82,56 @@ void main() {
     expect(tag.read<int>('applies_to_dives'), 1);
   });
 
+  test(
+    'a site gains only what it lacks, and a full site is left out',
+    () async {
+      await db.customStatement(
+        "INSERT INTO tags (id, name, created_at, updated_at, applies_to_sites) "
+        "VALUES ('blue', 'Blue', 0, 0, 1)",
+      );
+      await db.customStatement(
+        "INSERT INTO site_tags (id, site_id, tag_id, created_at) VALUES "
+        "('a-red', 'a', 'red', 0), ('b-red', 'b', 'red', 0), "
+        "('b-blue', 'b', 'blue', 0)",
+      );
+      const a = SiteMembershipAction(SiteCollection.tags, MembershipMode.add, [
+        'red',
+        'blue',
+        'red',
+      ]);
+      final r = await applier.apply(
+        ruleOf(RuleSubject.sites, a, name: 'Red Sea'),
+        a,
+        ['a', 'b'],
+      );
+      expect(r.changes.single.targetId, 'a');
+      expect(r.changes.single.before, ['red']);
+      expect(r.changes.single.after, ['blue', 'red']);
+      final pending = await db
+          .customSelect(
+            "SELECT COUNT(*) AS n FROM sync_records "
+            "WHERE entity_type = 'siteTags'",
+          )
+          .getSingle();
+      expect(pending.read<int>('n'), 1);
+    },
+  );
+
+  test('an unchanged site marks nothing pending', () async {
+    const a = SetSiteFieldAction(SiteRuleField.country, 'Egypt');
+    await applier.apply(ruleOf(RuleSubject.sites, a, name: 'Red Sea'), a, [
+      'a',
+      'b',
+    ]);
+    final pending = await db
+        .customSelect(
+          "SELECT record_id FROM sync_records "
+          "WHERE entity_type = 'diveSites'",
+        )
+        .get();
+    expect(pending.map((r) => r.read<String>('record_id')), ['b']);
+  });
+
   test('remove a site type', () async {
     const a = SiteMembershipAction(
       SiteCollection.siteTypes,
@@ -107,6 +157,20 @@ void main() {
     final byId = {for (final c in r.changes) c.targetId: c};
     expect(byId['a']!.after, 'Strong currents');
     expect(byId['b']!.after, 'Wall\n\nStrong currents');
+  });
+
+  test('a deleted tag beside a live one skips only the deleted one', () async {
+    const a = SiteMembershipAction(SiteCollection.tags, MembershipMode.add, [
+      'red',
+      'gone',
+    ]);
+    final r = await applier.apply(
+      ruleOf(RuleSubject.sites, a, name: 'Red Sea'),
+      a,
+      ['a'],
+    );
+    expect(r.changes.single.after, ['red']);
+    expect(r.skippedMissingRef, isTrue);
   });
 
   test('a deleted site tag is skipped and flagged', () async {

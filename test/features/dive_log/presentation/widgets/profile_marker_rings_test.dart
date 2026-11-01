@@ -60,9 +60,10 @@ List<Color> _ringColors(WidgetTester tester) => [
           .lineBarsData)
     if (bar.dotData.show)
       for (var i = 0; i < bar.spots.length; i++)
-        if (bar.dotData.getDotPainter(bar.spots[i], 0, bar, i)
-            case FlDotCirclePainter(strokeWidth: 2, :final strokeColor))
-          strokeColor,
+        if (bar.dotData.checkToShowDot(bar.spots[i], bar))
+          if (bar.dotData.getDotPainter(bar.spots[i], 0, bar, i)
+              case FlDotCirclePainter(strokeWidth: 2, :final strokeColor))
+            strokeColor,
 ];
 
 void main() {
@@ -131,7 +132,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final rings = _ringColors(tester);
-      expect(rings, isNotEmpty);
+      expect(rings, hasLength(1));
       expect(rings, everyElement(backdrop));
     });
 

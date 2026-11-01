@@ -6996,6 +6996,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'הצלילות שוחזרו';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'הצלילות שוחזרו, אך לא ניתן היה לשחזר חלק מהנתונים המוקלטים';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16569,6 +16573,210 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_saved_maintenance => 'יומן התחזוקה נשמר';
 
   @override
+  String get transfer_export_inventoryTitle => 'מלאי ציוד';
+
+  @override
+  String get transfer_export_inventorySubtitle =>
+      'PDF עם מספרים סידוריים והמחיר ששולם';
+
+  @override
+  String get transfer_export_serviceReportTitle => 'דוח טיפולים';
+
+  @override
+  String get transfer_export_serviceReportSubtitle =>
+      'PDF של טיפולים לביצוע, עם היסטוריית הטיפולים';
+
+  @override
+  String get settings_export_progress_inventory => 'בונה מלאי...';
+
+  @override
+  String get settings_export_success_inventory => 'המלאי יוצא';
+
+  @override
+  String get settings_export_saved_inventory => 'המלאי נשמר';
+
+  @override
+  String get settings_export_progress_serviceReport => 'בונה דוח טיפולים...';
+
+  @override
+  String get settings_export_success_serviceReport => 'דוח הטיפולים יוצא';
+
+  @override
+  String get settings_export_saved_serviceReport => 'דוח הטיפולים נשמר';
+
+  @override
+  String get equipmentReport_sheet_continue => 'המשך';
+
+  @override
+  String get equipmentReport_sheet_groupBy => 'קיבוץ לפי';
+
+  @override
+  String get equipmentReport_sheet_groupByType => 'סוג ציוד';
+
+  @override
+  String get equipmentReport_sheet_groupByLocation => 'מיקום';
+
+  @override
+  String get equipmentReport_sheet_location => 'מיקום';
+
+  @override
+  String get equipmentReport_sheet_allLocations => 'כל המיקומים';
+
+  @override
+  String get equipmentReport_sheet_showPrices => 'הצגת מחירים';
+
+  @override
+  String get equipmentReport_sheet_showPricesHelp => 'כבה לרשימת מכס';
+
+  @override
+  String get equipmentReport_sheet_gear => 'ציוד';
+
+  @override
+  String get equipmentReport_sheet_gearAll => 'כל הציוד';
+
+  @override
+  String get equipmentReport_sheet_gearTrip => 'ארוז לטיול';
+
+  @override
+  String get equipmentReport_sheet_gearItem => 'פריט אחד';
+
+  @override
+  String get equipmentReport_sheet_trip => 'טיול';
+
+  @override
+  String get equipmentReport_sheet_item => 'פריט';
+
+  @override
+  String get equipmentReport_sheet_history => 'היסטוריית טיפולים';
+
+  @override
+  String get equipmentReport_sheet_showCosts => 'הצגת עלויות';
+
+  @override
+  String get equipmentReport_pdf_inventoryTitle => 'מלאי ציוד';
+
+  @override
+  String get equipmentReport_pdf_serviceTitle => 'דוח טיפולים';
+
+  @override
+  String equipmentReport_pdf_printedOn(String date) {
+    return 'הודפס ב-$date';
+  }
+
+  @override
+  String equipmentReport_pdf_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentReport_pdf_currencyTotal(String currency) {
+    return 'סה״כ $currency';
+  }
+
+  @override
+  String get equipmentReport_pdf_noLocation => 'לא הוגדר מיקום';
+
+  @override
+  String get equipmentReport_pdf_colItem => 'פריט';
+
+  @override
+  String get equipmentReport_pdf_colSerial => 'מספר סידורי';
+
+  @override
+  String get equipmentReport_pdf_colBought => 'נקנה';
+
+  @override
+  String get equipmentReport_pdf_colPaid => 'שולם';
+
+  @override
+  String get equipmentReport_pdf_pricesNote =>
+      'המחירים הם הסכום ששולם, לא השווי הנוכחי.';
+
+  @override
+  String equipmentReport_pdf_noPrice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count פריטים אין מחיר.',
+      one: 'לפריט $count אין מחיר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_overdue => 'באיחור';
+
+  @override
+  String get equipmentReport_pdf_dueSoon => 'בקרוב';
+
+  @override
+  String get equipmentReport_pdf_upToDate => 'מעודכן';
+
+  @override
+  String get equipmentReport_pdf_colService => 'טיפול';
+
+  @override
+  String get equipmentReport_pdf_colDue => 'לביצוע';
+
+  @override
+  String get equipmentReport_pdf_colStatus => 'סטטוס';
+
+  @override
+  String get equipmentReport_pdf_statusOverdue => 'באיחור';
+
+  @override
+  String get equipmentReport_pdf_statusDueSoon => 'בקרוב';
+
+  @override
+  String get equipmentReport_pdf_statusUpToDate => 'מעודכן';
+
+  @override
+  String get equipmentReport_pdf_allUpToDate => 'הכול מעודכן.';
+
+  @override
+  String equipmentReport_pdf_noSchedule(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count פריטים אין לוח טיפולים.',
+      one: 'לפריט $count אין לוח טיפולים.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_colDate => 'תאריך';
+
+  @override
+  String get equipmentReport_pdf_colWork => 'עבודה';
+
+  @override
+  String get equipmentReport_pdf_colShop => 'חנות';
+
+  @override
+  String get equipmentReport_pdf_colCost => 'עלות';
+
+  @override
+  String get equipmentReport_pdf_noHistory => 'לא נרשמו טיפולים';
+
+  @override
+  String equipmentReport_pdf_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_serviceKinds_defaultCurrencyInherit =>
       'שימוש במטבע ברירת המחדל';
 
@@ -20033,16 +20241,33 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'עוקב אחרי $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'אין עדיין צלילות מתועדות';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות';
+
+  @override
+  String get plannerCanvas_link_action => 'קישור לצלילה מתועדת';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'שינוי הצלילה המקושרת';
+
+  @override
+  String get plannerCanvas_unlink_action => 'ביטול קישור הצלילה';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'בוצעה כצלילה #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'בוצעה ב-$date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'שמור תחילה את התוכנית';
 
   @override
   String plannerSeries_dive(String letter) {
@@ -20077,6 +20302,41 @@ class AppLocalizationsHe extends AppLocalizations {
   String plannerSeries_diveNamed(String letter, String name) {
     return 'צלילה $letter: $name';
   }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'צלילה מתועדת $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'פתיחה ביומן';
+
+  @override
+  String get plannerSeries_stopFollowing => 'הפסקת מעקב';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'מועבר אל $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS בסוף';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive הסתיימה לפני $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'צלילה #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'מעקב';
 
   @override
   String get plannerSeries_surfaceInterval => 'מרווח שטח';
@@ -20116,8 +20376,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לתכנן סדרת צלילות כמשימת DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'רק הצלילה הראשונה בסדרה יכולה לעקוב אחרי צלילה מתועדת';
+  String get plannerSeries_followUnavailableInReplan =>
+      'תכנון מחדש לא יכול לעקוב אחרי צלילה אחרת';
 
   @override
   String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
@@ -20198,6 +20458,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'תוכנית דקומפרסיה ללא גז חילוץ (bailout)';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'גז החילוץ (bailout) היפוקסי ב-$depth (ppO₂ $value bar). יש לשאת גז שניתן לנשימה עד פני המים.';
+  }
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -28568,6 +28833,159 @@ class AppLocalizationsHe extends AppLocalizations {
       'ממצאים פתוחים לפי כלל, בכל הצלילות';
 
   @override
+  String get insights_equipment_showAll => 'הצג הכול';
+
+  @override
+  String get insights_equipment_showLess => 'הצג פחות';
+
+  @override
+  String insights_equipment_mostUsedGear_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שעות',
+      one: 'שעה $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_title => 'עלות בעלות';
+
+  @override
+  String get insights_equipment_cost_subtitle =>
+      'רכישה וטיפולים, בכל הצלילות שלך';
+
+  @override
+  String get insights_equipment_cost_spentTotal => 'סך ההוצאות';
+
+  @override
+  String get insights_equipment_cost_perDive => 'לצלילה';
+
+  @override
+  String get insights_equipment_cost_byYear => 'הוצאות לפי שנה';
+
+  @override
+  String get insights_equipment_cost_metricPerDive => 'לצלילה';
+
+  @override
+  String get insights_equipment_cost_metricPerHour => 'לשעה';
+
+  @override
+  String get insights_equipment_cost_metricTotal => 'סה״כ';
+
+  @override
+  String insights_equipment_cost_rowPerDive(String amount) {
+    return '$amount / צלילה';
+  }
+
+  @override
+  String insights_equipment_cost_rowPerHour(String amount) {
+    return '$amount / שעה';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverDives(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount על פני $count צלילות',
+      one: '$amount על פני צלילה $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverHours(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount על פני $count שעות',
+      one: '$amount על פני שעה $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_noDives => 'עדיין אין צלילות';
+
+  @override
+  String insights_equipment_cost_undated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count רכישות אין תאריך',
+      one: 'לרכישה $count אין תאריך',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count פריטים לא נרשמה עלות',
+      one: 'לפריט $count לא נרשמה עלות',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_empty =>
+      'עדיין לא נרשמו מחירי רכישה או עלויות טיפול';
+
+  @override
+  String get insights_equipment_cost_error => 'לא ניתן לטעון את עלויות הציוד';
+
+  @override
+  String get insights_equipment_idle_title => 'ציוד לא פעיל';
+
+  @override
+  String get insights_equipment_idle_subtitle =>
+      'ציוד שבבעלותך ושלא צללת איתו לאחרונה, בכל הצלילות שלך';
+
+  @override
+  String get insights_equipment_idle_over6Months => 'מעל 6 חודשים';
+
+  @override
+  String get insights_equipment_idle_over1Year => 'מעל שנה';
+
+  @override
+  String get insights_equipment_idle_over2Years => 'מעל שנתיים';
+
+  @override
+  String get insights_equipment_idle_neverDived => 'לא נעשה בו שימוש';
+
+  @override
+  String insights_equipment_idle_years(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שנים',
+      one: 'שנה $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_idle_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חודשים',
+      one: 'חודש $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_idle_empty => 'כל הציוד שלך היה בשימוש לאחרונה';
+
+  @override
+  String get insights_equipment_idle_error => 'לא ניתן לטעון ציוד לא פעיל';
+
+  @override
   String get insights_equipment_findings_empty => 'אין ממצאים פתוחים';
 
   @override
@@ -33236,6 +33654,15 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>
       'חלק מהערכים נשארו ריקים';
+
+  @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'חלק מתערובות הגז תוקנו';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'חמצן והליום יחד עברו את 100% בשורות האלה: $rows. ההליום הופחת כך שהסך הכול הוא 100%. בדקו את הגז בצלילות האלה.';
+  }
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
@@ -40503,8 +40930,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'מקורות נתונים';
 
   @override
-  String get reef_section_loadError =>
-      'לא ניתן לטעון נתוני מערכת אקולוגית כרגע';
+  String get reef_section_checking => 'בודק…';
 
   @override
   String get reef_habitat_title => 'בית גידול השונית';
@@ -51390,11 +51816,92 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'תרחיש חדש';
+  String get diveLab_compare_line_planned => 'מתוכנן';
 
   @override
-  String get diveLab_section_hint =>
-      'הסתעפו מהצלילה בכל רגע והשוו מה היה קורה.';
+  String get diveLab_compare_line_asDived => 'כפי שבוצעה';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'מה אם';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'עומק מרבי';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'זמן קרקעית';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL בעזיבת הקרקעית';
+
+  @override
+  String get diveLab_compare_row_deco => 'דקו';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'נותרו $minutes דק׳';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'דקו ב-$time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, בוצעו $done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'אין';
+
+  @override
+  String get diveLab_compare_empty => 'אין עדיין מה להשוות';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'שאל מה אם';
+
+  @override
+  String get diveLab_compare_linkPlan => 'קישור תוכנית';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'ביטול קישור התוכנית';
+
+  @override
+  String get diveLab_compare_planTable => 'תוכנית מול צלילה';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'לוח זמנים מתוכנן';
+
+  @override
+  String get diveLab_compare_waiting => 'ממתין לצלילה';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'לבטל את קישור התוכנית?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'התוכנית והצלילה נשארות. הן פשוט לא יושוו יותר.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'ביטול קישור';
+
+  @override
+  String get diveLab_link_moveTitle => 'להעביר את הקישור של התוכנית?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'התוכנית מקושרת לצלילה אחרת. קישור כאן יסיר את הקישור הקודם.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'להחליף את התוכנית של הצלילה?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'הצלילה מושווית אל \"$plan\". קישור תוכנית אחרת יבטל את הקישור אליה.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'קישור';
 
   @override
   String get diveDetailSection_diveLab_name => 'השוואה';
@@ -53497,6 +54004,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'השוואה…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'תכנון צלילה חוזרת';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'לעומת הצלילה המקורית';

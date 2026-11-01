@@ -25,8 +25,9 @@ const Set<String> kMeasuredDiveFields = {
 };
 
 /// Dive fields the planned dive keeps: what the diver typed ahead of time,
-/// their references, opinions and provenance. `dateTime` stays as planned;
-/// the computer's start goes to `entryTime`.
+/// their references, opinions and provenance. `dateTime` stays as planned,
+/// unless the dive happened on another day; the computer's start goes to
+/// `entryTime`.
 const Set<String> kHumanDiveFields = {
   'id',
   'diverId',
