@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -58,11 +59,12 @@ part 'insights_repository_time_of_day.dart';
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
 /// The four groups partition the filtered dive library. [needsCompute] maps
-/// dive id to the latest write to that dive or to one in its residual lookback
-/// ([earlierDivesRevisionSql]), which the computed fallback
-/// uses as the profile revision in its cache fingerprint; the lean `Dive`
-/// hydration used by the analysis pipeline carries no `updatedAt`, so this
-/// scan is the only place that value is cheaply available. [noProfile] holds
+/// dive id to a version token for that dive and the dives in its residual
+/// lookback ([diveSourceStampSql] plus [earlierDivesRevisionSql]), which the
+/// computed fallback uses as the revision in its cache fingerprint; the lean
+/// `Dive` hydration used by the analysis pipeline carries none of those
+/// stamps, so this scan is the only place that value is cheaply available.
+/// Compare it only for equality. [noProfile] holds
 /// dives that can never be classified from stored data.
 typedef DecoSignalScan = ({
   Set<String> recordedDeco,
@@ -2900,21 +2902,28 @@ class InsightsRepository with InsightsChartDives {
           FROM dive_profile_events e
           JOIN scoped s ON s.dive_id = e.dive_id
           WHERE e.event_type = 'decoStopStart'
+        ),
+        classified AS (
+          SELECT
+            sig.dive_id AS dive_id,
+            CASE
+              WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
+              WHEN sig.has_deco_type = 1 THEN 'no_deco'
+              WHEN sig.positive_ceiling = 1 THEN 'deco'
+              WHEN sig.has_profile = 1 THEN 'compute'
+              ELSE 'no_profile'
+            END AS classification
+          FROM signals sig
+          LEFT JOIN stop_events ev ON ev.dive_id = sig.dive_id
         )
         SELECT
-          sig.dive_id AS dive_id,
-          MAX(d.updated_at, COALESCE(${earlierDivesRevisionSql('d')}, 0))
-            AS revision,
-          CASE
-            WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
-            WHEN sig.has_deco_type = 1 THEN 'no_deco'
-            WHEN sig.positive_ceiling = 1 THEN 'deco'
-            WHEN sig.has_profile = 1 THEN 'compute'
-            ELSE 'no_profile'
-          END AS classification
-        FROM signals sig
-        JOIN dives d ON d.id = sig.dive_id
-        LEFT JOIN stop_events ev ON ev.dive_id = sig.dive_id
+          c.dive_id AS dive_id,
+          c.classification AS classification,
+          CASE WHEN c.classification = 'compute' THEN
+            ${diveSourceStampSql('d')} + ${earlierDivesRevisionSql('d')}
+          END AS revision
+        FROM classified c
+        JOIN dives d ON d.id = c.dive_id
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       final recordedDeco = <String>{};

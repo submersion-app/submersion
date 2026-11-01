@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
@@ -212,8 +213,8 @@ void main() {
     },
   );
 
-  group('an earlier dive written after the review (#3924)', () {
-    Future<void> insertEarlier({required DateTime updatedAt}) => db
+  group('an earlier dive that changed after the review (#3924)', () {
+    Future<void> insertEarlier({required int updatedAt}) => db
         .into(db.dives)
         .insert(
           DivesCompanion(
@@ -222,9 +223,18 @@ void main() {
               now.subtract(const Duration(hours: 6)).millisecondsSinceEpoch,
             ),
             createdAt: Value(now.millisecondsSinceEpoch),
-            updatedAt: Value(updatedAt.millisecondsSinceEpoch),
+            updatedAt: Value(updatedAt),
           ),
         );
+
+    Future<void> rewriteEarlier({required int updatedAt}) => db.customStatement(
+      "UPDATE dives SET updated_at = $updatedAt WHERE id = 'earlier'",
+    );
+
+    Future<String> currentHash() async => safetyReviewInputsHash(
+      defaultFingerprint(),
+      await DiveRepository().getEarlierDivesRevision('d1'),
+    );
 
     ProviderContainer containerFor(_FakeRepo repo) {
       final profile = rapidAscentProfile();
@@ -244,49 +254,59 @@ void main() {
       return container;
     }
 
-    _FakeRepo currentRepo() => _FakeRepo(
+    _FakeRepo repoWith(String inputsHash) => _FakeRepo(
       stored: storedReview(
         SafetyReviewService.engineVersion,
-        inputsHash: defaultFingerprint(),
+        inputsHash: inputsHash,
       ),
     );
 
-    test('reviews the dive again', () async {
-      await insertEarlier(updatedAt: now.add(const Duration(minutes: 1)));
-      final repo = currentRepo();
-
-      await containerFor(repo).read(safetyReviewProvider('d1').future);
-
-      expect(repo.saves, 1);
-    });
-
-    test('keeps a review newer than the write', () async {
-      await insertEarlier(updatedAt: now.subtract(const Duration(minutes: 1)));
-      final repo = currentRepo();
+    test('keeps a review of the same history', () async {
+      await insertEarlier(updatedAt: 1000);
+      final repo = repoWith(await currentHash());
 
       await containerFor(repo).read(safetyReviewProvider('d1').future);
 
       expect(repo.saves, 0);
     });
 
-    test(
-      'a write stamped ahead of this clock cannot recompute forever',
-      () async {
-        final ahead = DateTime.now().add(const Duration(days: 1));
-        await insertEarlier(updatedAt: ahead);
-        final repo = currentRepo();
+    test('reviews the dive again after a later write', () async {
+      await insertEarlier(updatedAt: 1000);
+      final repo = repoWith(await currentHash());
+      await rewriteEarlier(updatedAt: 2000);
 
-        await containerFor(repo).read(safetyReviewProvider('d1').future);
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
 
-        expect(
-          repo.saved!.reviewedAt.millisecondsSinceEpoch,
-          ahead.millisecondsSinceEpoch,
-        );
-      },
-    );
+      expect(repo.saves, 1);
+    });
+
+    test('reviews the dive again after a write stamped earlier', () async {
+      // A peer's clock ran ahead, then a local edit stamped an earlier time.
+      await insertEarlier(updatedAt: 2000);
+      final repo = repoWith(await currentHash());
+      await rewriteEarlier(updatedAt: 1000);
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 1);
+    });
+
+    test('settles once saved, so a save cannot recompute forever', () async {
+      await insertEarlier(updatedAt: 1000);
+      final repo = repoWith('stale');
+      final container = containerFor(repo);
+
+      await container.read(safetyReviewProvider('d1').future);
+      repo.stored = repo.saved;
+      container.invalidate(safetyReviewProvider('d1'));
+      await container.read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 1);
+      expect(repo.saved!.inputsHash, await currentHash());
+    });
 
     test('never touches a review from a newer build', () async {
-      await insertEarlier(updatedAt: now.add(const Duration(minutes: 1)));
+      await insertEarlier(updatedAt: 1000);
       final repo = _FakeRepo(
         stored: storedReview(SafetyReviewService.engineVersion + 1),
       );

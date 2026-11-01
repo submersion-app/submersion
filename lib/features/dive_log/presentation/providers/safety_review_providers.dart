@@ -24,10 +24,10 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// a newer engine or under a newer fingerprint format, came from a newer
 /// peer and is kept ([_isCurrent]). A review computed on another diver's
 /// settings (#2564), on settings edited since, or before inputs were recorded
-/// is recomputed on next view (#2592). So is one older than the latest write
-/// to a dive in its residual lookback, whose load it graded (#3924). saveReview
-/// keeps a recomputed finding's id and dismissal, so a dismissal survives the
-/// recompute.
+/// is recomputed on next view (#2592). So is one graded on other history: the
+/// stored inputs also carry the dives in its residual lookback, whose load it
+/// graded ([safetyReviewInputsHash], #3924). saveReview keeps a recomputed
+/// finding's id and dismissal, so a dismissal survives the recompute.
 ///
 /// A review is saved only from an analysis that ran on exactly those
 /// settings. While a metric source is switched on the chart the analysis is
@@ -90,13 +90,14 @@ Future<SafetyReview?> _reviewDive(
   final currentInputs = ref.watch(diverAnalysisSettingsProvider).fingerprint;
 
   final stored = await repo.getReview(diveId);
-  final earlierRevision = await ref
-      .watch(diveRepositoryProvider)
-      .getEarlierDivesRevision(diveId);
+  final reviewInputs = safetyReviewInputsHash(
+    currentInputs,
+    await ref.watch(diveRepositoryProvider).getEarlierDivesRevision(diveId),
+  );
   if (stored != null &&
       (recompute
           ? _isFromNewerBuild(stored)
-          : _isCurrent(stored, currentInputs, earlierRevision))) {
+          : _isCurrent(stored, reviewInputs))) {
     return stored;
   }
 
@@ -123,18 +124,14 @@ Future<SafetyReview?> _reviewDive(
   if (superseded) return stored;
 
   final now = DateTime.now();
-  // Never older than the history just graded: a peer's clock running ahead of
-  // this one would otherwise leave the review stale, and each save would
-  // trigger the next recompute through the detail-change stream.
-  final historyAt = DateTime.fromMillisecondsSinceEpoch(earlierRevision ?? 0);
   // Return what was stored, not the engine's raw output: a kept finding
   // keeps its stored id and dismissal, and a dismiss must address that id.
   return repo.saveReview(
     SafetyReview(
       diveId: diveId,
       engineVersion: SafetyReviewService.engineVersion,
-      reviewedAt: historyAt.isAfter(now) ? historyAt : now,
-      inputsHash: currentInputs,
+      reviewedAt: now,
+      inputsHash: reviewInputs,
       findings: const SafetyReviewService().review(
         diveId: diveId,
         analysis: analysis,
@@ -144,25 +141,28 @@ Future<SafetyReview?> _reviewDive(
   );
 }
 
+/// The inputs a review records: the settings [fingerprint], plus
+/// [earlierRevision] when a dive sits in its residual lookback.
+///
+/// Stored here rather than beside the review so no synced column has to carry
+/// it. The fingerprint stays the prefix, which is what
+/// [AnalysisSettings.isNewerFormat] reads.
+String safetyReviewInputsHash(String fingerprint, int earlierRevision) =>
+    earlierRevision == 0
+    ? fingerprint
+    : '$fingerprint;history=$earlierRevision';
+
 /// Whether [stored] may be served as is under [currentInputs].
 ///
 /// A review from a newer engine is kept whatever its fingerprint: this build
 /// would recompute it with an older engine and overwrite the newer peer's.
 /// At this engine version the fingerprint must match, unless it was written
 /// in a newer format this build cannot compare, which is kept for the same
-/// reason. An older engine, or no fingerprint at all, is recomputed, and so is
-/// a review older than [earlierRevision], the latest write to a dive in its
-/// residual lookback.
-bool _isCurrent(
-  SafetyReview stored,
-  String currentInputs,
-  int? earlierRevision,
-) =>
+/// reason. An older engine, or no fingerprint at all, is recomputed.
+bool _isCurrent(SafetyReview stored, String currentInputs) =>
     _isFromNewerBuild(stored) ||
     (stored.engineVersion == SafetyReviewService.engineVersion &&
-        stored.inputsHash == currentInputs &&
-        (earlierRevision == null ||
-            stored.reviewedAt.millisecondsSinceEpoch >= earlierRevision));
+        stored.inputsHash == currentInputs);
 
 /// Whether [stored] came from a build newer than this one: a newer engine, or
 /// this engine under a fingerprint format this build cannot compare. Never

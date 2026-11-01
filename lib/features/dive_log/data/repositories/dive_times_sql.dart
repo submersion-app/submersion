@@ -14,6 +14,8 @@
 /// dive. Callers pass the table alias their statement uses for `dives`.
 library;
 
+import 'package:submersion/core/database/dive_source_stamp.dart';
+
 /// `entry_time` and `exit_time` are epoch milliseconds; `runtime` and
 /// `bottom_time` are already stored in seconds.
 const _millisecondsPerSecond = 1000;
@@ -145,18 +147,21 @@ String diveUndivedSql(String alias) {
 /// How far back a dive's residual load reads: the tissue lookback's window.
 const kResidualLookback = Duration(hours: 48);
 
-/// The latest `updated_at` among the dives that start up to
-/// [kResidualLookback] plus a day before the dive at [alias], or NULL when
-/// there are none.
+/// A version token for the dives whose load can reach the dive at [alias]:
+/// the sum of [diveSourceStampSql] over the dives that start up to
+/// [kResidualLookback] plus a day before it, or 0 when there are none.
+///
+/// A stored result computed from a dive's residual load goes stale when one of
+/// those dives changes, which nothing on the dive itself can see. A token and
+/// not a time, for the reasons on [diveSourceStampSql]: it moves on a profile
+/// or tank that never re-stamps its dive, on a write stamped older than the
+/// last, and on adding or removing a dive. Compare it only for equality.
 ///
 /// The lookback counts surface time from an earlier dive's exit and this reads
 /// starts, so the extra day keeps a long dive that ended inside the lookback.
-/// Reading too far costs one recompute and never a wrong answer.
-///
-/// A stored result computed from a dive's residual load goes stale when one of
-/// those dives changes, which the dive's own `updated_at` cannot see. This is
-/// the direct lookback only: a change further back reaches this dive through
-/// the dives between, and a deleted dive leaves no row to read.
+/// Reading too far costs one recompute and never a wrong answer. This is the
+/// direct lookback only: a change further back reaches this dive through the
+/// dives between.
 ///
 /// Two subqueries for the same reason as [diveSurfaceIntervalSecondsSql]: each
 /// is a range seek on `idx_dives_entry_date`.
@@ -165,13 +170,12 @@ String earlierDivesRevisionSql(String alias) {
   final start = 'COALESCE($alias.entry_time, $alias.dive_date_time)';
   final window = kResidualLookback + const Duration(days: 1);
   final from = '$start - ${window.inMilliseconds}';
-  String newest(String where) =>
-      '(SELECT MAX($h.updated_at) FROM dives $h WHERE $where)';
-  return 'NULLIF(MAX('
-      'COALESCE(${newest('$h.entry_time >= $from AND $h.entry_time < $start')}, 0), '
-      'COALESCE(${newest('$h.entry_time IS NULL '
-      'AND $h.dive_date_time >= $from AND $h.dive_date_time < $start')}, 0)'
-      '), 0)';
+  String stamps(String where) =>
+      'COALESCE((SELECT SUM(${diveSourceStampSql(h)}) FROM dives $h '
+      'WHERE $where), 0)';
+  return '(${stamps('$h.entry_time >= $from AND $h.entry_time < $start')} + '
+      '${stamps('$h.entry_time IS NULL '
+      'AND $h.dive_date_time >= $from AND $h.dive_date_time < $start')})';
 }
 
 /// The alias the previous dive takes inside [diveSurfaceIntervalSecondsSql],

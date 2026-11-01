@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -234,6 +236,16 @@ void main() {
     );
 
     final start = DateTime.utc(2026, 5, 3, 12);
+    Future<int> revision() => repository.getEarlierDivesRevision('current');
+
+    Future<void> createEarlier(String id, {required Duration before}) =>
+        repository.createDive(
+          domain.Dive(
+            id: id,
+            dateTime: start.subtract(before),
+            entryTime: start.subtract(before),
+          ),
+        );
 
     setUp(() async {
       await repository.createDive(
@@ -242,39 +254,74 @@ void main() {
       await touch('current', 9000);
     });
 
-    test('is null with no dive in the lookback', () async {
-      expect(await repository.getEarlierDivesRevision('current'), isNull);
-      expect(await repository.getEarlierDivesRevision('missing'), isNull);
+    test('is zero with no dive in the lookback', () async {
+      expect(await revision(), 0);
+      expect(await repository.getEarlierDivesRevision('missing'), 0);
     });
 
-    test('is the newest write to a dive inside the lookback', () async {
+    test('moves when an earlier dive is written', () async {
+      await createEarlier('earlier', before: const Duration(hours: 5));
+      await touch('earlier', 100);
+      final before = await revision();
+
+      await touch('earlier', 200);
+
+      expect(await revision(), isNot(before));
+    });
+
+    test('moves on a write stamped older than the last', () async {
+      // A peer's clock ran ahead, then a local edit stamped an earlier time.
+      await createEarlier('earlier', before: const Duration(hours: 5));
+      await touch('earlier', 2000);
+      final before = await revision();
+
+      await touch('earlier', 1000);
+
+      expect(await revision(), isNot(before));
+    });
+
+    test('moves on a dive with no entry time', () async {
       await repository.createDive(
         domain.Dive(
-          id: 'with-entry',
-          dateTime: start.subtract(const Duration(hours: 5)),
-          entryTime: start.subtract(const Duration(hours: 5)),
-        ),
-      );
-      await repository.createDive(
-        domain.Dive(
-          id: 'without-entry',
+          id: 'no-entry',
           dateTime: start.subtract(const Duration(hours: 49)),
         ),
       );
-      await touch('with-entry', 100);
-      await touch('without-entry', 200);
+      await touch('no-entry', 100);
+      final before = await revision();
 
-      expect(await repository.getEarlierDivesRevision('current'), 200);
+      await touch('no-entry', 200);
+
+      expect(await revision(), isNot(before));
+    });
+
+    test(
+      'moves on an earlier profile, which never re-stamps its dive',
+      () async {
+        await createEarlier('earlier', before: const Duration(hours: 5));
+        final before = await revision();
+
+        await ProfileSeriesRepository().insertSeries(
+          diveId: 'earlier',
+          samples: const [ProfileSample(timestamp: 60, depth: 20)],
+          now: 500,
+        );
+
+        expect(await revision(), isNot(before));
+      },
+    );
+
+    test('moves when an earlier dive is deleted', () async {
+      await createEarlier('earlier', before: const Duration(hours: 5));
+      final before = await revision();
+
+      await repository.deleteDive('earlier');
+
+      expect(await revision(), isNot(before));
     });
 
     test('ignores dives outside it, later ones and the dive itself', () async {
-      await repository.createDive(
-        domain.Dive(
-          id: 'too-old',
-          dateTime: start.subtract(const Duration(hours: 73)),
-          entryTime: start.subtract(const Duration(hours: 73)),
-        ),
-      );
+      await createEarlier('too-old', before: const Duration(hours: 73));
       await repository.createDive(
         domain.Dive(
           id: 'later',
@@ -284,8 +331,9 @@ void main() {
       );
       await touch('too-old', 100);
       await touch('later', 200);
+      await touch('current', 300);
 
-      expect(await repository.getEarlierDivesRevision('current'), isNull);
+      expect(await revision(), 0);
     });
   });
 

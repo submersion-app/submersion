@@ -13,6 +13,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -6172,23 +6173,23 @@ class DiveRepository {
     }
   }
 
-  /// [earlierDivesRevisionSql] for [diveId]: the latest write to a dive inside
-  /// its residual lookback, or null when there is none.
+  /// [earlierDivesRevisionSql] for [diveId]: a token for the dives inside its
+  /// residual lookback, 0 when there are none. Compare it only for equality.
   ///
   /// Rethrows like [getMostRecentDiveTimes]: it feeds a safety readout, and
   /// reading a failure as "nothing changed" would serve a stale review.
   // stats-scope-exempt: reads one dive's write stamps, not a statistic
-  Future<int?> getEarlierDivesRevision(String diveId) async {
+  Future<int> getEarlierDivesRevision(String diveId) async {
     try {
       final row = await _db
           .customSelect(
             'SELECT ${earlierDivesRevisionSql('d')} AS revision '
             'FROM dives d WHERE d.id = ?',
             variables: [Variable<String>(diveId)],
-            readsFrom: {_db.dives},
+            readsFrom: diveSourceStampTables(_db),
           )
           .getSingleOrNull();
-      return row?.readNullable<int>('revision');
+      return row?.read<int>('revision') ?? 0;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to read the earlier dives revision for: $diveId',
