@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
-import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
@@ -1038,80 +1037,17 @@ void main() {
       },
     );
 
-    test('setFollowedDive seeds context and clearFollowedDive drops it', () {
+    test('clearing the repetitive dive settings drops carried exposure', () {
       final notifier = DivePlanNotifier(PlanCalculatorService());
       addTearDown(notifier.dispose);
-
-      final compartments = [
-        const TissueCompartment(
-          compartmentNumber: 1,
-          halfTimeN2: 5.0,
-          halfTimeHe: 1.88,
-          mValueAN2: 1.1696,
-          mValueBN2: 0.5578,
-          mValueAHe: 1.6189,
-          mValueBHe: 0.4770,
-          currentPN2: 1.2,
-        ),
-      ];
-      const altitude = DiveEnvironment(surfacePressureBar: 0.7);
-      notifier.setFollowedDive(
-        environment: altitude,
-        diveId: 'dive-9',
-        compartments: compartments,
-        surfaceInterval: const Duration(hours: 2),
+      notifier.loadPlan(
+        notifier.state.copyWith(initialCns: 30, initialOtu: 120),
       );
 
-      var state = notifier.state;
-      expect(state.sourceDiveId, 'dive-9');
-      expect(state.initialTissueState, compartments);
-      expect(state.initialTissueEnvironment, altitude);
-      expect(state.surfaceInterval, const Duration(hours: 2));
-      expect(state.isDirty, isTrue);
+      notifier.clearRepetitiveDiveSettings();
 
-      notifier.clearFollowedDive();
-      state = notifier.state;
-      expect(state.sourceDiveId, isNull);
-      expect(state.initialTissueEnvironment, isNull);
-      expect(state.initialTissueState, isNull);
-      expect(state.surfaceInterval, isNull);
-    });
-
-    group('drops exposure carried in from a series dive', () {
-      late DivePlanNotifier notifier;
-
-      setUp(() {
-        notifier = DivePlanNotifier(PlanCalculatorService());
-        notifier.loadPlan(
-          notifier.state.copyWith(initialCns: 30, initialOtu: 120),
-        );
-      });
-
-      tearDown(() => notifier.dispose());
-
-      void expectNoExposure() {
-        expect(notifier.state.initialCns, isNull);
-        expect(notifier.state.initialOtu, isNull);
-      }
-
-      test('when following a dive', () {
-        notifier.setFollowedDive(
-          environment: DiveEnvironment.standard,
-          diveId: 'dive-9',
-          surfaceInterval: const Duration(hours: 2),
-        );
-        expectNoExposure();
-      });
-
-      test('when no longer following one', () {
-        notifier.clearFollowedDive();
-        expectNoExposure();
-      });
-
-      test('when clearing the repetitive dive settings', () {
-        notifier.clearRepetitiveDiveSettings();
-        expectNoExposure();
-      });
+      expect(notifier.state.initialCns, isNull);
+      expect(notifier.state.initialOtu, isNull);
     });
 
     test('setLinkedDive records and clears the converted dive', () {

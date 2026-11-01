@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
-import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -70,14 +69,15 @@ void main() {
       if (seeded) {
         final prior = BuhlmannAlgorithm(gfLow: 0.40, gfHigh: 0.80)
           ..calculateSegment(depthMeters: 40.0, durationSeconds: 40 * 60);
-        container
-            .read(divePlanNotifierProvider.notifier)
-            .setFollowedDive(
-              environment: DiveEnvironment.standard,
-              diveId: 'prior',
-              compartments: prior.compartments,
-              surfaceInterval: const Duration(minutes: 30),
-            );
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.loadPlan(
+          container
+              .read(divePlanNotifierProvider)
+              .copyWith(
+                initialTissueState: prior.compartments,
+                surfaceInterval: const Duration(minutes: 30),
+              ),
+        );
       }
       container.read(contingenciesExpandedProvider.notifier).state = true;
       listenToAllPlanResults(container);

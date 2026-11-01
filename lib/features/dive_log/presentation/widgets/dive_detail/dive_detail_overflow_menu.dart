@@ -160,6 +160,15 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
               ),
             ),
+          if (!dive.isPlanned)
+            PopupMenuItem(
+              value: 'planRepetitive',
+              child: ListTile(
+                leading: const Icon(Icons.add_circle_outline),
+                title: Text(context.l10n.diveLog_detail_menu_planRepetitive),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           PopupMenuItem(
             value: 'delete',
             child: ListTile(
