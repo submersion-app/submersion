@@ -181,26 +181,96 @@ void main() {
       expect(found.single.createDateTime, DateTime(2026, 3, 10, 11));
     });
 
-    test('reads one photo and stops when its EXIF agrees with this device, '
-        'so the common case downloads nothing else', () async {
+    test('stops after a few photos when their EXIF agrees with this device, '
+        'so the common case downloads almost nothing', () async {
       final library = _Library(
         assets: [
           _asset('in-dive', DateTime(2026, 3, 10, 10, 20)),
+          _asset('also-in-dive', DateTime(2026, 3, 10, 10, 40)),
           _asset('lunch', DateTime(2026, 3, 10, 13)),
+          _asset('coffee', DateTime(2026, 3, 10, 14)),
+          _asset('walk', DateTime(2026, 3, 10, 15)),
           _asset('dinner', DateTime(2026, 3, 10, 19)),
         ],
         exif: {
           'in-dive': _exif(DateTime.utc(2026, 3, 10, 10, 20)),
+          'also-in-dive': _exif(DateTime.utc(2026, 3, 10, 10, 40)),
           'lunch': _exif(DateTime.utc(2026, 3, 10, 13)),
+          'coffee': _exif(DateTime.utc(2026, 3, 10, 14)),
+          'walk': _exif(DateTime.utc(2026, 3, 10, 15)),
           'dinner': _exif(DateTime.utc(2026, 3, 10, 19)),
         },
       );
 
       final found = await find(library);
 
-      expect(found.map((a) => a.id), ['in-dive']);
-      expect(library.metadataReads, ['in-dive']);
+      expect(found.map((a) => a.id), ['also-in-dive', 'in-dive']);
+      expect(library.metadataReads, ['in-dive', 'lunch', 'coffee', 'walk']);
     });
+
+    test('finds phone photos from the dive when camera photos from it agree '
+        'with this device', () async {
+      // A camera that records no timezone, imported at home, is stamped in
+      // this device's zone. The phone's photo of the same dive is an instant.
+      final library = _Library(
+        assets: [
+          _asset('camera', DateTime(2026, 3, 10, 10, 10)),
+          _asset('phone', DateTime(2026, 3, 9, 19, 20)),
+        ],
+        exif: {
+          'camera': _exif(DateTime.utc(2026, 3, 10, 10, 10)),
+          'phone': _exif(DateTime.utc(2026, 3, 10, 10, 20)),
+        },
+      );
+
+      final found = await find(library);
+
+      expect(found.map((a) => a.id), ['phone', 'camera']);
+      expect(found.first.createDateTime, DateTime(2026, 3, 10, 10, 20));
+    });
+
+    test('corrects a photo inside the window once another photo shows the '
+        'clocks disagree', () async {
+      final library = _Library(
+        assets: [
+          _asset('camera', DateTime(2026, 3, 10, 10)),
+          _asset('near-zone', DateTime(2026, 3, 10, 11)),
+          _asset('palau', DateTime(2026, 3, 9, 19, 20)),
+        ],
+        exif: {
+          'camera': _exif(DateTime.utc(2026, 3, 10, 10)),
+          'near-zone': _exif(DateTime.utc(2026, 3, 10, 11, 30)),
+          'palau': _exif(DateTime.utc(2026, 3, 10, 10, 20)),
+        },
+      );
+
+      final found = await find(library);
+
+      expect(
+        found.singleWhere((a) => a.id == 'near-zone').createDateTime,
+        DateTime(2026, 3, 10, 11, 30),
+      );
+    });
+
+    test(
+      'reads each photo only once, since a read can be a download',
+      () async {
+        final library = _Library(
+          assets: [
+            _asset('camera', DateTime(2026, 3, 10, 10)),
+            _asset('palau', DateTime(2026, 3, 9, 19, 20)),
+          ],
+          exif: {
+            'camera': _exif(DateTime.utc(2026, 3, 10, 10)),
+            'palau': _exif(DateTime.utc(2026, 3, 10, 10, 20)),
+          },
+        );
+
+        await find(library);
+
+        expect(library.metadataReads, unorderedEquals(['camera', 'palau']));
+      },
+    );
 
     test('checks the clock on the photo nearest the dive', () async {
       final library = _Library(

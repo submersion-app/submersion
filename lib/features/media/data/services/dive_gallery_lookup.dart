@@ -14,6 +14,14 @@ const Duration _widestZoneGap = Duration(hours: 26);
 /// minutes, and the seconds of a re-saved file's date can drift.
 const Duration _sameClockTolerance = Duration(minutes: 1);
 
+/// How many dated photos inside the dive window must agree with the device
+/// before it is believed. They are likely one camera, so one speaks for them.
+const int _clockSamplesInside = 1;
+
+/// How many dated photos outside the dive window must agree. These are what
+/// a wrong clock has pushed away, so they are the evidence that counts.
+const int _clockSamplesOutside = 3;
+
 final _log = LoggerService.forClass(DiveGalleryLookup);
 
 /// Finds the gallery photos taken during one dive (issue #259).
@@ -26,9 +34,16 @@ final _log = LoggerService.forClass(DiveGalleryLookup);
 /// so the search asks for every zone the device could be in and judges the
 /// results by each photo's EXIF `DateTimeOriginal`, which is the wall-time.
 ///
-/// A photo's EXIF can mean downloading it from iCloud, so that read is held
-/// to one photo unless it shows the device's clock is out: while the device
-/// is in the dive's zone, which is nearly always, nothing else is fetched.
+/// A photo's EXIF can mean downloading it from iCloud, so a few photos are
+/// sampled first: while they agree with the device's clock, which is nearly
+/// always, nothing else is fetched. The sample reaches outside the window
+/// because a photo inside it cannot speak for the rest: a camera that records
+/// no timezone agrees with the device however far the phone has travelled,
+/// while the phone's own photos of the same dive sit hours away.
+///
+/// A library that disagrees only beyond the nearest photos is not noticed.
+/// Reading everything to rule that out would download two days of photos
+/// each time the picker opens, for every diver.
 abstract final class DiveGalleryLookup {
   /// The library's photos and videos from `[windowStart, windowEnd]`, a dive
   /// window in wall-clock-as-UTC, newest first.
@@ -77,19 +92,48 @@ abstract final class DiveGalleryLookup {
             _gapToWindow(a, start, end).compareTo(_gapToWindow(b, start, end)),
       );
 
-    var clockChecked = false;
+    final wallTimes = <String, DateTime?>{};
+    Future<DateTime?> wallTimeOf(AssetInfo photo) async {
+      if (wallTimes.containsKey(photo.id)) return wallTimes[photo.id];
+      return wallTimes[photo.id] = await _captureWallTime(
+        photo,
+        photoPickerService,
+      );
+    }
+
+    bool stillWanted() => isActive == null || isActive();
+
+    List<AssetInfo> newestFirst() =>
+        found.values.toList()
+          ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
+
+    var insideLeft = _clockSamplesInside;
+    var outsideLeft = _clockSamplesOutside;
+    var clocksAgree = true;
     for (final photo in photos) {
-      if (isActive != null && !isActive()) break;
-      final wallTime = await _captureWallTime(photo, photoPickerService);
+      final inside = found.containsKey(photo.id);
+      if ((inside ? insideLeft : outsideLeft) == 0) continue;
+      if (!stillWanted()) break;
+      final wallTime = await wallTimeOf(photo);
       if (wallTime == null) continue;
 
-      if (!clockChecked) {
-        clockChecked = true;
-        final deviceDigits = asWallClockUtc(photo.createDateTime);
-        if (wallTime.difference(deviceDigits).abs() < _sameClockTolerance) {
-          break;
-        }
+      final deviceDigits = asWallClockUtc(photo.createDateTime);
+      if (wallTime.difference(deviceDigits).abs() >= _sameClockTolerance) {
+        clocksAgree = false;
+        break;
       }
+      if (inside) {
+        insideLeft--;
+      } else {
+        outsideLeft--;
+      }
+    }
+    if (clocksAgree) return newestFirst();
+
+    for (final photo in photos) {
+      if (!stillWanted()) break;
+      final wallTime = await wallTimeOf(photo);
+      if (wallTime == null) continue;
 
       if (inWindow(wallTime)) {
         found[photo.id] = photo.copyWith(
@@ -100,8 +144,7 @@ abstract final class DiveGalleryLookup {
       }
     }
 
-    return found.values.toList()
-      ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
+    return newestFirst();
   }
 
   /// How far [asset]'s digits on this device are from the window; zero
