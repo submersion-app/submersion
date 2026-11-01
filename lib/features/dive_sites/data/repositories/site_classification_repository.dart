@@ -29,8 +29,8 @@ class SiteClassificationRepository {
   final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final _uuid = const Uuid();
 
-  /// Links per statement in the writes over many sites. Each binds at most
-  /// four variables, well under SQLite's limit.
+  /// New links or sites per statement in the writes over many sites, well
+  /// under SQLite's bound-variable limit.
   static const _linkChunk = 500;
 
   /// Emits when either junction, or the type or tag vocabulary, changes.
