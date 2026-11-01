@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/features/agent_access/presentation/pages/agent_access_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_settings_page.dart';
@@ -98,6 +99,7 @@ Widget? dataPanePage(Uri location) {
     ['storage-usage', 'unrecognized-backups'] =>
       const UnrecognizedBackupsPage(),
     ['offline-maps'] => const OfflineMapsPage(),
+    ['agent-access'] => const AgentAccessPage(),
     ['import-options'] => const ImportOptionsPage(),
     ['data-tools'] => const DataToolsPage(),
     ['fix-dive-times'] => const FixDiveTimesPage(),

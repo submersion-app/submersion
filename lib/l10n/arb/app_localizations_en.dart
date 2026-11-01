@@ -26416,6 +26416,86 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fix dive times, link buddies, retype gear, data quality';
 
   @override
+  String get settings_agentAccess_title => 'Agent access';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'Let an AI agent on this computer read and change your logbook';
+
+  @override
+  String get settings_agentAccess_enable => 'Enable agent access';
+
+  @override
+  String get settings_agentAccess_statusListening => 'Listening';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'Stopped';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'Last request $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'Port $port is already in use';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'Port';
+
+  @override
+  String get settings_agentAccess_token => 'Access token';
+
+  @override
+  String get settings_agentAccess_reveal => 'Reveal';
+
+  @override
+  String get settings_agentAccess_hide => 'Hide';
+
+  @override
+  String get settings_agentAccess_copy => 'Copy';
+
+  @override
+  String get settings_agentAccess_regenerate => 'Regenerate';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'Every connected agent will need the new token. Continue?';
+
+  @override
+  String get settings_agentAccess_confirmWrites =>
+      'Ask before applying changes';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'Show a confirmation in Submersion before an agent changes records';
+
+  @override
+  String get settings_agentAccess_snippets => 'Connect a client';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (via mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'Other clients';
+
+  @override
+  String get settings_agentAccess_copied => 'Copied';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'Agents can see every diver profile on this computer.';
+
+  @override
+  String get settings_agentAccess_portInvalid =>
+      'Enter a port from 1024 to 65535';
+
+  @override
   String get settings_sync_title => 'Sync between devices';
 
   @override

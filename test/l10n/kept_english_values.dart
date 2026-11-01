@@ -31,6 +31,8 @@ const _germanSerial =
     'S/N is the usual German abbreviation for a serial number';
 
 const Map<String, String> keptEnglishValues = {
+  'settings_agentAccess_claudeCode': _brand,
+  'settings_agentAccess_claudeDesktop': _brand,
   'attrChoice_battery_type_lithium_ion@fr': _sameWord,
   'attrChoice_battery_type_lithium_ion@nl': _sameWord,
   'attrChoice_bcd_style_back_inflate@de': _loanword,

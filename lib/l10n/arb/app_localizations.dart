@@ -43062,6 +43062,144 @@ abstract class AppLocalizations {
   /// **'Fix dive times, link buddies, retype gear, data quality'**
   String get settings_data_dataTools_subtitle;
 
+  /// No description provided for @settings_agentAccess_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent access'**
+  String get settings_agentAccess_title;
+
+  /// No description provided for @settings_agentAccess_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let an AI agent on this computer read and change your logbook'**
+  String get settings_agentAccess_subtitle;
+
+  /// No description provided for @settings_agentAccess_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable agent access'**
+  String get settings_agentAccess_enable;
+
+  /// No description provided for @settings_agentAccess_statusListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening'**
+  String get settings_agentAccess_statusListening;
+
+  /// No description provided for @settings_agentAccess_statusStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get settings_agentAccess_statusStopped;
+
+  /// No description provided for @settings_agentAccess_lastRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Last request {time}'**
+  String settings_agentAccess_lastRequest(String time);
+
+  /// No description provided for @settings_agentAccess_portInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Port {port} is already in use'**
+  String settings_agentAccess_portInUse(int port);
+
+  /// No description provided for @settings_agentAccess_port.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get settings_agentAccess_port;
+
+  /// No description provided for @settings_agentAccess_token.
+  ///
+  /// In en, this message translates to:
+  /// **'Access token'**
+  String get settings_agentAccess_token;
+
+  /// No description provided for @settings_agentAccess_reveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal'**
+  String get settings_agentAccess_reveal;
+
+  /// No description provided for @settings_agentAccess_hide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get settings_agentAccess_hide;
+
+  /// No description provided for @settings_agentAccess_copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get settings_agentAccess_copy;
+
+  /// No description provided for @settings_agentAccess_regenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get settings_agentAccess_regenerate;
+
+  /// No description provided for @settings_agentAccess_regenerateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Every connected agent will need the new token. Continue?'**
+  String get settings_agentAccess_regenerateConfirm;
+
+  /// No description provided for @settings_agentAccess_confirmWrites.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask before applying changes'**
+  String get settings_agentAccess_confirmWrites;
+
+  /// No description provided for @settings_agentAccess_confirmWritesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a confirmation in Submersion before an agent changes records'**
+  String get settings_agentAccess_confirmWritesSubtitle;
+
+  /// No description provided for @settings_agentAccess_snippets.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a client'**
+  String get settings_agentAccess_snippets;
+
+  /// No description provided for @settings_agentAccess_claudeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude Code'**
+  String get settings_agentAccess_claudeCode;
+
+  /// No description provided for @settings_agentAccess_claudeDesktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude Desktop (via mcp-remote)'**
+  String get settings_agentAccess_claudeDesktop;
+
+  /// No description provided for @settings_agentAccess_generic.
+  ///
+  /// In en, this message translates to:
+  /// **'Other clients'**
+  String get settings_agentAccess_generic;
+
+  /// No description provided for @settings_agentAccess_copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get settings_agentAccess_copied;
+
+  /// No description provided for @settings_agentAccess_scopeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Agents can see every diver profile on this computer.'**
+  String get settings_agentAccess_scopeNote;
+
+  /// No description provided for @settings_agentAccess_portInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a port from 1024 to 65535'**
+  String get settings_agentAccess_portInvalid;
+
   /// No description provided for @settings_sync_title.
   ///
   /// In en, this message translates to:
