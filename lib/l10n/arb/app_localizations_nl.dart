@@ -20779,6 +20779,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Decompressieplan heeft geen bailoutgas aan boord';
 
   @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'Bailoutgas is hypoxisch op $depth (ppO₂ $value bar). Neem een gas mee dat tot aan de oppervlakte te ademen is.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,
@@ -41668,8 +41673,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Gegevensbronnen';
 
   @override
-  String get reef_section_loadError =>
-      'Ecosysteemgegevens konden nu niet worden geladen';
+  String get reef_section_checking => 'Bezig met controleren…';
 
   @override
   String get reef_habitat_title => 'Rifhabitat';

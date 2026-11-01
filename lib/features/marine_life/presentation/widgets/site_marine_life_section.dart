@@ -19,16 +19,11 @@ class SiteMarineLifeSection extends ConsumerWidget {
   /// When present, a "Recorded nearby" tier is shown from online sources.
   final GeoPoint? location;
 
-  /// The site's water type, forwarded to the nearby-species tier so it shares
-  /// the ecosystem section's snapshot request.
-  final WaterType? waterType;
-
   const SiteMarineLifeSection({
     super.key,
     required this.siteId,
     this.readOnly = false,
     this.location,
-    this.waterType,
   });
 
   @override
@@ -49,11 +44,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
             _buildExpectedSection(context, ref, expectedAsync),
             if (location != null) ...[
               const SizedBox(height: 16),
-              NearbySpeciesTier(
-                siteId: siteId,
-                location: location!,
-                waterType: waterType,
-              ),
+              NearbySpeciesTier(siteId: siteId, location: location!),
             ],
           ],
         ),

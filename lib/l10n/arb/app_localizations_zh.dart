@@ -19890,6 +19890,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_issue_noBailout => '减压计划未携带逃生气体';
 
   @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return '$depth 处逃生气体为低氧气体（ppO₂ $value bar）。请携带可一直呼吸至水面的气体。';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,
@@ -39502,7 +39507,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reef_section_sourcesTooltip => '数据来源';
 
   @override
-  String get reef_section_loadError => '目前无法加载生态系统数据';
+  String get reef_section_checking => '正在检查…';
 
   @override
   String get reef_habitat_title => '珊瑚礁生境';

@@ -33252,6 +33252,12 @@ abstract class AppLocalizations {
   /// **'Decompression plan carries no bailout gas'**
   String get plannerCanvas_issue_noBailout;
 
+  /// No description provided for @plannerCanvas_issue_bailoutHypoxic.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout gas is hypoxic at {depth} (ppO₂ {value} bar). Carry a gas breathable to the surface.'**
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value);
+
   /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
   ///
   /// In en, this message translates to:
@@ -66026,11 +66032,11 @@ abstract class AppLocalizations {
   /// **'Data sources'**
   String get reef_section_sourcesTooltip;
 
-  /// No description provided for @reef_section_loadError.
+  /// No description provided for @reef_section_checking.
   ///
   /// In en, this message translates to:
-  /// **'Could not load ecosystem data right now'**
-  String get reef_section_loadError;
+  /// **'Checking…'**
+  String get reef_section_checking;
 
   /// No description provided for @reef_habitat_title.
   ///

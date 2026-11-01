@@ -21205,6 +21205,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'خطة تخفيف الضغط لا تتضمن غاز إنقاذ (bailout)';
 
   @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'غاز الإنقاذ (bailout) ناقص الأكسجين عند $depth (ppO₂ $value bar). احمل غازًا صالحًا للتنفس حتى السطح.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,
@@ -42475,7 +42480,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'مصادر البيانات';
 
   @override
-  String get reef_section_loadError => 'تعذّر تحميل بيانات النظام البيئي الآن';
+  String get reef_section_checking => 'جارٍ التحقق…';
 
   @override
   String get reef_habitat_title => 'موئل الشعاب';

@@ -18,6 +18,42 @@ PlanIssue _issue(
 );
 
 void main() {
+  test('the worst of several hypoxic issues is the lowest ppO2', () {
+    final mildFirst = groupPlanIssues([
+      _issue(
+        PlanIssueType.hypoxicGas,
+        PlanIssueSeverity.critical,
+        value: 0.15,
+        depth: 6,
+      ),
+      _issue(
+        PlanIssueType.hypoxicGas,
+        PlanIssueSeverity.critical,
+        value: 0.09,
+        depth: 0,
+      ),
+    ]).single;
+    final worstFirst = groupPlanIssues([
+      _issue(
+        PlanIssueType.hypoxicGas,
+        PlanIssueSeverity.critical,
+        value: 0.09,
+        depth: 0,
+      ),
+      _issue(
+        PlanIssueType.hypoxicGas,
+        PlanIssueSeverity.critical,
+        value: 0.15,
+        depth: 6,
+      ),
+    ]).single;
+
+    expect(mildFirst.count, 2);
+    expect(mildFirst.issue.value, 0.09);
+    expect(mildFirst.issue.atDepth, 0);
+    expect(worstFirst.issue.value, 0.09);
+  });
+
   test(
     'repeats of the same issue collapse to one row with the worst value',
     () {

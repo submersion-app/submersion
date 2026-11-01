@@ -13074,6 +13074,17 @@
     }
   },
   "plannerCanvas_issue_noBailout": "Decompression plan carries no bailout gas",
+  "plannerCanvas_issue_bailoutHypoxic": "Bailout gas is hypoxic at {depth} (ppO₂ {value} bar). Carry a gas breathable to the surface.",
+  "@plannerCanvas_issue_bailoutHypoxic": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_noEligibleBailoutGas": "No bailout gas reaches {depth}: the deepest MOD carried is {deepestMod}. Carry a gas usable at that depth; more of the same gas will not help.",
   "@plannerCanvas_issue_noEligibleBailoutGas": {
     "placeholders": {
@@ -25553,7 +25564,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it.",
   "reef_section_title": "Ecosystem",
   "reef_section_sourcesTooltip": "Data sources",
-  "reef_section_loadError": "Could not load ecosystem data right now",
+  "reef_section_checking": "Checking…",
   "reef_habitat_title": "Reef habitat",
   "reef_habitat_onReef": "On a coral reef",
   "reef_habitat_onReefWithThreat": "On a coral reef, threat level {threat}",

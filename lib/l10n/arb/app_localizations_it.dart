@@ -20913,6 +20913,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il piano di decompressione non prevede gas di bailout';
 
   @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'Il gas di bailout è ipossico a $depth (ppO₂ $value bar). Porta un gas respirabile fino alla superficie.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,
@@ -41953,8 +41958,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Fonti dei dati';
 
   @override
-  String get reef_section_loadError =>
-      'Impossibile caricare i dati dell\'ecosistema al momento';
+  String get reef_section_checking => 'Verifica in corso…';
 
   @override
   String get reef_habitat_title => 'Habitat della barriera';

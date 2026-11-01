@@ -137,6 +137,7 @@ The planner warns about:
 | OTU | Above 300 for the dive |
 | Gas supply | A tank running empty, a reserve broken, or a tank ending below its minimum gas |
 | Missing gas | An open-circuit deco dive with no deco gas, or a rebreather deco dive with no bailout gas |
+| Bailout gas | A rebreather plan deeper than the maximum operating depth of every bailout gas, or bailout gases that turn hypoxic on the way to the surface. These do not stop a plan being diveable |
 | Diluent MOD | A diluent breathed deeper than its maximum operating depth |
 
 ### Saving, sharing and comparing plans

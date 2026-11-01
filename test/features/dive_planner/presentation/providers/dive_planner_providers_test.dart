@@ -823,6 +823,28 @@ void main() {
       expect(ttsForSalinity(40), greaterThan(ttsForSalinity(0)));
     });
 
+    test('plan gas follows the plan altitude (#4010)', () {
+      double remainingAt(double? altitude) {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.addSimplePlan(maxDepth: 30.0, bottomTimeMinutes: 20);
+        notifier.updateAltitude(altitude);
+        return container
+            .read(planResultsProvider)
+            .gasConsumptions
+            .first
+            .remainingPressure!;
+      }
+
+      expect(remainingAt(3000), greaterThan(remainingAt(null)));
+    });
+
     test('the quick plan descends at the Settings rate when unset', () {
       // An unset plan descent rate follows the diver's Settings (#3552),
       // not the 18 m/min spec constant.
