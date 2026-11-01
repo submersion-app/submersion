@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
@@ -74,9 +73,16 @@ class _NoFlyPageState extends ConsumerState<NoFlyPage> {
         // one is set. The page's minute ticker keeps the countdown fresh.
         Builder(
           builder: (context) {
+            // This provider follows the trip's window, so a refresh there is
+            // a reload here, which must not hide the card for a frame.
             final flight = ref
                 .watch(activeTripFlightWindowProvider)
-                .valueOrNull;
+                .when(
+                  skipLoadingOnReload: true,
+                  data: (status) => status,
+                  error: (_, _) => null,
+                  loading: () => null,
+                );
             if (flight == null) return const SizedBox.shrink();
             return Padding(
               padding: const EdgeInsets.only(top: 8),
