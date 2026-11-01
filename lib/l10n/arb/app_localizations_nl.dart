@@ -20652,6 +20652,32 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minuten meer';
 
   @override
+  String get plannerSeries_start => 'Begin';
+
+  @override
+  String get plannerSeries_start_notSet => 'Niet ingesteld';
+
+  @override
+  String get plannerSeries_start_clear => 'Begintijd wissen';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Geef eerst de eerste duik een begintijd';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'De oppervlakte-interval volgt uit dit begin';
+
+  @override
+  String get plannerSeries_site => 'Duikstek';
+
+  @override
+  String get plannerSeries_site_none => 'Geen duikstek';
+
+  @override
+  String get plannerSeries_site_clear => 'Duikstek wissen';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank vullen';
   }

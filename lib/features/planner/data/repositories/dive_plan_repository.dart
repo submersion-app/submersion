@@ -10,6 +10,7 @@ import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_mission_store.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -809,8 +810,9 @@ class DivePlanRepository {
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       mode: domain.PlanMode.values.byName(row.mode),
       altitude: row.altitude,
+      // Clock digits stamped UTC, like the dive log's times.
       startDateTime: row.startDateTime != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.startDateTime! * 1000)
+          ? wallClockUtcFromMillis(row.startDateTime! * 1000)
           : null,
       waterType: row.waterType != null
           ? WaterType.values.byName(row.waterType!)

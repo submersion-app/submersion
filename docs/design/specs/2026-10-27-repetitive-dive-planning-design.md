@@ -150,6 +150,39 @@ the plan. Removing dives back to one re-enables both.
   There is no Following chip under the profile: it read as part of the chart
   while acting on the whole series, and one tap dropped the followed dive.
 
+## Start time and site
+
+Phases 2, 3 and 5 are built together; the plan is
+`docs/design/plans/2026-11-01-repetitive-dive-planning-phase-2-3-5.md`.
+
+- The Dive details card holds, in order: the dive name, its **start**, the
+  surface interval, and its **site**. Both new fields are optional.
+- **Start and interval set each other.** A dive's start is the previous
+  dive's end plus its interval. The diver can set either:
+  - Setting a later dive's start fixes it (`PlanSeriesDive.fixedStart`): its
+    interval is then measured from the previous dive's end, and a longer
+    earlier dive shortens it rather than moving the start.
+  - Setting the interval lets it lead again, and the start follows.
+  - Clearing a fixed start lets the interval lead, from the interval the dive
+    had.
+  - A first dive that follows a logged dive works the same way against the
+    logged dive's end.
+  - A first dive that follows nothing has no interval; its start is its own,
+    and optional.
+- A later dive can be timed only once the dive before it has a start, so its
+  start field is greyed out ("Give the first dive a start time first") until
+  the first dive has one or follows a logged dive.
+- A start before the previous dive ends computes the dive from no surface
+  interval.
+- **Times are clock digits stamped UTC**, like the dive log's
+  (`DateTime.utc` of the digits shown). The arithmetic runs on true instants
+  (`fromWallClockUtc`), so a daylight saving change inside an interval does
+  not move a dive by an hour. Saved plans store the start the same way, and
+  Convert to Dive writes it, or the clock time now, straight into the dive.
+- **The site** is the plan's existing `siteId`, now editable here with the
+  dive log's site picker. The planner doesn't use it; a dive logged from the
+  plan takes it. A new dive copies the previous dive's site.
+
 ## Design
 
 - **Engine**: `DivePlan` gains `startCns`/`startOtu`, engine inputs that are not

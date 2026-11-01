@@ -1,3 +1,4 @@
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
@@ -46,6 +47,12 @@ List<SeriesDiveResult> computeSeries(
 /// The inputs of the dive at [index] with what the dives before it carry in
 /// applied, from [earlier]: the results of the dives before it, in order.
 /// The first dive carries from the logged dive it [follow]s, if any.
+///
+/// The dive's start and surface interval are settled here too: a dive with
+/// a [PlanSeriesDive.fixedStart] takes its interval from the time since the
+/// previous dive ended, and any other takes its start from that end plus its
+/// interval. With no previous end to measure from (no start before it), the
+/// interval leads and the dive has no start.
 DivePlanState carriedState(
   List<PlanSeriesDive> dives,
   int index,
@@ -53,16 +60,23 @@ DivePlanState carriedState(
   SeriesFollow? follow,
 }) {
   final dive = dives[index];
+  if (index == 0 && follow == null) return dive.state;
+
+  final timing = _timing(dive, previousEnd(index, earlier, follow: follow));
+  final timed = dive.state.copyWith(
+    surfaceInterval: timing.interval,
+    startDateTime: timing.start,
+    clearStartDateTime: timing.start == null,
+  );
+  final otu = _carriedOtu(index, timing.interval, earlier, follow);
+
   if (index == 0) {
-    if (follow == null) return dive.state;
-    final tissues = follow.endTissues;
-    return dive.state.copyWith(
+    final tissues = follow!.endTissues;
+    return timed.copyWith(
       initialTissueState: tissues,
       clearInitialTissueState: tissues == null,
       initialCns: follow.endCns,
-      initialOtu: _carriedOtu(dives, 0, earlier, follow),
-      surfaceInterval:
-          dive.state.surfaceInterval ?? defaultSeriesSurfaceInterval,
+      initialOtu: otu,
       tanks: followedTankPressures(
         dive.state.tanks,
         follow,
@@ -87,38 +101,79 @@ DivePlanState carriedState(
         tank,
   ];
 
-  return dive.state.copyWith(
+  return timed.copyWith(
     initialTissueState: previous.outcome.surfacedTissue.compartments,
     initialCns: previous.outcome.cnsEnd,
-    initialOtu: _carriedOtu(dives, index, earlier, follow),
+    initialOtu: otu,
     tanks: tanks,
   );
 }
 
+/// When the dive before the one at [index] ended, as a true instant (see
+/// `diveEndInstant`): the followed dive's end for the first dive, else the
+/// previous dive's start plus its runtime. Null when the dive before has no
+/// start, or a first dive follows none.
+DateTime? previousEnd(
+  int index,
+  List<SeriesDiveResult> earlier, {
+  SeriesFollow? follow,
+}) {
+  if (index == 0) return follow?.followed.endInstant;
+  final previous = earlier[index - 1];
+  final start = previous.state.startDateTime;
+  if (start == null) return null;
+  return fromWallClockUtc(
+    start,
+  ).add(Duration(seconds: previous.outcome.runtimeSeconds));
+}
+
+/// A dive's surface interval and start once settled against [previousEnd].
+/// The start is clock digits stamped UTC, like the dive log's times; the
+/// arithmetic runs on true instants so a daylight saving change in an
+/// interval does not shift it by an hour.
+({Duration interval, DateTime? start}) _timing(
+  PlanSeriesDive dive,
+  DateTime? previousEnd,
+) {
+  final own = dive.state.surfaceInterval ?? defaultSeriesSurfaceInterval;
+  if (previousEnd == null) return (interval: own, start: null);
+  final start = dive.state.startDateTime;
+  if (dive.fixedStart && start != null) {
+    final since = fromWallClockUtc(start).difference(previousEnd);
+    // A start before the dive before it ends computes from no interval at
+    // all; the series checks report it.
+    return (interval: since.isNegative ? Duration.zero : since, start: start);
+  }
+  return (interval: own, start: asWallClockUtc(previousEnd.add(own)));
+}
+
 /// The OTU of every earlier dive, logged ones the series [follow]s
 /// included, that ended less than [otuCarryWindow] before the dive at
-/// [index] starts. Times run from the first planned dive's start; each dive
-/// starts its surface interval after the one before ends.
+/// [index] starts, [interval] after the one before it. Times run from the
+/// first planned dive's start; each dive starts its surface interval after
+/// the one before ends, as settled in [earlier].
 double _carriedOtu(
-  List<PlanSeriesDive> dives,
   int index,
+  Duration interval,
   List<SeriesDiveResult> earlier,
   SeriesFollow? follow,
 ) {
   final ends = <int>[];
   var clock = 0;
   for (var j = 0; j < index; j++) {
-    if (j > 0) clock += _intervalSeconds(dives[j]);
+    if (j > 0) clock += _intervalSeconds(earlier[j].state);
     clock += earlier[j].outcome.runtimeSeconds;
     ends.add(clock);
   }
-  final start = index == 0 ? 0 : clock + _intervalSeconds(dives[index]);
+  final start = index == 0 ? 0 : clock + interval.inSeconds;
 
   var otu = 0.0;
   if (follow != null) {
     // The first planned dive starts its interval when the followed dive ends.
     final followedEnd = follow.followed.end;
-    final firstStart = _intervalSeconds(dives[0]);
+    final firstStart = index == 0
+        ? interval.inSeconds
+        : _intervalSeconds(earlier[0].state);
     for (final logged in follow.loggedDives) {
       final sinceEnd =
           start + firstStart + followedEnd.difference(logged.end).inSeconds;
@@ -133,5 +188,5 @@ double _carriedOtu(
   return otu;
 }
 
-int _intervalSeconds(PlanSeriesDive dive) =>
-    (dive.state.surfaceInterval ?? defaultSeriesSurfaceInterval).inSeconds;
+int _intervalSeconds(DivePlanState state) =>
+    (state.surfaceInterval ?? defaultSeriesSurfaceInterval).inSeconds;

@@ -20844,6 +20844,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minutes de plus';
 
   @override
+  String get plannerSeries_start => 'Début';
+
+  @override
+  String get plannerSeries_start_notSet => 'Non défini';
+
+  @override
+  String get plannerSeries_start_clear => 'Effacer l\'heure de début';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Donnez d\'abord une heure de début à la première plongée';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'L\'intervalle de surface découle de ce début';
+
+  @override
+  String get plannerSeries_site => 'Site';
+
+  @override
+  String get plannerSeries_site_none => 'Aucun site';
+
+  @override
+  String get plannerSeries_site_clear => 'Effacer le site';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Remplir $tank';
   }

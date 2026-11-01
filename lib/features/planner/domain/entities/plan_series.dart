@@ -28,11 +28,19 @@ class PlanSeriesDive extends Equatable {
   /// name is the whole plan's.
   final String? name;
 
+  /// Whether the diver set this dive's start time
+  /// ([DivePlanState.startDateTime]), so its surface interval is measured
+  /// from it. Otherwise the interval leads and the start follows from it.
+  /// A first dive that follows no logged dive has no interval: its start is
+  /// whatever the diver gave it.
+  final bool fixedStart;
+
   const PlanSeriesDive({
     required this.state,
     this.sourceTankIds = const {},
     this.pinnedTankIds = const {},
     this.name,
+    this.fixedStart = false,
   });
 
   PlanSeriesDive copyWith({
@@ -41,17 +49,25 @@ class PlanSeriesDive extends Equatable {
     Set<String>? pinnedTankIds,
     String? name,
     bool clearName = false,
+    bool? fixedStart,
   }) {
     return PlanSeriesDive(
       state: state ?? this.state,
       sourceTankIds: sourceTankIds ?? this.sourceTankIds,
       pinnedTankIds: pinnedTankIds ?? this.pinnedTankIds,
       name: clearName ? null : (name ?? this.name),
+      fixedStart: fixedStart ?? this.fixedStart,
     );
   }
 
   @override
-  List<Object?> get props => [state, sourceTankIds, pinnedTankIds, name];
+  List<Object?> get props => [
+    state,
+    sourceTankIds,
+    pinnedTankIds,
+    name,
+    fixedStart,
+  ];
 }
 
 /// An ordered series of planned dives and the one being edited, and the

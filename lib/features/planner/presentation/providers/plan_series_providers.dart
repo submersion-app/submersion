@@ -71,17 +71,26 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     if (previous?.name != next.name) {
       state = edits.setPlanName(state, next.name);
     }
+    // The diver set the interval, so it leads and the start follows from it.
     // The OTU carried in depends on how long ago each earlier dive ended.
     if ((index > 0 || state.follow != null) &&
         previous?.surfaceInterval != next.surfaceInterval) {
+      state = edits.anchorInterval(state, index);
       final carried = calculator.carriedState(
         state.dives,
         index,
         _earlier,
         follow: state.follow,
       );
-      if (carried.initialOtu != next.initialOtu) {
-        _push(next.copyWith(initialOtu: carried.initialOtu));
+      if (carried.initialOtu != next.initialOtu ||
+          carried.startDateTime != next.startDateTime) {
+        _push(
+          next.copyWith(
+            initialOtu: carried.initialOtu,
+            startDateTime: carried.startDateTime,
+            clearStartDateTime: carried.startDateTime == null,
+          ),
+        );
       }
     }
   }
@@ -121,6 +130,22 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   /// series' own, so the editor is left alone.
   void renameSelected(String name) {
     state = edits.renameDive(state, state.selectedIndex, name);
+  }
+
+  /// Sets when the selected dive starts, as clock digits stamped UTC; null
+  /// clears it. A later dive's interval then comes from it (see
+  /// [PlanSeriesDive.fixedStart]).
+  void setSelectedStart(DateTime? start) {
+    final index = state.selectedIndex;
+    state = edits.setDiveStart(state, index, start);
+    _push(
+      calculator.carriedState(
+        state.dives,
+        index,
+        _earlier,
+        follow: state.follow,
+      ),
+    );
   }
 
   /// Follows the logged dives in [follow]: the first dive starts from the

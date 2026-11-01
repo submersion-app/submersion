@@ -33072,6 +33072,54 @@ abstract class AppLocalizations {
   /// **'15 minutes more'**
   String get plannerSeries_surfaceInterval_increase;
 
+  /// No description provided for @plannerSeries_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get plannerSeries_start;
+
+  /// No description provided for @plannerSeries_start_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get plannerSeries_start_notSet;
+
+  /// No description provided for @plannerSeries_start_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the start time'**
+  String get plannerSeries_start_clear;
+
+  /// No description provided for @plannerSeries_start_needsFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the first dive a start time first'**
+  String get plannerSeries_start_needsFirst;
+
+  /// No description provided for @plannerSeries_start_fixed.
+  ///
+  /// In en, this message translates to:
+  /// **'The surface interval follows from this start'**
+  String get plannerSeries_start_fixed;
+
+  /// No description provided for @plannerSeries_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get plannerSeries_site;
+
+  /// No description provided for @plannerSeries_site_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get plannerSeries_site_none;
+
+  /// No description provided for @plannerSeries_site_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the site'**
+  String get plannerSeries_site_clear;
+
   /// The tank's name or gas, such as EAN32
   ///
   /// In en, this message translates to:

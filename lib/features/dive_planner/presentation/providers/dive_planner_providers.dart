@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -6,6 +7,7 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -1224,7 +1226,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     return Dive(
       id: _uuid.v4(),
       name: state.name,
-      dateTime: state.startDateTime ?? DateTime.now(),
+      // Dive times are clock digits stamped UTC; so is the plan's start.
+      dateTime: state.startDateTime ?? asWallClockUtc(clock.now()),
       runtime: Duration(seconds: totalTime),
       maxDepth: maxDepth,
       avgDepth: avgDepth,

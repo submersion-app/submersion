@@ -19772,6 +19772,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '增加 15 分钟';
 
   @override
+  String get plannerSeries_start => '开始';
+
+  @override
+  String get plannerSeries_start_notSet => '未设置';
+
+  @override
+  String get plannerSeries_start_clear => '清除开始时间';
+
+  @override
+  String get plannerSeries_start_needsFirst => '请先为第一次潜水设置开始时间';
+
+  @override
+  String get plannerSeries_start_fixed => '水面间隔由此开始时间推算';
+
+  @override
+  String get plannerSeries_site => '潜点';
+
+  @override
+  String get plannerSeries_site_none => '无潜点';
+
+  @override
+  String get plannerSeries_site_clear => '清除潜点';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '加满 $tank';
   }

@@ -20324,6 +20324,31 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 דקות יותר';
 
   @override
+  String get plannerSeries_start => 'התחלה';
+
+  @override
+  String get plannerSeries_start_notSet => 'לא הוגדר';
+
+  @override
+  String get plannerSeries_start_clear => 'ניקוי שעת ההתחלה';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'יש לקבוע קודם שעת התחלה לצלילה הראשונה';
+
+  @override
+  String get plannerSeries_start_fixed => 'מרווח השטח נגזר משעת התחלה זו';
+
+  @override
+  String get plannerSeries_site => 'אתר';
+
+  @override
+  String get plannerSeries_site_none => 'ללא אתר';
+
+  @override
+  String get plannerSeries_site_clear => 'ניקוי האתר';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'מילוי $tank';
   }

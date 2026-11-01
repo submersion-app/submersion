@@ -20759,6 +20759,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 Minuten mehr';
 
   @override
+  String get plannerSeries_start => 'Beginn';
+
+  @override
+  String get plannerSeries_start_notSet => 'Nicht festgelegt';
+
+  @override
+  String get plannerSeries_start_clear => 'Beginn löschen';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Gib zuerst dem ersten Tauchgang einen Beginn';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'Die Oberflächenpause ergibt sich aus diesem Beginn';
+
+  @override
+  String get plannerSeries_site => 'Tauchplatz';
+
+  @override
+  String get plannerSeries_site_none => 'Kein Tauchplatz';
+
+  @override
+  String get plannerSeries_site_clear => 'Tauchplatz löschen';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank füllen';
   }
