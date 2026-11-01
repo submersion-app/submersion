@@ -23,9 +23,11 @@ import 'package:submersion/features/nav_track/data/repositories/nav_track_reposi
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -40,6 +42,7 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   String? deletedId;
   String? linkedRouteId;
   String? linkedDiveId;
+  String? relinkedFromDiveId;
   NavTrackLinkMode? linkMode;
   String? setSiteRouteId;
   String? setSiteId;
@@ -87,6 +90,20 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }) async {
     linkedRouteId = routeId;
     linkedDiveId = diveId;
+    this.linkMode = linkMode;
+    return true;
+  }
+
+  @override
+  Future<bool> relink(
+    String routeId, {
+    required String fromDiveId,
+    required String toDiveId,
+    required NavTrackLinkMode linkMode,
+  }) async {
+    relinkedFromDiveId = fromDiveId;
+    linkedRouteId = routeId;
+    linkedDiveId = toDiveId;
     this.linkMode = linkMode;
     return true;
   }
@@ -396,6 +413,13 @@ void main() {
     'the inline map preview renders a TileLayer with the app\'s tile URL '
     '(item 3)',
     (tester) async {
+      // The title card (#4022) pushed the map further down the ListView,
+      // past the default 800x600 test surface. A ListView only builds the
+      // children within its viewport, so TileLayer/FlutterMap are not
+      // in the tree at all here without the extra room (same hazard as
+      // the compass test below, #3386/#3635).
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _pump(
         tester,
         route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
@@ -413,6 +437,10 @@ void main() {
     'the inline map fits its camera to the whole route, not a fixed zoom '
     'on the anchor alone (a long route was cut off at the map edge)',
     (tester) async {
+      // See the TileLayer test above: the title card (#4022) pushes the
+      // map below the default test viewport.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
         points: [
           for (var i = 0; i < 5; i++)
@@ -436,6 +464,10 @@ void main() {
   testWidgets('a route crossing the antimeridian still fits without crashing '
       '(Copilot review on PR #3637: a raw LatLngBounds.fromPoints asserts '
       'east <= 180 and cannot express a wrapped route)', (tester) async {
+    // See the TileLayer test above: the title card (#4022) pushes the map
+    // below the default test viewport.
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     // Anchor just west of the dateline; an 11 km east offset pushes the
     // second point past 180 deg, where it wraps to a negative longitude.
     final route = _route(anchorLatitude: 0, anchorLongitude: 179.95).copyWith(
@@ -465,6 +497,10 @@ void main() {
     'falls back to the anchor-centered fixed zoom when there is nothing '
     'to fit a camera to',
     (tester) async {
+      // See the TileLayer test above: the title card (#4022) pushes the
+      // map below the default test viewport.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _pump(
         tester,
         route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
@@ -922,6 +958,10 @@ void main() {
   testWidgets('shows the "set start point" placeholder when unanchored', (
     tester,
   ) async {
+    // See the TileLayer test above: the title card (#4022) pushes this
+    // card below the default test viewport.
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await _pump(tester, route: _route());
 
     expect(
@@ -1134,6 +1174,73 @@ void main() {
       expect(repository.deletedId, 'r1');
       expect(find.text('open'), findsOneWidget);
     });
+
+    testWidgets(
+      'deleting from the detail page clears the track\'s "last opened" '
+      'highlight (#4024 review)',
+      (tester) async {
+        final overrides = await getBaseOverrides();
+        final repository = _RecordingNavTrackRepository();
+        final route = _route();
+        // _delete calls context.pop() (go_router), which needs a GoRouter
+        // ancestor: a plain MaterialApp throws "No GoRouter found in
+        // context" once the delete reaches that line. Two routes, as the
+        // delete-and-pop test above uses, so pop() has somewhere to go.
+        final router = GoRouter(
+          initialLocation: '/',
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) => Scaffold(
+                body: TextButton(
+                  onPressed: () =>
+                      context.push('/tracks/underwater/${route.id}'),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: '/tracks/underwater/:id',
+              builder: (context, state) =>
+                  NavTrackDetailPage(trackId: state.pathParameters['id']!),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              navTrackByIdProvider(route.id).overrideWith((ref) async => route),
+              navTrackRepositoryProvider.overrideWithValue(repository),
+            ],
+            child: MaterialApp.router(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routerConfig: router,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(NavTrackDetailPage)),
+        );
+        container.read(highlightedTrackKeyProvider.notifier).state =
+            'underwater:r1';
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+        await tester.pumpAndSettle();
+
+        expect(container.read(highlightedTrackKeyProvider), isNull);
+        expect(find.text('open'), findsOneWidget);
+      },
+    );
   });
 
   group('toolbar navigation', () {
@@ -1300,11 +1407,21 @@ void main() {
           updatedAt: DateTime(2026, 8, 22),
         ),
       );
+      expect(find.text('Underwater track'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the title sits in its own card in the body, not in the AppBar (#4022)',
+    (tester) async {
+      await _pump(tester, route: _route());
+
       expect(
-        find.descendant(
-          of: find.byType(AppBar),
-          matching: find.text('Underwater track'),
-        ),
+        find.descendant(of: find.byType(AppBar), matching: find.text('r1.csv')),
+        findsNothing,
+      );
+      expect(
+        find.ancestor(of: find.text('r1.csv'), matching: find.byType(Card)),
         findsOneWidget,
       );
     },
@@ -1312,10 +1429,316 @@ void main() {
 
   testWidgets('the inline map zooms and scrolls like the other maps '
       '(#3664)', (tester) async {
+    // See the TileLayer test above: the title card (#4022) pushes the map
+    // below the default test viewport.
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await _pump(
       tester,
       route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
     );
     expectZoomsAndScrollsLikeOtherMaps(tester);
+  });
+
+  testWidgets('the title card names the route for a screen reader, as an '
+      'AppBar title does (#4022)', (tester) async {
+    await _pump(tester, route: _route());
+
+    final semantics = tester.widget<Semantics>(
+      find.ancestor(
+        of: find.text('r1.csv'),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Semantics && widget.properties.header == true,
+        ),
+      ),
+    );
+    expect(semantics.properties.namesRoute, isTrue);
+  });
+
+  group('consistent open/change actions (#4023)', () {
+    testWidgets('a tappable card clips its ink to its rounded corners', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await _pump(
+        tester,
+        route: _route(diveId: 'dive-1', siteId: 'site-1'),
+        linkedDive: Dive(
+          id: 'dive-1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 8, 22, 10, 8),
+        ),
+        site: const DiveSite(id: 'site-1', name: 'Test Site'),
+      );
+
+      for (final card in [
+        find.ancestor(
+          of: find.byKey(const ValueKey('nav-track-linked-dive')),
+          matching: find.byType(Card),
+        ),
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-site-row')),
+          matching: find.byType(Card),
+        ),
+        find.byKey(const ValueKey('nav-track-correction-status')),
+      ]) {
+        expect(tester.widget<Card>(card).clipBehavior, Clip.antiAlias);
+      }
+    });
+
+    testWidgets(
+      '"Change dive" still offers and marks a linked dive that is no longer '
+      'among the nearest',
+      (tester) async {
+        final linkedDive = Dive(
+          id: 'dive-far',
+          diveNumber: 500,
+          dateTime: DateTime(2020, 1, 1, 9),
+          entryTime: DateTime(2020, 1, 1, 9),
+        );
+        final nearby = [
+          for (var i = 0; i < NavTrackMatcher.nearestLimit; i++)
+            Dive(
+              id: 'dive-$i',
+              diveNumber: i + 1,
+              dateTime: DateTime(2026, 8, 22, 9).add(Duration(hours: i)),
+              entryTime: DateTime(2026, 8, 22, 9).add(Duration(hours: i)),
+            ),
+        ];
+        await _pump(
+          tester,
+          route: _route(diveId: 'dive-far'),
+          linkedDive: linkedDive,
+          allDives: [...nearby, linkedDive],
+        );
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-change-dive')));
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<ListTile>(
+                find.byKey(const ValueKey('nav-track-dive-choice-dive-far')),
+              )
+              .selected,
+          isTrue,
+        );
+      },
+    );
+
+    GoRouter routerTo(NavTrack route, {required List<GoRoute> extra}) =>
+        GoRouter(
+          initialLocation: '/tracks/underwater/${route.id}',
+          routes: [
+            GoRoute(
+              path: '/tracks/underwater/:id',
+              builder: (context, state) =>
+                  NavTrackDetailPage(trackId: state.pathParameters['id']!),
+            ),
+            ...extra,
+          ],
+        );
+
+    testWidgets('tapping the site card opens the site', (tester) async {
+      const site = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      final route = _route(siteId: 'site-1');
+      final router = routerTo(
+        route,
+        extra: [
+          GoRoute(
+            path: '/sites/:id',
+            builder: (context, state) =>
+                Scaffold(body: Text('SITE_PAGE_${state.pathParameters['id']}')),
+          ),
+        ],
+      );
+      await _pump(tester, route: route, site: site, router: router);
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-site-row')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('SITE_PAGE_site-1'), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping the "no site" card does not navigate (nothing to open)',
+      (tester) async {
+        final route = _route();
+        final router = routerTo(
+          route,
+          extra: [
+            GoRoute(
+              path: '/sites/:id',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('SITE_PAGE')),
+            ),
+          ],
+        );
+        await _pump(tester, route: route, router: router);
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-site-row')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('SITE_PAGE'), findsNothing);
+      },
+    );
+
+    testWidgets('tapping the equipment card opens the equipment item', (
+      tester,
+    ) async {
+      const scooter = EquipmentItem(
+        id: 'eq1',
+        name: 'Test Scooter',
+        type: EquipmentType.dpv,
+      );
+      final route = _route(equipmentId: 'eq1');
+      final router = routerTo(
+        route,
+        extra: [
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (context, state) => Scaffold(
+              body: Text('EQUIPMENT_PAGE_${state.pathParameters['id']}'),
+            ),
+          ),
+        ],
+      );
+      await _pump(tester, route: route, equipment: scooter, router: router);
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-equipment-row')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('EQUIPMENT_PAGE_eq1'), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping the "no device" card does not navigate (nothing to open)',
+      (tester) async {
+        final route = _route();
+        final router = routerTo(
+          route,
+          extra: [
+            GoRoute(
+              path: '/equipment/:id',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('EQUIPMENT_PAGE')),
+            ),
+          ],
+        );
+        await _pump(tester, route: route, router: router);
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-equipment-row')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('EQUIPMENT_PAGE'), findsNothing);
+      },
+    );
+
+    testWidgets('tapping the correction status card opens the alignment page', (
+      tester,
+    ) async {
+      // See the TileLayer test above: the title card (#4022) pushes this
+      // card below the default test viewport.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final route = _route();
+      final router = routerTo(
+        route,
+        extra: [
+          GoRoute(
+            path: '/tracks/underwater/:id/align',
+            builder: (context, state) =>
+                const Scaffold(body: Text('ALIGN_PAGE')),
+          ),
+        ],
+      );
+      await _pump(tester, route: route, router: router);
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-correction-status')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('ALIGN_PAGE'), findsOneWidget);
+    });
+
+    testWidgets(
+      'the linked dive card offers a "Change dive" action that re-links to '
+      'a different dive',
+      (tester) async {
+        final linkedDive = Dive(
+          id: 'dive-1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 8, 22, 10, 8),
+        );
+        final candidate = Dive(
+          id: 'dive-9',
+          diveNumber: 9,
+          dateTime: DateTime(2026, 8, 22, 9),
+          entryTime: DateTime(2026, 8, 22, 9),
+        );
+        final repository = await _pump(
+          tester,
+          route: _route(diveId: 'dive-1'),
+          linkedDive: linkedDive,
+          allDives: [linkedDive, candidate],
+        );
+
+        expect(find.text('Change dive'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('nav-track-change-dive')));
+        await tester.pumpAndSettle();
+        // Preselects the dive it is already linked to, not a time-proximity
+        // guess (dive-9 does not overlap the route's time window, so would
+        // otherwise come up with no preselection at all).
+        expect(
+          tester
+              .widget<ListTile>(
+                find.byKey(const ValueKey('nav-track-dive-choice-dive-1')),
+              )
+              .selected,
+          isTrue,
+        );
+        await tester.tap(find.textContaining('#9'));
+        await tester.pumpAndSettle();
+
+        // relink, not link: the real link never overwrites an existing link,
+        // so a plain link here would change nothing.
+        expect(repository.relinkedFromDiveId, 'dive-1');
+        expect(repository.linkedRouteId, 'r1');
+        expect(repository.linkedDiveId, 'dive-9');
+        expect(repository.linkMode, NavTrackLinkMode.manual);
+      },
+    );
+
+    testWidgets('"Change dive" writes nothing when the same dive is picked', (
+      tester,
+    ) async {
+      final linkedDive = Dive(
+        id: 'dive-1',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+      );
+      final repository = await _pump(
+        tester,
+        route: _route(diveId: 'dive-1'),
+        linkedDive: linkedDive,
+        allDives: [linkedDive],
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-change-dive')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-dive-choice-dive-1')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(repository.relinkedFromDiveId, isNull);
+      expect(repository.linkedRouteId, isNull);
+    });
   });
 }

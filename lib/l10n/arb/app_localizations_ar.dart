@@ -27216,6 +27216,84 @@ class AppLocalizationsAr extends AppLocalizations {
       'تصحيح أوقات الغوص، ربط الرفقاء، إعادة تصنيف المعدات، جودة البيانات';
 
   @override
+  String get settings_agentAccess_title => 'وصول الوكلاء';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'السماح لوكيل ذكاء اصطناعي على هذا الكمبيوتر بقراءة سجل غوصك وتعديله';
+
+  @override
+  String get settings_agentAccess_enable => 'تفعيل وصول الوكلاء';
+
+  @override
+  String get settings_agentAccess_statusListening => 'قيد الاستماع';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'متوقف';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'آخر طلب $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'المنفذ $port مستخدم بالفعل';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'المنفذ';
+
+  @override
+  String get settings_agentAccess_token => 'رمز الوصول';
+
+  @override
+  String get settings_agentAccess_reveal => 'إظهار';
+
+  @override
+  String get settings_agentAccess_hide => 'إخفاء';
+
+  @override
+  String get settings_agentAccess_copy => 'نسخ';
+
+  @override
+  String get settings_agentAccess_regenerate => 'إعادة التوليد';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'سيحتاج كل وكيل متصل إلى الرمز الجديد. هل تريد المتابعة؟';
+
+  @override
+  String get settings_agentAccess_confirmWrites => 'السؤال قبل تطبيق التغييرات';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'إظهار تأكيد في Submersion قبل أن يعدّل وكيل السجلات';
+
+  @override
+  String get settings_agentAccess_snippets => 'ربط عميل';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (عبر mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'عملاء آخرون';
+
+  @override
+  String get settings_agentAccess_copied => 'تم النسخ';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'يمكن للوكلاء رؤية كل ملفات الغواصين على هذا الكمبيوتر.';
+
+  @override
+  String get settings_agentAccess_portInvalid => 'أدخل منفذًا بين 1024 و65535';
+
+  @override
   String get settings_sync_title => 'المزامنة بين الأجهزة';
 
   @override
@@ -55524,6 +55602,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navTrack_detail_menuRename => 'إعادة التسمية';
+
+  @override
+  String get navTrack_detail_menuChangeDive => 'تغيير الغطسة';
 
   @override
   String get navTrack_detail_menuChangeSite => 'تغيير الموقع';

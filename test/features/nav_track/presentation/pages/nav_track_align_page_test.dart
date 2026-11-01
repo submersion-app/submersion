@@ -906,6 +906,51 @@ void main() {
     },
   );
 
+  testWidgets('dragging the end marker moves the end point on its own', (
+    tester,
+  ) async {
+    final repository = await _pump(tester, route: _route());
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-place-start')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-place-end')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+    await tester.pump();
+
+    await tester.drag(
+      find.byKey(const ValueKey('nav-track-align-end-marker')),
+      const Offset(40, 30),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.pumpAndSettle();
+
+    final correction = repository.lastCorrection;
+    expect(correction?.endPoint?.longitude, greaterThan(0));
+    expect(correction?.endPoint?.latitude, lessThan(0));
+    expect(correction?.anchor, const GeoPoint(0, 0));
+  });
+
+  testWidgets('the "None" end chip clears a chosen end mode', (tester) async {
+    final repository = await _pump(tester, route: _route());
+
+    await tester.tap(
+      find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-end-none')));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.pumpAndSettle();
+
+    expect(repository.lastCorrection?.endMode, NavTrackEndMode.none);
+  });
+
   testWidgets(
     'shows a "Start:" heading above the start-point actions, mirroring '
     'the "End:" heading above the end-mode dropdown (item 2)',
@@ -1532,5 +1577,226 @@ void main() {
   ) async {
     await _pump(tester, route: _route());
     expectZoomsAndScrollsLikeOtherMaps(tester);
+  });
+
+  group('controls panel height cap (#3994)', () {
+    // The widest the Start row gets: a linked dive (From dive entry), a
+    // site (From site) and a pre-dive GPS fix (From GPS), all at once:
+    // the shape from the "From GPS" chip test above, with a dive added.
+    const site = DiveSite(
+      id: 'site-1',
+      name: 'Test Site',
+      location: GeoPoint(47.1, 8.3),
+    );
+    final wideRowPoints = [
+      const NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 0),
+      const NavTrackPoint(timestamp: 1755856802, north: 100, east: 0, depth: 0),
+      const NavTrackPoint(timestamp: 1755856804, north: 100, east: 0, depth: 0),
+      const NavTrackPoint(timestamp: 1755856806, north: 100, east: 0, depth: 5),
+      const NavTrackPoint(timestamp: 1755856808, north: 105, east: 2, depth: 8),
+    ];
+    final wideRowRoute = NavTrack(
+      id: 'r1',
+      diveId: 'dive-1',
+      siteId: 'site-1',
+      linkMode: NavTrackLinkMode.auto,
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'r1.csv',
+      startTime: 1755856800000,
+      endTime: 1755856808000,
+      pointCount: wideRowPoints.length,
+      points: wideRowPoints,
+      createdAt: DateTime(2026, 8, 22),
+      updatedAt: DateTime(2026, 8, 22),
+    );
+    final wideRowDive = Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 8, 22, 10, 8),
+      entryLocation: const GeoPoint(46.9, 7.2),
+    );
+
+    Future<void> pumpWideRowOnPhone(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(
+        tester,
+        route: wideRowRoute,
+        linkedDive: wideRowDive,
+        site: site,
+      );
+      // The widest Start row, confirmed present before measuring layout.
+      expect(
+        find.byKey(const ValueKey('nav-track-align-from-dive-entry')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('nav-track-align-from-site')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('nav-track-align-from-gps')),
+        findsOneWidget,
+      );
+    }
+
+    double bodyHeight(WidgetTester tester) => tester
+        .getSize(find.byKey(const ValueKey('nav-track-align-body')))
+        .height;
+
+    testWidgets(
+      'the map keeps at least 55% of the body height on a phone-sized '
+      'screen',
+      (tester) async {
+        await pumpWideRowOnPhone(tester);
+
+        final height = bodyHeight(tester);
+        expect(
+          tester.getSize(find.byType(FlutterMap)).height,
+          greaterThanOrEqualTo(height * 0.55 - 1),
+        );
+      },
+    );
+
+    testWidgets(
+      'the controls panel does not exceed 45% of the body height on a '
+      'phone-sized screen',
+      (tester) async {
+        await pumpWideRowOnPhone(tester);
+
+        final height = bodyHeight(tester);
+        expect(
+          tester
+              .getSize(
+                find.byKey(const ValueKey('nav-track-align-controls-panel')),
+              )
+              .height,
+          lessThanOrEqualTo(height * 0.45 + 1),
+        );
+      },
+    );
+
+    testWidgets('no RenderFlex overflow is reported on the phone-sized '
+        'screen', (tester) async {
+      await pumpWideRowOnPhone(tester);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+      'the panel is not capped at desktop width, even with a tall panel',
+      (tester) async {
+        tester.view.physicalSize = const Size(1200, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        // The widest Start row (dive + site + pre-dive fix, see the wide
+        // row fixture above): tall enough to need the cap on a phone, but
+        // a desktop window docks nothing and must show it uncapped.
+        final repository = await _pump(
+          tester,
+          route: wideRowRoute,
+          linkedDive: wideRowDive,
+          site: site,
+        );
+
+        // The constraint itself, not a height threshold: how much the
+        // content wraps (and so how tall it naturally is) already varies
+        // with window width on its own, which would make any fixed
+        // threshold here fragile. double.infinity is the direct proof
+        // that nothing caps this panel at desktop width.
+        expect(
+          tester
+              .widget<ConstrainedBox>(
+                find.byKey(const ValueKey('nav-track-align-controls-panel')),
+              )
+              .constraints
+              .maxHeight,
+          double.infinity,
+        );
+        // And functionally: Save must be directly tappable with no
+        // scrolling, proving the cap truly does not apply here.
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.pumpAndSettle();
+        expect(repository.lastRouteId, 'r1');
+      },
+    );
+
+    for (final (name, size) in const [
+      ('a phone in landscape', Size(844, 390)),
+      ('a short desktop window', Size(1000, 500)),
+    ]) {
+      testWidgets('the cap also holds on $name, whatever its width', (
+        tester,
+      ) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        final repository = await _pump(
+          tester,
+          route: wideRowRoute,
+          linkedDive: wideRowDive,
+          site: site,
+        );
+
+        expect(tester.takeException(), isNull);
+        final height = bodyHeight(tester);
+        expect(
+          tester.getSize(find.byType(FlutterMap)).height,
+          greaterThanOrEqualTo(height * 0.55 - 1),
+        );
+
+        await tester.ensureVisible(
+          find.byKey(const ValueKey('nav-track-align-save')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.pumpAndSettle();
+        expect(repository.lastRouteId, 'r1');
+      });
+    }
+
+    // A scroll view inherits the PrimaryScrollController on mobile only, so
+    // a Scrollbar without its own controller fails on every desktop platform.
+    // Widget tests default to Android and would never see it.
+    testWidgets(
+      'the panel\'s visible scrollbar works on a desktop platform',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        await pumpWideRowOnPhone(tester);
+
+        expect(tester.takeException(), isNull);
+        final scrollbar = tester.widget<Scrollbar>(
+          find
+              .ancestor(
+                of: find.byKey(const ValueKey('nav-track-align-save')),
+                matching: find.byType(Scrollbar),
+              )
+              .last,
+        );
+        expect(scrollbar.controller!.position.maxScrollExtent, greaterThan(0));
+      },
+    );
+
+    testWidgets('Save is reachable by scrolling when the panel is capped', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final repository = await _pump(
+        tester,
+        route: wideRowRoute,
+        linkedDive: wideRowDive,
+        site: site,
+      );
+
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('nav-track-align-save')),
+      );
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastRouteId, 'r1');
+    });
   });
 }

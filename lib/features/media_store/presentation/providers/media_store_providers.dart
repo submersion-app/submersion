@@ -43,7 +43,9 @@ import 'package:submersion/features/media_store/data/media_stores_repository.dar
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/orphan_delete_policy.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/data/pdf_thumb_refresh_sweep.dart';
 import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
+import 'package:submersion/features/media_store/data/thumbnail_generator.dart';
 import 'package:submersion/features/media_store/domain/media_backup_status.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
@@ -573,17 +575,19 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       final policies = ref.watch(mediaStorePoliciesProvider);
       final network = NetworkStatusService();
       final stores = ref.watch(mediaStoresRepositoryProvider);
+      final registry = ref.watch(mediaSourceResolverRegistryProvider);
+      Future<bool> takesOver() async =>
+          takesOverStores(attachedId, (await stores.getActive())?.id);
       final pipeline = MediaUploadPipeline(
         mediaRepository: mediaRepository,
         queue: MediaTransferQueueRepository(),
         store: store,
-        registry: ref.watch(mediaSourceResolverRegistryProvider),
+        registry: registry,
         cache: cache,
         quality: ref.watch(mediaUploadQualityPolicyProvider),
         videoTranscoder: PlatformVideoTranscoder(),
         storeId: attachedId,
-        takesOver: () async =>
-            takesOverStores(attachedId, (await stores.getActive())?.id),
+        takesOver: takesOver,
       );
       final deleteProcessor = MediaDeleteProcessor(
         queue: MediaTransferQueueRepository(),
@@ -637,6 +641,35 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       unawaited(
         ref.read(mediaCacheEvictionProvider.future).catchError((Object e) {
           debugPrint('Media cache eviction failed (will retry): $e');
+        }),
+      );
+
+      // Fire-and-forget, and contains its own failures. Checks the flag first:
+      // one launch repairs, and every launch after should build nothing.
+      unawaited(
+        () async {
+          final prefs = await SharedPreferences.getInstance();
+          if (PdfThumbRefreshSweep.isDone(prefs)) return;
+          await PdfThumbRefreshSweep(
+            mediaRepository: mediaRepository,
+            thumbnails: ThumbnailGenerator(registry: registry, cache: cache),
+            store: store,
+            storeId: attachedId,
+            deviceId: () => SyncRepository().getDeviceId(),
+            mayUpload: () async {
+              final kind = await network.current();
+              if (kind == NetworkKind.offline) return false;
+              if (kind == NetworkKind.cellular &&
+                  !await policies.photosOnCellular()) {
+                return false;
+              }
+              return preflight();
+            },
+            takesOver: takesOver,
+            prefs: prefs,
+          ).run();
+        }().catchError((Object e) {
+          debugPrint('PDF thumb refresh failed (will retry): $e');
         }),
       );
 

@@ -10,6 +10,7 @@ import 'package:submersion/core/router/nav_shortcut_pages.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/features/agent_access/presentation/pages/agent_access_page.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_card_preview_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_swap_page.dart';
@@ -1485,6 +1486,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'data-tools',
                 name: 'dataTools',
                 builder: (context, state) => const DataToolsPage(),
+              ),
+              GoRoute(
+                path: 'agent-access',
+                name: 'agentAccess',
+                builder: (context, state) => const AgentAccessPage(),
               ),
               GoRoute(
                 path: 'storage-usage',
