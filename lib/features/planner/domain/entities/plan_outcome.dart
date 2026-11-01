@@ -109,6 +109,10 @@ class PlanStop extends Equatable {
   /// supply gas, not what the diver inspires.
   final double gasFHe;
   final String? tankId;
+
+  /// The cylinder [airBreakSeconds] are breathed from, or null on a stop with
+  /// no air break.
+  final String? airBreakTankId;
   final int arrivalRuntimeSeconds;
 
   const PlanStop({
@@ -118,6 +122,7 @@ class PlanStop extends Equatable {
     required this.gasFO2,
     required this.gasFHe,
     this.tankId,
+    this.airBreakTankId,
     required this.arrivalRuntimeSeconds,
   });
 
@@ -129,6 +134,7 @@ class PlanStop extends Equatable {
     gasFO2,
     gasFHe,
     tankId,
+    airBreakTankId,
     arrivalRuntimeSeconds,
   ];
 }
@@ -308,6 +314,10 @@ class PlanScheduleRow extends Equatable {
   final bool gasSwitch;
   final int airBreakSeconds;
 
+  /// The cylinder [airBreakSeconds] are breathed from, or null on a line with
+  /// no air break. The rest of the line's time is on [tankId].
+  final String? airBreakTankId;
+
   /// Partial pressure of O2 actually inspired on this line, bar. For a loop
   /// mode (CCR/SCR/PSCR) this is the loop's real inspired ppO2 -- the
   /// setpoint for CCR -- not ambient x the carried gas's own O2 fraction,
@@ -329,6 +339,7 @@ class PlanScheduleRow extends Equatable {
     this.tankId,
     this.gasSwitch = false,
     this.airBreakSeconds = 0,
+    this.airBreakTankId,
     this.ppO2 = 0.0,
     this.endMeters = 0.0,
   });
@@ -347,6 +358,7 @@ class PlanScheduleRow extends Equatable {
     tankId,
     gasSwitch,
     airBreakSeconds,
+    airBreakTankId,
     ppO2,
     endMeters,
   ];
