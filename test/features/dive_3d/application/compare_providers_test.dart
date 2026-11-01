@@ -359,6 +359,58 @@ void main() {
       expect(repository.summaryReads, 0);
     });
 
+    test('skips the label read when left during the last load', () async {
+      final gate = Completer<void>();
+      final repository = _ComparisonRepository({
+        'only': usable('s1'),
+      }, firstLoadGate: gate);
+      final container = containerFor(repository);
+      final subscription = container.listen(
+        diveComparisonProfilesProvider(DiveIdSet(['only'])),
+        (_, _) {},
+      );
+      await pumpEventQueue();
+
+      subscription.close();
+      await pumpEventQueue();
+      gate.complete();
+      await pumpEventQueue();
+
+      expect(repository.hydrated, ['only']);
+      expect(repository.summaryReads, 0);
+    });
+
+    test('a change mid-walk never shows an empty comparison', () async {
+      final gate = Completer<void>();
+      final repository = _ComparisonRepository({
+        'a': usable('s1'),
+        'b': usable('s2'),
+      }, firstLoadGate: gate);
+      final container = containerFor(repository);
+      final key = DiveIdSet(['a', 'b']);
+      final published = <int>[];
+      final subscription = container.listen(
+        diveComparisonProfilesProvider(key),
+        (_, next) {
+          final value = next.value;
+          if (value != null) published.add(value.profiles.length);
+        },
+      );
+      addTearDown(subscription.close);
+      await pumpEventQueue();
+      expect(repository.hydrated, ['a']);
+
+      repository.ticks.add(null);
+      await pumpEventQueue();
+      gate.complete();
+      await pumpEventQueue();
+
+      expect(published, isNotEmpty);
+      expect(published, everyElement(2));
+      // The replaced run stopped at its first dive; the new one read both.
+      expect(repository.hydrated, ['a', 'a', 'b']);
+    });
+
     test('reloads when a table it reads changes', () async {
       final repository = _ComparisonRepository(
         {'a': usable('s1'), 'b': usable('s2')},

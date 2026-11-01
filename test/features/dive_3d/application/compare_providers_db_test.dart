@@ -49,17 +49,23 @@ void main() {
         ),
       );
 
-  Future<void> insertProfile(String diveId, {double maxDepth = 20}) =>
-      series.insertSeries(
-        id: 'series-${counter++}',
-        diveId: diveId,
-        now: now,
-        samples: [
-          const ProfileSample(timestamp: 0, depth: 0),
-          ProfileSample(timestamp: 60, depth: maxDepth),
-          const ProfileSample(timestamp: 120, depth: 0),
-        ],
-      );
+  Future<void> insertProfile(
+    String diveId, {
+    double maxDepth = 20,
+    String? sourceId,
+    bool isPrimary = true,
+  }) => series.insertSeries(
+    id: 'series-${counter++}',
+    diveId: diveId,
+    sourceId: sourceId,
+    isPrimary: isPrimary,
+    now: now,
+    samples: [
+      const ProfileSample(timestamp: 0, depth: 0),
+      ProfileSample(timestamp: 60, depth: maxDepth),
+      const ProfileSample(timestamp: 120, depth: 0),
+    ],
+  );
 
   /// Holds the comparison of [key] as the page does and completes with the
   /// first result [matches] accepts.
@@ -136,6 +142,72 @@ void main() {
     );
 
     await whenComparison(key, (c) => c.profiles.first.label == 'New name');
+  });
+
+  test('a primary source swap shows the new primary profile', () async {
+    await insertDive('a');
+    await insertDive('b');
+    await insertProfile('b');
+    final importedAt = DateTime.utc(2026);
+    for (final (id, isPrimary) in [('first', true), ('second', false)]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: const Value('a'),
+              isPrimary: Value(isPrimary),
+              importedAt: Value(importedAt),
+              createdAt: Value(importedAt),
+            ),
+          );
+    }
+    await insertProfile('a', sourceId: 'first', maxDepth: 12, isPrimary: true);
+    await insertProfile(
+      'a',
+      sourceId: 'second',
+      maxDepth: 44,
+      isPrimary: false,
+    );
+    final key = DiveIdSet(['a', 'b']);
+    await whenComparison(key, (c) => c.profiles.first.maxDepthMeters == 12);
+
+    // Only the source rows change, as a swap of the primary flag does.
+    await (db.update(db.diveDataSources)..where((t) => t.diveId.equals('a')))
+        .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+    await (db.update(db.diveDataSources)..where((t) => t.id.equals('second')))
+        .write(const DiveDataSourcesCompanion(isPrimary: Value(true)));
+
+    await whenComparison(key, (c) => c.profiles.first.maxDepthMeters == 44);
+  });
+
+  test('a renumbered dive relabels the comparison', () async {
+    await insertDive('a', diveNumber: 1);
+    await insertDive('b');
+    await insertProfile('a');
+    await insertProfile('b');
+    final key = DiveIdSet(['a', 'b']);
+    await whenComparison(key, (c) => c.profiles.first.label == '#1');
+
+    await (db.update(db.dives)..where((t) => t.id.equals('a'))).write(
+      const DivesCompanion(diveNumber: Value(2)),
+    );
+
+    await whenComparison(key, (c) => c.profiles.first.label == '#2');
+  });
+
+  test('a deleted dive leaves the comparison', () async {
+    for (final id in ['a', 'b', 'c']) {
+      await insertDive(id);
+      await insertProfile(id);
+    }
+    final key = DiveIdSet(['a', 'b', 'c']);
+    await whenComparison(key, (c) => c.comparableCount == 3);
+
+    await (db.delete(db.dives)..where((t) => t.id.equals('b'))).go();
+
+    final comparison = await whenComparison(key, (c) => c.comparableCount == 2);
+    expect(comparison.profiles.map((p) => p.id), ['a', 'c']);
   });
 
   test('a dive gaining a profile joins the comparison', () async {

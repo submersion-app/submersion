@@ -127,13 +127,14 @@ final diveComparisonProfilesProvider = FutureProvider.autoDispose
       var unusable = 0;
       for (final diveId in candidates) {
         if (shown.length == kMaxComparisonProfiles) break;
-        // Nothing reads the result of a walk the diver has left.
-        if (!ref.mounted) {
-          return const DiveComparison(profiles: [], comparableCount: 0);
-        }
         final profilesBySource = await repository.getProfilesByDataSource(
           diveId,
         );
+        // Nothing reads the result of a walk the diver has left or a change
+        // has replaced: Riverpod drops it, so the empty value never shows.
+        if (!ref.mounted) {
+          return const DiveComparison(profiles: [], comparableCount: 0);
+        }
         final sp = profilesBySource.values.firstOrNull; // primary is first
         if (sp == null || sp.points.length < _minProfilePoints) {
           unusable++;
