@@ -12688,7 +12688,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "Cet appareil ne peut pas compresser la vidéo. Les originaux sont téléversés depuis celui-ci.",
   "reef_section_title": "Écosystème",
   "reef_section_sourcesTooltip": "Sources de données",
-  "reef_section_loadError": "Impossible de charger les données de l'écosystème pour le moment",
+  "reef_section_checking": "Vérification…",
   "reef_habitat_title": "Habitat du récif",
   "reef_habitat_onReef": "Sur un récif corallien",
   "reef_habitat_onReefWithThreat": "Sur un récif corallien, niveau de menace {threat}",

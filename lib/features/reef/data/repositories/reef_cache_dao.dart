@@ -82,6 +82,28 @@ class ReefCacheDao {
         );
   }
 
+  /// Deletes a cached failure so the next [read] misses and the part is
+  /// fetched again, ahead of [failureTtl]. A good result is left alone: only
+  /// the failure is in doubt. A status this build does not know counts as a
+  /// failure here, as it does in [read].
+  Future<void> deleteFailure(
+    ReefProviderId provider,
+    String coordKey, {
+    String variant = '',
+  }) async {
+    await (_db.delete(_db.reefDataCache)..where(
+          (t) =>
+              t.provider.equals(provider.name) &
+              t.coordKey.equals(coordKey) &
+              t.variant.equals(variant) &
+              t.status.isNotIn([
+                ReefDataStatus.ok.name,
+                ReefDataStatus.empty.name,
+              ]),
+        ))
+        .go();
+  }
+
   /// Deletes every row [read] would already refuse to return, and returns how
   /// many went. [read] only ignores an expired row, and a refetch overwrites
   /// it only if that coordinate is looked up again, so without this a site

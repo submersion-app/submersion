@@ -42038,8 +42038,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Sources de données';
 
   @override
-  String get reef_section_loadError =>
-      'Impossible de charger les données de l\'écosystème pour le moment';
+  String get reef_section_checking => 'Vérification…';
 
   @override
   String get reef_habitat_title => 'Habitat du récif';

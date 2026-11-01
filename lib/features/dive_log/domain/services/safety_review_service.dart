@@ -36,10 +36,13 @@ class SafetyReviewService {
   /// v8: ppO2, CNS and OTU read the dive's own water and surface pressure,
   /// which changes the oxygen findings of an altitude or fresh water dive
   /// (#3958).
-  /// v9: tissues carried between dives off-gas at the dives' own surface, not
+  /// v9: a logged dive's residual tissue load no longer starts from a plan
+  /// that was never dived, which changes what is graded on the dive after it
+  /// (#3924).
+  /// v10: tissues carried between dives off-gas at the dives' own surface, not
   /// at 1.0 bar, which changes the ceilings graded on a repetitive dive with a
   /// known surface pressure, at altitude above all (#3925).
-  static const int engineVersion = 9;
+  static const int engineVersion = 10;
 
   const SafetyReviewService();
 

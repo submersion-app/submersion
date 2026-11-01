@@ -9,7 +9,6 @@ import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
 import 'package:submersion/features/reef/domain/entities/reef_protection.dart';
-import 'package:submersion/features/reef/domain/entities/reef_snapshot.dart';
 import 'package:submersion/features/reef/domain/services/bleaching_alert_level.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/features/reef/presentation/widgets/reef_section.dart';
@@ -19,25 +18,32 @@ import '../../../../helpers/l10n_test_helpers.dart';
 
 const _location = GeoPoint(12.16, -68.28);
 
-ReefSnapshot _snapshot({
+typedef _Parts = ({
+  ReefPart<ReefHabitat> habitat,
+  ReefPart<ReefHealth> health,
+  ReefPart<List<ReefProtection>> protection,
+});
+
+_Parts _parts({
   ReefPart<ReefHabitat> habitat = const ReefPart.empty(),
   ReefPart<ReefHealth>? health,
   ReefPart<List<ReefProtection>> protection = const ReefPart.empty(),
-}) => ReefSnapshot(
+}) => (
   habitat: habitat,
   health: health ?? const ReefPart.unavailable(),
   protection: protection,
-  species: const ReefPart.empty(),
 );
 
-Widget _harness(ReefSnapshot snapshot, {WaterType? waterType}) {
-  final request = ReefSnapshotRequest(
-    location: _location,
-    fetchHealth: waterType != WaterType.fresh,
-  );
+Widget _harness(_Parts parts, {WaterType? waterType}) {
   return ProviderScope(
     overrides: [
-      reefSnapshotProvider(request).overrideWith((ref) async => snapshot),
+      reefHabitatProvider(_location).overrideWith((ref) async => parts.habitat),
+      reefCurrentHealthProvider(
+        _location,
+      ).overrideWith((ref) async => parts.health),
+      reefProtectionProvider(
+        _location,
+      ).overrideWith((ref) async => parts.protection),
       // WaterConditionsCard reads the diver's unit setting, which chains
       // through settingsProvider to SharedPreferences. Overriding at the
       // narrowest point severs that chain without mocking preferences.
@@ -72,7 +78,7 @@ void main() {
   testWidgets('shows habitat threat level when on a reef', (tester) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           habitat: const ReefPart.ok(
             ReefHabitat(onReef: true, threatLevel: 'High'),
           ),
@@ -89,7 +95,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           habitat: const ReefPart.ok(ReefHabitat(onReef: true)),
           health: ReefPart.ok(
             ReefHealth(
@@ -111,7 +117,7 @@ void main() {
   });
 
   testWidgets('titles the section Ecosystem', (tester) async {
-    await tester.pumpWidget(_harness(_snapshot()));
+    await tester.pumpWidget(_harness(_parts()));
     await tester.pumpAndSettle();
 
     expect(find.text('Ecosystem'), findsOneWidget);
@@ -121,7 +127,7 @@ void main() {
   testWidgets('hides the habitat row when the site is not on a reef', (
     tester,
   ) async {
-    await tester.pumpWidget(_harness(_snapshot()));
+    await tester.pumpWidget(_harness(_parts()));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('No mapped coral reef'), findsNothing);
@@ -130,7 +136,7 @@ void main() {
 
   testWidgets('keeps the habitat row when the check failed', (tester) async {
     await tester.pumpWidget(
-      _harness(_snapshot(habitat: const ReefPart.unavailable())),
+      _harness(_parts(habitat: const ReefPart.unavailable())),
     );
     await tester.pumpAndSettle();
 
@@ -140,7 +146,7 @@ void main() {
   testWidgets('shows the freshwater message for freshwater sites', (
     tester,
   ) async {
-    await tester.pumpWidget(_harness(_snapshot(), waterType: WaterType.fresh));
+    await tester.pumpWidget(_harness(_parts(), waterType: WaterType.fresh));
     await tester.pumpAndSettle();
 
     expect(
@@ -154,7 +160,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           health: ReefPart.ok(
             ReefHealth(
               sst: 14.2,
@@ -178,7 +184,7 @@ void main() {
   testWidgets('distinguishes not-protected from could-not-check', (
     tester,
   ) async {
-    await tester.pumpWidget(_harness(_snapshot()));
+    await tester.pumpWidget(_harness(_parts()));
     await tester.pumpAndSettle();
     expect(
       find.textContaining('Not in a marine protected area'),
@@ -186,7 +192,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      _harness(_snapshot(protection: const ReefPart.unavailable())),
+      _harness(_parts(protection: const ReefPart.unavailable())),
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('Could not check'), findsWidgets);
@@ -200,7 +206,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           habitat: const ReefPart.ok(ReefHabitat(onReef: true)),
           health: ReefPart.ok(
             ReefHealth(
@@ -227,7 +233,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           protection: const ReefPart.ok([
             ReefProtection(
               siteName: 'Somewhere',
@@ -248,7 +254,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           protection: const ReefPart.ok([
             ReefProtection(
               siteName: 'Somewhere',
@@ -266,7 +272,7 @@ void main() {
   testWidgets('does not render ProtectedSeas activity codes', (tester) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           protection: const ReefPart.ok([
             ReefProtection(
               siteName: 'Molasses Reef Sanctuary Preserve',

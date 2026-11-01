@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Uint8List comes from drift's re-export; a dart:typed_data import here is
 // flagged as unnecessary, and infos are fatal in CI.
 import 'package:drift/drift.dart';
@@ -36,27 +38,36 @@ enum TrackLod {
 class TrackGeometryCacheRepository {
   static final _log = LoggerService.forClass(TrackGeometryCacheRepository);
 
+  /// Track ids whose cached geometry has just been dropped.
+  ///
+  /// Static because eviction has more than one owner: SyncDataSerializer
+  /// builds its own repository, and an instance stream would never reach the
+  /// providers watching this one.
+  static final _evictions = StreamController<String>.broadcast();
+
+  /// How many times each track has been evicted this session. Static for the
+  /// same reason as [_evictions]. A track with no entry is at generation 0.
+  ///
+  /// Never pruned, on purpose: an entry costs one int per track in the library,
+  /// and dropping one would let a simplification still running write the
+  /// pre-eviction line back.
+  static final _generations = <String, int>{};
+
   LocalCacheDatabase get _db => LocalCacheDatabaseService.instance.database;
 
-  /// Emits whenever cached geometry changes so map providers redraw after a
-  /// trim or split invalidates a track's rows and the next render rewrites
-  /// them.
+  /// Emits after [invalidate] drops [trackId]'s cached geometry, so a rendered
+  /// polyline does not outlive the points it was built from.
   ///
-  /// Not a write-once cache: [invalidate] deletes every LOD for a track and
-  /// [write] re-inserts on conflict, so a rendered polyline can outlive the
-  /// geometry it was built from.
-  ///
-  /// Emits nothing when the local cache database is not initialised, matching
-  /// the "behave as an empty cache" contract the read/write methods use.
-  Stream<void> watchGeometryChanges() {
-    final LocalCacheDatabase db;
-    try {
-      db = _db;
-    } on StateError {
-      return const Stream.empty();
-    }
-    return db.tableUpdates(TableUpdateQuery.onTable(db.gpsTrackGeometryCache));
-  }
+  /// Scoped to one track, and silent on [write]: a table-wide tick would make
+  /// every active preview reload each time any one of them cached its result
+  /// (issue #3866). Works before the local cache database is initialised,
+  /// since a track can be evicted while the cache is still an empty one.
+  Stream<void> watchEvictions(String trackId) =>
+      _evictions.stream.where((id) => id == trackId).map((_) {});
+
+  /// The current generation of [trackId]'s geometry. Take it before reading
+  /// the track's points, and hand it to [write] with what they simplified to.
+  int generationOf(String trackId) => _generations[trackId] ?? 0;
 
   Future<void> _deleteRow(
     LocalCacheDatabase db,
@@ -119,11 +130,18 @@ class TrackGeometryCacheRepository {
     }
   }
 
+  /// Caches [points] as [trackId]'s geometry at [lod].
+  ///
+  /// With a [generation] from [generationOf], the write is dropped if the
+  /// track has been evicted since: those points may predate the trim, and the
+  /// cache has no TTL, so a late write would pin the old line for good.
   Future<void> write(
     String trackId,
     TrackLod lod,
-    List<GpsTrackPoint> points,
-  ) async {
+    List<GpsTrackPoint> points, {
+    int? generation,
+  }) async {
+    if (generation != null && generation != generationOf(trackId)) return;
     final db = _dbOrNull;
     if (db == null) return;
     await db
@@ -144,11 +162,18 @@ class TrackGeometryCacheRepository {
 
   /// Drops every cached LOD for [trackId]. Called after a trim or split
   /// changes which points the track represents.
+  ///
+  /// The generation moves before the delete, so a simplification finishing
+  /// while the delete runs cannot put the old line back. [watchEvictions]
+  /// fires after it, so a listener that rereads the cache sees the rows gone.
   Future<void> invalidate(String trackId) async {
+    _generations[trackId] = generationOf(trackId) + 1;
     final db = _dbOrNull;
-    if (db == null) return;
-    await (db.delete(
-      db.gpsTrackGeometryCache,
-    )..where((t) => t.trackId.equals(trackId))).go();
+    if (db != null) {
+      await (db.delete(
+        db.gpsTrackGeometryCache,
+      )..where((t) => t.trackId.equals(trackId))).go();
+    }
+    _evictions.add(trackId);
   }
 }
