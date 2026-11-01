@@ -95,8 +95,9 @@ void main() {
   );
 
   Future<({_FakeLocations locations, _FakeMoves moves})> pump(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    bool failRead = false,
+  }) async {
     tester.view.physicalSize = const Size(900, 1200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -110,9 +111,10 @@ void main() {
           activeEquipmentProvider.overrideWith(
             (ref) async => const [wetsuit, fins],
           ),
-          currentEquipmentLocationsProvider.overrideWith(
-            (ref) async => {'fin': annasPlace},
-          ),
+          currentEquipmentLocationsProvider.overrideWith((ref) async {
+            if (failRead) throw StateError('no');
+            return {'fin': annasPlace};
+          }),
           equipmentLocationsProvider.overrideWith((ref) async => [annasPlace]),
           equipmentLocationRepositoryProvider.overrideWithValue(locations),
           equipmentLocationMoveRepositoryProvider.overrideWithValue(moves),
@@ -160,6 +162,16 @@ void main() {
     expect(fakes.locations.calls, 1);
     expect(fakes.moves.recorded.single.$1, ['wet']);
     expect(fakes.moves.recorded.single.$2, 'annas');
+  });
+
+  testWidgets('a failed read says so instead of doing nothing', (tester) async {
+    await pump(tester, failRead: true);
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('cancelling the picker does nothing', (tester) async {

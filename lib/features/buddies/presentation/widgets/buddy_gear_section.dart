@@ -32,11 +32,8 @@ class BuddyGearSection extends ConsumerWidget {
     final rows = gearWithBuddy(buddy.id, itemsAtPlaces(ref), current);
     if (rows.isEmpty) return const SizedBox.shrink();
 
-    final places =
-        ref.watch(allEquipmentLocationsByIdProvider).value ??
-        const <String, EquipmentLocation>{};
-    final namePlaces =
-        places.values.where((p) => p.buddyId == buddy.id).length > 1;
+    // Only worth saying when it tells the rows apart.
+    final namePlaces = rows.map((r) => r.place.id).toSet().length > 1;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
@@ -139,6 +136,7 @@ class _GearRow extends ConsumerWidget {
           TileSubtitleAction(
             actionKey: ValueKey('buddy_gear_returned_${item.id}'),
             label: l10n.buddies_gear_returned,
+            semanticsLabel: '${l10n.buddies_gear_returned}: ${item.name}',
             onPressed: onReturned,
           ),
         ],

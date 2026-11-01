@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -131,6 +133,39 @@ void main() {
 
     expect(find.text('Choose a buddy'), findsOneWidget);
     expect(picked, anna);
+  });
+
+  testWidgets('says nothing about having no buddies until the list loads', (
+    tester,
+  ) async {
+    final gate = Completer<List<Buddy>>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [allBuddiesProvider.overrideWith((ref) => gate.future)],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => TextButton(
+                onPressed: () => showBuddyPickSheet(context, ref),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No buddies yet'), findsNothing);
+
+    gate.complete(const []);
+    await tester.pumpAndSettle();
+
+    expect(find.text('No buddies yet'), findsOneWidget);
   });
 
   testWidgets('dismissing returns null', (tester) async {

@@ -21,6 +21,9 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   final recorded = <(String?, DateTime, String)>[];
 
   @override
+  Future<T> inTransaction<T>(Future<T> Function() body) => body();
+
+  @override
   Future<List<EquipmentLocationMove>> getMovesFor(String equipmentId) async =>
       history[equipmentId] ?? const [];
 

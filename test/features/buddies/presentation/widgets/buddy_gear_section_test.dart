@@ -26,6 +26,9 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   Duration writeTakes = Duration.zero;
 
   @override
+  Future<T> inTransaction<T>(Future<T> Function() body) => body();
+
+  @override
   Future<List<EquipmentLocationMove>> getMovesFor(String equipmentId) async =>
       const [];
 
@@ -214,24 +217,46 @@ void main() {
     );
   });
 
-  testWidgets('the place is named only when several link to the buddy', (
+  testWidgets('places are named when gear sits at more than one', (
     tester,
   ) async {
     final other = place('other', 'Anna at the club');
     await pump(
       tester,
-      items: [item('a', 'Wetsuit')],
-      current: {'a': hers},
+      items: [item('a', 'Wetsuit'), item('b', 'Fins')],
+      current: {'a': hers, 'b': other},
       places: [hers, other],
     );
 
     expect(find.textContaining('Anna at home'), findsOneWidget);
+    expect(find.textContaining('Anna at the club'), findsOneWidget);
   });
 
   testWidgets('one place goes unnamed', (tester) async {
     await pump(tester, items: [item('a', 'Wetsuit')], current: {'a': hers});
 
     expect(find.textContaining('Anna at home'), findsNothing);
+  });
+
+  testWidgets('a second linked place holding nothing does not name the '
+      'place', (tester) async {
+    final empty = place('empty', 'Old place', archived: true);
+    await pump(
+      tester,
+      items: [item('a', 'Wetsuit')],
+      current: {'a': hers},
+      places: [hers, empty],
+    );
+
+    expect(find.textContaining('Anna at home'), findsNothing);
+  });
+
+  testWidgets('Returned names its item for a screen reader', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester, items: [item('a', 'Drysuit')], current: {'a': hers});
+
+    expect(find.bySemanticsLabel('Returned: Drysuit'), findsOneWidget);
+    handle.dispose();
   });
 
   testWidgets('an archived place counts: the gear is still with them', (

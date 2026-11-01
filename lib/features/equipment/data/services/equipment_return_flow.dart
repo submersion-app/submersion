@@ -69,14 +69,18 @@ class EquipmentReturnFlow {
           : notBeforeCurrentMove(movedAt, history.first.movedAt);
       groups.putIfAbsent((target?.id, at), () => []).add(id);
     }
-    for (final MapEntry(key: (locationId, at), value: ids) in groups.entries) {
-      await moves.recordMoves(
-        equipmentIds: ids,
-        locationId: locationId,
-        movedAt: at,
-        note: note,
-      );
-    }
+    // All or nothing, so no item comes back without its status prompt.
+    await moves.inTransaction(() async {
+      for (final MapEntry(key: (locationId, at), value: ids)
+          in groups.entries) {
+        await moves.recordMoves(
+          equipmentIds: ids,
+          locationId: locationId,
+          movedAt: at,
+          note: note,
+        );
+      }
+    });
     final loaned = [
       for (final entry in statuses.entries)
         if (entry.value == EquipmentStatus.loaned) entry.key,

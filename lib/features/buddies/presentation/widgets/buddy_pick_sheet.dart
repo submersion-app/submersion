@@ -37,7 +37,8 @@ class _BuddyPickState extends ConsumerState<_BuddyPick> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final everyone = ref.watch(allBuddiesProvider).value ?? const <Buddy>[];
+    final loaded = ref.watch(allBuddiesProvider).value;
+    final everyone = loaded ?? const <Buddy>[];
     final query = _search.trim().toLowerCase();
     final buddies = [
       for (final b in everyone)
@@ -77,7 +78,7 @@ class _BuddyPickState extends ConsumerState<_BuddyPick> {
                   onTap: _addBuddy,
                 ),
                 const Divider(height: 1),
-                if (buddies.isEmpty)
+                if (loaded != null && buddies.isEmpty)
                   ListTile(
                     title: Text(
                       everyone.isEmpty

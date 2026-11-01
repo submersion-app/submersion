@@ -26,6 +26,21 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   final Map<String, String?> current;
   final recorded = <_Recorded>[];
 
+  /// Rolls back what a failing body wrote, as a real transaction does.
+  @override
+  Future<T> inTransaction<T>(Future<T> Function() body) async {
+    final before = recorded.length;
+    try {
+      return await body();
+    } catch (_) {
+      recorded.removeRange(before, recorded.length);
+      rethrow;
+    }
+  }
+
+  /// A location whose write fails.
+  String? failFor;
+
   @override
   Future<List<EquipmentLocationMove>> getMovesFor(String equipmentId) async =>
       history[equipmentId] ?? const [];
@@ -44,6 +59,7 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
     required DateTime movedAt,
     String note = '',
   }) async {
+    if (locationId == failFor && failFor != null) throw StateError('no');
     recorded.add(_Recorded(equipmentIds.toList(), locationId, movedAt, note));
     return const [];
   }
@@ -342,6 +358,24 @@ void main() {
 
     expect(count, 1);
     expect(statusFailed, isTrue);
+  });
+
+  test('a failed write takes nothing back, leaving no gear half returned '
+      'without its prompt', () async {
+    final moves = _FakeMoves(
+      history: {
+        'a': history('a', ['shelf']),
+        'b': history('b', ['locker']),
+      },
+    )..failFor = 'locker';
+
+    await expectLater(
+      run(flow(moves), [item('a'), item('b')]),
+      throwsStateError,
+    );
+
+    expect(moves.recorded, isEmpty);
+    expect(statusAsks, isEmpty);
   });
 
   test('no items writes nothing and asks nothing', () async {

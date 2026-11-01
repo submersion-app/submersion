@@ -1,5 +1,4 @@
-import 'dart:math' as math;
-
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -63,10 +62,8 @@ Future<List<EquipmentLocationRow>> _linkedPlaces(
   AppDatabase db,
   Iterable<String> buddyIds,
 ) async {
-  final ids = buddyIds.toSet().toList();
   final rows = <EquipmentLocationRow>[];
-  for (var i = 0; i < ids.length; i += _linkChunkSize) {
-    final chunk = ids.sublist(i, math.min(i + _linkChunkSize, ids.length));
+  for (final chunk in buddyIds.toSet().slices(_linkChunkSize)) {
     rows.addAll(
       await (db.select(
         db.equipmentLocations,
@@ -83,11 +80,7 @@ Future<void> _writeLink(
   String? buddyId, {
   required int now,
 }) async {
-  for (var i = 0; i < placeIds.length; i += _linkChunkSize) {
-    final chunk = placeIds.sublist(
-      i,
-      math.min(i + _linkChunkSize, placeIds.length),
-    );
+  for (final chunk in placeIds.slices(_linkChunkSize)) {
     await (db.update(
       db.equipmentLocations,
     )..where((t) => t.id.isIn(chunk))).write(

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -16,7 +17,15 @@ Future<void> showLendGearFlow(
   WidgetRef ref,
   Buddy buddy,
 ) async {
-  final current = await ref.read(currentEquipmentLocationsProvider.future);
+  final failed = context.l10n.common_error_tryAgain;
+  final messenger = ScaffoldMessenger.of(context);
+  final Map<String, EquipmentLocation> current;
+  try {
+    current = await ref.read(currentEquipmentLocationsProvider.future);
+  } catch (_) {
+    messenger.showSnackBar(SnackBar(content: Text(failed)));
+    return;
+  }
   if (!context.mounted) return;
   final withBuddy = {
     for (final entry in current.entries)

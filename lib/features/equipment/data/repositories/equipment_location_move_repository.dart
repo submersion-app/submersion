@@ -57,6 +57,11 @@ class EquipmentLocationMoveRepository {
     };
   }
 
+  /// Runs [body] as one transaction, for a caller whose moves stand or fall
+  /// together.
+  Future<T> inTransaction<T>(Future<T> Function() body) =>
+      _db.transaction(body);
+
   /// One move per distinct item in [equipmentIds], all to [locationId]
   /// (null clears the location) at [movedAt]. Returns the moves written.
   Future<List<EquipmentLocationMove>> recordMoves({

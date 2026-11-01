@@ -162,7 +162,7 @@ not built at all when the list is empty, its surrounding spacing included.
 - Each row shows the item's name, its localized type, and "Since {date}" from
   the current move. An item whose status is Loaned Out also shows that status.
   Other statuses show nothing, so family gear reads plainly. The place name is
-  added only when more than one of the diver's places links to this buddy.
+  added only when the listed gear sits at more than one place.
 - Tapping a row opens the item.
 - Each row has a **Returned** action. The section header has **All returned**
   when there are two or more rows *(call)*.
