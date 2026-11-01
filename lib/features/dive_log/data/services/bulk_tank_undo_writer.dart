@@ -84,7 +84,7 @@ class BulkTankUndoWriter {
                     encodeExtraRegulatorIds(regulators.extras),
                   ),
                   computerId: Value(links.computer(row.computerId)),
-                  sourceId: Value(links.source(row.sourceId)),
+                  sourceId: Value(links.source(row.diveId, row.sourceId)),
                   tripCylinderId: Value(validTripCylinderLink(slot, slots)),
                 )
                 .toCompanion(false),
@@ -102,7 +102,7 @@ class BulkTankUndoWriter {
       await _tankSeries.restoreSeriesRow(
         row.copyWith(
           computerId: Value(links.computer(row.computerId)),
-          sourceId: Value(links.source(row.sourceId)),
+          sourceId: Value(links.source(row.diveId, row.sourceId)),
         ),
         now: now,
         // The caller notifies once, after its transaction.
@@ -149,12 +149,13 @@ class _LiveLinks {
 
   final Set<String> _gear;
   final Set<String> _computers;
-  final Set<String> _sources;
+  final Set<(String, String)> _sources;
 
   bool hasGear(String id) => _gear.contains(id);
   String? gear(String? id) => _gear.contains(id) ? id : null;
   String? computer(String? id) => _computers.contains(id) ? id : null;
-  String? source(String? id) => _sources.contains(id) ? id : null;
+  String? source(String diveId, String? id) =>
+      _sources.contains((diveId, id)) ? id : null;
 
   static Future<_LiveLinks> read(AppDatabase db, BulkTankUndo undo) async {
     final tanks = undo.replacedTanks;
@@ -172,12 +173,29 @@ class _LiveLinks {
         for (final s in series) s.computerId,
         for (final g in undo.replacedGasSwitches) g.computerId,
       ]),
-      // The sources these dives still have, so one moved to another dive
-      // stays there.
-      await _ids(db, db.diveDataSources, db.diveDataSources.id, [
-        for (final t in tanks) t.diveId,
-      ], matching: db.diveDataSources.diveId),
+      await _sourcesOf(db, [for (final t in tanks) t.diveId]),
     );
+  }
+
+  /// The (dive, source) pairs [diveIds] still have, so a source moved to
+  /// another dive stays there even when that dive is in the same edit.
+  static Future<Set<(String, String)>> _sourcesOf(
+    AppDatabase db,
+    List<String> diveIds,
+  ) async {
+    final sources = db.diveDataSources;
+    final found = <(String, String)>{};
+    for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
+      final query = db.selectOnly(sources)
+        ..addColumns([sources.diveId, sources.id])
+        ..where(sources.diveId.isIn(chunk));
+      found.addAll(
+        (await query.get()).map(
+          (r) => (r.read(sources.diveId)!, r.read(sources.id)!),
+        ),
+      );
+    }
+    return found;
   }
 
   /// The [idColumn] of [table]'s rows whose [matching] column, by default

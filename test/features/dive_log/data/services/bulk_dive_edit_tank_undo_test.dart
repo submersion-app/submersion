@@ -156,6 +156,30 @@ void main() {
     expect((await tanksOf('d1')).single.tankName, 'Synced');
   });
 
+  test('a tank that lands before a replace comes back with its undo', () async {
+    await seedDive('d1');
+    final racing = BulkDiveEditService(
+      diveRepo,
+      _TankArrivesDuringCapture(diveRepo),
+      SpeciesRepository(),
+    );
+
+    final snap = await racing.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          TanksOp(mode: BulkCollectionMode.replace, tanks: [template('Stage')]),
+          const BuddiesOp(mode: BulkCollectionMode.add, buddies: []),
+        ],
+      ),
+    );
+    expect((await tanksOf('d1')).single.tankName, 'Stage');
+
+    await racing.undo(snap);
+
+    expect((await tanksOf('d1')).single.tankName, 'Synced');
+  });
+
   test('a request with two tank ops undoes both', () async {
     final original = await seedRecordedDive('d1');
     final snap = await service.apply(
@@ -490,6 +514,30 @@ void main() {
 
         expect((await tanksOf('d1')).single.sourceId, isNull);
         expect((await seriesOf('d1')).single.sourceId, isNull);
+      });
+
+      test('stays on a dive in the same selection it moved to', () async {
+        final original = await seedRecordedDive('d1');
+        await seedRecordedDive('d2');
+        await db
+            .into(db.diveDataSources)
+            .insert(
+              DiveDataSourcesCompanion.insert(
+                id: 'src',
+                diveId: 'd1',
+                importedAt: DateTime.utc(2026),
+                createdAt: DateTime.utc(2026),
+              ),
+            );
+        await (db.update(db.diveTanks)..where((t) => t.id.equals(original.id)))
+            .write(const DiveTanksCompanion(sourceId: Value('src')));
+        final snap = await applyTanks(['d1', 'd2'], BulkCollectionMode.replace);
+        await (db.update(db.diveDataSources)..where((t) => t.id.equals('src')))
+            .write(const DiveDataSourcesCompanion(diveId: Value('d2')));
+
+        await service.undo(snap);
+
+        expect((await tanksOf('d1')).single.sourceId, isNull);
       });
 
       test('is dropped when it moved to another dive', () async {

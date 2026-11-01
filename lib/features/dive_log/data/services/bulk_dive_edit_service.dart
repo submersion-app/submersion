@@ -109,11 +109,9 @@ class BulkDiveEditService {
           };
         case DiverRolesOp():
           priorDiverRoleIds = await _roleLinks.diverRoleIdsForDives(ids);
-        case TanksOp(:final mode):
-          // Only a replace deletes tanks, and with them what they recorded.
-          if (mode == BulkCollectionMode.replace) {
-            tankUndo = await _tankUndo.captureReplaced(ids);
-          }
+        // Captured inside the transaction, below.
+        case TanksOp():
+          break;
         case TankSpecsOp():
           // Flat list, not keyed by dive: the restore matches on row id.
           priorTankSpecRows = await (_db.select(
@@ -140,10 +138,16 @@ class BulkDiveEditService {
 
     await _db.transaction(() async {
       // Inside the transaction, unlike the reads above: a tank a sync merge
-      // lands before this point is not the edit's for undo to remove.
-      final tanksBefore = req.ops.any((op) => op is TanksOp)
-          ? await _tankUndo.tankIdsOf(ids)
-          : null;
+      // lands before this point is not the edit's for undo to remove, and one
+      // a replace then deletes is one for undo to put back.
+      final tankOps = req.ops.whereType<TanksOp>();
+      final tanksBefore = tankOps.isEmpty
+          ? null
+          : await _tankUndo.tankIdsOf(ids);
+      // Only a replace deletes tanks, and with them what they recorded.
+      if (tankOps.any((op) => op.mode == BulkCollectionMode.replace)) {
+        tankUndo = await _tankUndo.captureReplaced(ids);
+      }
       // The site goes first: its snap fills in water type, entry/exit and
       // dive types, and every row the diver set in this edit then lands on
       // top of it (#3657).
