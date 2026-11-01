@@ -62,10 +62,14 @@ class CsvCorrelator {
     for (var i = 0; i < rows.length; i++) {
       final diveId = dives[i]['id'] as String;
       final tanks = tankExtractor.extract(rows[i], diveId);
+      // Every tank is corrected, but the notice counts dives: one warning
+      // per row, however many of its tanks were over.
+      ImportWarning? capped;
       for (final tank in tanks) {
         final warning = _capHelium(tank, i, diveListRows.sourceRowOf(i));
-        if (warning != null) gasWarnings.add(warning);
+        capped ??= warning;
       }
+      if (capped != null) gasWarnings.add(capped);
       if (tanks.isNotEmpty) {
         tanksByDiveId[diveId] = tanks;
       }

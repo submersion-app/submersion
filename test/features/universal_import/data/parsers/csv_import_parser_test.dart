@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
 import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
@@ -166,6 +168,7 @@ void main() {
       'He %',
       'He%',
       'He (%)',
+      'He [%]',
       'Helium',
       'Helium %',
       'Helium Percent',
@@ -179,6 +182,19 @@ void main() {
         );
         final dive = result.entitiesOf(ImportEntityType.dives).single;
         expect(gasOf(dive), const GasMix(o2: 18, he: 45));
+      });
+    }
+
+    for (final header in ['He (bar)', 'He [bar]', 'Helium (psi)']) {
+      test('auto-mapping leaves "$header" out of the gas', () async {
+        final result = await parser.parse(
+          csvBytes(
+            'Date,Time,Max Depth (m),Oxygen,$header\n'
+            '2025-03-15,09:05,20,18,45\n',
+          ),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(gasOf(dive), const GasMix(o2: 18));
       });
     }
 
@@ -207,6 +223,44 @@ void main() {
           (w) => w.code == ImportWarningCode.gasMixesCapped,
         ),
         isEmpty,
+      );
+    });
+
+    test('two capped tanks on one dive make one warning', () async {
+      const mapping = FieldMapping(
+        name: 'Numbered',
+        sourceApp: SourceApp.generic,
+        columns: [
+          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'V1', targetField: 'tankVolume_1'),
+          ColumnMapping(sourceColumn: 'O1', targetField: 'o2Percent_1'),
+          ColumnMapping(sourceColumn: 'H1', targetField: 'hePercent_1'),
+          ColumnMapping(sourceColumn: 'V2', targetField: 'tankVolume_2'),
+          ColumnMapping(sourceColumn: 'O2', targetField: 'o2Percent_2'),
+          ColumnMapping(sourceColumn: 'H2', targetField: 'hePercent_2'),
+        ],
+      );
+      final result = await CsvImportParser(customMapping: mapping).parse(
+        csvBytes(
+          'Date,V1,O1,H1,V2,O2,H2\n'
+          '2025-03-15,12,11,90,12,21,85\n'
+          '2025-03-16,12,18,45,12,18,45\n',
+        ),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(gasOf(dive), const GasMix(o2: 11, he: 89));
+      expect(gasOf(dive, 1), const GasMix(o2: 21, he: 79));
+
+      final warning = result.warnings.singleWhere(
+        (w) => w.code == ImportWarningCode.gasMixesCapped,
+      );
+      expect(warning.sourceRow, 2);
+      expect(
+        groupImportNotices(
+          result.warnings,
+          2,
+        ).singleWhere((n) => n.kind == ImportNoticeKind.gasMixesCapped).count,
+        1,
       );
     });
 
