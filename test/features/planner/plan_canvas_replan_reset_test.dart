@@ -74,6 +74,36 @@ void main() {
     expect(after.segments, isEmpty);
   });
 
+  testWidgets('leaving a replan keeps a plan that replaced it on the way out', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final showPlanner = ValueNotifier(true);
+    await tester.pumpWidget(harness(showPlanner));
+    await tester.pumpAndSettle();
+
+    final notifier = notifierOf(tester);
+    notifier.addSimplePlan(maxDepth: 40, bottomTimeMinutes: 20);
+    final container = ProviderScope.containerOf(hostKey.currentContext!);
+    notifier.loadPlan(
+      container.read(divePlanNotifierProvider).copyWith(sourceDiveId: 'dive-1'),
+    );
+    await tester.pump();
+
+    // Plan repetitive dive from a dive opened over the replan: the plan is
+    // replaced and the page goes in the same frame, before it can rebuild.
+    notifier.newPlan();
+    notifier.addSimplePlan(maxDepth: 18, bottomTimeMinutes: 30);
+    showPlanner.value = false;
+    await tester.pumpAndSettle();
+
+    expect(container.read(divePlanNotifierProvider).segments, isNotEmpty);
+  });
+
   testWidgets('leaving a series keeps it, whichever dive is selected', (
     tester,
   ) async {

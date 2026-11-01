@@ -2530,12 +2530,21 @@ class DiveRepository {
   /// delete leaves a re-deletable dive, never an orphan. Merge and
   /// consolidation services reassign media to the surviving dive BEFORE
   /// deleting sources, so this sees no doomed media for merged-away dives.
-  Future<void> _cascadeMediaForDiveDeletion(List<String> ids) async {
+  ///
+  /// [holdRemoteDelete] is for a delete the diver can still undo: see
+  /// [MediaDeletionCoordinator.deleteMediaItems].
+  Future<void> _cascadeMediaForDiveDeletion(
+    List<String> ids, {
+    bool holdRemoteDelete = false,
+  }) async {
     final split = await _mediaRepository.partitionMediaForDiveDeletion(ids);
     if (split.doomed.isNotEmpty) {
       // Items, not ids: the partition already read these rows, and the
       // blob-delete intent needs exactly the fields it carries.
-      await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
+      await _mediaDeletionCoordinator.deleteMediaItems(
+        split.doomed,
+        holdRemoteDelete: holdRemoteDelete,
+      );
     }
     if (split.unlinkIds.isNotEmpty) {
       await _mediaRepository.unlinkMediaFromDeletedDives(split.unlinkIds, ids);
@@ -2569,6 +2578,7 @@ class DiveRepository {
         );
       }
     }
+    await _profileSeries.deleteRevisionsForDives(ids);
     for (final chunk in seriesIdChunks(ids)) {
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(chunk))).go();
     }
@@ -2614,18 +2624,27 @@ class DiveRepository {
 
   /// Bulk delete multiple dives
   /// Returns the list of deleted dive IDs for potential undo
+  ///
+  /// [holdRemoteMedia] leaves the media's remote blobs alone for now, for a
+  /// delete the diver can still undo.
   Future<List<String>> bulkDeleteDives(
     List<String> ids, {
     bool cascadeMedia = true,
+    bool holdRemoteMedia = false,
   }) => ChangeLogScope.bulk(
     DatabaseService.instance.databaseOrNull,
     label: ChangeLogLabels.bulkDelete,
-    body: () => _bulkDeleteDivesInner(ids, cascadeMedia: cascadeMedia),
+    body: () => _bulkDeleteDivesInner(
+      ids,
+      cascadeMedia: cascadeMedia,
+      holdRemoteMedia: holdRemoteMedia,
+    ),
   );
 
   Future<List<String>> _bulkDeleteDivesInner(
     List<String> ids, {
     bool cascadeMedia = true,
+    bool holdRemoteMedia = false,
   }) async {
     if (ids.isEmpty) return [];
 
@@ -2634,7 +2653,12 @@ class DiveRepository {
       // Once each: a single `IN (...)` collapsed a repeated id, but chunked
       // statements can each match it, doubling the rows they return.
       final dives = ids.toSet().toList();
-      if (cascadeMedia) await _cascadeMediaForDiveDeletion(dives);
+      if (cascadeMedia) {
+        await _cascadeMediaForDiveDeletion(
+          dives,
+          holdRemoteDelete: holdRemoteMedia,
+        );
+      }
       // Check-ins on the dives stay as bench notes; staged, not just nulled.
       await _observationRepository.unlinkFromDeletedDives(dives);
       // See deleteDive: must be captured before the delete removes the
@@ -4544,12 +4568,9 @@ class DiveRepository {
               orElse: () => EntryMethod.other,
             )
           : null,
-      waterType: row.waterType != null
-          ? WaterType.values.firstWhere(
-              (w) => w.name == row.waterType,
-              orElse: () => WaterType.salt,
-            )
-          : null,
+      // A legacy empty string reads as none recorded, as the query fields and
+      // the statistics read it, so the dive takes its site's.
+      waterType: WaterType.values.asNameMap()[row.waterType],
       altitude: row.altitude,
       surfacePressure: row.surfacePressure,
       surfaceInterval: row.surfaceIntervalSeconds != null
@@ -5010,12 +5031,9 @@ class DiveRepository {
               orElse: () => EntryMethod.other,
             )
           : null,
-      waterType: row.waterType != null
-          ? WaterType.values.firstWhere(
-              (w) => w.name == row.waterType,
-              orElse: () => WaterType.salt,
-            )
-          : null,
+      // A legacy empty string reads as none recorded, as the query fields and
+      // the statistics read it, so the dive takes its site's.
+      waterType: WaterType.values.asNameMap()[row.waterType],
       altitude: row.altitude,
       surfacePressure: row.surfacePressure,
       surfaceInterval: row.surfaceIntervalSeconds != null

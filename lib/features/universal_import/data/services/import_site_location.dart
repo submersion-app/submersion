@@ -25,6 +25,9 @@ import 'package:submersion/features/universal_import/data/models/import_warning.
 /// a parser that decides a site's fate on its name alone has to go through
 /// here, or the guard fails.
 abstract final class ImportSiteLocation {
+  /// The keys that say where a site is, as an import map carries them.
+  static const _placeKeys = ['city', 'island', 'region', 'country'];
+
   /// The name a site takes when the file gave it none.
   ///
   /// This is [GeoPoint]'s own rendering, which is what the Subsurface fold
@@ -75,6 +78,65 @@ abstract final class ImportSiteLocation {
 
     return Map<String, dynamic>.from(site)
       ..['name'] = nameFromCoordinates(point.latitude, point.longitude);
+  }
+
+  /// Whether [a] and [b], two site maps, state different places (#4015).
+  ///
+  /// A shared name is not a shared place: there is a Blue Hole in Egypt and
+  /// one in Belize. Only a field both sides fill can disagree, so a side that
+  /// says nothing contradicts nothing, and case and surrounding space do not
+  /// count as a difference.
+  static bool placesConflict(Map<String, dynamic> a, Map<String, dynamic> b) {
+    for (final key in _placeKeys) {
+      final left = _placeText(a[key]);
+      final right = _placeText(b[key]);
+      if (left != null && right != null && left != right) return true;
+    }
+    return false;
+  }
+
+  /// Whether [a] and [b] state a place and it is the same one: every place
+  /// field matches, and at least one is filled.
+  static bool samePlace(Map<String, dynamic> a, Map<String, dynamic> b) {
+    var stated = false;
+    for (final key in _placeKeys) {
+      final left = _placeText(a[key]);
+      if (left != _placeText(b[key])) return false;
+      stated = stated || left != null;
+    }
+    return stated;
+  }
+
+  /// Which of [namesakes], existing sites sharing [site]'s name, it refers
+  /// to. There must be at least one. The last in exactly its place wins, then
+  /// the last its place does not contradict, then simply the last.
+  ///
+  /// `ImportDuplicateChecker` and `UddfEntityImporter` both go through here,
+  /// so the site a diver is shown as the match is the one the dive links to.
+  static DiveSite namesakeOf(
+    Map<String, dynamic> site,
+    List<DiveSite> namesakes,
+  ) {
+    final latestFirst = namesakes.reversed;
+    return latestFirst
+            .where((namesake) => samePlace(site, _placeOf(namesake)))
+            .firstOrNull ??
+        latestFirst
+            .where((namesake) => !placesConflict(site, _placeOf(namesake)))
+            .firstOrNull ??
+        namesakes.last;
+  }
+
+  static Map<String, dynamic> _placeOf(DiveSite site) => {
+    'city': site.city,
+    'island': site.island,
+    'region': site.region,
+    'country': site.country,
+  };
+
+  static String? _placeText(Object? value) {
+    final text = value?.toString().trim().toLowerCase();
+    return text == null || text.isEmpty ? null : text;
   }
 
   /// The notice raised for [count] dives that were imported without the site

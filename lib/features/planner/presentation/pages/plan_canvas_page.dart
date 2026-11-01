@@ -34,6 +34,9 @@ import 'package:submersion/features/planner/presentation/widgets/plan_chart_read
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
@@ -97,31 +100,37 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // replans are still in the list. Ordinary plans keep today's behaviour of
     // surviving navigation. The notifier is app-wide, so touching it after
     // this element is gone is safe; the microtask keeps the mutation out of
-    // the dispose frame.
+    // the dispose frame. Only that replan goes: this snapshot can be a frame
+    // old, and a plan that replaced it on the way out is the diver's next one.
     final notifier = _notifier;
+    final replanId = _replanId;
     super.dispose();
-    if (_isReplan && notifier != null) {
+    if (replanId != null && notifier != null) {
       Future.microtask(() {
-        if (notifier.mounted) notifier.newPlan();
+        if (notifier.mounted && notifier.planId == replanId) {
+          notifier.newPlan();
+        }
       });
     }
   }
 
-  /// Snapshot for [dispose], which may not touch `ref`: the notifier and
-  /// whether the plan on screen is a replan of a logged dive. Refreshed on
-  /// every build so it tracks loads, resets and saves.
+  /// Snapshot for [dispose], which may not touch `ref`: the notifier and the
+  /// id of the plan on screen when it is a replan of a logged dive. Refreshed
+  /// on every build so it tracks loads, resets and saves.
   DivePlanNotifier? _notifier;
-  bool _isReplan = false;
+  String? _replanId;
 
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
-    // A series of dives cannot be saved, or logged, until series
-    // persistence lands (issue #3565).
+    // A series of dives, or a plan following a logged dive, cannot be saved
+    // or logged until series persistence lands (issue #3565).
     final saveAllowed = ref.watch(planSaveAllowedProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
     // A series is not a throwaway: leaving must not lose what cannot be saved.
-    _isReplan = planState.sourceDiveId != null && saveAllowed;
+    _replanId = planState.sourceDiveId != null && saveAllowed
+        ? planState.id
+        : null;
     final units = ref.watch(unitFormatterProvider);
     final followAllowed = ref.watch(followAllowedProvider);
     // A plan opened via the :planId route is known-persisted, so short-circuit
@@ -240,7 +249,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   enabled: followAllowed,
                   tooltip: followAllowed
                       ? null
-                      : context.l10n.plannerSeries_followFirstDiveOnly,
+                      : context.l10n.plannerSeries_followUnavailableInReplan,
                 ),
                 _menuItem(
                   'settings',
@@ -448,6 +457,19 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   /// behind a drawer). At full width the results pane shows by default; at
   /// middle widths it defaults to hidden and the right chevron reveals it.
   Widget _buildDesktop({required bool fullWidth}) {
+    // A logged dive picked in the series bar is shown read-only in place of
+    // the planner, under the same bar.
+    if (ref.watch(viewedLoggedDiveProvider) != null) {
+      return const Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
+            child: PlanSeriesNavigator(),
+          ),
+          Expanded(child: PlanLoggedDiveView()),
+        ],
+      );
+    }
     final editorCollapsed = ref.watch(editorPaneCollapsedProvider);
     final resultsVisible = fullWidth
         ? !ref.watch(resultsPaneCollapsedProvider)
@@ -500,6 +522,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
           child: PlanSeriesNavigator(),
         ),
+        const PlanFollowPrompt(),
         Expanded(
           child: Stack(
             children: [
@@ -575,9 +598,20 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // A single CustomScrollView so the chart and tab selector scroll away
     // with the rest of the page instead of staying pinned and eating the
     // viewport (#1428).
+    if (ref.watch(viewedLoggedDiveProvider) != null) {
+      return CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(child: PlanSeriesNavigator()),
+          SliverToBoxAdapter(
+            child: PlanLoggedDiveView(chartHeight: chartHeight),
+          ),
+        ],
+      );
+    }
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: PlanSeriesNavigator()),
+        const SliverToBoxAdapter(child: PlanFollowPrompt()),
         SliverToBoxAdapter(
           child: SizedBox(
             height: chartHeight,

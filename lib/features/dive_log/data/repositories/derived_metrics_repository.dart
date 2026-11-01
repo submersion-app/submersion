@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart' show compute;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/domain/services/derived_metrics_service.dart';
 
@@ -53,7 +55,7 @@ class DerivedMetricsRepository {
     // The stamp is read before anything the row is built from: an edit or
     // a synced series landing mid-build then leaves a row older than its
     // stamp, which reads as stale and is rebuilt, never the reverse.
-    final stamp = await readDiveSourceStamp(_db, diveId);
+    final stamp = await _readStamp(diveId);
     if (stamp == null) return null;
     if (!force) {
       final stored = await getMetrics(diveId);
@@ -66,6 +68,16 @@ class DerivedMetricsRepository {
       _db.dives,
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
     if (dive == null) return null;
+    // By name, so a legacy empty string reads as none recorded, as the query
+    // fields read it.
+    final waterTypes = WaterType.values.asNameMap();
+    final ownWaterType = waterTypes[dive.waterType];
+    final siteId = dive.siteId;
+    final site = ownWaterType != null || siteId == null
+        ? null
+        : await (_db.select(
+            _db.diveSites,
+          )..where((t) => t.id.equals(siteId))).getSingleOrNull();
 
     final seriesRows = await _series.getPrimaryRowsForDives([diveId]);
     final tankRows = await (_db.select(
@@ -91,6 +103,11 @@ class DerivedMetricsRepository {
         diveMode: DiveMode.fromCode(dive.diveMode),
         sourceUpdatedAt: stamp,
         computedAtMs: DateTime.now().millisecondsSinceEpoch,
+        environment: DiveEnvironment.forConditions(
+          altitudeMeters: dive.altitude,
+          surfacePressureBar: dive.surfacePressure,
+          waterType: ownWaterType ?? waterTypes[site?.waterType],
+        ),
       ),
     );
 
@@ -116,6 +133,36 @@ class DerivedMetricsRepository {
       }
     }
     return best;
+  }
+
+  /// [diveSourceStampSql] plus the dive's effective water type, which the SAC
+  /// metrics read (issue #3958). A site's water never re-stamps the dives that
+  /// take it. A term of this cache alone, because no other cache built on the
+  /// source stamp reads water.
+  static final String _stampSql = () {
+    final whens = [
+      for (final type in WaterType.values)
+        "WHEN '${type.name}' THEN ${type.index + 1}",
+    ].join(' ');
+    return '(${diveSourceStampSql()} + '
+        '(CASE ${diveEffectiveWaterTypeSql('d')} $whens ELSE 0 END))';
+  }();
+
+  Set<ResultSetImplementation<dynamic, dynamic>> get _stampTables => {
+    ...diveSourceStampTables(_db),
+    _db.diveSites,
+  };
+
+  /// [_stampSql] for one dive, or null when [diveId] does not exist.
+  Future<int?> _readStamp(String diveId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT $_stampSql AS stamp FROM dives d WHERE d.id = ?',
+          variables: [Variable.withString(diveId)],
+          readsFrom: _stampTables,
+        )
+        .getSingleOrNull();
+    return row?.read<int>('stamp');
   }
 
   Future<DiveDerivedMetrics?> getMetrics(String diveId) async {
@@ -188,16 +235,13 @@ class DerivedMetricsRepository {
           'SELECT d.id AS id FROM dives d '
           'LEFT JOIN dive_derived_metrics m ON m.dive_id = d.id '
           'WHERE (m.dive_id IS NULL OR m.engine_version < ? '
-          'OR m.source_updated_at != ${diveSourceStampSql()}) $diverFilter '
+          'OR m.source_updated_at != $_stampSql) $diverFilter '
           'ORDER BY d.dive_date_time DESC, d.id ASC',
           variables: [
             const Variable(DerivedMetricsService.version),
             if (diverId != null) Variable(diverId),
           ],
-          readsFrom: {
-            _db.diveDerivedMetricsRows,
-            ...diveSourceStampTables(_db),
-          },
+          readsFrom: {_db.diveDerivedMetricsRows, ..._stampTables},
         )
         .get();
     return rows.map((r) => r.read<String>('id')).toList();

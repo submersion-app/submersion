@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
@@ -47,6 +48,7 @@ class GasAnalysisService {
     required List<DiveTank> tanks,
     required List<GasSwitchWithTank> gasSwitches,
     Map<String, List<TankPressurePoint>>? tankPressures,
+    DiveEnvironment environment = DiveEnvironment.standard,
   }) {
     if (profile.isEmpty || gasSwitches.isEmpty) return null;
 
@@ -76,6 +78,7 @@ class GasAnalysisService {
 
       // Calculate SAC for this segment
       final sacRate = _calculateSegmentSac(
+        environment: environment,
         avgDepth: avgDepth,
         tank: tank,
         tankVolume: consumptionVolume(tank, tanks),
@@ -94,7 +97,7 @@ class GasAnalysisService {
 
       // Calculate gas consumed
       final durationMin = (endTime - startTime) / 60.0;
-      final ambientPressureBar = (avgDepth / 10.0) + 1.0;
+      final ambientPressureBar = environment.pressureAtDepth(avgDepth);
       final gasConsumed = sacRate * durationMin * ambientPressureBar;
 
       segments.add(
@@ -167,6 +170,7 @@ class GasAnalysisService {
     required List<DiveTank> tanks,
     Map<String, List<TankPressurePoint>>? tankPressures,
     List<GasSwitchWithTank>? gasSwitches,
+    DiveEnvironment environment = DiveEnvironment.standard,
   }) {
     if (profile.length < 10) return null;
 
@@ -253,6 +257,7 @@ class GasAnalysisService {
           avgDepth;
 
       final sacRate = _calculateSegmentSac(
+        environment: environment,
         avgDepth: breathedDepth,
         tank: tank,
         tankVolume: consumptionVolume(tank, tanks),
@@ -267,7 +272,7 @@ class GasAnalysisService {
       final breathedSec = breathedWindows.breathedSeconds;
       final durationMin =
           (breathedSec > 0 ? breathedSec : seg.end - seg.start) / 60.0;
-      final ambientPressureBar = (breathedDepth / 10.0) + 1.0;
+      final ambientPressureBar = environment.pressureAtDepth(breathedDepth);
       final gasConsumed = sacRate * durationMin * ambientPressureBar;
 
       segments.add(
@@ -302,6 +307,7 @@ class GasAnalysisService {
     Map<String, List<TankPressurePoint>>? tankPressures,
   }) {
     final results = <CylinderSac>[];
+    final environment = dive.environment;
 
     // Resolve each tank's time-series pressure, tolerating series that were
     // re-keyed under a stale tank id (see [resolveTankPressureSeries]).
@@ -373,6 +379,7 @@ class GasAnalysisService {
           startTime: usageWindows.first.start,
           endTime: usageWindows.last.end,
           avgDepth: avgDepthDuringUse ?? dive.avgDepth ?? 10.0,
+          environment: environment,
           tankVolume: volume,
           gasMix: tank.gasMix,
           breathingSeconds: usageSeconds,
@@ -396,7 +403,9 @@ class GasAnalysisService {
         if (pressureUsed > 0) {
           final durationMin = usageSeconds / 60.0;
           if (durationMin > 0) {
-            final ambientPressureBar = (effectiveAvgDepth / 10.0) + 1.0;
+            final ambientPressureBar = environment.pressureAtDepth(
+              effectiveAvgDepth,
+            );
             if (volume != null) {
               sacRate = _zCorrectedSacRate(
                 tankVolume: volume,
@@ -634,6 +643,7 @@ class GasAnalysisService {
     required int startTime,
     required int endTime,
     required List<TankUsageWindow> prorationWindows,
+    required DiveEnvironment environment,
   }) {
     final durationSec = endTime - startTime;
     if (durationSec < minSegmentDuration) return null;
@@ -690,7 +700,7 @@ class GasAnalysisService {
     // Calculate SAC under the configured gas model
     final durationMin =
         (breathedInSegment > 0 ? breathedInSegment : durationSec) / 60.0;
-    final ambientPressureBar = (avgDepth / 10.0) + 1.0;
+    final ambientPressureBar = environment.pressureAtDepth(avgDepth);
 
     // Use volume-corrected SAC when tank data available
     if (tankVolume != null && startPressure != null && endPressure != null) {
@@ -716,6 +726,7 @@ class GasAnalysisService {
     required int startTime,
     required int endTime,
     required double avgDepth,
+    required DiveEnvironment environment,
     double? tankVolume,
     GasMix gasMix = const GasMix(),
     // The breathing time when it is not the window's length: a recorded
@@ -736,7 +747,7 @@ class GasAnalysisService {
     final durationMin = (breathingSeconds ?? endTime - startTime) / 60.0;
     if (durationMin <= 0) return null;
 
-    final ambientPressureBar = (avgDepth / 10.0) + 1.0;
+    final ambientPressureBar = environment.pressureAtDepth(avgDepth);
 
     // Use volume-corrected SAC if tank size is known
     if (tankVolume != null && tankVolume > 0) {

@@ -13,6 +13,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -433,6 +434,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// New range reported while a handle is dragged.
   final void Function(int startSeconds, int endSeconds)? onRangeChanged;
 
+  /// Water and surface pressure the pressure curves below were read in, for
+  /// carrying them back to the surface on the lead-in.
+  final DiveEnvironment environment;
+
   // Advanced decompression/gas curves
   /// ppO2 curve in bar
   final List<double>? ppO2Curve;
@@ -768,6 +773,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.onSafetyFindingDetails,
     this.rangeSelection,
     this.onRangeChanged,
+    this.environment = DiveEnvironment.standard,
     this.ppO2Curve,
     this.o2SensorCurves,
     this.o2CellMvCurves,
@@ -6039,7 +6045,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ///
   /// Time and depth are exact. The partial pressures and gas density are
   /// computed from the ambient pressure at the surface (see
-  /// [surfaceValueAtOneBar]). MOD is a property of the gas, so it does not
+  /// [valueAtSurface]). MOD is a property of the gas, so it does not
   /// change between the surface and the first sample.
   /// Built at the call site because some labels are localized: matching
   /// hardcoded English would silently mark them interpolated in other locales.
@@ -6077,10 +6083,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   double _readoutValue(double sampled, bool onLeadIn) =>
       onLeadIn ? _surfaceValueOf(sampled) : sampled;
 
-  /// [surfaceValueAtOneBar] applied at the dive's first sample.
+  /// [valueAtSurface] applied at the dive's first sample.
   double _surfaceValueOf(double valueAtFirstSample) => widget.profile.isEmpty
       ? valueAtFirstSample
-      : surfaceValueAtOneBar(valueAtFirstSample, widget.profile.first.depth);
+      : valueAtSurface(
+          valueAtFirstSample,
+          widget.profile.first.depth,
+          environment: widget.environment,
+        );
 
   /// [_surfaceValueOf], but keyed to an overlay's own first sample rather
   /// than the active profile's -- an overlaid computer descends at its own
@@ -6091,7 +6101,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     List<DiveProfilePoint> points,
   ) => points.isEmpty
       ? valueAtFirstSample
-      : surfaceValueAtOneBar(valueAtFirstSample, points.first.depth);
+      : valueAtSurface(
+          valueAtFirstSample,
+          points.first.depth,
+          environment: widget.environment,
+        );
 
   List<FlSpot> _withFlatSurfaceLeadIn(
     List<FlSpot> spots, {

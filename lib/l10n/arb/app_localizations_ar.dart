@@ -7259,6 +7259,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'تمت استعادة الغوصات';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'تمت استعادة الغوصات، لكن تعذّر استرجاع بعض البيانات المسجّلة';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -17162,6 +17166,223 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_export_saved_maintenance => 'تم حفظ سجل الصيانة';
 
   @override
+  String get transfer_export_inventoryTitle => 'جرد المعدات';
+
+  @override
+  String get transfer_export_inventorySubtitle =>
+      'ملف PDF بالأرقام التسلسلية وما دفعته';
+
+  @override
+  String get transfer_export_serviceReportTitle => 'تقرير الصيانة';
+
+  @override
+  String get transfer_export_serviceReportSubtitle =>
+      'ملف PDF بما هو مستحق مع سجل الصيانة';
+
+  @override
+  String get settings_export_progress_inventory => 'جارٍ إنشاء الجرد...';
+
+  @override
+  String get settings_export_success_inventory => 'تم تصدير الجرد';
+
+  @override
+  String get settings_export_saved_inventory => 'تم حفظ الجرد';
+
+  @override
+  String get settings_export_progress_serviceReport =>
+      'جارٍ إنشاء تقرير الصيانة...';
+
+  @override
+  String get settings_export_success_serviceReport => 'تم تصدير تقرير الصيانة';
+
+  @override
+  String get settings_export_saved_serviceReport => 'تم حفظ تقرير الصيانة';
+
+  @override
+  String get equipmentReport_sheet_continue => 'متابعة';
+
+  @override
+  String get equipmentReport_sheet_groupBy => 'تجميع حسب';
+
+  @override
+  String get equipmentReport_sheet_groupByType => 'نوع المعدات';
+
+  @override
+  String get equipmentReport_sheet_groupByLocation => 'الموقع';
+
+  @override
+  String get equipmentReport_sheet_location => 'الموقع';
+
+  @override
+  String get equipmentReport_sheet_allLocations => 'جميع المواقع';
+
+  @override
+  String get equipmentReport_sheet_showPrices => 'إظهار الأسعار';
+
+  @override
+  String get equipmentReport_sheet_showPricesHelp => 'أوقفه لقائمة الجمارك';
+
+  @override
+  String get equipmentReport_sheet_gear => 'المعدات';
+
+  @override
+  String get equipmentReport_sheet_gearAll => 'جميع المعدات';
+
+  @override
+  String get equipmentReport_sheet_gearTrip => 'المعدات المجهزة لرحلة';
+
+  @override
+  String get equipmentReport_sheet_gearItem => 'عنصر واحد';
+
+  @override
+  String get equipmentReport_sheet_trip => 'الرحلة';
+
+  @override
+  String get equipmentReport_sheet_item => 'العنصر';
+
+  @override
+  String get equipmentReport_sheet_history => 'سجل الصيانة';
+
+  @override
+  String get equipmentReport_sheet_showCosts => 'إظهار التكاليف';
+
+  @override
+  String get equipmentReport_pdf_inventoryTitle => 'جرد المعدات';
+
+  @override
+  String get equipmentReport_pdf_serviceTitle => 'تقرير الصيانة';
+
+  @override
+  String equipmentReport_pdf_printedOn(String date) {
+    return 'طُبع في $date';
+  }
+
+  @override
+  String equipmentReport_pdf_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: '$count عنصران',
+      one: '$count عنصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentReport_pdf_currencyTotal(String currency) {
+    return 'إجمالي $currency';
+  }
+
+  @override
+  String get equipmentReport_pdf_noLocation => 'لم يُحدد موقع';
+
+  @override
+  String get equipmentReport_pdf_colItem => 'العنصر';
+
+  @override
+  String get equipmentReport_pdf_colSerial => 'الرقم التسلسلي';
+
+  @override
+  String get equipmentReport_pdf_colBought => 'تاريخ الشراء';
+
+  @override
+  String get equipmentReport_pdf_colPaid => 'المدفوع';
+
+  @override
+  String get equipmentReport_pdf_pricesNote =>
+      'الأسعار هي ما دُفع وليست القيمة الحالية.';
+
+  @override
+  String equipmentReport_pdf_noPrice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر بلا سعر.',
+      many: '$count عنصرًا بلا سعر.',
+      few: '$count عناصر بلا سعر.',
+      two: '$count عنصران بلا سعر.',
+      one: '$count عنصر بلا سعر.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_overdue => 'متأخر';
+
+  @override
+  String get equipmentReport_pdf_dueSoon => 'مستحق قريبًا';
+
+  @override
+  String get equipmentReport_pdf_upToDate => 'محدّث';
+
+  @override
+  String get equipmentReport_pdf_colService => 'الصيانة';
+
+  @override
+  String get equipmentReport_pdf_colDue => 'الاستحقاق';
+
+  @override
+  String get equipmentReport_pdf_colStatus => 'الحالة';
+
+  @override
+  String get equipmentReport_pdf_statusOverdue => 'متأخر';
+
+  @override
+  String get equipmentReport_pdf_statusDueSoon => 'مستحق قريبًا';
+
+  @override
+  String get equipmentReport_pdf_statusUpToDate => 'محدّث';
+
+  @override
+  String get equipmentReport_pdf_allUpToDate => 'كل شيء محدّث.';
+
+  @override
+  String equipmentReport_pdf_noSchedule(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر بلا جدول صيانة.',
+      many: '$count عنصرًا بلا جدول صيانة.',
+      few: '$count عناصر بلا جدول صيانة.',
+      two: '$count عنصران بلا جدول صيانة.',
+      one: '$count عنصر بلا جدول صيانة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_colDate => 'التاريخ';
+
+  @override
+  String get equipmentReport_pdf_colWork => 'العمل';
+
+  @override
+  String get equipmentReport_pdf_colShop => 'المتجر';
+
+  @override
+  String get equipmentReport_pdf_colCost => 'التكلفة';
+
+  @override
+  String get equipmentReport_pdf_noHistory => 'لا توجد صيانة مسجلة';
+
+  @override
+  String equipmentReport_pdf_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة',
+      many: '$count غوصة',
+      few: '$count غوصات',
+      two: '$count غوصتان',
+      one: '$count غوصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_serviceKinds_defaultCurrencyInherit =>
       'استخدام العملة الافتراضية';
 
@@ -20766,11 +20987,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'يتبع $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'لا توجد غطسات مسجلة بعد';
 
   @override
@@ -20834,6 +21050,41 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'غطسة مسجلة $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'فتح في سجل الغطس';
+
+  @override
+  String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'ينتقل إلى $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS في النهاية';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return 'انتهت $dive منذ $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'الغطسة #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'متابعة';
+
+  @override
   String get plannerSeries_surfaceInterval => 'الفاصل السطحي';
 
   @override
@@ -20870,8 +21121,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن تخطيط سلسلة غطسات كمهمة DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'يمكن للغطسة الأولى فقط في السلسلة اتباع غطسة مسجلة';
+  String get plannerSeries_followUnavailableInReplan =>
+      'لا يمكن لإعادة التخطيط اتباع غطسة أخرى';
 
   @override
   String get plannerCanvas_follow_title => 'اتباع غطسة';
@@ -20952,6 +21203,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'خطة تخفيف الضغط لا تتضمن غاز إنقاذ (bailout)';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'لا يصل أي غاز إنقاذ (bailout) إلى $depth: أعمق MOD محمول هو $deepestMod. احمل غازًا صالحًا للاستخدام عند هذا العمق؛ فالمزيد من الغاز نفسه لن يفيد.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -29535,6 +29794,180 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get insights_equipment_findings_subtitleAllDives =>
       'النتائج المفتوحة حسب القاعدة، عبر جميع الغطسات';
+
+  @override
+  String get insights_equipment_showAll => 'إظهار الكل';
+
+  @override
+  String get insights_equipment_showLess => 'إظهار أقل';
+
+  @override
+  String insights_equipment_mostUsedGear_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ساعة',
+      many: '$count ساعة',
+      few: '$count ساعات',
+      two: '$count ساعتان',
+      one: '$count ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_title => 'تكلفة الملكية';
+
+  @override
+  String get insights_equipment_cost_subtitle =>
+      'الشراء والصيانة، عبر جميع غوصاتك';
+
+  @override
+  String get insights_equipment_cost_spentTotal => 'إجمالي الإنفاق';
+
+  @override
+  String get insights_equipment_cost_perDive => 'لكل غوصة';
+
+  @override
+  String get insights_equipment_cost_byYear => 'الإنفاق حسب السنة';
+
+  @override
+  String get insights_equipment_cost_metricPerDive => 'لكل غوصة';
+
+  @override
+  String get insights_equipment_cost_metricPerHour => 'لكل ساعة';
+
+  @override
+  String get insights_equipment_cost_metricTotal => 'الإجمالي';
+
+  @override
+  String insights_equipment_cost_rowPerDive(String amount) {
+    return '$amount / غوصة';
+  }
+
+  @override
+  String insights_equipment_cost_rowPerHour(String amount) {
+    return '$amount / ساعة';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverDives(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount على مدى $count غوصة',
+      many: '$amount على مدى $count غوصة',
+      few: '$amount على مدى $count غوصات',
+      two: '$amount على مدى $count غوصتين',
+      one: '$amount على مدى $count غوصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverHours(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount على مدى $count ساعة',
+      many: '$amount على مدى $count ساعة',
+      few: '$amount على مدى $count ساعات',
+      two: '$amount على مدى $count ساعتين',
+      one: '$amount على مدى $count ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_noDives => 'لا غوصات بعد';
+
+  @override
+  String insights_equipment_cost_undated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عملية شراء بلا تاريخ',
+      many: '$count عملية شراء بلا تاريخ',
+      few: '$count عمليات شراء بلا تاريخ',
+      two: '$count عمليتا شراء بلا تاريخ',
+      one: '$count عملية شراء بلا تاريخ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر بلا تكلفة مسجلة',
+      many: '$count عنصرًا بلا تكلفة مسجلة',
+      few: '$count عناصر بلا تكلفة مسجلة',
+      two: '$count عنصران بلا تكلفة مسجلة',
+      one: '$count عنصر بلا تكلفة مسجلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_empty =>
+      'لا توجد أسعار شراء أو تكاليف صيانة مسجلة بعد';
+
+  @override
+  String get insights_equipment_cost_error => 'تعذر تحميل تكاليف المعدات';
+
+  @override
+  String get insights_equipment_idle_title => 'المعدات الخاملة';
+
+  @override
+  String get insights_equipment_idle_subtitle =>
+      'معدات تملكها ولم تغص بها مؤخرًا، عبر جميع غوصاتك';
+
+  @override
+  String get insights_equipment_idle_over6Months => 'أكثر من 6 أشهر';
+
+  @override
+  String get insights_equipment_idle_over1Year => 'أكثر من سنة';
+
+  @override
+  String get insights_equipment_idle_over2Years => 'أكثر من سنتين';
+
+  @override
+  String get insights_equipment_idle_neverDived => 'لم يُستخدم في الغوص';
+
+  @override
+  String insights_equipment_idle_years(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count سنة',
+      many: '$count سنة',
+      few: '$count سنوات',
+      two: '$count سنتان',
+      one: '$count سنة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_idle_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهر',
+      many: '$count شهرًا',
+      few: '$count أشهر',
+      two: '$count شهران',
+      one: '$count شهر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_idle_empty => 'استُخدمت جميع معداتك مؤخرًا';
+
+  @override
+  String get insights_equipment_idle_error => 'تعذر تحميل المعدات الخاملة';
 
   @override
   String get insights_equipment_findings_empty => 'لا توجد نتائج مفتوحة';
@@ -55398,6 +55831,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'مقارنة…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'تخطيط غطسة متكررة';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'مقابل الغطسة الأصلية';
