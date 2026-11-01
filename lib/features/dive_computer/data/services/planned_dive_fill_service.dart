@@ -79,9 +79,11 @@ class PlannedDiveFillService {
         plannedDiveId,
       ], plannedDiveId);
 
-      // 1. Drop the sketched or planner-generated curve; the download is
-      //    the record of what happened.
+      // 1. Drop the sketched or planner-generated curve and gas switches; the
+      //    download is the record of what happened. A planned switch has no
+      //    computer, so left here the analysis would apply it to the download.
       await _series.deleteForDive(plannedDiveId);
+      await _dives.deleteGasSwitchesForDive(plannedDiveId);
 
       // 2. Measured facts onto the row, tanks reconciled by serial then mix.
       final mergedTanks = _mergeTanks(planned.tanks, dive.tanks);

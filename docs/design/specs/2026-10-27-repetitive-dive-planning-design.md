@@ -109,7 +109,10 @@ single plan or a series, and **Create planned dive** for a single dive. It reads
 this action, never on save.
 
 - A dive with no entry gets a planned one, with its time, site, computed profile
-  and tanks, linked by the plan's `linkedDiveId`.
+  and tanks, linked by the plan's `linkedDiveId`. The profile is sampled every 30
+  seconds with its corners kept, and the plan's gas switches are written, so the
+  log's analysis of it agrees with the plan. A download replaces both; undoing
+  the download restores them.
 - A dive whose entry is still planned has it rewritten, keeping its id. A rename
   made in the log to a planned entry is overwritten.
 - A dive already dived is left alone: the log owns it now.

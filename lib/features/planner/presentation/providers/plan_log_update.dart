@@ -1,6 +1,9 @@
 import 'package:clock/clock.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/planner/domain/services/plan_profile_samples.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -109,13 +112,13 @@ Future<PlannedDivesUpdate> updatePlannedDives(
       outcome: result.outcome,
       config: config,
     );
-    final profile = [
+    final profile = sampledPlanProfile([
       for (final point in canvas.profile)
         DiveProfilePoint(
           timestamp: point.timeSeconds.round(),
           depth: point.depth,
         ),
-    ];
+    ]);
     final name = series.isSeries ? dive.name : result.state.name;
     final site = sameDiver ? sites[result.state.siteId] : null;
     final avgDepth = PlanChartGeometry.meanDepthMeters(canvas.profile);
@@ -133,6 +136,7 @@ Future<PlannedDivesUpdate> updatePlannedDives(
       );
       links[i] = added.id;
       created++;
+      await _writeGasSwitches(repository, added.id, canvas.gasSwitches);
     } else {
       await log.updateDive(
         linked.copyWith(
@@ -157,6 +161,8 @@ Future<PlannedDivesUpdate> updatePlannedDives(
         editedPoints: profile,
         editKind: 'plan_update',
       );
+      await repository.deleteGasSwitchesForDive(linked.id);
+      await _writeGasSwitches(repository, linked.id, canvas.gasSwitches);
       updated++;
     }
   }
@@ -189,6 +195,32 @@ Future<PlannedDivesUpdate> updatePlannedDives(
     selectedDiveId: selectedDiveId,
     orphans: orphans,
   );
+}
+
+/// Writes the plan's gas switches onto its entry in the log, each to the tank
+/// holding that gas, so the log's analysis breathes what the plan breathes. They
+/// have no computer: a download clears them along with the plan's profile.
+Future<void> _writeGasSwitches(
+  DiveRepository repository,
+  String diveId,
+  List<CanvasMarker> switches,
+) async {
+  if (switches.isEmpty) return;
+  final tanks = (await repository.getDiveById(diveId))?.tanks ?? const [];
+  final now = DateTime.now();
+  await repository.insertGasSwitches([
+    for (final marker in switches)
+      if (tanks.where((t) => t.gasMix.name == marker.label).firstOrNull
+          case final tank?)
+        GasSwitch(
+          id: '',
+          diveId: diveId,
+          timestamp: marker.timeSeconds.round(),
+          tankId: tank.id,
+          depth: marker.depth,
+          createdAt: now,
+        ),
+  ]);
 }
 
 /// When [state]'s dive goes in the log. Dive times are clock digits stamped

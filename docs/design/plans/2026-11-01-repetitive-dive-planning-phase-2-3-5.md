@@ -467,3 +467,11 @@ Save this plan as
 
 - When a dive removed from the series still has a planned entry in the log,
   "Update planned dives" asks whether to delete it: confirm.
+
+## Open issues to raise with the PR
+
+- **A dive marked as logged with no download carries planned values.** Mark as
+  logged makes a planned entry a dive, so the next dive carries that entry's
+  analysis: the plan's own profile and gas switches, with no end tank pressures.
+  It counts as if it went exactly to plan. Left as it is for now (decided
+  2026-11-01); say so in the PR description.

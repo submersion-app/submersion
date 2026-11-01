@@ -491,9 +491,11 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                context.l10n.diveLog_export_titleDiveNumber(
-                  dive.diveNumber ?? 0,
-                ),
+                dive.isPlanned
+                    ? context.l10n.diveLog_planned_bannerTitle
+                    : context.l10n.diveLog_export_titleDiveNumber(
+                        dive.diveNumber ?? 0,
+                      ),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),

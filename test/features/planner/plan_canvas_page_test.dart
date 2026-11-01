@@ -419,10 +419,10 @@ void main() {
       final dives = await DiveRepository().getAllDives(diverId: diverId);
       return DiveRepository().getDiveById(dives.single.id);
     });
-    expect(
-      [for (final point in logged!.profile) point.timestamp],
-      [for (final point in live) point.timeSeconds.round()],
-    );
+    // Sampled between them for the log, but every corner of the live plan.
+    expect([
+      for (final point in logged!.profile) point.timestamp,
+    ], containsAll([for (final point in live) point.timeSeconds.round()]));
   });
 
   testWidgets('convert leaves off a site private to another diver', (
