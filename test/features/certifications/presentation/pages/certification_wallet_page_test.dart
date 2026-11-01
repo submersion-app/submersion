@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/certification_agencies/domain/certification_
 import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
 import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_grouping_providers.dart';
@@ -27,18 +29,18 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-// ---------------------------------------------------------------------------
-// Mock notifier
-// ---------------------------------------------------------------------------
+/// Serves the wallet's read with no database and no ticks.
+class _FakeCertificationRepository extends CertificationRepository {
+  final List<Certification> certifications;
 
-class _MockCertificationListNotifier
-    extends StateNotifier<AsyncValue<List<Certification>>>
-    implements CertificationListNotifier {
-  _MockCertificationListNotifier(List<Certification> certifications)
-    : super(AsyncValue.data(certifications));
+  _FakeCertificationRepository(this.certifications);
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => null;
+  Stream<void> watchCertificationsChanges() => const Stream<void>.empty();
+
+  @override
+  Future<List<Certification>> getAllCertifications({String? diverId}) async =>
+      certifications;
 }
 
 final _now = DateTime(2026, 8, 9);
@@ -121,9 +123,8 @@ void main() {
           (ref) => MockCurrentDiverIdNotifier(),
         ),
         currentDiverProvider.overrideWith((ref) async => _diver),
-        certificationListNotifierProvider.overrideWith(
-          (ref) =>
-              _MockCertificationListNotifier(certifications ?? [_makeCert()]),
+        walletCertificationsProvider.overrideWith(
+          (ref) async => certifications ?? [_makeCert()],
         ),
       ];
     }
@@ -143,6 +144,60 @@ void main() {
 
       expect(find.byType(CertificationEcardGrid), findsOneWidget);
       expect(find.byType(CertificationEcard), findsNWidgets(2));
+    });
+
+    // The list notifier carries no card images (issue #3848), so the wallet
+    // reads its own provider: the scans must still reach the card faces.
+    testWidgets('hands the cards their scans', (tester) async {
+      final front = Uint8List.fromList([1, 2, 3]);
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(
+            certifications: [_makeCert().copyWith(photoFront: front)],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final card = tester.widget<CertificationEcard>(
+        find.byType(CertificationEcard),
+      );
+      expect(card.certification.photoFront, front);
+    });
+
+    // Stubbed a layer below the provider, so the real auto-disposed body runs:
+    // a pushed route pauses it, and the cards must survive the trip back.
+    testWidgets('keeps its cards across a pushed route', (tester) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            currentDiverProvider.overrideWith((ref) async => _diver),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => _diver.id,
+            ),
+            certificationRepositoryProvider.overrideWithValue(
+              _FakeCertificationRepository([_makeCert()]),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(CertificationEcard), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Add certification'));
+      await tester.pumpAndSettle();
+      expect(find.text('new'), findsOneWidget);
+
+      GoRouter.of(tester.element(find.text('new'))).pop();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CertificationEcard), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('shows the empty state when there are no certifications', (
@@ -329,8 +384,8 @@ void main() {
               (ref) => MockCurrentDiverIdNotifier(),
             ),
             currentDiverProvider.overrideWith((ref) async => _diver),
-            certificationListNotifierProvider.overrideWith(
-              (ref) => _ErroringCertificationListNotifier(),
+            walletCertificationsProvider.overrideWith(
+              (ref) async => throw Exception('Boom'),
             ),
           ],
         ),
@@ -401,14 +456,4 @@ void main() {
       expect(title.data, 'Club Diver');
     });
   });
-}
-
-class _ErroringCertificationListNotifier
-    extends StateNotifier<AsyncValue<List<Certification>>>
-    implements CertificationListNotifier {
-  _ErroringCertificationListNotifier()
-    : super(const AsyncValue.error('boom', StackTrace.empty));
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
 }
