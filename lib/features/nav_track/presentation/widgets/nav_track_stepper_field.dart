@@ -20,6 +20,7 @@ class NavTrackStepperField extends StatefulWidget {
     required this.fieldKey,
     required this.upKey,
     required this.onChanged,
+    this.fieldWidth = 80,
   });
 
   final String label;
@@ -32,6 +33,9 @@ class NavTrackStepperField extends StatefulWidget {
   final String fieldKey;
   final String upKey;
   final ValueChanged<double> onChanged;
+
+  /// Room for the longest value and its [suffix], past the field's padding.
+  final double fieldWidth;
 
   @override
   State<NavTrackStepperField> createState() => _NavTrackStepperFieldState();
@@ -112,7 +116,7 @@ class _NavTrackStepperFieldState extends State<NavTrackStepperField> {
           onPressed: () => _step(-widget.step),
         ),
         SizedBox(
-          width: 80,
+          width: widget.fieldWidth,
           child: TextField(
             key: ValueKey(widget.fieldKey),
             controller: _controller,

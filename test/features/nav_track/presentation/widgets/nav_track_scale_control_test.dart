@@ -132,6 +132,11 @@ void main() {
     expect(fieldText(tester), '150.0');
   });
 
+  testWidgets('the field has room for 400.0 and its suffix', (tester) async {
+    await pump(tester, initial: 4);
+    expect(tester.getSize(find.byKey(_field)).width, greaterThanOrEqualTo(104));
+  });
+
   testWidgets('a new value reseeds an unfocused field', (tester) async {
     await pump(tester);
     tester.state<_HostState>(find.byType(_Host)).set(1.38);

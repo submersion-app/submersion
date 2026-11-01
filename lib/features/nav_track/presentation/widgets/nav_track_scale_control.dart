@@ -26,6 +26,7 @@ class NavTrackScaleControl extends StatelessWidget {
     max: NavTrackCorrection.maxScaleFactor * 100,
     step: 1,
     suffix: '%',
+    fieldWidth: 104,
     downKey: 'nav-track-align-scale-down',
     fieldKey: 'nav-track-align-scale-field',
     upKey: 'nav-track-align-scale-up',
