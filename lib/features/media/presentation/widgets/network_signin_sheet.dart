@@ -66,7 +66,7 @@ class _NetworkSignInSheetState extends ConsumerState<NetworkSignInSheet> {
     final notifier = ref.read(urlTabNotifierProvider.notifier);
     // The container, not ref: the list must refresh even if the sheet was
     // dismissed while saving.
-    final container = ProviderScope.containerOf(context, listen: false);
+    final container = ref.container;
     try {
       await notifier.saveCredentials(
         hostname: widget.hostname,

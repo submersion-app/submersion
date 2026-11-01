@@ -293,7 +293,10 @@ final Provider<NetworkCredentialsService> networkCredentialsServiceProvider =
         repository: ref.watch(networkCredentialsRepositoryProvider),
         storage: ref.watch(flutterSecureStorageProvider),
         onCredentialsChanged: () {
-          if (ref.mounted) ref.invalidate(networkThumbnailHeadersProvider);
+          // Through the container: this provider's own ref cannot invalidate
+          // something that depends on it.
+          if (!ref.mounted) return;
+          ref.container.invalidate(networkThumbnailHeadersProvider);
         },
       ),
     );
