@@ -531,7 +531,9 @@ class _LabBody extends ConsumerWidget {
       outcome: outcome.value,
       branchSeconds: draft.branchSeconds,
       exportKey: chartKey,
-      planOverlay: planOn ? comparison.overlay : null,
+      planOverlay: planOn && comparison.overlay.points.isNotEmpty
+          ? comparison.overlay
+          : null,
     );
     final controls = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

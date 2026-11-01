@@ -218,7 +218,9 @@ class _Comparison extends ConsumerWidget {
       );
       if (on) {
         if (planned != null) columns.add(planned);
-        overlays.add(comparison.overlay);
+        if (comparison.overlay.points.isNotEmpty) {
+          overlays.add(comparison.overlay);
+        }
         duration = math.max(duration, comparison.outcome.runtimeSeconds);
       }
     }

@@ -54,6 +54,18 @@ Future<bool> linkPlanWithConfirm(
   return true;
 }
 
+/// Asks before a step that moves a plan's link off the dive it names. [action]
+/// labels the button that goes ahead.
+Future<bool> confirmLinkMove(BuildContext context, {required String action}) {
+  final l10n = context.l10n;
+  return _confirm(
+    context,
+    title: l10n.diveLab_link_moveTitle,
+    body: l10n.diveLab_link_moveBody,
+    action: action,
+  );
+}
+
 /// Clears plan [planId]'s link once the diver confirms. Returns whether it did.
 Future<bool> unlinkPlanWithConfirm(
   BuildContext context,

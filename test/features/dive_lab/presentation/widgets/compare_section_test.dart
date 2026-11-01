@@ -208,6 +208,28 @@ void main() {
     expect(columnIds(tester), ['planned', 'dived']);
   });
 
+  testWidgets('a plan with no schedule draws no line and has no column', (
+    tester,
+  ) async {
+    final plan = _plan().copyWith(segments: const []);
+    final outcome = const PlanEngine().compute(plan);
+    await pump(
+      tester,
+      comparison: LinkedPlanComparison(
+        plan: plan,
+        outcome: outcome,
+        overlay: buildPlannedOverlay(plan, outcome: outcome),
+      ),
+    );
+
+    expect(columnIds(tester), ['dived']);
+    expect(
+      tester.widget<DiveProfileChart>(find.byType(DiveProfileChart)).overlays,
+      isEmpty,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a dive with no link has no Planned chip', (tester) async {
     await pump(tester, scenarios: [_scenario('s1', 'Slower', DateTime(2026))]);
 

@@ -490,8 +490,8 @@ class DivePlanRepository {
   /// Backs the plan-vs-actual overlay on the dive detail chart and Compare.
   Future<domain.DivePlan?> getPlanByLinkedDiveId(String diveId) async {
     try {
-      // Newest first: a duplicated plan can share the link, and so can two
-      // devices linking while apart; take the latest.
+      // Newest first: two devices linking while apart can share the link;
+      // take the latest.
       final rows =
           await (_db.select(_db.divePlans)
                 ..where((t) => t.linkedDiveId.equals(diveId))

@@ -94,6 +94,32 @@ void main() {
     expect(find.byType(LinkDiveSheet), findsOneWidget);
   });
 
+  testWidgets('converting a linked plan asks before moving the link', (
+    tester,
+  ) async {
+    final container = await pumpCanvas(tester);
+    final dive = await tester.runAsync(
+      () => DiveRepository().createDive(
+        Dive(id: '', diveNumber: 7, dateTime: DateTime.utc(2026, 1, 1)),
+      ),
+    );
+    container.read(divePlanNotifierProvider.notifier).setLinkedDive(dive!.id);
+    await save(tester, container);
+    await openMenu(tester);
+
+    await tester.tap(find.text('Convert to Dive').last);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text("Move this plan's link?"), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(container.read(divePlanNotifierProvider).linkedDiveId, dive.id);
+  });
+
   testWidgets('a linked plan offers Change and Unlink', (tester) async {
     final container = await pumpCanvas(tester);
     final dive = await tester.runAsync(

@@ -179,6 +179,24 @@ void main() {
     );
   });
 
+  test('undoing a next-day fill puts the date back', () async {
+    final planned = await plannedDive();
+
+    final outcome = await service.fill(
+      plannedDiveId: planned.id,
+      dive: download(startTime: DateTime(2026, 6, 2, 0, 30)),
+      computerId: computerId,
+    );
+    await service.undo(outcome);
+
+    final restored = await dives.getDiveById(planned.id);
+    expect(restored?.isPlanned, isTrue);
+    expect(
+      restored?.dateTime.millisecondsSinceEpoch,
+      planned.dateTime.millisecondsSinceEpoch,
+    );
+  });
+
   test('fill takes the tissue state the computer reported', () async {
     const tissue = ComputerTissueSnapshot(
       end: ComputerTissueState(gf99Percent: 62, surfaceGfPercent: 48),

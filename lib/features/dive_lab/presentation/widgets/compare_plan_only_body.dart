@@ -38,7 +38,9 @@ class ComparePlanOnlyBody extends ConsumerWidget {
         if (profile.length >= 2) ...[
           CompareChart(
             profile: profile,
-            overlays: [comparison.overlay],
+            overlays: [
+              if (comparison.overlay.points.isNotEmpty) comparison.overlay,
+            ],
             durationSeconds: diveEnd > planEnd ? diveEnd : planEnd,
             decoStartSeconds: dived?.decoStartSeconds,
           ),

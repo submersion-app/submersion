@@ -329,6 +329,11 @@ Builder's calls (the section below left these open):
 - Surface GF on the plan is taken from `surfacedTissue` at the surface
   pressure of the plan's altitude, matching the last sample of the dive's
   curve.
+- A fill that crosses a day moves the dive to the day it was dived, and
+  undoing the fill puts the date back. Same-day fills keep the planned date, as
+  #2002 had it.
+- Converting a plan that is already linked confirms first, because the new dive
+  takes the link.
 - A dived value overshoots the plan past a tolerance of 0.5 m, 30 seconds or
   1 GF point, so a rounding difference never reads as an error.
 - A planned dive shows only "Waiting for the dive", with no what-if controls,

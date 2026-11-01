@@ -64,8 +64,9 @@ When you download from a dive computer, a dive that matches nothing in your log
 is offered as **Fill planned dive** if you have a planned dive on the same day
 or the day before. That covers a dive pushed back a day and a night dive logged
 after midnight. If several planned dives fit, the closest in time wins. The
-planned dive keeps its id, so the link to the plan survives. You can choose a
-different planned dive, or import the download as a new dive, before you finish.
+planned dive keeps its id, so the link to the plan survives, and a dive that
+happened on a different day moves to that day. You can choose a different planned
+dive, or import the download as a new dive, before you finish.
 
 ### Link by hand
 
@@ -79,6 +80,8 @@ day at the top if the plan has a date.
 
 You are asked to confirm before a link moves off another dive, or before a dive
 gives up the plan it has. The plan that gives up the dive loses its link.
+**Convert to Dive** on a plan that is already linked asks too, because the new
+planned dive takes the link.
 
 To remove a link, choose **Unlink plan** on the Compare page or **Unlink dive**
 on the plan. You are asked first. The plan and the dive both stay.

@@ -841,6 +841,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   }
 
   Future<void> _convertToDive() async {
+    // The new dive takes the plan's link, so a plan already linked gives up
+    // its dive here: the one move that does not go through the link actions.
+    if (ref.read(divePlanNotifierProvider).linkedDiveId != null) {
+      final confirmed = await confirmLinkMove(
+        context,
+        action: context.l10n.divePlanner_action_convertToDive,
+      );
+      if (!confirmed || !mounted) return;
+    }
     // The plan holds only the site id; the dive needs the site itself. A site
     // deleted since the plan was saved resolves to null and is left off.
     final siteId = ref.read(divePlanNotifierProvider).siteId;
