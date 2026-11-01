@@ -4,8 +4,9 @@ import 'package:flutter/widgets.dart';
 /// reaches.
 const double kHeaderMapBottomInset = 16;
 
-/// A decorative map that fades into [fadeColor] toward the bottom of the dive
-/// detail header card, so the header text stays readable over it.
+/// A map that fades into [fadeColor] toward the bottom of a header card, so
+/// the header text stays readable over it: the dive detail header and the
+/// trip story's hero cards.
 ///
 /// [child] is the map. It is clipped [kHeaderMapBottomInset] short of the
 /// bottom edge, and the fade is fully opaque over that band.
@@ -48,25 +49,30 @@ class HeaderMapBackdrop extends StatelessWidget {
               clipper: const _BottomInsetClipper(kHeaderMapBottomInset),
               child: child,
             ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [
-                    0.0,
-                    0.3 * opaqueFrom,
-                    0.7 * opaqueFrom,
-                    opaqueFrom,
-                    1.0,
-                  ],
-                  colors: [
-                    fadeColor.withValues(alpha: 0.3),
-                    fadeColor.withValues(alpha: 0.6),
-                    fadeColor.withValues(alpha: 0.85),
-                    fadeColor,
-                    fadeColor,
-                  ],
+            // The fade is paint only: a DecoratedBox counts as hit for every
+            // pointer inside it, which would swallow the taps on a day map's
+            // pins under the trip story's day hero (issue #4106).
+            IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [
+                      0.0,
+                      0.3 * opaqueFrom,
+                      0.7 * opaqueFrom,
+                      opaqueFrom,
+                      1.0,
+                    ],
+                    colors: [
+                      fadeColor.withValues(alpha: 0.3),
+                      fadeColor.withValues(alpha: 0.6),
+                      fadeColor.withValues(alpha: 0.85),
+                      fadeColor,
+                      fadeColor,
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_checklist_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Story header: trip identity plus mode-specific extras (countdown and
-/// checklist for planned trips, progress line for in-progress trips, empty
-/// state with CTAs for bare trips).
+/// The Prepare overview's header: trip identity plus mode-specific extras
+/// (countdown and checklist for planned trips, progress line for in-progress
+/// trips, empty state with CTAs for bare trips). The story itself opens with
+/// the [TripHeroCard] instead (issue #4106).
 class TripStoryHero extends ConsumerWidget {
   final TripStory story;
   final VoidCallback? onScanForDives;
@@ -87,125 +90,13 @@ class TripStoryHero extends ConsumerWidget {
         ],
         if (showChecklist && trip.isUpcoming && !story.checklist.isEmpty) ...[
           const SizedBox(height: 12),
-          _ChecklistCard(story: story),
+          TripChecklistCard(story: story),
         ],
         if (showEmptyState && story.isEmpty) ...[
           const SizedBox(height: 16),
-          _EmptyState(onScanForDives: onScanForDives),
+          TripStoryEmptyState(onScanForDives: onScanForDives),
         ],
       ],
-    );
-  }
-}
-
-class _ChecklistCard extends ConsumerWidget {
-  final TripStory story;
-
-  const _ChecklistCard({required this.story});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final checklist = story.checklist;
-    final progress = checklist.total == 0
-        ? 0.0
-        : checklist.done / checklist.total;
-    final units = ref.watch(unitFormatterProvider);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.trips_story_checklistProgress(
-                checklist.done,
-                checklist.total,
-              ),
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(value: progress, minHeight: 6),
-            ),
-            for (final item in checklist.nextDue)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.radio_button_unchecked,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        item.title,
-                        style: theme.textTheme.bodySmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (item.dueDate != null)
-                      Text(
-                        units.formatMonthDay(item.dueDate),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final VoidCallback? onScanForDives;
-
-  const _EmptyState({required this.onScanForDives});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        children: [
-          Icon(
-            Icons.auto_stories,
-            size: 48,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.trips_story_empty_title,
-            style: theme.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.trips_story_empty_subtitle,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          if (onScanForDives != null)
-            FilledButton.icon(
-              icon: const Icon(Icons.playlist_add, size: 18),
-              label: Text(context.l10n.trips_diveScan_findButton),
-              onPressed: onScanForDives,
-            ),
-        ],
-      ),
     );
   }
 }

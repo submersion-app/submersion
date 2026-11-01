@@ -94,4 +94,35 @@ void main() {
     expect(_mapClip(tester).height, 0);
     expect(_fadeGradient(tester).stops, [0.0, 0.0, 0.0, 0.0, 1.0]);
   });
+
+  testWidgets('a tap through the fade reaches the map under it', (
+    tester,
+  ) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: 200,
+            child: HeaderMapBackdrop(
+              fadeColor: _fade,
+              child: GestureDetector(
+                key: _mapKey,
+                behavior: HitTestBehavior.opaque,
+                onTap: () => taps++,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    // Near the top, where the fade is lightest; the day hero's pins live
+    // there, above the header row.
+    await tester.tapAt(
+      tester.getTopLeft(find.byKey(_mapKey)) + const Offset(20, 20),
+    );
+    expect(taps, 1);
+  });
 }
