@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/window_fullscreen.dart';
+import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -19,8 +18,7 @@ class DataToolsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final showAgentAccess =
-        ref.watch(debugModeNotifierProvider) && hasDesktopWindow();
+    final showAgentAccess = ref.watch(agentAccessAvailableProvider);
     final demoActive = ref.watch(demoModeActiveProvider);
 
     Widget tool(IconData icon, String title, String subtitle, String route) =>

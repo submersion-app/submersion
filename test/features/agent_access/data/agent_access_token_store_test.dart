@@ -33,6 +33,17 @@ void main() {
       expect(await store.read(), isNull);
     });
 
+    test('concurrent ensure calls agree on one token', () async {
+      final store = AgentAccessTokenStore(storage: InMemoryKeychain());
+      final results = await Future.wait([
+        store.ensure(),
+        store.ensure(),
+        store.ensure(),
+      ]);
+      expect(results.toSet(), hasLength(1));
+      expect(await store.read(), results.first);
+    });
+
     test('an empty stored token is replaced on ensure', () async {
       final keychain = InMemoryKeychain()
         ..values[AgentAccessTokenStore.key] = '';

@@ -21,20 +21,32 @@ class AgentAccessTokenStore {
   final FallbackSecureStorage _storage;
   final Random _random;
 
+  /// Writes are serialised so two callers that both find no token (the app
+  /// root and the settings page, say) agree on the one that gets stored.
+  Future<void> _chain = Future.value();
+
   Future<String?> read() => _storage.read(key: key);
 
   /// Returns the stored token, generating and storing one if none exists.
-  Future<String> ensure() async {
+  Future<String> ensure() => _serialised(() async {
     final existing = await read();
     if (existing != null && existing.isNotEmpty) return existing;
-    return regenerate();
-  }
+    return _writeFresh();
+  });
 
   /// Replaces the stored token with a fresh one and returns it.
-  Future<String> regenerate() async {
+  Future<String> regenerate() => _serialised(_writeFresh);
+
+  Future<String> _writeFresh() async {
     final token = _generate();
     await _storage.write(key: key, value: token);
     return token;
+  }
+
+  Future<String> _serialised(Future<String> Function() body) {
+    final next = _chain.then((_) => body());
+    _chain = next.then((_) {}, onError: (_) {});
+    return next;
   }
 
   Future<void> clear() => _storage.delete(key: key);

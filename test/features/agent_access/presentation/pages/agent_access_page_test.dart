@@ -25,7 +25,11 @@ class _QuietController extends AgentAccessController {
   @override
   Future<String> regenerateToken() async {
     regenerations++;
-    return testRef.read(agentAccessTokenStoreProvider).regenerate();
+    final token = await testRef
+        .read(agentAccessTokenStoreProvider)
+        .regenerate();
+    testRef.invalidate(agentAccessTokenProvider);
+    return token;
   }
 }
 
@@ -95,6 +99,14 @@ void main() {
         find.text('Agents can see every diver profile on this computer.'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('does not create a token when none is stored', (tester) async {
+      keychain.values.remove(AgentAccessTokenStore.key);
+      await pump(tester);
+      expect(keychain.values.containsKey(AgentAccessTokenStore.key), isFalse);
+      expect(find.text('Claude Code'), findsNothing);
+      expect(find.text('Reveal'), findsOneWidget);
     });
 
     testWidgets('reveal shows the token', (tester) async {

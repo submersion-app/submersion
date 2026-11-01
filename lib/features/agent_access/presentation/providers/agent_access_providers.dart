@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:mcp_dart/mcp_dart.dart' show McpServer;
 
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
@@ -21,10 +22,19 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
   (ref) => AgentAccessPreferences(ref.watch(sharedPreferencesProvider)),
+);
+
+/// Whether agent access exists on this device at all: desktop only, and,
+/// until the write surface lands, only while debug mode is on. The Data
+/// tools row and the server lifecycle both read this, so the final write PR
+/// removes the debug clause in one place.
+final agentAccessAvailableProvider = Provider<bool>(
+  (ref) => hasDesktopWindow() && ref.watch(debugModeNotifierProvider),
 );
 
 /// The per-device agent access settings, persisted on every change.
@@ -46,14 +56,28 @@ class AgentAccessSettingsNotifier extends Notifier<AgentAccessSettings> {
   Future<void> setConfirmWrites(bool confirm) =>
       _update(state.copyWith(confirmWrites: confirm));
 
-  Future<void> _update(AgentAccessSettings next) async {
+  /// Writes are chained so a burst of changes reaches disk in the order the
+  /// state took them; the last write always carries the newest snapshot.
+  Future<void> _writes = Future.value();
+
+  Future<void> _update(AgentAccessSettings next) {
     state = next;
-    await ref.read(agentAccessPreferencesProvider).write(next);
+    final prefs = ref.read(agentAccessPreferencesProvider);
+    final write = _writes.then((_) => prefs.write(next));
+    _writes = write.then((_) {}, onError: (_) {});
+    return write;
   }
 }
 
 final agentAccessTokenStoreProvider = Provider<AgentAccessTokenStore>(
   (ref) => AgentAccessTokenStore(),
+);
+
+/// The stored token, or null until the server has been enabled once. Only
+/// the controller creates tokens; the settings page watches this and the
+/// controller invalidates it after an ensure or a rotation.
+final agentAccessTokenProvider = FutureProvider<String?>(
+  (ref) => ref.watch(agentAccessTokenStoreProvider).read(),
 );
 
 /// The listener's status, for the settings page.
@@ -76,6 +100,10 @@ final agentAccessControllerProvider = Provider<AgentAccessController>((ref) {
   final controller = AgentAccessController(ref);
   ref.listen<AgentAccessSettings>(
     agentAccessSettingsProvider,
+    (_, _) => unawaited(controller.sync()),
+  );
+  ref.listen<bool>(
+    agentAccessAvailableProvider,
     (_, _) => unawaited(controller.sync()),
   );
   unawaited(controller.sync());
@@ -119,18 +147,29 @@ class AgentAccessController {
     }
   }
 
+  /// The token the running server accepts, for tests.
+  @visibleForTesting
+  String? get currentToken => _token;
+
   /// Rotates the bearer token. Running sessions see the new token on their
-  /// next request because the server reads it through [_token].
-  Future<String> regenerateToken() async {
-    final token = await _ref.read(agentAccessTokenStoreProvider).regenerate();
-    _token = token;
-    return token;
+  /// next request because the server reads it through [_token]. The
+  /// rotation takes its turn in the same queue as [sync], so a start that
+  /// is still reading the old token can never assign it back afterwards.
+  Future<String> regenerateToken() {
+    final next = _queue.then((_) async {
+      final token = await _ref.read(agentAccessTokenStoreProvider).regenerate();
+      _token = token;
+      _ref.invalidate(agentAccessTokenProvider);
+      return token;
+    });
+    _queue = next.then((_) {}, onError: (_) {});
+    return next;
   }
 
   Future<void> _syncOnce() async {
     final settings = _ref.read(agentAccessSettingsProvider);
     final server = AgentAccessServer.instance;
-    if (!settings.enabled || !hasDesktopWindow()) {
+    if (!settings.enabled || !_ref.read(agentAccessAvailableProvider)) {
       await server.stop();
       return;
     }
@@ -138,7 +177,9 @@ class AgentAccessController {
     // placeholders.
     await awaitCurrentDiverSettings(_ref);
     try {
+      final hadToken = _token != null;
       _token = await _ref.read(agentAccessTokenStoreProvider).ensure();
+      if (!hadToken) _ref.invalidate(agentAccessTokenProvider);
     } catch (e) {
       throw StateError('Could not read the access token: $e');
     }

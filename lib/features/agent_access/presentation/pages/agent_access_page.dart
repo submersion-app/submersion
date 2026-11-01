@@ -21,16 +21,7 @@ class AgentAccessPage extends ConsumerStatefulWidget {
 }
 
 class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
-  String? _token;
   bool _revealed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    ref.read(agentAccessTokenStoreProvider).ensure().then((token) {
-      if (mounted) setState(() => _token = token);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +32,9 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
     final url = status?.listening == true
         ? status!.url
         : 'http://127.0.0.1:${settings.port}/mcp';
-    final token = _token;
+    // Null until the server has been enabled once: only the controller
+    // creates a token, so opening this page never writes to the keychain.
+    final token = ref.watch(agentAccessTokenProvider).valueOrNull;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings_agentAccess_title)),
       body: ListView(
@@ -151,10 +144,7 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
       ),
     );
     if (confirmed != true || !mounted) return;
-    final token = await ref
-        .read(agentAccessControllerProvider)
-        .regenerateToken();
-    if (mounted) setState(() => _token = token);
+    await ref.read(agentAccessControllerProvider).regenerateToken();
   }
 
   Future<void> _editPort(AgentAccessSettings settings) async {

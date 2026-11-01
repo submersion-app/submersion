@@ -5,11 +5,13 @@ phases change, the diver's logbook through the Model Context Protocol. The
 design is `docs/design/specs/2026-11-01-mcp-server-design.md`; this page is
 the map of the code and the rules it keeps.
 
-Until the write surface is complete, the settings entry point (Settings >
-Data > Advanced > Data tools > Agent access) is shown only while debug mode
-is on and only on macOS, Windows and Linux. The final write PR removes that
-gate; see the roadmap at the end of
-`docs/design/plans/2026-11-01-mcp-server-pr1-server-core.md`.
+Until the write surface is complete, agent access exists only while debug
+mode is on, and only on macOS, Windows and Linux: `agentAccessAvailableProvider`
+gates both the settings entry point (Settings > Data > Advanced > Data tools >
+Agent access) and the listener itself, so turning debug mode off stops a
+running server and a persisted "enabled" setting starts nothing without it.
+The final write PR removes the debug clause from that one provider; see the
+roadmap at the end of `docs/design/plans/2026-11-01-mcp-server-pr1-server-core.md`.
 
 ## Where the code lives
 

@@ -149,10 +149,16 @@ class AgentAccessServer {
       return Future.value();
     }
     _server = null;
-    final stopping = _pendingStop = server.stop().whenComplete(() {
-      _pendingStop = null;
-      _publish(AgentAccessStatus(listening: false, port: _status.port));
-    });
+    // A transport that refuses to close (a client holding an SSE stream
+    // open) must not wedge this singleton: the listener socket itself closes
+    // first and forcibly, so after the bound the port is free either way.
+    final stopping = _pendingStop = server
+        .stop()
+        .timeout(_stopBound, onTimeout: () {})
+        .whenComplete(() {
+          _pendingStop = null;
+          _publish(AgentAccessStatus(listening: false, port: _status.port));
+        });
     return stopping;
   }
 
@@ -177,6 +183,7 @@ class AgentAccessServer {
   }
 
   static const _touchInterval = Duration(seconds: 1);
+  static const _stopBound = Duration(seconds: 5);
 
   void _publish(AgentAccessStatus next) {
     _status = next;
