@@ -459,6 +459,14 @@ class CsvTransformer {
       );
     }
 
+    // Gas percentages are plain numbers, read strictly: the lenient parser
+    // below would turn "31,0" into 310. A null here warns about the cell,
+    // where text left in the row would silently read as air (#3930).
+    final base = _stripNumberSuffix(lower);
+    if (base == 'o2percent' || base == 'hepercent') {
+      return double.tryParse(rawValue);
+    }
+
     // Numeric (double) fields that may need unit conversion.
     if (_isDoubleField(lower)) {
       final measured = _valueConverter.parseMeasurement(

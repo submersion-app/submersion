@@ -229,6 +229,54 @@ void main() {
       });
     });
 
+    group('gas percentages (#3930)', () {
+      const gasMapping = FieldMapping(
+        name: 'Gas',
+        columns: [
+          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'O2', targetField: 'o2Percent_1'),
+          ColumnMapping(sourceColumn: 'He', targetField: 'hePercent_1'),
+        ],
+      );
+
+      TransformedRows transformGas(String o2, String he) =>
+          transformer.transform(
+            ParsedCsv(
+              headers: const ['Date', 'O2', 'He'],
+              rows: [
+                ['2024-01-15', o2, he],
+              ],
+            ),
+            const ImportConfiguration(mappings: {'primary': gasMapping}),
+          );
+
+      test('reads a plain percentage as a number', () {
+        final result = transformGas('32', '10.5');
+
+        expect(result.rows.single['o2Percent_1'], 32.0);
+        expect(result.rows.single['hePercent_1'], 10.5);
+        expect(result.warnings, isEmpty);
+      });
+
+      test('warns about a cell it cannot read rather than dropping it', () {
+        final result = transformGas('EAN32', '0');
+
+        expect(result.rows.single.containsKey('o2Percent_1'), isFalse);
+        expect(
+          result.warnings.single.code,
+          ImportWarningCode.valuesNotConverted,
+        );
+        expect(result.warnings.single.field, 'o2Percent_1');
+      });
+
+      test('does not read a comma decimal as a larger number', () {
+        final result = transformGas('31,0', '0');
+
+        expect(result.rows.single.containsKey('o2Percent_1'), isFalse);
+        expect(result.warnings, hasLength(1));
+      });
+    });
+
     test('skips rows with no valid dateTime and warns', () {
       const csv = ParsedCsv(
         headers: ['Max Depth', 'Notes'],
