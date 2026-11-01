@@ -399,6 +399,41 @@ void main() {
       expect(issue.atRuntime, isNotNull);
     });
 
+    test('authored and computed legs agree on a marginal gas', () {
+      // 16% O2 reads 0.16 bar at a 1 bar surface before water vapour and just
+      // under it after, so a path skipping the vapour would disagree here.
+      const marginal = GasMix(o2: 16);
+      const tanks = [
+        DiveTank(id: 'tx', volume: 24, startPressure: 230, gasMix: marginal),
+      ];
+      final descent = _leg(
+        'desc',
+        20,
+        67,
+        0,
+        gas: marginal,
+        tank: 'tx',
+        mode: domain.PlanMode.ccr,
+      );
+      PlanIssue reported(PlanSegment last) => _hypoxia(
+        engine.compute(ocPlan(tanks: tanks, segments: [descent, last])),
+      ).single;
+
+      final authored = reported(
+        _leg('up', 0, 133, 1, gas: marginal, tank: 'tx'),
+      );
+      final computed = reported(
+        _leg('hold', 20, 60, 1, gas: marginal, tank: 'tx'),
+      );
+
+      expect(authored.segmentId, 'up');
+      expect(computed.segmentId, isNull);
+      expect(authored.atDepth, 0);
+      expect(computed.atDepth, 0);
+      expect(authored.value, closeTo(0.14997, 0.0001));
+      expect(computed.value, closeTo(authored.value!, 1e-9));
+    });
+
     test('an open-circuit ascent that switches in time stays clean', () {
       final outcome = engine.compute(
         ocPlan(
