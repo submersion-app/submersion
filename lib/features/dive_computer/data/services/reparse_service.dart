@@ -1235,6 +1235,9 @@ class ReparseService {
           existing.sourceTankIndex == null) {
         continue;
       }
+      // A cylinder a stored switch names was breathed: the switch would
+      // cascade away with the row (issue #32).
+      if (switchedTankIds.contains(existing.id)) continue;
       if (claimed || !newTankOrders.contains(existing.tankOrder)) {
         await (db.delete(
           db.diveTanks,

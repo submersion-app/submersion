@@ -169,6 +169,52 @@ void main() {
     expect(await staged(), 0);
   });
 
+  test('a computer cylinder a switch names survives a parse that no longer '
+      'reports it', () async {
+    await seedDive(edited: true);
+    // The parse now reports one gas only: tank-1 (source index 1) is no
+    // longer matched, but gs-dc still names it.
+    final oneGas = pigeon.ParsedDive(
+      fingerprint: 'test-fp',
+      dateTimeYear: 2026,
+      dateTimeMonth: 1,
+      dateTimeDay: 15,
+      dateTimeHour: 10,
+      dateTimeMinute: 0,
+      dateTimeSecond: 0,
+      maxDepthMeters: 25.0,
+      avgDepthMeters: 14.0,
+      durationSeconds: 1200,
+      samples: [
+        pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0, gasMixIndex: 0),
+        pigeon.ProfileSample(
+          timeSeconds: 1200,
+          depthMeters: 0.0,
+          gasMixIndex: 0,
+        ),
+      ],
+      tanks: [pigeon.TankInfo(index: 0, gasMixIndex: 0)],
+      gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+      events: [],
+    );
+
+    await service.applyParsedUpdate(
+      diveId: 'dive-1',
+      sourceRowId: 'src-1',
+      parsed: oneGas,
+      descriptorVendor: null,
+      descriptorProduct: null,
+      descriptorModel: null,
+      libdivecomputerVersion: null,
+    );
+
+    final tankIds = (await (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals('dive-1'))).get()).map((t) => t.id);
+    expect(tankIds, contains('tank-1'));
+    expect((await switches()).map((s) => s.id), ['gs-dc', 'gs-mine']);
+  });
+
   test("an unedited dive still takes the computer's switches", () async {
     await seedDive(edited: false);
 
