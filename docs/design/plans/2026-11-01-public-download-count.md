@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3 standard library, GitHub Actions, plain ES modules, inline SVG, `node --test`.
 
-**Spec:** `docs/superpowers/specs/2026-11-01-public-download-count-design.md`. The approved mockups are in `docs/superpowers/specs/2026-11-01-public-download-count-mockups/`.
+**Spec:** `docs/design/specs/2026-11-01-public-download-count-design.md`. The approved mockups are in `docs/design/specs/2026-11-01-public-download-count-mockups/`.
 
 ## Global Constraints
 
@@ -62,7 +62,7 @@ Work in this worktree, on branch `ericgriffin/submersion-github-downloads-a9780e
 - [ ] **Step 1: Commit the approved design and this plan**
 
 ```bash
-git add docs/superpowers/specs/2026-11-01-public-download-count-design.md docs/superpowers/specs/2026-11-01-public-download-count-mockups docs/superpowers/plans/2026-11-01-public-download-count.md
+git add docs/design/specs/2026-11-01-public-download-count-design.md docs/design/specs/2026-11-01-public-download-count-mockups docs/superpowers/plans/2026-11-01-public-download-count.md
 git commit -m "docs: add public download count design and plan"
 ```
 
