@@ -735,7 +735,9 @@ class _BailoutSection extends StatelessWidget {
     // Every figure below was sized on a gas past its MOD, so none of them is
     // shown: the error is the whole answer (#3961).
     if (outcome.gasGap case final gap?) {
-      return _BailoutError(
+      return PlanWarningRow(
+        icon: Icons.error,
+        color: theme.colorScheme.error,
         message: bailoutGasGapMessage(
           context.l10n,
           units,
@@ -787,11 +789,10 @@ class _BailoutSection extends StatelessWidget {
           ],
         ),
         if (!outcome.sufficient)
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: _BailoutError(
-              message: context.l10n.plannerCanvas_bailout_insufficient,
-            ),
+          PlanWarningRow(
+            icon: Icons.error,
+            color: theme.colorScheme.error,
+            message: context.l10n.plannerCanvas_bailout_insufficient,
           ),
         if (outcome.bailoutTankUsages.isNotEmpty) ...[
           const SizedBox(height: 10),
@@ -818,31 +819,6 @@ class _BailoutSection extends StatelessWidget {
           const SizedBox(height: 4),
           _BailoutScheduleTable(rows: outcome.worstCaseRows, units: units),
         ],
-      ],
-    );
-  }
-}
-
-class _BailoutError extends StatelessWidget {
-  const _BailoutError({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(Icons.error, size: 18, color: theme.colorScheme.error),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            message,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.error,
-            ),
-          ),
-        ),
       ],
     );
   }

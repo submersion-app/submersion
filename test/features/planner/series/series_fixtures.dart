@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 
 const ean32 = GasMix(o2: 32);
 const ean50 = GasMix(o2: 50);
@@ -63,4 +64,46 @@ DivePlanState seriesDiveState({
 String Function() idSequence([String prefix = 'id']) {
   var next = 0;
   return () => '$prefix-${next++}';
+}
+
+/// A logged dive of [minutes] starting at [start], for following.
+Dive loggedDive(
+  String id,
+  DateTime start, {
+  int minutes = 45,
+  int? number,
+  String? name,
+  bool isPlanned = false,
+  List<DiveTank> tanks = const [],
+  DateTime? exitTime,
+}) {
+  return Dive(
+    id: id,
+    diveNumber: number,
+    name: name,
+    dateTime: start,
+    entryTime: start,
+    exitTime: exitTime,
+    runtime: Duration(minutes: minutes),
+    isPlanned: isPlanned,
+    tanks: tanks,
+  );
+}
+
+/// A followed logged dive that ended at [end], having breathed [otu].
+SeriesLoggedDive seriesLoggedDive(
+  String id,
+  DateTime end, {
+  int minutes = 45,
+  double otu = 0,
+  int? number,
+}) {
+  return SeriesLoggedDive(
+    id: id,
+    diveNumber: number,
+    start: end.subtract(Duration(minutes: minutes)),
+    end: end,
+    endInstant: end,
+    otu: otu,
+  );
 }

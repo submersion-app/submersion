@@ -7,8 +7,11 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
+import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_bulk_delete_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -119,6 +122,33 @@ void main() {
       expect(entry.contentHash, 'h1');
     },
   );
+
+  test('the logbook delete holds the blob delete for its Undo', () async {
+    var kicks = 0;
+    final held = DiveBulkDeleteService(
+      dives: DiveRepository(
+        mediaRepository: mediaRepository,
+        mediaDeletionCoordinator: MediaDeletionCoordinator(
+          mediaRepository: mediaRepository,
+          queue: () => queue,
+          kickWorker: () async => kicks++,
+        ),
+      ),
+      changeLog: ChangeLogRepository(),
+      revert: ChangeLogRevertService(afterDiveWrites: (_) {}),
+      restoreDocuments: (_) async {},
+      rearmDocuments: (_) async {},
+    );
+    final dive = await makeDive();
+    await mediaRepository.createMedia(
+      item('a.jpg', diveId: dive.id, hash: 'h1', uploadedAt: DateTime(2026, 2)),
+    );
+
+    await held.delete([dive.id]);
+
+    expect(kicks, 0, reason: 'the worker would take the blob before an undo');
+    expect((await queue.allForTesting()).single.direction, 'delete');
+  });
 
   test('site-linked media survives with diveId nulled', () async {
     final dive = await makeDive();
