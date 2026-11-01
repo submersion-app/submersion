@@ -887,15 +887,7 @@ class PlanEngine {
 
       // A ramp over the setpoint switch changes setpoint at the switch, not
       // at its mean depth, so each side is loaded and charged on its own.
-      for (final piece in splitAtSetpointSwitch(
-        plan,
-        segment,
-        DecoSegment(
-          startDepth: leg.startDepth,
-          endDepth: leg.endDepth,
-          durationSeconds: segment.durationSeconds,
-        ),
-      )) {
+      for (final piece in _breathedPieces(plan, leg)) {
         final breathing = _breathingFor(
           plan,
           segment.gasMix,
@@ -1178,8 +1170,9 @@ class PlanEngine {
     TissueState initialState,
   ) {
     final trace = <(int, double)>[];
-    // Keyed by the authored segment, so the legs one segment expands into
-    // (a rate-split travel and hold) report as that one segment.
+    // Keyed by the authored segment, so the stretches one segment expands
+    // into (a rate-split travel and hold, the two sides of a setpoint switch)
+    // report as that one segment.
     final breaches = <String, _CeilingBreach>{};
     var traceState = initialState;
     var runtime = 0;
@@ -1263,24 +1256,18 @@ class PlanEngine {
 
     for (final leg in legs) {
       final segment = leg.segment;
-      for (final piece in splitAtSetpointSwitch(
-        plan,
-        segment,
-        DecoSegment(
-          startDepth: leg.startDepth,
-          endDepth: leg.endDepth,
-          durationSeconds: leg.durationSeconds,
-        ),
-      )) {
+      final authoredSegmentId = leg.endDepth > leg.startDepth
+          ? null
+          : _authoredSegmentId(segment.id);
+      BreathingConfig breathingAt(double depth) =>
+          _breathingFor(plan, segment.gasMix, depth, segment: segment);
+      for (final piece in _breathedPieces(plan, leg)) {
         sampleLeg(
           piece.startDepth,
           piece.endDepth,
           piece.durationSeconds,
-          (depth) =>
-              _breathingFor(plan, segment.gasMix, depth, segment: segment),
-          authoredSegmentId: leg.endDepth > leg.startDepth
-              ? null
-              : _authoredSegmentId(segment.id),
+          breathingAt,
+          authoredSegmentId: authoredSegmentId,
         );
       }
     }
@@ -1335,6 +1322,20 @@ class PlanEngine {
       surfaced: traceState as BuhlmannState,
     );
   }
+
+  /// [leg] as it is breathed: whole, or cut at [plan]'s setpoint switch.
+  static List<DecoSegment> _breathedPieces(
+    domain.DivePlan plan,
+    ResolvedLeg leg,
+  ) => splitAtSetpointSwitch(
+    plan,
+    leg.segment,
+    DecoSegment(
+      startDepth: leg.startDepth,
+      endDepth: leg.endDepth,
+      durationSeconds: leg.durationSeconds,
+    ),
+  );
 
   /// The diver-authored segment a resolved leg came from, or null for a leg
   /// the engine inserted on its own (a diluent switch stop), which is never

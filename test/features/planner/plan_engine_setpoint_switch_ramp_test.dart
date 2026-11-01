@@ -204,6 +204,10 @@ void main() {
       expect(outcome.segmentOutcomes.single.startRuntime, 0);
       expect(outcome.segmentOutcomes.single.endRuntime, 1200);
       expect(outcome.tissueTimeline, hasLength(1));
+      expect(
+        outcome.schedule.where((r) => r.kind == PlanScheduleRowKind.descent),
+        hasLength(1),
+      );
     });
 
     test('an OTU limit is reached where the high setpoint reaches it', () {

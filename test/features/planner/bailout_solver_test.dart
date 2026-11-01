@@ -207,12 +207,16 @@ void main() {
     // full minute, a slightly bigger single-sample step than the plain
     // unsnapped grid gave, hence the wider tolerance. The widest step on a
     // single gas is a lone 9 m stop gaining a 3 m one: its whole climb out was
-    // at the final rate, and only the last 3 m is now, up to an eighth of the
-    // demand at that early point.
+    // at the final rate, and only the last 3 m is now, about 190 L here. That
+    // is a fixed amount of gas, not a share of the demand, so the allowance
+    // stays tight once the demand is large.
+    const oneGridStepLiters = 250.0;
     for (var i = 1; i < bottomPoints.length; i++) {
       expect(
         bottomPoints[i].litersRequired,
-        greaterThanOrEqualTo(bottomPoints[i - 1].litersRequired * 0.85),
+        greaterThanOrEqualTo(
+          bottomPoints[i - 1].litersRequired - oneGridStepLiters,
+        ),
         reason: 'sample $i fell more than one grid step below its predecessor',
       );
     }
