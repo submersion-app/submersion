@@ -738,6 +738,11 @@ extension RungsFromV231 on AppDatabase {
     if (from < 332) await _assertChangeLogSchema();
     if (from < 332) await reportProgress();
 
+    // v333: dives.gas_switches_edited (issue #32). Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 333) await _assertDiveGasSwitchesEditedColumn();
+    if (from < 333) await reportProgress();
+
     // v336: trip_checklists, splitting one trip's single flat checklist
     // into several named ones (issue #3356). Backfills a default checklist
     // for every trip with existing sections/items; re-asserted in
