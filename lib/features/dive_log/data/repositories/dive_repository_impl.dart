@@ -62,6 +62,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
@@ -8753,6 +8754,66 @@ class DiveRepository {
     }
     return result;
   }
+
+  /// What duplicate matching reads of every dive [getAllDives] returns, in
+  /// the same order, so that matching does not hydrate the whole logbook
+  /// (issue #3855). Order matters: a tie on score goes to the first dive met.
+  ///
+  /// When [diverId] is provided, only that diver's dives are returned.
+  // stats-scope-exempt: import dedupe, must see every dive or it re-imports
+  Future<List<DiveMatchRecord>> getDiveMatchRecords({String? diverId}) async {
+    try {
+      return await PerfTimer.measure('getDiveMatchRecords', () async {
+        final dives = _db.dives;
+        final sites = _db.diveSites;
+        final query = _db.selectOnly(dives)
+          ..addColumns([
+            dives.id,
+            dives.diveDateTime,
+            dives.maxDepth,
+            dives.runtime,
+            dives.entryTime,
+            dives.exitTime,
+            dives.bottomTime,
+            sites.name,
+          ])
+          ..orderBy([
+            OrderingTerm.desc(coalesce([dives.entryTime, dives.diveDateTime])),
+            OrderingTerm.desc(dives.diveNumber),
+          ]);
+        query.join([leftOuterJoin(sites, sites.id.equalsExp(dives.siteId))]);
+        if (diverId != null) query.where(dives.diverId.equals(diverId));
+
+        final rows = await query.get();
+        return [
+          for (final row in rows)
+            DiveMatchRecord(
+              id: row.read(dives.id)!,
+              dateTime: wallClockUtcFromMillis(row.read(dives.diveDateTime)!),
+              maxDepth: row.read(dives.maxDepth),
+              runtime: _durationFromSeconds(row.read(dives.runtime)),
+              entryTime: _wallClockOrNull(row.read(dives.entryTime)),
+              exitTime: _wallClockOrNull(row.read(dives.exitTime)),
+              bottomTime: _durationFromSeconds(row.read(dives.bottomTime)),
+              siteName: row.read(sites.name),
+            ),
+        ];
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load dive match records',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  static Duration? _durationFromSeconds(int? seconds) =>
+      seconds == null ? null : Duration(seconds: seconds);
+
+  static DateTime? _wallClockOrNull(int? millis) =>
+      millis == null ? null : wallClockUtcFromMillis(millis);
 
   /// One-column lookup of a dive's `computer_id`.
   ///

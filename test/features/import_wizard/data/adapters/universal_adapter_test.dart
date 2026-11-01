@@ -102,6 +102,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
   MockSpec<UddfEntityImporter>(),
   MockSpec<DiveConsolidationService>(),
 ])
+import '../../../../helpers/dive_match_records.dart';
 import '../../../../helpers/test_database.dart';
 import 'universal_adapter_test.mocks.dart';
 import '../../../../helpers/fake_hosts.dart';
@@ -332,12 +333,13 @@ List<Override> _fullOverrides({
   final courseRepo = mockCourseRepo ?? MockCourseRepository();
   final tankPresetRepo = mockTankPresetRepo ?? MockTankPresetRepository();
 
-  // Set up default mock return values for getAllDives. Production code
-  // calls it with a diverId filter, so stub both variants.
-  when(diveRepo.getAllDives()).thenAnswer((_) async => existingDives);
+  // Set up default mock return values for getDiveMatchRecords. Production
+  // code calls it with a diverId filter, so stub both variants.
+  final matchRecords = existingDives.map(diveMatchRecordOf).toList();
+  when(diveRepo.getDiveMatchRecords()).thenAnswer((_) async => matchRecords);
   when(
-    diveRepo.getAllDives(diverId: anyNamed('diverId')),
-  ).thenAnswer((_) async => existingDives);
+    diveRepo.getDiveMatchRecords(diverId: anyNamed('diverId')),
+  ).thenAnswer((_) async => matchRecords);
 
   return [
     universalImportNotifierProvider.overrideWith((ref) {
@@ -1964,6 +1966,39 @@ void main() {
       );
     });
 
+    testWidgets('a file of sites reads no dives or source keys', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.sites: [
+            {'name': 'Blue Hole'},
+          ],
+        },
+      );
+
+      final diveRepo = MockDiveRepository();
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          mockDiveRepo: diveRepo,
+        ),
+        callback: (adapter) async {
+          await adapter.checkDuplicates(await adapter.buildBundle());
+
+          verifyNever(
+            diveRepo.getDiveMatchRecords(diverId: anyNamed('diverId')),
+          );
+          verifyNever(
+            diveRepo.getSourceUuidByDiveId(diverId: anyNamed('diverId')),
+          );
+        },
+      );
+    });
+
     testWidgets('marks duplicate tags in duplicateIndices', (tester) async {
       const payload = ImportPayload(
         entities: {
@@ -2180,7 +2215,6 @@ void main() {
       );
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2273,7 +2307,6 @@ void main() {
       );
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2417,7 +2450,6 @@ void main() {
       );
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2468,7 +2500,6 @@ void main() {
       const payload = ImportPayload(entities: {});
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2614,7 +2645,6 @@ void main() {
       );
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2731,7 +2761,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
         final mockTankPresetRepo = MockTankPresetRepository();
         when(
@@ -4160,7 +4189,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
         when(mockDiveRepo.createDive(any)).thenAnswer(
           (invocation) async => invocation.positionalArguments[0] as Dive,
         );
@@ -4241,7 +4269,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
         when(mockDiveRepo.createDive(any)).thenAnswer(
           (invocation) async => invocation.positionalArguments[0] as Dive,
         );
@@ -4329,7 +4356,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
         when(mockDiveRepo.createDive(any)).thenAnswer(
           (invocation) async => invocation.positionalArguments[0] as Dive,
         );
@@ -4411,7 +4437,6 @@ void main() {
           );
 
           final mockDiveRepo = MockDiveRepository();
-          when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
           when(mockDiveRepo.createDive(any)).thenAnswer(
             (invocation) async => invocation.positionalArguments[0] as Dive,
           );
@@ -4494,7 +4519,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
         when(mockDiveRepo.createDive(any)).thenAnswer(
           (invocation) async => invocation.positionalArguments[0] as Dive,
         );
@@ -4646,7 +4670,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
         when(mockDiveRepo.createDive(any)).thenAnswer(
           (invocation) async => invocation.positionalArguments[0] as Dive,
         );
@@ -4725,7 +4748,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
         final mockTankPresetRepo = MockTankPresetRepository();
         when(

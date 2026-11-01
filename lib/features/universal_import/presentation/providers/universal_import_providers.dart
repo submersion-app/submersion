@@ -7,20 +7,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/diver_target.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
@@ -48,7 +38,6 @@ import 'package:submersion/features/universal_import/data/services/payload_merge
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/surfacing_pressure_normalizer.dart';
 import 'package:submersion/features/universal_import/data/services/tank_pressure_glitch_normalizer.dart';
-import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/data/services/zip_expansion_service.dart';
 import 'package:submersion/features/universal_import/domain/services/bundled_photo_exporter.dart';
 import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
@@ -57,7 +46,6 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
@@ -714,7 +702,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(
       currentStep: ImportWizardStep.sourceConfirmation,
       clearPayload: true,
-      clearDuplicateResult: true,
       selections: const {},
     );
 
@@ -768,7 +755,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     // For non-CSV formats, parse immediately and await so payload is ready
     // before the wizard advances past the Map Fields step.
     if (format != ImportFormat.csv) {
-      await _parseAndCheckDuplicates();
+      await _parseAndInstall();
     }
   }
 
@@ -827,7 +814,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   Future<void> confirmFieldMapping() async {
     if (state.payload != null) return;
     state = state.copyWith(currentStep: ImportWizardStep.review);
-    await _parseAndCheckDuplicates();
+    await _parseAndInstall();
   }
 
   // -- Batch Parsing (multi-file imports) --
@@ -849,7 +836,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     );
 
     // A run the wizard has since dropped stops at its next file and writes
-    // nothing: see _parseAndCheckDuplicates.
+    // nothing: see _parseAndInstall.
     final files = state.files;
     bool isCurrent() => identical(state.files, files);
 
@@ -902,22 +889,17 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final payload = _applySurfacingPressureRule(
       const PayloadMerger().merge(result.parsed),
     );
-    final dupResult = await _checkDuplicatesOrEmpty(payload);
-    if (!isCurrent()) return;
-    final selections = _defaultSelections(payload, dupResult);
-
     state = state.copyWith(
       isLoading: false,
       files: result.files,
       payload: payload,
       clearDiverMapping: true,
-      duplicateResult: dupResult,
-      selections: selections,
+      selections: _defaultSelections(payload),
       currentStep: ImportWizardStep.review,
     );
   }
 
-  // -- Parsing + Duplicate Check --
+  // -- Parsing --
 
   /// Parse the selected file and move the wizard to review.
   ///
@@ -926,7 +908,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// let it advance onto a step with nothing to act on -- for a non-CSV file
   /// that is the CSV-only Map Fields step, which then reads "0 of 0 columns
   /// mapped" with Next disabled and no explanation.
-  Future<void> _parseAndCheckDuplicates() async {
+  Future<void> _parseAndInstall() async {
     final bytes = state.fileBytes;
     final opts = state.options;
     if (bytes == null || opts == null) {
@@ -982,29 +964,18 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       );
     }
 
-    await _installPayload(payload, isCurrent: isCurrent);
+    _installPayload(payload);
   }
 
-  /// Duplicate-checks [payload] and makes it the one the review steps act
-  /// on, with every row selected except the duplicates. Shared by file
-  /// parsing and [setExternalPayload] so both leave the notifier in the
-  /// same state. [isCurrent], when given, is asked after the duplicate check,
-  /// which reads the whole library, and a false answer installs nothing.
-  Future<void> _installPayload(
-    ImportPayload payload, {
-    int remotePhotoCount = 0,
-    bool Function()? isCurrent,
-  }) async {
-    final dupResult = await _checkDuplicatesOrEmpty(payload);
-    if (isCurrent != null && !isCurrent()) return;
-    final selections = _defaultSelections(payload, dupResult);
-
+  /// Makes [payload] the one the review steps act on, with every row
+  /// selected. Shared by file parsing and [setExternalPayload] so both leave
+  /// the notifier in the same state.
+  void _installPayload(ImportPayload payload, {int remotePhotoCount = 0}) {
     state = state.copyWith(
       isLoading: false,
       payload: payload,
       clearDiverMapping: true,
-      duplicateResult: dupResult,
-      selections: selections,
+      selections: _defaultSelections(payload),
       currentStep: ImportWizardStep.review,
       remotePhotoCount: remotePhotoCount,
     );
@@ -1013,17 +984,16 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Installs a payload built outside file parsing, by a source that
   /// fetches it itself (divelogs.de).
   ///
-  /// Goes through the same surfacing-pressure rule and duplicate check a
-  /// parsed file does. Photo decisions from any earlier import are cleared,
-  /// and [remotePhotoCount] tells the Photos step how many photos the
-  /// source will download at import time. The caller only hands over a
-  /// payload with something in it; an empty fetch is its own message.
+  /// Goes through the same surfacing-pressure rule a parsed file does. Photo
+  /// decisions from any earlier import are cleared, and [remotePhotoCount]
+  /// tells the Photos step how many photos the source will download at import
+  /// time. The caller only hands over a payload with something in it; an
+  /// empty fetch is its own message.
   Future<void> setExternalPayload(
     ImportPayload payload, {
     int remotePhotoCount = 0,
   }) async {
     state = state.copyWith(
-      isLoading: true,
       clearError: true,
       photoPathsByBaseName: const {},
       unmatchedPhotoCount: 0,
@@ -1032,7 +1002,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       clearPhotoFolderPath: true,
       clearBundledPhotoFolderPath: true,
     );
-    await _installPayload(
+    _installPayload(
       _applySurfacingPressureRule(payload),
       remotePhotoCount: remotePhotoCount,
     );
@@ -1053,31 +1023,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       isLoading: false,
       error: message,
       clearPayload: true,
-      clearDuplicateResult: true,
       selections: const {},
     );
     return ImportStepFailure(message);
-  }
-
-  /// Duplicate detection, degraded to "found none" if it throws.
-  ///
-  /// Flagging duplicates is a convenience laid over the import, and it reads
-  /// the whole existing library to do it. A failure in that read is no reason
-  /// to make the file unimportable: the review step still lists every incoming
-  /// row for the user to deselect by hand.
-  Future<ImportDuplicateResult> _checkDuplicatesOrEmpty(
-    ImportPayload payload,
-  ) async {
-    try {
-      return await _checkDuplicates(payload);
-    } catch (e, stackTrace) {
-      _log.error(
-        'Duplicate detection failed; importing without it',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return const ImportDuplicateResult();
-    }
   }
 
   ImportParser _parserFor(ImportFormat format, {PresetRegistry? registry}) {
@@ -1090,29 +1038,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     return parserForFormat(format);
   }
 
-  /// Default review selections: everything selected, minus duplicates.
-  Map<ImportEntityType, Set<int>> _defaultSelections(
-    ImportPayload payload,
-    ImportDuplicateResult dupResult,
-  ) {
-    final selections = <ImportEntityType, Set<int>>{};
-    for (final type in payload.availableTypes) {
-      final items = payload.entitiesOf(type);
-      final allIndices = Set<int>.from(List.generate(items.length, (i) => i));
-
-      if (type == ImportEntityType.dives) {
-        // Exclude dives matched as duplicates
-        selections[type] = allIndices.difference(
-          Set<int>.from(dupResult.diveMatches.keys),
-        );
-      } else {
-        // Exclude items flagged as duplicates
-        final dups = dupResult.duplicates[type] ?? const {};
-        selections[type] = allIndices.difference(dups);
-      }
-    }
-    return selections;
-  }
+  /// Default review selections: everything selected. Duplicates are the
+  /// wizard's to flag, through the import adapter's `checkDuplicates`.
+  Map<ImportEntityType, Set<int>> _defaultSelections(ImportPayload payload) => {
+    for (final type in payload.availableTypes)
+      type: {for (var i = 0; i < payload.entitiesOf(type).length; i++) i},
+  };
 
   /// Read cylinder end pressure at the moment of surfacing rather than at the
   /// end of the recording, when the diver has that on (issue #1092). Applied
@@ -1127,44 +1058,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final deglitched = replaceGlitchedTankPressures(payload);
     final trim = _ref.read(settingsProvider).trimTankPressureAtSurfacing;
     return trim ? trimTankPressuresAtSurfacing(deglitched) : deglitched;
-  }
-
-  Future<ImportDuplicateResult> _checkDuplicates(ImportPayload payload) async {
-    const checker = ImportDuplicateChecker();
-
-    final existingTrips = await _ref.read(allTripsProvider.future);
-    final existingSites = await _ref.read(sitesProvider.future);
-    final existingEquipment = await _ref.read(allEquipmentProvider.future);
-    final existingBuddies = await _ref.read(allBuddiesProvider.future);
-    final existingDiveCenters = await _ref.read(allDiveCentersProvider.future);
-    final existingCertifications = await _ref.read(
-      allCertificationsProvider.future,
-    );
-    final existingTags = await _ref.read(tagsProvider.future);
-    final existingDiveTypes = await _ref.read(diveTypesProvider.future);
-    final diveRepo = _ref.read(diveRepositoryProvider);
-    final existingDives = await diveRepo.getAllDives();
-    final existingSourceUuidByDiveId = await diveRepo.getSourceUuidByDiveId();
-
-    return checker.check(
-      payload: payload,
-      existingDives: existingDives,
-      existingSites: existingSites,
-      existingTrips: existingTrips,
-      existingEquipment: existingEquipment,
-      existingBuddies: existingBuddies,
-      existingDiveCenters: existingDiveCenters,
-      existingCertifications: existingCertifications,
-      existingTags: existingTags,
-      existingDiveTypes: existingDiveTypes,
-      existingSourceUuidByDiveId: existingSourceUuidByDiveId,
-      checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
-      checkWithinFile: (payload.metadata['batchFileCount'] as int? ?? 1) <= 1,
-      units: UnitFormatter(_ref.read(settingsProvider)),
-      certificationCatalog: await _ref.read(
-        allCustomCertificationsCatalogProvider.future,
-      ),
-    );
   }
 
   // -- Step 3: Review (Selection Management) --
