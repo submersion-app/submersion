@@ -135,6 +135,20 @@ void main() {
     expect(repo.reads, isEmpty);
   });
 
+  testWidgets('a neighbouring PDF is read ahead, a Word page is not', (
+    t,
+  ) async {
+    final repo = FakeDocumentContent();
+    await t.pumpWidget(
+      viewer(repo, [
+        _stored('p0', mimeType: 'application/msword', fileName: 'policy.doc'),
+        _stored('p1', mimeType: 'application/pdf', fileName: 'permit.pdf'),
+      ]),
+    );
+    await t.pumpAndSettle();
+    expect(repo.reads, ['p1']);
+  });
+
   testWidgets('an image waits for its content, then zooms', (t) async {
     final repo = FakeDocumentContent();
     await t.pumpWidget(viewer(repo, [_stored('p0')]));

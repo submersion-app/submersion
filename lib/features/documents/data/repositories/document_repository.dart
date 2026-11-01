@@ -337,8 +337,9 @@ class DocumentRepository {
   /// Saves [document] and makes [pages] its exact page list, in order: new
   /// pages (empty id) are inserted, kept pages updated only when changed,
   /// missing ones deleted and tombstoned. A page with no bytes keeps its
-  /// stored content. [tagIds], when given, become the document's exact tag
-  /// set (issue #1970); null leaves its tags alone. One transaction.
+  /// stored content, and is skipped when it has been deleted since it was
+  /// listed. [tagIds], when given, become the document's exact tag set
+  /// (issue #1970); null leaves its tags alone. One transaction.
   Future<Document> save(
     Document document,
     List<DocumentPage> pages, {
