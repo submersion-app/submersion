@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:flutter/painting.dart';
 
 import 'package:submersion/core/database/compaction/database_compaction_monitor.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -55,16 +58,53 @@ final documentEntryProvider = FutureProvider.family<DocumentListEntry?, String>(
   },
 );
 
-/// Every page of a document with its content (up to 10 MB each), so it is
-/// released once no page shows the document.
+/// A document's pages without their content, so a document opens at the
+/// same cost however many it holds: [documentPageContentProvider] reads
+/// what is on screen.
 final documentPagesProvider = FutureProvider.autoDispose
     .family<List<DocumentPage>, String>((ref, id) async {
       final repo = ref.watch(documentRepositoryProvider);
       ref.invalidateSelfWhen(repo.watchChanges());
-      return repo.getPages(id);
+      return repo.getPages(id, withBytes: false);
     });
 
-/// A thumbnail's first page; released with the tile that shows it.
+/// The width the editor strip decodes a stored image to.
+const documentPageStripImageWidth = 300;
+
+/// The width a list thumbnail decodes a stored image to.
+const documentPageThumbnailImageWidth = 144;
+
+/// Drops the decoded images of [bytes] from the image cache, whose keys would
+/// otherwise keep the bytes alive. Nothing can reach those entries again: a
+/// page read later is a new buffer, and the cache compares buffers by identity.
+void _evictDecodedImages(Uint8List bytes) {
+  final original = MemoryImage(bytes);
+  for (final image in <ImageProvider>[
+    original,
+    ResizeImage(original, width: documentPageStripImageWidth),
+    ResizeImage(original, width: documentPageThumbnailImageWidth),
+  ]) {
+    unawaited(image.evict());
+  }
+}
+
+/// One stored page's content (up to 10 MB), released with its decoded images
+/// once nothing shows the page.
+// no-tick: the key is the page's version. Every write to a page moves its hlc
+// (a save, a sync pull, a change log revert), and the ticking page list then
+// asks for a new key, so an unrelated write rereads no content.
+final documentPageContentProvider = FutureProvider.autoDispose
+    .family<Uint8List?, DocumentPageContentKey>((ref, key) async {
+      Uint8List? content;
+      ref.onDispose(() {
+        if (content case final bytes?) _evictDecodedImages(bytes);
+      });
+      final repo = ref.watch(documentRepositoryProvider);
+      return content = await repo.getPageContent(key.id);
+    });
+
+/// A thumbnail's first page, without its content; released with the tile
+/// that shows it.
 final documentFirstPageProvider = FutureProvider.autoDispose
     .family<DocumentPage?, String>((ref, id) async {
       final repo = ref.watch(documentRepositoryProvider);

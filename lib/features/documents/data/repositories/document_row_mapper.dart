@@ -100,4 +100,5 @@ DocumentPage pageFromRow(DocumentPageRow r) => DocumentPage(
   bytes: r.bytes,
   createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
   updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
+  hlc: r.hlc,
 );
