@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 
@@ -42,6 +43,7 @@ void main() {
 
   Widget harness() => testApp(
     overrides: [
+      ...plannerResultsInline(),
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     locale: const Locale('en'),
@@ -108,7 +110,13 @@ void main() {
     await tester.pumpWidget(harness());
     await seedAndSave(tester);
 
-    await tester.enterText(find.byType(TextField), 'Zenobia');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'Zenobia',
+    );
     await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
@@ -131,7 +139,13 @@ void main() {
     notifierOf(tester).addSimplePlan(maxDepth: 45, bottomTimeMinutes: 10);
     await tester.pump();
 
-    await tester.enterText(find.byType(TextField), 'Zenobia');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'Zenobia',
+    );
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
@@ -147,6 +161,7 @@ void main() {
     await tester.pumpWidget(
       testApp(
         overrides: [
+          ...plannerResultsInline(),
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           // Switch the plan to a different site while the lookup for the
           // original one is still in flight. No modal is up during that await,
@@ -184,6 +199,7 @@ void main() {
     await tester.pumpWidget(
       testApp(
         overrides: [
+          ...plannerResultsInline(),
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           siteProvider.overrideWith((ref, id) async {
             await gate.future;
@@ -214,7 +230,13 @@ void main() {
     await tester.pumpWidget(harness());
     await seedAndSave(tester);
 
-    await tester.enterText(find.byType(TextField), 'Zenobia');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'Zenobia',
+    );
     await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();

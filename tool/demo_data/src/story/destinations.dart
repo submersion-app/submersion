@@ -26,13 +26,17 @@ const homeDestination = Destination(
 
 /// The trip destinations in the Caribbean, where about half the trips go.
 const caribbeanDestinations = {
+  'belize',
   'bonaire',
+  'cayman',
   'curacao',
   'cozumel',
   'dominican',
   'guadeloupe',
+  'roatan',
   'san-andres',
   'santa-marta',
+  'turks-caicos',
 };
 
 /// Every trip destination of the story, worldwide. Each one is a place in
@@ -65,6 +69,55 @@ const tripDestinations = <Destination>[
     nameRegion: 'nl',
     utcOffsetMinutes: -240,
     resortNames: ['Kas Flamingo', 'Bon Kunuku Dive Lodge'],
+  ),
+  // Grand Cayman, Roatán, Belize and Turks and Caicos dive mostly at the
+  // catalogue's curated sites (`scripts/dive_sites_curated.json`).
+  Destination(
+    key: 'cayman',
+    label: 'Grand Cayman',
+    country: 'Cayman Islands',
+    region: null,
+    area: (lat: 19.33, lon: -81.25, km: 40.0),
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'en',
+    utcOffsetMinutes: -300,
+    resortNames: ['Seven Mile Dive Lodge', 'Coral Cove Inn'],
+  ),
+  Destination(
+    key: 'roatan',
+    label: 'Roatán',
+    country: 'Honduras',
+    region: 'Islas de la Bahía',
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'es',
+    utcOffsetMinutes: -360,
+    resortNames: ['Posada West End', 'Cabañas Media Luna'],
+  ),
+  Destination(
+    key: 'belize',
+    label: 'Belize',
+    country: 'Belize',
+    region: 'Belize District',
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'en',
+    utcOffsetMinutes: -360,
+    resortNames: ['Barrier Reef Cabanas', 'Caye Breeze Lodge'],
+  ),
+  Destination(
+    key: 'turks-caicos',
+    label: 'Turks and Caicos',
+    country: 'Turks and Caicos Islands',
+    region: null,
+    area: (lat: 21.75, lon: -72.33, km: 40.0),
+    waterTempC: (25.0, 29.0),
+    freshwater: false,
+    nameRegion: 'en',
+    utcOffsetMinutes: -300,
+    daylightSaving: DaylightSaving.north,
+    resortNames: ['Grace Bay Reef Inn', 'Northwest Point Villas'],
   ),
   Destination(
     key: 'guadeloupe',

@@ -28,6 +28,8 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    show DiveSite;
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -337,6 +339,7 @@ class UniversalAdapter implements ImportSourceAdapter {
           universalImportNotifierProvider.notifier,
         ).confirmSource();
       },
+      onCancelAdvance: _cancelParse,
     ),
     WizardStepDef(
       label: 'Map Fields',
@@ -351,9 +354,13 @@ class UniversalAdapter implements ImportSourceAdapter {
         await notifier.confirmFieldMapping();
         await _seedDiverMapping();
       },
+      onCancelAdvance: _cancelParse,
     ),
     ...payloadSteps,
   ];
+
+  void _cancelParse() =>
+      readProvider(universalImportNotifierProvider.notifier).cancelParse();
 
   /// The steps that act on a payload once it exists, whatever produced it.
   /// A subclass that fetches its payload rather than parsing a file keeps
@@ -636,18 +643,21 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// through its providers as always, another profile through the
   /// repositories, a profile the import creates against nothing (#1893).
   Future<ExistingImportRecords> _existingRecordsFor(
-    String? targetKey,
+    DiverSlice slice,
     String? activeDiverId,
   ) {
+    final targetKey = slice.targetKey;
     if (targetKey == null) {
-      return loadActiveDiverRecords(_container, activeDiverId);
+      return loadActiveDiverRecords(_container, slice.payload, activeDiverId);
     }
     final diverId = DiverTarget.diverIdOf(targetKey);
-    if (diverId == null) return loadNewProfileRecords(_container);
-    if (diverId == activeDiverId) {
-      return loadActiveDiverRecords(_container, activeDiverId);
+    if (diverId == null) {
+      return loadNewProfileRecords(_container, slice.payload);
     }
-    return loadProfileRecords(_container, diverId);
+    if (diverId == activeDiverId) {
+      return loadActiveDiverRecords(_container, slice.payload, activeDiverId);
+    }
+    return loadProfileRecords(_container, slice.payload, diverId);
   }
 
   @override
@@ -674,7 +684,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       for (final slice in slices)
         duplicatesToGlobal(
           slice,
-          (await _existingRecordsFor(slice.targetKey, activeDiverId)).check(
+          (await _existingRecordsFor(slice, activeDiverId)).check(
             slice.payload,
             checkIntraBatch: checkIntraBatch,
             units: units,
@@ -788,8 +798,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     // existing-id seeds for the importer's id mappings.
     Map<String, String> preResolvedIdsFor(
       wizard.ImportEntityType type,
-      List<Map<String, dynamic>> items,
-    ) {
+      List<Map<String, dynamic>> items, {
+      bool linkOnSkip = true,
+    }) {
       final matches = bundle.groups[type]?.entityMatches;
       if (matches == null || matches.isEmpty) return const {};
       final actions = duplicateActions[type] ?? const {};
@@ -801,12 +812,11 @@ class UniversalAdapter implements ImportSourceAdapter {
         // wizard gates advancement on pending decisions, so that state is
         // not reachable today, but dropping the association silently is the
         // exact defect this fix exists to prevent. A seed is harmless when
-        // the entity IS imported: _importBuddies/_importTags/_importEquipment
-        // overwrite the mapping with the newly created id.
+        // the entity IS imported: its import stage overwrites the mapping
+        // with the newly created id.
         final links =
-            action == null ||
-            action == DuplicateAction.skip ||
-            action == DuplicateAction.consolidate;
+            action == DuplicateAction.consolidate ||
+            (linkOnSkip && (action == null || action == DuplicateAction.skip));
         if (!links) continue;
         if (entry.key < 0 || entry.key >= items.length) continue;
         final item = items[entry.key];
@@ -867,6 +877,22 @@ class UniversalAdapter implements ImportSourceAdapter {
       preResolvedDiveTypeIds: preResolvedIdsFor(
         wizard.ImportEntityType.diveTypes,
         uddfData.customDiveTypes,
+      ),
+      preResolvedDiveCenterIds: preResolvedIdsFor(
+        wizard.ImportEntityType.diveCenters,
+        uddfData.diveCenters,
+      ),
+      // A trip matches on its name alone, so a skipped one may be another
+      // year's trip of that name: only an explicit link overrides the
+      // placement by date a dive whose trip was not imported gets (#2618).
+      preResolvedTripIds: preResolvedIdsFor(
+        wizard.ImportEntityType.trips,
+        uddfData.trips,
+        linkOnSkip: false,
+      ),
+      preResolvedCertificationIds: preResolvedIdsFor(
+        wizard.ImportEntityType.certifications,
+        uddfData.certifications,
       ),
       onProgress: onProgress,
       cancelToken: cancelToken,
@@ -1481,7 +1507,16 @@ class UniversalAdapter implements ImportSourceAdapter {
         readProvider(settingsProvider),
       ).formatCoordinates(lat, lon);
     } else {
-      subtitle = '';
+      // Sites can share a name, and a file without coordinates leaves only
+      // this to tell them apart (#4015).
+      subtitle = DiveSite(
+        id: '',
+        name: name,
+        city: data['city'] as String?,
+        island: data['island'] as String?,
+        region: data['region'] as String?,
+        country: data['country'] as String?,
+      ).locationString;
     }
 
     return EntityItem(title: name, subtitle: subtitle);

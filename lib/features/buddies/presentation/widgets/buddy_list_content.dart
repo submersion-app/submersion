@@ -321,6 +321,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
           duration: const Duration(seconds: 5),
           showCloseIcon: true,
+          persist: false,
           action: SnackBarAction(
             label: context.l10n.buddies_list_merge_undo,
             onPressed: () async {
@@ -735,8 +736,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         }
         final config = ref.watch(buddyTableConfigProvider);
         final notifier = ref.read(buddyTableConfigProvider.notifier);
-        final settings = ref.watch(settingsProvider);
-        final units = UnitFormatter(settings);
+        final units = ref.watch(unitFormatterProvider);
 
         return EntityTableView<BuddyWithCount, BuddyField>(
           entities: buddies,

@@ -118,6 +118,16 @@ void main() {
     expect(await ids('difficulty in [advanced, technical]'), {'reef', 'cave'});
   });
 
+  test(
+    'a site with no GPS location reads the way it is asked (#3810)',
+    () async {
+      for (final text in const ['gps is blank', 'GPS:none', 'gps is not set']) {
+        expect(await ids(text), {'cave', 'bare'}, reason: text);
+      }
+      expect(await ids('gps is set'), {'reef'});
+    },
+  );
+
   test('coordinates:any needs both halves of the position', () async {
     expect(await ids('coordinates:any'), {'reef'});
     expect(await ids('coordinates:none'), {'cave', 'bare'});

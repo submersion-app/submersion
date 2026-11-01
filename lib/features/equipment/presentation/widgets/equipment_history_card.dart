@@ -9,7 +9,6 @@ import 'package:submersion/features/equipment/domain/entities/equipment_ownershi
 import 'package:submersion/features/equipment/domain/services/equipment_history_builder.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_history_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Who used an item, when, and every share and ownership change (issue
@@ -26,7 +25,7 @@ class EquipmentHistoryCard extends ConsumerWidget {
     if (!ref.watch(hasMultipleDiversProvider)) return const SizedBox.shrink();
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final names = ref.watch(diverNamesByIdProvider).value ?? const {};
     final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
     final entries = ref.watch(equipmentHistoryProvider(equipmentId)).value;
@@ -58,7 +57,7 @@ class EquipmentHistoryCard extends ConsumerWidget {
                   openDiveList(
                     context,
                     ref,
-                    DiveFilterState(equipmentIds: [equipmentId]),
+                    DiveFilterState.itemUse(equipmentId),
                   );
                 }
               : null,

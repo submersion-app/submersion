@@ -82,6 +82,37 @@ class TankPressureSeriesRepository {
     return rowId;
   }
 
+  /// Slides every sample of [series] by [seconds] (negative moves them
+  /// earlier), in place, keeping each series' id. See
+  /// `ProfileSeriesRepository.shiftSamples`.
+  Future<void> shiftSamples(
+    Iterable<domain.TankPressureSeries> series,
+    int seconds, {
+    required int now,
+  }) async {
+    if (seconds == 0) return;
+    await _db.transaction(() async {
+      for (final s in series) {
+        final encoded = _codec.encode([
+          for (final p in s.samples) p.shiftedBy(seconds),
+        ]);
+        await (_db.update(
+          _db.tankPressureSeries,
+        )..where((t) => t.id.equals(s.id))).write(
+          TankPressureSeriesCompanion(
+            startTimestamp: Value(encoded.summary.startTimestamp),
+            endTimestamp: Value(encoded.summary.endTimestamp),
+            codecVersion: Value(encoded.codecVersion),
+            samples: Value(encoded.bytes),
+            updatedAt: Value(now),
+          ),
+        );
+        await _markPending(s.id, now);
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Timestamp order, ties in input order. Every writer hands over whatever
   /// order it has; the codec and every reader assume ascending timestamps.
   static List<TankPressureSample> _sortedByTimestamp(
@@ -426,10 +457,12 @@ class TankPressureSeriesRepository {
   /// included: consolidation undo puts back the row it captured rather than
   /// re-encoding it. When [markPending] the row is queued for sync, which
   /// restamps its hlc so the restore wins last-writer-wins on every peer.
+  /// Pass [notify] false from a caller that notifies once for a whole batch.
   Future<void> restoreSeriesRow(
     TankPressureSeriesRow row, {
     bool markPending = true,
     int? now,
+    bool notify = true,
   }) async {
     await _db.transaction(() async {
       await _db
@@ -450,7 +483,7 @@ class TankPressureSeriesRepository {
         );
       }
     });
-    SyncEventBus.notifyLocalChange();
+    if (notify) SyncEventBus.notifyLocalChange();
   }
 
   Future<List<String>> _delete(

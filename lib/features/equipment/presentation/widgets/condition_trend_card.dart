@@ -36,8 +36,16 @@ class ConditionTrendCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          conditionEngineEnabled: s.conditionEngineEnabled,
+          conditionDisabledRules: s.conditionDisabledRules,
+          trendGapThreshold: s.trendGapThreshold,
+        ),
+      ),
+    );
     // The selection is a snapshot. Shade the finding as it is now, and
     // only while the findings card still shows it: the master switch and
     // the rule toggles hide findings without clearing the selection.
@@ -106,7 +114,7 @@ class ConditionTrendCard extends ConsumerWidget {
                 valueFormatter: (v) => _formatValue(trend.kind, units, v),
                 height: 180,
                 chartId: 'condition-${trend.kind.name}',
-                dateFormat: settings.dateFormat,
+                dateFormat: units.settings.dateFormat,
                 gapThreshold: settings.trendGapThreshold,
                 onDiveSelected: (diveId) => context.push('/dives/$diveId'),
               ),

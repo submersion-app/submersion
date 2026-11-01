@@ -98,7 +98,7 @@ void main() {
     expect(locations.last, '/dives?selected=a');
   });
 
-  // Arrow-key navigation (Left/Right) is wired in _wrapWithDiveShortcuts and
+  // Arrow-key navigation (Left/Right) is wired in _DiveShortcuts and
   // verified manually: the widget tester's focus handling is unreliable across
   // the route rebuild that each navigation triggers. The button tests above and
   // below cover the shared _navigateToDive helper the shortcuts delegate to.

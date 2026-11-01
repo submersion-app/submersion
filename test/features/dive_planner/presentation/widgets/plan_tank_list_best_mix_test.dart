@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -58,6 +61,13 @@ void main() {
     return ProviderScope.containerOf(tester.element(find.byType(PlanTankList)));
   }
 
+  /// The water the plan's ppO2 is judged in, which the offered O2 is sized for
+  /// (issue #3913).
+  DiveEnvironment planWater(ProviderContainer container) =>
+      PlanEngine.environmentFor(
+        divePlanFromState(container.read(divePlanNotifierProvider)),
+      );
+
   /// The mix the dialog should offer at [depth] for [endMeters], from the
   /// diver's own ppO2 and O2-narcotic settings (the plan overrides neither).
   BestMixResult expectedAt(
@@ -72,6 +82,7 @@ void main() {
         ppO2Limit: settings.ppO2MaxWorking,
         endLimitMeters: endMeters,
         o2Narcotic: settings.o2Narcotic,
+        ppO2Environment: planWater(container),
       ),
     );
   }
@@ -173,6 +184,7 @@ void main() {
           ppO2Limit: ppO2Limit,
           endLimitMeters: 30,
           o2Narcotic: settings.o2Narcotic,
+          ppO2Environment: planWater(container),
         ),
       ).recommended.mix;
     }

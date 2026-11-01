@@ -9,6 +9,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 
@@ -51,6 +52,7 @@ void main() {
   Widget harness(String path) => testAppRouter(
     locale: const Locale('en'),
     overrides: [
+      ...plannerResultsInline(),
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     router: GoRouter(
@@ -216,6 +218,18 @@ void main() {
       expect(find.widgetWithText(SnackBarAction, 'Undo'), findsNothing);
     },
   );
+
+  testWidgets('delete is hidden while the plan is a series', (tester) async {
+    await repository.savePlan(_plan('a', 'Reef dive'));
+
+    await tester.pumpWidget(harness('/planning/dive-planner/a'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add a dive'));
+    await tester.pumpAndSettle();
+
+    await openMenu(tester);
+    expect(find.text('Delete plan'), findsNothing);
+  });
 
   testWidgets('delete is hidden for a brand-new unsaved plan', (tester) async {
     await tester.pumpWidget(harness('/planning/dive-planner'));

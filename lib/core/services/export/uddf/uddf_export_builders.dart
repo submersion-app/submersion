@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart'
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
@@ -161,6 +162,7 @@ class UddfExportBuilders {
     List<Trip>? trips,
     List<GasSwitchWithTank> gasSwitches, {
     Map<String, List<TankPressurePoint>>? tankPressures,
+    List<DiveSourceExport> sources = const [],
   }) {
     // Find the trip this dive belongs to
     Trip? diveTrip;
@@ -348,10 +350,11 @@ class UddfExportBuilders {
                     }
                     if (tankPressures != null) {
                       for (final entry in tankPressures.entries) {
-                        final pressure = findPressureAtTimestamp(
-                          entry.value,
-                          point.timestamp,
-                        );
+                        final pressure =
+                            UddfSourceAttribution.findPressureAtTimestamp(
+                              entry.value,
+                              point.timestamp,
+                            );
                         if (pressure != null) {
                           builder.element(
                             'tankpressure',
@@ -709,39 +712,47 @@ class UddfExportBuilders {
                 },
               );
             }
-            // Export gas switches (source data from dive computers)
-            if (gasSwitches.isNotEmpty) {
-              builder.element(
-                'gasswitches',
-                nest: () {
-                  for (final gs in gasSwitches) {
-                    builder.element(
-                      'gasswitch',
-                      nest: () {
-                        builder.element('time', nest: gs.timestamp.toString());
-                        if (gs.depth != null) {
-                          builder.element('depth', nest: gs.depth.toString());
-                        }
-                        builder.element('tankref', nest: gs.tankId);
-                        builder.element('gasmix', nest: gs.gasMix);
-                        builder.element(
-                          'o2fraction',
-                          nest: gs.o2Fraction.toString(),
-                        );
-                        if (gs.heFraction > 0) {
-                          builder.element(
-                            'hefraction',
-                            nest: gs.heFraction.toString(),
-                          );
-                        }
-                      },
-                    );
-                  }
-                },
-              );
-            }
+            buildGasSwitches(builder, gasSwitches, sources);
           },
         );
+      },
+    );
+  }
+
+  /// Writes [gasSwitches], the source data from dive computers, for a dive
+  /// with [sources]. Shared by the full backup and the dives-only export;
+  /// writes nothing for a dive with none.
+  static void buildGasSwitches(
+    XmlBuilder builder,
+    List<GasSwitchWithTank> gasSwitches,
+    List<DiveSourceExport> sources,
+  ) {
+    if (gasSwitches.isEmpty) return;
+    builder.element(
+      'gasswitches',
+      nest: () {
+        for (final gs in gasSwitches) {
+          builder.element(
+            'gasswitch',
+            nest: () {
+              builder.element('time', nest: gs.timestamp.toString());
+              if (gs.depth != null) {
+                builder.element('depth', nest: gs.depth.toString());
+              }
+              builder.element('tankref', nest: gs.tankId);
+              builder.element('gasmix', nest: gs.gasMix);
+              builder.element('o2fraction', nest: gs.o2Fraction.toString());
+              if (gs.heFraction > 0) {
+                builder.element('hefraction', nest: gs.heFraction.toString());
+              }
+              UddfSourceAttribution.writeSwitchComputer(
+                builder,
+                gs.gasSwitch.computerId,
+                sources,
+              );
+            },
+          );
+        }
       },
     );
   }
@@ -794,10 +805,11 @@ class UddfExportBuilders {
     List<Course>? courses,
     List<DiveSourceExport>? dataSources,
     Map<String, String?> dataSourceDumps = const {},
-    // The dives whose tank rows and tank pressure series the per-source
-    // blocks beside <datasources> attribute (issue #2492), and those series.
-    // Only a dive with two or more [dataSources] entries writes any, so
-    // neither needs its own check in hasData below.
+    // The dives whose tank rows, tank pressure series and depth series the
+    // per-source blocks beside <datasources> attribute (issues #2492, #3965),
+    // and the pressure series; the depth series ride on [dataSources].
+    // A dive with fewer than two [dataSources] entries writes no depth series,
+    // and a pressure series only when its waypoints cannot hold it (#3917).
     List<Dive> attributedDives = const [],
     Map<String, DiveTankPressureExport> diveTankPressures = const {},
     List<EquipmentComponent>? components,
@@ -870,7 +882,12 @@ class UddfExportBuilders {
         // Without this a logbook whose only extra payload is its data source
         // records would write no <applicationdata> at all, and the dumps in
         // <divecomputercontrol> would lose their descriptors.
-        (dataSources?.isNotEmpty ?? false);
+        (dataSources?.isNotEmpty ?? false) ||
+        UddfSourceAttribution.hasSeries(
+          dives: attributedDives,
+          pressures: diveTankPressures,
+          sources: dataSources ?? const [],
+        );
 
     if (!hasData) return;
 
@@ -2005,9 +2022,10 @@ class UddfExportBuilders {
         attributes: {'id': 'tank_${tank.id}'},
         nest: () {
           // Link to gas mix
-          final mixId =
-              'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
-          builder.element('link', attributes: {'ref': mixId});
+          builder.element(
+            'link',
+            attributes: {'ref': UddfGasMixWriters.mixId(tank.gasMix)},
+          );
           // Tank name
           if (includeIdentity && tank.name != null && tank.name!.isNotEmpty) {
             builder.element('tankname', nest: tank.name);
@@ -2082,52 +2100,7 @@ class UddfExportBuilders {
   /// logged (issue #1878).
   static String? startMixId(Dive dive) {
     final tank = dive.tanks.firstOrNull;
-    return tank == null
-        ? null
-        : 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
-  }
-
-  /// Find pressure at a given timestamp using binary search.
-  /// Points must be sorted by timestamp (ascending).
-  /// Returns null if no point exists within 2 seconds of [timestamp].
-  static double? findPressureAtTimestamp(
-    List<TankPressurePoint> points,
-    int timestamp,
-  ) {
-    if (points.isEmpty) return null;
-
-    // Binary search for the insertion point
-    int low = 0;
-    int high = points.length;
-    while (low < high) {
-      final mid = low + ((high - low) >> 1);
-      if (points[mid].timestamp < timestamp) {
-        low = mid + 1;
-      } else {
-        high = mid;
-      }
-    }
-
-    // Check the two candidates (before and at insertion point)
-    const maxDiff = 3; // exclusive — accepts diffs of 0, 1, 2
-    TankPressurePoint? closest;
-    int minDiff = maxDiff;
-
-    if (low > 0) {
-      final diff = (points[low - 1].timestamp - timestamp).abs();
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = points[low - 1];
-      }
-    }
-    if (low < points.length) {
-      final diff = (points[low].timestamp - timestamp).abs();
-      if (diff < minDiff) {
-        closest = points[low];
-      }
-    }
-
-    return closest?.pressure;
+    return tank == null ? null : UddfGasMixWriters.mixId(tank.gasMix);
   }
 
   /// UDDF carries visibility as a distance in meters.

@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_factor_labels.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -24,7 +23,7 @@ class FocusStandoutsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final typesById = watchDiveTypesById(ref);
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toLanguageTag(),
@@ -118,7 +117,41 @@ class FocusStandoutsCard extends ConsumerWidget {
           typesById: typesById,
         );
         final baseline = percent.format(share.baselineShare);
-        return share.groupCount >= f.groupSize
+        final wholeGroup = share.groupCount >= f.groupSize;
+        if (f.hasCoverageGap) {
+          // A recorded-only share is not a share of all dives: name what it
+          // is a share of (issue #3915).
+          final coverage = l10n.insights_focus_factors_coverage(
+            f.baselineCovered,
+            f.baselineSize,
+          );
+          // The standout was judged on the group's recorded dives, so a count
+          // out of the whole group could read as a lower share than baseline.
+          if (f.groupCovered < f.groupSize) {
+            return l10n.insights_focus_standouts_categoryPartRecorded(
+              share.groupCount,
+              l10n.insights_focus_factors_coverage(f.groupCovered, f.groupSize),
+              value,
+              baseline,
+              coverage,
+            );
+          }
+          return wholeGroup
+              ? l10n.insights_focus_standouts_categoryAllRecorded(
+                  share.groupCount,
+                  value,
+                  baseline,
+                  coverage,
+                )
+              : l10n.insights_focus_standouts_categorySomeRecorded(
+                  share.groupCount,
+                  f.groupSize,
+                  value,
+                  baseline,
+                  coverage,
+                );
+        }
+        return wholeGroup
             ? l10n.insights_focus_standouts_categoryAll(
                 share.groupCount,
                 value,

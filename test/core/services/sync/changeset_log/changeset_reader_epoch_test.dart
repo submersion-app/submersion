@@ -30,7 +30,7 @@ void main() {
     await setUpTestDatabase();
     final db = DatabaseService.instance.database;
     final serializer = SyncDataSerializer();
-    final codec = ChangesetCodec(serializer);
+    const codec = ChangesetCodec();
     writer = ChangesetWriter(
       serializer,
       codec,

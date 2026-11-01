@@ -12,10 +12,12 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
@@ -48,6 +50,7 @@ class UddfExportService {
     final sources = options.includeRawData
         ? (dataSources ?? const <DiveSourceExport>[])
         : const <DiveSourceExport>[];
+    final sourcesByDive = UddfSourceAttribution.groupByDive(sources);
     final withBytes = sources.where((s) => s.hasDump).toList(growable: false);
     final encoded = await UddfDumpCodec.encodeAll(
       withBytes.map((s) => s.rawData!).toList(growable: false),
@@ -260,44 +263,7 @@ class UddfExportService {
         }
 
         // Gas definitions
-        builder.element(
-          'gasdefinitions',
-          nest: () {
-            // Collect all unique gas mixes from dives
-            final gasMixes = <String, GasMix>{};
-            for (final dive in dives) {
-              for (final tank in dive.tanks) {
-                final key =
-                    'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
-                gasMixes[key] = tank.gasMix;
-              }
-            }
-            // Add air as default
-            gasMixes['mix_21_0'] = const GasMix();
-
-            for (final entry in gasMixes.entries) {
-              builder.element(
-                'mix',
-                attributes: {'id': entry.key},
-                nest: () {
-                  builder.element('name', nest: entry.value.name);
-                  builder.element(
-                    'o2',
-                    nest: (entry.value.o2 / 100).toString(),
-                  );
-                  builder.element(
-                    'n2',
-                    nest: (entry.value.n2 / 100).toString(),
-                  );
-                  builder.element(
-                    'he',
-                    nest: (entry.value.he / 100).toString(),
-                  );
-                },
-              );
-            }
-          },
-        );
+        UddfGasMixWriters.writeGasDefinitions(builder, dives);
 
         // Profile data (repetition groups and dives)
         builder.element(
@@ -422,8 +388,8 @@ class UddfExportService {
                                 dive,
                               );
                               // One curve per cylinder, the one the app
-                              // draws; every source's series rides in the
-                              // <tankpressureseries> block (issue #2492).
+                              // draws; the <tankpressureseries> block keeps
+                              // what this cannot (issues #2492, #3917).
                               final divePressures =
                                   pressuresByDive[dive.id]?.displayedByTank;
                               for (final (index, point)
@@ -460,7 +426,7 @@ class UddfExportService {
                                       for (final entry
                                           in divePressures.entries) {
                                         final pressure =
-                                            UddfExportBuilders.findPressureAtTimestamp(
+                                            UddfSourceAttribution.findPressureAtTimestamp(
                                               entry.value,
                                               point.timestamp,
                                             );
@@ -640,6 +606,11 @@ class UddfExportService {
                               );
                             }
                             UddfDiveCustomFields.write(builder, dive);
+                            UddfExportBuilders.buildGasSwitches(
+                              builder,
+                              extras.diveGasSwitches[dive.id] ?? const [],
+                              sourcesByDive[dive.id] ?? const [],
+                            );
                           },
                         );
                       },

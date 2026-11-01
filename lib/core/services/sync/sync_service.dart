@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
-
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:drift/drift.dart' show TableUpdate, Variable;
 
@@ -13,6 +11,7 @@ import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -131,6 +130,11 @@ class SyncResult {
   /// before any sync can proceed.
   final LibraryEpochMarker? replaceMarker;
 
+  /// Set with [SyncResultStatus.authError] when a server refused the account.
+  /// Unset, the status only means there is no session here, which an offline
+  /// cold launch reads as too (issue #3811).
+  final bool accessRefused;
+
   const SyncResult({
     required this.status,
     this.message,
@@ -147,6 +151,7 @@ class SyncResult {
     this.readFailedPeerDeviceIds = const {},
     this.readFailedPeerNames = const {},
     this.replaceMarker,
+    this.accessRefused = false,
   });
 
   bool get isSuccess =>
@@ -157,16 +162,6 @@ class SyncResult {
   @override
   String toString() =>
       'SyncResult(status: $status, records: $recordsSynced, conflicts: $conflictsFound)';
-}
-
-class SyncStepException implements Exception {
-  final String step;
-  final Object error;
-
-  SyncStepException(this.step, this.error);
-
-  @override
-  String toString() => 'Sync failed during $step: $error';
 }
 
 /// Progress callback for sync operations
@@ -298,8 +293,9 @@ class SyncService {
   /// immediately, regardless of this.
   static const _unreadableEpochGraceMs = 60 * 60 * 1000; // 1 hour
 
+  static const ChangesetCodec _changesetCodec = ChangesetCodec();
+
   // Changeset-log transport (Phases 1-6), lazily bound to the active database.
-  late final ChangesetCodec _changesetCodec = ChangesetCodec(_serializer);
 
   /// Assembles a peer's base parts into a temp file (per-part + whole-file
   /// checksum verified) for the bounded-memory replace-adopt (#358).
@@ -393,11 +389,13 @@ class SyncService {
   debugApplyBaseFile(
     String filePath, {
     DateTime? lastSync,
+    String? peerDeviceId,
     void Function(double fraction)? onProgress,
   }) async {
     final r = await _applyRemoteBaseFile(
       filePath,
       lastSync,
+      peerDeviceId: peerDeviceId,
       onProgress: onProgress,
     );
     return (
@@ -431,6 +429,7 @@ class SyncService {
   Future<NearbyApplyResult> applyNearbyBaseFile(
     String filePath, {
     required DateTime? lastSync,
+    String? peerDeviceId,
     void Function(double fraction)? onProgress,
   }) {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
@@ -438,6 +437,7 @@ class SyncService {
       final r = await _applyRemoteBaseFile(
         filePath,
         lastSync,
+        peerDeviceId: peerDeviceId,
         onProgress: onProgress,
       );
       return (
@@ -765,6 +765,7 @@ class SyncService {
           final r = await _applyRemoteBaseFile(
             path,
             lastSyncTime,
+            peerDeviceId: manifest.deviceId,
             onProgress: (fraction) => _reportProgress(
               SyncPhase.downloading,
               0.55 + 0.25 * fraction,
@@ -854,79 +855,47 @@ class SyncService {
       if (await _shouldSkipPublishAfterAdopt(provider.providerId, deletions)) {
         // Just adopted a restored library and have nothing of our own yet: our
         // library == the adopted epoch the peers already published, so there
-        // is nothing to say. Skip the publish entirely (checked before the
-        // nonce so a skipped sync does not consume a nonce ring slot). Once a
-        // local change exists, the writer publishes it as a small changeset
-        // against the adopted watermark -- never a redundant full base (#358).
+        // is nothing to say. Skip the publish entirely. Once a local change
+        // exists, the writer publishes it as a small changeset against the
+        // adopted watermark, never a redundant full base (#358).
         _log.info('Skipping publish after adopt (no local changes yet)');
       } else {
         publishAttempted = true;
-        final uploadNonce = _uuid.v4();
-        // Record the nonce BEFORE publishing: a lost response (timeout, app
-        // death) still leaves our manifest carrying this nonce, and an
-        // unrecorded copy would read as a foreign twin on the next sync.
-        await _syncInitializer?.recordUploadNonce(
-          uploadNonce,
-          provider.providerId,
+        final write = await _changesetWriter.publish(
+          provider: provider,
+          deviceId: deviceId,
+          folderId: folderId,
+          deletions: deletions,
+          epochId: currentEpochId,
+          uploadNonce: _uuid.v4(),
+          // Recorded by the writer at the manifest, not here: this publish may
+          // write none (nothing to say), or one carrying a different nonce (a
+          // resumed base), and may fail after one landed (a compaction). A
+          // ring that guesses gets one of those wrong, and a wrong guess reads
+          // as a twin on the next sync: a new identity for this device, and
+          // another full base to upload (#733, #3822).
+          onManifestNonce: (nonce) =>
+              _recordUploadNonce(nonce, provider.providerId),
+          deviceName: await _deviceNameForManifest(),
+          appliedPeerHlc: appliedPeerHlc,
+          // Republish our log from what we actually hold now. Without this
+          // the cold-start above never converges: our manifest keeps
+          // claiming an HLC we no longer have, so the next sync detects the
+          // same "stale restore" and wipes every peer cursor again -- a full
+          // re-download of the whole fleet's data, every sync (#997).
+          forceBase: staleRestoreDetected,
+          // A full base republish -- what a wiped or replaced backend forces
+          // -- can run to hundreds of megabytes. Spread it across the back
+          // fifth of the bar so the user sees it advancing, instead of
+          // reading a motionless 80% as a hang and killing the app, which
+          // restarts the whole upload from part 0 (issue #1032).
+          onBasePartUploaded: (uploaded, total) => _reportProgress(
+            SyncPhase.uploading,
+            0.8 + 0.2 * (uploaded / total),
+            _l10n.settings_cloudSync_progress_uploadingLibrary(uploaded, total),
+          ),
         );
-        try {
-          final write = await _changesetWriter.publish(
-            provider: provider,
-            deviceId: deviceId,
-            folderId: folderId,
-            deletions: deletions,
-            epochId: currentEpochId,
-            uploadNonce: uploadNonce,
-            deviceName: await _deviceNameForManifest(),
-            appliedPeerHlc: appliedPeerHlc,
-            // Republish our log from what we actually hold now. Without this
-            // the cold-start above never converges: our manifest keeps
-            // claiming an HLC we no longer have, so the next sync detects the
-            // same "stale restore" and wipes every peer cursor again -- a full
-            // re-download of the whole fleet's data, every sync (#997).
-            forceBase: staleRestoreDetected,
-            // A full base republish -- what a wiped or replaced backend forces
-            // -- can run to hundreds of megabytes. Spread it across the back
-            // fifth of the bar so the user sees it advancing, instead of
-            // reading a motionless 80% as a hang and killing the app, which
-            // restarts the whole upload from part 0 (issue #1032).
-            onBasePartUploaded: (uploaded, total) => _reportProgress(
-              SyncPhase.uploading,
-              0.8 + 0.2 * (uploaded / total),
-              _l10n.settings_cloudSync_progress_uploadingLibrary(
-                uploaded,
-                total,
-              ),
-            ),
-          );
-          // A publish that did not stamp this nonce into the manifest -- a
-          // noop (nothing to say) or a heartbeat (which deliberately keeps
-          // the previous nonce) -- must give its speculative ring slot back.
-          // Otherwise every idle sync consumes a slot until the manifest's
-          // live nonce is evicted, and the device reads its own manifest as
-          // a foreign twin: a fresh identity plus a full base re-upload
-          // every ring-length idle syncs (#733).
-          publishSnapshotAt = write.snapshotAt;
-          if (write.kind == ChangesetWriteKind.noop ||
-              write.kind == ChangesetWriteKind.heartbeat) {
-            await _syncInitializer?.removeUploadNonce(
-              uploadNonce,
-              provider.providerId,
-            );
-          }
-        } catch (e) {
-          // Keep the speculative nonce on a timeout (the publish may have
-          // landed); remove it only on definite failures, so repeated hard
-          // failures cannot evict the last good nonce from the ring.
-          final cause = e is SyncStepException ? e.error : e;
-          if (cause is! TimeoutException) {
-            await _syncInitializer?.removeUploadNonce(
-              uploadNonce,
-              provider.providerId,
-            );
-          }
-          rethrow;
-        }
+        publishSnapshotAt = write.snapshotAt;
       }
 
       // ---- Keyslot self-heal (encrypted libraries) ----
@@ -1072,6 +1041,13 @@ class SyncService {
       // toString carries the underlying cause the message omits, which is
       // what a user's diagnostics need to tell an outage from a sign-in.
       _log.warning('Sync failed: $e');
+      if (e.accessRefused) {
+        return SyncResult(
+          status: SyncResultStatus.authError,
+          message: e.message,
+          accessRefused: true,
+        );
+      }
       return SyncResult(
         status: SyncResultStatus.networkError,
         message: _causedByTimeout(e)
@@ -1274,14 +1250,14 @@ class SyncService {
         message: _l10n.settings_cloudSync_result_noProvider,
       );
     }
-    final marker = await readLibraryEpochMarker(provider);
-    if (marker == null) {
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_noReplacementToRebuild,
-      );
-    }
     try {
+      final marker = await readLibraryEpochMarker(provider);
+      if (marker == null) {
+        return SyncResult(
+          status: SyncResultStatus.error,
+          message: _l10n.settings_cloudSync_result_noReplacementToRebuild,
+        );
+      }
       await _reestablishEpochFromLocalLibrary(
         provider,
         marker,
@@ -1298,9 +1274,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_rebuildFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_rebuildFailed('$e'),
       );
     }
   }
@@ -1318,14 +1294,37 @@ class SyncService {
     );
     for (final f in files) {
       if (!ChangesetLogLayout.isManifest(f.name)) continue;
-      try {
-        final m = SyncManifest.fromBytes(await provider.downloadFile(f.id));
-        if (m.epochId == epochId && m.baseSeq != null) return true;
-      } catch (_) {
-        continue;
-      }
+      final m = await _usableManifest(provider, f.id);
+      if (m != null && m.epochId == epochId && m.baseSeq != null) return true;
     }
     return false;
+  }
+
+  /// The manifest in [fileId], or null when the cloud holds one this device
+  /// cannot use.
+  ///
+  /// A manifest that could not be fetched says nothing about the cloud, so that
+  /// failure propagates. Both callers count what is readable to decide whether
+  /// a library exists, and a "no" ends in a delete-all refill or in
+  /// [_reestablishEpochFromLocalLibrary] wiping every sync file: a dropped
+  /// connection must not be able to answer that.
+  Future<SyncManifest?> _usableManifest(
+    CloudStorageProvider provider,
+    String fileId,
+  ) async {
+    final Uint8List bytes;
+    try {
+      bytes = await provider.downloadFile(fileId);
+    } on EnvelopeCorruptException {
+      return null;
+    } on SyncEncryptionRequired {
+      return null;
+    }
+    try {
+      return SyncManifest.fromBytes(bytes);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Twin-identity split: if this device's own cloud manifest carries an
@@ -1344,10 +1343,13 @@ class SyncService {
     // Require the manifest to actually claim our id: a manifest at our filename
     // whose body names a different device is mislabeled, not evidence that
     // another install is syncing as us.
-    if (manifest == null ||
-        manifest.deviceId != deviceId ||
-        nonce == null ||
-        !initializer.isForeignUploadNonce(nonce, provider.providerId)) {
+    if (manifest == null || manifest.deviceId != deviceId || nonce == null) {
+      return (deviceId: deviceId, adopted: false);
+    }
+    if (!initializer.isForeignUploadNonce(nonce, provider.providerId)) {
+      // Ours, and the one the next sync will read. Refresh it, so a run of
+      // publishes that fail at the manifest cannot push it out of the ring.
+      await initializer.recordUploadNonce(nonce, provider.providerId);
       return (deviceId: deviceId, adopted: false);
     }
     _log.warning(
@@ -1359,6 +1361,10 @@ class SyncService {
     // merging the converging files advance it instead of no-opping.
     await _syncRepository.ensureSyncClockConfigured();
     return (deviceId: newId, adopted: true);
+  }
+
+  Future<void> _recordUploadNonce(String nonce, String providerId) async {
+    await _syncInitializer?.recordUploadNonce(nonce, providerId);
   }
 
   /// Read a device's own changeset manifest from the cloud, or null if absent
@@ -1381,6 +1387,17 @@ class SyncService {
       return null;
     }
   }
+
+  /// What a library operation that failed on [e] reports: a refusal as one, so
+  /// its error offers a sign-in (issue #3811), anything else as [message].
+  SyncResult _libraryFailure(Object e, String message) =>
+      e is CloudStorageException && e.accessRefused
+      ? SyncResult(
+          status: SyncResultStatus.authError,
+          message: e.message,
+          accessRefused: true,
+        )
+      : SyncResult(status: SyncResultStatus.error, message: message);
 
   /// True when [e] is a provider's report of a missed deadline. Providers put
   /// HTTP timeouts on every request and wrap a miss like any other failure,
@@ -1417,14 +1434,20 @@ class SyncService {
     // courseId points at a course in the same payload) fail immediately and
     // the affected rows never reach the receiving DB. See
     // docs/design/findings/2026-06-02-icloud-sync-diagnosis.md.
-    return _serializer.applyInDeferredFkTransaction(() async {
-      final result = await _applyRemotePayloadInner(
-        remotePayload,
-        localLastSync,
-      );
-      await _moveLegacyComputerTissueScalars();
-      return result;
-    });
+    return ChangeLogScope.run(
+      DatabaseService.instance.databaseOrNull,
+      source: ChangeLogSource.sync,
+      deviceId: remotePayload.deviceId,
+      lease: kChangeLogLongLease,
+      body: () => _serializer.applyInDeferredFkTransaction(() async {
+        final result = await _applyRemotePayloadInner(
+          remotePayload,
+          localLastSync,
+        );
+        await _moveLegacyComputerTissueScalars();
+        return result;
+      }),
+    );
   }
 
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
@@ -1703,6 +1726,12 @@ class SyncService {
             type: 'divePlanEquipment',
             records: data.divePlanEquipment,
             hasUpdatedAt: false,
+          ),
+          // After dives (the scenario's parent).
+          (
+            type: 'diveScenarios',
+            records: data.diveScenarios,
+            hasUpdatedAt: true,
           ),
           (
             type: 'diverWeightEntries',
@@ -2204,14 +2233,63 @@ class SyncService {
   ///   2. parent-row id->updatedAt and contradiction keys (skips giant tables),
   ///   3. batched apply of every row through the existing [_mergeEntity].
   /// Applies a peer's base file. Tries the worker-isolate path (file read +
-  /// JSON parse off the UI isolate; the whole-file SHA-256 still runs on the
-  /// main isolate in BasePartFileSink.assemble -- folding it in is a deferred
-  /// follow-up) and falls back to the inline path on any worker failure, so a
-  /// broken isolate degrades to old behaviour and never fails or corrupts sync.
+  /// JSON parse off the UI isolate) and falls back to the inline path on any
+  /// worker failure, so a broken isolate degrades to old behaviour and never
+  /// fails or corrupts sync. The base's checksums were already verified, off
+  /// the UI isolate, by BasePartFileSink.assemble.
   ///
   /// [onProgress] receives a 0.0 to 1.0 fraction spanning the three passes
   /// (each pass is one third), with a final 1.0 once the transaction commits.
+  ///
+  /// A device with no library of its own taking its first base would log the
+  /// whole library, so that records one summary. An established device can
+  /// also meet a base when a peer's compaction has lapped it: those are real
+  /// changes, update triggers skip the rows that did not change, and they log
+  /// as a normal sync.
   Future<_MergeResult> _applyRemoteBaseFile(
+    String filePath,
+    DateTime? localLastSync, {
+    String? peerDeviceId,
+    void Function(double fraction)? onProgress,
+  }) async {
+    Future<_MergeResult> apply() => _applyRemoteBaseFileInner(
+      filePath,
+      localLastSync,
+      onProgress: onProgress,
+    );
+
+    final db = DatabaseService.instance.databaseOrNull;
+    if (localLastSync == null && !await _hasOwnLibrary(db)) {
+      return ChangeLogScope.suppressed(
+        db,
+        label: ChangeLogLabels.libraryAdopted,
+        source: ChangeLogSource.sync,
+        summaryCount: (result) => result.recordsApplied,
+        lease: kChangeLogLongLease,
+        body: apply,
+      );
+    }
+    return ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.sync,
+      deviceId: peerDeviceId,
+      lease: kChangeLogLongLease,
+      body: apply,
+    );
+  }
+
+  /// Whether this device holds any dives yet. A new device's profile row is
+  /// not a library, and connecting a new backend to an old device is not a
+  /// first adoption, though both start with no last sync time.
+  Future<bool> _hasOwnLibrary(AppDatabase? db) async {
+    if (db == null) return false;
+    final row = await db
+        .customSelect('SELECT EXISTS (SELECT 1 FROM dives) AS has_dives')
+        .getSingle();
+    return row.read<int>('has_dives') == 1;
+  }
+
+  Future<_MergeResult> _applyRemoteBaseFileInner(
     String filePath,
     DateTime? localLastSync, {
     void Function(double fraction)? onProgress,
@@ -2260,8 +2338,7 @@ class SyncService {
   }
 
   /// Worker-backed base apply: the file read + JSON parse run in [client]'s
-  /// isolate; the merge/writes (and, for now, the whole-file SHA-256 in
-  /// BasePartFileSink.assemble) run here. Mirrors [_applyRemoteBaseFileInline]
+  /// isolate; the merge/writes run here. Mirrors [_applyRemoteBaseFileInline]
   /// exactly, fed by streamed rows in file order instead of an inline parse (so
   /// per-table batching and mergeOrder match).
   Future<_MergeResult> _applyRemoteBaseFileViaWorker(
@@ -2879,6 +2956,7 @@ class SyncService {
     'gpsTracks': true,
     'navTracks': true,
     'divePlans': true,
+    'diveScenarios': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
     'divePlanMissions': true,
@@ -3424,6 +3502,11 @@ class SyncService {
     'equipmentOwnershipEvents': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
+    // v331: the saved center behind a Dive center place (issue #3623).
+    // Cleared, not skipped: the place outlives its center.
+    'equipmentLocations': [
+      (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+    ],
     // v268: an item's location log. The place reference is cleared, not
     // skipped, when the place is gone: the move then reads "No location".
     'equipmentLocationMoves': [
@@ -3592,6 +3675,7 @@ class SyncService {
       (field: 'viaEquipmentId', parent: 'equipment', nullable: true),
       (field: 'viaSetId', parent: 'equipmentSets', nullable: true),
     ],
+    'diveScenarios': [(field: 'diveId', parent: 'dives', nullable: false)],
     'serviceRecords': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
@@ -4790,11 +4874,6 @@ class SyncService {
       await PeerCursorStore(db).resetForProvider(provider.providerId);
 
       final deletions = await _syncRepository.getAllDeletions();
-      final uploadNonce = _uuid.v4();
-      await _syncInitializer?.recordUploadNonce(
-        uploadNonce,
-        provider.providerId,
-      );
       // Publish the new library as a fresh epoch-stamped base. Peers on the old
       // epoch halt for adoption; adopters rebuild from this base.
       await _changesetWriter.publish(
@@ -4803,7 +4882,9 @@ class SyncService {
         folderId: syncFolder,
         deletions: deletions,
         epochId: marker.epochId,
-        uploadNonce: uploadNonce,
+        uploadNonce: _uuid.v4(),
+        onManifestNonce: (nonce) =>
+            _recordUploadNonce(nonce, provider.providerId),
         deviceName: await _deviceNameForManifest(),
       );
 
@@ -4828,9 +4909,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_libraryReplaceFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_libraryReplaceFailed('$e'),
       );
     }
   }
@@ -5136,9 +5217,7 @@ class SyncService {
       version: pending.version,
       exportedAt: pending.exportedAt,
       deviceId: pending.deviceId,
-      checksum: sha256
-          .convert(utf8.encode(jsonEncode(data.toJson())))
-          .toString(),
+      checksum: await SyncDataSerializer.checksumOfOffIsolate(data),
       data: data,
       deletions: pending.deletions,
     );
@@ -5256,11 +5335,17 @@ class SyncService {
       }
 
       try {
-        await _serializer.applyInDeferredFkTransaction(
-          () => _adoptApplyStreaming(
-            baseFilePaths: sources.baseFilePaths,
-            baseExportedAt: sources.baseExportedAt,
-            changesets: sources.changesets,
+        await ChangeLogScope.suppressed<void>(
+          DatabaseService.instance.databaseOrNull,
+          label: ChangeLogLabels.libraryReplaced,
+          source: ChangeLogSource.sync,
+          lease: kChangeLogLongLease,
+          body: () => _serializer.applyInDeferredFkTransaction(
+            () => _adoptApplyStreaming(
+              baseFilePaths: sources.baseFilePaths,
+              baseExportedAt: sources.baseExportedAt,
+              changesets: sources.changesets,
+            ),
           ),
         );
       } finally {
@@ -5309,9 +5394,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_adoptFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_adoptFailed('$e'),
       );
     }
   }
@@ -5665,7 +5750,11 @@ class SyncService {
   /// which verifies per-part and whole-file checksums as bytes land), its base
   /// export time, and its post-base changesets decoded in memory (small
   /// deltas). Skips a device whose base parts are not all present or whose base
-  /// fails its checksum (a publish still in flight -> retry next adopt).
+  /// fails its checksum (a publish still in flight -> retry next adopt). A
+  /// fetch that was interrupted is not that: it says nothing about the cloud,
+  /// so the failure propagates, as [BaseFetchInterrupted] for a base and as
+  /// itself for a manifest, a changeset or a refused base, and the caller
+  /// aborts.
   /// Replaces the old in-memory collect that decoded every device's whole base
   /// into RAM and OOM-crashed iOS adopting a large library (#358). The caller
   /// owns the returned temp files and must delete them.
@@ -5711,94 +5800,114 @@ class SyncService {
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
     final selfDeviceId = await _syncRepository.getDeviceId();
-    for (final deviceId in deviceIds) {
-      if (excludeDeviceIds.contains(deviceId)) continue;
-      final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
-      if (manifestFile == null) continue;
-      SyncManifest manifest;
-      try {
-        manifest = SyncManifest.fromBytes(
-          await provider.downloadFile(manifestFile.id),
-        );
-      } catch (_) {
-        continue;
-      }
-      // Recorded unconditionally: the manifest parsed, so a missing name is
-      // the peer's current state and clears any name it published before.
-      //
-      // Never for this device, though. Unlike a pull, this scan reads every
-      // manifest in the folder including its own, and PeerDeviceNameStore
-      // documents that this device is not in it: the device identity
-      // service already knows its own name, and a self entry would show up
-      // as a peer to anything that lists the map.
-      //
-      // Guarded on its own: nothing above catches here, so a failed
-      // preferences write would abort the whole scan and with it the
-      // library adoption, over optional metadata.
-      if (deviceId != selfDeviceId) {
-        try {
-          await _peerNames?.record(deviceId, manifest.deviceName);
-        } catch (e) {
-          _log.warning(
-            'Could not record the name for peer $deviceId',
-            error: e,
-          );
+    try {
+      for (final deviceId in deviceIds) {
+        if (excludeDeviceIds.contains(deviceId)) continue;
+        final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
+        if (manifestFile == null) continue;
+        final manifest = await _usableManifest(provider, manifestFile.id);
+        if (manifest == null) continue;
+        // Recorded unconditionally: the manifest parsed, so a missing name is
+        // the peer's current state and clears any name it published before.
+        //
+        // Never for this device, though. Unlike a pull, this scan reads every
+        // manifest in the folder including its own, and PeerDeviceNameStore
+        // documents that this device is not in it: the device identity
+        // service already knows its own name, and a self entry would show up
+        // as a peer to anything that lists the map.
+        //
+        // Guarded on its own: nothing above catches here, so a failed
+        // preferences write would abort the whole scan and with it the
+        // library adoption, over optional metadata.
+        if (deviceId != selfDeviceId) {
+          try {
+            await _peerNames?.record(deviceId, manifest.deviceName);
+          } catch (e) {
+            _log.warning(
+              'Could not record the name for peer $deviceId',
+              error: e,
+            );
+          }
         }
-      }
-      if (manifest.epochId != epochId) continue;
-      final baseSeq = manifest.baseSeq;
-      if (baseSeq == null) continue;
-      // Compatibility-floor filter, the adopt-side twin of the one in
-      // ChangesetReader.pull: a manifest's schemaVersion is its writer's
-      // AppDatabase.minimumCompatibleSchemaVersion. Checked after the base
-      // check because a base-less peer contributes nothing to adopt either
-      // way (pull holds its changesets on its own).
-      final peerSchema = manifest.schemaVersion;
-      if (peerSchema != null && peerSchema > AppDatabase.currentSchemaVersion) {
-        newerSchemaPeerDeviceIds.add(deviceId);
-        final name = manifest.deviceName;
-        if (name != null && name.isNotEmpty) {
-          newerSchemaPeerNames[deviceId] = name;
+        if (manifest.epochId != epochId) continue;
+        final baseSeq = manifest.baseSeq;
+        if (baseSeq == null) continue;
+        // Compatibility-floor filter, the adopt-side twin of the one in
+        // ChangesetReader.pull: a manifest's schemaVersion is its writer's
+        // AppDatabase.minimumCompatibleSchemaVersion. Checked after the base
+        // check because a base-less peer contributes nothing to adopt either
+        // way (pull holds its changesets on its own).
+        final peerSchema = manifest.schemaVersion;
+        if (peerSchema != null &&
+            peerSchema > AppDatabase.currentSchemaVersion) {
+          newerSchemaPeerDeviceIds.add(deviceId);
+          final name = manifest.deviceName;
+          if (name != null && name.isNotEmpty) {
+            newerSchemaPeerNames[deviceId] = name;
+          }
+          continue;
         }
-        continue;
-      }
-      // Once any peer is held the collection is void: keep scanning manifests
-      // only to name every held peer, and fetch no more bases.
-      if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
-      final partCount = manifest.basePartCount ?? 0;
-      if (partCount <= 0) continue;
-      final path = await _baseSink.assemble(
-        name: 'ssv1_adopt_${deviceId}_$baseSeq',
-        partCount: partCount,
-        wholeChecksum: manifest.baseChecksum,
-        partChecksums: manifest.basePartChecksums,
-        downloadPart: (i) async {
-          final pf =
-              byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
-          if (pf == null) return null;
-          return provider.downloadFile(pf.id);
-        },
-      );
-      if (path == null) continue; // base incomplete/corrupt -> skip this device
-      baseFilePaths.add(path);
-      baseExportedAt.add(await _readBaseExportedAt(path));
-      // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
-      // first gap) so adopt can record it as this peer's cursor -- otherwise the
-      // next sync cold-starts and re-downloads the whole base we just applied.
-      var appliedThrough = baseSeq;
-      for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
-        final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
-        if (cf == null) break;
-        changesets.add(
-          _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
+        // Once any peer is held the collection is void: keep scanning manifests
+        // only to name every held peer, and fetch no more bases.
+        if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
+        final partCount = manifest.basePartCount ?? 0;
+        if (partCount <= 0) continue;
+        final path = await _baseSink.assemble(
+          name: 'ssv1_adopt_${deviceId}_$baseSeq',
+          partCount: partCount,
+          wholeChecksum: manifest.baseChecksum,
+          partChecksums: manifest.basePartChecksums,
+          downloadPart: (i) async {
+            final pf =
+                byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
+            if (pf == null) return null;
+            return provider.downloadFile(pf.id);
+          },
         );
-        appliedThrough = seq;
+        // Base incomplete/corrupt: skip this device.
+        if (path == null) continue;
+        baseFilePaths.add(path);
+        baseExportedAt.add(await _readBaseExportedAt(path));
+        // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
+        // first gap or damaged one) so adopt can record it as this peer's
+        // cursor. Otherwise the next sync cold-starts and re-downloads the whole
+        // base we just applied.
+        var appliedThrough = baseSeq;
+        for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
+          final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
+          if (cf == null) break;
+          // Damage has the standing of a gap, as in ChangesetReader.pull: the
+          // cursor stops short of it, which a replace reads as a library it
+          // must wait for. An encrypted library shows it as a corrupt envelope
+          // and a plain one as a failed checksum. A read that failed says
+          // nothing about the file, so that still aborts the collection.
+          final Uint8List bytes;
+          try {
+            bytes = await provider.downloadFile(cf.id);
+          } on EnvelopeCorruptException {
+            break;
+          }
+          final decoded = await _changesetCodec.decodeVerifiedChangeset(bytes);
+          if (!decoded.checksumValid) break;
+          changesets.add(decoded.payload);
+          appliedThrough = seq;
+        }
+        cursors.add((
+          deviceId: deviceId,
+          baseSeq: baseSeq,
+          appliedThrough: appliedThrough,
+        ));
       }
-      cursors.add((
-        deviceId: deviceId,
-        baseSeq: baseSeq,
-        appliedThrough: appliedThrough,
-      ));
+    } catch (_) {
+      // BaseFetchInterrupted says nothing about this device's base, and both
+      // callers are delete-all-refill: going on without it would drop its
+      // rows, and an empty set would read as "no library". So it, like any
+      // other failure here, aborts the collection. The temp files assembled so
+      // far are not the caller's to delete until this returns.
+      for (final path in baseFilePaths) {
+        await _baseSink.deleteQuietly(path);
+      }
+      rethrow;
     }
     if (newerSchemaPeerDeviceIds.isNotEmpty) {
       for (final path in baseFilePaths) {

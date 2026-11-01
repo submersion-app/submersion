@@ -165,6 +165,15 @@ const List<String> kSignatureFileTypes = [
   'buddy_signature',
 ];
 
+/// Every file_type spelling that is not a photo, for SQL that has to count
+/// photos without hydrating rows. [parseMediaType] reads anything else as a
+/// photo, so filtering on 'photo' alone would miss rows it accepts.
+const List<String> kNonPhotoFileTypes = [
+  'video',
+  'document',
+  ...kSignatureFileTypes,
+];
+
 /// Parses database file_type string to MediaType enum.
 /// Handles both snake_case (database format) and camelCase (legacy) for
 /// compatibility.

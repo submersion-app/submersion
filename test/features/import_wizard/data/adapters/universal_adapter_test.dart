@@ -23,6 +23,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -101,6 +102,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
   MockSpec<UddfEntityImporter>(),
   MockSpec<DiveConsolidationService>(),
 ])
+import '../../../../helpers/dive_match_records.dart';
 import '../../../../helpers/test_database.dart';
 import 'universal_adapter_test.mocks.dart';
 import '../../../../helpers/fake_hosts.dart';
@@ -331,12 +333,13 @@ List<Override> _fullOverrides({
   final courseRepo = mockCourseRepo ?? MockCourseRepository();
   final tankPresetRepo = mockTankPresetRepo ?? MockTankPresetRepository();
 
-  // Set up default mock return values for getAllDives. Production code
-  // calls it with a diverId filter, so stub both variants.
-  when(diveRepo.getAllDives()).thenAnswer((_) async => existingDives);
+  // Set up default mock return values for getDiveMatchRecords. Production
+  // code calls it with a diverId filter, so stub both variants.
+  final matchRecords = existingDives.map(diveMatchRecordOf).toList();
+  when(diveRepo.getDiveMatchRecords()).thenAnswer((_) async => matchRecords);
   when(
-    diveRepo.getAllDives(diverId: anyNamed('diverId')),
-  ).thenAnswer((_) async => existingDives);
+    diveRepo.getDiveMatchRecords(diverId: anyNamed('diverId')),
+  ).thenAnswer((_) async => matchRecords);
 
   return [
     universalImportNotifierProvider.overrideWith((ref) {
@@ -1123,6 +1126,38 @@ void main() {
 
           expect(item.title, equals('Reef Site'));
           expect(item.subtitle, equals('Cozumel, Mexico'));
+        },
+      );
+    });
+
+    testWidgets('same-name sites read apart by their place (#4015)', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.sites: [
+            {
+              'name': 'Blue Hole',
+              'city': 'Dahab',
+              'region': 'South Sinai',
+              'country': 'Egypt',
+            },
+            {'name': 'Blue Hole', 'country': 'Belize'},
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(payload: payload),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final items = bundle.groups[ImportEntityType.sites]!.items;
+
+          expect(items.map((item) => item.subtitle), [
+            'Dahab · South Sinai, Egypt',
+            'Belize',
+          ]);
         },
       );
     });
@@ -1931,6 +1966,39 @@ void main() {
       );
     });
 
+    testWidgets('a file of sites reads no dives or source keys', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.sites: [
+            {'name': 'Blue Hole'},
+          ],
+        },
+      );
+
+      final diveRepo = MockDiveRepository();
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          mockDiveRepo: diveRepo,
+        ),
+        callback: (adapter) async {
+          await adapter.checkDuplicates(await adapter.buildBundle());
+
+          verifyNever(
+            diveRepo.getDiveMatchRecords(diverId: anyNamed('diverId')),
+          );
+          verifyNever(
+            diveRepo.getSourceUuidByDiveId(diverId: anyNamed('diverId')),
+          );
+        },
+      );
+    });
+
     testWidgets('marks duplicate tags in duplicateIndices', (tester) async {
       const payload = ImportPayload(
         entities: {
@@ -2147,7 +2215,6 @@ void main() {
       );
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2240,7 +2307,6 @@ void main() {
       );
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2384,7 +2450,6 @@ void main() {
       );
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2435,7 +2500,6 @@ void main() {
       const payload = ImportPayload(entities: {});
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2581,7 +2645,6 @@ void main() {
       );
 
       final mockDiveRepo = MockDiveRepository();
-      when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
       final mockTankPresetRepo = MockTankPresetRepository();
       when(mockTankPresetRepo.getPresetById(any)).thenAnswer((_) async => null);
@@ -2698,7 +2761,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
         final mockTankPresetRepo = MockTankPresetRepository();
         when(
@@ -4127,7 +4189,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
         when(mockDiveRepo.createDive(any)).thenAnswer(
           (invocation) async => invocation.positionalArguments[0] as Dive,
         );
@@ -4208,7 +4269,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
         when(mockDiveRepo.createDive(any)).thenAnswer(
           (invocation) async => invocation.positionalArguments[0] as Dive,
         );
@@ -4296,7 +4356,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
         when(mockDiveRepo.createDive(any)).thenAnswer(
           (invocation) async => invocation.positionalArguments[0] as Dive,
         );
@@ -4346,6 +4405,328 @@ void main() {
       },
     );
 
+    for (final action in [DuplicateAction.consolidate, DuplicateAction.skip]) {
+      testWidgets(
+        '${action.name} on a duplicate dive center links the dive to the '
+        'existing center (#3852)',
+        (tester) async {
+          // The shape UddfOperatorCenters.harvest leaves for a dive that only
+          // names an operator: a generated uddfId, not the center's own name.
+          final payload = ImportPayload(
+            entities: {
+              ui.ImportEntityType.diveCenters: [
+                {'name': 'Reef Divers', 'uddfId': 'diveoperator:reef divers'},
+              ],
+              ui.ImportEntityType.dives: [
+                {
+                  'dateTime': DateTime(2026, 3, 15, 10, 0),
+                  'maxDepth': 20.0,
+                  'runtime': const Duration(minutes: 30),
+                  'diveOperator': 'Reef Divers',
+                  'diveCenterRef': 'diveoperator:reef divers',
+                },
+              ],
+            },
+          );
+
+          final existingCenter = DiveCenter(
+            id: 'dc-1',
+            name: 'Reef Divers',
+            createdAt: _now,
+            updatedAt: _now,
+          );
+
+          final mockDiveRepo = MockDiveRepository();
+          when(mockDiveRepo.createDive(any)).thenAnswer(
+            (invocation) async => invocation.positionalArguments[0] as Dive,
+          );
+
+          final mockDiveCenterRepo = MockDiveCenterRepository();
+          when(
+            mockDiveCenterRepo.getDiveCenterById('dc-1'),
+          ).thenAnswer((_) async => existingCenter);
+
+          final mockTankPresetRepo = MockTankPresetRepository();
+          when(
+            mockTankPresetRepo.getPresetById(any),
+          ).thenAnswer((_) async => null);
+
+          await _runWithAdapter(
+            tester,
+            overrides: _fullOverrides(
+              payload: payload,
+              diver: _testDiver(),
+              existingDiveCenters: [existingCenter],
+              mockDiveRepo: mockDiveRepo,
+              mockDiveCenterRepo: mockDiveCenterRepo,
+              mockTankPresetRepo: mockTankPresetRepo,
+            ),
+            callback: (adapter) async {
+              final checked = await adapter.checkDuplicates(
+                await adapter.buildBundle(),
+              );
+              await adapter.performImport(
+                checked,
+                {
+                  wizard.ImportEntityType.diveCenters: {0},
+                  wizard.ImportEntityType.dives: {0},
+                },
+                {
+                  wizard.ImportEntityType.diveCenters: {0: action},
+                },
+              );
+
+              verifyNever(mockDiveCenterRepo.createDiveCenter(any));
+              final dive =
+                  verify(mockDiveRepo.createDive(captureAny)).captured.single
+                      as Dive;
+              expect(dive.diveCenter?.id, 'dc-1');
+            },
+          );
+        },
+      );
+
+      // The dive falls outside the existing trip's dates, so only an explicit
+      // link can put it there; a skipped trip of that name may be another
+      // year's (#2618).
+      final linksTrip = action == DuplicateAction.consolidate;
+      testWidgets('${action.name} on a duplicate trip at other dates '
+          '${linksTrip ? 'links the dive to it' : 'leaves the dive out'} '
+          '(#3852)', (tester) async {
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.trips: [
+              {'name': 'Belize Trip', 'uddfId': 'trip-1'},
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'tripRef': 'trip-1',
+              },
+            ],
+          },
+        );
+
+        final existingTrip = Trip(
+          id: 'existing-trip',
+          name: 'Belize Trip',
+          startDate: DateTime(2026, 3, 1),
+          endDate: DateTime(2026, 3, 7),
+          createdAt: _now,
+          updatedAt: _now,
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final mockTripRepo = MockTripRepository();
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingTrips: [existingTrip],
+            mockDiveRepo: mockDiveRepo,
+            mockTripRepo: mockTripRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final checked = await adapter.checkDuplicates(
+              await adapter.buildBundle(),
+            );
+            await adapter.performImport(
+              checked,
+              {
+                wizard.ImportEntityType.trips: {0},
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.trips: {0: action},
+              },
+            );
+
+            verifyNever(mockTripRepo.createTrip(any));
+            final dive =
+                verify(mockDiveRepo.createDive(captureAny)).captured.single
+                    as Dive;
+            expect(dive.tripId, linksTrip ? 'existing-trip' : isNull);
+          },
+        );
+      });
+
+      testWidgets(
+        '${action.name} on a duplicate certification links the course to the '
+        'existing certification (#3852)',
+        (tester) async {
+          const payload = ImportPayload(
+            entities: {
+              ui.ImportEntityType.certifications: [
+                {
+                  'name': 'Open Water',
+                  'agency': CertificationAgency.padi,
+                  'uddfId': 'cert-1',
+                },
+              ],
+              ui.ImportEntityType.courses: [
+                {
+                  'name': 'Open Water Course',
+                  'uddfId': 'course-1',
+                  'certificationRefs': ['cert-1'],
+                },
+              ],
+            },
+          );
+
+          final existingCert = Certification(
+            id: 'existing-cert',
+            name: 'Open Water',
+            agency: CertificationAgency.padi.name,
+            createdAt: _now,
+            updatedAt: _now,
+          );
+
+          final mockCertificationRepo = MockCertificationRepository();
+          when(
+            mockCertificationRepo.getCertificationById('existing-cert'),
+          ).thenAnswer((_) async => existingCert);
+
+          final mockCourseRepo = MockCourseRepository();
+          when(mockCourseRepo.createCourse(any)).thenAnswer(
+            (invocation) async => invocation.positionalArguments[0] as Course,
+          );
+          when(
+            mockCourseRepo.setCourseCertifications(any, any),
+          ).thenAnswer((_) async {});
+
+          await _runWithAdapter(
+            tester,
+            overrides: _fullOverrides(
+              payload: payload,
+              diver: _testDiver(),
+              existingCertifications: [existingCert],
+              mockCertificationRepo: mockCertificationRepo,
+              mockCourseRepo: mockCourseRepo,
+            ),
+            callback: (adapter) async {
+              final checked = await adapter.checkDuplicates(
+                await adapter.buildBundle(),
+              );
+              await adapter.performImport(
+                checked,
+                {
+                  wizard.ImportEntityType.certifications: {0},
+                  wizard.ImportEntityType.courses: {0},
+                },
+                {
+                  wizard.ImportEntityType.certifications: {0: action},
+                },
+              );
+
+              verifyNever(mockCertificationRepo.createCertification(any));
+              verify(
+                mockCourseRepo.setCourseCertifications(any, ['existing-cert']),
+              ).called(1);
+            },
+          );
+        },
+      );
+    }
+
+    testWidgets(
+      'import as new on a duplicate dive center links the dive to the new '
+      'center, not the matched one (#3852)',
+      (tester) async {
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.diveCenters: [
+              {'name': 'Reef Divers', 'uddfId': 'dc-file-1'},
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'diveCenterRef': 'dc-file-1',
+              },
+            ],
+          },
+        );
+
+        final existingCenter = DiveCenter(
+          id: 'dc-1',
+          name: 'Reef Divers',
+          createdAt: _now,
+          updatedAt: _now,
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final created = <String, DiveCenter>{};
+        final mockDiveCenterRepo = MockDiveCenterRepository();
+        when(mockDiveCenterRepo.createDiveCenter(any)).thenAnswer((invocation) {
+          final center = invocation.positionalArguments[0] as DiveCenter;
+          created[center.id] = center;
+          return Future.value(center);
+        });
+        when(mockDiveCenterRepo.getDiveCenterById(any)).thenAnswer(
+          (invocation) async => created[invocation.positionalArguments[0]],
+        );
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingDiveCenters: [existingCenter],
+            mockDiveRepo: mockDiveRepo,
+            mockDiveCenterRepo: mockDiveCenterRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final checked = await adapter.checkDuplicates(
+              await adapter.buildBundle(),
+            );
+            await adapter.performImport(
+              checked,
+              {
+                wizard.ImportEntityType.diveCenters: {0},
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.diveCenters: {
+                  0: DuplicateAction.importAsNew,
+                },
+              },
+            );
+
+            final dive =
+                verify(mockDiveRepo.createDive(captureAny)).captured.single
+                    as Dive;
+            expect(dive.diveCenter?.id, created.keys.single);
+            expect(dive.diveCenter?.id, isNot('dc-1'));
+          },
+        );
+      },
+    );
+
     testWidgets(
       'items with no duplicate action are included from base selection',
       (tester) async {
@@ -4367,7 +4748,6 @@ void main() {
         );
 
         final mockDiveRepo = MockDiveRepository();
-        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
 
         final mockTankPresetRepo = MockTankPresetRepository();
         when(

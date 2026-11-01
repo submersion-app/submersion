@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
-import 'package:submersion/core/query/domain/query_value.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_labels.dart';
 import 'package:submersion/core/query/presentation/query_ref_picker_sheet.dart';
@@ -58,6 +58,67 @@ void main() {
     await tester.tap(find.text('Sand Slope'));
     await tester.pumpAndSettle();
     expect(picked, const RefValue('s2', 'Sand Slope'));
+  });
+
+  testWidgets('a plain pick offers no presence rows', (tester) async {
+    await tester.pumpWidget(
+      host(
+        (ctx) => showQueryRefPicker(
+          ctx,
+          editor: context,
+          kind: QuerySubject.sites,
+          title: 'Choose site',
+          searchHint: 'Search',
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    // The value editor and the table menus name a row; only a new condition
+    // can be about no row at all.
+    expect(find.textContaining('isEmpty'), findsNothing);
+    expect(find.textContaining('isSet'), findsNothing);
+  });
+
+  testWidgets('a condition pick returns the row or the presence test (#3810)', (
+    tester,
+  ) async {
+    ConditionNode? picked;
+    final site = FieldPath(['site']);
+    final rel = fixtureDives.relation('site')!;
+    await tester.pumpWidget(
+      host((ctx) async {
+        picked = await showQueryConditionPicker(
+          ctx,
+          editor: context,
+          path: site,
+          relation: rel,
+          op: QueryOp.eq,
+          title: 'Choose site',
+          searchHint: 'Search',
+        );
+      }),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sand Slope'));
+    await tester.pumpAndSettle();
+    expect(
+      picked,
+      ConditionNode(site, QueryOp.eq, const RefValue('s2', 'Sand Slope')),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('site isEmpty'));
+    await tester.pumpAndSettle();
+    expect(picked, ConditionNode(site, QueryOp.isEmpty, null));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('site isSet'));
+    await tester.pumpAndSettle();
+    expect(picked, ConditionNode(site, QueryOp.isSet, null));
   });
 
   testWidgets('the multi picker toggles and returns the selection', (

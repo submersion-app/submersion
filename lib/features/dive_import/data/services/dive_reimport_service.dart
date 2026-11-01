@@ -9,6 +9,7 @@ import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
+import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
@@ -136,9 +137,10 @@ class DiveReimportService {
 
       // Outside the ownership gate, inside a primary-source one: the dive's
       // summary belongs to whichever source is primary, which on a resync is
-      // the row that names the stored file. `ReparseService` writes the dive
-      // row on exactly this rule. A dive with no primary row has nobody
-      // claiming to have authored the summary, so nothing overwrites it.
+      // the row that names the stored file, save the depths of a live edit
+      // (see [_updateDiveRow]). `ReparseService` writes the dive row on
+      // exactly this rule. A dive with no primary row has nobody claiming to
+      // have authored the summary, so nothing overwrites it.
       if (primary != null || sourceRows.isEmpty) {
         await _updateDiveRow(diveId: diveId, diveData: diveData, now: now);
       }
@@ -310,7 +312,8 @@ class DiveReimportService {
   /// leaving the dive contradicting its own profile. Water temp and GPS are
   /// the two exceptions a re-parse makes, because another source or the diver
   /// may have stamped them and the source snapshot still records what this
-  /// parse had to say.
+  /// parse had to say. The third is the depth summary under a live manual
+  /// edit, which keeps describing the edit (issue #3931).
   ///
   /// `diveDateTime` is the one column that cannot be cleared: it is NOT NULL,
   /// and a candidate without a clock never reaches here from the orchestrator.
@@ -334,6 +337,7 @@ class DiveReimportService {
     final exitLongitude = _asDouble(diveData['exitLongitude']);
 
     final maxDepth = _asDouble(diveData['maxDepth']);
+    final editDepths = await _profileSeries.liveEditDepthSummary(diveId);
     final diveMode = _parsedDiveModeOrNull(diveData['diveMode']);
     final decoAlgorithm = _asString(diveData['decoAlgorithm']);
     final decoConservatism = _asInt(diveData['decoConservatism']);
@@ -348,8 +352,10 @@ class DiveReimportService {
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(
-        maxDepth: Value(maxDepth),
-        avgDepth: Value(avgDepth == 0.0 ? null : avgDepth),
+        maxDepth: Value(editDepths?.maxDepth ?? maxDepth),
+        avgDepth: Value(
+          editDepths?.avgDepth ?? (avgDepth == 0.0 ? null : avgDepth),
+        ),
         runtime: Value(runtime?.inSeconds),
         diveDateTime: dateTime != null
             ? Value(dateTime.millisecondsSinceEpoch)
@@ -574,10 +580,12 @@ class DiveReimportService {
     }
   }
 
-  /// Rebuilds per-tank pressure series from `diveData['profile']`'s
-  /// `allTankPressures` entries. Skipped entirely when the fresh parse
-  /// carries no pressure sample at all, so neither a metadata-only reparse
-  /// nor a profile without air integration can blank out existing history.
+  /// Rebuilds per-tank pressure series from a backup's exact series when the
+  /// parse has them, as the import did, else from `diveData['profile']`'s
+  /// `allTankPressures` entries, which hold readings only on the depth clock
+  /// (issue #3917). Skipped entirely when the fresh parse carries no pressure
+  /// sample at all, so neither a metadata-only reparse nor a profile without
+  /// air integration can blank out existing history.
   ///
   /// Scoped to the tanks the fresh samples actually cover, not every tank the
   /// parse reports: [_carryOverTanks] keeps a tank the parse no longer
@@ -590,12 +598,35 @@ class DiveReimportService {
     required _ParsedTanks tanks,
     required String? sourceId,
   }) async {
-    final profileData = _profileOf(diveData);
-    if (profileData == null) return;
+    final series = restoredTankPressureSeries(diveData, tanks.idsByIndex);
+    final fresh = series.isNotEmpty
+        ? [for (final s in series) (s.tankId, s.samples)]
+        : [
+            for (final entry in _waypointPressures(diveData, tanks).entries)
+              (entry.key, entry.value),
+          ];
+    if (fresh.isEmpty) return;
 
+    await _tankPressureRepository.replaceTankSeriesForTanks(diveId, [
+      for (final (tankId, samples) in fresh)
+        (
+          tankId: tankId,
+          sourceId: sourceId,
+          computerId: null,
+          samples: samples,
+        ),
+    ]);
+  }
+
+  /// The per-tank readings in `diveData['profile']`'s `allTankPressures`
+  /// entries.
+  Map<String, List<({int timestamp, double pressure})>> _waypointPressures(
+    Map<String, dynamic> diveData,
+    _ParsedTanks tanks,
+  ) {
     final pressuresByTank =
         <String, List<({int timestamp, double pressure})>>{};
-    for (final p in profileData) {
+    for (final p in _profileOf(diveData) ?? const <Map<String, dynamic>>[]) {
       final timestamp = p['timestamp'] as int? ?? 0;
       final allTankPressures = (p['allTankPressures'] as List?)
           ?.cast<Map<String, dynamic>>();
@@ -610,14 +641,7 @@ class DiveReimportService {
         ));
       }
     }
-    if (pressuresByTank.isEmpty) return;
-
-    await _tankPressureRepository.replaceTankPressuresForTanks(
-      diveId,
-      pressuresByTank.keys,
-      pressuresByTank,
-      sourceId: sourceId,
-    );
+    return pressuresByTank;
   }
 
   /// Rebuilds `dive_profile_series` from `diveData['profile']`, attributed to
@@ -646,13 +670,10 @@ class DiveReimportService {
     if (profileData == null) return;
 
     final identities = await _profileSeries.getIdentitiesForDive(diveId);
-    final hasDemoted = identities.any((s) => !s.isPrimary);
-    final editIds = hasDemoted
-        ? {
-            for (final s in identities)
-              if (s.isPrimary && s.computerId == null) s.id,
-          }
-        : const <String>{};
+    final editIds = await _profileSeries.liveEditIds(diveId);
+    // No samples to land beneath the edit, so the generation there stays: it
+    // is what the edit undoes to, and what tells the next resync it is one.
+    if (profileData.isEmpty && editIds.isNotEmpty) return;
 
     await _profileSeries.deleteByIds([
       for (final s in identities)

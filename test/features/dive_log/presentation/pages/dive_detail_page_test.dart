@@ -23,9 +23,9 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
@@ -697,8 +697,8 @@ void main() {
   });
 
   // =========================================================================
-  // Gas segments wiring — exercises the inline buildGasUsageSegments logic
-  // added to DiveDetailPage._buildProfilePanel in the latest commit.
+  // Gas segments wiring: exercises the buildGasUsageSegments call in
+  // DiveProfileChartHost.
   // =========================================================================
 
   group('DiveDetailPage - gas segments wiring', () {
@@ -790,15 +790,72 @@ void main() {
       final dive = makeDiveWithTanksAndProfile();
       await _pumpDetailPage(tester, dive);
 
-      // The header row stays focused on the chart itself; replanning is a
+      // The header row stays focused on the chart itself; Compare is a
       // whole-dive action, so it is offered only from the overflow menu.
       expect(find.byIcon(Icons.alt_route), findsNothing);
-      expect(find.byTooltip('Replan this dive'), findsNothing);
+      expect(find.byTooltip('Compare…'), findsNothing);
 
       await tester.tap(find.byIcon(Icons.more_vert).last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Replan this dive'), findsOneWidget);
+      expect(find.text('Compare…'), findsOneWidget);
+    });
+
+    testWidgets('Plan repetitive dive follows Compare in the menu', (
+      tester,
+    ) async {
+      await _pumpDetailPage(tester, makeDiveWithTanksAndProfile());
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Plan repetitive dive'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Plan repetitive dive')).dy,
+        greaterThan(tester.getTopLeft(find.text('Compare…')).dy),
+      );
+    });
+
+    testWidgets('Plan repetitive dive asks before replacing unsaved work', (
+      tester,
+    ) async {
+      await _pumpDetailPage(tester, makeDiveWithTanksAndProfile());
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      final editor = container.read(divePlanNotifierProvider.notifier);
+      editor.loadPlan(
+        container.read(divePlanNotifierProvider).copyWith(isDirty: true),
+      );
+      final plan = container.read(divePlanNotifierProvider);
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Plan repetitive dive'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Are you sure you want to reset the plan?'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(divePlanNotifierProvider).id, plan.id);
+    });
+
+    testWidgets('a planned dive offers no repetitive dive to plan', (
+      tester,
+    ) async {
+      await _pumpDetailPage(
+        tester,
+        makeDiveWithTanksAndProfile().copyWith(isPlanned: true),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Plan repetitive dive'), findsNothing);
     });
 
     testWidgets('renders without crash when dive has tanks and a profile', (
@@ -879,6 +936,7 @@ void main() {
           ppO2Curve: List.generate(6, (i) => 0.96),
           o2SensorCurves: sensors,
           ppO2FromSensorAverage: true,
+          computerStopsWithCalculatedCeiling: true,
         );
 
         final overrides = await getBaseOverrides();
@@ -927,6 +985,7 @@ void main() {
         final chart = charts.firstWhere((c) => c.o2SensorCurves != null);
         expect(chart.o2SensorCurves, sensors);
         expect(chart.ppO2FromSensorAverage, isTrue);
+        expect(chart.labelCeilingAsCalculated, isTrue);
       },
     );
 
@@ -1321,10 +1380,9 @@ void main() {
       );
     }
 
-    // timeInterval segmentation makes activeSegmentsForDiveProvider read the
-    // segments straight off profileAnalysisProvider, so the whole card is
-    // driven by the single controllable analysis (no phase/gas-switch
-    // providers in play).
+    // The time breakdown reads the segments straight off
+    // profileAnalysisProvider, so the card is driven by the single
+    // controllable analysis.
     List<Override> sacOverrides(Dive dive, Override analysisOverride) {
       return [
         diveProvider(dive.id).overrideWith((ref) async => dive),
@@ -1332,9 +1390,6 @@ void main() {
           dive.id,
         ).overrideWith((ref) async => <DiveDataSource>[]),
         analysisOverride,
-        selectedSegmentationProvider.overrideWith(
-          (ref) => SacSegmentationType.timeInterval,
-        ),
         gasSwitchesProvider(
           dive.id,
         ).overrideWith((ref) async => <GasSwitchWithTank>[]),
@@ -1475,12 +1530,9 @@ void main() {
         final dive = diveWithProfile();
         final analysis = analysisWithSacSegments();
         // Flip from a good analysis to a NON-NULL analysis whose sacSegments is
-        // an empty (not null) list -- the case where
-        // activeSegmentsForDiveProvider yields [] for time/depth modes. The
-        // null-coalescing displaySegments fallback (`segments ?? ...`) does not
-        // catch an empty list, so without an empty-aware fallback the card
-        // would render zero rows even though the cached analysis still has a
-        // usable segment.
+        // an empty (not null) list. Only the cached analysis can still fill
+        // the time chart, so without the last-good fallback the card would
+        // lose its breakdown even though a usable segment is known.
         final controllable = StateProvider<ProfileAnalysis?>((ref) => analysis);
         final base = await getBaseOverrides();
         final originalOnError = FlutterError.onError;
@@ -1511,8 +1563,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(seconds: 1));
 
-        // Good analysis -> the single time segment row renders (label '0-5min').
-        expect(find.text('0-5min'), findsOneWidget);
+        // Good analysis -> the single time segment is read out.
+        expect(find.textContaining('at 0-5 min'), findsOneWidget);
 
         // Flip to a non-null analysis carrying an EMPTY segment list.
         final container = ProviderScope.containerOf(
@@ -1523,16 +1575,15 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(seconds: 1));
 
-        // The live analysis is non-null with empty sacSegments, so
-        // activeSegmentsForDiveProvider yields []. The card must still render
-        // the cached segment rather than an empty list.
+        // The live analysis is non-null with empty sacSegments. The card must
+        // still render the cached segment rather than nothing.
         expect(
           sacCardFinder(tester),
           findsOneWidget,
           reason: 'card stays visible on a non-null empty-segments analysis',
         );
         expect(
-          find.text('0-5min'),
+          find.textContaining('at 0-5 min'),
           findsOneWidget,
           reason:
               'an empty (non-null) segment list must fall back to the cached '
@@ -1548,6 +1599,7 @@ void main() {
       // same bar/min rate, so any difference between the rendered L/min values
       // can only come from the per-segment volume lookup. Before #110 every
       // segment reused the first tank with a volume, printing 8.8 L/min twice.
+      final semantics = tester.ensureSemantics();
       final dive = diveWithProfile().copyWith(
         tanks: const [
           // No start/end pressures: dive.sac stays null, so the SAC
@@ -1617,20 +1669,19 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      final card = sacCardFinder(tester);
-      expect(card, findsOneWidget);
       expect(
-        find.descendant(of: card, matching: find.text('8.8 L/min')),
+        find.bySemanticsLabel(RegExp(r'^0-5 min, 8\.8 L/min')),
         findsOneWidget,
         reason: '0.8 bar/min converted on the 11.0 L cylinder',
       );
       expect(
-        find.descendant(of: card, matching: find.text('5.6 L/min')),
+        find.bySemanticsLabel(RegExp(r'^5-10 min, 5\.6 L/min')),
         findsOneWidget,
         reason:
-            '0.8 bar/min converted on the 7.0 L cylinder -- a single shared '
+            '0.8 bar/min converted on the 7.0 L cylinder; a single shared '
             'volume would print 8.8 L/min here too',
       );
+      semantics.dispose();
     });
   });
 

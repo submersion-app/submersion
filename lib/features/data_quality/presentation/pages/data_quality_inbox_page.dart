@@ -28,13 +28,12 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
-    qualityUnitFormattersFor(UnitFormatter(ref.watch(settingsProvider)));
+    qualityUnitFormattersFor(ref.watch(unitFormatterProvider));
 
 typedef _DiveGroup = ({String diveId, List<QualityFinding> findings});
 
@@ -108,6 +107,9 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         },
         isCancelled: () => _cancelRequested,
       );
+      // A partial scan is not a full one: recording it would clear the new
+      // checks banner while the checks had not reached the whole library.
+      if (summary.cancelled) return;
       await store.recordFullScan(DateTime.now(), qualityDetectorVersions());
       messenger.showSnackBar(
         SnackBar(
@@ -157,6 +159,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                   ? [l10n.dataQuality_repair_applied, ?extra].join(' ')
                   : l10n.dataQuality_repair_noChange,
             ),
+            persist: false,
             action: undo == null
                 ? null
                 : SnackBarAction(
@@ -791,9 +794,9 @@ class _EmptyState extends ConsumerWidget {
             lastScanAt == null
                 ? l10n.dataQuality_neverScanned
                 : l10n.dataQuality_lastScan(
-                    UnitFormatter(
-                      ref.watch(settingsProvider),
-                    ).formatDateTime(lastScanAt, l10n: l10n),
+                    ref
+                        .watch(unitFormatterProvider)
+                        .formatDateTime(lastScanAt, l10n: l10n),
                   ),
             style: Theme.of(context).textTheme.bodySmall,
           ),

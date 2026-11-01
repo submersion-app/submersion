@@ -11,7 +11,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/domain/services/day_conditions.dart';
@@ -22,8 +21,6 @@ import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-const int _maxPhotoThumbnails = 6;
 
 /// One day chapter of the trip story: the day's own map when it has points
 /// (#2845), the summary band, the dive rows, photos and sightings.
@@ -79,8 +76,7 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     // Built once for the day's dives rather than per row.
     final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);
@@ -182,9 +178,10 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                       diveTypeShortLabelResolver: diveTypeShortLabelResolver,
                       diveTypeListVisibilityPredicate:
                           diveTypeListVisibilityPredicate,
-                      // The story already holds the full Dive; pass it so the
-                      // configurable card can resolve fields absent from the
-                      // summary (tanks, SAC, buddies, weights).
+                      // Pass the story's Dive so the configurable card can
+                      // resolve fields absent from the summary (tanks, SAC,
+                      // buddies, weights). Its profile is empty unless the
+                      // dive's row needed its samples (issue #3831).
                       fullDive: dive,
                       diveNumber: dive.diveNumber ?? index + 1,
                       isHighlighted: dive.id == _highlightedDiveId,
@@ -202,7 +199,11 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                 const SizedBox(height: 16),
                 _SectionCaption(text: context.l10n.trips_photos_sectionTitle),
                 const SizedBox(height: 6),
-                _PhotoStrip(tripId: tripId, media: day.media),
+                _PhotoStrip(
+                  tripId: tripId,
+                  media: day.media,
+                  totalCount: day.mediaCount,
+                ),
               ],
               if (day.sightings.isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -332,21 +333,25 @@ class _DayStatStrip extends StatelessWidget {
 class _PhotoStrip extends StatelessWidget {
   final String tripId;
   final List<MediaItem> media;
+  final int totalCount;
 
-  const _PhotoStrip({required this.tripId, required this.media});
+  const _PhotoStrip({
+    required this.tripId,
+    required this.media,
+    required this.totalCount,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final visible = media.take(_maxPhotoThumbnails).toList();
-    final remaining = media.length - visible.length;
+    final remaining = totalCount - media.length;
     return SizedBox(
       height: 64,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: visible.length + (remaining > 0 ? 1 : 0),
+        itemCount: media.length + (remaining > 0 ? 1 : 0),
         separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, index) {
-          if (index >= visible.length) {
+          if (index >= media.length) {
             return _MoreThumbnail(count: remaining, tripId: tripId);
           }
           // MediaItemView renders the image without a semantic label, so label
@@ -363,7 +368,7 @@ class _PhotoStrip extends StatelessWidget {
                   width: 64,
                   height: 64,
                   child: MediaItemView(
-                    item: visible[index],
+                    item: media[index],
                     thumbnail: true,
                     targetSize: const Size(128, 128),
                     fit: BoxFit.cover,

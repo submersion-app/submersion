@@ -40,9 +40,19 @@ class _EquipmentConditionSettingsPageState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          conditionEngineEnabled: s.conditionEngineEnabled,
+          coldWaterThresholdC: s.coldWaterThresholdC,
+          deepDiveThresholdM: s.deepDiveThresholdM,
+          highO2ThresholdPercent: s.highO2ThresholdPercent,
+          conditionDisabledRules: s.conditionDisabledRules,
+        ),
+      ),
+    );
     final notifier = ref.read(settingsProvider.notifier);
-    final units = UnitFormatter(settings);
     final engineOn = settings.conditionEngineEnabled;
 
     return Scaffold(
@@ -73,7 +83,7 @@ class _EquipmentConditionSettingsPageState
             suffix: units.temperatureSymbol,
             // Re-seed when the stored value or the unit changes.
             seedKey:
-                '${settings.coldWaterThresholdC}-${settings.temperatureUnit}',
+                '${settings.coldWaterThresholdC}-${units.settings.temperatureUnit}',
             displayValue: units.convertTemperature(
               settings.coldWaterThresholdC,
             ),
@@ -85,7 +95,8 @@ class _EquipmentConditionSettingsPageState
             key: const Key('threshold-deep'),
             label: l10n.equipmentConditionSettings_deepLabel,
             suffix: units.depthSymbol,
-            seedKey: '${settings.deepDiveThresholdM}-${settings.depthUnit}',
+            seedKey:
+                '${settings.deepDiveThresholdM}-${units.settings.depthUnit}',
             displayValue: units.convertDepth(settings.deepDiveThresholdM),
             onSubmit: (v) =>
                 notifier.setDeepDiveThresholdM(units.depthToMeters(v)),

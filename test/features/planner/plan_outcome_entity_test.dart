@@ -26,7 +26,25 @@ void main() {
         threshold: 1.4,
       );
       expect(a, equals(b));
-      expect(a.props, hasLength(8));
+      expect(a.props, hasLength(9));
+      expect(
+        a,
+        isNot(
+          equals(
+            const PlanIssue(
+              type: PlanIssueType.ppO2High,
+              severity: PlanIssueSeverity.warning,
+              message: 'high',
+              atRuntime: 120,
+              atDepth: 40,
+              segmentId: 's1',
+              tankId: 'back',
+              value: 1.5,
+              threshold: 1.4,
+            ),
+          ),
+        ),
+      );
       expect(
         a,
         isNot(
@@ -53,7 +71,7 @@ void main() {
         tankId: 't-o2',
         arrivalRuntimeSeconds: 1800,
       );
-      expect(stop.props, hasLength(7));
+      expect(stop.props, hasLength(8));
       expect(
         stop,
         equals(
@@ -65,6 +83,23 @@ void main() {
             gasFHe: 0.0,
             tankId: 't-o2',
             arrivalRuntimeSeconds: 1800,
+          ),
+        ),
+      );
+      expect(
+        stop,
+        isNot(
+          equals(
+            const PlanStop(
+              depthMeters: 6,
+              durationSeconds: 600,
+              airBreakSeconds: 120,
+              gasFO2: 1.0,
+              gasFHe: 0.0,
+              tankId: 't-o2',
+              airBreakTankId: 't-back',
+              arrivalRuntimeSeconds: 1800,
+            ),
           ),
         ),
       );
@@ -137,6 +172,7 @@ void main() {
         otuTotal: 30,
         issues: issues,
         endTissue: const BuhlmannState(compartments: []),
+        surfacedTissue: const BuhlmannState(compartments: []),
         tissueTimeline: const [],
         ceilingTrace: const [],
       );

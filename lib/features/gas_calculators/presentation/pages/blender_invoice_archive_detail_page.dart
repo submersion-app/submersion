@@ -8,7 +8,6 @@ import 'package:submersion/features/gas_calculators/presentation/providers/gas_b
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_archived_invoice_tile.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_billed_line_row.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One archived bill, read only: every fill it was paid for, itemised the
@@ -48,9 +47,8 @@ class BlenderInvoiceArchiveDetailPage extends ConsumerWidget {
       );
     }
 
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final decimals = pressureDecimalsFor(settings.pressureUnit);
+    final units = ref.watch(unitFormatterProvider);
+    final decimals = pressureDecimalsFor(units.settings.pressureUnit);
     final fallbackCurrency = ref.watch(blenderCurrencyProvider);
     final currency = invoice.currencyCode ?? fallbackCurrency;
     final theme = Theme.of(context);

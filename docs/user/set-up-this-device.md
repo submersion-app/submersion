@@ -36,10 +36,16 @@ joined yet.
 
 ## Step 1: Where should Submersion keep your data?
 
-Choose an account: iCloud, Google Drive, Dropbox, or your own server (WebDAV or
-S3). Accounts already signed in on this device are listed first. If you add an
-account here, you sign in as usual; for an account another device added, you
-type only its key or password.
+Choose an account: iCloud, Google Drive, Dropbox, your own server (WebDAV or
+S3), or a Git repository on any Git host. Accounts already signed in on this
+device are listed first. If you add an account here, you sign in as usual; for
+an account another device added, you type only its key or password. Once the
+account is signed in, the flow moves on to step 2 by itself.
+
+A Git repository holds sync and backups but not photo copies, so with Git the
+photo step has nothing to turn on. See
+[Git repositories](multi-device-sync.md#git-repositories) for the address and
+token each host needs.
 
 Choosing an account writes nothing yet. It is held for the next steps. If you
 would rather start from a backup file, **I have a backup file instead** opens
@@ -91,9 +97,10 @@ This step is optional; **Skip** settles it.
   **Upload new photos automatically** (on) and **Use cellular data** (off).
   Nothing is uploaded until you do.
 - **On a later device**, where your library already keeps copies,
-  **Use the photo copies in {account}** starts on. When those copies are in the
-  account you chose in step 1, there is nothing to type. Otherwise the step
-  signs in to their account first.
+  **Use the photo copies in {account}** starts on, with
+  **Upload photos added here automatically** under it. When those copies are
+  in the account you chose in step 1, there is nothing to type. Otherwise the
+  step signs in to their account first.
 
 Your originals always stay where they are; see [Media Sync](media-sync.md).
 
@@ -117,7 +124,8 @@ with any dives already there. For more on how devices share one library, see
 The first-run wizard runs the same four steps after **Profile** and **Units**,
 and choosing **I have existing Submersion data**, then **Connect cloud sync**
 runs them too. Each step takes effect when you press its button, exactly as
-here. In the wizard:
+here, and the wizard ends on **You're all set** instead of the summary above.
+In the wizard:
 
 - **Not now** on the account step skips sync and goes to backups, which still
   work on this device alone; on the sync and backups steps it moves on.

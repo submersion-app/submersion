@@ -17,12 +17,15 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_reposito
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_name_generator.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/plan_link_actions.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/chart_mode_toggle.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
@@ -31,7 +34,12 @@ import 'package:submersion/features/planner/presentation/widgets/plan_chart_read
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -92,38 +100,53 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // replans are still in the list. Ordinary plans keep today's behaviour of
     // surviving navigation. The notifier is app-wide, so touching it after
     // this element is gone is safe; the microtask keeps the mutation out of
-    // the dispose frame.
+    // the dispose frame. Only that replan goes: this snapshot can be a frame
+    // old, and a plan that replaced it on the way out is the diver's next one.
     final notifier = _notifier;
+    final replanId = _replanId;
     super.dispose();
-    if (_isReplan && notifier != null) {
-      Future.microtask(notifier.newPlan);
+    if (replanId != null && notifier != null) {
+      Future.microtask(() {
+        if (notifier.mounted && notifier.planId == replanId) {
+          notifier.newPlan();
+        }
+      });
     }
   }
 
-  /// Snapshot for [dispose], which may not touch `ref`: the notifier and
-  /// whether the plan on screen is a replan of a logged dive. Refreshed on
-  /// every build so it tracks loads, resets and saves.
+  /// Snapshot for [dispose], which may not touch `ref`: the notifier and the
+  /// id of the plan on screen when it is a replan of a logged dive. Refreshed
+  /// on every build so it tracks loads, resets and saves.
   DivePlanNotifier? _notifier;
-  bool _isReplan = false;
+  String? _replanId;
 
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
+    // A series of dives, or a plan following a logged dive, cannot be saved
+    // or logged until series persistence lands (issue #3565).
+    final saveAllowed = ref.watch(planSaveAllowedProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
-    _isReplan = planState.sourceDiveId != null;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    // A series is not a throwaway: leaving must not lose what cannot be saved.
+    _replanId = planState.sourceDiveId != null && saveAllowed
+        ? planState.id
+        : null;
+    final units = ref.watch(unitFormatterProvider);
+    final followAllowed = ref.watch(followAllowedProvider);
     // A plan opened via the :planId route is known-persisted, so short-circuit
     // before watching the (DB-backed) summaries provider; that avoids an
     // avoidable subscription/fetch in the common edit-a-saved-plan case. The
     // summaries watch only runs for a new plan, where it flips the Delete item
     // on once the plan is first saved.
+    // A series offers none: the route's plan may not be the dive on screen.
     final canDelete =
-        widget.planId != null ||
-        planIsPersisted(
-          planState.id,
-          ref.watch(divePlanSummariesProvider).valueOrNull ??
-              const <domain.DivePlanSummary>[],
-        );
+        saveAllowed &&
+        (widget.planId != null ||
+            planIsPersisted(
+              planState.id,
+              ref.watch(divePlanSummariesProvider).valueOrNull ??
+                  const <domain.DivePlanSummary>[],
+            ));
 
     return Scaffold(
       appBar: AppBar(
@@ -192,8 +215,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         actions: [
           IconButton(
             icon: Icon(planState.isDirty ? Icons.save : Icons.save_outlined),
-            tooltip: context.l10n.divePlanner_action_savePlan,
-            onPressed: planState.isDirty ? _savePlan : null,
+            tooltip: saveAllowed
+                ? context.l10n.divePlanner_action_savePlan
+                : context.l10n.plannerSeries_saveUnavailable,
+            onPressed: planState.isDirty && saveAllowed ? _savePlan : null,
           ),
           // A Builder so the share anchor resolves to the overflow button
           // rather than the whole app bar: it contributes no render object, so
@@ -221,6 +246,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   'follow',
                   Icons.history,
                   context.l10n.plannerCanvas_follow_title,
+                  enabled: followAllowed,
+                  tooltip: followAllowed
+                      ? null
+                      : context.l10n.plannerSeries_followUnavailableInReplan,
                 ),
                 _menuItem(
                   'settings',
@@ -231,11 +260,20 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   'convert',
                   Icons.scuba_diving,
                   context.l10n.divePlanner_action_convertToDive,
+                  enabled: saveAllowed,
+                  tooltip: saveAllowed
+                      ? null
+                      : context.l10n.plannerSeries_convertUnavailable,
                 ),
+                ..._linkMenuItems(context),
                 _menuItem(
                   'slate',
                   Icons.picture_as_pdf,
                   context.l10n.plannerCanvas_slate_menu,
+                  // The slate prints the computed schedule, and a plan with
+                  // no segments has none: it would be a header over empty
+                  // tables (#3795).
+                  enabled: planState.segments.isNotEmpty,
                 ),
                 _menuItem(
                   'share',
@@ -270,14 +308,67 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     domain.PlanMode.pscr => domain.PlanMode.oc,
   };
 
-  PopupMenuItem<String> _menuItem(String value, IconData icon, String label) {
+  /// Link to a logged dive, or Change and Unlink with what the plan was dived
+  /// as. A plan has to be saved before anything can name it.
+  List<PopupMenuItem<String>> _linkMenuItems(BuildContext context) {
+    final l10n = context.l10n;
+    final plan = ref.read(divePlanNotifierProvider);
+    final saved = ref.read(divePlanNotifierProvider.notifier).isPersisted;
+    final tooltip = saved ? null : l10n.plannerCanvas_link_saveFirst;
+    if (plan.linkedDiveId == null) {
+      return [
+        _menuItem(
+          'linkDive',
+          Icons.link,
+          l10n.plannerCanvas_link_action,
+          enabled: saved,
+          tooltip: tooltip,
+        ),
+      ];
+    }
+    final summaries = ref.read(divePlanSummariesProvider).value;
+    final summary = summaries?.where((s) => s.id == plan.id).firstOrNull;
+    return [
+      _menuItem(
+        'linkDive',
+        Icons.link,
+        l10n.plannerCanvas_link_changeAction,
+        enabled: saved,
+        tooltip: tooltip,
+      ),
+      _menuItem(
+        'unlinkDive',
+        Icons.link_off,
+        l10n.plannerCanvas_unlink_action,
+        enabled: saved,
+        tooltip: tooltip,
+        subtitle: summary == null
+            ? null
+            : planLinkBadge(l10n, summary, ref.read(unitFormatterProvider)),
+      ),
+    ];
+  }
+
+  /// An overflow menu entry. [tooltip] says why a disabled entry is not
+  /// available; [subtitle] adds a line under the label.
+  PopupMenuItem<String> _menuItem(
+    String value,
+    IconData icon,
+    String label, {
+    bool enabled = true,
+    String? tooltip,
+    String? subtitle,
+  }) {
+    final tile = ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      subtitle: subtitle == null ? null : Text(subtitle),
+      contentPadding: EdgeInsets.zero,
+    );
     return PopupMenuItem(
       value: value,
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(label),
-        contentPadding: EdgeInsets.zero,
-      ),
+      enabled: enabled,
+      child: tooltip == null ? tile : Tooltip(message: tooltip, child: tile),
     );
   }
 
@@ -311,6 +402,26 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         _focusSetup('deco');
       case 'convert':
         logFailure(_convertToDive(), _PlanCanvasPageState, 'convert to dive');
+      case 'linkDive':
+        logFailure(
+          pickDiveAndLink(
+            context,
+            ref,
+            planId: ref.read(divePlanNotifierProvider).id,
+          ),
+          _PlanCanvasPageState,
+          'link plan to dive',
+        );
+      case 'unlinkDive':
+        logFailure(
+          unlinkPlanWithConfirm(
+            context,
+            ref,
+            planId: ref.read(divePlanNotifierProvider).id,
+          ),
+          _PlanCanvasPageState,
+          'unlink plan',
+        );
       case 'slate':
         logFailure(
           _exportSlate(shareAnchor),
@@ -346,6 +457,19 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   /// behind a drawer). At full width the results pane shows by default; at
   /// middle widths it defaults to hidden and the right chevron reveals it.
   Widget _buildDesktop({required bool fullWidth}) {
+    // A logged dive picked in the series bar is shown read-only in place of
+    // the planner, under the same bar.
+    if (ref.watch(viewedLoggedDiveProvider) != null) {
+      return const Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
+            child: PlanSeriesNavigator(),
+          ),
+          Expanded(child: PlanLoggedDiveView()),
+        ],
+      );
+    }
     final editorCollapsed = ref.watch(editorPaneCollapsedProvider);
     final resultsVisible = fullWidth
         ? !ref.watch(resultsPaneCollapsedProvider)
@@ -394,6 +518,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   }) {
     return Column(
       children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
+          child: PlanSeriesNavigator(),
+        ),
+        const PlanFollowPrompt(),
         Expanded(
           child: Stack(
             children: [
@@ -469,8 +598,20 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // A single CustomScrollView so the chart and tab selector scroll away
     // with the rest of the page instead of staying pinned and eating the
     // viewport (#1428).
+    if (ref.watch(viewedLoggedDiveProvider) != null) {
+      return CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(child: PlanSeriesNavigator()),
+          SliverToBoxAdapter(
+            child: PlanLoggedDiveView(chartHeight: chartHeight),
+          ),
+        ],
+      );
+    }
     return CustomScrollView(
       slivers: [
+        const SliverToBoxAdapter(child: PlanSeriesNavigator()),
+        const SliverToBoxAdapter(child: PlanFollowPrompt()),
         SliverToBoxAdapter(
           child: SizedBox(
             height: chartHeight,
@@ -554,7 +695,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       case 0:
         return const Padding(
           padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: PlanTankList(),
+          child: Column(children: [PlanDiveDetailsCard(), PlanTankList()]),
         );
       case 1:
         return const Padding(
@@ -700,6 +841,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   }
 
   Future<void> _convertToDive() async {
+    // The new dive takes the plan's link, so a plan already linked gives up
+    // its dive here: the one move that does not go through the link actions.
+    if (ref.read(divePlanNotifierProvider).linkedDiveId != null) {
+      final confirmed = await confirmLinkMove(
+        context,
+        action: context.l10n.divePlanner_action_convertToDive,
+      );
+      if (!confirmed || !mounted) return;
+    }
     // The plan holds only the site id; the dive needs the site itself. A site
     // deleted since the plan was saved resolves to null and is left off.
     final siteId = ref.read(divePlanNotifierProvider).siteId;
@@ -752,7 +902,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // stale, so drop it rather than attach the wrong one.
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final outcome = ref.read(planOutcomeProvider);
-    final series = ref.read(planCanvasSeriesProvider);
+    final series = ref.read(planLiveCanvasSeriesProvider);
     final currentSite = ref.read(divePlanNotifierProvider).siteId == siteId
         ? visibleSite
         : null;
@@ -771,7 +921,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       ],
       runtime: Duration(seconds: outcome.runtimeSeconds),
       maxDepth: outcome.maxDepth,
-      avgDepth: _timeWeightedAverageDepth(series),
+      avgDepth: PlanChartGeometry.meanDepthMeters(series.profile),
     );
 
     // The logged dive is a planned, unnumbered entry until the diver's
@@ -795,6 +945,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.plannerCanvas_convert_success),
+        persist: false,
         action: SnackBarAction(
           label: context.l10n.plannerCanvas_convert_view,
           // push, not go: `go` into the `/dives` child route would rebuild
@@ -804,18 +955,6 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         ),
       ),
     );
-  }
-
-  static double _timeWeightedAverageDepth(PlanCanvasSeries series) {
-    final profile = series.profile;
-    if (profile.length < 2) return 0;
-    double weighted = 0;
-    for (var i = 1; i < profile.length; i++) {
-      final dt = profile[i].timeSeconds - profile[i - 1].timeSeconds;
-      weighted += dt * (profile[i].depth + profile[i - 1].depth) / 2;
-    }
-    final total = profile.last.timeSeconds - profile.first.timeSeconds;
-    return total > 0 ? weighted / total : 0;
   }
 
   Future<void> _deletePlan() async {

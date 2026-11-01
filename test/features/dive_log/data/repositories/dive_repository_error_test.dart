@@ -25,6 +25,7 @@ void main() {
       DatabaseService.instance.resetForTesting();
 
       await expectLater(repository.getAllDives(), throwsA(anything));
+      await expectLater(repository.getDiveListSnapshot(), throwsA(anything));
       await expectLater(repository.getDiveById('test-id'), throwsA(anything));
       await expectLater(
         repository.saveEditedProfile('test-id', []),
@@ -35,6 +36,10 @@ void main() {
         throwsA(anything),
       );
       await expectLater(repository.getDiveCount(), throwsA(anything));
+      await expectLater(
+        repository.getResidualHistoryRevision('test-id'),
+        throwsA(anything),
+      );
       await expectLater(
         repository.getDivesForSite('test-id'),
         throwsA(anything),
@@ -56,6 +61,7 @@ void main() {
         repository.searchDiveSummaries('test'),
         throwsA(anything),
       );
+      await expectLater(repository.getDivePickerRows(), throwsA(anything));
       await expectLater(repository.getStatistics(), throwsA(anything));
       await expectLater(repository.getRecords(), throwsA(anything));
       await expectLater(
@@ -89,6 +95,10 @@ void main() {
       );
       await expectLater(
         repository.getDivesByIds(['test-id']),
+        throwsA(anything),
+      );
+      await expectLater(
+        repository.getDivesByIdsWithoutSamples(['test-id']),
         throwsA(anything),
       );
       await expectLater(repository.getDiveSummaries(), throwsA(anything));
@@ -199,7 +209,6 @@ void main() {
         expect(await repository.getBatchProfileSummaries(['test-id']), isEmpty);
 
         // Methods that return null
-        expect(await repository.getPreviousDive('test-id'), isNull);
         expect(await repository.getSurfaceInterval('test-id'), isNull);
       },
     );

@@ -30,7 +30,21 @@ class SafetyReviewService {
   /// whose span moves onto the primary's own samples is a new finding, so a
   /// dismissal made on the interleaved one does not carry over.
   /// v6: late and missed deco gas switches against the ideal ascent (#2939).
-  static const int engineVersion = 6;
+  /// v7: a depth spike is repaired by time-weighted interpolation rather than
+  /// the midpoint of its neighbours, which changes the rates and tissue
+  /// loading graded on an unevenly sampled dive (#3910).
+  /// v8: ppO2, CNS and OTU read the dive's own water and surface pressure,
+  /// which changes the oxygen findings of an altitude or fresh water dive
+  /// (#3958).
+  /// v9: a logged dive's residual tissue load no longer starts from a plan
+  /// that was never dived, which changes what is graded on the dive after it
+  /// (#3924).
+  /// v10: tissues carried between dives off-gas at the dives' own surface, not
+  /// at 1.0 bar, which changes the ceilings graded on a repetitive dive with a
+  /// known surface pressure, at altitude above all (#3925).
+  /// v11: a dive's residual tissue load comes from its own diver's dives only,
+  /// which changes what is graded on a dive in a shared logbook (#3923).
+  static const int engineVersion = 11;
 
   const SafetyReviewService();
 

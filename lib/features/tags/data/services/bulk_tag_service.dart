@@ -1,5 +1,6 @@
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/existing_row_ids.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
@@ -34,6 +35,20 @@ class BulkTagService {
     required List<String> itemIds,
     required Set<String> addTagIds,
     required Set<String> removeTagIds,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _applyInner(
+      itemIds: itemIds,
+      addTagIds: addTagIds,
+      removeTagIds: removeTagIds,
+    ),
+  );
+
+  Future<Map<String, List<String>>> _applyInner({
+    required List<String> itemIds,
+    required Set<String> addTagIds,
+    required Set<String> removeTagIds,
   }) async {
     if (itemIds.isEmpty || (addTagIds.isEmpty && removeTagIds.isEmpty)) {
       return const {};
@@ -65,7 +80,13 @@ class BulkTagService {
   /// An item deleted since [apply] is skipped and a tag deleted since is left
   /// out, so Undo never recreates a link to a row that is gone (the foreign
   /// keys would refuse it and roll back every other item's restore).
-  Future<void> undo(Map<String, List<String>> prior) async {
+  Future<void> undo(Map<String, List<String>> prior) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _undoInner(prior),
+  );
+
+  Future<void> _undoInner(Map<String, List<String>> prior) async {
     if (prior.isEmpty) return;
     await _db.transaction(() async {
       final itemTable = _db.allTables.firstWhere(

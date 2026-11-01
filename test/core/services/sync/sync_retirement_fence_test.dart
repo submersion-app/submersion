@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
@@ -153,6 +154,97 @@ void main() {
       isTrue,
       reason: 'the cloud library is adopted even when no name can be stored',
     );
+  });
+
+  test(
+    'a dropped connection leaves the fence up and the next sync rejoins',
+    () async {
+      final cloud = FakeCloudStorageProvider();
+      final folder = await cloud.getOrCreateSyncFolder();
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'keep-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'peer-1');
+      final svc = SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      );
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'stale-1', diveNumber: 2),
+      );
+      expect((await svc.performSync()).status, SyncResultStatus.success);
+      final deviceId = await SyncRepository().getDeviceId();
+      await svc.deleteDeviceSyncFile(deviceId);
+      await cloud.uploadFile(
+        RetirementMarker(deviceId: deviceId, retiredAt: 1).toBytes(),
+        ChangesetLogLayout.retiredMarkerName(deviceId),
+        folderId: folder,
+      );
+      Future<List<String>> ownFiles() async => [
+        for (final f in await cloud.listFiles(
+          folderId: folder,
+          namePattern: ChangesetLogLayout.prefix,
+        ))
+          if (ChangesetLogLayout.deviceIdOf(f.name) == deviceId) f.name,
+      ];
+
+      cloud.failDownloadsWhere = (id) => id.contains('.base.');
+      final interrupted = await svc.performSync();
+
+      expect(interrupted.status, isNot(SyncResultStatus.success));
+      expect(
+        await ownFiles(),
+        [ChangesetLogLayout.retiredMarkerName(deviceId)],
+        reason:
+            'the marker stays and nothing is republished: the cloud library '
+            'is still there, this device just could not read it',
+      );
+      expect(await hasDive('stale-1'), isTrue);
+
+      cloud.failDownloadsWhere = null;
+      final retried = await svc.performSync();
+
+      expect(retried.status, SyncResultStatus.success);
+      expect(await hasDive('keep-1'), isTrue);
+      expect(await hasDive('stale-1'), isFalse);
+    },
+  );
+
+  test('a refused base leaves the fence up and names the account', () async {
+    final cloud = FakeCloudStorageProvider();
+    final folder = await cloud.getOrCreateSyncFolder();
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'keep-1', diveNumber: 1),
+    );
+    await seedPeerLog(cloud, 'peer-1');
+    final svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'stale-1', diveNumber: 2),
+    );
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+    final deviceId = await SyncRepository().getDeviceId();
+    await svc.deleteDeviceSyncFile(deviceId);
+    final marker = ChangesetLogLayout.retiredMarkerName(deviceId);
+    await cloud.uploadFile(
+      RetirementMarker(deviceId: deviceId, retiredAt: 1).toBytes(),
+      marker,
+      folderId: folder,
+    );
+
+    cloud.matchedDownloadFailure = const CloudAccessRefusedException('refused');
+    cloud.failDownloadsWhere = (id) => id.contains('.base.');
+    final refused = await svc.performSync();
+
+    expect(refused.status, SyncResultStatus.authError);
+    expect(refused.accessRefused, isTrue);
+    final names = (await cloud.listFiles(folderId: folder)).map((f) => f.name);
+    expect(names, contains(marker));
+    expect(await hasDive('stale-1'), isTrue);
   });
 
   test(

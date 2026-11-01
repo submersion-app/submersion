@@ -6,13 +6,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_stats.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_band_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_category_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Surface & weather group of the Conditions tab (issue #3118): air
@@ -43,12 +43,12 @@ class SurfaceWeatherGroup extends ConsumerWidget {
               stats.surfacePressure.isEmpty,
             ].any((empty) => !empty);
             if (!hasAny) return const SizedBox.shrink();
-            final units = UnitFormatter(ref.watch(settingsProvider));
+            final units = ref.watch(unitFormatterProvider);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ConditionsGroupHeader(title: title),
-                ..._cards(context, stats, units),
+                ..._cards(context, ref, stats, units),
               ],
             );
           },
@@ -57,6 +57,7 @@ class SurfaceWeatherGroup extends ConsumerWidget {
 
   List<Widget> _cards(
     BuildContext context,
+    WidgetRef ref,
     ConditionsStats stats,
     UnitFormatter units,
   ) {
@@ -80,6 +81,15 @@ class SurfaceWeatherGroup extends ConsumerWidget {
             footer: ConditionsCoverageLine(
               recorded: stats.airTemp.recorded,
               total: total,
+              onOpenUnrecorded: stats.airTemp.unrecordedDiveIds.isEmpty
+                  ? null
+                  : () => openHeldChartDives(
+                      context,
+                      ref,
+                      chart: l10n.insights_conditions_airTempTrend_title,
+                      row: l10n.insights_chart_notRecorded,
+                      ids: stats.airTemp.unrecordedDiveIds,
+                    ),
             ),
           ),
         ),

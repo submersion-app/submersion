@@ -1,3 +1,4 @@
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -117,6 +118,8 @@ domain.DivePlan divePlanFromState(
     stopMinimums: state.stopMinimums,
     surfaceInterval: state.surfaceInterval,
     clearSurfaceInterval: state.surfaceInterval == null,
+    startCns: _startCns(state),
+    startOtu: state.initialOtu ?? 0,
     segments: state.segments,
     tanks: state.tanks,
     equipmentIds: state.equipmentIds,
@@ -130,6 +133,27 @@ domain.DivePlan divePlanFromState(
     updatedAt: state.updatedAt,
   );
 }
+
+/// The CNS% a dive starts with: the previous dive's end CNS decayed over
+/// the surface interval, the same way the tissues are off-gassed for the
+/// seed (issue #3565).
+double _startCns(DivePlanState state) {
+  final carried = state.initialCns;
+  if (carried == null) return 0;
+  final interval = state.surfaceInterval;
+  if (interval == null) return carried;
+  return CnsTable.cnsAfterSurfaceInterval(carried, interval.inMinutes);
+}
+
+/// What the engine reads from [state]: the plan without its name, notes and
+/// timestamps, which change on a rename or a save and never change an
+/// outcome. Compare these to tell whether anything computed from the plan is
+/// out of date.
+domain.DivePlan planForEngine(DivePlanState state) => divePlanFromState(
+  state,
+).copyWith(name: '', notes: '', createdAt: _epoch, updatedAt: _epoch);
+
+final _epoch = DateTime.utc(2000);
 
 /// Restores the legacy planner state from a persisted plan.
 ///

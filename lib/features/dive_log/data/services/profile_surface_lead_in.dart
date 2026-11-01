@@ -1,3 +1,4 @@
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Whether a profile chart should be extended back to the surface at t=0.
@@ -22,18 +23,21 @@ bool shouldDrawSurfaceLeadIn(List<DiveProfilePoint> profile) {
   return interval > 0 && firstSample <= interval;
 }
 
-/// Ambient pressure in bar at [depthMeters]: 1 bar at the surface, plus 1 bar
-/// per 10 m of seawater.
-double ambientPressureBar(double depthMeters) => 1.0 + depthMeters / 10.0;
-
 /// The surface value of a quantity proportional to ambient pressure -- partial
-/// pressures and gas density -- given its value at [depthMeters].
+/// pressures and gas density -- given its value at [depthMeters] in
+/// [environment], the dive's own water and surface pressure.
 ///
 /// These lead-ins are calculated rather than held flat, because they are a
-/// deterministic function of depth: at the surface the ambient pressure is
-/// 1 bar, so each reduces to its gas fraction. Dividing by the ambient pressure
-/// at the sample recovers that fraction without resolving which cylinder was
-/// breathed. Reduces to the sampled value when the diver is still at the
-/// surface, which is the usual case one sample into a dive.
-double surfaceValueAtOneBar(double valueAtDepth, double depthMeters) =>
-    valueAtDepth / ambientPressureBar(depthMeters);
+/// deterministic function of depth. Dividing by the ambient pressure at the
+/// sample recovers the gas fraction without resolving which cylinder was
+/// breathed, and the surface pressure scales it back up. Reduces to the sampled
+/// value when the diver is still at the surface, which is the usual case one
+/// sample into a dive.
+double valueAtSurface(
+  double valueAtDepth,
+  double depthMeters, {
+  DiveEnvironment environment = DiveEnvironment.standard,
+}) =>
+    valueAtDepth /
+    environment.pressureAtDepth(depthMeters) *
+    environment.surfacePressureBar;

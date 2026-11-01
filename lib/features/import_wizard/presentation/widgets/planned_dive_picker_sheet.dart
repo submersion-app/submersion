@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -24,7 +23,7 @@ Future<String?> showPlannedDivePicker(
     context: context,
     builder: (sheetContext) => Consumer(
       builder: (context, ref, _) {
-        final units = UnitFormatter(ref.watch(settingsProvider));
+        final units = ref.watch(unitFormatterProvider);
         final l10n = context.l10n;
         return SafeArea(
           child: ListView(

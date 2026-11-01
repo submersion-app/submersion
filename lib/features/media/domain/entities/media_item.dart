@@ -206,7 +206,7 @@ class MediaItem extends Equatable {
   });
 
   /// Returns true if this media came from the device's photo gallery
-  bool get isGalleryPhoto => platformAssetId != null;
+  bool get isGalleryPhoto => platformAssetId?.isNotEmpty ?? false;
 
   /// Returns true if this is a video
   bool get isVideo => mediaType == MediaType.video;

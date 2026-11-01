@@ -69,18 +69,14 @@ void main() {
     expect(listed.single.tanks.single.passportId, 'p-1');
   });
 
-  test('a bulk replace stamps it only when restoring', () async {
+  test('a bulk replace never stamps it', () async {
     await repo.createDive(createTestDiveWithBottomTime(id: 'd1'));
-    await repo.createDive(createTestDiveWithBottomTime(id: 'd2'));
     const template = DiveTank(id: 'tpl', passportId: 'p-1');
 
     // A template copied from one tagged tank must not claim that physical
     // cylinder on every dive it lands on.
     await repo.bulkReplaceTanks(['d1'], const [template]);
     expect((await repo.getDiveById('d1'))!.tanks.single.passportId, isNull);
-
-    await repo.bulkReplaceTanks(['d2'], const [template], restoreLinks: true);
-    expect((await repo.getDiveById('d2'))!.tanks.single.passportId, 'p-1');
   });
 
   test('a synced tank row round-trips it', () async {

@@ -72,7 +72,8 @@ bool _hasAxis(DiveFilterState f, DiveField field) => switch (field) {
   DiveField.visibility => f.minVisibility != null || f.maxVisibility != null,
   DiveField.ratingStars => f.minRating != null,
   DiveField.isFavorite => f.favoritesOnly == true,
-  DiveField.waterType => f.waterTypes.isNotEmpty,
+  DiveField.waterType => f.waterTypes.isNotEmpty || f.noWaterType == true,
+  DiveField.entryMethod => f.noEntryMethodOnly == true,
   _ => false,
 };
 
@@ -107,6 +108,10 @@ DiveFilterState _clearAxis(
   ),
   DiveField.ratingStars => f.copyWith(clearMinRating: true),
   DiveField.isFavorite => f.copyWith(clearFavoritesOnly: true),
-  DiveField.waterType => f.copyWith(clearWaterTypes: true),
+  DiveField.waterType => f.copyWith(
+    clearWaterTypes: true,
+    clearNoWaterType: true,
+  ),
+  DiveField.entryMethod => f.copyWith(clearNoEntryMethodOnly: true),
   _ => f,
 };

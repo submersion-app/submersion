@@ -110,7 +110,7 @@ class GaugeStrip extends ConsumerWidget {
     Set<String> hidden,
   ) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final chips = <_Chip>[];
 
     // Gear, insurance and the flight window are hardened: an alert-tone chip
@@ -204,9 +204,9 @@ class GaugeStrip extends ConsumerWidget {
       }
     }
 
+    final now = DateTime.now().toUtc();
     if (_shown(hidden, HomeChipType.noFly)) {
       final noFly = g.noFlyStatus;
-      final now = DateTime.now().toUtc();
       if (noFly != null && noFly.isActiveAt(now)) {
         final remaining = noFly.remaining(now);
         chips.add(
@@ -239,7 +239,7 @@ class GaugeStrip extends ConsumerWidget {
       switch (flight.state) {
         case FlightWindowState.open:
           if (_shown(hidden, HomeChipType.flightWindow)) {
-            final remaining = flight.remaining(NoFlyService.wallClockNowUtc());
+            final remaining = flight.remaining(now);
             chips.add(
               _chip(
                 context,

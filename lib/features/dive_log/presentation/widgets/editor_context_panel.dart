@@ -38,6 +38,27 @@ class EditorContextPanel extends StatefulWidget {
 class _EditorContextPanelState extends State<EditorContextPanel> {
   int _smoothWindowSize = 5;
 
+  void _showRefusal(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _shiftTime(int timeDelta) {
+    if (widget.notifier.shiftSegmentTime(timeDelta)) return;
+    _showRefusal(context.l10n.diveLog_profileEditor_timeShiftBlocked);
+  }
+
+  void _deleteSelection() {
+    if (widget.notifier.deleteSegment(interpolateGap: true)) return;
+    _showRefusal(context.l10n.diveLog_profileEditor_deleteAllBlocked);
+  }
+
+  void _smoothSelection({int windowSize = 5}) {
+    if (widget.notifier.applySmoothingToRange(windowSize: windowSize)) return;
+    _showRefusal(context.l10n.diveLog_profileEditor_smoothTooFewBlocked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -56,6 +77,18 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
     );
   }
 
+  Widget _buildRangeHint(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        context.l10n.diveLog_profileEditor_selectRangeHint,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
   Widget _buildSelectPanel(BuildContext context) {
     final hasRange = widget.selectedRange != null;
 
@@ -67,16 +100,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           context.l10n.diveLog_profileEditor_rangeOperations,
           style: Theme.of(context).textTheme.titleSmall,
         ),
-        if (!hasRange)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              context.l10n.diveLog_profileEditor_selectRangeHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+        if (!hasRange) _buildRangeHint(context),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -99,34 +123,26 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               ),
             ),
             FilledButton.tonalIcon(
-              onPressed: hasRange
-                  ? () => widget.notifier.shiftSegmentTime(5)
-                  : null,
+              onPressed: hasRange ? () => _shiftTime(5) : null,
               icon: const Icon(Icons.arrow_forward, size: 18),
               label: Text(
                 context.l10n.diveLog_profileEditor_timePlusFiveSeconds,
               ),
             ),
             FilledButton.tonalIcon(
-              onPressed: hasRange
-                  ? () => widget.notifier.shiftSegmentTime(-5)
-                  : null,
+              onPressed: hasRange ? () => _shiftTime(-5) : null,
               icon: const Icon(Icons.arrow_back, size: 18),
               label: Text(
                 context.l10n.diveLog_profileEditor_timeMinusFiveSeconds,
               ),
             ),
             FilledButton.tonalIcon(
-              onPressed: hasRange
-                  ? () => widget.notifier.deleteSegment(interpolateGap: true)
-                  : null,
+              onPressed: hasRange ? _deleteSelection : null,
               icon: const Icon(Icons.delete_outline, size: 18),
               label: Text(context.l10n.common_action_delete),
             ),
             FilledButton.tonalIcon(
-              onPressed: hasRange
-                  ? () => widget.notifier.applySmoothingToRange()
-                  : null,
+              onPressed: hasRange ? _smoothSelection : null,
               icon: const Icon(Icons.auto_fix_high, size: 18),
               label: Text(context.l10n.diveLog_profileEditor_mode_smooth),
             ),
@@ -145,6 +161,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           context.l10n.diveLog_profileEditor_smoothing,
           style: Theme.of(context).textTheme.titleSmall,
         ),
+        if (widget.selectedRange == null) _buildRangeHint(context),
         const SizedBox(height: 12),
         SegmentedButton<int>(
           segments: [
@@ -178,9 +195,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
             const SizedBox(width: 8),
             FilledButton.tonalIcon(
               onPressed: widget.selectedRange != null
-                  ? () => widget.notifier.applySmoothingToRange(
-                      windowSize: _smoothWindowSize,
-                    )
+                  ? () => _smoothSelection(windowSize: _smoothWindowSize)
                   : null,
               icon: const Icon(Icons.done, size: 18),
               label: Text(context.l10n.diveLog_profileEditor_applyToSelection),

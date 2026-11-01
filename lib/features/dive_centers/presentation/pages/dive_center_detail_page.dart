@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/gear_here_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
@@ -123,6 +125,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
                   widget.centerId,
                 ),
               ),
+              GearHereSection(centerId: widget.centerId),
               const Divider(height: 32),
               RentalGearSection(centerId: widget.centerId),
               const Divider(height: 32),
@@ -287,6 +290,11 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
         }
       },
       itemBuilder: (context) => [
+        changeLogHistoryMenuItem(
+          context,
+          rootTable: 'dive_centers',
+          rootId: center.id,
+        ),
         openInConnectionsMenuItem(context),
         PopupMenuItem(
           value: 'delete',

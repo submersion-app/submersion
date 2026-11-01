@@ -21,9 +21,22 @@ class ComparisonProfile {
   });
 }
 
+/// A selection of dives ready to compare: the [profiles] to show, and how many
+/// of the selected dives could have been shown.
+///
+/// The two differ once a selection passes [kMaxComparisonProfiles], because
+/// only the shown dives are loaded: [comparableCount] is what a "showing N of
+/// M" note reads, since [profiles] alone cannot say what was left behind.
+class DiveComparison {
+  final List<ComparisonProfile> profiles;
+  final int comparableCount;
+
+  const DiveComparison({required this.profiles, required this.comparableCount});
+}
+
 /// How the profiles are arranged in the scene.
 enum CompareLayout { sideBySide, overlay }
 
-/// Max profiles rendered at once, for legibility. Beyond this the caller keeps
-/// the first [kMaxComparisonProfiles] and shows a "showing N of M" note.
+/// Max profiles rendered at once, for legibility. Beyond this the first
+/// [kMaxComparisonProfiles] are kept and a "showing N of M" note appears.
 const int kMaxComparisonProfiles = 8;

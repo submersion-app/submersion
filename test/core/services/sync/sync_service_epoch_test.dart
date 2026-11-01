@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
@@ -136,6 +139,19 @@ void main() {
       replacedAt: 1,
       deviceId: 'replacer',
     );
+
+    test('a refused cloud call reports the account', () async {
+      await epochStore.setPendingReplace(marker);
+      cloud
+        ..failLists = true
+        ..readException = const CloudAccessRefusedException('refused');
+
+      final result = await buildService().executeLibraryReplace(marker);
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.accessRefused, isTrue);
+      expect(result.message, 'refused');
+    });
 
     test('wipes sync files, writes marker before wipe, publishes a stamped '
         'base, commits epoch', () async {
@@ -337,6 +353,18 @@ void main() {
     // must still halt the sync, but under their own message: blaming the
     // marker sends the user hunting for a corrupt file that does not exist
     // (issue #2332).
+    test('a refused read returns authError with its message', () async {
+      cloud = _EpochListFailCloud(
+        const CloudAccessRefusedException('Dropbox authorization expired.'),
+      );
+      cloud.operationLog.clear();
+
+      final result = await buildService().performSync();
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.message, 'Dropbox authorization expired.');
+    });
+
     test('a cloud error reading the marker halts with the provider message, '
         'not an unreadable marker', () async {
       cloud = _EpochListFailCloud(
@@ -407,6 +435,18 @@ void main() {
       replacedAt: 1,
       deviceId: 'replacer',
     );
+
+    test('a refused cloud call reports the account', () async {
+      cloud
+        ..failLists = true
+        ..readException = const CloudAccessRefusedException('refused');
+
+      final result = await buildService().adoptReplacedLibrary();
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.accessRefused, isTrue);
+      expect(result.message, 'refused');
+    });
 
     test('aborts when a current-epoch replace is still uploading', () async {
       final service = buildService();
@@ -552,6 +592,320 @@ void main() {
       },
     );
 
+    /// Publishes [dive] as 'replacer's changeset at seq 2, on top of a seeded
+    /// base, with a head that claims it. [checksum] replaces the real one, for
+    /// a test of a changeset that fails it.
+    Future<void> seedChangesetAfterBase(
+      Map<String, dynamic> dive, {
+      String? checksum,
+    }) async {
+      await seedPeerLog(cloud, 'replacer', epochId: 'e1');
+      final folder = await cloud.getOrCreateSyncFolder();
+      final data = SyncData(dives: [dive]);
+      await cloud.uploadFile(
+        await const ChangesetCodec().encodeChangeset(
+          SyncPayload(
+            version: syncFormatVersion,
+            exportedAt: 1,
+            deviceId: 'replacer',
+            checksum: checksum ?? SyncDataSerializer.checksumOf(data),
+            data: data,
+            deletions: const {},
+            seq: 2,
+          ),
+        ),
+        ChangesetLogLayout.changesetName('replacer', 2),
+        folderId: folder,
+      );
+      final manifest = (await ownManifest(cloud, 'replacer'))!;
+      final manifestJson =
+          jsonDecode(utf8.decode(manifest.toBytes())) as Map<String, dynamic>;
+      await cloud.uploadFile(
+        Uint8List.fromList(
+          utf8.encode(jsonEncode({...manifestJson, 'headSeq': 2})),
+        ),
+        ChangesetLogLayout.manifestName('replacer'),
+        folderId: folder,
+      );
+    }
+
+    test('adoption applies a changeset published after the base', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      await seedChangesetAfterBase({...row!, 'id': 'later'});
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      await service.adoptReplacedLibrary();
+
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 2);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'later'),
+        isNotNull,
+      );
+    });
+
+    test('adoption stops at a changeset that fails its checksum', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      // A whole row and a head that claims it, so only the checksum can
+      // refuse it.
+      await seedChangesetAfterBase({
+        ...row!,
+        'id': 'injected',
+      }, checksum: 'not the checksum');
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      await service.adoptReplacedLibrary();
+
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 1);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'injected'),
+        isNull,
+      );
+    });
+
+    test('adoption stops at a changeset whose envelope is corrupt', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      await seedChangesetAfterBase({...row!, 'id': 'sealed'});
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final changeset = ChangesetLogLayout.changesetName('replacer', 2);
+      cloud
+        ..failDownloadsWhere = ((id) => id.endsWith(changeset))
+        ..downloadFailure = const EnvelopeCorruptException('bad tag');
+
+      final result = await service.adoptReplacedLibrary();
+
+      // Held in the cloud but unusable here, as a failed checksum is, so the
+      // library is adopted up to it and pull retries from there.
+      expect(result.isSuccess, isTrue);
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 1);
+      expect(await SyncDataSerializer().fetchRecord('dives', 'sealed'), isNull);
+    });
+
+    test('a dropped connection reports failure and recovers nothing', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'peer-1', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 2),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      cloud.failDownloadsWhere = (id) => id.contains('.base.');
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isFalse);
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+      expect(await service.readLibraryEpochMarker(cloud), isNotNull);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'mine-1'),
+        isNotNull,
+      );
+    });
+
+    test('a dropped manifest read does not read as no library', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'peer-1', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 2),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final manifest = ChangesetLogLayout.manifestName('peer-1');
+      cloud.failDownloadsWhere = (id) => id.endsWith(manifest);
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isFalse);
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+    });
+
+    test('a dropped manifest read wipes nothing from the cloud', () async {
+      // Past its grace window, an epoch with no readable library gets every
+      // sync file deleted and rebuilt from this device. A read that failed is
+      // not evidence of that.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'peer-1', epochId: 'e1');
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final manifest = ChangesetLogLayout.manifestName('peer-1');
+      cloud.failDownloadsWhere = (id) => id.endsWith(manifest);
+
+      final interrupted = await service.performSync();
+
+      expect(interrupted.isSuccess, isFalse);
+      expect([
+        for (final f in await cloud.listFiles()) f.name,
+      ], contains(manifest));
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+
+      cloud.failDownloadsWhere = null;
+      final retried = await service.performSync();
+
+      expect(retried.status, SyncResultStatus.awaitingAdoption);
+    });
+
+    for (final (name, failure) in <(String, Object)>[
+      ('a tampered', const EnvelopeCorruptException('bad tag')),
+      ('a locked', const SyncEncryptionRequired(message: 'other key')),
+    ]) {
+      test('$name manifest counts as no readable library', () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+        );
+        await seedPeerLog(cloud, 'peer-1', epochId: 'e1');
+        final service = buildService();
+        await service.writeLibraryEpochMarker(cloud, marker);
+        final manifest = ChangesetLogLayout.manifestName('peer-1');
+        cloud
+          ..failDownloadsWhere = ((id) => id.endsWith(manifest))
+          ..downloadFailure = failure;
+
+        final result = await service.adoptReplacedLibrary();
+
+        // Held in the cloud but unusable here, unlike a read that failed: the
+        // answer is "no library this device can read", so recovery runs.
+        expect(result.isSuccess, isTrue);
+        expect(await SyncRepository().getLastAcceptedEpochId(), 'e1');
+      });
+    }
+
+    test('a corrupt manifest still counts as no readable library', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 1),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      await cloud.uploadFile(
+        Uint8List.fromList(utf8.encode('not json')),
+        ChangesetLogLayout.manifestName('peer-1'),
+      );
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isTrue);
+      expect(await SyncRepository().getLastAcceptedEpochId(), 'e1');
+    });
+
+    test('a device that cannot be fetched aborts the whole refill', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'fetch-peer-1', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-2', diveNumber: 2),
+      );
+      await seedPeerLog(cloud, 'fetch-peer-2', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 3),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      // Whichever device comes second, so the first has a temp file by then.
+      final fetched = <String?>{};
+      cloud.failDownloadsWhere = (id) {
+        if (!id.contains('.base.')) return false;
+        fetched.add(ChangesetLogLayout.deviceIdOf(p.basename(id)));
+        return fetched.length > 1;
+      };
+      final tempDir = await resolveSyncTempDir();
+      List<String> leftovers() => [
+        for (final f in tempDir.listSync())
+          if (p.basename(f.path).startsWith('ssv1_adopt_fetch-peer-')) f.path,
+      ];
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isFalse);
+      expect(fetched, hasLength(2));
+      expect(leftovers(), isEmpty);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'mine-1'),
+        isNotNull,
+      );
+      expect(await SyncDataSerializer().fetchRecord('dives', 'lib-1'), isNull);
+    });
+
+    test('a changeset that cannot be fetched leaves no temp files', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await publishOwnLog(cloud, 'cs-peer', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-2', diveNumber: 2),
+      );
+      await publishOwnLog(cloud, 'cs-peer', epochId: 'e1');
+      await tearDownTestDatabase();
+      await setUpTestDatabase();
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final names = [for (final f in await cloud.listFiles()) f.name];
+      expect(names.where((n) => n.contains('.cs.')), isNotEmpty);
+      cloud.failDownloadsWhere = (id) => id.contains('.cs.');
+      final tempDir = await resolveSyncTempDir();
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isFalse);
+      expect([
+        for (final f in tempDir.listSync())
+          if (p.basename(f.path).startsWith('ssv1_adopt_cs-peer')) f.path,
+      ], isEmpty);
+    });
+
+    test('a base gone from the cloud still skips only that device', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'whole-peer', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-2', diveNumber: 2),
+      );
+      await seedPeerLog(cloud, 'gone-peer', epochId: 'e1');
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      for (final f in await cloud.listFiles(
+        namePattern: ChangesetLogLayout.prefix,
+      )) {
+        if (f.name.contains('gone-peer') && f.name.contains('.base.')) {
+          await cloud.deleteFile(f.id);
+        }
+      }
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isTrue);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'lib-1'),
+        isNotNull,
+      );
+    });
+
     test('the sync after adoption does not re-apply the adopted base', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'cloud-dive'),
@@ -647,9 +1001,9 @@ void main() {
       final csFile = files
           .where((f) => f.name == ChangesetLogLayout.changesetName(deviceId, 1))
           .single;
-      final payload = ChangesetCodec(
-        SyncDataSerializer(),
-      ).decodeChangeset(await cloud.downloadFile(csFile.id));
+      final payload = (await const ChangesetCodec().decodeVerifiedChangeset(
+        await cloud.downloadFile(csFile.id),
+      )).payload;
       final diveIds = payload.data.dives.map((d) => d['id']).toSet();
       expect(diveIds.contains('my-dive'), isTrue);
       expect(
@@ -929,20 +1283,42 @@ void main() {
     test(
       'replace records the upload nonce when an initializer is wired',
       () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'd-replace'),
+        );
+        final initializer = SyncInitializer(
+          syncRepository: SyncRepository(),
+          prefs: await SharedPreferences.getInstance(),
+        );
         final service = SyncService(
           syncRepository: SyncRepository(),
           serializer: SyncDataSerializer(),
           cloudProvider: cloud,
-          syncInitializer: SyncInitializer(
-            syncRepository: SyncRepository(),
-            prefs: await SharedPreferences.getInstance(),
-          ),
+          syncInitializer: initializer,
           epochStore: epochStore,
         );
 
         final result = await service.executeLibraryReplace(marker);
 
         expect(result.isSuccess, isTrue);
+        final deviceId = await SyncRepository().getDeviceId();
+        final manifest = await ownManifest(cloud, deviceId);
+        // An empty ring reads nothing as foreign, which would prove nothing.
+        await initializer.recordUploadNonce(
+          'another-of-ours',
+          cloud.providerId,
+        );
+        expect(manifest!.uploadNonce, isNotNull);
+        expect(
+          initializer.isForeignUploadNonce(
+            manifest.uploadNonce,
+            cloud.providerId,
+          ),
+          isFalse,
+          reason:
+              'a replace is an upload like any other: the next sync must '
+              'read this manifest as our own',
+        );
       },
     );
   });

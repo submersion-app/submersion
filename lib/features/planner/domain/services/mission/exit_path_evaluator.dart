@@ -38,7 +38,7 @@ class ExitPathResult extends Equatable {
   final int ttsSeconds;
 
   /// Surface litres each diver breathes from the failure point to the
-  /// surface, by diver id.
+  /// surface, by diver id, the plan's problem-solving time included.
   final Map<String, double> exitLitersByMember;
 
   /// Divers whose outbound plus exit gas leaves a tank below the plan's
@@ -84,7 +84,7 @@ class ExitPathResult extends Equatable {
 /// Evaluates a way out from a point on a dive: exit legs appended to the
 /// outbound profile, the plan engine run once for the schedule and time to
 /// surface, and each diver's gas charged from the schedule rows with their
-/// own SAC.
+/// own SAC, plus the plan's problem-solving time at the failure point.
 ///
 /// Nothing here knows about scooters, so the overhead planner proposed in
 /// #2164 and discussed in #2294 can use it for any exit (issue #2086).
@@ -151,9 +151,22 @@ class ExitPathEvaluator {
           row.startRuntimeSeconds,
     ].firstOrNull;
 
+    // The time to sort out the failure before leaving: the allowance the plan
+    // engine holds back at the bottom, spent here at the failure point. Its
+    // buddy factor stands for a second diver on the same gas; here each diver
+    // pays for themselves, so it does not apply.
+    final problemSolvingMinutes = engine.config
+        .resolvedFor(plan)
+        .problemSolvingMinutes;
+    final failureTankId =
+        outboundRows.lastOrNull?.tankId ?? exitRows.firstOrNull?.tankId;
+
     final liters = <String, double>{};
     final shortfall = <String>{};
     for (final diver in divers) {
+      final workingSac = diver.stressed
+          ? stressedSacFor(plan, diver.sacBottom)
+          : diver.sacBottom;
       final outbound = gas.litersByTank(
         rows: outboundRows,
         environment: environment,
@@ -168,13 +181,19 @@ class ExitPathEvaluator {
               row.startRuntimeSeconds >= firstStopStart) {
             return plan.sacDecoEffective;
           }
-          return diver.stressed
-              ? stressedSacFor(plan, diver.sacBottom)
-              : diver.sacBottom;
+          return workingSac;
         },
       );
-      liters[diver.id] = exit.values.fold(0.0, (a, b) => a + b);
-      if (_gasShort(plan, outbound, exit)) shortfall.add(diver.id);
+      final problemSolving =
+          problemSolvingMinutes *
+          workingSac *
+          environment.pressureAtDepth(failureDepth);
+      final charged = {
+        ...exit,
+        ?failureTankId: (exit[failureTankId] ?? 0.0) + problemSolving,
+      };
+      liters[diver.id] = charged.values.fold(0.0, (a, b) => a + b);
+      if (_gasShort(plan, outbound, charged)) shortfall.add(diver.id);
     }
 
     return ExitPathResult(
@@ -216,8 +235,9 @@ class ExitPathEvaluator {
 
   /// True when any tank the diver breathes, with a known size and fill,
   /// would end below the plan reserve after [outbound] plus [exit] litres.
-  /// A cylinder never breathed, or a bailout cylinder, is not held to the
-  /// reserve, matching the plan engine's own reserve rule.
+  /// A cylinder never breathed is not held to the reserve, the plan engine's
+  /// own rule, and neither is a bailout cylinder: a mission runs open circuit
+  /// only (validatePlanForMission), so no exit here breathes one.
   bool _gasShort(
     domain.DivePlan plan,
     Map<String, double> outbound,

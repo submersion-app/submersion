@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_section.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -58,6 +59,7 @@ import 'package:submersion/features/equipment/presentation/widgets/components_ca
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dive_time_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_status.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
@@ -180,8 +182,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     // The header's one clock: the most urgent of the item's own clocks and
     // its parts' through the rollup (issue #1487). Own clocks are read
     // separately so a retired item, absent from the active rollup, still
@@ -458,6 +459,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     required bool canTransfer,
   }) {
     return [
+      changeLogHistoryMenuItem(
+        context,
+        rootTable: 'equipment',
+        rootId: equipmentId,
+      ),
       openInConnectionsMenuItem(context),
       PopupMenuItem(
         value: 'clone',
@@ -601,7 +607,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   onTap: () => openDiveList(
                     context,
                     ref,
-                    DiveFilterState(equipmentIds: [equipmentId]),
+                    DiveFilterState.itemUse(equipmentId),
                   ),
                 ),
                 loading: () => _buildDetailRow(
@@ -611,7 +617,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 ),
                 error: (e, s) => const SizedBox.shrink(),
               ),
+              EquipmentDiveTimeRow(equipmentId: equipmentId),
+              // A reload, since the count follows the trip filter: every dive
+              // write runs one, and the row keeps its figure meanwhile.
               tripCountAsync.when(
+                skipLoadingOnReload: true,
                 data: (count) => _buildCountLinkRow(
                   context,
                   label: context.l10n.equipment_detail_tripsLabel,

@@ -7,6 +7,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_share_
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -39,6 +41,21 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+
+/// The dives behind the item page's Dives and Dive Time rows: `d` happened,
+/// carries the item `?1`, directly or through a tank, and belongs to the diver
+/// `?2` when one is given. Each row reads a dive once however many ways it is
+/// linked, which a join against `dive_tanks` would not.
+final String _diveOnItemSql =
+    '''
+(EXISTS (SELECT 1 FROM dive_equipment de
+                       WHERE de.dive_id = d.id AND de.equipment_id = ?1)
+            OR EXISTS (SELECT 1 FROM dive_tanks dt
+                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1)
+            -- A regulator on a tank, first or extra (#3375).
+            OR d.id IN (${tankRegulatorDiveIdsSql('?1')}))
+          AND (?2 IS NULL OR d.diver_id = ?2)
+          AND d.is_planned = 0''';
 
 /// One item's exposure as [EquipmentRepository.getItemExposure] wires it:
 /// its parent, its parts still fitted, whether it breathes a loop, and the
@@ -706,7 +723,13 @@ class EquipmentRepository {
   /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
   /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
   /// Cylinders linked to the item are cleared and staged for sync.
-  Future<void> deleteEquipment(String id) async {
+  Future<void> deleteEquipment(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteEquipmentInner(id),
+  );
+
+  Future<void> _deleteEquipmentInner(String id) async {
     try {
       _log.info('Deleting equipment: $id');
       // Attachments first, outside the transaction: the coordinator's queue
@@ -1224,10 +1247,14 @@ class EquipmentRepository {
 
   /// Dives [equipmentId] is on, for the item page's Dives row: linked
   /// directly or through a tank the registry matched to a cylinder, the link
-  /// set the dive list's equipment filter uses, so the row's count and the
-  /// list it opens agree. With [diverId], only that diver's dives, since the
-  /// dive list shows only the active profile (issue #2046); null counts every
-  /// diver's.
+  /// set the dive list's equipment filter uses. With [diverId], only that
+  /// diver's dives, since the dive list shows only the active profile (issue
+  /// #2046); null counts every diver's.
+  ///
+  /// A planned dive does not count: it has not happened, so it has put no
+  /// use on the item, whatever its date (issue #3932). The list the row opens
+  /// still shows it, marked as planned.
+  ///
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened, and the dive list it opens
   /// shows it too. Do not "fix" this.
@@ -1242,13 +1269,7 @@ class EquipmentRepository {
             '''
         SELECT COUNT(*) AS count
         FROM dives d
-        WHERE (EXISTS (SELECT 1 FROM dive_equipment de
-                       WHERE de.dive_id = d.id AND de.equipment_id = ?1)
-            OR EXISTS (SELECT 1 FROM dive_tanks dt
-                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1)
-            -- A regulator on a tank, first or extra (#3375).
-            OR d.id IN (${tankRegulatorDiveIdsSql('?1')}))
-          AND (?2 IS NULL OR d.diver_id = ?2)
+        WHERE $_diveOnItemSql
       ''',
             variables: [
               Variable.withString(equipmentId),
@@ -1268,6 +1289,48 @@ class EquipmentRepository {
     }
   }
 
+  /// Total seconds of the dives [getDiveCountForEquipment] counts, for the
+  /// item page's Dive Time row: the same dives, so the two rows describe one
+  /// set. A dive with no recorded length adds nothing.
+  ///
+  /// Not the Exposure card's hours, which answer how much wear the item has
+  /// had and so also take a part's parent dives, count every diver's dives,
+  /// and read only loop time on a rebreather.
+  ///
+  /// Deliberately does NOT apply DiveStatsScope, for the reason on
+  /// [getDiveCountForEquipment]. Do not "fix" this.
+  // stats-scope-exempt: gear wear is physical, not descriptive
+  Future<int> getDiveTimeForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
+    try {
+      final result = await _db
+          .customSelect(
+            '''
+        SELECT COALESCE(SUM($diveLengthSql), 0) AS seconds
+        FROM dives d
+        WHERE $_diveOnItemSql
+      ''',
+            variables: [
+              Variable.withString(equipmentId),
+              Variable<String>(diverId),
+            ],
+          )
+          .getSingle();
+
+      // A fractional stored length makes SUM a double.
+      return (result.data['seconds'] as num?)?.toInt() ?? 0;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dive time for equipment: $equipmentId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Every dive this item was on, with what it was exposed to. One SQL union
   /// over the link paths (junction, cylinder, regulator, a transmitter's
   /// registered serials, parent),
@@ -1279,6 +1342,9 @@ class EquipmentRepository {
   /// diluent and oxygen-supply cylinder path and the CCR fallback (a CCR
   /// dive with no supply cylinder recorded is still 100 percent O2 contact
   /// for the unit).
+  ///
+  /// A planned dive is not a sample: it has not happened, so it has worn
+  /// nothing, and its date must not charge a clock today (issue #3932).
   ///
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened: it cycled this gear and put
@@ -1302,14 +1368,7 @@ class EquipmentRepository {
                -- current summary was built from, and the fingerprint's.
                ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
-               -- The first positive length: a manual zero runtime beside
-               -- a real bottom time is no figure, and must not count the
-               -- dive as zero hours (or subtract any).
-               CASE
-                 WHEN d.runtime > 0 THEN d.runtime
-                 WHEN d.bottom_time > 0 THEN d.bottom_time
-                 ELSE 0
-               END AS duration_sec,
+               $diveLengthSql AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,
@@ -1363,7 +1422,8 @@ class EquipmentRepository {
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
           AND s.source_updated_at = ${diveSourceStampSql()}
           AND s.engine_version >= ?6
-        WHERE (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
+        WHERE d.is_planned = 0
+          AND (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
           AND (?4 IS NULL OR d.dive_date_time >= ?4)
         GROUP BY d.id
         ORDER BY d.dive_date_time
@@ -1398,31 +1458,20 @@ class EquipmentRepository {
   }
 
   /// [item]'s exposure, wired one way for every surface that reads it: the
-  /// service clocks, the reminder scheduler, the condition engine and the
-  /// item page's exposure card and trend. Samples come from the item's own
+  /// item page's clocks, exposure card and trend, and the condition engine.
+  /// [getItemExposures] is the same wiring for the surfaces that read many
+  /// items at once. Samples come from the item's own
   /// dives plus, for a part, its parent's dives from its install date; a
   /// part no longer fitted stops at the install date of the next part of
   /// its type in the same slot, so a replaced cell's history does not keep
   /// growing with its successor's dives. [fittedChildren] leaves out parts
   /// retired or sold (even with isActive left true), which must not switch
   /// the parent's battery cycles off.
-  ///
-  /// [siblings] is the active gear list when the caller already has it, so
-  /// the parent and children lookups cost no query per item.
-  Future<ItemExposure> getItemExposure(
-    EquipmentItem item, {
-    List<EquipmentItem>? siblings,
-  }) async {
+  Future<ItemExposure> getItemExposure(EquipmentItem item) async {
     final parentId = item.parentEquipmentId;
-    final parent = parentId == null
-        ? null
-        : siblings?.where((s) => s.id == parentId).firstOrNull ??
-              await getEquipmentById(parentId);
+    final parent = parentId == null ? null : await getEquipmentById(parentId);
     final fittedChildren = [
-      for (final c
-          in siblings != null
-              ? siblings.where((s) => s.parentEquipmentId == item.id)
-              : await getChildEquipment(item.id))
+      for (final c in await getChildEquipment(item.id))
         if (c.isFitted) c,
     ];
     final isRebreather =
@@ -1647,9 +1696,10 @@ class EquipmentRepository {
   /// [EquipmentItem.parentDivesFrom]) and the SQL stops being run per item.
   /// The seven branches are the single-item query's, joined to that table.
   ///
-  /// Deliberately does NOT apply DiveStatsScope, for the single-item query's
-  /// reason: an excluded dive still wore this gear, and dropping it would
-  /// push a real service interval later than it should be.
+  /// Leaves planned dives out and deliberately does NOT apply DiveStatsScope,
+  /// for the single-item query's reasons: a plan has worn nothing, while an
+  /// excluded dive still wore this gear, and dropping it would push a real
+  /// service interval later than it should be.
   Future<Map<String, List<EquipmentExposureSample>>>
   _getExposureSamplesForOwners(
     List<
@@ -1690,11 +1740,7 @@ class EquipmentRepository {
                -- current summary was built from, and the fingerprint's.
                ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
-               CASE
-                 WHEN d.runtime > 0 THEN d.runtime
-                 WHEN d.bottom_time > 0 THEN d.bottom_time
-                 ELSE 0
-               END AS duration_sec,
+               $diveLengthSql AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,
@@ -1757,7 +1803,8 @@ class EquipmentRepository {
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
           AND s.source_updated_at = ${diveSourceStampSql()}
           AND s.engine_version >= ?
-        WHERE (je.via_parent = 0 OR o.installed_since IS NULL
+        WHERE d.is_planned = 0
+          AND (je.via_parent = 0 OR o.installed_since IS NULL
           OR d.dive_date_time >= o.installed_since)
         GROUP BY je.owner_id, d.id
         ORDER BY je.owner_id, d.dive_date_time
@@ -1881,66 +1928,6 @@ class EquipmentRepository {
       for (final id in ids)
         if (kept.contains(id)) id,
     ];
-  }
-
-  /// Get trip count for equipment item (unique trips from dives using this equipment)
-  /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
-  /// from statistics still physically happened: it cycled this gear and put
-  /// hours on it. Suppressing it here would push a real service interval
-  /// later than it should be, a safety-relevant error rather than a cosmetic
-  /// one. Do not "fix" this.
-  // stats-scope-exempt: gear wear is physical, not descriptive
-  Future<int> getTripCountForEquipment(String equipmentId) async {
-    try {
-      final result = await _db
-          .customSelect(
-            '''
-        SELECT COUNT(DISTINCT d.trip_id) as count
-        FROM dive_equipment de
-        INNER JOIN dives d ON de.dive_id = d.id
-        WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
-      ''',
-            variables: [Variable.withString(equipmentId)],
-          )
-          .getSingle();
-
-      return result.data['count'] as int? ?? 0;
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get trip count for equipment: $equipmentId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Get trip IDs for equipment item
-  // stats-scope-exempt: gear usage is physical, not descriptive
-  Future<List<String>> getTripIdsForEquipment(String equipmentId) async {
-    try {
-      final result = await _db
-          .customSelect(
-            '''
-        SELECT DISTINCT d.trip_id
-        FROM dive_equipment de
-        INNER JOIN dives d ON de.dive_id = d.id
-        WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
-        ORDER BY d.dive_date_time DESC
-      ''',
-            variables: [Variable.withString(equipmentId)],
-          )
-          .get();
-
-      return result.map((row) => row.data['trip_id'] as String).toList();
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get trip IDs for equipment: $equipmentId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
   }
 
   EquipmentItem _mapRowToEquipment(

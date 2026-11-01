@@ -9,15 +9,20 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_backdrop_painter.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_empty_state.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_controller.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_overlay_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_palette.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_issue_marker_layer.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_scrub_readout.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_issue_marker_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Precision Instrument plan chart: three painter layers split by repaint
@@ -59,6 +64,14 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   /// that opened the menu), so its pointer-up is not also read as a tap.
   bool _pressHandled = false;
 
+  /// The warning marker under the mouse, and the one a press began on
+  /// (#3738). A press on a marker is never a scrub, a selection or half of
+  /// a double-tap. On a marker that sits on a waypoint, the press picks the
+  /// marker only if it ends where it began: a drag moves the waypoint and a
+  /// long-press opens its menu.
+  int? _hoverMarker;
+  int? _markerPress;
+
   @override
   void dispose() {
     _longPressTimer?.cancel();
@@ -86,6 +99,20 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   }
 
   void _clearScrub() => ref.read(scrubTimeProvider.notifier).state = null;
+
+  /// Picks out [placed]'s warnings on the chart and in the warnings list,
+  /// scrolling the list to them, or clears them when they are already
+  /// picked.
+  void _toggleMarker(PlacedIssueMarker placed) {
+    final highlighted = ref.read(highlightedPlanIssuesProvider.notifier);
+    final keys = placed.marker.keys;
+    if (setEquals(highlighted.state, keys)) {
+      highlighted.state = const {};
+      return;
+    }
+    highlighted.state = keys;
+    ref.read(planIssueRevealRequestProvider.notifier).state++;
+  }
 
   void _applyDrag(PlanChartGeometry geometry, Offset local) {
     final dragId = _dragSegmentId;
@@ -261,8 +288,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     final ghost = ref.watch(contingencyGhostSeriesProvider);
     final sourceDive = ref.watch(sourceDiveOverlaySeriesProvider);
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final palette = PlanChartPalette.of(theme);
 
     if (series.isEmpty) {
@@ -272,8 +298,10 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       _dragVertex = null;
       _dragSegmentId = null;
       _hoverVertex = null;
+      _hoverMarker = null;
+      _markerPress = null;
       _frozenAxes = null;
-      return _EmptyState(theme: theme);
+      return PlanChartEmptyState(theme: theme);
     }
 
     // Axes stretch to cover every drawn series: plan, ghost and the source
@@ -312,6 +340,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
         ? planVertices(plan.segments)
         : const <PlanVertex>[];
 
+    final issueMarkers = ref.watch(planIssueMarkersProvider);
+    final highlightedIssues = ref.watch(highlightedPlanIssuesProvider);
+
     final frozen = _frozenAxes;
     if (frozen != null) {
       maxTime = frozen.time;
@@ -326,6 +357,29 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           maxDepthMeters: maxDepth,
           depthUnitScale: units.convertDepth(1),
         );
+
+        // On the profile the warnings describe: a previewed contingency's
+        // when one is shown, as the warnings list then shows its warnings.
+        final placedMarkers = placeIssueMarkers(
+          markers: issueMarkers,
+          geometry: geometry,
+          depthAt: (ghost ?? series).depthAt,
+          highlighted: highlightedIssues,
+        );
+        final hoverMarker = _hoverMarker;
+        // A waypoint being dragged hides the warnings, which describe the
+        // plan as it was.
+        final dragging = _dragVertex != null && _moved;
+        int? activeMarker =
+            !dragging &&
+                hoverMarker != null &&
+                hoverMarker < placedMarkers.length
+            ? hoverMarker
+            : null;
+        if (activeMarker == null && !dragging && highlightedIssues.isNotEmpty) {
+          final picked = placedMarkers.indexWhere((p) => p.highlighted);
+          if (picked >= 0) activeMarker = picked;
+        }
 
         final handleOffsets = [
           for (final v in vertices)
@@ -392,8 +446,17 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           );
           final hit = _dragVertex;
           _dragSegmentId = hit == null ? null : vertices[hit].segmentId;
+          _markerPress = hitTestIssueMarker(
+            placedMarkers,
+            event.localPosition,
+            radius: event.kind == PointerDeviceKind.mouse ? 16 : 24,
+          );
           if (hit == null) {
-            _scrubTo(geometry, event.localPosition);
+            if (_markerPress != null) {
+              _clearScrub();
+            } else {
+              _scrubTo(geometry, event.localPosition);
+            }
           } else {
             _frozenAxes = (time: maxTime, depth: maxDepth);
             // A mouse has right-click, and holding its button still on a
@@ -405,6 +468,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                 _longPressTimer = null;
                 if (!mounted || _dragSegmentId != segmentId) return;
                 _pressHandled = true;
+                _markerPress = null;
                 endDrag();
                 _clearScrub();
                 Feedback.forLongPress(context);
@@ -416,10 +480,19 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
         void onPointerMove(PointerMoveEvent event) {
           final down = _downPosition;
-          if (down != null && (event.localPosition - down).distance > 6) {
-            _moved = true;
+          if (down != null &&
+              !_moved &&
+              (event.localPosition - down).distance > 6) {
+            _markerPress = null;
             _cancelLongPress();
+            // The warnings go before the waypoint moves. A touch shows them
+            // only once it lifts, so a drag never flashes them up.
+            setState(() {
+              _moved = true;
+              if (_dragVertex != null) _hoverMarker = null;
+            });
           }
+          if (_markerPress != null) return;
           // A touch still inside the slop may yet become a long-press, so
           // finger jitter must not edit the waypoint. The drag maps the
           // absolute position, so nothing is lost once it starts.
@@ -434,8 +507,21 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
         void onPointerUp(PointerUpEvent event) {
           _cancelLongPress();
           final wasDrag = _dragVertex != null;
+          final markerTap = _markerPress;
+          _markerPress = null;
           endDrag();
           _clearScrub();
+          if (markerTap != null && markerTap < placedMarkers.length) {
+            _toggleMarker(placedMarkers[markerTap]);
+            _downPosition = null;
+            _lastTapAt = null;
+            _lastTapPosition = null;
+            return;
+          }
+          if (!wasDrag && !_moved && !_pressHandled) {
+            // A tap anywhere else lets go of a picked marker.
+            ref.read(highlightedPlanIssuesProvider.notifier).state = const {};
+          }
           if (wasDrag || _moved || _readOnly || _pressHandled) {
             _pressHandled = false;
             _downPosition = null;
@@ -483,10 +569,16 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                   geometry: geometry,
                   position: event.localPosition,
                 )?.timeSeconds;
-          if (lockTime == null) {
-            _scrubTo(geometry, event.localPosition);
-          } else {
+          // A warning marker on a waypoint or a deco stop shows its
+          // warnings while the line stays locked onto that point (#3738).
+          final marker = hitTestIssueMarker(placedMarkers, event.localPosition);
+          if (marker != _hoverMarker) setState(() => _hoverMarker = marker);
+          if (lockTime != null) {
             ref.read(scrubTimeProvider.notifier).state = lockTime;
+          } else if (marker != null) {
+            _clearScrub();
+          } else {
+            _scrubTo(geometry, event.localPosition);
           }
         }
 
@@ -495,7 +587,12 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           onKeyEvent: (_, event) => _onKey(event, geometry),
           child: MouseRegion(
             onExit: (_) {
-              if (_hoverVertex != null) setState(() => _hoverVertex = null);
+              if (_hoverVertex != null || _hoverMarker != null) {
+                setState(() {
+                  _hoverVertex = null;
+                  _hoverMarker = null;
+                });
+              }
               _clearScrub();
             },
             child: Listener(
@@ -602,17 +699,53 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                   ),
                                 ),
                               ),
-                              if (scrubTime != null)
-                                Positioned(
-                                  top: 12,
-                                  left: PlanChartGeometry.leftGutter + 4,
-                                  child: _ScrubReadout(
-                                    runtimeSeconds: scrubTime,
-                                    depthMeters: series.depthAt(scrubTime),
-                                    units: units,
-                                    palette: palette,
-                                  ),
+                              Positioned.fill(
+                                child: PlanIssueMarkerLayer(
+                                  placed: placedMarkers,
+                                  activeIndex: activeMarker,
+                                  palette: palette,
+                                  units: units,
+                                  onActivate: (i) =>
+                                      _toggleMarker(placedMarkers[i]),
                                 ),
+                              ),
+                              // The bailout status goes top centre: on a phone
+                              // the corners hold the readouts and the bottom
+                              // edge holds the chips. In one column with the
+                              // scrub readout, which reaches past the centre
+                              // on a narrow chart, so it clears the readout at
+                              // any text size.
+                              Positioned(
+                                top: 12,
+                                left: 0,
+                                right: 0,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 2,
+                                  children: [
+                                    if (scrubTime != null)
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left:
+                                                PlanChartGeometry.leftGutter +
+                                                4,
+                                          ),
+                                          child: PlanScrubReadout(
+                                            runtimeSeconds: scrubTime,
+                                            depthMeters: series.depthAt(
+                                              scrubTime,
+                                            ),
+                                            units: units,
+                                            palette: palette,
+                                          ),
+                                        ),
+                                      ),
+                                    const PlanChartBailoutStatus(),
+                                  ],
+                                ),
+                              ),
                             ],
                           );
                         },
@@ -639,164 +772,4 @@ class _PlotClipper extends CustomClipper<Rect> {
 
   @override
   bool shouldReclip(_PlotClipper oldClipper) => oldClipper.plot != plot;
-}
-
-/// Scrub cursor + waypoint handles layer; repaints per pointer event without
-/// touching the series or backdrop layers.
-class PlanChartOverlayPainter extends CustomPainter {
-  final PlanChartGeometry geometry;
-  final PlanChartPalette palette;
-  final double? scrubX;
-  final List<Offset> handles;
-  final int? activeHandle;
-  final int? selectedHandle;
-
-  const PlanChartOverlayPainter({
-    required this.geometry,
-    required this.palette,
-    required this.scrubX,
-    this.handles = const [],
-    this.activeHandle,
-    this.selectedHandle,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final plot = geometry.plotRect;
-    final x = scrubX;
-    if (x != null) {
-      canvas.drawLine(
-        Offset(x, plot.top),
-        Offset(x, plot.bottom),
-        Paint()
-          ..color = palette.scrubCursor
-          ..strokeWidth = 1,
-      );
-    }
-
-    final fill = Paint()..color = palette.backdrop;
-    final stroke = Paint()
-      ..color = palette.profileLine
-      ..strokeWidth = 1.6
-      ..style = PaintingStyle.stroke;
-    final selectedFill = Paint()..color = palette.profileLine;
-    for (var i = 0; i < handles.length; i++) {
-      final active = i == activeHandle;
-      final selected = i == selectedHandle;
-      final radius = active ? 6.5 : 4.5;
-      canvas.drawCircle(handles[i], radius, selected ? selectedFill : fill);
-      canvas.drawCircle(handles[i], radius, stroke);
-    }
-  }
-
-  @override
-  bool shouldRepaint(PlanChartOverlayPainter oldDelegate) =>
-      oldDelegate.scrubX != scrubX ||
-      oldDelegate.geometry != geometry ||
-      oldDelegate.palette != palette ||
-      oldDelegate.activeHandle != activeHandle ||
-      oldDelegate.selectedHandle != selectedHandle ||
-      !listEquals(oldDelegate.handles, handles);
-}
-
-class _EmptyState extends ConsumerWidget {
-  const _EmptyState({required this.theme});
-
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // A mission builds its profile from the route, whose card says what is
-    // missing; segments and a quick plan (which would end the mission) are
-    // not what it needs.
-    final missionOn = ref.watch(
-      divePlanNotifierProvider.select((s) => s.mission != null),
-    );
-    // Scrollable so the fixed-height content survives the phone layout's
-    // 160 px chart floor instead of overflowing on short viewports.
-    return Center(
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.show_chart, size: 48, color: theme.colorScheme.outline),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.divePlanner_message_noProfile,
-              style: theme.textTheme.titleMedium,
-            ),
-            if (!missionOn) ...[
-              const SizedBox(height: 8),
-              Text(
-                context.l10n.divePlanner_message_addSegmentsForProfile,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
-              ),
-              const SizedBox(height: 16),
-              FilledButton.tonalIcon(
-                onPressed: () => showDialog<void>(
-                  context: context,
-                  builder: (_) => const SimplePlanDialog(),
-                ),
-                icon: const Icon(Icons.auto_awesome),
-                label: Text(context.l10n.divePlanner_action_quickPlan),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ScrubReadout extends ConsumerWidget {
-  const _ScrubReadout({
-    required this.runtimeSeconds,
-    required this.depthMeters,
-    required this.units,
-    required this.palette,
-  });
-
-  final double runtimeSeconds;
-  final double depthMeters;
-  final UnitFormatter units;
-  final PlanChartPalette palette;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final minutes = (runtimeSeconds / 60).round();
-    final outcome = ref.watch(planOutcomeProvider);
-    var text = context.l10n.plannerCanvas_scrub_readout(
-      minutes.toString(),
-      units.formatDepth(depthMeters, decimals: 0),
-    );
-    // The plan's own remaining time, not a bailout TTS: the schedule the
-    // diver is actually following is already fully computed, so the time
-    // left is just the plan's total runtime minus how far the scrub point
-    // already is into it.
-    final remainingSeconds = (outcome.runtimeSeconds - runtimeSeconds).clamp(
-      0,
-      outcome.runtimeSeconds,
-    );
-    text +=
-        ' · '
-        '${context.l10n.plannerCanvas_scrub_tts('${(remainingSeconds / 60).ceil()}')}';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: palette.readoutBackground,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: palette.readoutBorder),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: palette.readoutText,
-        ),
-      ),
-    );
-  }
 }

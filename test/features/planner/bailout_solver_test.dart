@@ -18,11 +18,19 @@ const _diluentTank = DiveTank(
   role: TankRole.diluent,
 );
 
-DiveTank _bailout({double volume = 11.1, double pressure = 207}) => DiveTank(
+/// Reaches the 60 m default plan (MOD 67 m at the 1.4 bottom limit), which a
+/// richer gas alone cannot: past every MOD there is no ascent to test (#3961).
+const _deepBailoutGas = GasMix(o2: 18, he: 35);
+
+DiveTank _bailout({
+  double volume = 11.1,
+  double pressure = 207,
+  GasMix gasMix = _deepBailoutGas,
+}) => DiveTank(
   id: 'bo',
   volume: volume,
   startPressure: pressure,
-  gasMix: const GasMix(o2: 50),
+  gasMix: gasMix,
   role: TankRole.bailout,
 );
 
@@ -66,6 +74,62 @@ domain.DivePlan _plan({
 
 void main() {
   const solver = BailoutSolver();
+
+  group('planMayHaveBailout', () {
+    domain.DivePlan withoutSegments() => domain.DivePlan(
+      id: 'plan-1',
+      name: 'No segments',
+      mode: domain.PlanMode.ccr,
+      tanks: [_diluentTank, _bailout()],
+      segments: const [],
+      createdAt: DateTime(2026, 7, 5),
+      updatedAt: DateTime(2026, 7, 5),
+    );
+
+    domain.DivePlan neverLeavesTheSurface() => _plan().copyWith(
+      segments: [
+        PlanSegment.hold(
+          id: 'seg-1',
+          depth: 0,
+          durationMinutes: 10,
+          tankId: 'dil',
+          gasMix: _diluent,
+          order: 0,
+        ),
+      ],
+    );
+
+    test('is true for a loop plan carrying a bailout tank', () {
+      expect(planMayHaveBailout(_plan()), isTrue);
+      expect(planMayHaveBailout(_plan(mode: domain.PlanMode.scr)), isTrue);
+    });
+
+    test('rejects open circuit, no bailout tank and no segments', () {
+      expect(planMayHaveBailout(_plan(mode: domain.PlanMode.oc)), isFalse);
+      expect(planMayHaveBailout(_plan(tanks: const [_diluentTank])), isFalse);
+      expect(planMayHaveBailout(withoutSegments()), isFalse);
+    });
+
+    test('the solver returns null for every plan the gate rejects', () {
+      for (final plan in [
+        _plan(mode: domain.PlanMode.oc),
+        _plan(tanks: const [_diluentTank]),
+        withoutSegments(),
+      ]) {
+        expect(planMayHaveBailout(plan), isFalse);
+        expect(solver.solve(plan), isNull);
+      }
+    });
+
+    test('a loop plan that never leaves the surface passes the gate and '
+        'solves to null', () {
+      // One way on purpose: predicting this needs the tissue walk itself,
+      // which is the expensive work the gate exists to avoid.
+      final plan = neverLeavesTheSurface();
+      expect(planMayHaveBailout(plan), isTrue);
+      expect(solver.solve(plan), isNull);
+    });
+  });
 
   test('returns null for OC plans and when no bailout tanks are carried', () {
     expect(solver.solve(_plan(mode: domain.PlanMode.oc)), isNull);
@@ -141,11 +205,20 @@ void main() {
     // Whole-minute stop snapping (brought in line with PlanEngine's own
     // policy by a Copilot review) rounds a stop duration up to the next
     // full minute, a slightly bigger single-sample step than the plain
-    // unsnapped grid gave, hence the wider tolerance.
+    // unsnapped grid gave, hence the wider tolerance. The widest step on a
+    // single gas is a lone 9 m stop gaining a 3 m one: its whole climb out was
+    // at the final rate, and only the last 3 m is now. That is a fixed amount
+    // of gas rather than a share of the demand, so the allowance stays tight
+    // once the demand is large. It is the widest fall measured on this plan,
+    // 192 L, with no real headroom: a change to the stop grid, the SAC or this
+    // fixture should fail here and be measured again.
+    const widestGridStepLiters = 200.0;
     for (var i = 1; i < bottomPoints.length; i++) {
       expect(
         bottomPoints[i].litersRequired,
-        greaterThanOrEqualTo(bottomPoints[i - 1].litersRequired * 0.97),
+        greaterThanOrEqualTo(
+          bottomPoints[i - 1].litersRequired - widestGridStepLiters,
+        ),
         reason: 'sample $i fell more than one grid step below its predecessor',
       );
     }
@@ -212,7 +285,7 @@ void main() {
       }
       for (final row in outcome.worstCaseRows.sublist(bailoutStart)) {
         expect(row.tankId, 'bo', reason: 'row at ${row.depthMeters} m');
-        expect(row.gasFO2, closeTo(0.50, 1e-9));
+        expect(row.gasFO2, closeTo(_deepBailoutGas.o2 / 100, 1e-9));
       }
     });
 

@@ -17,7 +17,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/
 const _noControl = {
   'buddyId', // set by the buddy page's "View all"; removable as a chip
   'diveIds', // set by Connections and other handoffs; removable as a chip
+  'diveIdsLabel', // names diveIds on their chip; filters nothing
   'siteIds', // set by Explore's place lowering; removable as a chip
+  'equipmentUsedOnly', // set by the item page's links; ends with their chip
   'axesSuspended', // the dive search row's scope toggle owns it
 };
 

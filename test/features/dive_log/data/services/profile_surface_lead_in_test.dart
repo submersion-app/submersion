@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -35,28 +37,29 @@ void main() {
     });
   });
 
-  group('ambientPressureBar', () {
-    test('1 bar at the surface', () {
-      expect(ambientPressureBar(0), 1.0);
-    });
-
-    test('adds 1 bar per 10 m of seawater', () {
-      expect(ambientPressureBar(10), 2.0);
-      expect(ambientPressureBar(20), 3.0);
-      expect(ambientPressureBar(25), closeTo(3.5, 1e-9));
-    });
-  });
-
-  group('surfaceValueAtOneBar', () {
+  group('valueAtSurface', () {
     test('recovers the gas fraction from a partial pressure at depth', () {
       // Air ppO2 of 0.63 bar at 20 m (3 bar ambient) is 0.21 at the surface.
-      expect(surfaceValueAtOneBar(0.63, 20), closeTo(0.21, 1e-9));
+      expect(valueAtSurface(0.63, 20), closeTo(0.21, 1e-9));
       // ppN2 0.79 * 3 = 2.37 at 20 m recovers 0.79.
-      expect(surfaceValueAtOneBar(2.37, 20), closeTo(0.79, 1e-9));
+      expect(valueAtSurface(2.37, 20), closeTo(0.79, 1e-9));
     });
 
     test('is a no-op when the first sample is already at the surface', () {
-      expect(surfaceValueAtOneBar(0.21, 0), 0.21);
+      expect(valueAtSurface(0.21, 0), 0.21);
+    });
+
+    test('reads the sample and the surface in the dive\'s environment', () {
+      final environment = DiveEnvironment.forConditions(
+        altitudeMeters: 3000,
+        waterType: WaterType.fresh,
+      );
+      final ppO2 = environment.pressureAtDepth(2) * 0.21;
+
+      expect(
+        valueAtSurface(ppO2, 2, environment: environment),
+        closeTo(environment.surfacePressureBar * 0.21, 1e-9),
+      );
     });
   });
 }

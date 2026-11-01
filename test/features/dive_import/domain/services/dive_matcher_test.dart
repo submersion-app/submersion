@@ -9,6 +9,37 @@ void main() {
       matcher = const DiveMatcher();
     });
 
+    group('candidateWindow', () {
+      double scoreAt(Duration apart) {
+        final start = DateTime.utc(2026, 1, 15, 10);
+        return matcher.calculateMatchScore(
+          wearableStartTime: start.add(apart),
+          wearableMaxDepth: 18.5,
+          wearableDurationSeconds: 45 * 60,
+          existingStartTime: start,
+          existingMaxDepth: 18.5,
+          existingDurationSeconds: 45 * 60,
+        );
+      }
+
+      test('a gap at the window scores zero, however alike the dives', () {
+        expect(scoreAt(DiveMatcher.candidateWindow), 0.0);
+        expect(scoreAt(-DiveMatcher.candidateWindow), 0.0);
+      });
+
+      test('any gap beyond the window scores zero', () {
+        expect(scoreAt(const Duration(days: 3650)), 0.0);
+      });
+
+      test('the last moment inside the window can still match', () {
+        final justInside =
+            DiveMatcher.candidateWindow - const Duration(microseconds: 1);
+
+        expect(matcher.isPossibleDuplicate(scoreAt(justInside)), isTrue);
+        expect(matcher.isPossibleDuplicate(scoreAt(-justInside)), isTrue);
+      });
+    });
+
     group('calculateMatchScore', () {
       test('returns high score for identical time, depth, duration', () {
         final score = matcher.calculateMatchScore(

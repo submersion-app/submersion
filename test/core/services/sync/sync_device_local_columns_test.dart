@@ -113,7 +113,7 @@ void main() {
       final tmpDir = await Directory.systemTemp.createTemp('adopt_forget');
       addTearDown(() => tmpDir.delete(recursive: true));
       final file = File(p.join(tmpDir.path, 'base.json'));
-      await file.writeAsBytes(utf8.encode(serializer.serializePayload(base)));
+      await file.writeAsBytes(utf8.encode(jsonEncode(base.toJson())));
       await SyncService(
         syncRepository: SyncRepository(),
         serializer: serializer,

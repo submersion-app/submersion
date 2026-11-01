@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
@@ -137,7 +138,7 @@ class _BuddyDetailContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
     final statsAsync = ref.watch(buddyStatsProvider(buddy.id));
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -224,6 +225,11 @@ class _BuddyDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'buddies',
+                rootId: buddy.id,
+              ),
               openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
@@ -340,6 +346,11 @@ class _BuddyDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'buddies',
+                rootId: buddy.id,
+              ),
               openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
@@ -581,10 +592,33 @@ class _BuddyDetailContent extends ConsumerWidget {
                 error: (error, _) =>
                     Text(context.l10n.buddies_error_unableToLoadStats),
               ),
+              if (buddy.excludedFromRankings) ...[
+                const SizedBox(height: 12),
+                _buildExcludedFromRankingsNote(context),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Says why a buddy with plenty of dives is missing from the rankings
+  /// (issue #3624).
+  Widget _buildExcludedFromRankingsNote(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onSurfaceVariant;
+    return Row(
+      children: [
+        Icon(Icons.leaderboard_outlined, size: 20, color: color),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            context.l10n.buddies_stat_excludedFromRankings,
+            style: theme.textTheme.bodyMedium?.copyWith(color: color),
+          ),
+        ),
+      ],
     );
   }
 

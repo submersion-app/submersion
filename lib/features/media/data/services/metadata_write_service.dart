@@ -164,9 +164,20 @@ class MetadataWriteService {
   @visibleForTesting
   static bool? debugSupportedOverride;
 
+  /// Whether [item] is something this service can write to at all: a photo in
+  /// a device library, on a platform with a native writer.
+  ///
+  /// Media with no library asset (a Files tab pick, a cloud-backed row, a
+  /// linked URL) has no original to edit in place, so the action is not
+  /// offered for it (issue #3808).
+  bool canWriteTo(MediaItem item) =>
+      isSupported && item.isGalleryPhoto && !item.isVideo;
+
   /// Write dive metadata to a photo in the device library.
   ///
-  /// [platformAssetId] - The platform-specific asset identifier.
+  /// [platformAssetId] - This device's identifier for the asset. A row's stored
+  ///                     id belongs to the device that linked it, so pass the
+  ///                     id `AssetResolutionService` resolves.
   /// [metadata] - The dive metadata to write.
   /// [isVideo] - Whether the caller believes the asset is a video. Videos are
   ///             refused two ways. When this is true the refusal happens here,

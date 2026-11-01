@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -309,7 +310,13 @@ class DiveCenterRepository {
   /// write no deletion-log rows, so a peer would otherwise resurrect them
   /// (issue #2075). One transaction, so a failed delete leaves the dives
   /// linked and the notes in place.
-  Future<void> deleteDiveCenter(String id) async {
+  Future<void> deleteDiveCenter(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteDiveCenterInner(id),
+  );
+
+  Future<void> _deleteDiveCenterInner(String id) async {
     try {
       _log.info('Deleting dive center: $id');
       await _db.transaction(() async {
@@ -360,20 +367,33 @@ class DiveCenterRepository {
     return await query.map((row) => row.read(count)).getSingle() ?? 0;
   }
 
-  /// Get dive count for a dive center
-  Future<int> getDiveCountForCenter(String centerId) async {
-    final result = await _db
-        .customSelect(
-          '''
-      SELECT COUNT(*) as count
+  /// Dive count per center id, counted in SQL so any number of centers costs
+  /// one read. A center with no counted dives is absent from the map.
+  Future<Map<String, int>> getDiveCountsByCenter() async {
+    try {
+      final rows = await _db
+          .customSelect(
+            '''
+      SELECT dive_center_id, COUNT(*) AS count
       FROM dives
-      WHERE dive_center_id = ?${DiveStatsScope.and(alias: 'dives')}
+      WHERE dive_center_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}
+      GROUP BY dive_center_id
     ''',
-          variables: [Variable.withString(centerId)],
-        )
-        .getSingle();
-
-    return result.data['count'] as int? ?? 0;
+            readsFrom: {_db.dives},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('dive_center_id'): row.read<int>('count'),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count dives per center',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// The newest real dive logged with [centerId], skipping planned dives

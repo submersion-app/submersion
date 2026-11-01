@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 /// Enough dive data to clear the service's `hasData` guard.
 const _metadata = DiveMediaMetadata(
@@ -38,6 +39,43 @@ void main() {
     metadata: _metadata,
     isVideo: false,
   );
+
+  group('canWriteTo', () {
+    MediaItem media({
+      String? platformAssetId = 'asset-1',
+      MediaType mediaType = MediaType.photo,
+    }) => MediaItem(
+      id: 'm1',
+      platformAssetId: platformAssetId,
+      mediaType: mediaType,
+      takenAt: DateTime.utc(2026, 7, 1, 10),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+    );
+
+    test('accepts a photo in the device library', () {
+      expect(MetadataWriteService().canWriteTo(media()), isTrue);
+    });
+
+    test('refuses media with no library asset (issue #3808)', () {
+      expect(
+        MetadataWriteService().canWriteTo(media(platformAssetId: null)),
+        isFalse,
+      );
+    });
+
+    test('refuses a video (issue #1472)', () {
+      expect(
+        MetadataWriteService().canWriteTo(media(mediaType: MediaType.video)),
+        isFalse,
+      );
+    });
+
+    test('refuses everything on a platform with no native writer', () {
+      MetadataWriteService.debugSupportedOverride = false;
+      expect(MetadataWriteService().canWriteTo(media()), isFalse);
+    });
+  });
 
   group('videos (issue #1472)', () {
     test('a video write is refused before the platform channel', () async {

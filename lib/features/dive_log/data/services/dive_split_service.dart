@@ -3,15 +3,20 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
+import 'package:submersion/features/dive_log/data/services/dive_timeline_rezero.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
+import 'package:submersion/features/dive_log/domain/services/source_runtime.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -21,6 +26,13 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 /// events, tank pressures, tanks (and those tanks' gas switches) move to a
 /// freshly created dive; the logbook entry (site, notes, buddies, tags,
 /// equipment, media) stays on the original dive.
+///
+/// Consolidation slid the source onto the dive's timeline and recorded by how
+/// much in `timeOffsetSeconds`. Everything that moves goes back to the
+/// source's own clock (issue #3916), so a timestamp means the same moment
+/// measured from the new dive's start as it did before the two were
+/// consolidated. When the primary is the one that leaves, the dive itself
+/// starts over on the source promoted in its place.
 ///
 /// Mirrors the consolidation service's sync discipline: one transaction,
 /// per-row tombstones for every moved row (the original dive survives, so
@@ -45,7 +57,14 @@ class DiveSplitService {
   /// the new dive's id. Throws [ArgumentError] when the source does not
   /// belong to the dive or is the dive's only source. All-or-nothing: one
   /// transaction, full rollback on any failure.
-  Future<String> split({
+  Future<String> split({required String diveId, required String sourceId}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.splitDive,
+        body: () => _splitInner(diveId: diveId, sourceId: sourceId),
+      );
+
+  Future<String> _splitInner({
     required String diveId,
     required String sourceId,
   }) async {
@@ -81,6 +100,8 @@ class DiveSplitService {
 
     final newDiveId = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
+    // How far along this dive's timeline the source's own clock starts.
+    final sourceOffset = source.timeOffsetSeconds ?? 0;
 
     // Series move by computer attribution. A computer-less source cannot be
     // attributed at the row level by computer, so only non-primary
@@ -115,6 +136,9 @@ class DiveSplitService {
       // dive_profile_series.source_id is ON DELETE SET NULL, so reading
       // after would lose the FK ownership signal this rule needs.
       final allProfileSeries = await _profileSeries.getSeriesForDive(diveId);
+      // Also before the deletes: they take the demoted generation an edit is
+      // recognised by.
+      final liveEditIds = await _profileSeries.liveEditIds(diveId);
       final allPressureSeries = await _tankSeries.getSeriesForDive(diveId);
       final movingProfiles = [
         for (final s in allProfileSeries)
@@ -146,6 +170,12 @@ class DiveSplitService {
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and
       // leave the logbook entry (site, notes, number) behind.
+      final newDiveTiming = _snapshotTiming(
+        [source],
+        source,
+        diveRow,
+        sourceOffset,
+      );
       await _db
           .into(_db.dives)
           .insert(
@@ -155,10 +185,12 @@ class DiveSplitService {
                   id: Value(newDiveId),
                   // Dive.dateTime derives from diveDateTime; date the new
                   // dive by its own source's entry time so it sorts where
-                  // that computer actually recorded it.
+                  // that computer actually recorded it. A source with no
+                  // entry time still goes back to its own clock below, so
+                  // it starts as far along the old dive as that clock did.
                   diveDateTime: Value(
-                    source.entryTime?.millisecondsSinceEpoch ??
-                        diveRow.diveDateTime,
+                    newDiveTiming.entryMs ??
+                        diveRow.diveDateTime + sourceOffset * 1000,
                   ),
                   diveNumber: const Value(null),
                   siteId: const Value(null),
@@ -175,18 +207,18 @@ class DiveSplitService {
                           movingProfiles,
                           sourceId: source.id,
                           computerId: source.computerId,
-                          runtimeSeconds: source.duration,
+                          runtimeSeconds: newDiveTiming.runtimeSeconds,
                         ) ??
                         diveRow.bottomTime,
                   ),
+                  // The source's own, or the copied row would keep the
+                  // original dive's across the source's span (issue #3899).
+                  runtime: Value(
+                    newDiveTiming.runtimeSeconds ?? diveRow.runtime,
+                  ),
                   waterTemp: Value(source.waterTemp ?? diveRow.waterTemp),
-                  entryTime: Value(
-                    source.entryTime?.millisecondsSinceEpoch ??
-                        diveRow.entryTime,
-                  ),
-                  exitTime: Value(
-                    source.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime,
-                  ),
+                  entryTime: Value(newDiveTiming.entryMs),
+                  exitTime: Value(newDiveTiming.exitMs),
                   surfaceIntervalSeconds: Value(
                     source.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
                   ),
@@ -220,7 +252,8 @@ class DiveSplitService {
         now: now,
       );
 
-      // 2. The source row becomes the new dive's primary source.
+      // 2. The source row becomes the new dive's primary source, on that
+      // dive's time base: steps 5 to 7b take its offset off what it moves.
       final newSourceId = _uuid.v4();
       await _db
           .into(_db.diveDataSources)
@@ -231,6 +264,7 @@ class DiveSplitService {
                   id: Value(newSourceId),
                   diveId: Value(newDiveId),
                   isPrimary: const Value(true),
+                  timeOffsetSeconds: const Value(0),
                 ),
           );
       await (_db.delete(
@@ -433,8 +467,25 @@ class DiveSplitService {
           sourceId: newSourceId,
           isPrimary: source.isPrimary ? s.isPrimary : true,
           activatedAt: Value(s.activatedAt),
-          samples: s.samples,
+          samples: [for (final p in s.samples) p.shiftedBy(-sourceOffset)],
           now: now,
+        );
+      }
+
+      // The row above took the source's own depths. An edit that moved with
+      // it is what the new dive shows, so its depths are the dive's (issue
+      // #3931).
+      final movedEditDepths = await _profileSeries.liveEditDepthSummary(
+        newDiveId,
+      );
+      if (movedEditDepths != null) {
+        await (_db.update(
+          _db.dives,
+        )..where((t) => t.id.equals(newDiveId))).write(
+          DivesCompanion(
+            maxDepth: Value(movedEditDepths.maxDepth),
+            avgDepth: Value(movedEditDepths.avgDepth),
+          ),
         );
       }
 
@@ -445,7 +496,7 @@ class DiveSplitService {
           tankId: tankIdMap[s.tankId] ?? s.tankId,
           computerId: s.computerId,
           sourceId: newSourceId,
-          samples: s.samples,
+          samples: [for (final p in s.samples) p.shiftedBy(-sourceOffset)],
           now: now,
         );
       }
@@ -461,6 +512,7 @@ class DiveSplitService {
                   .copyWith(
                     id: Value(freshId),
                     diveId: Value(newDiveId),
+                    timestamp: Value(row.timestamp - sourceOffset),
                     tankId: Value(
                       row.tankId == null
                           ? null
@@ -494,6 +546,7 @@ class DiveSplitService {
                     id: Value(freshId),
                     diveId: Value(newDiveId),
                     tankId: Value(tankIdMap[row.tankId]!),
+                    timestamp: Value(row.timestamp - sourceOffset),
                   ),
             );
         await _sync.markRecordPending(
@@ -574,28 +627,71 @@ class DiveSplitService {
           );
         }
 
+        // The dive now starts when the promoted source did, so that moment
+        // becomes the zero of everything left on its timeline. Without this
+        // the promoted source's first sample would read as its offset past
+        // its own entry time.
+        final promotedOffset = promoted.timeOffsetSeconds ?? 0;
+        if (promotedOffset != 0) {
+          await rezeroDiveTimeline(
+            db: _db,
+            sync: _sync,
+            profileSeries: _profileSeries,
+            tankSeries: _tankSeries,
+            diveId: diveId,
+            offset: promotedOffset,
+            now: now,
+          );
+        }
+
+        // The safety review grades the primary's own samples, so the stored
+        // one graded the computer that just left.
+        await SafetyFindingsRepository.clearReviewForDive(_db, _sync, diveId);
+
+        // An edit that stayed behind describes the dive; the promoted source's
+        // row describes a recording the dive is not showing (issue #3931).
+        final keptEdit = liveEditIds.difference({
+          for (final s in movingProfiles) s.id,
+        }).isNotEmpty;
+        final keptDepths = keptEdit
+            ? await _profileSeries.liveDepthSummary(diveId)
+            : null;
+
+        final promotedTiming = _snapshotTiming(
+          sources.where((s) => s.id != source.id).toList()
+            ..sort(compareDataSourcesInShownOrder),
+          promoted,
+          diveRow,
+          promotedOffset,
+        );
+
         diveUpdate = diveUpdate.copyWith(
+          diveDateTime: Value(
+            promotedTiming.entryMs ??
+                diveRow.diveDateTime + promotedOffset * 1000,
+          ),
           computerId: Value(promoted.computerId),
           diveComputerModel: Value(promoted.computerModel),
           diveComputerSerial: Value(promoted.computerSerial),
-          maxDepth: Value(promoted.maxDepth ?? diveRow.maxDepth),
-          avgDepth: Value(promoted.avgDepth ?? diveRow.avgDepth),
+          maxDepth: Value(
+            keptDepths?.maxDepth ?? promoted.maxDepth ?? diveRow.maxDepth,
+          ),
+          avgDepth: Value(
+            keptDepths?.avgDepth ?? promoted.avgDepth ?? diveRow.avgDepth,
+          ),
           bottomTime: Value(
             sourceBottomTimeSeconds(
                   allProfileSeries.where((s) => !movingProfiles.contains(s)),
                   sourceId: promoted.id,
                   computerId: promoted.computerId,
-                  runtimeSeconds: promoted.duration,
+                  runtimeSeconds: promotedTiming.runtimeSeconds,
                 ) ??
                 diveRow.bottomTime,
           ),
+          runtime: Value(promotedTiming.runtimeSeconds ?? diveRow.runtime),
           waterTemp: Value(promoted.waterTemp ?? diveRow.waterTemp),
-          entryTime: Value(
-            promoted.entryTime?.millisecondsSinceEpoch ?? diveRow.entryTime,
-          ),
-          exitTime: Value(
-            promoted.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime,
-          ),
+          entryTime: Value(promotedTiming.entryMs),
+          exitTime: Value(promotedTiming.exitMs),
           surfaceIntervalSeconds: Value(
             promoted.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
           ),
@@ -623,5 +719,34 @@ class DiveSplitService {
 
     SyncEventBus.notifyLocalChange();
     return newDiveId;
+  }
+
+  /// [epochMs] moved [seconds] later, for a time that only the dive can give
+  /// a source with no window of its own. Null stays null.
+  int? _later(int? epochMs, int seconds) =>
+      epochMs == null ? null : epochMs + seconds * 1000;
+
+  /// The timing [row] gives a dive, among [rows]: each timestamp falls back
+  /// to [diveRow]'s moved [offset] seconds later, and the runtime is null when
+  /// neither yields one, leaving the caller to keep the dive's own alongside
+  /// those timestamps.
+  ({int? entryMs, int? exitMs, int? runtimeSeconds}) _snapshotTiming(
+    List<DiveDataSourcesData> rows,
+    DiveDataSourcesData row,
+    Dive diveRow,
+    int offset,
+  ) {
+    final timing = dataSourceStrandTiming(rows, row);
+    final entryMs = timing.entryMs ?? _later(diveRow.entryTime, offset);
+    final exitMs = timing.exitMs ?? _later(diveRow.exitTime, offset);
+    return (
+      entryMs: entryMs,
+      exitMs: exitMs,
+      runtimeSeconds: sourceRuntimeSeconds(
+        durationSeconds: timing.durationSeconds,
+        entryTimeMs: entryMs,
+        exitTimeMs: exitMs,
+      ),
+    );
   }
 }

@@ -17,6 +17,7 @@ import 'package:submersion/features/courses/domain/entities/course_requirement.d
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center_gear_note.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -35,6 +36,7 @@ import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/conflict_field_catalogue.dart';
+import 'package:submersion/features/settings/presentation/conflicts/catalogue/dive_lab_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_enum_labels.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -98,6 +100,7 @@ void main() {
       (certificationAgencyLabeler, CertificationAgency.values),
       (certificationLevelLabeler, CertificationLevel.values),
       (planModeLabeler, PlanMode.values),
+      (scenarioModeLabeler, ScenarioMode.values),
       (turnPressureRuleLabeler, TurnPressureRule.values),
       (missionEnvironmentLabeler, MissionEnvironment.values),
       (requirementKindLabeler, RequirementKind.values),

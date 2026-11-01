@@ -42,6 +42,7 @@ void main() {
         id: 'a',
         diverId: 'd1',
         name: 'Reef set',
+        showFigure: false,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),

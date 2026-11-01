@@ -3,9 +3,11 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -356,6 +358,15 @@ class Dive extends Equatable {
   /// only its own value.
   WaterType? get effectiveWaterType => waterType ?? site?.waterType;
 
+  /// The water and surface pressure this dive happened in: what its deco
+  /// replay runs in and what every pressure read from its depth uses
+  /// (issue #3958).
+  DiveEnvironment get environment => DiveEnvironment.forConditions(
+    altitudeMeters: altitude,
+    waterType: effectiveWaterType,
+    surfacePressureBar: surfacePressure,
+  );
+
   /// Entry method of the dive, falling back to the assigned site's (issue
   /// #1427). The entry-method twin of [effectiveWaterType], with the same
   /// reasoning: the site's value is snapped onto a dive when the site is
@@ -449,6 +460,15 @@ class Dive extends Equatable {
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
 
+  /// The lead the detail page shows, or null when none is recorded: the weight
+  /// entries when there are any, else a positive legacy [weightAmount]. The
+  /// Dart spelling of `recordedWeightKgSql` (issue #3914).
+  double? get recordedWeightKg {
+    if (weights.isNotEmpty) return totalWeight;
+    final legacy = weightAmount;
+    return legacy != null && legacy > 0 ? legacy : null;
+  }
+
   // CCR/SCR computed properties
 
   /// Whether this is a CCR dive
@@ -505,7 +525,7 @@ class Dive extends Equatable {
 
     // Ambient pressure ratio in bar, matching the 1 bar reference that
     // gasVolume returns volumes against.
-    final avgPressureBar = (avgDepth! / 10) + 1;
+    final avgPressureBar = environment.pressureAtDepth(avgDepth!);
 
     // Sum gas consumed across all tanks (in liters at 1 bar)
     double totalGasLiters = 0;
@@ -568,7 +588,8 @@ class Dive extends Equatable {
   /// SAC: surface air consumption as a tank-pressure drop rate, in bar/min
   /// at the surface, in bar of [sacReferenceTank]. Every other breathed
   /// cylinder adds its drop converted to that cylinder's size (issue #3109,
-  /// see [referencePressureDrop]). Null on a rebreather dive, whose
+  /// see [referencePressureDrop]), so a [sacReferenceTank] left idle adds
+  /// zero to what the others used (#3974). Null on a rebreather dive, whose
   /// cylinders do not drain with the diver's breathing (issue #3673).
   ///
   /// Needs no cylinder volume, so it exists for every dive-computer download
@@ -587,7 +608,7 @@ class Dive extends Equatable {
     final minutes = effectiveRuntime!.inSeconds / 60;
     if (minutes <= 0) return null;
 
-    final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
+    final avgPressureBar = environment.pressureAtDepth(avgDepth!);
 
     final pressureUsed = referencePressureDrop(
       reference: sacReferenceTank!,
@@ -596,7 +617,7 @@ class Dive extends Equatable {
     if (pressureUsed == null) return null;
 
     // SAC in bar/min at surface
-    return pressureUsed / minutes / avgPressureAtm;
+    return pressureUsed / minutes / avgPressureBar;
   }
 
   /// Calculate bottom time from dive profile data.
@@ -637,18 +658,15 @@ class Dive extends Equatable {
 
   /// Calculate average depth from dive profile data.
   ///
-  /// Uses a simple arithmetic mean of all profile depth points.
-  /// Returns null if profile data is insufficient.
+  /// Weights the profile by elapsed time, so uneven sample intervals do not
+  /// skew it. Returns null if profile data is insufficient.
   double? calculateAvgDepthFromProfile() {
-    if (profile.isEmpty) return null;
-
-    double depthSum = 0;
-    for (final point in profile) {
-      depthSum += point.depth;
-    }
-
-    final avg = depthSum / profile.length;
-    return avg > 0 ? avg : null;
+    final avg = timeWeightedMean(
+      profile,
+      time: (p) => p.timestamp,
+      value: (p) => p.depth,
+    );
+    return avg != null && avg > 0 ? avg : null;
   }
 
   /// Calculate runtime (total dive time) from dive profile data.

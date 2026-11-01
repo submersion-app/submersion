@@ -188,7 +188,8 @@ void main() {
         await service.recomputeMetrics('d1');
         final dive = (await diveRepo.getDiveById('d1'))!;
         expect(dive.maxDepth, 30);
-        expect(dive.avgDepth, closeTo(20.0, 1e-9));
+        // Over time: a minute averaging 15 m, then a minute at 30 m.
+        expect(dive.avgDepth, closeTo(22.5, 1e-9));
       },
     );
 

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -8,6 +9,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -15,6 +17,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
@@ -342,6 +345,10 @@ class SiteRepository {
         }
         await _writeClassification(site.id, classification);
       });
+      // A dive with no water of its own reads this site's for its SAC metrics.
+      if (before?.waterType?.name != companion.waterType.value) {
+        DerivedMetricsScheduler.instance.scheduleStaleSweep();
+      }
       if (libraryEdit && before != null) {
         final changed = LibraryEditStamper.changedFields(before, site);
         if (classification != null) {
@@ -499,28 +506,34 @@ class SiteRepository {
     }
   }
 
-  /// Appends [text] to [siteId]'s description, as a new Markdown paragraph
-  /// when the description already holds text (logbook rules, #3513; #3683).
-  /// Marks the site pending; the caller notifies.
-  Future<void> appendDescription(String siteId, String text) async {
-    if (text.isEmpty) return;
+  /// Sites per statement in [appendDescriptionToAll], well under SQLite's
+  /// bound-variable limit.
+  static const _appendChunk = 500;
+
+  /// Appends [text] to each of [siteIds]' descriptions, as a new Markdown
+  /// paragraph when one already holds text (logbook rules, #3513; #3683).
+  /// Marks the sites pending; the caller notifies.
+  Future<void> appendDescriptionToAll(List<String> siteIds, String text) async {
+    if (text.isEmpty || siteIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.customUpdate(
-      "UPDATE dive_sites SET description = CASE WHEN description = '' "
-      "THEN ? ELSE description || char(10) || char(10) || ? END, "
-      'updated_at = ? '
-      'WHERE id = ?',
-      variables: [
-        Variable.withString(text),
-        Variable.withString(text),
-        Variable.withInt(now),
-        Variable.withString(siteId),
-      ],
-      updates: {_db.diveSites},
-    );
-    await _syncRepository.markRecordPending(
+    for (final chunk in siteIds.slices(_appendChunk)) {
+      await _db.customUpdate(
+        "UPDATE dive_sites SET description = CASE WHEN description = '' "
+        "THEN ? ELSE description || char(10) || char(10) || ? END, "
+        'updated_at = ? '
+        "WHERE id IN (${List.filled(chunk.length, '?').join(', ')})",
+        variables: [
+          Variable.withString(text),
+          Variable.withString(text),
+          Variable.withInt(now),
+          for (final id in chunk) Variable.withString(id),
+        ],
+        updates: {_db.diveSites},
+      );
+    }
+    await _syncRepository.markRecordsPending(
       entityType: 'diveSites',
-      recordId: siteId,
+      recordIds: siteIds,
       localUpdatedAt: now,
     );
   }
@@ -726,6 +739,22 @@ class SiteRepository {
     bool cascadeMedia = true,
     String? actingDiverId,
     bool? logTombstones,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteSiteInner(
+      id,
+      cascadeMedia: cascadeMedia,
+      actingDiverId: actingDiverId,
+      logTombstones: logTombstones,
+    ),
+  );
+
+  Future<bool> _deleteSiteInner(
+    String id, {
+    bool cascadeMedia = true,
+    String? actingDiverId,
+    bool? logTombstones,
   }) async {
     try {
       final ownership = await _siteOwnership([id], actingDiverId);
@@ -830,6 +859,20 @@ class SiteRepository {
     List<String> ids, {
     bool cascadeMedia = true,
     String? actingDiverId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkDelete,
+    body: () => _bulkDeleteSitesInner(
+      ids,
+      cascadeMedia: cascadeMedia,
+      actingDiverId: actingDiverId,
+    ),
+  );
+
+  Future<SiteLinks> _bulkDeleteSitesInner(
+    List<String> ids, {
+    bool cascadeMedia = true,
+    String? actingDiverId,
   }) async {
     if (ids.isEmpty) return const SiteLinks();
     try {
@@ -877,6 +920,20 @@ class SiteRepository {
   /// Returns a [MergeSnapshot] that can be passed to [undoMerge] to reverse
   /// the operation, or `null` if the merge was a no-op.
   Future<MergeSnapshot?> mergeSites({
+    required domain.DiveSite mergedSite,
+    required List<String> siteIds,
+    String? actingDiverId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.merge,
+    body: () => _mergeSitesInner(
+      mergedSite: mergedSite,
+      siteIds: siteIds,
+      actingDiverId: actingDiverId,
+    ),
+  );
+
+  Future<MergeSnapshot?> _mergeSitesInner({
     required domain.DiveSite mergedSite,
     required List<String> siteIds,
     String? actingDiverId,
@@ -1104,7 +1161,13 @@ class SiteRepository {
   }
 
   /// Reverse a merge operation using a previously captured [MergeSnapshot].
-  Future<void> undoMerge(MergeSnapshot snapshot) async {
+  Future<void> undoMerge(MergeSnapshot snapshot) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.undoMerge,
+    body: () => _undoMergeInner(snapshot),
+  );
+
+  Future<void> _undoMergeInner(MergeSnapshot snapshot) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     try {

@@ -47,5 +47,34 @@ void main() {
 
       expect(repaired.every((d) => d.isFinite), isTrue);
     });
+
+    test('interpolates by timestamp on an unevenly sampled spike', () {
+      final depths = [10.0, 100.0, 20.0];
+      final timestamps = [0, 10, 40];
+
+      final repaired = repairDepthOutliers(depths, timestamps);
+
+      // 10 + (20 - 10) * (10 - 0) / (40 - 0)
+      expect(repaired[1], closeTo(12.5, 1e-9));
+    });
+
+    test('takes the midpoint when out-of-order neighbours span no time', () {
+      final depths = [10.0, 100.0, 200.0];
+      final timestamps = [0, 10, 0];
+
+      final repaired = repairDepthOutliers(depths, timestamps);
+
+      expect(repaired[1], closeTo(105.0, 1e-9));
+    });
+
+    test('stays between the neighbours on out-of-order timestamps', () {
+      final depths = [10.0, 100.0, 200.0];
+      final timestamps = [0, 10, 5];
+
+      final repaired = repairDepthOutliers(depths, timestamps);
+
+      // Unclamped, the fraction of 2 would extrapolate to 390 m.
+      expect(repaired[1], closeTo(200.0, 1e-9));
+    });
   });
 }

@@ -5,7 +5,7 @@
 Submersion is a free, open-source dive log for scuba divers: one app for iOS, Android, macOS, Windows, and Linux. Your logbook lives on your own device, no account and no subscription required, and you can export all of it to open standards at any time.
 
 > [!NOTE]
-> New here? Jump straight to [Installation](installation.md) to get the app, then log your first dive with [Your First Dive](first-dive.md).
+> New here? Jump straight to [Installation](installation.md) to get the app, then log your first dive with [Your First Dive](first-dive.md). Want to get one thing done, step by step? The [How-To Guides](how-to-guides.md) walk you through setting up sync, moving from another app, and more.
 
 <!-- screenshot: images/home/dashboard-hero.png: the Dashboard on first open -->
 
@@ -26,7 +26,7 @@ When you open Submersion you land on the **Dashboard**, your home screen, with a
 | **Your dive world** | [Dive sites](dive-sites.md) and maps, [trips](trips.md), [buddies and dive centers](buddies-and-dive-centers.md), and [marine life and photos](marine-life-and-photos.md), with their own **Media** and **Species** destinations. |
 | **Diver and gear** | Your [certifications and courses](certifications-and-courses.md), your [equipment](equipment.md) and service reminders, and your [diver profile](diver-profile.md). |
 | **Insights and planning** | [Insights](statistics.md): statistics, records and trends across your diving, plus the [dive planner and calculators](planning.md). |
-| **Setup and data** | [Settings](settings.md), [backup and restore](backup-and-restore.md), [multi-device sync](multi-device-sync.md), [shared site libraries](shared-site-libraries.md), and [debug mode](debug-mode.md). |
+| **Setup and data** | [Settings](settings.md), [backup and restore](backup-and-restore.md), the [change log](change-log.md), [multi-device sync](multi-device-sync.md), [shared site libraries](shared-site-libraries.md), and [debug mode](debug-mode.md). |
 
 > [!TIP]
 > "Home" in the navigation always takes you back to the [Dashboard](dashboard.md).

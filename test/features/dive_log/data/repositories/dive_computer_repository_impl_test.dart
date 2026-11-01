@@ -841,6 +841,49 @@ void main() {
       );
     });
 
+    test('a download with no reported average depth weights the samples by '
+        'elapsed time, for the dive and each source (#3891)', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 5, 10, 8, 30);
+      const points = [
+        ProfilePointData(timestamp: 0, depth: 10.0),
+        ProfilePointData(timestamp: 60, depth: 10.0),
+        ProfilePointData(timestamp: 120, depth: 30.0),
+        ProfilePointData(timestamp: 600, depth: 30.0),
+      ];
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: points,
+        durationSeconds: 600,
+        maxDepth: 30.0,
+        forceNew: true,
+      );
+      final otherComputerId = await insertComputer(
+        id: 'computer-2',
+        name: 'Other Computer',
+      );
+      await repository.importProfile(
+        computerId: otherComputerId,
+        profileStartTime: entryTime,
+        points: points,
+        durationSeconds: 600,
+        maxDepth: 30.0,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.avgDepth, closeTo(27, 1e-9));
+      final sources = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(sources, hasLength(2));
+      for (final source in sources) {
+        expect(source.avgDepth, closeTo(27, 1e-9));
+      }
+    });
+
     test(
       'forceNew=true skips dive matching and always creates new dive',
       () async {

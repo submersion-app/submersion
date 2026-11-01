@@ -39,6 +39,7 @@ import 'package:submersion/features/universal_import/data/services/batch_parse_s
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 
+import '../../helpers/dive_match_records.dart';
 import '../../helpers/test_database.dart';
 
 const _minimalUddf = '''<uddf version="3.2.1">
@@ -314,7 +315,10 @@ void main() {
       // The DiverLog file's site survives merging with its per-file namespace.
       final mergedSites = merged.entitiesOf(ImportEntityType.sites);
       expect(mergedSites, hasLength(1));
-      expect(mergedSites.single['uddfId'], 'f0:dl7_site_molokini crater');
+      expect(
+        mergedSites.single['uddfId'],
+        'f0:dl7_site_["molokini crater","united states","hawaii","kihei"]',
+      );
       expect(mergedSites.single['name'], 'Molokini Crater');
 
       // Against an empty library: no duplicates (the two dives are distinct).
@@ -342,7 +346,7 @@ void main() {
       );
       final reimport = const ImportDuplicateChecker().check(
         payload: merged,
-        existingDives: [existingDive],
+        existingDives: [diveMatchRecordOf(existingDive)],
         existingSites: const [],
         existingTrips: const [],
         existingEquipment: const [],

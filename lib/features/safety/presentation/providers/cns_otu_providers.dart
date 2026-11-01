@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -19,12 +20,12 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 /// on every UI tick by [CnsOtuLiveService] rather than cached, so pure
 /// elapsed time never makes CNS% stale. The daily and weekly OTU totals are
 /// sums, not formulas: they cannot be re-derived from a stale snapshot the
-/// way CNS% can, so this provider also self-schedules a refetch at the next
-/// local midnight, the only moment either window can move without a dive
-/// being written.
+/// way CNS% can, so this provider also refetches when the local day changes,
+/// the only moment either window can move without a dive being written.
 final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
+  ref.invalidateSelfWhen(localDayChanges());
 
   final diverId = ref.watch(currentDiverIdProvider);
   // No active diver yet (transient at startup, or a fresh install): report no
@@ -36,10 +37,6 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
   // issue #2587 for why DateTime.now().toUtc() is wrong here).
   final now = NoFlyService.wallClockNowUtc();
   final nextMidnight = _nextMidnight(now);
-  // Scheduled before the first await, while this ref is certainly live: a
-  // dive write landing mid-build disposes it, and registering the timer's
-  // onDispose afterwards would throw and leave the timer running.
-  _scheduleMidnightRefresh(ref, now, nextMidnight);
 
   final lastDive = await repository.getMostRecentDiveTimes(
     diverId: diverId,
@@ -56,7 +53,7 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
 
   return CnsOtuSnapshot(
     lastDiveId: lastDive.id,
-    lastDiveEnd: lastDive.effectiveExitTime,
+    lastDiveEnd: lastDive.effectiveExitInstant,
     // Null when the last dive has no profile: the readout then warns that
     // its exposure is unknown rather than reporting "no load".
     exposure: analysis?.o2Exposure,
@@ -69,13 +66,7 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
     // The same site conditions profileAnalysisProvider computed those
     // compartments in, so the live projection off-gasses toward the dive's
     // own surface rather than a 1.0 bar sea-level one.
-    surfaceEnvironment: dive == null
-        ? DiveEnvironment.standard
-        : DiveEnvironment.forConditions(
-            altitudeMeters: dive.altitude,
-            waterType: dive.effectiveWaterType,
-            surfacePressureBar: dive.surfacePressure,
-          ),
+    surfaceEnvironment: dive?.environment ?? DiveEnvironment.standard,
   );
 });
 
@@ -96,7 +87,8 @@ Future<({double daily, double weekly})> _currentOtuTotals(
   final startOfDay = endOfDay.subtract(const Duration(days: 1));
   final sevenDaysAgo = endOfDay.subtract(const Duration(days: 7));
 
-  // Planner rows are excluded: a saved plan has not been dived.
+  // Plans nobody has dived are excluded; a dive mirrored from a logged dive
+  // is not one of them.
   final weekDives = await repository.getExecutedDiveTimesInRange(
     sevenDaysAgo.subtract(otuWindowLookback),
     endOfDay,
@@ -107,14 +99,14 @@ Future<({double daily, double weekly})> _currentOtuTotals(
   // later than now (logged ahead of time); its OTU has not been accrued yet.
   // The now-anchored form of weeklyOtuProvider's later-dive guard (#407).
   final accrued = weekDives
-      .where((dive) => !(dive.entryTime ?? dive.dateTime).isAfter(now))
+      .where((dive) => !dive.effectiveEntryTime.isAfter(now))
       .toList();
 
-  // Read (not watch) to avoid cascading Riverpod invalidations, matching
+  // Await (not watch) to avoid cascading Riverpod invalidations, matching
   // the lookback pattern in profile_analysis_provider.dart. Both sums read
   // the same keep-alive analyses, so the second reuses the first's results.
   Future<ProfileAnalysis?> analysisOf(String id) =>
-      ref.read(profileAnalysisProvider(id).future);
+      ref.container.awaitFuture(profileAnalysisProvider(id).future);
 
   final (daily, weekly) = await (
     sumOtuInWindow(
@@ -137,18 +129,3 @@ Future<({double daily, double weekly})> _currentOtuTotals(
 /// frame.
 DateTime _nextMidnight(DateTime now) =>
     DateTime.utc(now.year, now.month, now.day).add(const Duration(days: 1));
-
-/// The OTU totals above are only recomputed when this provider itself
-/// reruns. Nothing writes to the dive table when a day simply ends, so
-/// without this the daily total would carry over and the 7-day window would
-/// keep showing a dive that has aged out of it until the diver's next
-/// dive-table write. Mirrors [noFlyStatusProvider]'s self-scheduled expiry,
-/// but on a day boundary rather than a fixed guideline deadline.
-void _scheduleMidnightRefresh(Ref ref, DateTime now, DateTime nextMidnight) {
-  final untilMidnight = nextMidnight.difference(now);
-  final timer = Timer(
-    untilMidnight + const Duration(seconds: 1),
-    ref.invalidateSelf,
-  );
-  ref.onDispose(timer.cancel);
-}

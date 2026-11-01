@@ -101,8 +101,8 @@ const Map<DiveField, DiveColumnFilter> kDiveColumnFilters = {
     'visibility',
     DiveColumnFilterKind.number,
   ),
-  // Header only: list loads never hydrate weights, so the cell is always
-  // "--" while the field reads dive_weights.
+  // Header only: list loads never hydrate weights, so the cell reads "--" for
+  // a dive with weight rows while the field reads dive_weights.
   DiveField.totalWeight: DiveColumnFilter(
     'weight',
     DiveColumnFilterKind.headerOnly,

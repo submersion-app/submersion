@@ -1,5 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
@@ -15,8 +14,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// limits, ascent gases, deco stop increments and metric sources, any of which
 /// can move the NDL curve (issue #2592; this used to name only the GF).
 /// Per-dive inputs (the dive's stored GF, altitude, water type, and the
-/// profile samples themselves) are all covered by [diveUpdatedAt], which moves
-/// whenever the dive row or its profile is written.
+/// profile samples themselves) and residual load are all covered by
+/// [diveRevision], a version token that moves whenever the dive, its children
+/// or a dive in its residual lookback is written (issue #3924).
 ///
 /// That makes the fingerprint computable from the statistics scan alone, with
 /// no dive hydration, which is what lets a warm library skip loading profiles
@@ -29,8 +29,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 String decoInputsHash({
   required int engineVersion,
   required String settingsFingerprint,
-  required int diveUpdatedAt,
-}) => 'v$engineVersion|$diveUpdatedAt|$settingsFingerprint';
+  required int diveRevision,
+}) => 'v$engineVersion|$diveRevision|$settingsFingerprint';
 
 /// Classifies dives that carry no recorded deco signal by running the same
 /// analysis the dive detail page runs (#623).
@@ -45,22 +45,27 @@ class DecoClassificationService {
   static final _log = LoggerService.forClass(DecoClassificationService);
 
   /// Returns `diveId -> hadDeco` for every dive in [revisions] that could be
-  /// classified. [revisions] maps dive id to that dive's `dives.updated_at`,
-  /// as returned by `InsightsRepository.scanRecordedDecoSignals`.
+  /// classified. [revisions] maps dive id to a version token for that dive
+  /// and the dives in its residual lookback, as returned by
+  /// `InsightsRepository.scanRecordedDecoSignals`.
+  ///
+  /// A first pass over a large library runs for minutes on a phone, so
+  /// [onProgress] reports what is known so far: once after the cache read and
+  /// again after each dive analyzed, with how many dives are still to do.
   ///
   /// Dives whose analysis yields nothing (no usable profile) are absent from
   /// the result and stay unclassified rather than defaulting to no-deco.
   ///
   /// The whole cache is read in one query up front, so a warm library performs
   /// a single SELECT and hydrates no profiles at all. Only genuine misses are
-  /// analyzed, in chunks, with their analysis invalidated afterwards:
+  /// analyzed, with their analysis invalidated afterwards:
   /// [profileAnalysisProvider] and [analysisDiveProvider] are keepAlive
   /// families, so a library-wide pass would otherwise retain every profile's
   /// curves for the whole session.
   Future<Map<String, bool>> classify(
     Ref ref,
     Map<String, int> revisions, {
-    int chunkSize = 25,
+    void Function(Map<String, bool> classified, int pending)? onProgress,
   }) async {
     if (revisions.isEmpty) return const {};
 
@@ -80,7 +85,7 @@ class DecoClassificationService {
         entry.key: decoInputsHash(
           engineVersion: analysisEngineVersion,
           settingsFingerprint: settingsFingerprint,
-          diveUpdatedAt: entry.value,
+          diveRevision: entry.value,
         ),
     };
 
@@ -111,48 +116,51 @@ class DecoClassificationService {
         ..addAll(revisions.keys);
     }
 
-    for (var start = 0; start < misses.length; start += chunkSize) {
-      final end = start + chunkSize < misses.length
-          ? start + chunkSize
-          : misses.length;
-      for (final diveId in misses.sublist(start, end)) {
-        try {
-          final analysis = await ref.read(
-            profileAnalysisProvider(diveId).future,
-          );
-          if (analysis == null || analysis.ndlCurve.isEmpty) continue;
-          // The hashes were taken once, up front, but each analysis reads the
-          // settings when it runs, and records which it read. A diver switch
-          // (#2564), any settings edit since, a chart source toggle, or an
-          // analysis recording no inputs at all means this result belongs to
-          // other inputs than its hash, so it is neither cached nor reported;
-          // the dive stays unclassified until a run under the diver's
-          // settings. A change made and undone during the analysis still
-          // shows, since the fingerprint is what it actually ran on.
-          if (analysis.inputsFingerprint != settingsFingerprint) continue;
+    var pending = misses.length;
+    onProgress?.call(results, pending);
 
-          final hadDeco = analysis.hadDecoObligation;
-          results[diveId] = hadDeco;
-          if (settingsLoaded) {
-            await cache.put(
-              diveId,
-              hadDeco: hadDeco,
-              inputsHash: hashes[diveId]!,
-            );
-          }
-        } catch (e, stackTrace) {
-          _log.error(
-            'Failed to classify deco obligation for dive $diveId',
-            error: e,
-            stackTrace: stackTrace,
+    for (final diveId in misses) {
+      // A rebuild of the caller has started its own pass over these dives.
+      if (!ref.mounted) return results;
+      try {
+        final analysis = await ref.container.awaitFuture(
+          profileAnalysisProvider(diveId).future,
+        );
+        if (analysis == null || analysis.ndlCurve.isEmpty) continue;
+        // The hashes were taken once, up front, but each analysis reads the
+        // settings when it runs, and records which it read. A diver switch
+        // (#2564), any settings edit since, a chart source toggle, or an
+        // analysis recording no inputs at all means this result belongs to
+        // other inputs than its hash, so it is neither cached nor reported;
+        // the dive stays unclassified until a run under the diver's
+        // settings. A change made and undone during the analysis still
+        // shows, since the fingerprint is what it actually ran on.
+        if (analysis.inputsFingerprint != settingsFingerprint) continue;
+
+        final hadDeco = analysis.hadDecoObligation;
+        results[diveId] = hadDeco;
+        if (settingsLoaded) {
+          await cache.put(
+            diveId,
+            hadDeco: hadDeco,
+            inputsHash: hashes[diveId]!,
           );
-        } finally {
+        }
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to classify deco obligation for dive $diveId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      } finally {
+        if (ref.mounted) {
           ref.invalidate(profileAnalysisProvider(diveId));
           ref.invalidate(diveAnalysisSeriesProvider(diveId));
           ref.invalidate(analysisDiveProvider(diveId));
           // A multi-source dive's analysis also read its per-source buckets.
           ref.invalidate(sourceProfilesProvider(diveId));
           ref.invalidate(diveDataSourcesProvider(diveId));
+          onProgress?.call(results, --pending);
         }
       }
     }

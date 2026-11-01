@@ -35,7 +35,7 @@ class ChamberTile extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final chamber = listing.chamber;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final distance = listing.distanceMeters;
     final where = [
@@ -170,6 +170,8 @@ class _ChamberMenu extends ConsumerWidget {
           messenger.showSnackBar(
             SnackBar(
               content: Text(l10n.emergencyCard_chamberHidden),
+              duration: const Duration(seconds: 5),
+              persist: false,
               action: SnackBarAction(
                 label: l10n.emergencyCard_undo,
                 onPressed: () => notifier.setChamberHidden(chamber.id, false),

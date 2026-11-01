@@ -11,7 +11,6 @@ import 'package:submersion/features/import_wizard/presentation/widgets/import_so
 import 'package:submersion/features/import_wizard/presentation/widgets/planned_dive_picker_sheet.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_tags_field.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -514,7 +513,7 @@ class _EntityTab extends ConsumerWidget {
                   .value ??
               const <Dive>[]
         : const <Dive>[];
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     String? plannedLabelFor(int index) {
       final plannedId = group.matchResults?[index]?.plannedDiveId;
       if (plannedId == null) return null;

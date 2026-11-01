@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
@@ -189,7 +190,7 @@ class _TripDetailContent extends ConsumerWidget {
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Trip trip) {
     final colorScheme = Theme.of(context).colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -332,6 +333,7 @@ class _TripDetailContent extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
+        changeLogHistoryMenuItem(context, rootTable: 'trips', rootId: trip.id),
         openInConnectionsMenuItem(context),
         PopupMenuItem(
           value: 'scan-dives',

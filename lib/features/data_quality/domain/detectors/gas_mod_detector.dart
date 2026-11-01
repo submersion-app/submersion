@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -18,7 +19,7 @@ class GasModDetector extends QualityDetector {
   @override
   String get id => 'gas_mod';
   @override
-  int get version => 2;
+  int get version => 3;
   @override
   QualityCategory get category => QualityCategory.gas;
 
@@ -28,6 +29,7 @@ class GasModDetector extends QualityDetector {
     final tanks = ctx.tanks;
     if (tanks.isEmpty) return const [];
     final out = <QualityFinding>[];
+    final environment = ctx.dive.environment;
 
     // Bars relative to the diver's own maximum ppO2: warn once the recorded
     // gas/depth passes their ceiling, critical when it is well past it. The
@@ -86,7 +88,7 @@ class GasModDetector extends QualityDetector {
 
     for (final p in ctx.primarySamples) {
       final fo2 = fo2At(p.t);
-      final ppo2 = fo2 * (p.depth / 10 + 1);
+      final ppo2 = fo2 * environment.pressureAtDepth(p.depth);
       if (ppo2 > ppO2WarnBar) {
         runStart ??= p.t;
         if (ppo2 > peak) {
@@ -144,7 +146,11 @@ class GasModDetector extends QualityDetector {
       if (tank == null || d == null) continue;
       final fo2 = tank.gasMix.o2 / 100.0;
       if (fo2 <= 0) continue;
-      final mod = ((ppO2WarnBar / fo2) - 1) * 10;
+      final mod = maxOperatingDepthMeters(
+        fo2,
+        maxPpO2: ppO2WarnBar,
+        environment: environment,
+      );
       if (d > mod + QualityThresholds.modToleranceMeters) {
         out.add(
           make(

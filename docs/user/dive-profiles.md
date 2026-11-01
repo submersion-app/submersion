@@ -118,7 +118,7 @@ defined in the [Glossary](glossary.md).
 ### Computer figures vs. calculated figures
 
 For the decompression figures, the toggle includes a small **DC** / **Calc**
-switch. Many dive computers record their own ceiling, NDL, TTS,
+switch. Many dive computers record their own stop depth, NDL, TTS,
 and CNS values sample by sample during the dive; Submersion stores those
 alongside the figures it calculates itself from the depth samples. The switch
 lets you compare the two:
@@ -132,6 +132,15 @@ setting, or gas assumption than Submersion does. Seeing them side by side is
 informative, not a sign that either is wrong. Which one each figure starts on
 is set under **Data Source Preferences** in [Settings](settings.md) (NDL, TTS,
 CNS, Deco Stop and GTR source).
+
+**Ceiling** has no switch: the line is always Submersion's calculation, because
+computers record the stop you were shown rather than a continuous ceiling. So
+when **Deco stops** comes from your computer, the chart shows two models on one
+axis, and the line is labelled **Ceiling (calc)** to say so. The computer's band
+can sit at 6 m while the line clears at 3 m, or the line can show no obligation
+under a band, if your computer uses a different algorithm or conservatism. To
+compare like with like, switch **Deco stops** to **Calc**, or turn **Ceiling**
+off to leave only your computer's stops.
 
 ## Event markers
 
@@ -305,10 +314,13 @@ Open the editor with the **Edit Profile** button while editing a dive. It opens
 as a full-screen page with a simplified chart and no overlays, and offers five
 tools:
 
-- **Select**: pick a time range, then shift its depth or time, delete it, or
-  smooth just that segment.
+- **Select**: drag across the chart to pick a time range, then shift its depth
+  or time, delete it, or smooth just that segment. Tap the chart to clear the
+  selection. A time shift cannot carry the selection onto the next sample or
+  past the start of the dive, so on a closely sampled dive it works only where
+  the samples have a gap to move into, or at the end of the dive.
 - **Smooth**: apply **Light**, **Medium** or **Heavy** smoothing to flatten
-  sensor jitter, to the whole profile or a selection.
+  sensor jitter, to the whole profile or to a selection dragged on the chart.
 - **Outlier**: **Detect** spurious spikes and remove them. Outliers can also be
   surfaced as a suggestion on the dive detail page for you to apply on demand.
 - **Draw**: tap the chart to place waypoints, then **Generate Profile** to draw

@@ -317,7 +317,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
@@ -980,7 +980,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     if (pickedTime == null || !mounted) return;
     setState(() {
       // Wall-clock-as-UTC, the same frame as dive times, so the no-fly
-      // math can compare this directly against dive end times.
+      // math reads this back the way it reads dive end times.
       _returnFlightAt = DateTime.utc(
         pickedDate.year,
         pickedDate.month,

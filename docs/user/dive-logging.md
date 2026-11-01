@@ -462,6 +462,8 @@ filtered to.
 
 Tap **Search dives** to search your log. Type words to match sites, buddies,
 boats, operators and notes, or write a query such as `depth > 30m`; the field suggests what to try.
+To find dives missing something, write `trip:none` or `trip is blank`, and `trip is set` for the
+opposite. In the rule builder, choose a field such as Trip, then **Trip is not set** at the top of the list.
 You can also ask a question in plain words. The search can run **Within filters**
 or across **All dives**, **Refine** adds conditions to it, and your recent and
 saved searches are offered when you open it again. While you type, **Jump to dive**

@@ -14,7 +14,6 @@ import 'package:submersion/features/planner/domain/services/dive_plan_state_mapp
 import 'package:submersion/features/planner/domain/services/plan_best_mix.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
-import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -232,16 +231,13 @@ final chartDisplayModeProvider = StateProvider<ChartDisplayMode>((ref) {
   return ChartDisplayMode.ccr;
 });
 
-/// Chart series for the current plan: user segments plus the computed
-/// ascent tail (travel legs + stops), ceiling approximation, and markers --
-/// or, in [ChartDisplayMode.bailout], the worst-case bailout picture.
-final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
+/// Chart series for the live plan whatever the chart is showing: user
+/// segments plus the computed ascent tail (travel legs + stops), ceiling
+/// approximation, and markers. Converting to a dive logs this, because the
+/// dive is the plan, never the bailout picture beside it.
+final planLiveCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final outcome = ref.watch(planOutcomeProvider);
-  if (ref.watch(chartDisplayModeProvider) == ChartDisplayMode.bailout) {
-    final bailout = ref.watch(planBailoutProvider);
-    if (bailout != null) return buildBailoutCanvasSeries(bailout);
-  }
   return buildCanvasSeries(
     plan: divePlanFromState(state),
     outcome: outcome,
@@ -355,6 +351,34 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
   );
 }
 
+/// Where the ascent into [stop] reaches the gas held there: the stop itself,
+/// unless that gas's switch depth, a MOD or one the diver set, sits partway up
+/// a leg folded into the stop.
+({int time, double depth}) _gasSwitchPoint(
+  List<PlanScheduleRow> schedule,
+  PlanStop stop,
+) {
+  var time = stop.arrivalRuntimeSeconds;
+  var depth = stop.depthMeters;
+  final legs =
+      schedule
+          .where(
+            (row) =>
+                row.kind == PlanScheduleRowKind.stop &&
+                row.startRuntimeSeconds == time,
+          )
+          .firstOrNull
+          ?.foldedTravel ??
+      const <PlanFoldedTravel>[];
+  for (final leg in legs.reversed) {
+    if (leg.seconds == 0) continue;
+    if (leg.tankId != stop.tankId) break;
+    time -= leg.seconds;
+    depth = leg.fromDepthMeters;
+  }
+  return (time: time, depth: depth);
+}
+
 /// Builds the chart series for any (plan, outcome) pair — the live plan or a
 /// contingency variant (ghost overlay). [outcome] is [plan]'s own computed
 /// schedule -- the same instance a caller like [PlanEngine.compute] already
@@ -437,10 +461,11 @@ PlanCanvasSeries buildCanvasSeries({
             (stop.gasFO2 - previousFO2).abs() > 0.005 ||
             (stop.gasFHe - (previousFHe ?? 0)).abs() > 0.005);
     if (switched && previousFO2 != null) {
+      final at = _gasSwitchPoint(outcome.schedule, stop);
       gasSwitches.add(
         CanvasMarker(
-          stop.arrivalRuntimeSeconds.toDouble(),
-          stop.depthMeters,
+          at.time.toDouble(),
+          at.depth,
           GasMix(o2: stop.gasFO2 * 100.0, he: stop.gasFHe * 100.0).name,
         ),
       );
@@ -470,66 +495,16 @@ PlanCanvasSeries buildCanvasSeries({
   );
 }
 
-/// Worst-case bailout for the current CCR plan; null for OC plans or when
-/// no bailout-role tank is carried. Recomputed live with the plan.
-final planBailoutProvider = Provider<BailoutOutcome?>((ref) {
-  final state = ref.watch(divePlanNotifierProvider);
-  final config = ref.watch(planEngineConfigProvider);
-  final solver = BailoutSolver(config: config);
-  return solver.solve(
-    divePlanFromState(state),
-    startState: startStateForPlan(state, config: config),
-  );
-});
-
-/// Deviation (deeper/longer/both) outcomes for the current plan.
 /// Whether the results sheet's contingency section is expanded. The full
 /// deviation + lost-gas tables (3 engine runs + one per deco/stage tank) are
 /// only computed while this is true, so a collapsed sheet costs nothing.
 final contingenciesExpandedProvider = StateProvider<bool>((_) => false);
-
-final planDeviationsProvider = Provider<List<DeviationOutcome>>((ref) {
-  if (!ref.watch(contingenciesExpandedProvider)) return const [];
-  final state = ref.watch(divePlanNotifierProvider);
-  final config = ref.watch(planEngineConfigProvider);
-  final service = ContingencyService(config: config);
-  return service.deviations(
-    divePlanFromState(state),
-    startState: startStateForPlan(state, config: config),
-  );
-});
-
-/// Lost-gas outcomes for the current OC plan.
-final planLostGasProvider = Provider<List<LostGasOutcome>>((ref) {
-  if (!ref.watch(contingenciesExpandedProvider)) return const [];
-  final state = ref.watch(divePlanNotifierProvider);
-  final config = ref.watch(planEngineConfigProvider);
-  final service = ContingencyService(config: config);
-  return service.lostGas(
-    divePlanFromState(state),
-    startState: startStateForPlan(state, config: config),
-  );
-});
 
 /// Which per-contingency mini tables (keyed by deviation key or tank id) are
 /// collapsed within the Contingencies section; everything starts expanded.
 final collapsedContingencyKeysProvider = StateProvider<Set<String>>(
   (_) => const {},
 );
-
-/// The classic slate range table (depth x time variants) for the current
-/// plan; null when there is nothing to vary.
-final planRangeTableProvider = Provider<RangeTable?>((ref) {
-  final state = ref.watch(divePlanNotifierProvider);
-  if (state.segments.isEmpty) return null;
-  final config = ref.watch(planEngineConfigProvider);
-  final service = RangeTableService(config: config);
-  final table = service.compute(
-    divePlanFromState(state),
-    startState: startStateForPlan(state, config: config),
-  );
-  return table.isEmpty ? null : table;
-});
 
 /// Which deviation is ghosted on the chart ('deeper'|'longer'|'both'; null =
 /// none). Mutually exclusive with [selectedLostGasTankIdProvider] -- only one

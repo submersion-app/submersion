@@ -612,7 +612,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           DiveCenterFillHoursSection(
             opensAt: _fillOpensAt,
             closesAt: _fillClosesAt,
-            units: UnitFormatter(ref.watch(settingsProvider)),
+            units: ref.watch(unitFormatterProvider),
             errorText: _fillHoursChecked ? _fillHoursErrorText(context) : null,
             onChanged: (opens, closes) => setState(() {
               _fillOpensAt = opens;
@@ -945,6 +945,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                     ? context.l10n.diveCenters_error_locationPermission
                     : context.l10n.diveCenters_error_locationUnavailable,
               ),
+              persist: false,
               action: isMobile
                   ? SnackBarAction(
                       label: context.l10n.diveCenters_action_settings,

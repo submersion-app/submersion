@@ -13,7 +13,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_chip.dart';
@@ -24,6 +23,7 @@ import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/widgets/tank_mod_field.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -38,8 +38,7 @@ class PlanTankList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     // The planner derives roles rather than storing them, so each chip's
     // glyph follows the plan as the diver edits it (issue #2901).
     final roles = const TankRoleResolver().rolesFor(
@@ -78,6 +77,20 @@ class PlanTankList extends ConsumerWidget {
                 ),
               ],
             ),
+            // A later dive of a repetitive series starts its tanks where
+            // the dive before left them (issue #3565). On its own line: the
+            // header has no room for it in the editor pane.
+            if (ref.watch(seriesFillPressuresProvider).isNotEmpty)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.local_gas_station_outlined),
+                  label: Text(context.l10n.plannerSeries_fillAll),
+                  onPressed: () => ref
+                      .read(planSeriesNotifierProvider.notifier)
+                      .fillAllTanks(),
+                ),
+              ),
             const SizedBox(height: 8),
 
             // Saved tanks, collapsed by default: a bar that opens into the
@@ -170,6 +183,7 @@ class PlanTankList extends ConsumerWidget {
   ) {
     final isCcr = planState.mode == PlanMode.ccr;
     final limits = _modLimits(planState, units);
+    final fillable = ref.watch(seriesFillPressuresProvider);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -185,7 +199,7 @@ class PlanTankList extends ConsumerWidget {
           decoPpO2: limits.deco,
           diluentPpO2: limits.diluent,
         );
-        return PlanTankChip(
+        final chip = PlanTankChip(
           tank: tank,
           role: role,
           units: units,
@@ -203,6 +217,27 @@ class PlanTankList extends ConsumerWidget {
                     .read(divePlanNotifierProvider.notifier)
                     .removeTank(tank.id)
               : null,
+        );
+        if (!fillable.containsKey(tank.id)) return chip;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: chip),
+            IconButton(
+              // Compact, so a typical tank chip keeps its full detail line
+              // beside it in the 320 px editor pane.
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.local_gas_station_outlined),
+              tooltip: context.l10n.plannerSeries_fill(
+                (tank.name?.isNotEmpty ?? false)
+                    ? tank.name!
+                    : tank.gasMix.name,
+              ),
+              onPressed: () => ref
+                  .read(planSeriesNotifierProvider.notifier)
+                  .fillTank(tank.id),
+            ),
+          ],
         );
       }).toList(),
     );
@@ -377,6 +412,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   /// The volume field's seeded text, so [_save] can tell an untouched field
   /// from an edited one and keep the stored litres exactly (issue #2027).
   late String _initialVolumeText;
+  late String _initialPressureText;
 
   /// Imperial divers name a cylinder by its rated gas capacity in cuft, not
   /// by its water volume, so the field must use the capacity conversion
@@ -399,14 +435,13 @@ class _TankEditDialogState extends State<_TankEditDialog> {
             1,
           );
     _volumeController = TextEditingController(text: _initialVolumeText);
-    _pressureController = TextEditingController(
-      text: formatRoundedForInput(
-        widget.units.convertPressure(
-          widget.tank?.startPressure ?? TankPresets.planFillPressureBar,
-        ),
-        0,
+    _initialPressureText = formatRoundedForInput(
+      widget.units.convertPressure(
+        widget.tank?.startPressure ?? TankPresets.planFillPressureBar,
       ),
+      0,
     );
+    _pressureController = TextEditingController(text: _initialPressureText);
     _o2Controller = TextEditingController(
       text: formatDecimalForInput(widget.tank?.gasMix.o2 ?? 21),
     );
@@ -689,12 +724,18 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
-    final parsedPressure = _validated(_pressureController);
-    final startPressureBar = parsedPressure != null
-        ? widget.units.pressureToBar(parsedPressure)
-        : null;
-    final specs = _volumeSpecs(startPressureBar);
     final original = widget.tank;
+    final parsedPressure = _validated(_pressureController);
+    // The field shows the pressure rounded, so an untouched field keeps the
+    // tank's own: a carried one would otherwise read as typed, and pin it.
+    final startPressureBar =
+        (_pressureController.text == _initialPressureText
+            ? original?.startPressure
+            : null) ??
+        (parsedPressure != null
+            ? widget.units.pressureToBar(parsedPressure)
+            : null);
+    final specs = _volumeSpecs(startPressureBar);
 
     final tank = DiveTank(
       id: _tankId,

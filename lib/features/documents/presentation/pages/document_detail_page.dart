@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_details_panel.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_viewer.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -56,7 +56,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     }
     final entry = ref.watch(documentEntryProvider(widget.documentId));
     final pages = ref.watch(documentPagesProvider(widget.documentId));
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return entry.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -101,6 +101,11 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
                 itemBuilder: (context) {
                   final error = Theme.of(context).colorScheme.error;
                   return [
+                    changeLogHistoryMenuItem(
+                      context,
+                      rootTable: 'documents',
+                      rootId: doc.id,
+                    ),
                     PopupMenuItem(
                       value: 'delete',
                       child: Row(

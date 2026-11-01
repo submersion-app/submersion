@@ -119,6 +119,26 @@ void main() {
         expect(byId['free']!.diveCount, 0);
       },
     );
+
+    test('counts a dive linked twice once (#3895)', () async {
+      await insertBuddy('own', 'Sam');
+      await insertDive('d1');
+      await link('d1', 'own');
+      await db
+          .into(db.diveBuddies)
+          .insert(
+            DiveBuddiesCompanion.insert(
+              id: 'second-link',
+              diveId: 'd1',
+              buddyId: 'own',
+              createdAt: 1,
+            ),
+          );
+
+      final candidates = await repo.candidateBuddies('me');
+
+      expect(candidates.single.diveCount, 1);
+    });
   });
 
   group('unlinkedTextDives', () {

@@ -26,6 +26,22 @@ void main() {
     }
   });
 
+  test('gas_switches is indexed by dive', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    await db.customSelect('SELECT 1').get();
+
+    final row = await db
+        .customSelect(
+          "SELECT tbl_name FROM sqlite_master WHERE type = 'index' "
+          "AND name = 'idx_gas_switches_dive_id'",
+        )
+        .getSingleOrNull();
+    expect(row?.read<String>('tbl_name'), 'gas_switches');
+  });
+
   test('ensurePerformanceIndexes is idempotent', () async {
     final db = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
@@ -56,5 +72,25 @@ void main() {
       await indexNames(db),
       contains('idx_dive_profile_series_dive_primary'),
     );
+  });
+
+  // Without this index every per-dive media read walks the whole library,
+  // so a trip's cost was dives times library size (issue #3832).
+  test('a dive finds its media through idx_media_dive_taken', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+
+    final rows = await db
+        .customSelect(
+          'EXPLAIN QUERY PLAN SELECT * FROM media '
+          "WHERE dive_id = 'd1' ORDER BY taken_at",
+        )
+        .get();
+    final plan = rows.map((r) => r.read<String>('detail')).join('\n');
+
+    expect(plan, contains('idx_media_dive_taken'));
+    expect(plan, isNot(contains('TEMP B-TREE')));
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
@@ -282,6 +283,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
+                changeLogHistoryMenuItem(
+                  context,
+                  rootTable: 'dive_sites',
+                  rootId: site.id,
+                ),
                 openInConnectionsMenuItem(context),
                 duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
@@ -371,7 +377,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             siteId: site.id,
             readOnly: !_canEditSite(ref, site),
             location: site.location,
-            waterType: site.waterType,
           ),
       // Attachments and dive photos.
       SiteDetailSectionId.media: () =>
@@ -536,6 +541,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
+                changeLogHistoryMenuItem(
+                  context,
+                  rootTable: 'dive_sites',
+                  rootId: site.id,
+                ),
                 openInConnectionsMenuItem(context),
                 duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
@@ -1166,7 +1176,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     WidgetRef ref,
     DiveSite site,
   ) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final coordinates = units.formatCoordinates(
       site.location?.latitude,
@@ -1384,8 +1394,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     DiveSite site,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     // `.value` (Riverpod's own) rather than the project's `valueOrNull`
     // helper: that helper is `when(loading: () => null)`, and `when` skips the
     // loading branch on a refresh but NOT on a reload
@@ -1402,7 +1411,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     final hasMaxDepth = site.maxDepth != null;
     final hasDepthInfo = hasMinDepth || hasMaxDepth;
 
-    final isMetric = settings.depthUnit == DepthUnit.meters;
+    final isMetric = units.settings.depthUnit == DepthUnit.meters;
     final primarySymbol = units.depthSymbol;
     final secondarySymbol = isMetric ? 'ft' : 'm';
 
@@ -1569,7 +1578,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     DiveSite site,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final statsAsync = ref.watch(siteDiveStatisticsProvider(site.id));
 
     // The headline count and the footer link both describe the dive list this
@@ -1766,8 +1775,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     DiveSite site,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final altitudeGroup = AltitudeGroup.fromAltitude(site.altitude);
     final pressure = AltitudeCalculator.calculateBarometricPressure(

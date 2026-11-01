@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -27,31 +28,11 @@ final noFlyStatusProvider = FutureProvider<NoFlyStatus?>((ref) async {
   // would otherwise scan the whole logbook.
   if (diverId == null) return null;
 
-  // Dive end times are stored wall-clock-as-UTC. Read them in the device's
-  // zone to get real instants before adding a guideline interval: compared
-  // against the true UTC instant as stored, a dive that just surfaced east of
-  // UTC looked like a future dive and was ignored (issue #2587), and interval
-  // arithmetic on clock digits is an hour off across a DST change.
-  final now = clock.now().toUtc();
-  // The query compares stored digits, so its bound is padded by a day to
-  // cover any UTC offset; evaluate() applies the exact lookback.
-  final stored = await repository.getNoFlyDiveInputs(
-    since: asWallClockUtc(
-      now.toLocal(),
-    ).subtract(NoFlyService.lookback + const Duration(days: 1)),
+  final status = await activeNoFlyStatus(
+    repository,
     diverId: diverId,
-  );
-  final dives = [
-    for (final dive in stored)
-      NoFlyDiveInput(
-        endTime: fromWallClockUtc(dive.endTime).toUtc(),
-        hadDecoObligation: dive.hadDecoObligation,
-      ),
-  ];
-  final status = const NoFlyService().evaluate(
-    dives: dives,
     preset: preset,
-    now: now,
+    now: clock.now().toUtc(),
   );
 
   // The status is a snapshot: nothing writes to the dive table when a
@@ -70,3 +51,35 @@ final noFlyStatusProvider = FutureProvider<NoFlyStatus?>((ref) async {
   }
   return status;
 });
+
+/// The restriction in force for [diverId] at [now], a true UTC instant, or
+/// null when there is none.
+Future<NoFlyStatus?> activeNoFlyStatus(
+  DiveRepository repository, {
+  required String diverId,
+  required NoFlyPreset preset,
+  required DateTime now,
+}) async {
+  // Dive end times are stored wall-clock-as-UTC. Read them in the device's
+  // zone to get real instants before adding a guideline interval: compared
+  // against the true UTC instant as stored, a dive that just surfaced east of
+  // UTC looked like a future dive and was ignored (issue #2587), and interval
+  // arithmetic on clock digits is an hour off across a DST change.
+  //
+  // The query compares stored digits, so its bound is padded by a day to
+  // cover any UTC offset; evaluate() applies the exact lookback.
+  final stored = await repository.getNoFlyDiveInputs(
+    since: asWallClockUtc(
+      now.toLocal(),
+    ).subtract(NoFlyService.lookback + const Duration(days: 1)),
+    diverId: diverId,
+  );
+  final dives = [
+    for (final dive in stored)
+      NoFlyDiveInput(
+        endTime: fromWallClockUtc(dive.endTime).toUtc(),
+        hadDecoObligation: dive.hadDecoObligation,
+      ),
+  ];
+  return const NoFlyService().evaluate(dives: dives, preset: preset, now: now);
+}

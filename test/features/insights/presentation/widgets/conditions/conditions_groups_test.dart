@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
+import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/site_access_condition_cards.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/surface_weather_group.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/water_movement_group.dart';
@@ -299,5 +300,17 @@ void main() {
       final colors = pie.data.sections.map((s) => s.color).toSet();
       expect(colors, hasLength(4));
     }
+  });
+
+  testWidgets('every coverage line opens the unrecorded dives (#3805)', (
+    tester,
+  ) async {
+    await pump(tester, () async => [row('a', airTemp: 20), row('b')]);
+
+    final lines = tester.widgetList<ConditionsCoverageLine>(
+      find.byType(ConditionsCoverageLine),
+    );
+    expect(lines, isNotEmpty);
+    expect(lines.where((l) => l.onOpenUnrecorded == null), isEmpty);
   });
 }

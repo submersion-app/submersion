@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/widgets/gas_mix_input.dart';
@@ -17,8 +16,7 @@ class NextDiveInput extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final depth = ref.watch(siSecondDiveDepthProvider);
     final time = ref.watch(siSecondDiveTimeProvider);

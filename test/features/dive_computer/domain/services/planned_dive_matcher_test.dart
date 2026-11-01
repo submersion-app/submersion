@@ -18,7 +18,7 @@ void main() {
 
   test('ignores a planned dive on another day', () {
     final pairs = matcher.pair(
-      incomingStarts: [DateTime(2026, 6, 2, 9)],
+      incomingStarts: [DateTime(2026, 6, 3, 9)],
       plannedDives: [planned('p1', DateTime(2026, 6, 1, 9))],
     );
     expect(pairs, isEmpty);
@@ -86,12 +86,12 @@ void main() {
       expect(pairs, {0: 'p'});
     });
 
-    test('a download after midnight leaves the previous evening\'s plan', () {
+    test('a download after midnight fills the previous evening\'s plan', () {
       final pairs = matcher.pair(
         incomingStarts: [DateTime.utc(2026, 9, 15, 1)],
         plannedDives: [planned('p', DateTime.utc(2026, 9, 14, 23))],
       );
-      expect(pairs, isEmpty);
+      expect(pairs, {0: 'p'});
     });
 
     test('a plan just before midnight takes that day\'s morning download', () {
@@ -100,6 +100,71 @@ void main() {
         plannedDives: [planned('p', DateTime.utc(2026, 9, 14, 23, 30))],
       );
       expect(pairs, {0: 'p'});
+    });
+  });
+
+  group('the planned day or the day after', () {
+    test('rejects a plan two days before the download', () {
+      final pairs = matcher.pair(
+        incomingStarts: [DateTime.utc(2026, 9, 16, 9)],
+        plannedDives: [planned('p', DateTime.utc(2026, 9, 14, 23))],
+      );
+      expect(pairs, isEmpty);
+    });
+
+    test('rejects a plan on the day after the download', () {
+      final pairs = matcher.pair(
+        incomingStarts: [DateTime.utc(2026, 9, 14, 23)],
+        plannedDives: [planned('p', DateTime.utc(2026, 9, 15, 1))],
+      );
+      expect(pairs, isEmpty);
+    });
+
+    test('after midnight the previous night beats the next morning', () {
+      final pairs = matcher.pair(
+        incomingStarts: [DateTime.utc(2026, 9, 15, 0, 30)],
+        plannedDives: [
+          planned('night', DateTime.utc(2026, 9, 14, 23)),
+          planned('morning', DateTime.utc(2026, 9, 15, 9)),
+        ],
+      );
+      expect(pairs, {0: 'night'});
+    });
+
+    test('a day-old plan loses to the same day plan closer in time', () {
+      final pairs = matcher.pair(
+        incomingStarts: [DateTime.utc(2026, 9, 15, 9)],
+        plannedDives: [
+          planned('sat', DateTime.utc(2026, 9, 14, 11)),
+          planned('sun', DateTime.utc(2026, 9, 15, 8)),
+        ],
+      );
+      expect(pairs, {0: 'sun'});
+    });
+
+    test('each plan still fills once when both days have downloads', () {
+      final pairs = matcher.pair(
+        incomingStarts: [
+          DateTime.utc(2026, 9, 15, 9),
+          DateTime.utc(2026, 9, 15, 14),
+        ],
+        plannedDives: [
+          planned('sat', DateTime.utc(2026, 9, 14, 12)),
+          planned('sun', DateTime.utc(2026, 9, 15, 13)),
+        ],
+      );
+      expect(pairs, {0: 'sat', 1: 'sun'});
+    });
+
+    test('a window across a DST change still means one calendar day', () {
+      // Clocks change on 2026-03-08 in US zones, 2026-03-29 in the EU.
+      for (final day in [8, 29]) {
+        final pairs = matcher.pair(
+          incomingStarts: [DateTime.utc(2026, 3, day + 1, 1)],
+          plannedDives: [planned('p', DateTime.utc(2026, 3, day, 23))],
+        );
+        expect(pairs, {0: 'p'});
+      }
     });
   });
 

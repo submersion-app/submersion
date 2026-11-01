@@ -7,6 +7,16 @@ import 'csv_test_fixtures.dart';
 
 /// The cylinder fills sheet (cylinder passports phase 5, issue #2339).
 void main() {
+  test('helium gives way when both round up past 100 (#4007)', () {
+    final fill = goldenFills().first.copyWith(
+      o2Percent: 10.25,
+      hePercent: 89.75,
+    );
+    final r = rowOf(CsvFillsWriter(CsvExportUnits.metric).write([fill]), 1);
+    expect(r['O2 %'], '10.3');
+    expect(r['He %'], '89.7');
+  });
+
   test('metric mode writes canonical values and ISO date and time', () {
     final csv = CsvFillsWriter(
       CsvExportUnits.metric,

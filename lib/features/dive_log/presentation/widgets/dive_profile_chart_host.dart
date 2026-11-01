@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
@@ -142,44 +143,49 @@ class DiveProfileChartHost extends ConsumerWidget {
     // these providers reload behind any detail change tick (the first-view
     // safety review write included): the chart would drop its overlays and
     // estimated pressure series for a frame, then draw them again (#1468).
+    // Each is selected, which drops the loading states a reload passes
+    // through: the host only rebuilds, and rebuilds the chart, for a value
+    // that differs. A list compares by identity, so one read again differs.
     final activeSourceId = ref.watch(activeDiveSourceProvider(diveId));
-    final analysis = ref
-        .watch(
-          sourceProfileAnalysisProvider((
-            diveId: diveId,
-            sourceId: activeSourceId,
-          )),
-        )
-        .value;
+    final analysis = ref.watch(
+      sourceProfileAnalysisProvider((
+        diveId: diveId,
+        sourceId: activeSourceId,
+      )).select((a) => a.value),
+    );
 
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
     final showPressureThresholdMarkers = ref.watch(
       showPressureThresholdMarkersProvider,
     );
 
-    final gasSwitches = ref.watch(gasSwitchesProvider(diveId)).value;
+    final gasSwitches = ref.watch(
+      gasSwitchesProvider(diveId).select((a) => a.value),
+    );
 
     // Cell divergence bands (condition phase 2). .value keeps the previous
     // summary while the provider reloads behind a detail tick, like the
     // inputs above.
-    final sensorSummary = ref.watch(diveSensorSummaryProvider(diveId)).value;
+    final sensorSummary = ref.watch(
+      diveSensorSummaryProvider(diveId).select((a) => a.value),
+    );
 
     // Per-tank pressures, augmented for the chart only with linear estimates
     // between the samples a computer actually reported (#197).
-    final tankPressures = ref
-        .watch(activeSourceTankPressuresProvider(diveId))
-        .value;
-    final estimatedTankPressures = ref
-        .watch(estimatedTankPressuresProvider(diveId))
-        .value;
+    final tankPressures = ref.watch(
+      activeSourceTankPressuresProvider(diveId).select((a) => a.value),
+    );
+    final estimatedTankPressures = ref.watch(
+      estimatedTankPressuresProvider(diveId).select((a) => a.value),
+    );
 
     final rangeState = ref.watch(rangeSelectionProvider(diveId));
 
     final sourceProfiles =
-        ref.watch(sourceProfilesProvider(diveId)).value ??
+        ref.watch(sourceProfilesProvider(diveId).select((a) => a.value)) ??
         const <String, SourceProfile>{};
     final dataSources =
-        ref.watch(diveDataSourcesProvider(diveId)).value ??
+        ref.watch(diveDataSourcesProvider(diveId).select((a) => a.value)) ??
         const <DiveDataSource>[];
     final computerNames = computerDisplayNames(context, dataSources);
     final labels = sourceNameLabelsFor(context);
@@ -271,7 +277,8 @@ class DiveProfileChartHost extends ConsumerWidget {
     );
 
     final photoMedia =
-        ref.watch(mediaForDiveProvider(diveId)).value ?? const [];
+        ref.watch(mediaForDiveProvider(diveId).select((a) => a.value)) ??
+        const [];
     final photoMarkers = chartProfile.isEmpty
         ? const <PhotoChartMarker>[]
         : photoMarkersFromMedia(
@@ -285,9 +292,9 @@ class DiveProfileChartHost extends ConsumerWidget {
     final sourceById = {for (final s in dataSources) s.id: s};
     // Plan-vs-actual: the planned profile this dive was converted from,
     // ghosted next to the actual logged profile.
-    final plannedOverlay = ref
-        .watch(plannedProfileOverlayProvider(diveId))
-        .value;
+    final plannedOverlay = ref.watch(
+      plannedProfileOverlayProvider(diveId).select((a) => a.value),
+    );
     final overlays = <ChartSourceOverlay>[
       for (final id in overlayIds)
         if (id != activeSource?.id &&
@@ -307,19 +314,29 @@ class DiveProfileChartHost extends ConsumerWidget {
             // raw per-point device field to fall back on. Cached by the
             // (diveId, sourceId) family key, so toggling the eye icon doesn't
             // re-run Buhlmann.
-            analysis: ref
-                .watch(
-                  sourceProfileAnalysisProvider((diveId: diveId, sourceId: id)),
-                )
-                .value,
+            analysis: ref.watch(
+              sourceProfileAnalysisProvider((
+                diveId: diveId,
+                sourceId: id,
+              )).select((a) => a.value),
+            ),
           ),
       ?plannedOverlay,
     ];
 
     final trackingIndex = ref.watch(profileTrackingIndexProvider(diveId));
     final selectedFinding = ref.watch(selectedSafetyFindingProvider(diveId));
-    final safetyReview = ref.watch(safetyReviewProvider(diveId)).value;
-    final appSettings = ref.watch(settingsProvider);
+    final safetyReview = ref.watch(
+      safetyReviewProvider(diveId).select((a) => a.value),
+    );
+    final appSettings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          safetyReviewEnabled: s.safetyReviewEnabled,
+          safetyReviewDisabledRules: s.safetyReviewDisabledRules,
+        ),
+      ),
+    );
     final laneFindings = appSettings.safetyReviewEnabled
         ? chartSafetyFindings(
             safetyReview,
@@ -351,10 +368,13 @@ class DiveProfileChartHost extends ConsumerWidget {
         onTooltipData: onTooltipData,
         ceilingCurve: analysis?.ceilingCurve,
         decoStopCurve: analysis?.decoStopCurve,
+        labelCeilingAsCalculated:
+            analysis?.computerStopsWithCalculatedCeiling ?? false,
         ascentRates: analysis?.ascentRates,
         events: analysis?.events,
         ndlCurve: analysis?.ndlCurve,
         sacCurve: analysis?.smoothedSacCurve,
+        environment: analysis?.environment ?? DiveEnvironment.standard,
         ppO2Curve: analysis?.ppO2Curve,
         o2SensorCurves: analysis?.o2SensorCurves,
         o2CellMvCurves: analysis?.o2CellMvCurves,

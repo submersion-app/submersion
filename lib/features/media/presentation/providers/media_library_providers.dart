@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -65,7 +66,7 @@ class MediaLibraryViewModeNotifier extends StateNotifier<MediaLibraryViewMode> {
 }
 
 /// Accumulated library pages plus load status.
-class MediaLibraryState {
+class MediaLibraryState extends Equatable {
   const MediaLibraryState({
     this.entries = const [],
     this.nextCursor,
@@ -102,10 +103,20 @@ class MediaLibraryState {
       error: error ?? this.error,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    entries,
+    nextCursor,
+    isLoading,
+    isLoadingMore,
+    error,
+  ];
 }
 
 /// Paged library notifier. Rebuilt whenever the filter, sort, or active diver
-/// changes; refreshed (page one reload) whenever the media table changes.
+/// changes; re-reads the rows it has loaded whenever a table behind them
+/// changes.
 final mediaLibraryNotifierProvider =
     StateNotifierProvider<MediaLibraryNotifier, MediaLibraryState>((ref) {
       final repo = ref.watch(mediaLibraryRepositoryProvider);
@@ -118,7 +129,9 @@ final mediaLibraryNotifierProvider =
 class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   MediaLibraryNotifier(this._repo, this._diverId, this._filter, this._sort)
     : super(const MediaLibraryState()) {
-    _changesSub = _repo.watchLibraryChanges().listen((_) => loadFirstPage());
+    _changesSub = _repo.watchLibraryChanges().listen(
+      (_) => _refreshAfterChange(),
+    );
     loadFirstPage();
   }
 
@@ -128,36 +141,126 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   final SortState<MediaSortField> _sort;
   StreamSubscription<void>? _changesSub;
 
-  Future<void> loadFirstPage() async {
-    // Keep the entries already on screen while refreshing. Emptying them here
-    // trips the library view's first-load spinner, which replaces the whole
-    // grid and so disposes every tile -- and each tile re-resolves from
-    // initState when it remounts. That churn is invisible but real on any
-    // media change (writing metadata, a transfer completing), and the library
-    // page now stays mounted underneath a pushed dive detail. A genuine first
-    // load still shows the spinner, because entries are empty then anyway.
+  /// Serializes every read that rewrites the loaded rows.
+  ///
+  /// Left to overlap, whichever read finished last would decide what is on
+  /// screen, not whichever started last, and a page could land on rows a
+  /// reload had just replaced. One at a time, each read starts from a state
+  /// that is still current when it writes, and a read that may have missed a
+  /// write always has another behind it. This is the whole policy: the query
+  /// cannot change under a read, because a new filter, sort or diver builds a
+  /// new notifier.
+  Future<void> _pagingQueue = Future<void>.value();
+
+  /// A refresh is queued and has not started reading. Any change landing now
+  /// joins it, since it will see that change anyway.
+  bool _refreshQueued = false;
+
+  /// Runs [op] after every read queued before it.
+  ///
+  /// The returned future carries [op]'s own error; the queue keeps a swallowed
+  /// copy so one failed read cannot wedge every read after it.
+  Future<void> _enqueuePaging(Future<void> Function() op) {
+    final next = _pagingQueue.then((_) => op());
+    _pagingQueue = next.catchError((_) {});
+    return next;
+  }
+
+  /// Reads page one, or every loaded row once there are more than a page.
+  ///
+  /// [MediaLibraryState.isLoading] goes up now, not when the queue gets here:
+  /// the view's first build reads it straight after the constructor, and
+  /// would show the empty-library text in the meantime.
+  Future<void> loadFirstPage() {
     state = state.copyWith(isLoading: true);
+    return _enqueuePaging(_reloadLoadedRows);
+  }
+
+  /// A write landed. However long a burst of them lasts, at most one read
+  /// runs and one waits behind it.
+  void _refreshAfterChange() {
+    if (_refreshQueued) return;
+    _refreshQueued = true;
+    _enqueuePaging(() {
+      _refreshQueued = false;
+      return _reloadLoadedRows();
+    });
+  }
+
+  /// Re-reads every loaded row from the top, in one query.
+  ///
+  /// As many rows as are loaded, not page one. Shrinking to page one on every
+  /// write threw away the rows the diver had scrolled past, their place in the
+  /// list and any selection among them. This read still drops rows that were
+  /// deleted or stopped matching and takes in new ones, and it leaves the
+  /// cursor on its own last row, so [loadMore] carries on with no gap. A
+  /// library read to its end asks for a page more: a new row would otherwise
+  /// push the oldest out with nothing to bring it back, and nothing starts a
+  /// load until the next scroll.
+  ///
+  /// The rows stay on screen meanwhile. Emptying them would trip the view's
+  /// first-load spinner, which replaces the whole grid and so disposes every
+  /// tile, and each tile re-resolves from initState when it remounts. Kept
+  /// mounted, a tile re-resolves only if its own row changed, since
+  /// MediaItemView compares items by value.
+  Future<void> _reloadLoadedRows() async {
+    // Queued work can reach its turn after the notifier is gone, and writing
+    // state on a disposed StateNotifier throws.
+    if (!mounted) return;
+    final loaded = state.entries.length;
     try {
       final page = await _repo.getPage(
         diverId: _diverId,
         filter: _filter,
         sort: _sort,
+        limit: state.hasMore
+            ? loaded
+            : loaded + MediaLibraryRepository.pageSize,
       );
       if (!mounted) return;
-      state = MediaLibraryState(
+      // isLoadingMore is read here, not before the await: [loadMore] raises it
+      // at once and queues its read behind this one.
+      final next = MediaLibraryState(
         entries: page.entries,
         nextCursor: page.nextCursor,
+        isLoadingMore: state.isLoadingMore,
       );
+      // Most writes change nothing here (an upload stamp on a row off this
+      // filter, a trip rename). Writing anyway rebuilds the view and regroups
+      // every loaded row.
+      if (next != state) state = next;
     } catch (e) {
       if (!mounted) return;
-      state = MediaLibraryState(error: e);
+      // The rows are still the best answer there is: a failed read says
+      // nothing about them, and with none the view reads as an empty library.
+      state = MediaLibraryState(
+        entries: state.entries,
+        nextCursor: state.nextCursor,
+        isLoadingMore: state.isLoadingMore,
+        error: e,
+      );
     }
   }
 
-  Future<void> loadMore() async {
-    final cursor = state.nextCursor;
-    if (cursor == null || state.isLoadingMore || state.isLoading) return;
+  Future<void> loadMore() {
+    // Cheap pre-check so a burst of scroll notifications cannot queue the same
+    // page a hundred times. The queued read decides for real, since a reload
+    // ahead of it may have moved the cursor.
+    if (state.nextCursor == null || state.isLoadingMore) {
+      return Future<void>.value();
+    }
     state = state.copyWith(isLoadingMore: true);
+    return _enqueuePaging(_loadNextPage);
+  }
+
+  Future<void> _loadNextPage() async {
+    if (!mounted) return;
+    final cursor = state.nextCursor;
+    if (cursor == null) {
+      // A reload ahead of this one reached the end of the library.
+      state = state.copyWith(isLoadingMore: false);
+      return;
+    }
     try {
       final page = await _repo.getPage(
         diverId: _diverId,
@@ -166,8 +269,15 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
         after: cursor,
       );
       if (!mounted) return;
+      // A write can move a loaded row past the cursor (hashing a row sets its
+      // size); the refresh that write ticks has not landed yet. Appending by
+      // id keeps the row from showing twice until it does.
+      final loaded = state.entries.map((e) => e.item.id).toSet();
       state = MediaLibraryState(
-        entries: [...state.entries, ...page.entries],
+        entries: [
+          ...state.entries,
+          ...page.entries.where((e) => !loaded.contains(e.item.id)),
+        ],
         nextCursor: page.nextCursor,
       );
     } catch (e) {

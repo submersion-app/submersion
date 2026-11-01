@@ -12,7 +12,9 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_depth_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_sample_dedupe.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
@@ -113,6 +115,42 @@ class ProfileSeriesRepository {
     });
     SyncEventBus.notifyLocalChange();
     return rowId;
+  }
+
+  /// Slides every sample of [series] by [seconds] (negative moves them
+  /// earlier), in place. For a dive whose timeline gets a new zero: the
+  /// recording itself is unchanged, so unlike an edit this adds no revision,
+  /// and each series keeps its id, its flags and its place in the lineage.
+  Future<void> shiftSamples(
+    Iterable<ProfileSeries> series,
+    int seconds, {
+    required int now,
+  }) async {
+    if (seconds == 0) return;
+    await _db.transaction(() async {
+      for (final s in series) {
+        final encoded = _codec.encode([
+          for (final p in s.samples) p.shiftedBy(seconds),
+        ]);
+        await (_db.update(
+          _db.diveProfileSeries,
+        )..where((t) => t.id.equals(s.id))).write(
+          DiveProfileSeriesCompanion(
+            startTimestamp: Value(encoded.summary.startTimestamp),
+            endTimestamp: Value(encoded.summary.endTimestamp),
+            codecVersion: Value(encoded.codecVersion),
+            samples: Value(encoded.bytes),
+            updatedAt: Value(now),
+          ),
+        );
+        await _db.customStatement(
+          'UPDATE $_historyTable SET content_hash = ? WHERE series_id = ?',
+          [_seriesContentHash(encoded.bytes), s.id],
+        );
+        await _markPending(s.id, now);
+      }
+    });
+    SyncEventBus.notifyLocalChange();
   }
 
   /// The currently active primary series id for [diveId], or null when the
@@ -569,13 +607,16 @@ class ProfileSeriesRepository {
   /// the UI isolate, per tick. It is also lossier for this purpose, because
   /// a blob that will not decode drops its whole row and with it a computer
   /// the dive really does have.
-  Future<List<({String id, String? computerId, bool isPrimary})>>
+  Future<
+    List<({String id, String? computerId, String? sourceId, bool isPrimary})>
+  >
   getIdentitiesForDive(String diveId) async {
     final rows =
         await (_db.selectOnly(_db.diveProfileSeries)
               ..addColumns([
                 _db.diveProfileSeries.id,
                 _db.diveProfileSeries.computerId,
+                _db.diveProfileSeries.sourceId,
                 _db.diveProfileSeries.isPrimary,
               ])
               ..where(_db.diveProfileSeries.diveId.equals(diveId))
@@ -589,6 +630,7 @@ class ProfileSeriesRepository {
         (
           id: r.read(_db.diveProfileSeries.id)!,
           computerId: r.read(_db.diveProfileSeries.computerId),
+          sourceId: r.read(_db.diveProfileSeries.sourceId),
           isPrimary: r.read(_db.diveProfileSeries.isPrimary) ?? false,
         ),
     ];
@@ -652,6 +694,52 @@ class ProfileSeriesRepository {
     return rows.isNotEmpty;
   }
 
+  /// The live series of [diveId] that are manual edits, for a source that may
+  /// have no computer. [hasLiveEdit] cannot serve there: a file import's own
+  /// series is primary with no computer too.
+  ///
+  /// What gives an edit away is the generation it superseded, demoted beneath
+  /// it: a series of the edit's own source, or one with no source at all. A
+  /// demoted series another source owns says nothing, which is every dive
+  /// with a second computer below an unedited file. History would name an
+  /// edit outright, but it does not sync, so a peer holds the edit without it.
+  ///
+  /// A live series with no source counts whatever lies beneath it, where
+  /// [hasLiveEdit] refuses it: `clearSource` strips the source of an edit
+  /// that outlives its row, and a resync deletes what this does not name. The
+  /// price is that a merge's surface fill can read as an edit here, which
+  /// only makes a dive's depths come from the samples it shows.
+  Future<Set<String>> liveEditIds(String diveId) async {
+    final series = await getIdentitiesForDive(diveId);
+    return {
+      for (final live in series)
+        if (live.isPrimary &&
+            live.computerId == null &&
+            series.any(
+              (s) =>
+                  !s.isPrimary &&
+                  (live.sourceId == null ||
+                      s.sourceId == null ||
+                      s.sourceId == live.sourceId),
+            ))
+          live.id,
+    };
+  }
+
+  /// The depth summary of the profile [diveId] shows, null with no readable
+  /// live samples.
+  Future<ProfileDepthSummary?> liveDepthSummary(String diveId) async =>
+      profileDepthSummary(
+        mergeSeriesPoints(await getSeriesForDive(diveId, primaryOnly: true)),
+      );
+
+  /// The depth summary of [diveId]'s live edit, null when [liveEditIds] finds
+  /// none, so the dive's summary is its primary source's to set.
+  Future<ProfileDepthSummary?> liveEditDepthSummary(String diveId) async =>
+      (await liveEditIds(diveId)).isEmpty
+      ? null
+      : await liveDepthSummary(diveId);
+
   /// Stamps [sourceId] on every series of [diveId] that has no source yet
   /// (the first `dive_data_sources` row of a dive adopts the unattributed
   /// profile, issue #1149). Returns the number of series stamped.
@@ -713,6 +801,52 @@ class ProfileSeriesRepository {
       }
     });
     SyncEventBus.notifyLocalChange();
+  }
+
+  /// Deletes the revision nodes of [diveIds] ahead of their dives. Left to
+  /// the cascade, which table goes first depends on the order the schema was
+  /// built in, and a series going first clears its child's parent link
+  /// through ON DELETE SET NULL before the change log copies that child.
+  Future<void> deleteRevisionsForDives(List<String> diveIds) async {
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      await _db.customStatement(
+        'DELETE FROM $_historyTable WHERE dive_id IN ($placeholders)',
+        chunk,
+      );
+    }
+  }
+
+  /// Puts back revision nodes read by [getRevisionsForDives], once their
+  /// series have returned through [restoreSeriesRow], which does not carry
+  /// them: lineage is local to this device.
+  /// A series that did not return is skipped, and a child whose parent did
+  /// not return keeps no parent, as that parent's own delete leaves it.
+  Future<void> restoreRevisions(
+    Iterable<ProfileSeriesRevision> revisions,
+  ) async {
+    await _db.transaction(() async {
+      for (final r in revisions) {
+        await _db.customStatement(
+          'INSERT OR REPLACE INTO $_historyTable '
+          '(series_id, dive_id, parent_series_id, root_series_id, '
+          'content_hash, revision_kind, created_at) '
+          'SELECT ?, ?, (SELECT id FROM dive_profile_series WHERE id = ?), '
+          '?, ?, ?, ? '
+          'WHERE EXISTS (SELECT 1 FROM dive_profile_series WHERE id = ?)',
+          [
+            r.seriesId,
+            r.diveId,
+            r.parentSeriesId,
+            r.rootSeriesId,
+            r.contentHash,
+            r.revisionKind,
+            r.createdAt,
+            r.seriesId,
+          ],
+        );
+      }
+    });
   }
 
   /// Writes `is_primary` = [value] on every matching series, marking each
@@ -998,13 +1132,51 @@ class ProfileSeriesRepository {
   }
 
   /// Raw rows of every series of [diveIds], undecoded, for snapshots that
-  /// restore them verbatim through [restoreSeriesRow] and for summaries that
-  /// decode them on a background isolate.
+  /// restore them verbatim through [restoreSeriesRow] and for reads that
+  /// decode them on a background isolate. For one dive, the rows come back in
+  /// the order [getSeriesForDive] uses.
   Future<List<DiveProfileSeriesRow>> getRowsForDives(
     List<String> diveIds,
   ) async {
     if (diveIds.isEmpty) return const [];
     return _rowsForDives(diveIds);
+  }
+
+  /// Every series of [diveIds] as [undecodedProfileSeriesRow] gives it, in
+  /// [getRowsForDives]' order, with each blob left in the table.
+  ///
+  /// [getRowsForDives] plus [undecodedProfileSeriesRow] is the same answer
+  /// but still copies every blob out of SQLite, which is what a read over a
+  /// whole selection exists to avoid (issue #3856). A repeated id is read
+  /// once, as one `IN (...)` read it.
+  Future<List<ProfileSeries>> getUndecodedSeriesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const [];
+    final table = _db.diveProfileSeries;
+    final columns = [
+      for (final column in table.$columns)
+        if (column != table.samples) column.$name,
+    ].join(', ');
+    final rows = <DiveProfileSeriesRow>[];
+    for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final selected = await _db
+          .customSelect(
+            'SELECT $columns FROM ${table.actualTableName} '
+            'WHERE dive_id IN ($placeholders)',
+            variables: [for (final diveId in chunk) Variable<String>(diveId)],
+            readsFrom: {table},
+          )
+          .get();
+      rows.addAll(
+        selected.map(
+          (row) => table.map({...row.data, table.samples.$name: Uint8List(0)}),
+        ),
+      );
+    }
+    rows.sort(_byDiveStartId);
+    return rows.map(undecodedProfileSeriesRow).toList();
   }
 
   /// The ids of [diveIds]'s series whose packed blob does not decode.

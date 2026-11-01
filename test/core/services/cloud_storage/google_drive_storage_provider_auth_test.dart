@@ -16,6 +16,8 @@ import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_
 import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 
+import '../../../helpers/google_auth_client.dart';
+
 /// Exercises the provider through the [GoogleDriveAuthenticator] seam: auth
 /// delegation, the 401 retry, and error mapping. The transfer paths that take
 /// a file path are covered separately in
@@ -28,6 +30,9 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   int silentAuthCalls = 0;
   int authFailures = 0;
   bool silentAuthResult = true;
+
+  @override
+  bool lastSilentAuthThrew = false;
   bool signedOut = false;
 
   /// When set, a successful silent re-auth publishes this client, the way a
@@ -41,7 +46,12 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   set authClient(http.Client? client) => _client = client;
 
   @override
-  Future<void> authenticate() async => authenticateCalls++;
+  Future<void> authenticate({String? expectedAccount}) async {
+    authenticateCalls++;
+    this.expectedAccount = expectedAccount;
+  }
+
+  String? expectedAccount;
 
   @override
   Future<bool> attemptSilentAuth() async {
@@ -76,6 +86,7 @@ class _FakeDrive {
   int failuresRemaining = 0;
   int failureStatus = 401;
   String failureReason = 'authError';
+  Map<String, String> failureHeaders = const {};
 
   MockClient client() => MockClient((request) async {
     requests.add(request);
@@ -92,7 +103,7 @@ class _FakeDrive {
           },
         }),
         failureStatus,
-        headers: _jsonHeaders,
+        headers: {..._jsonHeaders, ...failureHeaders},
       );
     }
     final path = request.url.path;
@@ -182,6 +193,20 @@ void main() {
         ? GoogleDriveClientConfig.hasDesktopClient
         : true;
     expect(await provider.isAvailable(), expected);
+  });
+
+  test('authenticateAs hands the expected account to the sign-in', () async {
+    final auth = _FakeAuthenticator(null);
+    final provider = GoogleDriveStorageProvider(authenticator: auth);
+
+    // No client comes back from the fake, which is the provider's own error;
+    // what this pins is what the authenticator was asked for.
+    await expectLater(
+      provider.authenticateAs('diver@example.com'),
+      throwsA(isA<CloudStorageException>()),
+    );
+
+    expect(auth.expectedAccount, 'diver@example.com');
   });
 
   test('isAuthenticated delegates to silent auth when no client yet', () async {
@@ -289,6 +314,20 @@ void main() {
       (r) => (r.url.queryParameters['q'] ?? '').contains(_folderQueryKey),
     );
     expect(folderQueries, hasLength(1));
+  });
+
+  test('a new sign-in looks the sync folder up again', () async {
+    // The recovery from a refused grant drops it without a signOut, and the
+    // diver may then pick another account, whose appDataFolder does not hold
+    // the folder this one cached.
+    expect(await provider.getOrCreateSyncFolder(), 'folder-7');
+    drive_.listResponses[_folderQueryKey] = [
+      {'id': 'folder-8', 'name': 'Submersion Sync'},
+    ];
+
+    await provider.authenticate();
+
+    expect(await provider.getOrCreateSyncFolder(), 'folder-8');
   });
 
   test('download returns the file bytes', () async {
@@ -418,6 +457,195 @@ void main() {
     expect(auth.authFailures, 2);
   });
 
+  // Every client the authenticators publish is a googleapis_auth client, and
+  // that client raises AccessDeniedException itself for any response carrying
+  // www-authenticate, before the Drive API sees a status. Google sends that
+  // header on both of these, so a bare MockClient would test a path production
+  // never takes.
+  group('rejections raised by the real auth client', () {
+    setUp(() {
+      auth = _FakeAuthenticator(googleAuthClient(drive_.client()));
+      provider = GoogleDriveStorageProvider(authenticator: auth);
+    });
+
+    group('an expired token', () {
+      setUp(() {
+        drive_.failureHeaders = const {
+          'www-authenticate':
+              'Bearer realm="https://accounts.google.com/", '
+              'error="invalid_token"',
+        };
+      });
+
+      test('triggers one silent re-auth and a retry', () async {
+        drive_.failuresRemaining = 1;
+        expect(await provider.listFiles(namePattern: 'ssv1.'), isEmpty);
+        expect(auth.authFailures, 1);
+        expect(auth.silentAuthCalls, 1);
+      });
+
+      test('that survives re-auth asks to sign in again', () async {
+        drive_.failuresRemaining = 2;
+        await expectLater(
+          provider.listFiles(namePattern: 'ssv1.'),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.displayMessage,
+              'displayMessage',
+              allOf(contains('sign in'), isNot(contains('www-authenticate'))),
+            ),
+          ),
+        );
+        expect(auth.authFailures, 2);
+      });
+
+      test('that survives re-auth counts as a refusal', () async {
+        drive_.failuresRemaining = 2;
+        await expectLater(
+          provider.listFiles(namePattern: 'ssv1.'),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.accessRefused,
+              'accessRefused',
+              isTrue,
+            ),
+          ),
+        );
+      });
+
+      test('with a refresh that throws is neither refused nor raw', () async {
+        // A dropped network fails the refresh too, so this says nothing about
+        // the account, and the header must stay off the screen on this path
+        // as well.
+        auth
+          ..silentAuthResult = false
+          ..lastSilentAuthThrew = true;
+        drive_.failuresRemaining = 1;
+
+        await expectLater(
+          provider.listFiles(namePattern: 'ssv1.'),
+          throwsA(
+            isA<CloudStorageException>()
+                .having((e) => e.accessRefused, 'accessRefused', isFalse)
+                .having(
+                  (e) => e.displayMessage,
+                  'displayMessage',
+                  isNot(contains('www-authenticate')),
+                ),
+          ),
+        );
+      });
+
+      test('during an upload lookup is not read as a missing file', () async {
+        // Masked as "not found", the retry-free path went on to create a
+        // second file of the same name beside the one it failed to see.
+        drive_.listResponses["name = 'ssv1.dev.manifest.json'"] = [
+          {'id': 'existing-9', 'name': 'ssv1.dev.manifest.json'},
+        ];
+        drive_.failuresRemaining = 1;
+
+        // A folder id skips the sync folder query, so the rejection lands on
+        // the name lookup itself.
+        final result = await provider.uploadFile(
+          Uint8List.fromList([1, 2]),
+          'ssv1.dev.manifest.json',
+          folderId: 'folder-7',
+        );
+
+        expect(result.fileId, 'existing-9');
+        expect(auth.silentAuthCalls, 1);
+        expect(
+          drive_.requests.any(
+            (r) => r.method == 'POST' && r.url.path == '/upload/drive/v3/files',
+          ),
+          isFalse,
+        );
+      });
+    });
+
+    group('a token without the Drive scope', () {
+      setUp(() {
+        drive_
+          ..failureStatus = 403
+          ..failureHeaders = const {
+            'www-authenticate':
+                'Bearer realm="https://accounts.google.com/", '
+                'error="insufficient_scope", '
+                'scope="https://www.googleapis.com/auth/drive.appdata"',
+          };
+      });
+
+      final asksForTheDriveBox = isA<CloudStorageException>()
+          .having((e) => e.message, 'message', contains('Google Drive box'))
+          // The screen shows the message and displayMessage adds the cause, so
+          // a cause here would put the raw header back in front of the diver.
+          .having((e) => e.cause, 'cause', isNull);
+
+      test('asks for Drive access instead of showing the raw 403', () async {
+        drive_.failuresRemaining = 1;
+        await expectLater(
+          provider.getOrCreateSyncFolder(),
+          throwsA(asksForTheDriveBox),
+        );
+      });
+
+      test('counts as a refusal, so the error offers Sign in again', () async {
+        // Read as anything else, sync files this as a network failure and the
+        // diver is told to check a connection that is fine (issue #3811).
+        drive_.failuresRemaining = 1;
+        await expectLater(
+          provider.getOrCreateSyncFolder(),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.accessRefused,
+              'accessRefused',
+              isTrue,
+            ),
+          ),
+        );
+      });
+
+      test('drops the grant, which a retry could never fix', () async {
+        drive_.failuresRemaining = 1;
+        await expectLater(
+          provider.getOrCreateSyncFolder(),
+          throwsA(isA<CloudStorageException>()),
+        );
+        expect(auth.authFailures, 1);
+        expect(auth.silentAuthCalls, 0);
+        expect(drive_.requests, hasLength(1));
+      });
+
+      test('is caught on the retry after a refresh as well', () async {
+        // Re-authorizing an expired token can come back with less than the
+        // old grant had, so the retry needs the same classification.
+        var calls = 0;
+        final client = googleAuthClient(
+          MockClient((request) async {
+            calls++;
+            return http.Response(
+              '',
+              calls == 1 ? 401 : 403,
+              headers: {
+                'www-authenticate': calls == 1
+                    ? 'Bearer error="invalid_token"'
+                    : 'Bearer error="insufficient_scope"',
+              },
+            );
+          }),
+        );
+        auth = _FakeAuthenticator(client);
+        provider = GoogleDriveStorageProvider(authenticator: auth);
+
+        await expectLater(
+          provider.listFiles(namePattern: 'ssv1.'),
+          throwsA(asksForTheDriveBox),
+        );
+        expect(auth.authFailures, 2);
+      });
+    });
+  });
+
   // The desktop loopback client refreshes its access token lazily, on the
   // first request, and a revoked or expired grant fails that refresh with an
   // OAuth invalid_grant rather than a Drive 401. It must still be treated as
@@ -437,6 +665,26 @@ void main() {
             'error_description': 'Token has been expired or revoked.',
           },
         );
+
+    test('a refresh that fails on an outage is not a refusal', () async {
+      final failingAuth =
+          _FakeAuthenticator(
+              MockClient((_) async => throw refreshError('invalid_grant')),
+            )
+            ..silentAuthResult = false
+            ..lastSilentAuthThrew = true;
+
+      await expectLater(
+        refreshFailing(failingAuth).listFiles(namePattern: 'ssv1.'),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.accessRefused,
+            'accessRefused',
+            isFalse,
+          ),
+        ),
+      );
+    });
 
     test('invalid_grant clears the grant and asks to sign in again', () async {
       final failingAuth = _FakeAuthenticator(

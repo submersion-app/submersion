@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Simplified dive profile chart for the editor page.
 ///
@@ -22,10 +21,18 @@ class ProfileEditorChart extends ConsumerStatefulWidget {
   final List<ProfileWaypoint>? waypoints;
   final ({int start, int end})? selectedRange;
   final EditorMode mode;
+
+  /// Called on a draw mode tap with [depth] in meters, whatever unit the chart
+  /// is displaying.
   final void Function(int timestamp, double depth)? onTap;
   final void Function(int waypointIndex, int timestamp, double depth)?
   onWaypointDrag;
+
+  /// A drag across the chart in Select or Smooth mode selected this range.
   final void Function(int startTimestamp, int endTimestamp)? onRangeChanged;
+
+  /// A tap on the chart in Select or Smooth mode dropped the selection.
+  final VoidCallback? onRangeCleared;
 
   const ProfileEditorChart({
     super.key,
@@ -38,6 +45,7 @@ class ProfileEditorChart extends ConsumerStatefulWidget {
     this.onTap,
     this.onWaypointDrag,
     this.onRangeChanged,
+    this.onRangeCleared,
   });
 
   @override
@@ -48,6 +56,13 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
   double _minX = 0;
   double _maxX = 1;
   double _maxDepthDisplay = 1;
+
+  /// Chart time where the current drag began, the end of the range it holds
+  /// still.
+  double? _rangeDragAnchor;
+
+  bool get _selectsRange =>
+      widget.mode == EditorMode.select || widget.mode == EditorMode.smooth;
 
   @override
   void initState() {
@@ -80,8 +95,8 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+
     final colorScheme = Theme.of(context).colorScheme;
 
     // Calculate max depth in display units
@@ -124,7 +139,9 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
             ),
             borderData: FlBorderData(show: false),
             lineTouchData: LineTouchData(
-              enabled: widget.mode == EditorMode.draw,
+              // Not just the tooltip: a disabled chart takes no pointers.
+              enabled: widget.mode == EditorMode.draw || _selectsRange,
+              handleBuiltInTouches: widget.mode == EditorMode.draw,
               touchCallback: _handleTouch,
               touchTooltipData: LineTouchTooltipData(
                 getTooltipColor: (_) => colorScheme.surfaceContainerHighest,
@@ -169,8 +186,10 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
     ColorScheme colorScheme,
     UnitFormatter units,
   ) {
-    // Read once here: fl_chart calls getDotPainter during paint, per frame.
-    final ring = backdropColorOf(context);
+    // Read once here: fl_chart calls these dot callbacks during paint, per
+    // sample, per frame.
+    final markedTimes = _markedTimestamps();
+    final markerPainter = _buildMarkerPainter(colorScheme);
     return LineChartBarData(
       spots: widget.editedProfile
           .map(
@@ -181,42 +200,12 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
       color: colorScheme.primary,
       barWidth: 2.5,
       isStrokeCapRound: true,
+      // Off when nothing is marked, so paint skips its walk over every sample.
+      // Draw mode stays on: fl_chart sizes its touch indicator from this flag.
       dotData: FlDotData(
-        show: true,
-        getDotPainter: (spot, percent, barData, index) {
-          if (widget.mode == EditorMode.outlier && widget.outliers != null) {
-            final isOutlier = widget.outliers!.any(
-              (o) => o.timestamp == spot.x.toInt(),
-            );
-            if (isOutlier) {
-              return FlDotCirclePainter(
-                radius: 5,
-                color: colorScheme.error,
-                strokeWidth: 1.5,
-                strokeColor: colorScheme.onError,
-              );
-            }
-          }
-          if (widget.mode == EditorMode.draw && widget.waypoints != null) {
-            final isWaypoint = widget.waypoints!.any(
-              (w) => w.timestamp == spot.x.toInt(),
-            );
-            if (isWaypoint) {
-              return FlDotCirclePainter(
-                radius: 6,
-                color: Colors.blue,
-                strokeWidth: 2,
-                strokeColor: ring,
-              );
-            }
-          }
-          return FlDotCirclePainter(
-            radius: 0,
-            color: Colors.transparent,
-            strokeWidth: 0,
-            strokeColor: Colors.transparent,
-          );
-        },
+        show: widget.mode == EditorMode.draw || markedTimes.isNotEmpty,
+        checkToShowDot: (spot, _) => markedTimes.contains(spot.x.toInt()),
+        getDotPainter: (_, _, _, _) => markerPainter,
       ),
       belowBarData: BarAreaData(
         show: true,
@@ -224,6 +213,34 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
       ),
     );
   }
+
+  /// The sample times this mode marks. Only Outlier and Draw mode mark any.
+  Set<int> _markedTimestamps() => switch (widget.mode) {
+    EditorMode.outlier => {...?widget.outliers?.map((o) => o.timestamp)},
+    EditorMode.draw => {...?widget.waypoints?.map((w) => w.timestamp)},
+    EditorMode.select || EditorMode.smooth || EditorMode.trim => const {},
+  };
+
+  /// One painter serves every marked sample: it keeps nothing between draws.
+  /// Modes that mark nothing never reach it.
+  FlDotPainter _buildMarkerPainter(ColorScheme colorScheme) =>
+      switch (widget.mode) {
+        EditorMode.draw => FlDotCirclePainter(
+          radius: 6,
+          color: Colors.blue,
+          strokeWidth: 2,
+          strokeColor: backdropColorOf(context),
+        ),
+        EditorMode.outlier ||
+        EditorMode.select ||
+        EditorMode.smooth ||
+        EditorMode.trim => FlDotCirclePainter(
+          radius: 5,
+          color: colorScheme.error,
+          strokeWidth: 1.5,
+          strokeColor: colorScheme.onError,
+        ),
+      };
 
   FlTitlesData _buildTitles(UnitFormatter units) {
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
@@ -286,6 +303,10 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
   }
 
   void _handleTouch(FlTouchEvent event, LineTouchResponse? response) {
+    if (_selectsRange) {
+      _handleRangeTouch(event, response?.touchChartCoordinate.dx);
+      return;
+    }
     if (widget.mode != EditorMode.draw) return;
     if (event is! FlTapUpEvent) return;
 
@@ -294,7 +315,43 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
 
     final touchedSpot = spots.first;
     final timestamp = touchedSpot.x.toInt();
-    final depth = -touchedSpot.y;
+    // Chart Y is negated and in display units; convert back to stored meters
+    final units = ref.read(unitFormatterProvider);
+    final depth = units.depthToMeters(-touchedSpot.y);
     widget.onTap?.call(timestamp, depth);
+  }
+
+  void _handleRangeTouch(FlTouchEvent event, double? time) {
+    switch (event) {
+      // Holding still before dragging turns the gesture into a long press.
+      case FlPanDownEvent() || FlLongPressStart():
+        _rangeDragAnchor = time;
+      case FlPanStartEvent() || FlPanUpdateEvent() || FlLongPressMoveUpdate():
+        final anchor = _rangeDragAnchor;
+        if (anchor == null || time == null) return;
+        final range = _rangeBetween(anchor, time);
+        if (range == null || range == widget.selectedRange) return;
+        widget.onRangeChanged?.call(range.start, range.end);
+      case FlTapUpEvent():
+        widget.onRangeCleared?.call();
+      default:
+        break;
+    }
+  }
+
+  /// The samples between chart times [a] and [b], reaching out to a sample at
+  /// each end: a drag between two sparse samples still holds some, the shading
+  /// shows exactly which, and a time shift's overlap check measures from real
+  /// samples. Null when no two samples qualify, as for a drag past the dive.
+  ({int start, int end})? _rangeBetween(double a, double b) {
+    final profile = widget.editedProfile;
+    if (profile.isEmpty) return null;
+
+    final low = math.min(a, b);
+    final high = math.max(a, b);
+    final times = profile.map((p) => p.timestamp);
+    final start = times.lastWhere((t) => t <= low, orElse: () => times.first);
+    final end = times.firstWhere((t) => t >= high, orElse: () => times.last);
+    return start < end ? (start: start, end: end) : null;
   }
 }

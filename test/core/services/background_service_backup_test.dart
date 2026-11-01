@@ -63,6 +63,31 @@ class _UploadFailingCloud extends FakeCloudStorageProvider {
   }) async => throw const CloudStorageException('network unreachable');
 }
 
+class _UploadRefusedCloud extends FakeCloudStorageProvider {
+  _UploadRefusedCloud() : super(providerId: 'dropbox');
+
+  @override
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  }) async => throw const CloudAccessRefusedException('refused');
+}
+
+/// The folder lookup is a backup's first cloud request, so a refusal usually
+/// lands here rather than on the upload.
+class _FolderFailingCloud extends FakeCloudStorageProvider {
+  _FolderFailingCloud(this.failure) : super(providerId: 'dropbox');
+
+  final CloudStorageException failure;
+
+  @override
+  Future<String> createFolder(
+    String folderName, {
+    String? parentFolderId,
+  }) async => throw failure;
+}
+
 /// One recorded call to the notification seam.
 typedef _Notification = ({bool success, String? error, bool cloudCopyMissing});
 
@@ -276,6 +301,70 @@ void main() {
       expect(
         BackupPreferences(prefs).getSettings().lastCloudCopyMissing,
         isTrue,
+      );
+    });
+
+    test('a refused upload remembers that sign-in is needed', () async {
+      cloud = _UploadRefusedCloud();
+      final prefs = await seedPrefs();
+
+      await run(prefs);
+
+      expect(
+        BackupPreferences(prefs).getSettings().lastCloudCopyNeedsSignIn,
+        isTrue,
+      );
+    });
+
+    test('a refused folder lookup remembers that sign-in is needed', () async {
+      cloud = _FolderFailingCloud(const CloudAccessRefusedException('refused'));
+      final prefs = await seedPrefs();
+
+      await run(prefs);
+
+      expect(
+        BackupPreferences(prefs).getSettings().lastCloudCopyNeedsSignIn,
+        isTrue,
+      );
+    });
+
+    test('an outage does not ask for a sign-in', () async {
+      cloud = _UploadFailingCloud();
+      final prefs = await seedPrefs();
+
+      await run(prefs);
+
+      expect(
+        BackupPreferences(prefs).getSettings().lastCloudCopyNeedsSignIn,
+        isFalse,
+      );
+    });
+
+    // Google Drive has no session in this isolate on a healthy account, so
+    // every scheduled backup fails this way: asking the diver to sign in
+    // again would be a false alarm each time (issue #3811).
+    test('having no session here does not ask for a sign-in', () async {
+      cloud = _FolderFailingCloud(
+        const CloudStorageException('Not authenticated with Google Drive'),
+      );
+      final prefs = await seedPrefs();
+
+      await run(prefs);
+
+      final settings = BackupPreferences(prefs).getSettings();
+      expect(settings.lastCloudCopyMissing, isTrue);
+      expect(settings.lastCloudCopyNeedsSignIn, isFalse);
+    });
+
+    test('a later backup that uploads clears the sign-in need', () async {
+      final prefs = await seedPrefs();
+      await BackupPreferences(prefs).setLastCloudCopyNeedsSignIn(true);
+
+      await run(prefs);
+
+      expect(
+        BackupPreferences(prefs).getSettings().lastCloudCopyNeedsSignIn,
+        isFalse,
       );
     });
 

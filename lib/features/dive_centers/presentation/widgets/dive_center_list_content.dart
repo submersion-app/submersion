@@ -128,7 +128,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   @override
   void initState() {
     super.initState();
-    _positionRestorer.start(ref, filteredDiveCentersProvider);
+    _positionRestorer.start(ref, sortedDiveCentersProvider);
   }
 
   @override
@@ -162,7 +162,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     if (!mounted) return true;
     return restoreListPosition(
       context,
-      items: ref.read(filteredDiveCentersProvider),
+      items: ref.read(sortedDiveCentersProvider),
       selectedId: widget.selectedId,
       rememberedId: ref.read(highlightedDiveCenterIdProvider),
       idOf: (item) => item.id,
@@ -177,7 +177,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   void _scrollToSelectedItem({String? targetId, bool jump = false}) {
     final target = targetId ?? widget.selectedId;
     if (target == null || !_scrollController.hasClients) return;
-    final items = ref.read(filteredDiveCentersProvider).value;
+    final items = ref.read(sortedDiveCentersProvider).value;
     if (items == null) return;
     final index = items.indexWhere((item) => item.id == target);
     if (index < 0) return;
@@ -227,18 +227,17 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   @override
   Widget build(BuildContext context) {
     final viewMode = ref.watch(diveCenterListViewModeProvider);
-    final centersAsync = ref.watch(filteredDiveCentersProvider);
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
-      return _buildTableModeScaffold(context, centersAsync);
+      return _buildTableModeScaffold(
+        context,
+        ref.watch(filteredDiveCentersProvider),
+      );
     }
 
-    final sort = ref.watch(diveCenterSortProvider);
-    final visibleCenters = applyDiveCenterSorting(
-      centersAsync.value ?? const [],
-      sort,
-    );
+    final centersAsync = ref.watch(sortedDiveCentersProvider);
+    final visibleCenters = centersAsync.value ?? const <DiveCenter>[];
     final visibleIds = visibleCenters.map((c) => c.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -255,12 +254,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     Widget buildContent() {
       return _withQueryChips(
         centersAsync.when(
-          data: (centers) {
-            final sorted = applyDiveCenterSorting(centers, sort);
-            return sorted.isEmpty
-                ? _buildEmptyState(context)
-                : _buildCenterList(context, ref, sorted);
-          },
+          data: (centers) => centers.isEmpty
+              ? _buildEmptyState(context)
+              : _buildCenterList(context, ref, centers),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => _buildErrorState(context, error),
         ),
@@ -521,8 +517,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
 
   /// Build the [EntityTableView] for dive center table mode.
   ///
-  /// Each center's dive count is looked up via [diveCenterDiveCountProvider]
-  /// so the table data matches what the list tiles show.
+  /// Every row's dive count comes from the one [diveCenterDiveCountsProvider]
+  /// read, the same source the list tiles use. The spinner stays until that
+  /// read first settles, so a table sorted by count never paints zeros and
+  /// then reorders; after that a refresh keeps the last counts on screen.
   Widget _buildTableView(
     BuildContext context,
     AsyncValue<List<DiveCenter>> centersAsync,
@@ -534,19 +532,19 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
         if (centers.isEmpty) {
           return _buildEmptyState(context);
         }
+        final countsAsync = ref.watch(diveCenterDiveCountsProvider);
+        if (!countsAsync.hasSettled) {
+          return const Center(child: CircularProgressIndicator());
+        }
         final config = ref.watch(diveCenterTableConfigProvider);
         final notifier = ref.read(diveCenterTableConfigProvider.notifier);
-        final settings = ref.watch(settingsProvider);
-        final units = UnitFormatter(settings);
+        final units = ref.watch(unitFormatterProvider);
 
-        // Build DiveCenterRow records, resolving dive counts from per-center
-        // providers (same source the list tiles use).
-        final rows = centers.map((center) {
-          final diveCount =
-              ref.watch(diveCenterDiveCountProvider(center.id)).valueOrNull ??
-              0;
-          return (center: center, diveCount: diveCount);
-        }).toList();
+        final diveCounts = countsAsync.value ?? const <String, int>{};
+        final rows = [
+          for (final center in centers)
+            (center: center, diveCount: diveCounts[center.id] ?? 0),
+        ];
 
         return EntityTableView<DiveCenterRow, DiveCenterField>(
           entities: rows,

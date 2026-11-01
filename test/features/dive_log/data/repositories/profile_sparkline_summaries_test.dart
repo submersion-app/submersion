@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_sparkline_summaries.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -63,20 +64,23 @@ void main() {
         );
         final rows = await series.getRowsForDives(['dive-1', 'dive-2']);
 
-        final inline = summarizeSparklines(rows, maxSamples: 120);
+        final inline = reduceSeriesRows(
+          rows,
+          sparklineReduction(maxSamples: 120),
+        );
         final background = await summarizeSparklinesInBackground(
           rows,
           maxSamples: 120,
         );
 
-        expect(background.byDive, inline.byDive);
-        expect(background.byDive['dive-1'], hasLength(120));
+        expect(background.result, inline.result);
+        expect(background.result['dive-1'], hasLength(120));
         expect(
-          background.byDive['dive-1']!.map((p) => p.depth),
+          background.result['dive-1']!.map((p) => p.depth),
           everyElement(lessThan(50.0)),
         );
-        expect(background.byDive['dive-2']!.map((p) => p.timestamp), [0, 30]);
-        expect(background.unreadableSeriesIds, isEmpty);
+        expect(background.result['dive-2']!.map((p) => p.timestamp), [0, 30]);
+        expect(background.unreadable, isEmpty);
       },
     );
 
@@ -105,8 +109,8 @@ void main() {
         maxSamples: 120,
       );
 
-      expect(summaries.byDive.keys, ['dive-2']);
-      expect(summaries.unreadableSeriesIds, [badId]);
+      expect(summaries.result.keys, ['dive-2']);
+      expect(summaries.unreadable.keys, [badId]);
     });
   });
 }

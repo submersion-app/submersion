@@ -24,6 +24,7 @@ import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
@@ -31,6 +32,7 @@ import 'package:submersion/features/dive_computer/domain/services/dive_computer_
     show computerModelsCompatible, identityPartsCompatible;
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -1130,31 +1132,14 @@ class DiveComputerRepository {
           ? null
           : diverId;
 
-      // Build diver filter conditionally
-      final diverClause = normalizedDiverId != null ? 'AND diver_id = ?' : '';
-      final diverVars = normalizedDiverId != null
-          ? [Variable(normalizedDiverId)]
-          : <Variable>[];
-
-      // Search for dives within the tolerance window
       final result = await _db
           .customSelect(
-            '''
-        SELECT id, dive_date_time, entry_time, bottom_time, max_depth,
-          COALESCE(entry_time, dive_date_time) as effective_time,
-          ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
-        FROM dives
-        WHERE ABS(COALESCE(entry_time, dive_date_time) - ?) <= ?
-          AND is_planned = 0
-          $diverClause
-        ORDER BY time_diff ASC
-        LIMIT 10
-      ''',
+            diveMatchCandidatesSql(scopedToDiver: normalizedDiverId != null),
             variables: [
               Variable(startMs),
-              Variable(startMs),
-              Variable(toleranceMs),
-              ...diverVars,
+              Variable(startMs - toleranceMs),
+              Variable(startMs + toleranceMs),
+              if (normalizedDiverId != null) Variable(normalizedDiverId),
             ],
           )
           .get();
@@ -1185,7 +1170,7 @@ class DiveComputerRepository {
       for (final row in result) {
         final diveId = row.data['id'] as String;
         final timeDiff = row.data['time_diff'] as int;
-        final diveDuration = row.data['bottom_time'] as int?;
+        final diveDuration = row.data['total_seconds'] as int?;
         final diveMaxDepth = row.data['max_depth'] as double?;
 
         final durationDiff = (durationSeconds != null && diveDuration != null)
@@ -1625,12 +1610,7 @@ class DiveComputerRepository {
         final computer = await getComputerById(computerId);
 
         // Use provided avgDepth, or calculate from profile points
-        final effectiveAvgDepth =
-            avgDepth ??
-            (points.isNotEmpty
-                ? points.map((p) => p.depth).reduce((a, b) => a + b) /
-                      points.length
-                : null);
+        final effectiveAvgDepth = avgDepth ?? _meanDepthOf(points);
 
         // durationSeconds from the dive computer is total runtime,
         // not bottom time. A bottom time the source reported wins (#1798);
@@ -1901,12 +1881,7 @@ class DiveComputerRepository {
                 profileStartTime: profileStartTime,
                 durationSeconds: durationSeconds,
                 maxDepth: maxDepth,
-                effectiveAvgDepth:
-                    avgDepth ??
-                    (points.isNotEmpty
-                        ? points.map((p) => p.depth).reduce((a, b) => a + b) /
-                              points.length
-                        : null),
+                effectiveAvgDepth: avgDepth ?? _meanDepthOf(points),
                 minWaterTemp:
                     minTemperature ??
                     (existingSampleTemps.isNotEmpty
@@ -2877,6 +2852,10 @@ class DiveComputerRepository {
         return 'info';
     }
   }
+
+  /// Time-weighted mean depth of [points], or null without any.
+  double? _meanDepthOf(List<ProfilePointData> points) =>
+      timeWeightedMean(points, time: (p) => p.timestamp, value: (p) => p.depth);
 
   /// Find the depth at a given timestamp by interpolating between profile
   /// points.

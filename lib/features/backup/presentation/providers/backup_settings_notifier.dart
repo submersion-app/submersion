@@ -48,6 +48,7 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   Future<void> setCopyTo(ConnectedAccount row) async {
     await _prefs.setCopyDestination(accountId: row.id, kind: row.kind);
     await _prefs.setCloudBackupEnabled(true);
+    await _prefs.setLastCloudCopyNeedsSignIn(false);
     state = _prefs.getSettings();
   }
 
@@ -55,6 +56,7 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   Future<void> setCopyFollowsSync() async {
     await _prefs.setCopyDestination(accountId: null, kind: null);
     await _prefs.setCloudBackupEnabled(true);
+    await _prefs.setLastCloudCopyNeedsSignIn(false);
     state = _prefs.getSettings();
   }
 
@@ -65,6 +67,7 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   Future<void> setNoCopy() async {
     await _prefs.setCloudBackupEnabled(false);
     await _prefs.setCopyDestination(accountId: null, kind: null);
+    await _prefs.setLastCloudCopyNeedsSignIn(false);
     state = _prefs.getSettings();
   }
 
@@ -119,6 +122,14 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
     await _prefs.reload();
     if (!mounted) return;
     refresh();
+  }
+
+  /// Signing in again answered the refusal the last copy met (issue #3811).
+  /// The copy is still missing until a backup makes one.
+  Future<void> clearCloudCopyNeedsSignIn() async {
+    await _prefs.setLastCloudCopyNeedsSignIn(false);
+    if (!mounted) return;
+    state = state.copyWith(lastCloudCopyNeedsSignIn: false);
   }
 
   /// Records a failed scheduled backup for Settings > Data health.

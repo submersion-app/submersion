@@ -76,4 +76,43 @@ void main() {
     // The profile's 20-minute span is the runtime the next gap starts from.
     expect(batch['after-profile'], const Duration(minutes: 100));
   });
+
+  test('the batch matches the detail page around a plan never dived', () async {
+    final dives = [
+      domain.Dive(
+        id: 'real',
+        dateTime: at(8),
+        entryTime: at(8),
+        exitTime: at(9),
+      ),
+      domain.Dive(
+        id: 'plan',
+        dateTime: at(10),
+        entryTime: at(10),
+        exitTime: at(11),
+        isPlanned: true,
+      ),
+      domain.Dive(id: 'after-plan', dateTime: at(12), entryTime: at(12)),
+      domain.Dive(
+        id: 'second-plan',
+        dateTime: at(13),
+        entryTime: at(13),
+        isPlanned: true,
+      ),
+    ];
+    for (final d in dives) {
+      await repository.createDive(d);
+    }
+
+    final batch = await repository.getSurfaceIntervals();
+
+    for (final d in dives) {
+      expect(
+        batch[d.id],
+        await repository.getSurfaceInterval(d.id),
+        reason: d.id,
+      );
+    }
+    expect(batch['after-plan'], const Duration(hours: 3));
+  });
 }

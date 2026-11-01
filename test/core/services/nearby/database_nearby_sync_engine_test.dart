@@ -215,7 +215,7 @@ void main() {
     final delta = await engine.exportDelta(first!['hlc'] as String);
     expect(delta.data.dives.map((d) => d['id']), ['d2']);
     expect(delta.epochId, 'epoch-z');
-    expect(serializer.validateChecksum(delta), isTrue);
+    expect(SyncDataSerializer.checksumIsValid(delta), isTrue);
   });
 
   test('exportFull streams every row to a temp file', () async {

@@ -10,10 +10,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_issue_text.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -29,7 +31,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 Widget _harness(Widget child) => testApp(
-  overrides: [settingsProvider.overrideWith((ref) => _TestSettingsNotifier())],
+  overrides: [
+    ...plannerResultsInline(),
+    settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+  ],
   child: SizedBox(width: 500, height: 600, child: child),
 );
 
@@ -79,6 +84,7 @@ PlanOutcome _noDecoOutcome({
     otuTotal: 10,
     issues: const [],
     endTissue: const BuhlmannState(compartments: []),
+    surfacedTissue: const BuhlmannState(compartments: []),
     tissueTimeline: const [],
     ceilingTrace: const [],
   );
@@ -86,6 +92,7 @@ PlanOutcome _noDecoOutcome({
 
 Widget _outcomeHarness(PlanOutcome outcome) => testApp(
   overrides: [
+    ...plannerResultsInline(),
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     activePlanOutcomeProvider.overrideWithValue(outcome),
   ],
@@ -235,6 +242,7 @@ void main() {
         otuTotal: 10,
         issues: [],
         endTissue: BuhlmannState(compartments: []),
+        surfacedTissue: BuhlmannState(compartments: []),
         tissueTimeline: [],
         ceilingTrace: [],
       );
@@ -271,6 +279,7 @@ void main() {
       otuTotal: 10,
       issues: [],
       endTissue: BuhlmannState(compartments: []),
+      surfacedTissue: BuhlmannState(compartments: []),
       tissueTimeline: [],
       ceilingTrace: [],
     );
@@ -352,10 +361,11 @@ void main() {
       );
       await _seedDecoPlan(tester, find.byType(PlanResultsSheet));
 
-      final listView = tester.widget<ListView>(find.byType(ListView));
-      expect(listView.shrinkWrap, isTrue);
-      expect(listView.physics, isA<NeverScrollableScrollPhysics>());
-      expect(listView.controller, same(controller));
+      final scrollView = tester.widget<SingleChildScrollView>(
+        find.byType(SingleChildScrollView).first,
+      );
+      expect(scrollView.physics, isA<NeverScrollableScrollPhysics>());
+      expect(scrollView.controller, same(controller));
     },
   );
 

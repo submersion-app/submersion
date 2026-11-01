@@ -91,16 +91,30 @@ void main() {
       expect(match.matchedExistingSource, isFalse);
     });
 
-    test('a download on another day stays unmatched', () async {
+    test('a download two days later stays unmatched', () async {
       when(
         mockDiveRepo.getPlannedDives(diverId: diverId),
       ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 9))]);
-      adapter.setDownloadedDives([download(DateTime(2026, 6, 2, 9))]);
+      adapter.setDownloadedDives([download(DateTime(2026, 6, 3, 9))]);
       final bundle = await adapter.buildBundle();
 
       final result = await adapter.checkDuplicates(bundle);
 
       expect(result.groups[ImportEntityType.dives]!.duplicateIndices, isEmpty);
+    });
+
+    test('a download the day after the plan is offered as a fill', () async {
+      when(
+        mockDiveRepo.getPlannedDives(diverId: diverId),
+      ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 23))]);
+      adapter.setDownloadedDives([download(DateTime(2026, 6, 2, 0, 30))]);
+      final bundle = await adapter.buildBundle();
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      final group = result.groups[ImportEntityType.dives]!;
+      expect(group.duplicateIndices, {0});
+      expect(group.matchResults![0]!.plannedDiveId, 'p1');
     });
 
     test('a fingerprint hit is never turned into a fill', () async {

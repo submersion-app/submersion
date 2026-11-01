@@ -29,11 +29,20 @@ String _trim(double v) {
 /// [GasMix.name] rounds through roundedO2/roundedHe, which is right for a
 /// logbook and wrong at a fill station: a blender working to a tenth of a
 /// percent cannot read their own target off a label that says "Tx 8/73".
-String formatPreciseMix(BuildContext context, GasMix m) {
+///
+/// [trimixPrefix] drops the "Tx " for a column whose header already says the
+/// numbers are O₂/He. A gas with a name of its own keeps it.
+String formatPreciseMix(
+  BuildContext context,
+  GasMix m, {
+  bool trimixPrefix = true,
+}) {
   if (m.isAir) return context.l10n.gasCalculators_blender_air;
   if (m.he >= 99.95) return context.l10n.gasCalculators_blender_helium;
   if (m.o2 >= 99.95) return 'O₂';
-  if (m.he > 0) return 'Tx ${_trim(m.o2)}/${_trim(m.he)}';
+  if (m.he > 0) {
+    return '${trimixPrefix ? 'Tx ' : ''}${_trim(m.o2)}/${_trim(m.he)}';
+  }
   return 'EAN${_trim(m.o2)}';
 }
 

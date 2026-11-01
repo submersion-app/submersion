@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -59,7 +60,7 @@ class _CnsOtuPageState extends ConsumerState<CnsOtuPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final snapshotAsync = ref.watch(cnsOtuSnapshotProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // The diver's CURRENT conservatism, not whatever the last dive itself
     // was analyzed with: the live tissue readout shows what today's GF
     // settings mean for the residual loading right now.
@@ -149,14 +150,17 @@ class CnsOtuStatusCard extends StatelessWidget {
       return _clearCard(l10n, theme);
     }
 
-    final now = NoFlyService.wallClockNowUtc();
+    // True instants: CNS%, tissues and the "ended ... ago" line all measure
+    // elapsed time. Only daily OTU stays on clock digits, because it belongs
+    // to a calendar day rather than a span.
+    final now = clock.now().toUtc();
     final elapsed = now.isAfter(snap.lastDiveEnd)
         ? now.difference(snap.lastDiveEnd)
         : Duration.zero;
     final dailyOtu = CnsOtuLiveService.currentOtuDaily(
       dailyOtu: snap.dailyOtu,
       computedAt: snap.computedAt,
-      now: now,
+      now: NoFlyService.wallClockNowUtc(),
     );
 
     final exposure = snap.exposure;
@@ -174,6 +178,15 @@ class CnsOtuStatusCard extends StatelessWidget {
       lastDiveEnd: snap.lastDiveEnd,
       now: now,
     );
+
+    // A CNS that is only a minimum stays on screen for as long as the unknown
+    // dive behind it can matter: a low figure then says nothing about the
+    // load, so reading it as "no active load" would claim a recovery nobody
+    // knows about.
+    final unknownDiveAge = exposure.cnsUnknownDiveAge;
+    final cnsMayBeHigher =
+        unknownDiveAge != null &&
+        unknownDiveAge + elapsed < CnsTable.cnsRecoveryWindow;
 
     // Independent of exposure: a gauge-mode or gas-segment-less rebreather
     // dive can have a known exposure but withheld tissue data (see
@@ -220,6 +233,7 @@ class CnsOtuStatusCard extends StatelessWidget {
     // tissues themselves are still meaningfully loaded.
     final hasActiveLoad =
         liveCns >= _loadEpsilon ||
+        cnsMayBeHigher ||
         dailyOtu >= _loadEpsilon ||
         snap.weeklyOtu >= _loadEpsilon ||
         tissueStatus != null;
@@ -237,6 +251,7 @@ class CnsOtuStatusCard extends StatelessWidget {
         liveCns: liveCns,
         dailyOtu: dailyOtu,
         weeklyOtu: snap.weeklyOtu,
+        showCnsMinimumNote: cnsMayBeHigher,
       ),
       if (tissueStatus != null) ...[
         const SizedBox(height: 8),

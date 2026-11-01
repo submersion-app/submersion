@@ -22,6 +22,13 @@ void main() {
     labels: const MapQueryLabels(
       fields: {'depth': 'Max depth', 'rating': 'Rating'},
       relations: {'site': 'Site', 'weights': 'Weights'},
+      ops: {
+        QueryOp.eq: 'is',
+        QueryOp.neq: 'is not',
+        QueryOp.inList: 'is one of',
+        QueryOp.isEmpty: 'is not set',
+        QueryOp.isSet: 'is set',
+      },
     ),
     now: () => DateTime(2026, 9, 25),
   );
@@ -35,19 +42,22 @@ void main() {
     const NumberValue(0, null),
   );
 
-  Widget host(QueryNode? root, ValueChanged<QueryNode?> onChanged) =>
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: QueryBuilderGroup(
-              context: context,
-              root: root,
-              onChanged: onChanged,
-              strings: kTestBuilderStrings,
-            ),
-          ),
+  Widget host(
+    QueryNode? root,
+    ValueChanged<QueryNode?> onChanged, {
+    QueryEditorContext? editor,
+  }) => MaterialApp(
+    home: Scaffold(
+      body: SingleChildScrollView(
+        child: QueryBuilderGroup(
+          context: editor ?? context,
+          root: root,
+          onChanged: onChanged,
+          strings: kTestBuilderStrings,
         ),
-      );
+      ),
+    ),
+  );
 
   // The field picker's list is lazy; relations sit below the fields.
   Future<void> pick(WidgetTester tester, String label) async {
@@ -150,6 +160,149 @@ void main() {
         ),
       ]),
     );
+  });
+
+  group('a relation with nothing picked (#3810)', () {
+    final siteEmpty = ConditionNode(FieldPath(['site']), QueryOp.isEmpty, null);
+    final siteSet = ConditionNode(FieldPath(['site']), QueryOp.isSet, null);
+    final saltPier = ConditionNode(
+      FieldPath(['site']),
+      QueryOp.eq,
+      const RefValue('s1', 'Salt Pier'),
+    );
+
+    Future<void> chooseSite(WidgetTester tester) async {
+      await tester.tap(find.text('Add condition'));
+      await tester.pumpAndSettle();
+      await pick(tester, 'Site');
+    }
+
+    Future<void> changeOp(WidgetTester tester, String label) async {
+      await tester.tap(find.byType(DropdownButton<QueryOp>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label).last);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the picker offers not set, which adds the row', (
+      tester,
+    ) async {
+      QueryNode? out;
+      await tester.pumpWidget(host(null, (n) => out = n));
+      await chooseSite(tester);
+      await tester.tap(find.text('Site is not set'));
+      await tester.pumpAndSettle();
+      expect(out, AndNode([siteEmpty]));
+    });
+
+    testWidgets('the picker offers set, which adds the row', (tester) async {
+      QueryNode? out;
+      await tester.pumpWidget(host(null, (n) => out = n));
+      await chooseSite(tester);
+      await tester.tap(find.text('Site is set'));
+      await tester.pumpAndSettle();
+      expect(out, AndNode([siteSet]));
+    });
+
+    testWidgets('a diver with no rows at all can still add it', (tester) async {
+      QueryNode? out;
+      await tester.pumpWidget(
+        host(
+          null,
+          (n) => out = n,
+          editor: context.copyWith(names: const MapNameResolver({})),
+        ),
+      );
+      await chooseSite(tester);
+      await tester.tap(find.text('Site is not set'));
+      await tester.pumpAndSettle();
+      expect(out, AndNode([siteEmpty]));
+    });
+
+    testWidgets('a search leaves both rows in place', (tester) async {
+      await tester.pumpWidget(host(null, (_) {}));
+      await chooseSite(tester);
+      await tester.enterText(find.byType(TextField).last, 'zzz');
+      await tester.pumpAndSettle();
+      expect(find.text('Salt Pier'), findsNothing);
+      expect(find.text('Site is not set'), findsOneWidget);
+      expect(find.text('Site is set'), findsOneWidget);
+    });
+
+    testWidgets('dismissing the picker adds no row', (tester) async {
+      QueryNode? out;
+      await tester.pumpWidget(host(null, (n) => out = n));
+      await chooseSite(tester);
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(out, isNull);
+    });
+
+    testWidgets('a row on not set can go back to a named row', (tester) async {
+      QueryNode? out;
+      await tester.pumpWidget(host(AndNode([siteEmpty]), (n) => out = n));
+      await changeOp(tester, 'is');
+      await tester.tap(find.text('Salt Pier'));
+      await tester.pumpAndSettle();
+      expect(out, AndNode([saltPier]));
+    });
+
+    testWidgets('the same change to a list starts it with the pick', (
+      tester,
+    ) async {
+      QueryNode? out;
+      await tester.pumpWidget(host(AndNode([siteEmpty]), (n) => out = n));
+      await changeOp(tester, 'is one of');
+      await tester.tap(find.text('Salt Pier'));
+      await tester.pumpAndSettle();
+      expect(
+        out,
+        AndNode([
+          ConditionNode(
+            FieldPath(['site']),
+            QueryOp.inList,
+            ListValue(const [RefValue('s1', 'Salt Pier')]),
+          ),
+        ]),
+      );
+    });
+
+    testWidgets('backing out of that pick leaves the row alone', (
+      tester,
+    ) async {
+      QueryNode? out;
+      await tester.pumpWidget(host(AndNode([siteEmpty]), (n) => out = n));
+      await changeOp(tester, 'is');
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(out, isNull);
+    });
+
+    testWidgets('moving between named operators asks for nothing', (
+      tester,
+    ) async {
+      QueryNode? out;
+      await tester.pumpWidget(host(AndNode([saltPier]), (n) => out = n));
+      await changeOp(tester, 'is not');
+      expect(find.text('Choose Site'), findsNothing);
+      expect(
+        out,
+        AndNode([
+          ConditionNode(
+            FieldPath(['site']),
+            QueryOp.neq,
+            const RefValue('s1', 'Salt Pier'),
+          ),
+        ]),
+      );
+    });
+
+    testWidgets('a named row can still go to not set', (tester) async {
+      QueryNode? out;
+      await tester.pumpWidget(host(AndNode([saltPier]), (n) => out = n));
+      await changeOp(tester, 'is not set');
+      expect(out, AndNode([siteEmpty]));
+    });
   });
 
   testWidgets('add group nests an OR under the root', (tester) async {

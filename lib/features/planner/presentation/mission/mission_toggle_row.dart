@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -19,8 +20,10 @@ class MissionToggleRow extends ConsumerWidget {
     final on = ref.watch(
       divePlanNotifierProvider.select((s) => s.mission != null),
     );
+    // A mission already on can always be turned off.
+    final allowed = on || ref.watch(missionAllowedProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
-    return SwitchListTile(
+    final toggle = SwitchListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       title: Text(
         l10n.plannerMission_enable,
@@ -28,42 +31,50 @@ class MissionToggleRow extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
       ),
       value: on,
-      onChanged: (enable) async {
-        if (enable) {
-          // The mission replaces the plan's segments: ask before a
-          // hand-built profile goes.
-          // Read before the dialog: the row may be gone when it closes.
-          final plan = ref.read(divePlanNotifierProvider);
-          final hasSegments = plan.segments.isNotEmpty;
-          if (hasSegments &&
-              !await _confirm(
+      onChanged: !allowed
+          ? null
+          : (enable) async {
+              if (enable) {
+                // The mission replaces the plan's segments: ask before a
+                // hand-built profile goes.
+                // Read before the dialog: the row may be gone when it closes.
+                final plan = ref.read(divePlanNotifierProvider);
+                final hasSegments = plan.segments.isNotEmpty;
+                if (hasSegments &&
+                    !await _confirm(
+                      context,
+                      title: l10n.plannerMission_enableTitle,
+                      message: l10n.plannerMission_enableMessage,
+                      confirmLabel: l10n.plannerMission_enableConfirm,
+                    )) {
+                  return;
+                }
+                const uuid = Uuid();
+                notifier.enableMission(
+                  MissionEdits.starter(
+                    legId: uuid.v4(),
+                    memberId: uuid.v4(),
+                    memberName: l10n.plannerMission_team_defaultName(1),
+                    sacBottom:
+                        plan.sacRate ?? ref.read(plannerSacBottomProvider),
+                  ),
+                );
+                return;
+              }
+              if (await _confirm(
                 context,
-                title: l10n.plannerMission_enableTitle,
-                message: l10n.plannerMission_enableMessage,
-                confirmLabel: l10n.plannerMission_enableConfirm,
+                title: l10n.plannerMission_disableTitle,
+                message: l10n.plannerMission_disableMessage,
+                confirmLabel: l10n.plannerMission_disableConfirm,
               )) {
-            return;
-          }
-          const uuid = Uuid();
-          notifier.enableMission(
-            MissionEdits.starter(
-              legId: uuid.v4(),
-              memberId: uuid.v4(),
-              memberName: l10n.plannerMission_team_defaultName(1),
-              sacBottom: plan.sacRate ?? ref.read(plannerSacBottomProvider),
-            ),
-          );
-          return;
-        }
-        if (await _confirm(
-          context,
-          title: l10n.plannerMission_disableTitle,
-          message: l10n.plannerMission_disableMessage,
-          confirmLabel: l10n.plannerMission_disableConfirm,
-        )) {
-          notifier.disableMission();
-        }
-      },
+                notifier.disableMission();
+              }
+            },
+    );
+    if (allowed) return toggle;
+    return Tooltip(
+      message: l10n.plannerSeries_missionUnavailable,
+      child: toggle,
     );
   }
 

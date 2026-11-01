@@ -593,8 +593,8 @@ extension RungsV149ToV230 on AppDatabase {
       await _assertCylinderFillsSchema();
     }
     if (from < 228) await reportProgress();
-    // v229: equipment_sets.show_figure (issue #2326). Column-only rung,
-    // default off, no backfill.
+    // v229: equipment_sets.show_figure (issue #2326). Column-only rung, no
+    // backfill; v329 turned the figure on for stored sets.
     if (from < 229) {
       await _assertEquipmentSetShowFigureColumn();
     }

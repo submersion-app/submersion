@@ -1,22 +1,22 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
+import 'package:submersion/features/insights/presentation/widgets/depth_pie_card.dart';
+import 'package:submersion/features/insights/presentation/widgets/distribution_bar_row.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_overview_empty_state.dart';
 import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class InsightsOverviewPage extends ConsumerWidget {
@@ -91,11 +91,21 @@ class _OverviewBody extends ConsumerWidget {
     // is logged in-app yet -- otherwise the feature's target user (a long
     // pre-app career, no logged dives) would only ever see the empty state.
     if (stats.totalDives == 0 && !career.hasPriorExperience) {
-      return const _EmptyState();
+      // Nothing in scope is not an empty logbook: a filter or an exclusion can
+      // empty the scope too. An unknown count must not read as "no dives".
+      return ref
+          .watch(logbookDiveCountsProvider)
+          .when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => _ErrorCard(
+              onRetry: () => ref.invalidate(logbookDiveCountsProvider),
+            ),
+            data: (counts) =>
+                InsightsOverviewEmptyState(counts: counts, filtered: filtered),
+          );
     }
 
-    final settings = ref.watch(settingsProvider);
-    final fmt = UnitFormatter(settings);
+    final fmt = ref.watch(unitFormatterProvider);
     final recordsAsync = ref.watch(filteredDiveRecordsProvider);
 
     return SingleChildScrollView(
@@ -133,74 +143,7 @@ class _OverviewBody extends ConsumerWidget {
           _DistributionsSection(stats: stats, fmt: fmt),
           // Explains why the statistics dive count and the logbook dive count
           // differ, so the discrepancy never has to be discovered (#526).
-          ref
-              .watch(excludedDiveCountProvider)
-              .maybeWhen(
-                data: (count) => count == 0
-                    ? const SizedBox.shrink()
-                    : Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: Center(
-                          child: Text(
-                            key: const Key('insights-excluded-footnote'),
-                            context.l10n.insights_excludedDivesFootnote(count),
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ),
-                      ),
-                orElse: () => const SizedBox.shrink(),
-              ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.waves,
-            size: 80,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.l10n.diveLog_empty_title,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.diveLog_empty_subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => showAddDiveBottomSheet(
-              context: context,
-              onLogManually: () => context.push('/dives/new'),
-              onPlanDive: () => context.push(
-                '/dives/new',
-                extra: const DivePrefill(isPlanned: true),
-              ),
-            ),
-            icon: const Icon(Icons.add),
-            label: Text(context.l10n.diveLog_empty_logFirstDive),
-          ),
+          const ExcludedDivesFootnote(),
         ],
       ),
     );
@@ -634,23 +577,6 @@ class _TopSitesSection extends StatelessWidget {
   }
 }
 
-const _depthColors = [
-  Color(0xFF81D4FA), // lightBlue.shade200 (0-10m)
-  Color(0xFF4FC3F7), // lightBlue.shade300 (10-20m)
-  Color(0xFF29B6F6), // lightBlue.shade400 (20-30m)
-  Color(0xFF03A9F4), // lightBlue (30-40m)
-  Color(0xFF039BE5), // lightBlue.shade600 (40-50m)
-  Color(0xFF0288D1), // lightBlue.shade700 (50-60m)
-  Color(0xFF1E88E5), // blue.shade600 (60-70m)
-  Color(0xFF1976D2), // blue.shade700 (70-80m)
-  Color(0xFF1565C0), // blue.shade800 (80-90m)
-  Color(0xFF3949AB), // indigo.shade600 (90-100m)
-  Color(0xFF303F9F), // indigo.shade700 (100-110m)
-  Color(0xFF283593), // indigo.shade800 (110-120m)
-  Color(0xFF1A237E), // indigo.shade900 (120-130m)
-  Color(0xFF4A148C), // purple.shade900 (130m+)
-];
-
 const _typeColors = [
   Color(0xFF42A5F5), // blue.shade400
   Color(0xFF26A69A), // teal.shade400
@@ -672,7 +598,19 @@ class _DistributionsSection extends ConsumerWidget {
     final diveTypesAsync = ref.watch(diveTypeDistributionProvider);
     final typesById = watchDiveTypesById(ref);
 
-    final depthChart = _DepthPieCard(
+    Future<void> openDepth(int bucket) => openChartDives(
+      context,
+      ref,
+      chart: context.l10n.insights_summary_depthDistribution_title,
+      row: depthBucketLabel(stats.depthDistribution[bucket], fmt, context.l10n),
+      load: (repository, diverId, scope) => repository.getDepthBucketDiveIds(
+        bucket: bucket,
+        diverId: diverId,
+        filter: scope,
+      ),
+    );
+    final depthChart = DepthPieCard(
+      onOpenBucket: openDepth,
       depthDistribution: stats.depthDistribution,
       fmt: fmt,
     );
@@ -752,15 +690,16 @@ class _DistributionsSection extends ConsumerWidget {
                 ),
               ),
               for (final (index, segment) in depthEntries)
-                _DistributionBarRow(
-                  label: _depthBucketLabel(segment, fmt, context.l10n),
+                DistributionBarRow(
+                  label: depthBucketLabel(segment, fmt, context.l10n),
                   count: segment.count,
                   totalDurationSeconds: segment.totalDurationSeconds,
-                  color: _depthColors[index % _depthColors.length],
+                  color: depthBucketColors[index % depthBucketColors.length],
                   fraction: depthMaxCount == 0
                       ? 0
                       : segment.count / depthMaxCount,
                   fillKey: ValueKey('depth-bar-fill-$index'),
+                  onTap: () => openDepth(index),
                 ),
             ],
             if (typeStatus != null || typeStats.isNotEmpty) ...[
@@ -775,13 +714,25 @@ class _DistributionsSection extends ConsumerWidget {
               ),
               ?typeStatus,
               for (final (index, segment) in typeStats.indexed)
-                _DistributionBarRow(
+                DistributionBarRow(
                   label: diveTypeDistributionLabel(
                     segment.label,
                     context.l10n,
                     typesById: typesById,
                   ),
                   count: segment.count,
+                  onTap: () => openFilteredChartDives(
+                    context,
+                    ref,
+                    chart: context.l10n.insights_summary_diveTypes_title,
+                    row: diveTypeDistributionLabel(
+                      segment.label,
+                      context.l10n,
+                      typesById: typesById,
+                    ),
+                    narrow: (scope) =>
+                        diveTypeDivesFilter(scope, segment.label),
+                  ),
                   totalDurationSeconds: segment.totalDurationSeconds,
                   color: _typeColors[index % _typeColors.length],
                   fraction: typeMaxCount == 0
@@ -793,239 +744,6 @@ class _DistributionsSection extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// One row of the bar list that replaced the separate pie legend + full-list
-/// combination below each pie (issue #3074): a label, a bar whose length is
-/// proportional to [fraction], and the same "count • duration" trailing text
-/// the old `ListTile` rows showed. [color] is the caller's `_depthColors`
-/// entry for a depth bucket, so the bar matches its pie slice, or its
-/// `_typeColors` entry for a dive type, which has no pie (issue #3048).
-class _DistributionBarRow extends StatelessWidget {
-  final String label;
-  final int count;
-  final int? totalDurationSeconds;
-  final Color color;
-
-  /// 0-1 share of the largest visible bucket/type. Floored well above zero
-  /// so a bucket that is tiny next to the largest one (e.g. 1 dive out of
-  /// 407) still renders a visible sliver instead of vanishing -- the same
-  /// failure mode this bar list replaced the pie's legend for.
-  final double fraction;
-  final Key? fillKey;
-
-  const _DistributionBarRow({
-    required this.label,
-    required this.count,
-    required this.totalDurationSeconds,
-    required this.color,
-    required this.fraction,
-    this.fillKey,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final duration = Duration(seconds: totalDurationSeconds ?? 0);
-    final trailing =
-        '${l10n.insights_filterBar_diveCount(count)} • '
-        '${duration.inHours}h ${duration.inMinutes % 60}m';
-
-    return Semantics(
-      label: '$label, $trailing',
-      excludeSemantics: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 88,
-              child: Text(
-                label,
-                style: theme.textTheme.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: 14,
-                child: FractionallySizedBox(
-                  alignment: AlignmentDirectional.centerStart,
-                  widthFactor: fraction.clamp(0.03, 1.0),
-                  child: Container(
-                    key: fillKey,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                trailing,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Shared with the pie card's own legend so both agree on how a bucket is
-/// worded in the diver's active unit.
-String _depthBucketLabel(
-  DepthRangeStat data,
-  UnitFormatter fmt,
-  AppLocalizations l10n,
-) {
-  final minDisplay = fmt.convertDepth(data.minDepth.toDouble()).round();
-  final maxDisplay = fmt.convertDepth(data.maxDepth.toDouble()).round();
-  return data.openEnded
-      ? l10n.insights_summary_depthBucket_over('$minDisplay', fmt.depthSymbol)
-      : l10n.insights_summary_depthBucket_range(
-          '$minDisplay',
-          '$maxDisplay',
-          fmt.depthSymbol,
-        );
-}
-
-class _DepthPieCard extends StatelessWidget {
-  final List<DepthRangeStat> depthDistribution;
-  final UnitFormatter fmt;
-  const _DepthPieCard({required this.depthDistribution, required this.fmt});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final nonEmpty = depthDistribution.where((d) => d.count > 0).toList();
-    final hasData = nonEmpty.isNotEmpty;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n.insights_summary_depthDistribution_title,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 160,
-          child: hasData
-              ? Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Semantics(
-                        label: context
-                            .l10n
-                            .insights_summary_depthDistribution_semanticLabel,
-                        child: PieChart(
-                          PieChartData(
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 24,
-                            sections: List.generate(depthDistribution.length, (
-                              index,
-                            ) {
-                              final data = depthDistribution[index];
-                              if (data.count == 0) return null;
-                              return PieChartSectionData(
-                                value: data.count.toDouble(),
-                                title: '${data.count}',
-                                color:
-                                    _depthColors[index % _depthColors.length],
-                                radius: 50,
-                                titleStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                ),
-                              );
-                            }).whereType<PieChartSectionData>().toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: () {
-                          final nonEmptyEntries = <(int, DepthRangeStat)>[];
-                          for (var i = 0; i < depthDistribution.length; i++) {
-                            if (depthDistribution[i].count > 0) {
-                              nonEmptyEntries.add((i, depthDistribution[i]));
-                            }
-                          }
-                          // Caps the inline legend at 6 rows so a diver with
-                          // many occupied depth buckets can't push the legend
-                          // below the fixed-height chart box. The full,
-                          // uncapped breakdown with count and time is listed
-                          // underneath the pie chart.
-                          return nonEmptyEntries.take(6).map((
-                            (int, DepthRangeStat) entry,
-                          ) {
-                            final index = entry.$1;
-                            final data = entry.$2;
-                            final label = _depthBucketLabel(data, fmt, l10n);
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          _depthColors[index %
-                                              _depthColors.length],
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      label,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList();
-                        }(),
-                      ),
-                    ),
-                  ],
-                )
-              : Center(
-                  child: Icon(
-                    Icons.pie_chart_outline,
-                    size: 40,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.4),
-                  ),
-                ),
-        ),
-      ],
     );
   }
 }

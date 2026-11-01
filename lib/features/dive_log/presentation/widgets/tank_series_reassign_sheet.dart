@@ -8,7 +8,6 @@ import 'package:submersion/features/data_quality/data/services/quality_repair_ex
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -52,6 +51,8 @@ Future<void> _exchange(
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.diveLog_reassignSheet_applied),
+        duration: const Duration(seconds: 5),
+        persist: false,
         action: undo == null
             ? null
             : SnackBarAction(
@@ -82,7 +83,7 @@ class _ReassignSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final tanks = [...dive.tanks]..sort((a, b) => a.order.compareTo(b.order));
     final withSeries = tanks
         .where((t) => (tankPressures[t.id] ?? const []).isNotEmpty)

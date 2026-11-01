@@ -1,3 +1,5 @@
+import 'package:submersion/core/util/wall_clock_utc.dart';
+
 /// Times-only projection of a dive row, used by the analysis lookback
 /// chains and surface-interval math so they never hydrate full [Dive]
 /// object graphs (large-DB performance program, WS2).
@@ -15,6 +17,13 @@ class DiveTimes {
   final Duration? bottomTime;
   final Duration? profileSpan;
 
+  /// The diver who logged this dive; null for an unassigned dive.
+  final String? diverId;
+
+  /// True for a plan nobody has dived: planned, with no logged dive on its
+  /// outing (see `diveUndivedSql`).
+  final bool isUndivedPlan;
+
   const DiveTimes({
     required this.id,
     required this.dateTime,
@@ -23,7 +32,12 @@ class DiveTimes {
     this.runtime,
     this.bottomTime,
     this.profileSpan,
+    this.diverId,
+    this.isUndivedPlan = false,
   });
+
+  /// Same fallback as `Dive.effectiveEntryTime`.
+  DateTime get effectiveEntryTime => entryTime ?? dateTime;
 
   /// Same resolution order as `Dive.effectiveRuntime`:
   /// runtime, then exit - entry, then profile span, then bottom time.
@@ -41,9 +55,20 @@ class DiveTimes {
   }
 
   /// Best-known moment the diver surfaced: the stored [exitTime], or the
-  /// effective start plus [effectiveRuntime] when it is missing. Mirrors
-  /// the fallback chain in `DiveRepository.getSurfaceInterval`.
+  /// effective start plus [effectiveRuntime] when it is missing.
   DateTime get effectiveExitTime =>
-      exitTime ??
-      (entryTime ?? dateTime).add(effectiveRuntime ?? Duration.zero);
+      exitTime ?? effectiveEntryTime.add(effectiveRuntime ?? Duration.zero);
+
+  /// [effectiveExitTime] as a true instant, read in the device's zone, for
+  /// measuring elapsed time against now.
+  ///
+  /// The start is converted before the runtime is added: added to clock
+  /// digits, a runtime that spans a DST change lands an hour from the real
+  /// end, and no later conversion can recover it (issue #3960).
+  DateTime get effectiveExitInstant {
+    final exit = exitTime;
+    if (exit != null) return fromWallClockUtc(exit).toUtc();
+    final start = fromWallClockUtc(effectiveEntryTime).toUtc();
+    return start.add(effectiveRuntime ?? Duration.zero);
+  }
 }

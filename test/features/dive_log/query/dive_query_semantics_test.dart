@@ -80,6 +80,18 @@ void main() {
     });
   });
 
+  test('a zero legacy scalar is no weight, as on the dive page', () async {
+    // Issue #3914: `weight` and the Insights weight metrics read one rule.
+    await db.customStatement(
+      "UPDATE dives SET weight_amount = 0 WHERE id = 'd4'",
+    );
+
+    expect(await ids('weights:none'), {'d3', 'd4'});
+    expect(await ids('weight:none'), {'d3', 'd4'});
+    expect(await ids('weights:any'), {'d1', 'd2', 'd5'});
+    expect(await ids('weight >= 0'), {'d1', 'd2', 'd5'});
+  });
+
   test('paths, refs and scoped groups', () async {
     expect(await ids('site.country = Bonaire'), {'d1', 'd2', 'd3'});
     expect(await ids('site = "Salt Pier"'), {'d1', 'd2'});

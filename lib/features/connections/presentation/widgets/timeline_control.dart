@@ -4,7 +4,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/connections/domain/views/timeline_days.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_timeline_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Play or pause the sweep of the range's end to the last dive day.
@@ -51,7 +50,7 @@ class TimelineRangeSlider extends ConsumerWidget {
     final span = ref.watch(connectionsDateSpanProvider).value;
     final range = ref.watch(connectionsTimelineRangeProvider);
     if (span == null || range == null) return const SizedBox.shrink();
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final notifier = ref.read(connectionsTimelineProvider.notifier);
     DayRange days(RangeValues v) => (
       start: dayAt(span.start, v.start.round()),
@@ -84,7 +83,7 @@ class TimelineControl extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final range = ref.watch(connectionsTimelineRangeProvider);
     if (range == null) return const SizedBox.shrink();
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,

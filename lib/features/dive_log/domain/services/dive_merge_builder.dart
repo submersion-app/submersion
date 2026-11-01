@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
@@ -129,18 +130,13 @@ class DiveMergeBuilder {
   /// Trapezoidal time-weighted mean depth over one segment's samples.
   /// Returns (weightedAreaMeterSeconds, spanSeconds) or null if < 2 samples.
   (double, int)? _profileDepthArea(List<DiveProfilePoint> profile) {
-    if (profile.length < 2) return null;
     final sorted = [...profile]
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    var area = 0.0;
-    var span = 0;
-    for (var i = 0; i < sorted.length - 1; i++) {
-      final dt = sorted[i + 1].timestamp - sorted[i].timestamp;
-      if (dt <= 0) continue;
-      area += dt * (sorted[i].depth + sorted[i + 1].depth) / 2;
-      span += dt;
+    final mean = TimeWeightedMean();
+    for (final point in sorted) {
+      mean.add(point.timestamp, point.depth);
     }
-    return span > 0 ? (area, span) : null;
+    return mean.span > 0 ? (mean.area, mean.span.toInt()) : null;
   }
 
   Duration? _mergedBottomTime(List<Dive> sorted) {
@@ -338,10 +334,17 @@ class DiveMergeBuilder {
       bottomTime: _mergedBottomTime(sorted),
       maxDepth: _mergedMaxDepth(sorted),
       avgDepth: _mergedAvgDepth(sorted),
-      diveNumber: first.diveNumber,
+      // A plan has no number, so it must not blank the logged dive's.
+      diveNumber: _firstNonNull(sorted, (d) => d.diveNumber),
       surfaceInterval: first.surfaceInterval,
       diveMode: first.diveMode,
-      isPlanned: first.isPlanned,
+      // A dive mirrored from a segment is real only through a logged dive on
+      // its outing (issue #3924), and the segments are about to go.
+      outingId: _firstNonNull(sorted, (d) => d.outingId),
+      // One logged segment means the dive happened. Keeping the earliest
+      // segment's flag would hide it from no-fly and residual exposure
+      // (issue #3924).
+      isPlanned: sorted.every((d) => d.isPlanned),
       notes: _mergedNotes(sorted),
       isFavorite: sorted.any((d) => d.isFavorite),
       // An explicit exclusion on any source survives the merge. Dropping it

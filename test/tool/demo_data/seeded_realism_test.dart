@@ -2,6 +2,13 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_lab/data/repositories/dive_scenario_repository.dart';
+import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
+import 'package:submersion/features/dive_lab/domain/services/scenario_engine.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../tool/demo_data/src/seeders/demo_seeding.dart';
@@ -103,6 +110,20 @@ void main() {
     expect(tanks, isNotEmpty);
     for (final t in tanks) {
       expect(t['he'] as double, greaterThanOrEqualTo(35));
+    }
+  });
+
+  test('a replacement arrives on a later day than its predecessor left', () {
+    // The app counts a fitted part's dives by its install day, whole days
+    // at a time, so a part swapped in mid-day would take over the morning's
+    // dives of the part it replaced.
+    DateTime day(DateTime t) => DateTime(t.year, t.month, t.day);
+    final replacements = demoGear.where((g) => g.replaces != null);
+    expect(replacements, isNotEmpty);
+    for (final g in replacements) {
+      final arrived = day(ctx.timeline.boughtOn(g.key)!);
+      final left = day(ctx.timeline.leftOn(g.replaces!)!);
+      expect(arrived.isAfter(left), isTrue, reason: '${g.key}: $arrived');
     }
   });
 
@@ -318,5 +339,85 @@ void main() {
       'SELECT DISTINCT tz_offset_minutes AS z FROM gps_tracks',
     );
     expect(tracks.length, greaterThan(1));
+  });
+
+  group('saved what-ifs', () {
+    test('Compare has a dived plan and one still waiting', () async {
+      final linked = await rows('''
+        SELECT d.is_planned AS planned, d.dive_number AS number
+        FROM dive_plans p JOIN dives d ON d.id = p.linked_dive_id
+      ''');
+
+      expect(linked.where((row) => row['planned'] == 0), isNotEmpty);
+      final waiting = linked.where((row) => row['planned'] == 1).toList();
+      expect(waiting, hasLength(1));
+      expect(waiting.single['number'], isNull);
+    });
+
+    Future<List<DiveScenario>> saved() async {
+      final repository = DiveScenarioRepository();
+      final ids = await rows('SELECT id FROM dive_scenarios ORDER BY id');
+      return [
+        for (final row in ids)
+          (await repository.getScenario(row['id']! as String))!,
+      ];
+    }
+
+    test('each one replays or re-plans in the Dive Lab', () async {
+      final dives = DiveRepository();
+      final scenarios = await saved();
+      expect({
+        for (final s in scenarios) s.effectiveMode,
+      }, containsAll(ScenarioMode.values));
+
+      for (final scenario in scenarios) {
+        final dive = (await dives.getDiveById(scenario.diveId))!;
+        final profile = await dives.getDiveProfile(scenario.diveId);
+        final switches = await dives.getGasSwitchesForDive(scenario.diveId);
+        expect(validateInterventions(scenario.interventions), isEmpty);
+        expect(
+          scenario.branchSeconds,
+          inInclusiveRange(0, profile.last.timestamp),
+        );
+
+        final outcome = const ScenarioEngine().run(
+          ScenarioRequest(
+            diveId: scenario.diveId,
+            depths: [for (final p in profile) p.depth],
+            timestamps: [for (final p in profile) p.timestamp],
+            diveMode: dive.diveMode,
+            tanks: dive.tanks,
+            gasSwitches: [
+              for (final s in switches)
+                ScenarioGasSwitch(timestamp: s.timestamp, tankId: s.tankId),
+            ],
+            scenario: scenario,
+          ),
+        );
+
+        expect(
+          outcome.flags.map((f) => f.kind),
+          isNot(contains(ScenarioFlagKind.replanNotCompletable)),
+          reason: scenario.name,
+        );
+        expect(outcome.deltas, isNotEmpty, reason: scenario.name);
+      }
+    });
+
+    test('the nitrox question is asked of a dive breathed on air', () async {
+      final scenarios = await saved();
+      final nitrox = scenarios.singleWhere(
+        (s) => s.interventions.any((i) => i is SwitchGasIntervention),
+      );
+
+      final tanks = await rows(
+        'SELECT o2_percent AS o2, he_percent AS he FROM dive_tanks '
+        "WHERE dive_id = '${nitrox.diveId}'",
+      );
+
+      expect(tanks, [
+        {'o2': 21.0, 'he': 0.0},
+      ]);
+    });
   });
 }

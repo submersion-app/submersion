@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -132,6 +133,7 @@ class BuddyMergeRepository {
       photo: row.photo,
       notes: row.notes,
       isFavorite: row.isFavorite,
+      excludedFromRankings: row.excludedFromRankings,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       // Buddy card fields (issue #3728) ride through the snapshot, so an
@@ -154,6 +156,16 @@ class BuddyMergeRepository {
   /// Returns a [BuddyMergeResult] that can be used to undo the operation,
   /// or `null` if the merge was a no-op.
   Future<BuddyMergeResult?> mergeBuddies({
+    required domain.Buddy mergedBuddy,
+    required List<String> buddyIds,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.merge,
+    body: () =>
+        _mergeBuddiesInner(mergedBuddy: mergedBuddy, buddyIds: buddyIds),
+  );
+
+  Future<BuddyMergeResult?> _mergeBuddiesInner({
     required domain.Buddy mergedBuddy,
     required List<String> buddyIds,
   }) async {
@@ -516,7 +528,13 @@ class BuddyMergeRepository {
   }
 
   /// Reverse a merge operation using a previously captured [BuddyMergeSnapshot].
-  Future<void> undoMerge(BuddyMergeSnapshot snapshot) async {
+  Future<void> undoMerge(BuddyMergeSnapshot snapshot) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.undoMerge,
+    body: () => _undoMergeInner(snapshot),
+  );
+
+  Future<void> _undoMergeInner(BuddyMergeSnapshot snapshot) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     try {
@@ -549,6 +567,7 @@ class BuddyMergeRepository {
                   photo: Value(buddy.photo),
                   notes: Value(buddy.notes),
                   isFavorite: Value(buddy.isFavorite),
+                  excludedFromRankings: Value(buddy.excludedFromRankings),
                   createdAt: Value(buddy.createdAt.millisecondsSinceEpoch),
                   updatedAt: Value(buddy.updatedAt.millisecondsSinceEpoch),
                 ),
@@ -669,7 +688,13 @@ class BuddyMergeRepository {
   }
 
   /// Bulk delete multiple buddies.
-  Future<void> bulkDeleteBuddies(List<String> ids) async {
+  Future<void> bulkDeleteBuddies(List<String> ids) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkDelete,
+    body: () => _bulkDeleteBuddiesInner(ids),
+  );
+
+  Future<void> _bulkDeleteBuddiesInner(List<String> ids) async {
     if (ids.isEmpty) return;
     try {
       _log.info('Bulk deleting ${ids.length} buddies');
@@ -734,6 +759,7 @@ class BuddyMergeRepository {
         photo: Value(buddy.photo),
         notes: Value(buddy.notes),
         isFavorite: Value(buddy.isFavorite),
+        excludedFromRankings: Value(buddy.excludedFromRankings),
         updatedAt: Value(now),
       ),
     );

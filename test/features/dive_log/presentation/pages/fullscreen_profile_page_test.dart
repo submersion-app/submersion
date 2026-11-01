@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
@@ -110,6 +111,30 @@ void main() {
     expect(find.byType(DiveProfileChart), findsOneWidget);
     expect(find.byType(ProfileTransportBar), findsOneWidget);
     expect(find.byIcon(Icons.close), findsOneWidget);
+  });
+
+  testWidgets('chart labels a ceiling calculated under computer stops', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap([
+        ..._defaultOverrides(),
+        sourceProfileAnalysisProvider((
+          diveId: 'd1',
+          sourceId: null,
+        )).overrideWith(
+          (ref) async => ProfileAnalysis.empty().copyWith(
+            computerStopsWithCalculatedCeiling: true,
+          ),
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    final chart = tester.widget<DiveProfileChart>(
+      find.byType(DiveProfileChart),
+    );
+    expect(chart.labelCeilingAsCalculated, isTrue);
   });
 
   testWidgets('chart runs its cursor-following in-chart tooltip', (

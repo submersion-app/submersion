@@ -52,6 +52,40 @@ void main() {
     });
   });
 
+  group('row_digest', () {
+    late sqlite3.Database db;
+
+    setUp(() {
+      db = sqlite3.sqlite3.openInMemory();
+      registerAppSqlFunctions(db);
+    });
+
+    tearDown(() => db.close());
+
+    Object? digest(List<Object?> values) => db
+        .select(
+          'SELECT $kRowDigestFunction(${values.map((_) => '?').join(', ')}) AS v',
+          values,
+        )
+        .first['v'];
+
+    test('gives equal values equal digests', () {
+      expect(digest(['a', 1, 1.5, null]), digest(['a', 1, 1.5, null]));
+    });
+
+    test('tells apart a change in any position', () {
+      final base = digest(['a', 1, 1.5, null]);
+      expect(digest(['b', 1, 1.5, null]), isNot(base));
+      expect(digest(['a', 2, 1.5, null]), isNot(base));
+      expect(digest(['a', 1, 2.5, null]), isNot(base));
+      expect(digest(['a', 1, 1.5, 0]), isNot(base));
+    });
+
+    test('depends on the order of its values', () {
+      expect(digest(['a', 'b']), isNot(digest(['b', 'a'])));
+    });
+  });
+
   test('applyConnectionBasics registers the functions', () {
     final db = sqlite3.sqlite3.openInMemory();
     try {

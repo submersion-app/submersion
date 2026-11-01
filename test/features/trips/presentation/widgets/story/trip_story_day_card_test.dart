@@ -283,7 +283,8 @@ void main() {
       kind: TripStoryDayKind.past,
       itineraryDay: _itin(port: 'Kralendijk'),
       dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9), maxDepth: 20)],
-      media: [for (var i = 0; i < 8; i++) _media('m$i')],
+      media: [for (var i = 0; i < 6; i++) _media('m$i')],
+      mediaCount: 8,
     );
     await pumpCard(tester, day);
 

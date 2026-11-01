@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -14,27 +15,29 @@ import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/buddies/domain/services/legacy_name_parser.dart';
+import 'package:submersion/features/dive_log/data/repositories/depth_bucket_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    as domain;
-import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
     show dartWhitespaceSqlChars;
-import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
+import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
+import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
+import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
@@ -46,6 +49,7 @@ export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
 
 part 'insights_repository_calendar_days.dart';
+part 'insights_repository_chart_dives.dart';
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
@@ -55,10 +59,12 @@ part 'insights_repository_time_of_day.dart';
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
 /// The four groups partition the filtered dive library. [needsCompute] maps
-/// dive id to that dive's `dives.updated_at`, which the computed fallback
-/// uses as the profile revision in its cache fingerprint; the lean `Dive`
-/// hydration used by the analysis pipeline carries no `updatedAt`, so this
-/// scan is the only place that value is cheaply available. [noProfile] holds
+/// dive id to a version token for that dive and the dives in its residual
+/// lookback ([diveSourceStampSql] plus [earlierDivesRevisionSql]), which the
+/// computed fallback uses as the revision in its cache fingerprint; the lean
+/// `Dive` hydration used by the analysis pipeline carries none of those
+/// stamps, so this scan is the only place that value is cheaply available.
+/// Compare it only for equality. [noProfile] holds
 /// dives that can never be classified from stored data.
 typedef DecoSignalScan = ({
   Set<String> recordedDeco,
@@ -76,6 +82,10 @@ class RankingItem {
   final String? subtitle;
   final DateTime? date;
 
+  /// A stored category for the section to name in the viewer's language,
+  /// which a repository cannot do.
+  final String? kind;
+
   RankingItem({
     required this.id,
     required this.name,
@@ -83,6 +93,7 @@ class RankingItem {
     this.value,
     this.subtitle,
     this.date,
+    this.kind,
   });
 }
 
@@ -109,11 +120,16 @@ class DistributionSegment {
   /// dives or simply isn't meaningful.
   final int? totalDurationSeconds;
 
+  /// What the segment was grouped on, when [label] does not identify it:
+  /// site types are labelled by name, and two custom types can share one.
+  final String? key;
+
   DistributionSegment({
     required this.label,
     required this.count,
     required this.percentage,
     this.totalDurationSeconds,
+    this.key,
   });
 }
 
@@ -145,7 +161,7 @@ class EntryExitPairCount {
 /// unlogged. The callers outside Insights (the home dashboard, the site
 /// pages, the planner's logged SAC) already treat an error as nothing to
 /// show.
-class InsightsRepository {
+class InsightsRepository with InsightsChartDives {
   /// Equation of state used to convert cylinder pressure to gas volume.
   ///
   /// Injected from `gasModelProvider` so flipping the preference rebuilds this
@@ -154,9 +170,15 @@ class InsightsRepository {
 
   InsightsRepository({this.gasModel = GasModel.real});
 
+  @override
   AppDatabase get _db => DatabaseService.instance.database;
+  @override
   final _log = LoggerService.forClass(InsightsRepository);
   final _profileSeries = ProfileSeriesRepository();
+
+  /// Late because the constructor builds a large graph of repositories, which
+  /// only a filtered [watchInsightsChanges] needs.
+  late final _diveRepository = DiveRepository();
 
   /// How many dives' packed series the profile aggregates read at once.
   ///
@@ -205,8 +227,9 @@ class InsightsRepository {
   /// stale after a sync applied a tank-pressure-only changeset, which never
   /// touches the `dives` row.
   ///
-  /// Narrower than [DiveRepository.watchDiveDetailChanges], which also fires on
-  /// media, tide records, and safety findings that no statistic reads.
+  /// Not [DiveRepository.watchDiveDetailChanges], which also fires on media,
+  /// tide records, and safety findings that no statistic reads, and misses
+  /// tables this one follows, such as `dive_profile_events`.
   ///
   /// Replaces `statisticsVersionProvider`, a counter incremented from exactly
   /// one line in the app (inside `PaginatedDiveListNotifier`), which merge,
@@ -215,11 +238,20 @@ class InsightsRepository {
   /// [DiveRepository.changeTickDebounce]-debounced so a multi-changeset sync
   /// recomputes the charts once on the settled state rather than once per
   /// intermediate commit.
-  Stream<void> watchInsightsChanges() => _db
+  ///
+  /// Pass the [filter] a provider scopes by to also follow the tables it reads
+  /// (#3894): a text search reaches tag, custom field and dive type names, so
+  /// renaming a tag changes which dives match without writing one. They join
+  /// this one debounced stream, never a second tick beside it, so a write to
+  /// both sets refreshes once.
+  Stream<void> watchInsightsChanges({DiveFilterState? filter}) => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveProfileSeries),
+          // The deco card classifies a dive from its stop events, which a
+          // sync pull can write without touching the dive.
+          TableUpdateQuery.onTable(_db.diveProfileEvents),
           TableUpdateQuery.onTable(_db.diveTanks),
           // The tank configuration card reads which cylinders were switched
           // to and which recording is primary (#3421); a sync pull or a
@@ -250,6 +282,17 @@ class InsightsRepository {
           TableUpdateQuery.onTable(_db.siteTypes),
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.trips),
+          // Which trips the top-trips ranking reads (#3933); a share or a
+          // hide writes only these.
+          TableUpdateQuery.onTable(_db.tripShares),
+          TableUpdateQuery.onTable(_db.tripHides),
+          // As the query compiler reports them, so a new filter field is
+          // followed without editing this list.
+          if (filter != null)
+            for (final table in _diveRepository.tablesNamed(
+              diveFilterTablesTouched(filter),
+            ))
+              TableUpdateQuery.onTable(table),
         ]),
       )
       .debounce(DiveRepository.changeTickDebounce);
@@ -269,6 +312,7 @@ class InsightsRepository {
   /// which additionally drop per-dive gas exclusions and gauge-mode dives.
   /// Pass `consumptionRate: true` for the SAC/RMV averages, trends and
   /// records, which drop those and rebreather dives as well (issue #3673).
+  @override
   ({String clause, List<Object?> params}) _diveFilter(
     DiveFilterState filter, {
     String alias = 'dives',
@@ -329,7 +373,7 @@ class InsightsRepository {
         SELECT
           d.id AS dive_id,
           d.dive_date_time,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec,
           t.start_pressure,
           t.end_pressure,
@@ -349,7 +393,7 @@ class InsightsRepository {
       // SAC value and not two.
       final Map<
         String,
-        ({double gas, DateTime dateTime, int durationSec, double avgDepth})
+        ({double gas, DateTime dateTime, int durationSec, double ambientBar})
       >
       diveSacs = {};
 
@@ -389,14 +433,14 @@ class InsightsRepository {
               isUtc: true,
             ),
             durationSec: row.read<int>('duration_sec'),
-            avgDepth: row.read<double>('avg_depth'),
+            ambientBar: row.read<double>('ambient_bar'),
           );
         } else {
           diveSacs[diveId] = (
             gas: existing.gas + gasUsed,
             dateTime: existing.dateTime,
             durationSec: existing.durationSec,
-            avgDepth: existing.avgDepth,
+            ambientBar: existing.ambientBar,
           );
         }
       }
@@ -404,8 +448,7 @@ class InsightsRepository {
       final points = <TrendDataPoint>[];
       for (final entry in diveSacs.entries) {
         final d = entry.value;
-        final sac =
-            d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
+        final sac = d.gas / (d.durationSec / 60.0) / d.ambientBar;
         if (sac <= 0) continue;
         points.add(
           TrendDataPoint(date: d.dateTime, value: sac, diveId: entry.key),
@@ -492,11 +535,7 @@ class InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          CASE
-            WHEN t.he_percent > 0 THEN 'Trimix'
-            WHEN t.o2_percent > 21.5 THEN 'Nitrox'
-            ELSE 'Air'
-          END AS gas_type,
+          $_gasTypeSql AS gas_type,
           COUNT(DISTINCT d.id) AS dive_count
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
@@ -545,7 +584,7 @@ class InsightsRepository {
           d.id AS dive_id,
           d.dive_number,
           d.dive_date_time,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec,
           ds.name AS site_name,
           t.start_pressure,
@@ -570,7 +609,7 @@ class InsightsRepository {
         ({
           double gas,
           int durationSec,
-          double avgDepth,
+          double ambientBar,
           int dateTimeMs,
           int? diveNum,
           String? siteName,
@@ -606,7 +645,7 @@ class InsightsRepository {
           dives[diveId] = (
             gas: used,
             durationSec: row.read<int>('duration_sec'),
-            avgDepth: row.read<double>('avg_depth'),
+            ambientBar: row.read<double>('ambient_bar'),
             dateTimeMs: row.read<int>('dive_date_time'),
             diveNum: row.read<int?>('dive_number'),
             siteName: row.read<String?>('site_name'),
@@ -615,7 +654,7 @@ class InsightsRepository {
           dives[diveId] = (
             gas: existing.gas + used,
             durationSec: existing.durationSec,
-            avgDepth: existing.avgDepth,
+            ambientBar: existing.ambientBar,
             dateTimeMs: existing.dateTimeMs,
             diveNum: existing.diveNum,
             siteName: existing.siteName,
@@ -629,8 +668,7 @@ class InsightsRepository {
 
       for (final entry in dives.entries) {
         final d = entry.value;
-        final sac =
-            d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
+        final sac = d.gas / (d.durationSec / 60.0) / d.ambientBar;
         if (sac <= 0) continue;
 
         final item = RankingItem(
@@ -736,7 +774,7 @@ class InsightsRepository {
           ${consumptionVolumeSql('t')} AS volume,
           t.o2_percent,
           t.he_percent,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec
         FROM dives d
         INNER JOIN dive_tanks t ON t.dive_id = d.id
@@ -775,7 +813,7 @@ class InsightsRepository {
         if (used <= 0) continue;
 
         final durationMin = row.read<int>('duration_sec') / 60.0;
-        final ambientBar = (row.read<double>('avg_depth') / 10.0) + 1.0;
+        final ambientBar = row.read<double>('ambient_bar');
         final sac = used / durationMin / ambientBar;
         if (sac > 0) {
           sacsByRole.putIfAbsent(role, () => []).add(sac);
@@ -820,7 +858,7 @@ class InsightsRepository {
           AVG(
             CASE
               WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
+                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ${diveAmbientBarSql('d', 'd.avg_depth')}
               ELSE NULL
             END
           ) AS avg_sac
@@ -1100,22 +1138,11 @@ class InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          CASE
-            WHEN e.type = 'drysuit' THEN 'drysuit'
-            WHEN ea.value_num IS NULL THEN 'unknown'
-            ELSE 'mm'
-          END AS bucket,
+          $_suitBucketSql AS bucket,
           ea.value_num AS mm,
           COUNT(DISTINCT d.id) AS count
         FROM dives d
-        JOIN dive_equipment de ON de.dive_id = d.id
-        JOIN equipment e ON e.id = de.equipment_id
-          AND e.type IN ('wetsuit', 'drysuit')
-        LEFT JOIN equipment_attributes ea ON ea.equipment_id = e.id
-          AND e.type = 'wetsuit'
-          AND ea.attr_key = 'thickness_mm'
-          AND ea.is_custom = 0
-          AND ea.value_num IS NOT NULL
+        $_suitJoinsSql
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY bucket, ea.value_num
         ORDER BY ea.value_num
@@ -1214,32 +1241,15 @@ class InsightsRepository {
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
-      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'dives');
-      // Threshold variables come first: they appear before the diver and
-      // filter placeholders in the statement below, and Drift binds
-      // positionally.
-      final scaleParams = VisibilityBandSql.params(scale);
-      final params = diverId != null
-          ? [...scaleParams, diverId, ...df.params]
-          : [...scaleParams, ...df.params];
-
+      final perDive = _visibilityBucketQuery(
+        scale: scale,
+        diverId: diverId,
+        filter: filter,
+      );
       final results = await _db.customSelect('''
-        SELECT bucket, COUNT(*) AS count FROM (
-          SELECT CASE
-            ${VisibilityBandSql.whenBranches('')}
-            ELSE 'legacy_' || visibility
-          END AS bucket
-          FROM dives
-          WHERE (
-            visibility_meters IS NOT NULL
-            OR visibility_min_meters IS NOT NULL
-            OR visibility_max_meters IS NOT NULL
-            OR (visibility IS NOT NULL AND visibility != '')
-          ) $diverFilter ${df.clause}
-        )
+        SELECT bucket, COUNT(*) AS count FROM (${perDive.sql})
         GROUP BY bucket
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
+        ''', variables: perDive.params.map((p) => Variable(p)).toList()).get();
 
       final counts = <String, int>{
         for (final row in results)
@@ -1369,6 +1379,7 @@ class InsightsRepository {
       // does not include. A link whose type is gone falls back to its id.
       final results = await _db.customSelect('''
         SELECT
+          sst.site_type_id AS site_type_id,
           CASE WHEN st.is_built_in = 0 THEN st.name
             ELSE sst.site_type_id END AS site_type,
           COUNT(*) AS count
@@ -1392,6 +1403,7 @@ class InsightsRepository {
           label: row.read<String>('site_type'),
           count: count,
           percentage: count / total * 100,
+          key: row.read<String>('site_type_id'),
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -1827,7 +1839,14 @@ class InsightsRepository {
   // Social & Buddies Statistics
   // ============================================================================
 
-  /// Get top buddies by dive count
+  /// Get top buddies by dive count.
+  ///
+  /// Counts distinct dives, because one buddy can hold several `dive_buddies`
+  /// links to a dive and those links are still one dive (issue #3895).
+  ///
+  /// A buddy excluded from the rankings is left out here rather than dropped
+  /// by the caller, so the [limit] is filled by buddies who rank (issue
+  /// #3624).
   Future<List<RankingItem>> getTopBuddies({
     String? diverId,
     int limit = 10,
@@ -1844,11 +1863,11 @@ class InsightsRepository {
         SELECT
           b.id,
           b.name,
-          COUNT(db.dive_id) AS dive_count
+          COUNT(DISTINCT db.dive_id) AS dive_count
         FROM buddies b
         JOIN dive_buddies db ON db.buddy_id = b.id
         JOIN dives d ON d.id = db.dive_id
-        WHERE 1=1 $diverFilter ${df.clause}
+        WHERE b.excluded_from_rankings = 0 $diverFilter ${df.clause}
         GROUP BY b.id
         ORDER BY dive_count DESC
         LIMIT ?
@@ -1905,10 +1924,7 @@ class InsightsRepository {
           COUNT(*) AS count
         FROM (
           SELECT
-            EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)
-              AS has_linked,
-            NULLIF(TRIM(d.buddy), '') AS buddy_text,
-            COALESCE(d.diver_role = ?, 0) AS is_solo
+            $_soloBuddyColumnsSql
           FROM dives d
           WHERE 1=1 $diverFilter ${df.clause}
         )
@@ -1920,15 +1936,17 @@ class InsightsRepository {
       var notRecorded = 0;
       for (final row in results) {
         final count = row.read<int>('count');
-        final hasBuddy =
-            row.read<bool>('has_linked') ||
-            LegacyNameParser.parse(row.read<String?>('buddy_text')).isNotEmpty;
-        if (hasBuddy) {
-          buddy += count;
-        } else if (row.read<bool>('is_solo')) {
-          solo += count;
-        } else {
-          notRecorded += count;
+        switch (_focusBuddyKey(
+          hasLinked: row.read<bool>('has_linked'),
+          text: row.read<String?>('buddy_text'),
+          isSolo: row.read<bool>('is_solo'),
+        )) {
+          case 'buddy':
+            buddy += count;
+          case 'solo':
+            solo += count;
+          default:
+            notRecorded += count;
         }
       }
       return (solo: solo, buddy: buddy, notRecorded: notRecorded);
@@ -2021,8 +2039,8 @@ class InsightsRepository {
   /// (#2623). Each row shows the first spelling in binary order.
   ///
   /// Like every Insights card, the count leaves out planned dives and dives
-  /// excluded from statistics (DiveStatsScope); the dive list a row opens
-  /// still shows the excluded ones.
+  /// excluded from statistics (DiveStatsScope), and so does the dive list a
+  /// row opens.
   Future<List<RankingItem>> getCountriesVisited({
     String? diverId,
     int limit = 10,
@@ -2115,20 +2133,27 @@ class InsightsRepository {
 
   /// Get dives per trip. A larger trip counts its side trips' dives, and
   /// the side trips are left out of the ranking so no dive counts twice
-  /// (issue #3658).
+  /// (issue #3658). With [diverId], only trips the profile can see rank, and
+  /// a side trip of a parent it cannot see ranks as itself (issue #3933).
   Future<List<RankingItem>> getDivesPerTrip({
     String? diverId,
     int limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
+      final topLevel = topLevelTripFilter(
+        diverId: diverId,
+        conjunction: 'WHERE',
+      );
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
       final params = diverId != null
           ? [diverId, ...df.params, limit]
           : [...df.params, limit];
 
-      final results = await _db.customSelect('''
+      final results = await _db
+          .customSelect(
+            '''
         SELECT
           t.id,
           t.name,
@@ -2136,11 +2161,17 @@ class InsightsRepository {
           COUNT(d.id) AS dive_count
         FROM trips t
         ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
-        WHERE $topLevelTripSql $diverFilter ${df.clause}
+        ${topLevel.whereClause} $diverFilter ${df.clause}
         GROUP BY t.id
         ORDER BY dive_count DESC
         LIMIT ?
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
+        ''',
+            variables: [
+              ...topLevel.variables,
+              ...params.map((p) => Variable(p)),
+            ],
+          )
+          .get();
 
       return results.map((row) {
         return RankingItem(
@@ -2496,17 +2527,17 @@ class InsightsRepository {
   // ============================================================================
 
   /// Get most used gear
+  ///
+  /// A null [limit] returns every item. `value` holds the item's hours.
   Future<List<RankingItem>> getMostUsedGear({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -2514,21 +2545,15 @@ class InsightsRepository {
           e.name,
           e.type,
           e.brand,
-          COUNT(DISTINCT u.dive_id) AS use_count
+          COUNT(*) AS use_count,
+          SUM($diveLengthSql) AS use_seconds
         FROM equipment e
-        JOIN (
-          SELECT dive_id, equipment_id FROM dive_equipment
-          UNION
-          SELECT dive_id, equipment_id FROM dive_tanks
-          WHERE equipment_id IS NOT NULL
-          -- Tank regulators, first and extra (#3375).
-          UNION $tankRegulatorPairsSql
-        ) u ON u.equipment_id = e.id
+        JOIN ($distinctDiveGearPairsSql) u ON u.equipment_id = e.id
         JOIN dives d ON d.id = u.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY e.id
         ORDER BY use_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2538,7 +2563,9 @@ class InsightsRepository {
           id: row.read<String>('id'),
           name: row.read<String>('name'),
           count: row.read<int>('use_count'),
-          subtitle: brand != null ? '$brand • $type' : type,
+          value: row.read<int>('use_seconds') / 3600,
+          subtitle: brand == null || brand.isEmpty ? null : brand,
+          kind: type,
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -2553,7 +2580,8 @@ class InsightsRepository {
 
   /// Total lead carried on every dive in scope, in kilograms, ordered by date.
   ///
-  /// Sums the dive's weight rows. The monthly version this replaced averaged
+  /// Sums the dive's weight rows, or reads the legacy scalar when it has none
+  /// ([recordedWeightKgSql]). The monthly version this replaced averaged
   /// across rows, so a 4 kg belt plus 2 kg of trim weights was reported as
   /// 3 kg rather than the 6 kg actually carried.
   Future<List<TrendDataPoint>> getWeightPerDive({
@@ -2568,13 +2596,11 @@ class InsightsRepository {
       final results = await _db.customSelect('''
         SELECT d.id AS dive_id,
                d.dive_date_time AS dive_date_time,
-               SUM(dw.amount_kg) AS total_kg
+               ${recordedWeightKgSql('d')} AS total_kg
         FROM dives d
-        JOIN dive_weights dw ON dw.dive_id = d.id
         WHERE 1 = 1 $diverFilter ${df.clause}
-        GROUP BY d.id
-        HAVING total_kg IS NOT NULL
-        ORDER BY d.dive_date_time
+          AND total_kg IS NOT NULL
+        ORDER BY d.dive_date_time, d.id
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2876,20 +2902,28 @@ class InsightsRepository {
           FROM dive_profile_events e
           JOIN scoped s ON s.dive_id = e.dive_id
           WHERE e.event_type = 'decoStopStart'
+        ),
+        classified AS (
+          SELECT
+            sig.dive_id AS dive_id,
+            CASE
+              WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
+              WHEN sig.has_deco_type = 1 THEN 'no_deco'
+              WHEN sig.positive_ceiling = 1 THEN 'deco'
+              WHEN sig.has_profile = 1 THEN 'compute'
+              ELSE 'no_profile'
+            END AS classification
+          FROM signals sig
+          LEFT JOIN stop_events ev ON ev.dive_id = sig.dive_id
         )
         SELECT
-          sig.dive_id AS dive_id,
-          d.updated_at AS updated_at,
-          CASE
-            WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
-            WHEN sig.has_deco_type = 1 THEN 'no_deco'
-            WHEN sig.positive_ceiling = 1 THEN 'deco'
-            WHEN sig.has_profile = 1 THEN 'compute'
-            ELSE 'no_profile'
-          END AS classification
-        FROM signals sig
-        JOIN dives d ON d.id = sig.dive_id
-        LEFT JOIN stop_events ev ON ev.dive_id = sig.dive_id
+          c.dive_id AS dive_id,
+          c.classification AS classification,
+          CASE WHEN c.classification = 'compute' THEN
+            ${diveSourceStampSql('d')} + ${earlierDivesRevisionSql('d')}
+          END AS revision
+        FROM classified c
+        JOIN dives d ON d.id = c.dive_id
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       final recordedDeco = <String>{};
@@ -2905,12 +2939,12 @@ class InsightsRepository {
             recordedNoDeco.add(id);
           case 'compute':
             // Non-null read on purpose. `dives.updated_at` is a non-nullable
-            // column and the query inner-joins dives, so a null here means the
-            // schema or the query drifted. Defaulting to 0 would silently
+            // column and the query inner-joins dives, so a null revision means
+            // the schema or the query drifted. Defaulting to 0 would silently
             // collapse every dive onto one fingerprint component and stop
             // edits invalidating the computed classification cache, so fail
             // loudly instead.
-            needsCompute[id] = row.read<int>('updated_at');
+            needsCompute[id] = row.read<int>('revision');
           default:
             noProfile.add(id);
         }
@@ -2986,17 +3020,18 @@ class InsightsRepository {
   /// Counts the dives the diver has explicitly excluded from statistics, for
   /// the Overview footnote.
   ///
-  /// Deliberately counts only `excluded_from_stats`, not the whole
-  /// [DiveStatsScope]: this footnote exists to explain the diver's own choice
-  /// back to them. A planned dive is not something they chose to exclude, so
-  /// folding it in would make the number confusing rather than clarifying.
+  /// Deliberately counts logged dives with `excluded_from_stats`, not
+  /// everything outside the [DiveStatsScope]: this footnote exists to explain
+  /// the diver's own choice back to them. A planned dive has not happened, so
+  /// counting one, flagged or not, would make the number confusing rather than
+  /// clarifying.
   // stats-scope-exempt: counts the excluded, by definition
   Future<int> countExcludedDives({String? diverId}) async {
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
     final row = await _db
         .customSelect(
           'SELECT COUNT(*) AS c FROM dives '
-          'WHERE excluded_from_stats = 1 $diverFilter',
+          'WHERE excluded_from_stats = 1 AND is_planned = 0 $diverFilter',
           variables: diverId != null
               ? [Variable<String>(diverId)]
               : const <Variable<Object>>[],
@@ -3004,6 +3039,30 @@ class InsightsRepository {
         )
         .getSingle();
     return row.read<int>('c');
+  }
+
+  /// Counts the diver's logged dives and how many of them statistics include,
+  /// ignoring any view filter.
+  ///
+  /// Both come from one row so they agree on what a logged dive is: a planned
+  /// dive has not happened, so it is in neither, excluded or not.
+  Future<LogbookDiveCounts> countLogbookDives({String? diverId}) async {
+    final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+    final row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS logged, '
+          'COUNT(*) FILTER (WHERE ${DiveStatsScope.predicate()}) AS counted '
+          'FROM dives d WHERE d.is_planned = 0 $diverFilter',
+          variables: diverId != null
+              ? [Variable<String>(diverId)]
+              : const <Variable<Object>>[],
+          readsFrom: {_db.dives},
+        )
+        .getSingle();
+    return LogbookDiveCounts(
+      logged: row.read<int>('logged'),
+      counted: row.read<int>('counted'),
+    );
   }
 
   // ============================================================================

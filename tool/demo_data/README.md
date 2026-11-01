@@ -137,10 +137,19 @@ is replaced; older schemas stay so older apps keep a file they can open).
 ```bash
 gh release create demo-data --title "Demo mode sample logbook" \
   --notes "Sample logbook for demo mode. Not an app release." --latest=false
-gh release upload demo-data <out_dir>/submersion-demo-s<schema>.zip \
-  <out_dir>/demo-manifest.json --clobber
+gh release upload demo-data <out_dir>/submersion-demo-s<schema>.zip --clobber
+gh release upload demo-data <out_dir>/demo-manifest.json --clobber
 ```
 
 The release must never be marked latest: the in-app updater and the beta
-appcast read `releases/latest`. Upload the current `demo-manifest.json` from
-the release first if it already exists, so the merge keeps its older entries.
+appcast read `releases/latest`. Upload the zip first, in its own command, so
+the manifest never names a file that is not there yet. `pack.sh` starts every
+build from the release's current `demo-manifest.json`, replacing any copy in
+`<out_dir>`, so the merge keeps the older entries; a failed fetch stops the
+build, and only a release with no manifest yet starts a new one.
+
+The app keeps the logbook's seasons true while the newest dive is within six
+weeks of a whole number of years (it moves dates by those years), and that
+dive falls in the week before the build. So
+`.github/workflows/demo-package-age.yml` opens an issue once the published
+package is five weeks old, and closes it when a rebuild is out.

@@ -9,6 +9,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/planner_results.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -43,6 +44,7 @@ PlanOutcome _outcomeWithStop() {
     otuTotal: 5,
     issues: [],
     endTissue: BuhlmannState(compartments: [], gfLowCeilingAnchor: 0),
+    surfacedTissue: BuhlmannState(compartments: [], gfLowCeilingAnchor: 0),
     tissueTimeline: [],
     ceilingTrace: [],
   );
@@ -54,6 +56,7 @@ Future<DivePlanNotifier> _pumpSheet(WidgetTester tester) async {
     testApp(
       locale: const Locale('en'),
       overrides: [
+        ...plannerResultsInline(),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         activePlanOutcomeProvider.overrideWithValue(_outcomeWithStop()),
         divePlanNotifierProvider.overrideWith((ref) => notifier),

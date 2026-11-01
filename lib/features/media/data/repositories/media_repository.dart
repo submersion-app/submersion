@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -1240,6 +1241,14 @@ class MediaRepository {
   /// after a sync (as [stampOriginDevice] does). The guards keep a cloud id
   /// a sync delivered meanwhile, and skip a row relinked meanwhile.
   Future<List<String>> stampCloudAssetIds(
+    List<({String id, String platformAssetId, String cloudAssetId})> found,
+  ) => ChangeLogScope.automatic(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.galleryBackfill,
+    body: () => _stampCloudAssetIdsInner(found),
+  );
+
+  Future<List<String>> _stampCloudAssetIdsInner(
     List<({String id, String platformAssetId, String cloudAssetId})> found,
   ) async {
     if (found.isEmpty) return const [];

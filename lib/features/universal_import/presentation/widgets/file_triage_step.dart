@@ -8,6 +8,7 @@ import 'package:submersion/features/import_wizard/presentation/suunto_file_impor
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/features/universal_import/presentation/widgets/parse_progress.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/source_confirmation_step.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -99,36 +100,9 @@ class FileTriageStep extends ConsumerWidget {
             ),
           ),
         if (state.isLoading)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Column(
-              children: [
-                LinearProgressIndicator(
-                  value: state.parseTotal > 0
-                      ? state.parseCurrent / state.parseTotal
-                      : null,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l10n.universalImport_triage_parsing(
-                        state.parseCurrent,
-                        state.parseTotal,
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    TextButton(
-                      onPressed: () => ref
-                          .read(universalImportNotifierProvider.notifier)
-                          .cancelBatchParse(),
-                      child: Text(l10n.universalImport_triage_cancelParsing),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: ParseProgress(),
           ),
         Expanded(
           child: ListView.builder(

@@ -23,7 +23,8 @@ class GasSwitch extends Equatable {
   final DateTime createdAt;
 
   /// The computer that logged this switch, or null when it applies to every
-  /// computer on the dive (manual entries, file imports, older rows).
+  /// computer on the dive (manual entries, file imports other than a backup
+  /// that names one, older rows).
   final String? computerId;
 
   const GasSwitch({

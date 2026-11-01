@@ -57,9 +57,11 @@ class GearTimeline {
     final g = _gear[key]!;
     if (g.status == EquipmentStatus.wanted) return null;
     if (g.replaces != null) {
+      // The day after the old part's last dive: the app counts a fitted
+      // part's dives by its install day, so a mid-day swap would hand it the
+      // morning's dives of the part it replaced.
       final gone = leftOn(g.replaces!)!;
-      final day = homeDayOnOrAfter(gone);
-      return day.isBefore(gone) ? gone : day;
+      return homeDayOnOrAfter(DateTime(gone.year, gone.month, gone.day + 1));
     }
     final dive = _dive(g.bought, g.boughtOffset);
     final week = dive.start.subtract(const Duration(days: 7));

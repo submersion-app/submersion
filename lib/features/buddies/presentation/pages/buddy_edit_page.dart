@@ -108,6 +108,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   /// persistent dismissal, since the link is expected to be set eventually.
   bool _suggestionDismissed = false;
 
+  /// The rankings exclusion (issue #3624), as edited on this page.
+  bool _excludedFromRankings = false;
+
   BuddyMergeFormController? _mergeCtrl;
 
   bool get isEditing => widget.buddyId != null;
@@ -134,6 +137,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         phoneController: _phoneController,
         notesController: _notesController,
       );
+      _excludedFromRankings = _mergeCtrl!.mergedExcludedFromRankings;
     } else if (isEditing) {
       _loadBuddy();
     } else if (hasInitialData) {
@@ -186,6 +190,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         _originalBuddy = buddy;
         _photo = buddy.photo;
         _linkedDiverId = buddy.linkedDiverId;
+        _excludedFromRankings = buddy.excludedFromRankings;
         _nameController.text = buddy.name;
         _emailController.text = buddy.email ?? '';
         _phoneController.text = buddy.phone ?? '';
@@ -487,6 +492,22 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
               ),
               const SizedBox(height: 24),
             ],
+
+            // Rankings exclusion (issue #3624). Shown in merge mode too, where
+            // it starts on only if every merged buddy has it on.
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.buddies_field_excludedFromRankings),
+              subtitle: Text(
+                context.l10n.buddies_field_excludedFromRankingsHint,
+              ),
+              value: _excludedFromRankings,
+              onChanged: (value) => setState(() {
+                _excludedFromRankings = value;
+                _hasChanges = true;
+              }),
+            ),
+            const SizedBox(height: 24),
 
             // Certifications (issue #553): staged in memory, committed on
             // Save. Hidden in merge mode -- the survivor inherits the union of
@@ -824,6 +845,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         // control, so a full-constructor rebuild would otherwise silently
         // reset it to false on every save.
         isFavorite: _originalBuddy?.isFavorite ?? false,
+        excludedFromRankings: _excludedFromRankings,
         createdAt: _originalBuddy?.createdAt ?? now,
         updatedAt: now,
         // The buddy card figures (issue #3728) have no form field: only a
@@ -957,6 +979,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(text),
+        persist: false,
         action: existing == null
             ? null
             : SnackBarAction(

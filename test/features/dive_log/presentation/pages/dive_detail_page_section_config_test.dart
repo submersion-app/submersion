@@ -11,6 +11,9 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
+import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/compare_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -1027,6 +1030,41 @@ void main() {
       // records, the deco math is not.
       expect(find.byType(SectionFold), findsOneWidget);
       expect(find.text('Dive Profile'), findsOneWidget);
+    });
+  });
+
+  group('DiveDetailPage Compare section', () {
+    Dive diveWithSamples(int samples) => Dive(
+      id: 'compare-dive',
+      dateTime: DateTime(2026, 3, 15, 10, 0),
+      profile: List.generate(
+        samples,
+        (i) => DiveProfilePoint(timestamp: i * 10, depth: 10),
+      ),
+    );
+
+    Widget compareTestWidget(Dive dive) => _buildTestWidget(
+      dive: dive,
+      settings: _settingsWithVisibleSections([DiveDetailSectionId.diveLab]),
+      extraOverrides: [
+        diveScenariosForDiveProvider(
+          dive.id,
+        ).overrideWith((ref) async => <DiveScenario>[]),
+      ],
+    );
+
+    testWidgets('shows on a dive the lab can branch', (tester) async {
+      await tester.pumpWidget(compareTestWidget(diveWithSamples(2)));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CompareSection), findsOneWidget);
+    });
+
+    testWidgets('stays off a profile too short to branch', (tester) async {
+      await tester.pumpWidget(compareTestWidget(diveWithSamples(1)));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CompareSection), findsNothing);
     });
   });
 

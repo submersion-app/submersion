@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,13 +30,19 @@ export 'package:submersion/features/dive_log/presentation/widgets/profile_legend
 /// clipping a label part-way through.
 class DiveProfileLegend extends ConsumerWidget {
   final ProfileLegendConfig config;
-  final double zoomLevel;
+
+  /// Listened to by the zoom controls alone: a zoom gesture changes this once
+  /// per pointer frame, and the entries around the controls do not read it.
+  final ValueListenable<double> zoomLevel;
   final double minZoom;
   final double maxZoom;
   final VoidCallback onZoomIn;
   final VoidCallback onZoomOut;
   final VoidCallback onResetZoom;
   final double leftPadding;
+
+  /// Off for a chart that takes no gestures, where they would do nothing.
+  final bool showZoomControls;
 
   const DiveProfileLegend({
     super.key,
@@ -47,6 +54,7 @@ class DiveProfileLegend extends ConsumerWidget {
     required this.onZoomOut,
     required this.onResetZoom,
     this.leftPadding = 0.0,
+    this.showZoomControls = true,
   });
 
   @override
@@ -107,16 +115,21 @@ class DiveProfileLegend extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(width: 4),
-          ChartZoomControls(
-            dense: true,
-            zoomLevel: zoomLevel,
-            minZoom: minZoom,
-            maxZoom: maxZoom,
-            onZoomIn: onZoomIn,
-            onZoomOut: onZoomOut,
-            onResetZoom: onResetZoom,
-          ),
+          if (showZoomControls) ...[
+            const SizedBox(width: 4),
+            ValueListenableBuilder<double>(
+              valueListenable: zoomLevel,
+              builder: (context, zoom, _) => ChartZoomControls(
+                dense: true,
+                zoomLevel: zoom,
+                minZoom: minZoom,
+                maxZoom: maxZoom,
+                onZoomIn: onZoomIn,
+                onZoomOut: onZoomOut,
+                onResetZoom: onResetZoom,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -361,6 +374,9 @@ class _MoreOptionsButton extends ConsumerWidget {
     final renderBox = context.findRenderObject() as RenderBox;
     final buttonOffset = renderBox.localToGlobal(Offset.zero);
     final buttonSize = renderBox.size;
+    // The dialog builds above any ProviderScope around this chart; it acts
+    // on the same legend the chart shows, scoped or not.
+    final container = ProviderScope.containerOf(context, listen: false);
 
     showDialog<void>(
       context: context,
@@ -374,10 +390,13 @@ class _MoreOptionsButton extends ConsumerWidget {
       // the bottom of the (now smaller) available space instead of merely
       // leaving a gap under it.
       useSafeArea: false,
-      builder: (dialogContext) => ChartOptionsDialog(
-        config: config,
-        anchorOffset: buttonOffset,
-        anchorSize: buttonSize,
+      builder: (dialogContext) => UncontrolledProviderScope(
+        container: container,
+        child: ChartOptionsDialog(
+          config: config,
+          anchorOffset: buttonOffset,
+          anchorSize: buttonSize,
+        ),
       ),
     );
   }

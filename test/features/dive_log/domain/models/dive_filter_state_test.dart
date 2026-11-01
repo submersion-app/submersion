@@ -4,6 +4,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 
 void main() {
   group('DiveFilterState', () {
@@ -130,6 +131,27 @@ void main() {
         expect(filter.hasActiveFilters, isTrue);
       });
 
+      test('returns true when noEntryMethodOnly is true', () {
+        const filter = DiveFilterState(noEntryMethodOnly: true);
+
+        expect(filter.hasActiveFilters, isTrue);
+      });
+
+      test('returns true when noWaterType is true', () {
+        const filter = DiveFilterState(noWaterType: true);
+
+        expect(filter.hasActiveFilters, isTrue);
+      });
+
+      test('water types and noWaterType count as one axis', () {
+        const filter = DiveFilterState(
+          waterTypes: [WaterType.salt],
+          noWaterType: true,
+        );
+
+        expect(filter.activeAxisCount, 1);
+      });
+
       test('returns false when noRoleOnly is false', () {
         const filter = DiveFilterState(noRoleOnly: false);
 
@@ -246,6 +268,27 @@ void main() {
         expect(updated.noRoleOnly, isNull);
       });
 
+      test('sets and clears noWaterType', () {
+        const original = DiveFilterState();
+
+        final updated = original.copyWith(noWaterType: true);
+
+        expect(updated.noWaterType, isTrue);
+        expect(updated.copyWith(clearNoWaterType: true).noWaterType, isNull);
+      });
+
+      test('sets and clears noEntryMethodOnly', () {
+        const original = DiveFilterState();
+
+        final updated = original.copyWith(noEntryMethodOnly: true);
+
+        expect(updated.noEntryMethodOnly, isTrue);
+        expect(
+          updated.copyWith(clearNoEntryMethodOnly: true).noEntryMethodOnly,
+          isNull,
+        );
+      });
+
       test('copyWith keeps noRoleOnly when another axis changes', () {
         const original = DiveFilterState(noRoleOnly: true);
 
@@ -307,6 +350,27 @@ void main() {
           reason: 'list order is part of the value',
         );
         expect(const DiveFilterState(), const DiveFilterState());
+      });
+    });
+
+    group('diveIdsLabel (#3805)', () {
+      test('takes part in equality', () {
+        const named = DiveFilterState(diveIds: ['a'], diveIdsLabel: 'One');
+        const other = DiveFilterState(diveIds: ['a'], diveIdsLabel: 'Two');
+        expect(named, isNot(equals(other)));
+        expect(named.hashCode, isNot(other.hashCode));
+      });
+
+      test('clearing the dive ids clears the label', () {
+        const named = DiveFilterState(diveIds: ['a'], diveIdsLabel: 'One');
+        final cleared = named.copyWith(clearDiveIds: true);
+        expect(cleared.diveIds, isEmpty);
+        expect(cleared.diveIdsLabel, isNull);
+      });
+
+      test('a label alone is no axis', () {
+        const labelled = DiveFilterState(diveIdsLabel: 'One');
+        expect(labelled.hasActiveFilters, isFalse);
       });
     });
 
@@ -405,6 +469,48 @@ void main() {
         );
       });
 
+      test('tank configuration axes compare by value', () {
+        expect(
+          const DiveFilterState(
+            tankConfigurations: [TankBaseConfiguration.sidemount],
+          ),
+          const DiveFilterState(
+            tankConfigurations: [TankBaseConfiguration.sidemount],
+          ),
+        );
+        expect(
+          const DiveFilterState(
+            tankConfigurations: [TankBaseConfiguration.sidemount],
+          ).hashCode,
+          const DiveFilterState(
+            tankConfigurations: [TankBaseConfiguration.sidemount],
+          ).hashCode,
+        );
+        expect(
+          const DiveFilterState(tankExtras: [TankConfigurationExtra.stages]),
+          isNot(
+            const DiveFilterState(tankExtras: [TankConfigurationExtra.decoGas]),
+          ),
+        );
+      });
+
+      test('tank configuration axes set and clear through copyWith', () {
+        final set = const DiveFilterState().copyWith(
+          tankConfigurations: [TankBaseConfiguration.rebreather],
+          tankExtras: [TankConfigurationExtra.multiGas],
+        );
+        expect(set.tankConfigurations, [TankBaseConfiguration.rebreather]);
+        expect(set.tankExtras, [TankConfigurationExtra.multiGas]);
+        expect(set.activeAxisCount, 2);
+
+        final cleared = set.copyWith(
+          clearTankConfigurations: true,
+          clearTankExtras: true,
+        );
+        expect(cleared.hasActiveFilters, isFalse);
+        expect(cleared.toQuery(), isNull);
+      });
+
       test('the axes count as active and clear through copyWith', () {
         const f = DiveFilterState(
           minWaterTemp: 1,
@@ -487,6 +593,8 @@ void main() {
         const DiveFilterState(decoOnly: false),
         const DiveFilterState(noBuddyOnly: true),
         const DiveFilterState(noRoleOnly: true),
+        const DiveFilterState(noWaterType: true),
+        const DiveFilterState(noEntryMethodOnly: true),
         const DiveFilterState(tagIds: ['t']),
         const DiveFilterState(weekdays: [1]),
         const DiveFilterState(equipmentIds: ['e']),
@@ -518,6 +626,10 @@ void main() {
         const DiveFilterState(minVisibility: 10),
         const DiveFilterState(maxVisibility: 20),
         const DiveFilterState(waterTypes: [WaterType.salt]),
+        const DiveFilterState(
+          tankConfigurations: [TankBaseConfiguration.sidemount],
+        ),
+        const DiveFilterState(tankExtras: [TankConfigurationExtra.stages]),
         const DiveFilterState(speciesIds: ['sp']),
         const DiveFilterState(siteIds: ['s']),
       ];

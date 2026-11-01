@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/features/demo_mode/data/demo_date_columns.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 
 /// The `diver_settings` columns that follow the user into demo mode, so the
 /// sample logbook reads in units and formats they already know.
@@ -40,7 +41,8 @@ class DemoDatabasePreparer {
   static const _trackTables = ['gps_tracks', 'nav_tracks'];
 
   /// [onProgress] hears each step done, out of the total: one per date
-  /// column and per track table, then the photos, units and notifications.
+  /// column and per track table, one for the date attributes, then the
+  /// photos, units and notifications.
   Future<void> prepare(
     GeneratedDatabase db, {
     required DateTime now,
@@ -50,7 +52,9 @@ class DemoDatabasePreparer {
     void Function(int done, int total)? onProgress,
   }) async {
     final columns = demoDateColumnsOf(db);
-    final total = columns.length + _trackTables.length + 3;
+    // The date columns, the track tables and the date attributes, then the
+    // photos, units and notifications.
+    final total = columns.length + _trackTables.length + 4;
     var done = 0;
     void step() => onProgress?.call(++done, total);
 
@@ -61,6 +65,10 @@ class DemoDatabasePreparer {
       if (units != null) await _applyUnits(db, units);
       step();
       await db.customStatement('DELETE FROM scheduled_notifications');
+      // The shift above is setup, not something the diver did.
+      await db.customStatement('DELETE FROM change_log_fields');
+      await db.customStatement('DELETE FROM change_log_events');
+      await db.customStatement('DELETE FROM change_log_operations');
       step();
     });
   }
@@ -93,6 +101,26 @@ class DemoDatabasePreparer {
       }
       step();
     }
+    if (shift != Duration.zero) {
+      await _shiftDateAttributes(db, shift.inMilliseconds);
+    }
+    step();
+  }
+
+  /// Equipment attributes of a date kind hold an instant in `value_num`,
+  /// unix milliseconds: a fitted part's install date, a cylinder's last
+  /// inspection. Custom attributes carry no kind and stay as they are.
+  Future<void> _shiftDateAttributes(GeneratedDatabase db, int millis) async {
+    final keys = EquipmentAttributeCatalog.dateKeys.toList()..sort();
+    await db.customUpdate(
+      'UPDATE equipment_attributes SET value_num = value_num + ? '
+      'WHERE is_custom = 0 AND value_num IS NOT NULL '
+      'AND attr_key IN (${List.filled(keys.length, '?').join(', ')})',
+      variables: [
+        Variable.withInt(millis),
+        for (final k in keys) Variable.withString(k),
+      ],
+    );
   }
 
   /// How far to move every instant: zero for a logbook without dives.
