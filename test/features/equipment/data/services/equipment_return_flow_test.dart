@@ -26,18 +26,6 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   final Map<String, String?> current;
   final recorded = <_Recorded>[];
 
-  /// Rolls back what a failing body wrote, as a real transaction does.
-  @override
-  Future<T> inTransaction<T>(Future<T> Function() body) async {
-    final before = recorded.length;
-    try {
-      return await body();
-    } catch (_) {
-      recorded.removeRange(before, recorded.length);
-      rethrow;
-    }
-  }
-
   /// A location whose write fails.
   String? failFor;
 
@@ -53,15 +41,16 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   Future<Map<String, String?>> getCurrentLocationIds() async => current;
 
   @override
-  Future<List<EquipmentLocationMove>> recordMoves({
-    required Iterable<String> equipmentIds,
-    required String? locationId,
-    required DateTime movedAt,
+  Future<void> recordMoveGroups(
+    List<MoveGroup> groups, {
     String note = '',
   }) async {
-    if (locationId == failFor && failFor != null) throw StateError('no');
-    recorded.add(_Recorded(equipmentIds.toList(), locationId, movedAt, note));
-    return const [];
+    if (groups.any((g) => g.locationId == failFor && failFor != null)) {
+      throw StateError('no');
+    }
+    for (final g in groups) {
+      recorded.add(_Recorded(g.equipmentIds, g.locationId, g.movedAt, note));
+    }
   }
 }
 

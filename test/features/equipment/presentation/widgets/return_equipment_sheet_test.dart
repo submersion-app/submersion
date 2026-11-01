@@ -21,9 +21,6 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   final recorded = <(String?, DateTime, String)>[];
 
   @override
-  Future<T> inTransaction<T>(Future<T> Function() body) => body();
-
-  @override
   Future<List<EquipmentLocationMove>> getMovesFor(String equipmentId) async =>
       history[equipmentId] ?? const [];
 
@@ -35,15 +32,14 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   Future<Map<String, String?>> getCurrentLocationIds() async => const {};
 
   @override
-  Future<List<EquipmentLocationMove>> recordMoves({
-    required Iterable<String> equipmentIds,
-    required String? locationId,
-    required DateTime movedAt,
+  Future<void> recordMoveGroups(
+    List<MoveGroup> groups, {
     String note = '',
   }) async {
     if (failing) throw StateError('no');
-    recorded.add((locationId, movedAt, note));
-    return const [];
+    for (final g in groups) {
+      recorded.add((g.locationId, g.movedAt, note));
+    }
   }
 }
 

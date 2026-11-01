@@ -275,46 +275,52 @@ void main() {
     expect((await moves.partsOf(['reg'])).keys.toSet(), {'cell'});
   });
 
-  group('inTransaction (issue #3790)', () {
+  group('recordMoveGroups (issue #3790)', () {
     setUp(() async {
       await item('a');
+      await item('b');
       await place('p');
+      await place('q');
     });
 
-    test('a failure takes back every move made inside it', () async {
+    test('writes every group', () async {
+      await moves.recordMoveGroups([
+        (equipmentIds: ['a'], locationId: 'p', movedAt: DateTime(2026)),
+        (equipmentIds: ['b'], locationId: 'q', movedAt: DateTime(2026, 2)),
+      ], note: ' back ');
+
+      final a = (await moves.getMovesFor('a')).single;
+      final b = (await moves.getMovesFor('b')).single;
+      expect(a.locationId, 'p');
+      expect(a.note, 'back');
+      expect(b.locationId, 'q');
+      expect(b.movedAt, DateTime(2026, 2));
+    });
+
+    test('a group that fails takes back the groups before it', () async {
       await expectLater(
-        moves.inTransaction(() async {
-          await moves.recordMoves(
-            equipmentIds: ['a'],
-            locationId: 'p',
-            movedAt: DateTime(2026),
-          );
-          throw StateError('no');
-        }),
-        throwsStateError,
+        moves.recordMoveGroups([
+          (equipmentIds: ['a'], locationId: 'p', movedAt: DateTime(2026)),
+          (equipmentIds: ['b'], locationId: 'missing', movedAt: DateTime(2026)),
+        ]),
+        throwsA(anything),
       );
 
       expect(await moves.getMovesFor('a'), isEmpty);
     });
 
-    test('tells sync after the commit, not only during the body', () async {
+    test('tells sync once, after the commit', () async {
       var events = 0;
       final subscription = SyncEventBus.changes.listen((_) => events++);
       addTearDown(subscription.cancel);
-      var duringBody = -1;
 
-      await moves.inTransaction(() async {
-        await moves.recordMoves(
-          equipmentIds: ['a'],
-          locationId: 'p',
-          movedAt: DateTime(2026),
-        );
-        await pumpEventQueue();
-        duringBody = events;
-      });
+      await moves.recordMoveGroups([
+        (equipmentIds: ['a'], locationId: 'p', movedAt: DateTime(2026)),
+        (equipmentIds: ['b'], locationId: 'q', movedAt: DateTime(2026)),
+      ]);
       await pumpEventQueue();
 
-      expect(events, greaterThan(duringBody));
+      expect(events, 1);
     });
   });
 }
