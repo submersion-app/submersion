@@ -198,6 +198,20 @@ void main() {
         contains(_timeSeek),
       );
     });
+
+    test('matching a download across divers seeks a time range', () async {
+      expect(
+        await plan(db, diveMatchCandidatesSql(scopedToDiver: false), params: 3),
+        contains(_timeSeek),
+      );
+    });
+
+    test('matching a download for one diver seeks a time range', () async {
+      expect(
+        await plan(db, diveMatchCandidatesSql(scopedToDiver: true), params: 4),
+        contains(_sameDiverSeek),
+      );
+    });
   }
 
   group('neighbor window on an empty database', pinNeighborWindowSeeks);
@@ -221,6 +235,9 @@ void main() {
         "CASE i % 3 WHEN 0 THEN 'bill' WHEN 1 THEN 'anna' END, "
         'i * 86400000, CASE WHEN i % 2 = 0 THEN i * 86400000 END, 1, 1 FROM n',
       );
+      // As ensurePerformanceIndexes runs it, so the planner reads the same
+      // sampled statistics a library gets.
+      await db.customStatement('PRAGMA analysis_limit = 400');
       await db.customStatement('ANALYZE');
     });
 

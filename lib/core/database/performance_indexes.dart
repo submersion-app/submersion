@@ -68,10 +68,11 @@ const List<PerformanceIndex> kPerformanceIndexes = [
   // start, which nothing else can seek, and query_plan_test pins their use.
   //
   // The neighbor window of a Data Quality scan, one lookup per dive in the
-  // library plus the pair prefilters (#3863). Same-diver lookups use the
-  // first, cross-diver lookups the second, because a "different diver"
-  // filter cannot seek a diver-leading index. Without both a full scan is
-  // quadratic.
+  // library plus the pair prefilters, and matching a download to a logged
+  // dive, one lookup per downloaded dive (#3863). Same-diver lookups use the
+  // first, cross-diver and unscoped lookups the second, because a "different
+  // diver" filter cannot seek a diver-leading index. Without both a full scan
+  // is quadratic.
   (
     name: 'idx_dives_diver_start',
     ddl:
