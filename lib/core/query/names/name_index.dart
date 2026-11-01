@@ -151,6 +151,7 @@ class NameIndex implements NameResolver, NameEntries {
   final _bySubject = <QuerySubject, List<NameEntry>>{};
   final _labels = <QuerySubject, Map<String, String>>{};
   final _refs = <QuerySubject, List<RefValue>>{};
+  final _suggesters = <QuerySubject, NameSuggester>{};
 
   Iterable<NameEntry> forSubject(QuerySubject subject) =>
       _bySubject[subject] ?? const [];
@@ -179,10 +180,17 @@ class NameIndex implements NameResolver, NameEntries {
     return null;
   }
 
+  /// The editor asks on every edit of an unresolved name (#3849), so each
+  /// subject's labels are prepared on the first ask and kept: this index is a
+  /// snapshot, and new names arrive as a new index.
   @override
-  List<String> candidates(QuerySubject kind, String text) =>
-      suggestNames(text, {
-        for (final e in forSubject(kind))
-          if (e.target.isRow) e.label,
-      });
+  List<String> candidates(QuerySubject kind, String text) => _suggesters
+      .putIfAbsent(
+        kind,
+        () => NameSuggester({
+          for (final e in forSubject(kind))
+            if (e.target.isRow) e.label,
+        }),
+      )
+      .suggest(text);
 }

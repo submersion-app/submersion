@@ -3,6 +3,8 @@
 /// No Flutter imports — unit-testable in isolation.
 library;
 
+import 'dart:typed_data';
+
 /// Common accented Latin code points mapped to their ASCII base letter.
 const Map<int, String> _diacriticMap = {
   0xE0: 'a',
@@ -49,40 +51,81 @@ String normalize(String input) {
   return buffer.toString();
 }
 
-List<String> _bigrams(String s) {
-  final result = <String>[];
-  for (var i = 0; i < s.length - 1; i++) {
-    result.add(s.substring(i, i + 2));
+/// The longest bigram list worth sorting by hand: pasted text can be far
+/// longer than any name, and insertion sort is quadratic.
+const _maxInsertionSorted = 32;
+
+/// Each adjacent pair of code units packed into one integer, sorted. Names
+/// are short and this runs once per name, so the usual case skips the
+/// comparator calls of [List.sort], which cost more than the sorting.
+Uint32List _bigrams(String s) {
+  if (s.length < 2) return Uint32List(0);
+  final result = Uint32List(s.length - 1);
+  for (var i = 0; i < result.length; i++) {
+    result[i] = s.codeUnitAt(i) << 16 | s.codeUnitAt(i + 1);
+  }
+  if (result.length > _maxInsertionSorted) return result..sort();
+  for (var i = 1; i < result.length; i++) {
+    final pair = result[i];
+    var at = i;
+    while (at > 0 && result[at - 1] > pair) {
+      result[at] = result[at - 1];
+      at--;
+    }
+    result[at] = pair;
   }
   return result;
+}
+
+/// A string made ready for Sørensen-Dice comparison: what
+/// [diceCoefficient] otherwise works out for its inputs on every call, kept
+/// so that a list compared again and again pays for it once.
+class DiceText {
+  factory DiceText(String input) {
+    final normalized = normalize(input);
+    return DiceText._(normalized, _bigrams(normalized));
+  }
+
+  DiceText._(this._normalized, this._pairs);
+
+  final String _normalized;
+  final Uint32List _pairs;
+
+  /// The coefficient of this text and [other]; see [diceCoefficient]. Sorted
+  /// bigrams intersect in one walk along both lists, a repeated bigram
+  /// counting as many times as both sides have it.
+  double similarity(DiceText other) {
+    if (_normalized == other._normalized) return 1.0;
+    if (_normalized.length < 2 || other._normalized.length < 2) return 0.0;
+
+    final a = _pairs;
+    final b = other._pairs;
+    var i = 0;
+    var j = 0;
+    var intersection = 0;
+    while (i < a.length && j < b.length) {
+      final left = a[i];
+      final right = b[j];
+      if (left == right) {
+        intersection++;
+        i++;
+        j++;
+      } else if (left < right) {
+        i++;
+      } else {
+        j++;
+      }
+    }
+    return (2.0 * intersection) / (a.length + b.length);
+  }
 }
 
 /// Sørensen-Dice coefficient over character bigrams of the normalized inputs.
 ///
 /// Returns 0.0 (no similarity) to 1.0 (identical). Inputs shorter than two
 /// characters fall back to normalized equality.
-double diceCoefficient(String a, String b) {
-  final na = normalize(a);
-  final nb = normalize(b);
-  if (na == nb) return 1.0;
-  if (na.length < 2 || nb.length < 2) return 0.0;
-
-  final bigramsA = _bigrams(na);
-  final bigramsB = _bigrams(nb);
-  final used = List<bool>.filled(bigramsB.length, false);
-
-  var intersection = 0;
-  for (final bigram in bigramsA) {
-    for (var i = 0; i < bigramsB.length; i++) {
-      if (!used[i] && bigramsB[i] == bigram) {
-        used[i] = true;
-        intersection++;
-        break;
-      }
-    }
-  }
-  return (2.0 * intersection) / (bigramsA.length + bigramsB.length);
-}
+double diceCoefficient(String a, String b) =>
+    DiceText(a).similarity(DiceText(b));
 
 /// Returns the candidate most similar to [input] whose Dice score is at or
 /// above [threshold], or null if none qualify. Ties resolve to the
@@ -92,10 +135,11 @@ String? findSimilar(
   Iterable<String> candidates, {
   double threshold = 0.7,
 }) {
+  final text = DiceText(input);
   String? best;
   var bestScore = threshold;
   for (final candidate in candidates) {
-    final score = diceCoefficient(input, candidate);
+    final score = text.similarity(DiceText(candidate));
     if (score >= bestScore && (best == null || score > bestScore)) {
       best = candidate;
       bestScore = score;
