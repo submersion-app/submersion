@@ -1528,6 +1528,76 @@ void main() {
     });
   });
 
+  group('dragging a start or end marker', () {
+    const startMarker = ValueKey('nav-track-align-start-marker');
+    const endMarker = ValueKey('nav-track-align-end-marker');
+
+    NavTrack anchored() => _route().copyWith(
+      anchorLatitude: 10,
+      anchorLongitude: 20,
+      endMode: NavTrackEndMode.point,
+      endLatitude: 10.002,
+      endLongitude: 20.002,
+    );
+
+    MapController controllerOf(WidgetTester tester) =>
+        tester.widget<FlutterMap>(find.byType(FlutterMap)).mapController!;
+
+    Future<void> drag(WidgetTester tester, Key key, Offset by) async {
+      final from = tester.getCenter(find.byKey(key));
+      final gesture = await tester.startGesture(from);
+      await tester.pump();
+      for (var i = 1; i <= 8; i++) {
+        await gesture.moveTo(from + by * (i / 8));
+        await tester.pump();
+      }
+      await gesture.up();
+      await tester.pump();
+    }
+
+    testWidgets('does not pan the map', (tester) async {
+      await _pump(tester, route: anchored());
+      final before = controllerOf(tester).camera.center;
+      await drag(tester, startMarker, const Offset(50, 30));
+      expect(controllerOf(tester).camera.center, before);
+    });
+
+    testWidgets('keeps the start marker under the pointer', (tester) async {
+      await _pump(tester, route: anchored());
+      final from = tester.getCenter(find.byKey(startMarker));
+      const by = Offset(50, 30);
+      await drag(tester, startMarker, by);
+      expect(
+        (tester.getCenter(find.byKey(startMarker)) - (from + by)).distance,
+        lessThan(1),
+      );
+    });
+
+    testWidgets('keeps the end marker under the pointer', (tester) async {
+      await _pump(tester, route: anchored());
+      final from = tester.getCenter(find.byKey(endMarker));
+      const by = Offset(-40, 25);
+      await drag(tester, endMarker, by);
+      expect(
+        (tester.getCenter(find.byKey(endMarker)) - (from + by)).distance,
+        lessThan(1),
+      );
+    });
+
+    testWidgets('tracks the pointer on a rotated map', (tester) async {
+      await _pump(tester, route: anchored());
+      controllerOf(tester).rotate(90);
+      await tester.pumpAndSettle();
+      final from = tester.getCenter(find.byKey(startMarker));
+      const by = Offset(50, 30);
+      await drag(tester, startMarker, by);
+      expect(
+        (tester.getCenter(find.byKey(startMarker)) - (from + by)).distance,
+        lessThan(1),
+      );
+    });
+  });
+
   group('track scale (#3823)', () {
     const scaleUp = ValueKey('nav-track-align-scale-up');
     const hint = ValueKey('nav-track-align-scale-pinned-hint');

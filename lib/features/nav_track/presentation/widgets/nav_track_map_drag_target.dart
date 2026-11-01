@@ -1,5 +1,15 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+
+/// The place on the ground under a pointer at [global], through [camera], so
+/// it holds on a rotated map. [mapKey] is the map's own box, because a marker's
+/// sits in the map's rotated layer space.
+LatLng groundUnderPointer(GlobalKey mapKey, MapCamera camera, Offset global) {
+  final box = mapKey.currentContext!.findRenderObject()! as RenderBox;
+  return camera.screenOffsetToLatLng(box.globalToLocal(global));
+}
 
 /// Something on a map that a pointer drags, without the map panning under it.
 ///

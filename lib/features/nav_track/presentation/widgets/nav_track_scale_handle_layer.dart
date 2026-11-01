@@ -12,9 +12,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// [pivot] grows it, toward [pivot] shrinks it, and only the distance counts,
 /// so a sideways move cannot rotate anything.
 ///
-/// The pointer goes through the camera, which keeps it right on a rotated map.
-/// [mapKey] is the map's own box, because the marker's sits in the map's
-/// rotated layer space.
 class NavTrackScaleHandleLayer extends StatefulWidget {
   const NavTrackScaleHandleLayer({
     super.key,
@@ -47,8 +44,7 @@ class _NavTrackScaleHandleLayerState extends State<NavTrackScaleHandleLayer> {
 
   /// How far on the ground [global] is from the pivot.
   double _distanceFromPivot(MapCamera camera, Offset global) {
-    final box = widget.mapKey.currentContext!.findRenderObject()! as RenderBox;
-    final ground = camera.screenOffsetToLatLng(box.globalToLocal(global));
+    final ground = groundUnderPointer(widget.mapKey, camera, global);
     return distanceMeters(
       widget.pivot,
       GeoPoint(ground.latitude, ground.longitude),

@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
-import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
@@ -317,18 +316,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     setState(() => _placing = _Placing.none);
   }
 
-  void _dragPoint(NavTrack route, bool isStart, Offset delta) {
-    final current = isStart ? _correction.anchor : _correction.endPoint;
-    if (current == null) return;
-    final zoom = _mapController.camera.zoom;
-    final metersPerPixel =
-        156543.03392 *
-        math.cos(current.latitude * math.pi / 180) /
-        math.pow(2, zoom);
-    final dLon =
-        delta.dx * metersPerPixel / metersPerDegreeLongitude(current.latitude);
-    final dLat = -delta.dy * metersPerPixel / metersPerDegreeLatitude;
-    final moved = GeoPoint(current.latitude + dLat, current.longitude + dLon);
+  void _dragPoint(NavTrack route, bool isStart, GeoPoint moved) {
     if (isStart) {
       _updateCorrection((c) => c.copyWith(anchor: moved), route);
     } else {
@@ -506,18 +494,20 @@ class _AlignPageBody extends ConsumerWidget {
                         ),
                       if (anchor != null)
                         NavTrackDraggableMarker(
+                          mapKey: state._mapKey,
                           point: anchor,
                           color: Colors.green,
                           keyValue: 'nav-track-align-start-marker',
-                          onDrag: (d) => state._dragPoint(route, true, d),
+                          onDrag: (p) => state._dragPoint(route, true, p),
                         ),
                       if (correction.endMode == NavTrackEndMode.point &&
                           correction.endPoint != null)
                         NavTrackDraggableMarker(
+                          mapKey: state._mapKey,
                           point: correction.endPoint!,
                           color: Colors.red,
                           keyValue: 'nav-track-align-end-marker',
-                          onDrag: (d) => state._dragPoint(route, false, d),
+                          onDrag: (p) => state._dragPoint(route, false, p),
                         ),
                       const MapAttribution(),
                     ],

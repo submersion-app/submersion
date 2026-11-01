@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_terrain_check.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_geometry.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_map_drag_target.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A correction-target marker that reports pixel-delta drags. Fine
@@ -28,35 +30,64 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// the whole view pans with it. [Listener] receives every routed pointer
 /// event directly, independent of which [GestureRecognizer] wins the arena
 /// for the same pointer, so the marker now actually moves every time.
-class NavTrackDraggableMarker extends StatelessWidget {
+class NavTrackDraggableMarker extends StatefulWidget {
   const NavTrackDraggableMarker({
     super.key,
+    required this.mapKey,
     required this.point,
     required this.color,
     required this.keyValue,
     required this.onDrag,
   });
 
+  /// The map's own box, for [groundUnderPointer].
+  final GlobalKey mapKey;
   final GeoPoint point;
   final Color color;
   final String keyValue;
-  final ValueChanged<Offset> onDrag;
+
+  /// Where the marker should be now.
+  final ValueChanged<GeoPoint> onDrag;
+
+  @override
+  State<NavTrackDraggableMarker> createState() =>
+      _NavTrackDraggableMarkerState();
+}
+
+class _NavTrackDraggableMarkerState extends State<NavTrackDraggableMarker> {
+  /// How far the marker sat from the pointer at the press, so grabbing it off
+  /// centre does not make it jump.
+  double _grabLatitude = 0;
+  double _grabLongitude = 0;
 
   @override
   Widget build(BuildContext context) {
+    final camera = MapCamera.of(context);
     return MarkerLayer(
       markers: [
         Marker(
-          point: LatLng(point.latitude, point.longitude),
+          point: LatLng(widget.point.latitude, widget.point.longitude),
           width: 36,
           height: 36,
-          child: Listener(
-            key: ValueKey(keyValue),
-            behavior: HitTestBehavior.opaque,
-            onPointerMove: (event) => onDrag(event.delta),
+          child: NavTrackMapDragTarget(
+            key: ValueKey(widget.keyValue),
+            onStart: (global) {
+              final ground = groundUnderPointer(widget.mapKey, camera, global);
+              _grabLatitude = widget.point.latitude - ground.latitude;
+              _grabLongitude = widget.point.longitude - ground.longitude;
+            },
+            onMove: (global) {
+              final ground = groundUnderPointer(widget.mapKey, camera, global);
+              widget.onDrag(
+                GeoPoint(
+                  ground.latitude + _grabLatitude,
+                  normalizeLongitude(ground.longitude + _grabLongitude),
+                ),
+              );
+            },
             child: Container(
               decoration: BoxDecoration(
-                color: color,
+                color: widget.color,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
               ),
