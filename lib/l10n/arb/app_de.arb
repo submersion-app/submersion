@@ -13108,6 +13108,8 @@
   "enum_diveField_cloudCover_short": "Wolken",
   "enum_diveField_precipitation_short": "Nieders.",
   "enum_diveField_humidity_short": "Luftf.",
+  "tableEditor_weightRows": "{count, plural, =1{{count} Gewichtszeile, im Tauchgang bearbeiten} other{{count} Gewichtszeilen, im Tauchgang bearbeiten}}",
+  "tableEditor_summary_siteSnap": "Beim Setzen eines Platzes werden auch Wasserart, Ein- und Ausstieg und Tauchgangsarten übernommen",
   "enum_diveField_excludedFromStats": "Von Statistik ausgeschlossen",
   "enum_diveField_excludedFromStats_short": "Keine Stat.",
   "enum_diveField_excludedFromGasStats": "Von Gasstatistik ausgeschlossen",

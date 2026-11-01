@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "السحب",
   "enum_diveField_precipitation_short": "الأمطار",
   "enum_diveField_humidity_short": "الرطوبة",
+  "tableEditor_weightRows": "{count, plural, one{{count} صف وزن، عدّله في الغطسة} two{صفا وزن، عدّلهما في الغطسة} few{{count} صفوف وزن، عدّلها في الغطسة} many{{count} صفًا من الوزن، عدّلها في الغطسة} other{{count} صف وزن، عدّله في الغطسة}}",
+  "tableEditor_summary_siteSnap": "تعيين الموقع يضبط أيضًا نوع الماء والدخول والخروج وأنواع الغطس على الغطسة",
   "enum_diveField_excludedFromStats": "مستبعدة من الإحصائيات",
   "enum_diveField_excludedFromStats_short": "بلا إحصاء",
   "enum_diveField_excludedFromGasStats": "مستبعدة من إحصائيات الغاز",

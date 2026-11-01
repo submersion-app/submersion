@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "云量",
   "enum_diveField_precipitation_short": "降水",
   "enum_diveField_humidity_short": "湿度",
+  "tableEditor_weightRows": "{count, plural, =1{{count} 行配重，请在潜水中编辑} other{{count} 行配重，请在潜水中编辑}}",
+  "tableEditor_summary_siteSnap": "设置潜点也会在潜水上设置其水体类型、入水、出水和潜水类型",
   "enum_diveField_excludedFromStats": "排除在统计之外",
   "enum_diveField_excludedFromStats_short": "不计统计",
   "enum_diveField_excludedFromGasStats": "排除在气体统计之外",

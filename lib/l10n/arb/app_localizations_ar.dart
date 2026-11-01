@@ -43107,6 +43107,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_diveField_humidity_short => 'الرطوبة';
 
   @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف وزن، عدّله في الغطسة',
+      many: '$count صفًا من الوزن، عدّلها في الغطسة',
+      few: '$count صفوف وزن، عدّلها في الغطسة',
+      two: 'صفا وزن، عدّلهما في الغطسة',
+      one: '$count صف وزن، عدّله في الغطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'تعيين الموقع يضبط أيضًا نوع الماء والدخول والخروج وأنواع الغطس على الغطسة';
+
+  @override
   String get enum_diveField_excludedFromStats => 'مستبعدة من الإحصائيات';
 
   @override

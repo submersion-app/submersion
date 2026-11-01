@@ -42337,6 +42337,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Pára';
 
   @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count súlysor, a merülésben szerkeszthető',
+      one: '$count súlysor, a merülésben szerkeszthető',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'A merülőhely beállítása a víztípust, a be- és kiszállást és a merüléstípusokat is beállítja a merülésen';
+
+  @override
   String get enum_diveField_excludedFromStats => 'Statisztikából kizárva';
 
   @override

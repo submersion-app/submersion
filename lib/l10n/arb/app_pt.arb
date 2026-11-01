@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "Nuvens",
   "enum_diveField_precipitation_short": "Precip",
   "enum_diveField_humidity_short": "Umid.",
+  "tableEditor_weightRows": "{count, plural, =1{{count} linha de lastro, edite-a no mergulho} other{{count} linhas de lastro, edite-as no mergulho}}",
+  "tableEditor_summary_siteSnap": "Definir um local também define o tipo de água, entrada, saída e tipos de mergulho no mergulho",
   "enum_diveField_excludedFromStats": "Excluído das estatísticas",
   "enum_diveField_excludedFromStats_short": "Sem estat.",
   "enum_diveField_excludedFromGasStats": "Excluído das estatísticas de gás",

@@ -42561,6 +42561,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Umid.';
 
   @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count linhas de lastro, edite-as no mergulho',
+      one: '$count linha de lastro, edite-a no mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Definir um local também define o tipo de água, entrada, saída e tipos de mergulho no mergulho';
+
+  @override
   String get enum_diveField_excludedFromStats => 'Excluído das estatísticas';
 
   @override

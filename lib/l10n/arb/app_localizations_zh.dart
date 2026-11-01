@@ -40112,6 +40112,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveField_humidity_short => '湿度';
 
   @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 行配重，请在潜水中编辑',
+      one: '$count 行配重，请在潜水中编辑',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap => '设置潜点也会在潜水上设置其水体类型、入水、出水和潜水类型';
+
+  @override
   String get enum_diveField_excludedFromStats => '排除在统计之外';
 
   @override

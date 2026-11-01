@@ -42494,6 +42494,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Luftf.';
 
   @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewichtszeilen, im Tauchgang bearbeiten',
+      one: '$count Gewichtszeile, im Tauchgang bearbeiten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Beim Setzen eines Platzes werden auch Wasserart, Ein- und Ausstieg und Tauchgangsarten übernommen';
+
+  @override
   String get enum_diveField_excludedFromStats => 'Von Statistik ausgeschlossen';
 
   @override

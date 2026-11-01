@@ -41874,6 +41874,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Humid';
 
   @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weight rows, edit them in the dive',
+      one: '$count weight row, edit it in the dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Setting a site also sets its water type, entry, exit and dive types on the dive';
+
+  @override
   String get enum_diveField_excludedFromStats => 'Excluded from Stats';
 
   @override

@@ -42585,6 +42585,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Umid.';
 
   @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count righe di zavorra, modificale nell\'immersione',
+      one: '$count riga di zavorra, modificala nell\'immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Impostare un sito imposta anche tipo d\'acqua, ingresso, uscita e tipi di immersione sull\'immersione';
+
+  @override
   String get enum_diveField_excludedFromStats => 'Esclusa dalle statistiche';
 
   @override

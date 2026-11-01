@@ -42299,6 +42299,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Vocht';
 
   @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count loodregels, bewerk ze in de duik',
+      one: '$count loodregel, bewerk die in de duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Een stek instellen zet ook het watertype, de in- en uitstap en de duiktypes op de duik';
+
+  @override
   String get enum_diveField_excludedFromStats => 'Uitgesloten van statistieken';
 
   @override

@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "Nuages",
   "enum_diveField_precipitation_short": "Précip.",
   "enum_diveField_humidity_short": "Humid.",
+  "tableEditor_weightRows": "{count, plural, =1{{count} ligne de lest, à modifier dans la plongée} other{{count} lignes de lest, à modifier dans la plongée}}",
+  "tableEditor_summary_siteSnap": "Choisir un site reporte aussi son type d'eau, son entrée, sa sortie et ses types de plongée sur la plongée",
   "enum_diveField_excludedFromStats": "Exclue des statistiques",
   "enum_diveField_excludedFromStats_short": "Sans stats",
   "enum_diveField_excludedFromGasStats": "Exclue des stats de gaz",

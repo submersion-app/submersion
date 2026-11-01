@@ -67112,6 +67112,18 @@ abstract class AppLocalizations {
   /// **'Humid'**
   String get enum_diveField_humidity_short;
 
+  /// No description provided for @tableEditor_weightRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}'**
+  String tableEditor_weightRows(int count);
+
+  /// No description provided for @tableEditor_summary_siteSnap.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting a site also sets its water type, entry, exit and dive types on the dive'**
+  String get tableEditor_summary_siteSnap;
+
   /// No description provided for @enum_diveField_excludedFromStats.
   ///
   /// In en, this message translates to:
