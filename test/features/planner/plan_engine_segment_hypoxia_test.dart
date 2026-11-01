@@ -12,7 +12,10 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 const _air = GasMix(o2: 21);
 const _hypoxic = GasMix(o2: 10, he: 70);
 
-domain.DivePlan _ccrPlan(List<PlanSegment> segments) => domain.DivePlan(
+domain.DivePlan _ccrPlan(
+  List<PlanSegment> segments, {
+  double setpointLow = 0.7,
+}) => domain.DivePlan(
   id: 'p',
   name: 'Segment hypoxia',
   createdAt: DateTime(2026),
@@ -45,7 +48,7 @@ domain.DivePlan _ccrPlan(List<PlanSegment> segments) => domain.DivePlan(
   problemSolvingMinutes: 0,
   gfLow: 30,
   gfHigh: 70,
-  setpointLow: 0.7,
+  setpointLow: setpointLow,
   setpointHigh: 1.3,
   setpointSwitchDepth: 10,
 );
@@ -177,7 +180,7 @@ void main() {
     });
   });
 
-  group('hypoxia on a computed open-circuit ascent (#4008)', () {
+  group('hypoxia on a computed ascent (#4008)', () {
     domain.DivePlan ocPlan({
       required List<DiveTank> tanks,
       required List<PlanSegment> segments,
@@ -230,8 +233,30 @@ void main() {
 
       final outcome = engine.compute(plan);
 
-      final issue = _hypoxia(outcome).first;
+      final issue = _hypoxia(outcome).single;
       expect(issue.severity, PlanIssueSeverity.critical);
+      expect(issue.segmentId, isNull);
+      expect(issue.atDepth, 0);
+      expect(issue.value, closeTo(0.09373, 0.0001));
+      expect(issue.atRuntime, greaterThan(220));
+      expect(outcome.isDiveable, isFalse);
+    });
+
+    test('a loop ascent onto a hypoxic low setpoint is blocked', () {
+      // The authored legs hold their own setpoint, so only the computed
+      // ascent runs the plan's low one, from the 10 m switch up.
+      final outcome = engine.compute(
+        _ccrPlan([
+          _leg('desc', 20, 67, 0, setpoint: 1.3),
+          _leg('bottom', 20, 300, 1, setpoint: 1.3),
+        ], setpointLow: 0.1),
+      );
+
+      final issue = _hypoxia(outcome).single;
+      expect(issue.severity, PlanIssueSeverity.critical);
+      expect(issue.atDepth, 10);
+      expect(issue.value, closeTo(0.1, 1e-9));
+      expect(issue.atRuntime, greaterThan(367));
       expect(outcome.isDiveable, isFalse);
     });
 
@@ -262,15 +287,17 @@ void main() {
         ),
       );
 
-      final issue = _hypoxia(outcome).first;
+      final issue = _hypoxia(outcome).single;
       expect(issue.severity, PlanIssueSeverity.critical);
-      expect(issue.atDepth, greaterThanOrEqualTo(3));
+      expect(issue.atDepth, 6);
+      expect(issue.value, lessThan(0.16));
+      expect(issue.atRuntime, isNotNull);
       expect(outcome.isDiveable, isFalse);
     });
 
     test('a no-stop ascent that switches too shallow is blocked', () {
       // No stop falls on the hypoxic stretch and the surface is on air, so
-      // only the arrival at the 3 m switch can see it.
+      // only the span ending at the 3 m switch can see it.
       final outcome = engine.compute(
         ocPlan(
           tanks: const [
@@ -298,12 +325,13 @@ void main() {
       expect(outcome.stops, isEmpty);
       final issue = _hypoxia(outcome).single;
       expect(issue.atDepth, 3);
-      expect(issue.atRuntime, isNull);
+      // Timed where Tx10/70 crosses the limit, well short of the 3 m switch.
+      expect(issue.atRuntime, inExclusiveRange(120, 170));
       expect(issue.value, lessThan(0.16));
       expect(outcome.isDiveable, isFalse);
     });
 
-    test('a switch at a stop keeps the stop\'s runtime', () {
+    test('a switch on a stop is judged on arrival there', () {
       final outcome = engine.compute(
         ocPlan(
           tanks: const [

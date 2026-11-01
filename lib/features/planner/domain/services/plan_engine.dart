@@ -1030,28 +1030,20 @@ class PlanEngine {
     // ascent over the same depths: each span at its mean depth, on the gas in
     // force at its deeper end, which is the gas the deco model loaded it on.
     // A leg splits at a gas switch, so no span charges one gas for another's
-    // stretch. The spans leave out the stops, so the clock jumps over each
-    // one as the ascent passes it.
-    var spanStart = runtime;
-    var nextStop = 0;
-    for (final span in ascentTravelSpans(
+    // stretch.
+    for (final (:span, :start) in _timedAscentSpans(
       policy,
       ascentPlan,
+      stops,
       fromDepth: lastDepth,
-      stopDepths: [for (final stop in stops) stop.depthMeters],
+      startRuntime: runtime,
     )) {
-      while (nextStop < stops.length &&
-          stops[nextStop].depthMeters >= span.fromDepth) {
-        final stop = stops[nextStop++];
-        spanStart = stop.arrivalRuntimeSeconds + stop.durationSeconds;
-      }
       final avgDepth = (span.fromDepth + span.toDepth) / 2.0;
       final ppO2 = ascentPlan is LoopAscentGas
           ? ascentPlan.inspiredPpO2At(avgDepth)
           : environment.pressureAtDepth(avgDepth) *
                 ascentPlan.gasForDepth(span.fromDepth).fO2;
-      addExposure(spanStart, span.seconds, ppO2);
-      spanStart += span.seconds;
+      addExposure(start, span.seconds, ppO2);
     }
 
     // Decompression stops carry O2 exposure too — a long stop on a rich deco
@@ -2302,10 +2294,14 @@ class PlanEngine {
     }
 
     final ascentHypoxia = _ascentHypoxia(
+      _policyFor(plan),
       ascentPlan,
       stops,
-      legs.isEmpty ? 0.0 : legs.last.endDepth,
-      environment,
+      fromDepth: legs.isEmpty ? 0.0 : legs.last.endDepth,
+      startRuntime: segmentOutcomes.isEmpty
+          ? 0
+          : segmentOutcomes.last.endRuntime,
+      environment: environment,
     );
     // The surface is usually already reported: the descent left it on the same
     // supply.
@@ -2451,57 +2447,84 @@ class PlanEngine {
   /// Inspired ppO2 below this is not breathable.
   static const double _hypoxicPpO2 = 0.16;
 
-  /// The deepest point a computed ascent stops being breathable, or null
-  /// (issues #3896, #4008). The legs' own check cannot see this: ppO2 drops as
-  /// the diver shallows, so a final gas that is safe where it was authored can
-  /// be hypoxic at the stops, on a gas the descent never breathed. A loop's
-  /// ppO2 only falls on the way up, so its stops and the surface are enough.
-  /// Open circuit recovers at each switch, so a gas is judged where it is
-  /// last breathed: on arrival at the switch that leaves it, not on the richer
-  /// gas [AscentGasPlan.gasForDepth] already answers with there.
-  PlanIssue? _ascentHypoxia(
+  /// [ascentTravelSpans] on the dive's clock: each span with the runtime it
+  /// leaves at, for an ascent leaving [fromDepth] at [startRuntime]. The spans
+  /// leave out the stops, so the clock jumps over each one as the ascent
+  /// passes it.
+  Iterable<({AscentLeg span, int start})> _timedAscentSpans(
+    SchedulePolicy policy,
     AscentGasPlan ascentPlan,
-    List<PlanStop> stops,
-    double lastDepth,
-    DiveEnvironment environment,
-  ) {
-    if (lastDepth <= 0) return null;
-    double arrivalPpO2(double depth, double from) {
-      if (ascentPlan is LoopAscentGas) return ascentPlan.inspiredPpO2At(depth);
-      final gas = ascentPlan.gasForDepth(from);
-      return OpenCircuit(
-        fO2: gas.fO2,
-        fHe: gas.fHe,
-      ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
-    }
-
-    final stopDepths = {for (final stop in stops) stop.depthMeters};
-    final checkpoints = <({double depth, int? runtime})>[
-      for (final stop in stops)
-        (depth: stop.depthMeters, runtime: stop.arrivalRuntimeSeconds),
-      if (ascentPlan is! LoopAscentGas)
-        for (final depth in ascentPlan.switchDepthsBetween(lastDepth, 0))
-          if (!stopDepths.contains(depth)) (depth: depth, runtime: null),
-      (depth: 0.0, runtime: null),
-    ]..sort((a, b) => b.depth.compareTo(a.depth));
-
-    var from = lastDepth;
-    for (final (:depth, :runtime) in checkpoints) {
-      final ppO2 = arrivalPpO2(depth, from);
-      if (ppO2 < _hypoxicPpO2) {
-        return PlanIssue(
-          type: PlanIssueType.hypoxicGas,
-          severity: PlanIssueSeverity.critical,
-          message:
-              'Gas is hypoxic at ${depth.toStringAsFixed(0)} m '
-              '(ppO2 ${ppO2.toStringAsFixed(2)} bar)',
-          atRuntime: runtime,
-          atDepth: depth,
-          value: ppO2,
-          threshold: _hypoxicPpO2,
-        );
+    List<PlanStop> stops, {
+    required double fromDepth,
+    required int startRuntime,
+  }) sync* {
+    var start = startRuntime;
+    var nextStop = 0;
+    for (final span in ascentTravelSpans(
+      policy,
+      ascentPlan,
+      fromDepth: fromDepth,
+      stopDepths: [for (final stop in stops) stop.depthMeters],
+    )) {
+      while (nextStop < stops.length &&
+          stops[nextStop].depthMeters >= span.fromDepth) {
+        final stop = stops[nextStop++];
+        start = stop.arrivalRuntimeSeconds + stop.durationSeconds;
       }
-      from = depth;
+      yield (span: span, start: start);
+      start += span.seconds;
+    }
+  }
+
+  /// The first stretch of a computed ascent to end unbreathable, or null
+  /// (issues #3896, #4008), reported at the depth it ends and timed where the
+  /// gas crosses the limit. The legs' own check cannot see this: ppO2 drops as
+  /// the diver shallows, so a final gas that is safe where it was authored can
+  /// be hypoxic at the stops, on a gas the descent never breathed. Each span
+  /// ends on the gas it left on, so open circuit is judged on arrival at a
+  /// switch, not on the richer gas it switches to there.
+  PlanIssue? _ascentHypoxia(
+    SchedulePolicy policy,
+    AscentGasPlan ascentPlan,
+    List<PlanStop> stops, {
+    required double fromDepth,
+    required int startRuntime,
+    required DiveEnvironment environment,
+  }) {
+    for (final (:span, :start) in _timedAscentSpans(
+      policy,
+      ascentPlan,
+      stops,
+      fromDepth: fromDepth,
+      startRuntime: startRuntime,
+    )) {
+      final gas = ascentPlan.gasForDepth(span.fromDepth);
+      double ppO2At(double depth) => ascentPlan is LoopAscentGas
+          ? ascentPlan.inspiredPpO2At(depth)
+          : OpenCircuit(
+              fO2: gas.fO2,
+              fHe: gas.fHe,
+            ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
+      final depth = span.toDepth;
+      final ppO2 = ppO2At(depth);
+      if (ppO2 >= _hypoxicPpO2) continue;
+      return PlanIssue(
+        type: PlanIssueType.hypoxicGas,
+        severity: PlanIssueSeverity.critical,
+        message:
+            'Gas is hypoxic at ${depth.toStringAsFixed(0)} m '
+            '(ppO2 ${ppO2.toStringAsFixed(2)} bar)',
+        atRuntime: legOnsetRuntime(
+          startRuntime: start,
+          durationSeconds: span.seconds,
+          startDepth: span.fromDepth,
+          endDepth: depth,
+          exceeds: (d) => ppO2At(d) < _hypoxicPpO2,
+        ),
+        atDepth: depth,
+        value: ppO2,
+        threshold: _hypoxicPpO2,
+      );
     }
     return null;
   }
