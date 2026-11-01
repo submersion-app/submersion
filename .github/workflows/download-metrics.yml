@@ -1,0 +1,63 @@
+name: Download metrics
+
+# Saves GitHub's download counters once a day to the metrics branch, because
+# GitHub keeps only running totals with no history. submersion.app reads
+# downloads/summary.json from that branch; scripts/snapshot_downloads.py has
+# the counting rules.
+#
+# metrics is an orphan branch, so it is built in its own directory rather than
+# a worktree of this checkout, and an empty repo there starts it the first time.
+#
+# If this job fails, GitHub emails whoever last changed the cron line, and the
+# site hides the number once the data is more than 7 days old.
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: download-metrics
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    name: Save download counts
+    if: github.repository == 'submersion-app/submersion'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Load the metrics branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init --initial-branch=metrics metrics-data
+          cd metrics-data
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin metrics; then
+            git fetch origin metrics
+            git checkout -B metrics FETCH_HEAD
+          fi
+
+      - name: Save today's counts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/snapshot_downloads.py --repo "$GITHUB_REPOSITORY" --out metrics-data
+
+      - name: Push to the metrics branch
+        working-directory: metrics-data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md downloads
+          git commit -m "Download snapshot $(date -u +%F)"
+          git push origin metrics
