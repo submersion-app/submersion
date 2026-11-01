@@ -79,6 +79,7 @@ import 'package:submersion/features/equipment/data/repositories/service_schedule
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
     as checklist_template;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
@@ -744,6 +745,16 @@ void main() {
 
     tearDown(() => DatabaseService.instance.resetForTesting());
 
+    test('the floor is at least 332', () {
+      // v332 raised it again for issue #3356 (trip_id -> checklist_id on
+      // this same table family); the v332 migration test owns the exact
+      // value.
+      expect(
+        AppDatabase.minimumCompatibleSchemaVersion,
+        greaterThanOrEqualTo(332),
+      );
+    });
+
     SyncService buildService() => SyncService(
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),
@@ -762,14 +773,18 @@ void main() {
         ),
       );
       final repository = TripChecklistRepository();
-      final section = await repository.createSection(
+      final checklist = await TripChecklistsRepository().createChecklist(
         tripId: trip.id,
+        name: 'Checklist',
+      );
+      final section = await repository.createSection(
+        checklistId: checklist.id,
         title: 'Gear',
       );
       final created = await repository.createItem(
         trip_checklist.TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Mask',
           sectionId: section.id,
           createdAt: DateTime.now(),

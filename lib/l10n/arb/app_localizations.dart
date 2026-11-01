@@ -7436,6 +7436,93 @@ abstract class AppLocalizations {
   /// **'No checklist items'**
   String get checklists_empty_past;
 
+  /// No description provided for @checklists_addChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Add checklist'**
+  String get checklists_addChecklist;
+
+  /// No description provided for @checklists_noChecklists_upcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'No checklists yet - add one to start planning'**
+  String get checklists_noChecklists_upcoming;
+
+  /// No description provided for @checklists_noChecklists_past.
+  ///
+  /// In en, this message translates to:
+  /// **'No checklists'**
+  String get checklists_noChecklists_past;
+
+  /// No description provided for @checklists_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist name'**
+  String get checklists_nameLabel;
+
+  /// No description provided for @checklists_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get checklists_nameRequired;
+
+  /// No description provided for @checklists_renameChecklist_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename checklist'**
+  String get checklists_renameChecklist_title;
+
+  /// No description provided for @checklists_menu_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename...'**
+  String get checklists_menu_rename;
+
+  /// No description provided for @checklists_menu_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete...'**
+  String get checklists_menu_delete;
+
+  /// No description provided for @checklists_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete checklist'**
+  String get checklists_delete_title;
+
+  /// No description provided for @checklists_delete_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? Its sections and items are removed too.'**
+  String checklists_delete_content(String name);
+
+  /// No description provided for @checklists_delete_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get checklists_delete_confirm;
+
+  /// No description provided for @checklists_replaceTemplate_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace checklist content'**
+  String get checklists_replaceTemplate_title;
+
+  /// No description provided for @checklists_replaceTemplate_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.'**
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  );
+
+  /// No description provided for @checklists_replaceTemplate_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get checklists_replaceTemplate_confirm;
+
   /// No description provided for @checklists_addItem.
   ///
   /// In en, this message translates to:
@@ -41828,6 +41915,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Checklist template section'**
   String get settings_conflict_ref_checklistTemplateSection;
+
+  /// No description provided for @settings_conflict_ref_tripChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get settings_conflict_ref_tripChecklist;
 
   /// No description provided for @settings_conflict_ref_tripChecklistSection.
   ///

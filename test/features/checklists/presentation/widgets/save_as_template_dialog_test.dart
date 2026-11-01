@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/widgets/save_as_template_dialog.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -14,13 +16,16 @@ import '../../../../helpers/test_database.dart';
 void main() {
   late TripRepository tripRepository;
   late TripChecklistRepository checklistRepository;
+  late TripChecklistsRepository checklistsRepository;
   late ChecklistTemplateRepository templateRepository;
   late Trip trip;
+  late TripChecklist checklist;
 
   setUp(() async {
     await setUpTestDatabase();
     tripRepository = TripRepository();
     checklistRepository = TripChecklistRepository();
+    checklistsRepository = TripChecklistsRepository();
     templateRepository = ChecklistTemplateRepository();
     trip = await tripRepository.createTrip(
       Trip(
@@ -32,14 +37,18 @@ void main() {
         updatedAt: DateTime.now(),
       ),
     );
-    final section = await checklistRepository.createSection(
+    checklist = await checklistsRepository.createChecklist(
       tripId: trip.id,
+      name: 'Checklist',
+    );
+    final section = await checklistRepository.createSection(
+      checklistId: checklist.id,
       title: 'Bookings',
     );
     await checklistRepository.createItem(
       TripChecklistItem(
         id: '',
-        tripId: trip.id,
+        checklistId: checklist.id,
         title: 'Book flights',
         sectionId: section.id,
         createdAt: DateTime.now(),
@@ -55,8 +64,11 @@ void main() {
       testApp(
         child: Builder(
           builder: (context) => TextButton(
-            onPressed: () =>
-                showSaveAsTemplateDialog(context: context, trip: trip),
+            onPressed: () => showSaveAsTemplateDialog(
+              context: context,
+              trip: trip,
+              checklistId: checklist.id,
+            ),
             child: const Text('open'),
           ),
         ),

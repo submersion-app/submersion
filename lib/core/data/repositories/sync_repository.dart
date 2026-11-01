@@ -64,6 +64,9 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
+    // Multiple checklists per trip (v332, issue #3356), the parent of
+    // tripChecklistSections/tripChecklistItems below.
+    'tripChecklists': (table: 'trip_checklists', pk: 'id'),
     // Section tables for checklists/pre-dive (v297-300, issue #3360), fully
     // wired for sync (SyncData, mergeOrder, parentRefs, conflict_reference
     // labels) alongside their item tables.
@@ -921,6 +924,12 @@ class SyncRepository {
     // changed under it). Without these eight entries, a diver who had
     // already synced before updating would see the migration's new
     // sections and item links apply locally but never reach any peer.
+    (
+      entityType: 'tripChecklists',
+      table: 'trip_checklists',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
     (
       entityType: 'tripChecklistSections',
       table: 'trip_checklist_sections',

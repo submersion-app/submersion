@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
@@ -81,6 +82,16 @@ class _MockTripListNotifier
   }) async {}
 }
 
+/// A single default checklist for [tripId], mirroring what the v332
+/// migration backfills for a trip with existing items (issue #3356).
+TripChecklist _singleChecklist(String tripId) => TripChecklist(
+  id: 'checklist-1',
+  tripId: tripId,
+  name: 'Checklist',
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
 void main() {
   group('TripDetailPage checklist integration', () {
     testWidgets('liveaboard trip shows a Checklist tab', (tester) async {
@@ -110,11 +121,14 @@ void main() {
             divesForTripProvider(
               liveaboardTrip.id,
             ).overrideWith((ref) async => <Dive>[]),
+            tripChecklistsProvider(liveaboardTrip.id).overrideWith(
+              (ref) async => [_singleChecklist(liveaboardTrip.id)],
+            ),
             tripChecklistProvider(
-              liveaboardTrip.id,
+              'checklist-1',
             ).overrideWith((ref) async => <TripChecklistItem>[]),
             tripChecklistSectionsProvider(
-              liveaboardTrip.id,
+              'checklist-1',
             ).overrideWith((ref) async => <TripChecklistSection>[]),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);
@@ -175,11 +189,14 @@ void main() {
             divesForTripProvider(
               liveaboardTrip.id,
             ).overrideWith((ref) async => <Dive>[]),
+            tripChecklistsProvider(liveaboardTrip.id).overrideWith(
+              (ref) async => [_singleChecklist(liveaboardTrip.id)],
+            ),
             tripChecklistProvider(
-              liveaboardTrip.id,
+              'checklist-1',
             ).overrideWith((ref) async => <TripChecklistItem>[]),
             tripChecklistSectionsProvider(
-              liveaboardTrip.id,
+              'checklist-1',
             ).overrideWith((ref) async => <TripChecklistSection>[]),
             tripListNotifierProvider.overrideWith((ref) {
               return _MockTripListNotifier([]);

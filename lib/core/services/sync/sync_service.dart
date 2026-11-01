@@ -1583,6 +1583,11 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (
+            type: 'tripChecklists',
+            records: data.tripChecklists,
+            hasUpdatedAt: true,
+          ),
+          (
             type: 'tripChecklistSections',
             records: data.tripChecklistSections,
             hasUpdatedAt: true,
@@ -2879,6 +2884,7 @@ class SyncService {
     'checklistTemplates': true,
     'checklistTemplateSections': true,
     'checklistTemplateItems': true,
+    'tripChecklists': true,
     'tripChecklistSections': true,
     'tripChecklistItems': true,
     'preDiveChecklistTemplates': true,
@@ -3486,11 +3492,12 @@ class SyncService {
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
       (field: 'sectionId', parent: 'checklistTemplateSections', nullable: true),
     ],
+    'tripChecklists': [(field: 'tripId', parent: 'trips', nullable: false)],
     'tripChecklistSections': [
-      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'checklistId', parent: 'tripChecklists', nullable: false),
     ],
     'tripChecklistItems': [
-      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'checklistId', parent: 'tripChecklists', nullable: false),
       (field: 'sectionId', parent: 'tripChecklistSections', nullable: true),
     ],
     'preDiveChecklistTemplateSections': [

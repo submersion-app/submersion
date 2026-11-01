@@ -5,10 +5,12 @@ import 'package:submersion/features/checklists/presentation/providers/checklist_
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Prompts for a name and snapshots the trip's checklist as a template.
+/// Prompts for a name and snapshots one of the trip's checklists as a
+/// template (issue #3356).
 Future<void> showSaveAsTemplateDialog({
   required BuildContext context,
   required Trip trip,
+  required String checklistId,
 }) {
   return showDialog<void>(
     context: context,
@@ -16,14 +18,16 @@ Future<void> showSaveAsTemplateDialog({
     // SnackBar; a tap-outside dismiss mid-save would leave it popping a
     // disposed route. Dismissal is only via the explicit Cancel/Save buttons.
     barrierDismissible: false,
-    builder: (context) => _SaveAsTemplateDialog(trip: trip),
+    builder: (context) =>
+        _SaveAsTemplateDialog(trip: trip, checklistId: checklistId),
   );
 }
 
 class _SaveAsTemplateDialog extends ConsumerStatefulWidget {
   final Trip trip;
+  final String checklistId;
 
-  const _SaveAsTemplateDialog({required this.trip});
+  const _SaveAsTemplateDialog({required this.trip, required this.checklistId});
 
   @override
   ConsumerState<_SaveAsTemplateDialog> createState() =>
@@ -47,7 +51,7 @@ class _SaveAsTemplateDialogState extends ConsumerState<_SaveAsTemplateDialog> {
     final repository = ref.read(tripChecklistRepositoryProvider);
     try {
       await repository.saveAsTemplate(
-        tripId: widget.trip.id,
+        checklistId: widget.checklistId,
         tripStartDate: widget.trip.startDate,
         name: _controller.text.trim(),
         diverId: widget.trip.diverId,

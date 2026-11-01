@@ -14,10 +14,16 @@ extension ChecklistSectionMigrations on AppDatabase {
   Future<void> _assertAndBackfillTripChecklistSections() async {
     if (!await _tableExists('trips')) return;
     await Migrator(this).createTable(tripChecklistSections);
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_trip_checklist_sections_trip_id '
-      'ON trip_checklist_sections(trip_id)',
-    );
+    // v332 (issue #3356) replaces this column with checklist_id and drops
+    // this index along with it (see TripChecklistMigrations), so recreating
+    // it here must not assume trip_id still exists -- it would crash every
+    // open on a database that already ran that migration.
+    if (await _columnExists('trip_checklist_sections', 'trip_id')) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_trip_checklist_sections_trip_id '
+        'ON trip_checklist_sections(trip_id)',
+      );
+    }
     if (!await _tableExists('trip_checklist_items')) return;
     await _addColumnIfMissing(
       'trip_checklist_items',

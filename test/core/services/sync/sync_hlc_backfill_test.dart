@@ -257,15 +257,23 @@ void main() {
           "INSERT INTO trips (id, name, start_date, end_date, created_at, "
           "updated_at) VALUES ('trip-1', 'Red Sea', 1000, 2000, 1000, 1000)",
         );
+        // Multiple checklists per trip (issue #3356): sections/items now hang
+        // off a trip_checklists row via checklist_id rather than trip_id
+        // directly.
+        await db.customStatement(
+          'INSERT INTO trip_checklists '
+          '(id, trip_id, name, sort_order, created_at, updated_at) '
+          "VALUES ('tc-1', 'trip-1', 'Checklist', 0, 1000, 1000)",
+        );
         await db.customStatement(
           'INSERT INTO trip_checklist_sections '
-          '(id, trip_id, title, sort_order, created_at, updated_at) '
-          "VALUES ('tcs-1', 'trip-1', 'Gear', 0, 1000, 1000)",
+          '(id, checklist_id, title, sort_order, created_at, updated_at) '
+          "VALUES ('tcs-1', 'tc-1', 'Gear', 0, 1000, 1000)",
         );
         await db.customStatement(
           'INSERT INTO trip_checklist_items '
-          '(id, trip_id, title, section_id, sort_order, created_at, '
-          "updated_at) VALUES ('tci-1', 'trip-1', 'Mask', 'tcs-1', 0, 1000, "
+          '(id, checklist_id, title, section_id, sort_order, created_at, '
+          "updated_at) VALUES ('tci-1', 'tc-1', 'Mask', 'tcs-1', 0, 1000, "
           '1000)',
         );
 

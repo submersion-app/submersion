@@ -3,11 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
-import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
-import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
+import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart'
     as domain;
-import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
-import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_block.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -15,219 +16,25 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
-Trip _trip({required bool upcoming}) {
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final start = upcoming
-      ? today.add(const Duration(days: 10))
-      : today.subtract(const Duration(days: 20));
-  return Trip(
-    id: 't1',
-    name: 'Test',
-    startDate: start,
-    endDate: start.add(const Duration(days: 7)),
-    createdAt: today,
-    updatedAt: today,
-  );
+/// Split out of trip_checklist_block_test.dart to keep both files under the
+/// project's 800-line cap: that file covers rendering against stubbed
+/// providers, this one exercises the widget against a real database (issue
+/// #3356).
+///
+/// Every checklist starts collapsed (issue #3356); tapping its title
+/// expands it, the same gesture `ExpansionTile` exposes natively.
+Future<void> _expand(WidgetTester tester, {String title = 'Checklist'}) async {
+  await tester.tap(find.text(title));
+  await tester.pumpAndSettle();
 }
 
-TripChecklistItem _item({
-  String id = 'i1',
-  String title = 'Service regulator',
-  String? sectionId,
-  bool isDone = false,
-  DateTime? dueDate,
-}) => TripChecklistItem(
-  id: id,
-  tripId: 't1',
-  title: title,
-  sectionId: sectionId,
-  isDone: isDone,
-  dueDate: dueDate,
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
-);
-
-domain.TripChecklistSection _section({
-  required String id,
-  required String title,
-  int sortOrder = 0,
-}) => domain.TripChecklistSection(
-  id: id,
-  tripId: 't1',
-  title: title,
-  sortOrder: sortOrder,
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
-);
-
 void main() {
-  testWidgets('groups items by section and shows checkboxes', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          tripChecklistProvider('t1').overrideWith(
-            (ref) async => [
-              _item(id: 'i1', title: 'Service regulator', sectionId: 'gear'),
-              _item(id: 'i2', title: 'Book flights', sectionId: 'bookings'),
-              _item(id: 'i3', title: 'Passport check'),
-            ],
-          ),
-          tripChecklistSectionsProvider('t1').overrideWith(
-            (ref) async => [
-              _section(id: 'gear', title: 'Gear'),
-              _section(id: 'bookings', title: 'Bookings', sortOrder: 1),
-            ],
-          ),
-        ],
-        child: SingleChildScrollView(
-          child: TripChecklistSection(trip: _trip(upcoming: true)),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Gear'), findsOneWidget);
-    expect(find.text('Bookings'), findsOneWidget);
-    expect(find.text('Service regulator'), findsOneWidget);
-    expect(find.text('Passport check'), findsOneWidget);
-    expect(find.byType(Checkbox), findsNWidgets(3));
-  });
-
-  testWidgets(
-    'an item whose sectionId is not in the loaded sections renders without '
-    'throwing (#3360)',
-    (tester) async {
-      // Reachable under sync: a section's delete can apply before this
-      // item's own sectionId update does, since the two sync as
-      // independent HLC records with no guaranteed arrival order.
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            tripChecklistProvider('t1').overrideWith(
-              (ref) async => [
-                _item(id: 'i1', title: 'Service regulator', sectionId: 'gone'),
-              ],
-            ),
-            tripChecklistSectionsProvider('t1').overrideWith(
-              (ref) async => [_section(id: 'gear', title: 'Gear')],
-            ),
-          ],
-          child: SingleChildScrollView(
-            child: TripChecklistSection(trip: _trip(upcoming: true)),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(tester.takeException(), isNull);
-      expect(find.text('Service regulator'), findsOneWidget);
-    },
-  );
-
-  testWidgets('shows overdue chip only for upcoming trips', (tester) async {
-    final overdue = _item(
-      dueDate: DateTime.now().subtract(const Duration(days: 3)),
-    );
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          tripChecklistProvider('t1').overrideWith((ref) async => [overdue]),
-          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
-        ],
-        child: SingleChildScrollView(
-          child: TripChecklistSection(trip: _trip(upcoming: true)),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Overdue'), findsOneWidget);
-
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          tripChecklistProvider('t1').overrideWith((ref) async => [overdue]),
-          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
-        ],
-        child: SingleChildScrollView(
-          child: TripChecklistSection(trip: _trip(upcoming: false)),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Overdue'), findsNothing);
-  });
-
-  testWidgets('empty upcoming trip shows planning invitation', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          tripChecklistProvider('t1').overrideWith((ref) async => []),
-          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
-        ],
-        child: SingleChildScrollView(
-          child: TripChecklistSection(trip: _trip(upcoming: true)),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      find.text('Plan your trip - add to-dos or apply a template'),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('a brand new trip still offers "+ Add section" alongside the '
-      'planning invitation', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          tripChecklistProvider('t1').overrideWith((ref) async => []),
-          tripChecklistSectionsProvider('t1').overrideWith((ref) async => []),
-        ],
-        child: SingleChildScrollView(
-          child: TripChecklistSection(trip: _trip(upcoming: true)),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Plan your trip - add to-dos or apply a template'),
-      findsOneWidget,
-    );
-    // The only way to create the feature's "empty section laid out in
-    // advance" case is this button; a trip with no items and no sections
-    // yet must not hide it behind the empty-state message (issue #3360).
-    expect(find.text('Add section'), findsOneWidget);
-  });
-
-  testWidgets('a sections-provider failure shows the error, not a spinner', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          tripChecklistProvider('t1').overrideWith((ref) async => []),
-          tripChecklistSectionsProvider(
-            't1',
-          ).overrideWith((ref) => Future.error('section load boom')),
-        ],
-        child: SingleChildScrollView(
-          child: TripChecklistSection(trip: _trip(upcoming: true)),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(find.textContaining('section load boom'), findsOneWidget);
-  });
-
   group('real-database interactions', () {
     late TripRepository tripRepository;
     late TripChecklistRepository checklistRepository;
+    late TripChecklistsRepository checklistsRepository;
     late Trip trip;
+    late domain.TripChecklist checklist;
     late SharedPreferences prefs;
 
     setUp(() async {
@@ -236,6 +43,7 @@ void main() {
       prefs = await SharedPreferences.getInstance();
       tripRepository = TripRepository();
       checklistRepository = TripChecklistRepository();
+      checklistsRepository = TripChecklistsRepository();
       trip = await tripRepository.createTrip(
         Trip(
           id: '',
@@ -246,15 +54,21 @@ void main() {
           updatedAt: DateTime.now(),
         ),
       );
+      checklist = await checklistsRepository.createChecklist(
+        tripId: trip.id,
+        name: 'Checklist',
+      );
     });
 
     tearDown(tearDownTestDatabase);
 
-    Future<void> pumpSection(WidgetTester tester) async {
+    Future<void> pumpBlockReal(WidgetTester tester) async {
       await tester.pumpWidget(
         testApp(
           overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-          child: SingleChildScrollView(child: TripChecklistSection(trip: trip)),
+          child: SingleChildScrollView(
+            child: TripChecklistBlock(trip: trip, checklist: checklist),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -266,19 +80,20 @@ void main() {
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Service regulator',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       await tester.tap(find.byType(Checkbox));
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final items = await checklistRepository.getByTripId(trip.id);
+      final items = await checklistRepository.getByChecklistId(checklist.id);
       expect(items.single.isDone, isTrue);
     });
 
@@ -288,13 +103,14 @@ void main() {
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Fins',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       await tester.tap(find.widgetWithText(ListTile, 'Fins'));
       await tester.pumpAndSettle();
@@ -307,7 +123,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final items = await checklistRepository.getByTripId(trip.id);
+      final items = await checklistRepository.getByChecklistId(checklist.id);
       expect(items.single.title, 'Split fins');
     });
 
@@ -315,13 +131,14 @@ void main() {
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Fins',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
       expect(find.text('Fins'), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.delete_outline).first);
@@ -329,12 +146,13 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Fins'), findsNothing);
-      expect(await checklistRepository.getByTripId(trip.id), isEmpty);
+      expect(await checklistRepository.getByChecklistId(checklist.id), isEmpty);
     });
 
     testWidgets('the add-item button opens the edit sheet and persists a '
         'new item', (tester) async {
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       await tester.tap(find.text('Add item'));
       await tester.pumpAndSettle();
@@ -346,45 +164,139 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final items = await checklistRepository.getByTripId(trip.id);
+      final items = await checklistRepository.getByChecklistId(checklist.id);
       expect(items.single.title, 'Passport check');
     });
 
+    testWidgets("the checklist's overflow menu apply-template entry opens the "
+        'template picker', (tester) async {
+      await pumpBlockReal(tester);
+
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply template...'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Apply template'), findsOneWidget);
+      expect(
+        find.text('No templates yet. Create them in Settings.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('picking a template replaces the checklist content after '
+        'confirmation, dropping the old section too', (tester) async {
+      final oldSection = await checklistRepository.createSection(
+        checklistId: checklist.id,
+        title: 'Old gear',
+      );
+      await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          checklistId: checklist.id,
+          title: 'Old mask',
+          sectionId: oldSection.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final template = await ChecklistTemplateRepository().createTemplate(
+        ChecklistTemplate(
+          id: '',
+          name: 'Clothing',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await ChecklistTemplateRepository().saveItems(template.id, [
+        ChecklistTemplateItem(
+          id: '',
+          templateId: template.id,
+          title: 'Swimsuit',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      await pumpBlockReal(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply template...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Clothing'));
+      await tester.pumpAndSettle();
+
+      // Destructive-replace confirmation, naming both the checklist and
+      // the chosen template.
+      expect(
+        find.text(
+          'Replace all current items of "Checklist" with the items '
+          'from "Clothing"? This cannot be undone.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Replace'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final items = await checklistRepository.getByChecklistId(checklist.id);
+      expect(items.map((i) => i.title).toList(), ['Swimsuit']);
+      final sections = await checklistRepository.getSectionsForChecklist(
+        checklist.id,
+      );
+      expect(sections, isEmpty);
+    });
+
+    testWidgets('cancelling the replace confirmation keeps the old content', (
+      tester,
+    ) async {
+      await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          checklistId: checklist.id,
+          title: 'Old mask',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await ChecklistTemplateRepository().createTemplate(
+        ChecklistTemplate(
+          id: '',
+          name: 'Clothing',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      await pumpBlockReal(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply template...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Clothing'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final items = await checklistRepository.getByChecklistId(checklist.id);
+      expect(items.map((i) => i.title).toList(), ['Old mask']);
+    });
+
     testWidgets(
-      "the section's overflow menu apply-template entry opens the apply "
-      'sheet',
-      (tester) async {
-        await pumpSection(tester);
-
-        // The section-level overflow menu is the first PopupMenuButton.
-        await tester.tap(find.byType(PopupMenuButton<String>).first);
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Apply template...'));
-        await tester.pumpAndSettle();
-
-        expect(tester.takeException(), isNull);
-        expect(find.text('Apply template'), findsOneWidget);
-        expect(
-          find.text('No templates yet. Create them in Settings.'),
-          findsOneWidget,
-        );
-      },
-    );
-
-    testWidgets(
-      "the section's overflow menu save-as-template entry snapshots the "
-      'checklist',
+      "the checklist's overflow menu save-as-template entry snapshots it",
       (tester) async {
         await checklistRepository.createItem(
           TripChecklistItem(
             id: '',
-            tripId: trip.id,
+            checklistId: checklist.id,
             title: 'Fins',
             createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
           ),
         );
-        await pumpSection(tester);
+        await pumpBlockReal(tester);
 
         await tester.tap(find.byType(PopupMenuButton<String>).first);
         await tester.pumpAndSettle();
@@ -403,7 +315,7 @@ void main() {
 
     testWidgets('save-as-template is disabled in the overflow menu when the '
         'checklist is empty', (tester) async {
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
 
       await tester.tap(find.byType(PopupMenuButton<String>).first);
       await tester.pumpAndSettle();
@@ -424,14 +336,15 @@ void main() {
         await checklistRepository.createItem(
           TripChecklistItem(
             id: '',
-            tripId: trip.id,
+            checklistId: checklist.id,
             title: title,
             createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
           ),
         );
       }
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
       expect(find.text('Fins'), findsOneWidget);
 
       await tester.tap(find.byType(PopupMenuButton<String>).first);
@@ -451,8 +364,8 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Fins'), findsNothing);
-      expect(await checklistRepository.getByTripId(trip.id), isEmpty);
-      // The section is still mounted here, so the mounted guard around the
+      expect(await checklistRepository.getByChecklistId(checklist.id), isEmpty);
+      // The block is still mounted here, so the mounted guard around the
       // confirmation must not swallow it.
       expect(find.text('3 items removed'), findsOneWidget);
     });
@@ -463,13 +376,14 @@ void main() {
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Fins',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       await tester.tap(find.byType(PopupMenuButton<String>).first);
       await tester.pumpAndSettle();
@@ -479,12 +393,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Fins'), findsOneWidget);
-      expect(await checklistRepository.getByTripId(trip.id), hasLength(1));
+      expect(
+        await checklistRepository.getByChecklistId(checklist.id),
+        hasLength(1),
+      );
     });
 
     testWidgets('clear-checklist is disabled in the overflow menu when the '
         'checklist is empty', (tester) async {
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
 
       await tester.tap(find.byType(PopupMenuButton<String>).first);
       await tester.pumpAndSettle();
@@ -498,14 +415,68 @@ void main() {
       expect(clearItem.enabled, isFalse);
     });
 
+    testWidgets('renaming the checklist via the overflow menu persists it '
+        '(no effect on any template)', (tester) async {
+      await pumpBlockReal(tester);
+
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rename...'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Checklist name'),
+        'Dive equipment',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final checklists = await checklistsRepository.getChecklistsForTrip(
+        trip.id,
+      );
+      expect(checklists.single.name, 'Dive equipment');
+    });
+
+    testWidgets('deleting the checklist via the overflow menu removes it', (
+      tester,
+    ) async {
+      await pumpBlockReal(tester);
+
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(await checklistsRepository.getChecklistsForTrip(trip.id), isEmpty);
+    });
+
+    testWidgets('the checklist-level up/down arrows are disabled when no '
+        'move callback is supplied', (tester) async {
+      await pumpBlockReal(tester);
+
+      final upButton = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.keyboard_arrow_up).first,
+      );
+      final downButton = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.keyboard_arrow_down).first,
+      );
+      expect(upButton.onPressed, isNull);
+      expect(downButton.onPressed, isNull);
+    });
+
     testWidgets('renaming a section via its title field persists it', (
       tester,
     ) async {
       await checklistRepository.createSection(
-        tripId: trip.id,
+        checklistId: checklist.id,
         title: 'Assembly',
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       await tester.enterText(
         find.widgetWithText(TextField, 'Assembly'),
@@ -515,7 +486,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      final sections = await checklistRepository.getSectionsForChecklist(
+        checklist.id,
+      );
       expect(sections.single.title, 'Prep');
     });
 
@@ -523,10 +496,11 @@ void main() {
       tester,
     ) async {
       await checklistRepository.createSection(
-        tripId: trip.id,
+        checklistId: checklist.id,
         title: 'Assembly',
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       await tester.enterText(
         find.widgetWithText(TextField, 'Assembly'),
@@ -535,7 +509,8 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       // Committed by leaving the field (a blur, not Enter): the blur path is
-      // the one that used to compare against the title from the first build.
+      // the one that used to compare against the title from the first
+      // build.
       await tester.enterText(
         find.widgetWithText(TextField, 'Prep'),
         'Assembly',
@@ -543,7 +518,9 @@ void main() {
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
 
-      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      final sections = await checklistRepository.getSectionsForChecklist(
+        checklist.id,
+      );
       expect(sections.single.title, 'Assembly');
     });
 
@@ -551,10 +528,11 @@ void main() {
       tester,
     ) async {
       await checklistRepository.createSection(
-        tripId: trip.id,
+        checklistId: checklist.id,
         title: 'Assembly',
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       final deleteButton = tester.widget<IconButton>(
         find
@@ -571,24 +549,25 @@ void main() {
       'deleting a section with a sibling offers moving its items there',
       (tester) async {
         final assembly = await checklistRepository.createSection(
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Assembly',
         );
         final cells = await checklistRepository.createSection(
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Cells',
         );
         final item = await checklistRepository.createItem(
           TripChecklistItem(
             id: '',
-            tripId: trip.id,
+            checklistId: checklist.id,
             title: 'Check O-rings',
             sectionId: assembly.id,
             createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
           ),
         );
-        await pumpSection(tester);
+        await pumpBlockReal(tester);
+        await _expand(tester);
 
         await tester.tap(find.byIcon(Icons.delete_outline).first);
         await tester.pumpAndSettle();
@@ -596,9 +575,11 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
-        final sections = await checklistRepository.getSectionsForTrip(trip.id);
+        final sections = await checklistRepository.getSectionsForChecklist(
+          checklist.id,
+        );
         expect(sections.map((s) => s.id), [cells.id]);
-        final items = await checklistRepository.getByTripId(trip.id);
+        final items = await checklistRepository.getByChecklistId(checklist.id);
         expect(items.single.id, item.id);
         expect(items.single.sectionId, cells.id);
       },
@@ -608,21 +589,25 @@ void main() {
       tester,
     ) async {
       final assembly = await checklistRepository.createSection(
-        tripId: trip.id,
+        checklistId: checklist.id,
         title: 'Assembly',
       );
-      await checklistRepository.createSection(tripId: trip.id, title: 'Cells');
+      await checklistRepository.createSection(
+        checklistId: checklist.id,
+        title: 'Cells',
+      );
       await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Check O-rings',
           sectionId: assembly.id,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       await tester.tap(find.byIcon(Icons.delete_outline).first);
       await tester.pumpAndSettle();
@@ -630,33 +615,42 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(await checklistRepository.getByTripId(trip.id), isEmpty);
+      expect(await checklistRepository.getByChecklistId(checklist.id), isEmpty);
     });
 
     testWidgets('the up arrow reorders sections', (tester) async {
-      await checklistRepository.createSection(tripId: trip.id, title: 'A');
-      await checklistRepository.createSection(tripId: trip.id, title: 'B');
-      await pumpSection(tester);
+      await checklistRepository.createSection(
+        checklistId: checklist.id,
+        title: 'A',
+      );
+      await checklistRepository.createSection(
+        checklistId: checklist.id,
+        title: 'B',
+      );
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
       await tester.tap(find.byIcon(Icons.keyboard_arrow_up).last);
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final sections = await checklistRepository.getSectionsForTrip(trip.id);
+      final sections = await checklistRepository.getSectionsForChecklist(
+        checklist.id,
+      );
       expect(sections.map((s) => s.title).toList(), ['B', 'A']);
     });
 
-    testWidgets('an item\'s down arrow reorders items within its section', (
+    testWidgets("an item's down arrow reorders items within its section", (
       tester,
     ) async {
       final section = await checklistRepository.createSection(
-        tripId: trip.id,
+        checklistId: checklist.id,
         title: 'Gear',
       );
       final first = await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Mask',
           sectionId: section.id,
           createdAt: DateTime.now(),
@@ -666,62 +660,24 @@ void main() {
       final second = await checklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Fins',
           sectionId: section.id,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       );
-      await pumpSection(tester);
+      await pumpBlockReal(tester);
+      await _expand(tester);
 
-      // Index 0 is the section's own (disabled, since there is only one
-      // section) down arrow; index 1 is the first item's.
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).at(1));
+      // Index 0 is the checklist's own (disabled, no callback supplied) down
+      // arrow; index 1 is the section's; index 2 is the first item's.
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).at(2));
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final items = await checklistRepository.getByTripId(trip.id);
+      final items = await checklistRepository.getByChecklistId(checklist.id);
       expect(items.map((i) => i.id).toList(), [second.id, first.id]);
     });
-  });
-
-  // Case-insensitive folding of a typed category onto an existing section
-  // now happens once, at write time, in
-  // TripChecklistRepository.findOrCreateSectionId -- covered by
-  // trip_checklist_repository_test.dart's "sections" group. Rendering here
-  // only ever groups by sectionId, so this widget's own thing to prove is
-  // that groups render in the sections' own sort order.
-  testWidgets('sections render in their own sort order, not item order', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          tripChecklistProvider('t1').overrideWith(
-            (ref) async => [
-              // The first item in the list belongs to the section sorted
-              // second, so a correct render still shows Bookings first.
-              _item(id: 'i1', title: 'Pack fins', sectionId: 'diving'),
-              _item(id: 'i2', title: 'Book flights', sectionId: 'bookings'),
-            ],
-          ),
-          tripChecklistSectionsProvider('t1').overrideWith(
-            (ref) async => [
-              _section(id: 'bookings', title: 'Bookings'),
-              _section(id: 'diving', title: 'Diving', sortOrder: 1),
-            ],
-          ),
-        ],
-        child: SingleChildScrollView(
-          child: TripChecklistSection(trip: _trip(upcoming: true)),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final bookingsHeader = tester.getTopLeft(find.text('Bookings'));
-    final divingHeader = tester.getTopLeft(find.text('Diving'));
-    expect(bookingsHeader.dy, lessThan(divingHeader.dy));
   });
 }

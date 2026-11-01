@@ -211,6 +211,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripItineraryDays,
     TripDayWeather,
     ChecklistTemplates,
+    // Multiple checklists per trip (v332, issue #3356)
+    TripChecklists,
     // Checklist sections (v297-298, issue #3360)
     TripChecklistSections,
     TripChecklistItems,
@@ -299,7 +301,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 331;
+  static const int currentSchemaVersion = 332;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -442,7 +444,20 @@ class AppDatabase extends _$AppDatabase {
   /// breaking. Peers below 308 are held until they update. Their own
   /// payloads still arrive here and decode cleanly: a concrete value is a
   /// valid override in the nullable columns.
-  static const int minimumCompatibleSchemaVersion = 308;
+  ///
+  /// Raised 308 -> 332 by multiple checklists per trip (#3356): v332
+  /// renames the synced columns trip_checklist_sections.trip_id and
+  /// trip_checklist_items.trip_id to checklist_id (now a reference to the
+  /// new trip_checklists row rather than the trip directly), which the
+  /// first rule above classifies as breaking the same way the v160 and
+  /// v170 column renames did. Peers below 332 are held until they update.
+  /// This floor is one-directional: it stops THIS build's checklistId-only
+  /// payload from reaching an older reader's non-nullable tripId decoder,
+  /// but does not by itself give THIS build tolerance for an older peer's
+  /// still-tripId-shaped payload arriving here before that peer updates --
+  /// unlike the v297 category rename, no receiving-side overlay exists yet
+  /// for this one. Known gap, tracked for before this ships broadly.
+  static const int minimumCompatibleSchemaVersion = 332;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1495,6 +1510,9 @@ class AppDatabase extends _$AppDatabase {
     // v331: equipment_locations.dive_center_id, the saved center a Dive
     // center place stands for (issue #3623).
     331,
+    // v332: trip_checklists, splitting one trip's single flat checklist
+    // into several named ones (issue #3356).
+    332,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

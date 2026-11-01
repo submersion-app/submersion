@@ -95,6 +95,7 @@ part 'helpers/tag_migrations.dart';
 part 'helpers/tdi_certification_migrations.dart';
 part 'helpers/shared_library_migrations.dart';
 part 'helpers/track_migrations.dart';
+part 'helpers/trip_checklist_migrations.dart';
 part 'helpers/trip_migrations.dart';
 part 'helpers/weight_migrations.dart';
 part 'ladder/rungs_v002_to_v029.dart';

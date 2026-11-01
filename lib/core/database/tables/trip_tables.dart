@@ -332,15 +332,36 @@ class ChecklistTemplateItems extends Table {
   // coverage:ignore-end
 }
 
-/// A visual grouping header for a trip's checklist items (issue #3360).
-/// Replaces the free-text `category` items used to carry: a section is now
-/// a row with its own identity, so it can be created empty, renamed once
-/// instead of per item, and reordered independently of its items.
+/// One of a trip's named checklists (issue #3356), e.g. "Dive equipment",
+/// "Clothing", "Beach vacation". Each owns its own sections and items.
+@DataClassName('TripChecklistRow')
+class TripChecklists extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId => text().references(Trips, #id)();
+  TextColumn get name => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// A visual grouping header for one checklist's items (issue #3360, scoped
+/// to a single checklist since issue #3356). Replaces the free-text
+/// `category` items used to carry: a section is now a row with its own
+/// identity, so it can be created empty, renamed once instead of per item,
+/// and reordered independently of its items.
 @DataClassName('TripChecklistSectionRow')
 class TripChecklistSections extends Table {
   // coverage:ignore-start
   TextColumn get id => text()();
-  TextColumn get tripId => text().references(Trips, #id)();
+  TextColumn get checklistId => text().references(TripChecklists, #id)();
   TextColumn get title => text()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
@@ -354,11 +375,12 @@ class TripChecklistSections extends Table {
   // coverage:ignore-end
 }
 
-/// Per-trip checklist items (copied from templates or added ad hoc)
+/// Checklist items (copied from templates or added ad hoc), belonging to one
+/// of a trip's checklists (issue #3356).
 class TripChecklistItems extends Table {
   // coverage:ignore-start
   TextColumn get id => text()();
-  TextColumn get tripId => text().references(Trips, #id)();
+  TextColumn get checklistId => text().references(TripChecklists, #id)();
   TextColumn get title => text()();
 
   /// The section this item is grouped under, if any (issue #3360). Replaces

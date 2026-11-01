@@ -45,7 +45,7 @@ Trip _trip({
 TripChecklistItem _check(String id, {bool done = false, DateTime? due}) {
   return TripChecklistItem(
     id: id,
-    tripId: 'trip-1',
+    checklistId: 'checklist-1',
     title: id,
     isDone: done,
     dueDate: due,

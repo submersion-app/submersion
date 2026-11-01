@@ -4531,6 +4531,56 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_empty_past => '暂无清单事项';
 
   @override
+  String get checklists_addChecklist => 'Add checklist';
+
+  @override
+  String get checklists_noChecklists_upcoming =>
+      'No checklists yet - add one to start planning';
+
+  @override
+  String get checklists_noChecklists_past => 'No checklists';
+
+  @override
+  String get checklists_nameLabel => 'Checklist name';
+
+  @override
+  String get checklists_nameRequired => 'Name is required';
+
+  @override
+  String get checklists_renameChecklist_title => 'Rename checklist';
+
+  @override
+  String get checklists_menu_rename => 'Rename...';
+
+  @override
+  String get checklists_menu_delete => 'Delete...';
+
+  @override
+  String get checklists_delete_title => 'Delete checklist';
+
+  @override
+  String checklists_delete_content(String name) {
+    return 'Delete \"$name\"? Its sections and items are removed too.';
+  }
+
+  @override
+  String get checklists_delete_confirm => 'Delete';
+
+  @override
+  String get checklists_replaceTemplate_title => 'Replace checklist content';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return 'Replace all current items of \"$checklistName\" with the items from \"$templateName\"? This cannot be undone.';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => 'Replace';
+
+  @override
   String get checklists_addItem => '添加事项';
 
   @override
@@ -24655,6 +24705,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_checklistTemplateSection => '清单模板的分区';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => 'Checklist';
 
   @override
   String get settings_conflict_ref_tripChecklistSection => '清单的分区';

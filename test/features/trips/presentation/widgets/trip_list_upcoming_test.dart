@@ -166,7 +166,7 @@ void main() {
       for (final trip in trips) {
         final progress = checklistProgress[trip.trip.id];
         overrides.add(
-          tripChecklistProgressProvider(
+          tripChecklistCombinedProgressProvider(
             trip.trip.id,
           ).overrideWith((ref) async => progress ?? (done: 0, total: 0)),
         );

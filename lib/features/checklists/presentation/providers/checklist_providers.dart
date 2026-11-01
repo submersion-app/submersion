@@ -1,9 +1,12 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart'
+    as domain;
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
     as domain;
@@ -21,6 +24,10 @@ final checklistTemplateRepositoryProvider =
 
 final tripChecklistRepositoryProvider = Provider<TripChecklistRepository>(
   (ref) => TripChecklistRepository(),
+);
+
+final tripChecklistsRepositoryProvider = Provider<TripChecklistsRepository>(
+  (ref) => TripChecklistsRepository(),
 );
 
 /// All checklist templates for the active diver.
@@ -62,39 +69,87 @@ final checklistTemplateSectionsProvider =
       return repository.getSectionsForTemplate(templateId);
     });
 
-/// A trip's checklist items, ordered by sortOrder. Self-invalidates on
-/// table changes so sync-applied edits render live.
-final tripChecklistProvider =
+/// A trip's checklists, ordered by sortOrder (issue #3356). Self-invalidates
+/// on table changes so sync-applied edits render live.
+final tripChecklistsProvider =
+    FutureProvider.family<List<domain.TripChecklist>, String>((
+      ref,
+      tripId,
+    ) async {
+      final repository = ref.watch(tripChecklistsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTripChecklistsChanges());
+      return repository.getChecklistsForTrip(tripId);
+    });
+
+/// Every item across every checklist of a trip (issue #3356), for widgets
+/// that need the trip's combined to-do list (e.g. the overview card's
+/// overdue/due-soon counts) rather than one specific checklist.
+/// Self-invalidates on table changes so sync-applied edits render live.
+final tripChecklistAllItemsProvider =
     FutureProvider.family<List<domain.TripChecklistItem>, String>((
       ref,
       tripId,
     ) async {
       final repository = ref.watch(tripChecklistRepositoryProvider);
+      final checklistsRepository = ref.watch(tripChecklistsRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
-      return repository.getByTripId(tripId);
+      // A checklist added or removed (not just an item) changes which rows
+      // this joins across, e.g. right after createChecklist/deleteChecklist.
+      ref.invalidateSelfWhen(checklistsRepository.watchTripChecklistsChanges());
+      return repository.getAllItemsForTrip(tripId);
     });
 
-/// A trip's checklist sections, ordered by sortOrder. Self-invalidates on
-/// table changes so sync-applied edits render live.
+/// One checklist's items, ordered by sortOrder. Self-invalidates on table
+/// changes so sync-applied edits render live.
+final tripChecklistProvider =
+    FutureProvider.family<List<domain.TripChecklistItem>, String>((
+      ref,
+      checklistId,
+    ) async {
+      final repository = ref.watch(tripChecklistRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
+      return repository.getByChecklistId(checklistId);
+    });
+
+/// One checklist's sections, ordered by sortOrder. Self-invalidates on table
+/// changes so sync-applied edits render live.
 final tripChecklistSectionsProvider =
     FutureProvider.family<List<domain.TripChecklistSection>, String>((
       ref,
-      tripId,
+      checklistId,
     ) async {
       final repository = ref.watch(tripChecklistRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistSectionChanges());
-      return repository.getSectionsForTrip(tripId);
+      return repository.getSectionsForChecklist(checklistId);
     });
 
-/// Done/total progress for a trip's checklist.
-final tripChecklistProgressProvider =
+/// Done/total progress for a trip, summed across all of its checklists
+/// (issue #3356). Used by widgets that show one combined progress line for
+/// the whole trip rather than one specific checklist.
+final tripChecklistCombinedProgressProvider =
     FutureProvider.family<({int done, int total}), String>((ref, tripId) async {
       final repository = ref.watch(tripChecklistRepositoryProvider);
+      final checklistsRepository = ref.watch(tripChecklistsRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
-      return repository.getProgress(tripId);
+      ref.invalidateSelfWhen(checklistsRepository.watchTripChecklistsChanges());
+      final progress = await repository.getProgressForTrips([tripId]);
+      return progress[tripId] ?? (done: 0, total: 0);
     });
 
-/// The one trip checklist worth surfacing on the home screen, or null.
+/// Done/total progress for one checklist.
+final tripChecklistProgressProvider =
+    FutureProvider.family<({int done, int total}), String>((
+      ref,
+      checklistId,
+    ) async {
+      final repository = ref.watch(tripChecklistRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
+      return repository.getProgress(checklistId);
+    });
+
+/// The one trip worth surfacing a checklist badge for on the home screen, or
+/// null, with its combined progress summed across all of its checklists
+/// (issue #3356).
 ///
 /// Home used to offer a single checklist button and it went to the pre-dive
 /// runs, so a trip's to-do list -- a different feature, a different table --
@@ -119,7 +174,9 @@ final homeTripChecklistProvider =
     FutureProvider<({Trip trip, int done, int total})?>((ref) async {
       final trips = await ref.watch(allTripsProvider.future);
       final repository = ref.watch(tripChecklistRepositoryProvider);
+      final checklistsRepository = ref.watch(tripChecklistsRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
+      ref.invalidateSelfWhen(checklistsRepository.watchTripChecklistsChanges());
 
       final now = DateTime.now();
       final ranked =

@@ -720,5 +720,15 @@ extension RungsFromV231 on AppDatabase {
     // re-asserted in beforeOpen.
     if (from < 331) await _assertEquipmentLocationCenterColumn();
     if (from < 331) await reportProgress();
+
+    // v332: trip_checklists, splitting one trip's single flat checklist
+    // into several named ones (issue #3356). Backfills a default checklist
+    // for every trip with existing sections/items; re-asserted in
+    // beforeOpen. Raises minimumCompatibleSchemaVersion to 332 (see
+    // database.dart): trip_id becomes checklist_id on both child tables.
+    if (from < 332) {
+      await _assertAndBackfillTripChecklists();
+    }
+    if (from < 332) await reportProgress();
   }
 }

@@ -15,7 +15,7 @@ TripChecklistItem _item({
   DateTime? dueDate,
 }) => TripChecklistItem(
   id: 'i1',
-  tripId: 't1',
+  checklistId: 'c1',
   title: title,
   isDone: isDone,
   notes: notes,
