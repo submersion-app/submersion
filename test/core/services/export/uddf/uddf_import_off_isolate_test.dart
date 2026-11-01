@@ -17,6 +17,26 @@ import 'package:submersion/features/universal_import/data/parsers/uddf_import_pa
 /// Parses on this isolate, for comparing a worker's result against.
 Future<R> _inline<R>(FutureOr<R> Function() work) async => work();
 
+/// Parses on a worker and fails the test if the worker did not finish.
+///
+/// runOffIsolate reruns an unexpected failure on this isolate, so a result that
+/// could not cross would otherwise arrive anyway, from the wrong isolate.
+Future<UddfImportResult> _parseOnWorker(String xml) async {
+  Object? failure;
+  final result = await UddfFullImportService(
+    runner: <R>(work) async {
+      try {
+        return await LoggerService.isolateRunKeepingLogs(work);
+      } catch (e) {
+        failure = e;
+        rethrow;
+      }
+    },
+  ).importAllDataFromUddf(xml);
+  expect(failure, isNull, reason: 'the worker failed, so this parsed inline');
+  return result;
+}
+
 /// A trailing comment puts [xml] past the worker threshold and parses to
 /// nothing, so a small document can stand in for a large one.
 String _pastThreshold(String xml) => xml.length >= kOffIsolateMinBytes
@@ -131,9 +151,7 @@ ${_dump('nothing_here', UddfDumpCodec.encodeOne(first))}
     });
 
     test('restores dump bytes under the right descriptors', () async {
-      final result = await UddfFullImportService().importAllDataFromUddf(
-        dumpDocument(),
-      );
+      final result = await _parseOnWorker(dumpDocument());
 
       final d1 = result.dataSourcesByDiveRef['dive_d1']!;
       expect(d1.map((e) => e['descriptorModel']), [1, 2, 3]);
@@ -157,7 +175,7 @@ ${_dump('nothing_here', UddfDumpCodec.encodeOne(first))}
     test('matches an inline parse of the same dumps', () async {
       final xml = dumpDocument();
 
-      final worker = await UddfFullImportService().importAllDataFromUddf(xml);
+      final worker = await _parseOnWorker(xml);
       final inline = await UddfFullImportService(
         runner: _inline,
       ).importAllDataFromUddf(xml);
@@ -173,7 +191,7 @@ ${_dump('nothing_here', UddfDumpCodec.encodeOne(first))}
       test('matches an inline parse of $name', () async {
         final xml = _pastThreshold(File(name).readAsStringSync());
 
-        final worker = await UddfFullImportService().importAllDataFromUddf(xml);
+        final worker = await _parseOnWorker(xml);
         final inline = await UddfFullImportService(
           runner: _inline,
         ).importAllDataFromUddf(xml);
@@ -226,7 +244,7 @@ ${_dump('nothing_here', UddfDumpCodec.encodeOne(first))}
       ('malformed XML', _pastThreshold('<uddf><dive></uddf>')),
       ('the wrong root element', _pastThreshold('<gpx></gpx>')),
     ]) {
-      test('carries $name back as an answer, with no rerun', () async {
+      test('carries $name back across the isolate', () async {
         await expectLater(
           UddfFullImportService(
             runner: recordingWorker,
@@ -239,6 +257,22 @@ ${_dump('nothing_here', UddfDumpCodec.encodeOne(first))}
         expect(workerError, isA<FormatException>());
       });
     }
+
+    test('takes a FormatException from a worker as final', () async {
+      // A valid file, so a rerun here would succeed and the test would fail.
+      await expectLater(
+        UddfFullImportService(
+          runner: <R>(work) async => throw const FormatException('the answer'),
+        ).importAllDataFromUddf(dumpDocument()),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            'the answer',
+          ),
+        ),
+      );
+    });
 
     test('still reaches the wizard as an import warning', () async {
       final payload = await UddfImportParser().parse(

@@ -353,8 +353,9 @@ class LoggerService {
   ///
   /// They arrive together once [work] finishes, so they can sit after newer
   /// lines from this isolate, carrying the times they were logged. Only the
-  /// newest [startupBufferLimit] are kept, and lines from a [work] that throws
-  /// are lost with it.
+  /// newest [startupBufferLimit] are kept, lines from a [work] that throws are
+  /// lost with it, and [infoInOrder], which is never held, reaches the console
+  /// alone.
   static Future<R> isolateRunKeepingLogs<R>(FutureOr<R> Function() work) async {
     final (:value, :lines) = await _runHoldingLines(work);
     for (final line in lines) {
