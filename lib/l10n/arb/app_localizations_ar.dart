@@ -21113,6 +21113,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'تجاهل';
 
   @override
+  String plannerSeries_saved_dived(int dived, int total) {
+    return 'تم تنفيذ $dived من $total';
+  }
+
+  @override
+  String plannerSeries_saved_planned(String details) {
+    return 'المخطط: $details';
+  }
+
+  @override
   String get plannerSeries_view_actual => 'الفعلي';
 
   @override

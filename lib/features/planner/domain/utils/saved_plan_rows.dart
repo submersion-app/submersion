@@ -13,9 +13,13 @@ class SavedPlanRow {
 
   bool get isSeries => plan.seriesId != null;
 
-  /// Whether the row lists its dives. A single dive that follows a logged
-  /// dive is saved as a series, but reads as the one plan it is.
-  bool get showsDives => dives.length > 1;
+  /// Whether this is several dives. A single dive that follows a logged dive
+  /// is saved as a series, but reads as the one plan it is.
+  bool get hasSeveralDives => dives.length > 1;
+
+  /// Whether the row lists its dives: when it has several, or its one dive is
+  /// in the log, which the line links to.
+  bool get showsDives => hasSeveralDives || dives.single.linkedDiveId != null;
 
   /// The deepest dive of the row, or null when none has a summary.
   double? get maxDepth {

@@ -20355,6 +20355,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'ביטול שינויים';
 
   @override
+  String plannerSeries_saved_dived(int dived, int total) {
+    return '$dived מתוך $total בוצעו';
+  }
+
+  @override
+  String plannerSeries_saved_planned(String details) {
+    return 'מתוכנן: $details';
+  }
+
+  @override
   String get plannerSeries_view_actual => 'בפועל';
 
   @override

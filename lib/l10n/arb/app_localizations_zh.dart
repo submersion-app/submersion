@@ -19802,6 +19802,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_unsaved_discard => '放弃';
 
   @override
+  String plannerSeries_saved_dived(int dived, int total) {
+    return '已潜水 $dived/$total';
+  }
+
+  @override
+  String plannerSeries_saved_planned(String details) {
+    return '计划：$details';
+  }
+
+  @override
   String get plannerSeries_view_actual => '实际';
 
   @override

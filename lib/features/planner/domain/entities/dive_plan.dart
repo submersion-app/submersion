@@ -676,6 +676,9 @@ class DivePlanSummary extends Equatable {
   /// When the dive starts, as clock digits stamped UTC; null when not set.
   final DateTime? startDateTime;
 
+  /// Its entry in the log, once there is one.
+  final String? linkedDiveId;
+
   const DivePlanSummary({
     required this.id,
     required this.name,
@@ -688,6 +691,7 @@ class DivePlanSummary extends Equatable {
     this.seriesIndex,
     this.diveName,
     this.startDateTime,
+    this.linkedDiveId,
   });
 
   @override
@@ -703,5 +707,6 @@ class DivePlanSummary extends Equatable {
     seriesIndex,
     diveName,
     startDateTime,
+    linkedDiveId,
   ];
 }

@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
@@ -94,6 +96,67 @@ void main() {
     expect(find.byKey(const ValueKey('savedSeriesDive_a')), findsOneWidget);
     expect(find.byKey(const ValueKey('savedSeriesDive_solo')), findsNothing);
   });
+
+  testWidgets(
+    'a dive in the log links there; a dived one shows what happened',
+    (tester) async {
+      await tester.runAsync(() async {
+        final repository = DiveRepository();
+        await repository.createDive(
+          Dive(
+            id: 'dived',
+            name: 'Wreck run',
+            diveNumber: 214,
+            dateTime: DateTime.utc(2026, 10, 27, 9),
+            maxDepth: 31,
+            runtime: const Duration(minutes: 44),
+          ),
+        );
+        await repository.createDive(
+          Dive(
+            id: 'entry',
+            dateTime: DateTime.utc(2026, 10, 27, 12),
+            isPlanned: true,
+          ),
+        );
+        StoredSeriesDive dive(String id, String link) => StoredSeriesDive(
+          plan: divePlanFromState(
+            seriesDiveState(id: id).copyWith(linkedDiveId: link),
+          ),
+          summaryMaxDepth: 30,
+          summaryRuntimeSeconds: 2400,
+        );
+        await DivePlanSeriesRepository().saveSeries(
+          StoredSeries(
+            id: 's1',
+            name: 'Reef day',
+            dives: [dive('a', 'dived'), dive('b', 'entry')],
+          ),
+        );
+      });
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides(),
+          locale: const Locale('en'),
+          child: const SingleChildScrollView(child: SavedPlansList()),
+        ),
+      );
+      for (var i = 0; i < 3; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pump();
+      }
+
+      expect(find.text('1 of 2 dived'), findsOneWidget);
+      expect(find.text('Wreck run'), findsOneWidget);
+      expect(find.textContaining('Planned: '), findsOneWidget);
+      expect(find.byTooltip('Open in dive log'), findsNWidgets(2));
+      expect(find.text('B'), findsOneWidget);
+      expect(find.byIcon(Icons.scuba_diving), findsWidgets);
+    },
+  );
 
   group('leaving the planner', () {
     Future<void> pumpPushed(WidgetTester tester) async {

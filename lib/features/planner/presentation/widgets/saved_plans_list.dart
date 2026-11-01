@@ -91,6 +91,7 @@ class SavedPlansList extends ConsumerWidget {
                   row: rows[plan.id]!,
                   units: units,
                   onOpen: (id) => context.push('/planning/dive-planner/$id'),
+                  onOpenInLog: (id) => context.push('/dives/$id'),
                 ),
             ],
           ],

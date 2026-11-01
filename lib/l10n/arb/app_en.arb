@@ -12962,6 +12962,25 @@
   "plannerSeries_unsaved_title": "Save this series?",
   "plannerSeries_unsaved_body": "This series has changes that haven't been saved.",
   "plannerSeries_unsaved_discard": "Discard",
+  "plannerSeries_saved_dived": "{dived} of {total} dived",
+  "@plannerSeries_saved_dived": {
+    "placeholders": {
+      "dived": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_saved_planned": "Planned: {details}",
+  "@plannerSeries_saved_planned": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
   "plannerSeries_view_actual": "Actual",
   "plannerSeries_view_plan": "Plan",
   "plannerSeries_view_planNote": "As planned. Dived as {dive}.",

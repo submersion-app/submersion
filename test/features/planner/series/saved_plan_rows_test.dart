@@ -48,6 +48,19 @@ void main() {
     expect(rows.single.showsDives, isFalse);
   });
 
+  test('a single plan in the log lists its one dive, to link to it', () {
+    final linked = DivePlanSummary(
+      id: 'a',
+      name: 'Solo',
+      updatedAt: DateTime(2026, 10, 27),
+      linkedDiveId: 'entry',
+    );
+    final row = collapseSeries([linked]).single;
+
+    expect(row.hasSeveralDives, isFalse);
+    expect(row.showsDives, isTrue);
+  });
+
   test('a series row has its deepest dive and total runtime', () {
     final row = collapseSeries([
       plan('a', series: 's', index: 0, depth: 30, runtime: 2400),

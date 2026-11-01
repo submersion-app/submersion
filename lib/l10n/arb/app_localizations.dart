@@ -33132,6 +33132,18 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get plannerSeries_unsaved_discard;
 
+  /// No description provided for @plannerSeries_saved_dived.
+  ///
+  /// In en, this message translates to:
+  /// **'{dived} of {total} dived'**
+  String plannerSeries_saved_dived(int dived, int total);
+
+  /// No description provided for @plannerSeries_saved_planned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned: {details}'**
+  String plannerSeries_saved_planned(String details);
+
   /// No description provided for @plannerSeries_view_actual.
   ///
   /// In en, this message translates to:

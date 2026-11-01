@@ -5974,6 +5974,8 @@
   "plannerSeries_unsaved_title": "¿Guardar esta serie?",
   "plannerSeries_unsaved_body": "Esta serie tiene cambios sin guardar.",
   "plannerSeries_unsaved_discard": "Descartar",
+  "plannerSeries_saved_dived": "{dived} de {total} realizadas",
+  "plannerSeries_saved_planned": "Planificado: {details}",
   "plannerSeries_view_actual": "Real",
   "plannerSeries_view_plan": "Plan",
   "plannerSeries_view_planNote": "Según lo planificado. Realizada como {dive}.",

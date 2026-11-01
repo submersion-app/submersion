@@ -5974,6 +5974,8 @@
   "plannerSeries_unsaved_title": "هل تريد حفظ هذه السلسلة؟",
   "plannerSeries_unsaved_body": "تحتوي هذه السلسلة على تغييرات غير محفوظة.",
   "plannerSeries_unsaved_discard": "تجاهل",
+  "plannerSeries_saved_dived": "تم تنفيذ {dived} من {total}",
+  "plannerSeries_saved_planned": "المخطط: {details}",
   "plannerSeries_view_actual": "الفعلي",
   "plannerSeries_view_plan": "الخطة",
   "plannerSeries_view_planNote": "كما هو مخطط. نُفذت باسم {dive}.",

@@ -5873,6 +5873,8 @@
   "plannerSeries_unsaved_title": "Enregistrer cette série ?",
   "plannerSeries_unsaved_body": "Cette série contient des modifications non enregistrées.",
   "plannerSeries_unsaved_discard": "Abandonner",
+  "plannerSeries_saved_dived": "{dived} sur {total} effectuées",
+  "plannerSeries_saved_planned": "Planifié : {details}",
   "plannerSeries_view_actual": "Réel",
   "plannerSeries_view_plan": "Plan",
   "plannerSeries_view_planNote": "Tel que planifié. Plongée sous {dive}.",

@@ -20819,6 +20819,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Descartar';
 
   @override
+  String plannerSeries_saved_dived(int dived, int total) {
+    return '$dived de $total realizados';
+  }
+
+  @override
+  String plannerSeries_saved_planned(String details) {
+    return 'Planeado: $details';
+  }
+
+  @override
   String get plannerSeries_view_actual => 'Real';
 
   @override

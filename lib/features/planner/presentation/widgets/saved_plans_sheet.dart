@@ -171,6 +171,10 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                                   context.pop();
                                   context.push('/planning/dive-planner/$id');
                                 },
+                                onOpenInLog: (id) {
+                                  context.pop();
+                                  context.push('/dives/$id');
+                                },
                               ),
                           ],
                         ),
@@ -343,7 +347,7 @@ class _PlanTile extends ConsumerWidget {
                       build: () async {
                         // One dive saved as a series is shared as the plan
                         // it is; several go together, with what they carry.
-                        if (row.showsDives) {
+                        if (row.hasSeveralDives) {
                           final series = await ref
                               .read(divePlanSeriesRepositoryProvider)
                               .getSeries(summary.seriesId!);

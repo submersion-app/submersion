@@ -532,6 +532,7 @@ class DivePlanRepository {
             seriesId: r.seriesId,
             seriesIndex: r.seriesIndex,
             diveName: r.diveName,
+            linkedDiveId: r.linkedDiveId,
             startDateTime: r.startDateTime == null
                 ? null
                 : wallClockUtcFromMillis(r.startDateTime! * 1000),

@@ -20741,6 +20741,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Elvetés';
 
   @override
+  String plannerSeries_saved_dived(int dived, int total) {
+    return '$dived / $total merülés kész';
+  }
+
+  @override
+  String plannerSeries_saved_planned(String details) {
+    return 'Tervezett: $details';
+  }
+
+  @override
   String get plannerSeries_view_actual => 'Tényleges';
 
   @override

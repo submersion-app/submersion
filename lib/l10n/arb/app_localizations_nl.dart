@@ -20685,6 +20685,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerpen';
 
   @override
+  String plannerSeries_saved_dived(int dived, int total) {
+    return '$dived van $total gedoken';
+  }
+
+  @override
+  String plannerSeries_saved_planned(String details) {
+    return 'Gepland: $details';
+  }
+
+  @override
   String get plannerSeries_view_actual => 'Werkelijk';
 
   @override

@@ -6125,6 +6125,8 @@
   "plannerSeries_unsaved_title": "保存此系列？",
   "plannerSeries_unsaved_body": "此系列有未保存的更改。",
   "plannerSeries_unsaved_discard": "放弃",
+  "plannerSeries_saved_dived": "已潜水 {dived}/{total}",
+  "plannerSeries_saved_planned": "计划：{details}",
   "plannerSeries_view_actual": "实际",
   "plannerSeries_view_plan": "计划",
   "plannerSeries_view_planNote": "按计划。实际潜水为 {dive}。",

@@ -5873,6 +5873,8 @@
   "plannerSeries_unsaved_title": "Salvare questa serie?",
   "plannerSeries_unsaved_body": "Questa serie ha modifiche non salvate.",
   "plannerSeries_unsaved_discard": "Scarta",
+  "plannerSeries_saved_dived": "{dived} di {total} effettuate",
+  "plannerSeries_saved_planned": "Pianificato: {details}",
   "plannerSeries_view_actual": "Reale",
   "plannerSeries_view_plan": "Piano",
   "plannerSeries_view_planNote": "Come pianificato. Effettuata come {dive}.",
