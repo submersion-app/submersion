@@ -25,6 +25,7 @@ class _RecordingRepository extends Fake implements EquipmentLocationRepository {
     required String name,
     required EquipmentLocationKind kind,
     String? diveCenterId,
+    String? buddyId,
     String notes = '',
   }) async {
     createdName = name;

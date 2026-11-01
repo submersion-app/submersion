@@ -309,7 +309,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 332;
+  static const int currentSchemaVersion = 334;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1515,6 +1515,9 @@ class AppDatabase extends _$AppDatabase {
     // v332: the per-device change log tables (issue #3922). Local only and
     // never synced, so the floor does not move.
     332,
+    // v334: equipment_locations.buddy_id, the buddy a Person place stands
+    // for (issue #3790). 333 is held by PRs #4028 and #4080.
+    334,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

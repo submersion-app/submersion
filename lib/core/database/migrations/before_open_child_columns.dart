@@ -45,5 +45,8 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v331: equipment_locations.dive_center_id (issue #3623). Every place
     // read selects the whole row, for the same reason as the tank columns.
     await _assertEquipmentLocationCenterColumn();
+
+    // v334: equipment_locations.buddy_id (issue #3790), for the same reason.
+    await _assertEquipmentLocationBuddyColumn();
   }
 }
