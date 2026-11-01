@@ -57,7 +57,12 @@ class _MinutesSecondsFieldState extends State<MinutesSecondsField> {
     // which already parses to the new value, is left as typed.
     if (widget.seconds != oldWidget.seconds &&
         parseMinutesSeconds(_controller.text) != widget.seconds) {
-      _controller.text = _text(widget.seconds);
+      // After the frame: a controller write here notifies the Form while
+      // the parent is still building.
+      final seconds = widget.seconds;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _controller.text = _text(seconds);
+      });
     }
   }
 

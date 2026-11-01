@@ -29,8 +29,9 @@ class DiverGasSwitchWriter {
   /// are the ids the editor loaded: an id in both is updated (timestamp,
   /// tank and depth; its computer is untouched), one only in [switches] is
   /// inserted with no computer, one only in [loadedIds] is deleted and
-  /// tombstoned. Switches the editor did not load (another computer's) are
-  /// never touched. Returns false, writing nothing, when nothing differs.
+  /// tombstoned, even when a removed cylinder already cascaded it away.
+  /// Switches the editor did not load (another computer's) are never
+  /// touched. Returns false, writing nothing, when nothing differs.
   Future<bool> save({
     required String diveId,
     required List<GasSwitch> switches,
@@ -62,9 +63,12 @@ class DiverGasSwitchWriter {
         updates.add(sw);
       }
     }
+    // A loaded id the list no longer holds is a delete whether or not its
+    // row is still there: removing a cylinder cascades its switches away
+    // before this runs, and a peer still needs the tombstone.
     final deletes = [
-      for (final id in stored.keys)
-        if (!keptIds.contains(id)) id,
+      for (final id in loadedIds)
+        if (!keptIds.contains(id) && !switches.any((s) => s.id == id)) id,
     ];
     if (inserts.isEmpty && updates.isEmpty && deletes.isEmpty) return false;
 

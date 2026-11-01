@@ -159,7 +159,11 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
     final depth = widget.gasSwitch.depth;
     if (depth != oldWidget.gasSwitch.depth &&
         _parseDepth(_depth.text) != depth) {
-      _depth.text = _depthText(depth);
+      // After the frame: a controller write here notifies the Form while
+      // the editor is still building.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _depth.text = _depthText(depth);
+      });
     }
   }
 

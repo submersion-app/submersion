@@ -104,6 +104,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/conditions_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_gear_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_link_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_row.dart';
@@ -172,6 +173,12 @@ import 'package:submersion/features/dive_log/presentation/providers/shared_gear_
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
+
+part 'dive_edit_page_gas_switches.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -438,6 +445,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   // Tank data - list of tanks with multi-tank support
   List<DiveTank> _tanks = [];
+
+  // The gas switch list (issue #32); the handlers live in
+  // dive_edit_page_gas_switches.dart, which reaches setState through
+  // [_updateGasSwitches].
+  List<GasSwitch> _gasSwitches = const [];
+  Set<String> _loadedGasSwitchIds = const {};
+  Set<String> _depthTouchedSwitchIds = const {};
+  int _removedSwitchNotice = 0;
+  bool _gasSwitchesDirty = false;
+
+  void _updateGasSwitches(VoidCallback mutate) => setState(mutate);
   final _uuid = const Uuid();
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
@@ -991,9 +1009,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         final hasPrimarySource = await ref
             .read(diveRepositoryProvider)
             .hasPrimaryDataSource(dive.id);
+        final loadedSwitches = await _loadGasSwitches(dive);
         if (!mounted) return;
         setState(() {
           _existingDive = dive;
+          _gasSwitches = loadedSwitches;
+          _loadedGasSwitchIds = {for (final s in loadedSwitches) s.id};
           _isPlanned = dive.isPlanned;
           _hasPrimarySource = hasPrimarySource;
           _diverRoleIds = dive.diverRoleIds;
@@ -3738,6 +3759,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       applyConfigChild: ApplyConfigurationMenu(
         onSelected: _applyCylinderConfig,
       ),
+      gasSwitchesChild: _buildGasSwitchesChild(units),
       equipmentChild: _equipmentChild(),
       weightChild: _weightChild(units),
       showTankControls: _diveMode != DiveMode.gauge,
@@ -4144,11 +4166,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _markDirty();
       _tanksDirty = true;
+      final removed = _tanks[index];
       _tanks.removeAt(index);
       // Update order for remaining tanks
       for (var i = 0; i < _tanks.length; i++) {
         _tanks[i] = _tanks[i].copyWith(order: i);
       }
+      _dropGasSwitchesOf(removed.id);
     });
   }
 
@@ -6425,6 +6449,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
       // A new visibility value sets the mode the next new dive opens in.
       if (_activeVisibilityTouched) _rememberVisibilityMode(savedVisibility);
+
+      // After the dive and its cylinders, so the cylinder ids exist.
+      await _saveGasSwitches(savedDiveId);
 
       // Save sightings
       if (savedDiveId != null) {

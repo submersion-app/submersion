@@ -246,6 +246,26 @@ void main() {
     );
   });
 
+  test(
+    'a loaded switch whose row is already gone is still tombstoned',
+    () async {
+      // Removing a cylinder cascades its switches away before the save; the
+      // editor still loaded them, so a peer needs the tombstone.
+      await (db.delete(db.gasSwitches)..where((t) => t.id.equals('gs-1'))).go();
+
+      final changed = await writer.save(
+        diveId: 'dive-1',
+        switches: const [],
+        loadedIds: {'gs-1'},
+        now: now,
+      );
+
+      expect(changed, isTrue);
+      expect(await tombstoned('gs-1'), isTrue);
+      expect((await dive()).gasSwitchesEdited, isTrue);
+    },
+  );
+
   test('an unchanged list writes nothing', () async {
     final reviews = SafetyFindingsRepository(db: db, syncRepository: sync);
     await reviews.saveReview(
