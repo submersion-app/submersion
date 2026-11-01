@@ -85,6 +85,33 @@ class AssetInfo {
 
   /// Whether this asset is a video.
   bool get isVideo => type == AssetType.video;
+
+  /// A copy of this asset with the given fields replaced.
+  AssetInfo copyWith({
+    String? id,
+    AssetType? type,
+    DateTime? createDateTime,
+    int? width,
+    int? height,
+    int? durationSeconds,
+    double? latitude,
+    double? longitude,
+    String? filename,
+    String? filePath,
+    TakenAtSource? takenAtSource,
+  }) => AssetInfo(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    createDateTime: createDateTime ?? this.createDateTime,
+    width: width ?? this.width,
+    height: height ?? this.height,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    filename: filename ?? this.filename,
+    filePath: filePath ?? this.filePath,
+    takenAtSource: takenAtSource ?? this.takenAtSource,
+  );
 }
 
 /// Type of gallery asset.
