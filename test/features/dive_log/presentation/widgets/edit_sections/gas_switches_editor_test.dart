@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/form_style.dart';
 import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 
 const _back = DiveTank(id: 'back', volume: 12);
@@ -47,8 +48,9 @@ Future<_Harness> _pump(
   bool imperial = false,
   Map<String, List<int>> breathStarts = const {},
   ValueChanged<GasSwitch>? onPickTime,
+  double width = 900,
 }) async {
-  tester.view.physicalSize = const Size(900, 1600);
+  tester.view.physicalSize = Size(width, 1600);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final h = _Harness();
@@ -257,6 +259,46 @@ void main() {
     await _pump(tester, switches: const [], removedWithTankCount: 1);
 
     expect(find.text('1 gas switch removed with its tank'), findsOneWidget);
+  });
+
+  group('vertical spacing', () {
+    Rect rectOf(WidgetTester tester, String key) =>
+        tester.getRect(find.byKey(ValueKey(key)));
+
+    testWidgets('fields stacked in a narrow row keep their gap', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        switches: [_sw('gs-1', 900, 'deco')],
+        width: 390,
+        breathStarts: const {
+          'deco': [890],
+        },
+      );
+
+      final time = rectOf(tester, 'gas-switch-time-gs-1');
+      final tank = rectOf(tester, 'gas-switch-tank-gs-1');
+      final chips = tester.getRect(find.byType(ActionChip));
+
+      expect(tank.top - time.bottom, FormStyle.fieldGap);
+      expect(chips.top - tank.bottom, greaterThanOrEqualTo(FormStyle.fieldGap));
+    });
+
+    testWidgets('rows stand further apart than the fields in them', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        switches: [_sw('gs-1', 900, 'deco'), _sw('gs-2', 1800, 'back')],
+        width: 390,
+      );
+
+      final first = rectOf(tester, 'gas-switch-tank-gs-1');
+      final second = rectOf(tester, 'gas-switch-time-gs-2');
+
+      expect(second.top - first.bottom, greaterThan(FormStyle.fieldGap));
+    });
   });
 
   group('suggested times', () {

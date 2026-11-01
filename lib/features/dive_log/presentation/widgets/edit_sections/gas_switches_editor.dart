@@ -11,6 +11,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_append_row.dart';
 import 'package:submersion/shared/widgets/forms/form_caption.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
+import 'package:submersion/shared/widgets/forms/form_style.dart';
 import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -313,14 +314,19 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
     );
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 4, 6, 4),
+      padding: EdgeInsets.fromLTRB(
+        FormStyle.rowPadding.left,
+        FormStyle.rowPadding.top,
+        6,
+        FormStyle.rowPadding.bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           fields,
           if (widget.suggestedTimes.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: FormStyle.fieldGap),
               child: GasSwitchTimeChips(
                 times: widget.suggestedTimes,
                 onSelected: _useTime,
@@ -366,7 +372,7 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
                 remove,
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: FormStyle.fieldGap),
             picker,
           ],
         );
