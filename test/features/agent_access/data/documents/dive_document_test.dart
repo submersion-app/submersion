@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -72,8 +71,7 @@ void main() {
     );
 
     test('profile is paged by offset and limit', () {
-      final doc = diveDocument(dive(), include: const {'profile'});
-      final p = doc['profile'] as Map;
+      final p = diveProfileDocument(dive().profile, 0, kProfileDefaultLimit);
       expect(p['total'], 1200);
       expect(p['offset'], 0);
       expect(p['limit'], 500);
@@ -81,16 +79,11 @@ void main() {
       expect(samples, hasLength(500));
       expect((samples.first as Map)['t_s'], 0);
       expect((samples.first as Map)['depth_m'], 0.0);
-      final tail = diveDocument(
-        dive(),
-        include: const {'profile'},
-        profileOffset: 1000,
-        profileLimit: 500,
-      );
-      expect(((tail['profile'] as Map)['samples'] as List), hasLength(200));
+      final tail = diveProfileDocument(dive().profile, 1000, 500);
+      expect((tail['samples'] as List), hasLength(200));
     });
 
-    test('blocks appear only when included', () {
+    test('child blocks stay out of the base document', () {
       final bare = diveDocument(dive());
       for (final block in [
         'tanks',
@@ -104,8 +97,10 @@ void main() {
       ]) {
         expect(bare.containsKey(block), isFalse, reason: block);
       }
-      final withTanks = diveDocument(dive(), include: const {'tanks'});
-      final tanks = (withTanks['tanks'] as List).cast<Map>();
+    });
+
+    test('tanks are metric with gas fractions', () {
+      final tanks = [for (final t in dive().tanks) diveTankDocument(t)];
       expect(tanks, hasLength(2));
       expect(tanks.first['start_pressure_bar'], 200.0);
       expect(tanks.first['volume_l'], 12.0);
@@ -113,39 +108,24 @@ void main() {
       expect(tanks.first['he_fraction'], 0.0);
       expect(tanks.first['role'], 'backGas');
       expect(tanks.last['role'], 'deco');
-      expect(withTanks.containsKey('profile'), isFalse);
+      expect(tanks.first.containsKey('dive_id'), isFalse);
+      expect(
+        diveTankDocument(dive().tanks.first, diveId: 'd1')['dive_id'],
+        'd1',
+      );
     });
 
     test('media documents never carry imageData', () {
-      final doc = diveDocument(
-        dive(),
-        include: const {'media'},
-        media: [signature()],
-      );
-      final media = (doc['media'] as List).cast<Map>();
-      expect(media, hasLength(1));
-      final m = media.single;
+      final m = mediaDocument(signature());
       expect(m.keys, isNot(contains('imageData')));
       expect(m.keys, isNot(contains('image_data')));
       expect(m['local_path'], '/photos/sig.png');
       expect(m['source_type'], 'localFile');
       expect(m['captured_at'], '2024-05-01T10:00:00.000Z');
       expect(m.toString(), isNot(contains('[9, 8, 7, 6, 5]')));
-      expect(
-        mediaDocument(signature()).keys,
-        unorderedEquals([
-          'id',
-          'source_type',
-          'file_path',
-          'local_path',
-          'url',
-          'thumbnail_path',
-          'captured_at',
-        ]),
-      );
     });
 
-    test('site, trip, centre, weights, tags and types are mapped', () {
+    test('site, trip, centre and weights are mapped', () {
       final linked = Dive(
         id: 'd2',
         dateTime: taken,
@@ -179,16 +159,8 @@ void main() {
             label: 'belt',
           ),
         ],
-        tags: [
-          Tag(id: 't1', name: 'night', createdAt: taken, updatedAt: taken),
-        ],
-        diveTypeIds: const ['type-1', 'type-2'],
       );
-      final doc = diveDocument(
-        linked,
-        include: const {'weights', 'tags', 'types'},
-        typeNames: const {'type-1': 'Reef'},
-      );
+      final doc = diveDocument(linked);
       expect(doc['site'], {
         'id': 'site-1',
         'name': 'Blue Hole',
@@ -199,14 +171,9 @@ void main() {
       });
       expect(doc['trip'], {'id': 'trip-1', 'name': 'Belize 2024'});
       expect(doc['dive_center'], {'id': 'c1', 'name': 'Reef Divers'});
-      final weights = (doc['weights'] as List).cast<Map>();
-      expect(weights.single['amount_kg'], 4.0);
-      expect(weights.single['type'], 'belt');
-      expect(doc['tags'], ['night']);
-      expect(doc['types'], [
-        {'id': 'type-1', 'name': 'Reef'},
-        {'id': 'type-2', 'name': null},
-      ]);
+      final weight = diveWeightDocument(linked.weights.single);
+      expect(weight['amount_kg'], 4.0);
+      expect(weight['type'], 'belt');
     });
   });
 }

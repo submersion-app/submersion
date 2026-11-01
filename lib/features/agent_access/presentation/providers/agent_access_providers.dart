@@ -12,16 +12,12 @@ import 'package:submersion/features/agent_access/data/agent_access_preferences.d
 import 'package:submersion/features/agent_access/data/agent_access_token_store.dart';
 import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
 import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -243,11 +239,7 @@ class AgentAccessController {
         loader: loader,
         divers: divers,
         settings: settings,
-        dives: _ref.read(diveRepositoryProvider),
-        buddies: _ref.read(buddyRepositoryProvider),
-        species: _ref.read(speciesRepositoryProvider),
-        media: _ref.read(mediaRepositoryProvider),
-        diveTypes: _ref.read(diveTypeRepositoryProvider),
+        records: RecordRepositories(),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),
       appVersion: appVersion,

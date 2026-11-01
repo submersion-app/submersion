@@ -1,60 +1,49 @@
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/documents/dive_document.dart';
-import 'package:submersion/features/agent_access/domain/agent_tool.dart';
+import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
+import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
+import 'package:submersion/features/agent_access/data/records/record_entity.dart';
+import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/tools/tool_args.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
-import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
 
 const kGetRecordsMaxIds = 50;
 
-/// Fetches full documents for records by id. Dives only in this version.
+/// Fetches full documents for records of any entity by id.
 class GetRecordsTool implements AgentTool {
   GetRecordsTool({
     required DiverContextLoader loader,
-    required DiveRepository dives,
-    required BuddyRepository buddies,
-    required SpeciesRepository species,
-    required MediaRepository media,
-    required DiveTypeRepository diveTypes,
+    required RecordCatalog catalog,
   }) : _loader = loader,
-       _dives = dives,
-       _buddies = buddies,
-       _species = species,
-       _media = media,
-       _diveTypes = diveTypes;
+       _catalog = catalog;
 
   final DiverContextLoader _loader;
-  final DiveRepository _dives;
-  final BuddyRepository _buddies;
-  final SpeciesRepository _species;
-  final MediaRepository _media;
-  final DiveTypeRepository _diveTypes;
-
-  static const _entities = ['dives'];
+  final RecordCatalog _catalog;
 
   @override
   String get name => 'get_records';
 
   @override
   String get description =>
-      'Fetch full records by id (up to $kGetRecordsMaxIds per call). Values '
-      'are metric with the unit in the key name (max_depth_m, water_temp_c, '
-      'start_pressure_bar, weight_kg); Dates are ISO 8601 strings of the dive\'s local wall clock carried with a nominal Z suffix; they are not UTC instants, so do not shift them to another time zone. Child blocks '
-      '(tanks, buddies, tags, types, weights, sightings, media, profile) are '
-      'returned only when listed in include; profile samples are paged with '
-      'profile_offset and profile_limit. Ids the named diver cannot see are '
-      'listed under missing.';
+      'Fetch full records of any entity by id (up to $kGetRecordsMaxIds per '
+      'call). Values are metric with the unit in the key name (max_depth_m, '
+      'water_temp_c, start_pressure_bar, weight_kg). $kDocumentDateRule Child '
+      'blocks are returned only when listed in include; a name the entity '
+      'does not have is refused and the refusal lists the ones it does. '
+      'Samples and track points are paged with profile_offset and '
+      'profile_limit. fields narrows each document to the named keys. Ids the '
+      'named diver cannot see are listed under missing. Bytes (photos, card '
+      'images, document pages) are never returned.';
 
   @override
   Map<String, Object?> get inputSchema => {
     'type': 'object',
     'properties': {
-      'entity': {'type': 'string', 'enum': _entities},
+      'entity': {
+        'type': 'string',
+        'enum': [for (final e in _catalog.all) e.name],
+      },
       'ids': {
         'type': 'array',
         'items': {'type': 'string'},
@@ -63,8 +52,15 @@ class GetRecordsTool implements AgentTool {
       },
       'include': {
         'type': 'array',
-        'items': {'type': 'string', 'enum': kDiveDocumentBlocks.toList()},
+        'items': {'type': 'string'},
         'description': 'Child blocks to include.',
+      },
+      'fields': {
+        'type': 'array',
+        'items': {'type': 'string'},
+        'description':
+            'Top-level document keys to return. id is always returned. '
+            'Omitted means the full document.',
       },
       'diver_id': {
         'type': 'string',
@@ -87,17 +83,11 @@ class GetRecordsTool implements AgentTool {
     Map<String, Object?> args,
     AgentToolContext context,
   ) async {
-    final entity = args['entity'];
-    if (!_entities.contains(entity)) {
-      throw AgentToolException(
-        AgentToolErrorCode.invalidArgument,
-        'entity must be one of $_entities in this version.',
-        details: {'entity': entity},
-      );
-    }
+    final entry = _catalog.named(args['entity']);
     // One document per distinct id, in the order first asked for.
     final ids = _ids(args['ids']).toSet().toList();
-    final include = _include(args['include']);
+    final include = _include(entry, args['include']);
+    final fields = _fields(args['fields']);
     final profileOffset = intArg(args, 'profile_offset', fallback: 0, min: 0);
     final profileLimit = intArg(
       args,
@@ -108,54 +98,30 @@ class GetRecordsTool implements AgentTool {
     );
     final diverId = await _loader.resolveDiverId(args['diver_id'] as String?);
 
-    final typeNames = include.contains('types')
-        ? {
-            for (final t in await _diveTypes.getAllDiveTypes(diverId: diverId))
-              t.id: t.name,
-          }
-        : const <String, String>{};
-
-    // The profile is the one expensive part of a dive; decode it only when
-    // the caller asked for that block, and load the rest in one batch.
-    final byId = <String, Dive>{};
-    if (include.contains('profile')) {
-      for (final id in ids) {
-        final dive = await _dives.getDiveById(id);
-        if (dive != null) byId[id] = dive;
-      }
-    } else {
-      for (final dive in await _dives.getDivesByIdsWithoutSamples(ids)) {
-        byId[dive.id] = dive;
-      }
-    }
-    final records = <Map<String, Object?>>[];
-    final missing = <String>[];
-    for (final id in ids) {
-      final dive = byId[id];
-      if (dive == null || dive.diverId != diverId) {
-        missing.add(id);
-        continue;
-      }
-      records.add(
-        diveDocument(
-          dive,
-          buddies: include.contains('buddies')
-              ? await _buddies.getBuddiesForDive(id)
-              : null,
-          sightings: include.contains('sightings')
-              ? await _species.getSightingsForDive(id)
-              : null,
-          media: include.contains('media')
-              ? await _media.getMediaForDive(id)
-              : null,
-          typeNames: typeNames,
-          include: include,
-          profileOffset: profileOffset,
-          profileLimit: profileLimit,
-        ),
-      );
-    }
-    return {'entity': entity, 'records': records, 'missing': missing};
+    final visible = await RecordReader(
+      context.db,
+    ).visibleIds(entry, ids, diverId);
+    final documents = await entry.read(
+      visible,
+      RecordLoad(
+        include: include,
+        diverId: diverId,
+        profileOffset: profileOffset,
+        profileLimit: profileLimit,
+      ),
+    );
+    return {
+      'entity': entry.name,
+      'records': [
+        for (final id in ids)
+          if (documents[id] case final document?)
+            fields == null ? document : _narrow(document, fields),
+      ],
+      'missing': [
+        for (final id in ids)
+          if (!documents.containsKey(id)) id,
+      ],
+    };
   }
 
   List<String> _ids(Object? raw) {
@@ -175,15 +141,47 @@ class GetRecordsTool implements AgentTool {
     return raw.cast<String>();
   }
 
-  Set<String> _include(Object? raw) {
+  Set<String> _include(RecordEntry entry, Object? raw) {
     if (raw == null) return const {};
-    if (raw is! List || raw.any((e) => !kDiveDocumentBlocks.contains(e))) {
+    if (raw is! List || raw.any((e) => !entry.blocks.contains(e))) {
       throw AgentToolException(
         AgentToolErrorCode.invalidArgument,
-        'include may only name ${kDiveDocumentBlocks.toList()}.',
-        details: {'include': raw},
+        '${entry.name} include may only name ${entry.blocks.toList()}.',
+        details: {'include': raw, 'valid': entry.blocks.toList()},
       );
     }
     return raw.cast<String>().toSet();
+  }
+
+  List<String>? _fields(Object? raw) {
+    if (raw == null) return null;
+    if (raw is! List || raw.any((e) => e is! String)) {
+      throw const AgentToolException(
+        AgentToolErrorCode.invalidArgument,
+        'fields must be an array of strings.',
+      );
+    }
+    return raw.cast<String>();
+  }
+
+  Map<String, Object?> _narrow(
+    Map<String, Object?> document,
+    List<String> fields,
+  ) {
+    final unknown = [
+      for (final field in fields)
+        if (!document.containsKey(field)) field,
+    ];
+    if (unknown.isNotEmpty) {
+      throw AgentToolException(
+        AgentToolErrorCode.invalidArgument,
+        'Unknown fields $unknown.',
+        details: {'unknown': unknown, 'valid': document.keys.toList()},
+      );
+    }
+    return {
+      'id': document['id'],
+      for (final field in fields) field: document[field],
+    };
   }
 }

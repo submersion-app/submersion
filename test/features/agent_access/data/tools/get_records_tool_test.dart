@@ -2,15 +2,12 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
+import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/tools/get_records_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -108,11 +105,7 @@ void main() {
       localeTag: 'en',
       activeDiverId: () async => a,
     ),
-    dives: DiveRepository(),
-    buddies: BuddyRepository(),
-    species: SpeciesRepository(),
-    media: MediaRepository(),
-    diveTypes: DiveTypeRepository(),
+    catalog: RecordCatalog(RecordRepositories()),
   );
 
   AgentToolContext ctx() => AgentToolContext(db: db, clientName: 'test');
@@ -177,7 +170,7 @@ void main() {
     test('an unsupported entity is invalid_argument', () async {
       await expectLater(
         tool().call({
-          'entity': 'sites',
+          'entity': 'nonsense',
           'ids': ['x'],
         }, ctx()),
         _throwsCode(AgentToolErrorCode.invalidArgument),
@@ -223,6 +216,92 @@ void main() {
       final sightings = (record['sightings'] as List).cast<Map>();
       expect(sightings.single['species_name'], 'Turtle');
       expect(sightings.single['count'], 2);
+    });
+
+    test('fields narrows a document and always keeps the id', () async {
+      final out = await tool().call({
+        'entity': 'dives',
+        'ids': ['a1'],
+        'fields': ['max_depth_m'],
+      }, ctx());
+      expect((out['records'] as List).single, {
+        'id': 'a1',
+        'max_depth_m': 20.0,
+      });
+    });
+
+    test('fields may name a block that was included', () async {
+      final out = await tool().call({
+        'entity': 'dives',
+        'ids': ['a1'],
+        'include': ['tanks'],
+        'fields': ['tanks'],
+      }, ctx());
+      final record = (out['records'] as List).cast<Map>().single;
+      expect(record.keys, unorderedEquals(['id', 'tanks']));
+    });
+
+    test('an unknown field is refused with the valid names', () async {
+      await expectLater(
+        tool().call({
+          'entity': 'dives',
+          'ids': ['a1'],
+          'fields': ['max_depth_ft'],
+        }, ctx()),
+        throwsA(
+          isA<AgentToolException>()
+              .having((e) => e.code, 'code', AgentToolErrorCode.invalidArgument)
+              .having(
+                (e) => (e.details!['valid'] as List),
+                'valid',
+                contains('max_depth_m'),
+              ),
+        ),
+      );
+    });
+
+    test('fields that are not strings are refused', () async {
+      await expectLater(
+        tool().call({
+          'entity': 'dives',
+          'ids': ['a1'],
+          'fields': [1],
+        }, ctx()),
+        _throwsCode(AgentToolErrorCode.invalidArgument),
+      );
+    });
+
+    test('include names only that entity\'s blocks', () async {
+      await expectLater(
+        tool().call({
+          'entity': 'dive_tanks',
+          'ids': ['x'],
+          'include': ['profile'],
+        }, ctx()),
+        throwsA(
+          isA<AgentToolException>()
+              .having((e) => e.code, 'code', AgentToolErrorCode.invalidArgument)
+              .having((e) => e.message, 'message', contains('dive_tanks')),
+        ),
+      );
+    });
+
+    test('a child entity is read through its parent\'s visibility', () async {
+      await db
+          .into(db.diveTanks)
+          .insert(DiveTanksCompanion.insert(id: 'tank-a', diveId: 'a1'));
+      final asOwner = await tool().call({
+        'entity': 'dive_tanks',
+        'ids': ['tank-a'],
+      }, ctx());
+      expect((asOwner['records'] as List).cast<Map>().single['dive_id'], 'a1');
+      final asOther = await tool().call({
+        'entity': 'dive_tanks',
+        'ids': ['tank-a'],
+        'diver_id': b,
+      }, ctx());
+      expect(asOther['records'], isEmpty);
+      expect(asOther['missing'], ['tank-a']);
     });
   });
 }
