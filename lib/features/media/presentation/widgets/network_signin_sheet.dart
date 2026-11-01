@@ -10,6 +10,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 
 /// Two-mode segmented control for the auth type. Maps to the persisted
@@ -63,6 +64,9 @@ class _NetworkSignInSheetState extends ConsumerState<NetworkSignInSheet> {
     setState(() => _saving = true);
     final navigator = Navigator.of(context);
     final notifier = ref.read(urlTabNotifierProvider.notifier);
+    // The container, not ref: the list must refresh even if the sheet was
+    // dismissed while saving.
+    final container = ProviderScope.containerOf(context, listen: false);
     try {
       await notifier.saveCredentials(
         hostname: widget.hostname,
@@ -79,6 +83,7 @@ class _NetworkSignInSheetState extends ConsumerState<NetworkSignInSheet> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+    container.invalidate(savedHostsProvider);
     if (!mounted) return;
     navigator.pop();
   }
