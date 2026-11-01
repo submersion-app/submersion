@@ -12,6 +12,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/import_wizard/data/adapters/existing_import_records.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -1043,9 +1044,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Duplicate detection, degraded to "found none" if it throws.
   ///
   /// Flagging duplicates is a convenience laid over the import, and it reads
-  /// the whole existing library to do it. A failure in that read is no reason
-  /// to make the file unimportable: the review step still lists every incoming
-  /// row for the user to deselect by hand.
+  /// the existing records the payload needs to do it. A failure in that read
+  /// is no reason to make the file unimportable: the review step still lists
+  /// every incoming row for the user to deselect by hand.
   Future<ImportDuplicateResult> _checkDuplicatesOrEmpty(
     ImportPayload payload,
   ) async {
@@ -1111,40 +1112,26 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   }
 
   Future<ImportDuplicateResult> _checkDuplicates(ImportPayload payload) async {
-    const checker = ImportDuplicateChecker();
-
-    final existingTrips = await _ref.read(allTripsProvider.future);
-    final existingSites = await _ref.read(sitesProvider.future);
-    final existingEquipment = await _ref.read(allEquipmentProvider.future);
-    final existingBuddies = await _ref.read(allBuddiesProvider.future);
-    final existingDiveCenters = await _ref.read(allDiveCentersProvider.future);
-    final existingCertifications = await _ref.read(
-      allCertificationsProvider.future,
-    );
-    final existingTags = await _ref.read(tagsProvider.future);
-    final existingDiveTypes = await _ref.read(diveTypesProvider.future);
     final diveRepo = _ref.read(diveRepositoryProvider);
-    final existingDives = await diveRepo.getAllDives();
-    final existingSourceUuidByDiveId = await diveRepo.getSourceUuidByDiveId();
-
-    return checker.check(
-      payload: payload,
-      existingDives: existingDives,
-      existingSites: existingSites,
-      existingTrips: existingTrips,
-      existingEquipment: existingEquipment,
-      existingBuddies: existingBuddies,
-      existingDiveCenters: existingDiveCenters,
-      existingCertifications: existingCertifications,
-      existingTags: existingTags,
-      existingDiveTypes: existingDiveTypes,
-      existingSourceUuidByDiveId: existingSourceUuidByDiveId,
+    final records = await readRecordsNeededBy(
+      payload,
+      dives: () => diveRepo.getDiveMatchRecords(),
+      sourceUuidByDiveId: () => diveRepo.getSourceUuidByDiveId(),
+      trips: () => _ref.read(allTripsProvider.future),
+      sites: () => _ref.read(sitesProvider.future),
+      equipment: () => _ref.read(allEquipmentProvider.future),
+      buddies: () => _ref.read(allBuddiesProvider.future),
+      diveCenters: () => _ref.read(allDiveCentersProvider.future),
+      certifications: () => _ref.read(allCertificationsProvider.future),
+      tags: () => _ref.read(tagsProvider.future),
+      diveTypes: () => _ref.read(diveTypesProvider.future),
+      certificationCatalog: () =>
+          _ref.read(allCustomCertificationsCatalogProvider.future),
+    );
+    return records.check(
+      payload,
       checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
-      checkWithinFile: (payload.metadata['batchFileCount'] as int? ?? 1) <= 1,
       units: UnitFormatter(_ref.read(settingsProvider)),
-      certificationCatalog: await _ref.read(
-        allCustomCertificationsCatalogProvider.future,
-      ),
     );
   }
 

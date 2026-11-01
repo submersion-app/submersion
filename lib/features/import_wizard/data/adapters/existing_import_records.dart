@@ -6,7 +6,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_import/domain/entities/dive_match_record.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -18,6 +18,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
@@ -40,7 +41,7 @@ class ExistingImportRecords {
     this.certificationCatalog,
   });
 
-  final List<Dive> dives;
+  final List<DiveMatchRecord> dives;
   final List<DiveSite> sites;
   final List<Trip> trips;
   final List<EquipmentItem> equipment;
@@ -82,38 +83,81 @@ class ExistingImportRecords {
   }
 }
 
+/// The records [payload] is checked against, and only those (issue #3855).
+///
+/// Each entity type is compared with its own records alone, so a type the
+/// payload does not carry has nothing to read: a file of sites must not pay
+/// to read the logbook or every certification's card image. Source UUIDs are
+/// read only for dives that carry one.
+Future<ExistingImportRecords> readRecordsNeededBy(
+  ImportPayload payload, {
+  required Future<List<DiveMatchRecord>> Function() dives,
+  required Future<Map<String, String>> Function() sourceUuidByDiveId,
+  required Future<List<Trip>> Function() trips,
+  required Future<List<DiveSite>> Function() sites,
+  required Future<List<EquipmentItem>> Function() equipment,
+  required Future<List<Buddy>> Function() buddies,
+  required Future<List<DiveCenter>> Function() diveCenters,
+  required Future<List<Certification>> Function() certifications,
+  required Future<List<Tag>> Function() tags,
+  required Future<List<DiveTypeEntity>> Function() diveTypes,
+  required Future<CertificationCatalog> Function() certificationCatalog,
+}) async {
+  bool carries(ImportEntityType type) => payload.entitiesOf(type).isNotEmpty;
+  Future<List<T>> readIfCarried<T>(
+    ImportEntityType type,
+    Future<List<T>> Function() read,
+  ) async => carries(type) ? await read() : <T>[];
+
+  return ExistingImportRecords(
+    trips: await readIfCarried(ImportEntityType.trips, trips),
+    sites: await readIfCarried(ImportEntityType.sites, sites),
+    equipment: await readIfCarried(ImportEntityType.equipment, equipment),
+    buddies: await readIfCarried(ImportEntityType.buddies, buddies),
+    diveCenters: await readIfCarried(ImportEntityType.diveCenters, diveCenters),
+    certifications: await readIfCarried(
+      ImportEntityType.certifications,
+      certifications,
+    ),
+    tags: await readIfCarried(ImportEntityType.tags, tags),
+    diveTypes: await readIfCarried(ImportEntityType.diveTypes, diveTypes),
+    dives: await readIfCarried(ImportEntityType.dives, dives),
+    sourceUuidByDiveId: _carriesSourceUuid(payload)
+        ? await sourceUuidByDiveId()
+        : const {},
+    certificationCatalog: carries(ImportEntityType.certifications)
+        ? await certificationCatalog()
+        : null,
+  );
+}
+
+bool _carriesSourceUuid(ImportPayload payload) => payload
+    .entitiesOf(ImportEntityType.dives)
+    .any((dive) => (dive['sourceUuid'] as String?)?.isNotEmpty ?? false);
+
 /// The active profile's records, read the way the review always has:
 /// through the diver-scoped list providers, refreshed. `refresh()` rather
 /// than `read()`, which may return a value invalidated but not re-fetched.
 Future<ExistingImportRecords> loadActiveDiverRecords(
   ProviderContainer container,
+  ImportPayload payload,
   String? diverId,
-) async {
-  final trips = await container.refresh(allTripsProvider.future);
-  final sites = await container.refresh(sitesProvider.future);
-  final equipment = await container.refresh(allEquipmentProvider.future);
-  final buddies = await container.refresh(allBuddiesProvider.future);
-  final diveCenters = await container.refresh(allDiveCentersProvider.future);
-  final certifications = await container.refresh(
-    allCertificationsProvider.future,
-  );
-  final tags = await container.refresh(tagsProvider.future);
-  final diveTypes = await container.refresh(diveTypesProvider.future);
+) {
   final diveRepo = container.read(diveRepositoryProvider);
-  return ExistingImportRecords(
-    trips: trips,
-    sites: sites,
-    equipment: equipment,
-    buddies: buddies,
-    diveCenters: diveCenters,
-    certifications: certifications,
-    tags: tags,
-    diveTypes: diveTypes,
-    dives: await diveRepo.getAllDives(diverId: diverId),
-    sourceUuidByDiveId: await diveRepo.getSourceUuidByDiveId(diverId: diverId),
-    certificationCatalog: await container.read(
-      allCustomCertificationsCatalogProvider.future,
-    ),
+  return readRecordsNeededBy(
+    payload,
+    dives: () => diveRepo.getDiveMatchRecords(diverId: diverId),
+    sourceUuidByDiveId: () => diveRepo.getSourceUuidByDiveId(diverId: diverId),
+    trips: () => container.refresh(allTripsProvider.future),
+    sites: () => container.refresh(sitesProvider.future),
+    equipment: () => container.refresh(allEquipmentProvider.future),
+    buddies: () => container.refresh(allBuddiesProvider.future),
+    diveCenters: () => container.refresh(allDiveCentersProvider.future),
+    certifications: () => container.refresh(allCertificationsProvider.future),
+    tags: () => container.refresh(tagsProvider.future),
+    diveTypes: () => container.refresh(diveTypesProvider.future),
+    certificationCatalog: () =>
+        container.read(allCustomCertificationsCatalogProvider.future),
   );
 }
 
@@ -122,39 +166,36 @@ Future<ExistingImportRecords> loadActiveDiverRecords(
 /// null id would make every filter return all divers' rows.
 Future<ExistingImportRecords> loadProfileRecords(
   ProviderContainer container,
+  ImportPayload payload,
   String diverId,
-) async {
+) {
   final diveRepo = container.read(diveRepositoryProvider);
-  return ExistingImportRecords(
-    trips: await container
-        .read(tripRepositoryProvider)
-        .getAllTrips(diverId: diverId),
-    sites: await container
-        .read(siteRepositoryProvider)
-        .getAllSites(diverId: diverId),
-    equipment: await container
+  return readRecordsNeededBy(
+    payload,
+    dives: () => diveRepo.getDiveMatchRecords(diverId: diverId),
+    sourceUuidByDiveId: () => diveRepo.getSourceUuidByDiveId(diverId: diverId),
+    trips: () =>
+        container.read(tripRepositoryProvider).getAllTrips(diverId: diverId),
+    sites: () =>
+        container.read(siteRepositoryProvider).getAllSites(diverId: diverId),
+    equipment: () => container
         .read(equipmentRepositoryProvider)
         .getAllEquipment(diverId: diverId),
-    buddies: await container
-        .read(buddyRepositoryProvider)
-        .getAllBuddies(diverId: diverId),
-    diveCenters: await container
+    buddies: () =>
+        container.read(buddyRepositoryProvider).getAllBuddies(diverId: diverId),
+    diveCenters: () => container
         .read(diveCenterRepositoryProvider)
         .getAllDiveCenters(diverId: diverId),
-    certifications: await container
+    certifications: () => container
         .read(certificationRepositoryProvider)
         .getAllCertifications(diverId: diverId),
-    tags: await container
-        .read(tagRepositoryProvider)
-        .getAllTags(diverId: diverId),
-    diveTypes: await container
+    tags: () =>
+        container.read(tagRepositoryProvider).getAllTags(diverId: diverId),
+    diveTypes: () => container
         .read(diveTypeRepositoryProvider)
         .getAllDiveTypes(diverId: diverId),
-    dives: await diveRepo.getAllDives(diverId: diverId),
-    sourceUuidByDiveId: await diveRepo.getSourceUuidByDiveId(diverId: diverId),
-    certificationCatalog: await container.read(
-      allCustomCertificationsCatalogProvider.future,
-    ),
+    certificationCatalog: () =>
+        container.read(allCustomCertificationsCatalogProvider.future),
   );
 }
 
@@ -163,10 +204,11 @@ Future<ExistingImportRecords> loadProfileRecords(
 /// alone).
 Future<ExistingImportRecords> loadNewProfileRecords(
   ProviderContainer container,
+  ImportPayload payload,
 ) async {
   return ExistingImportRecords(
-    diveTypes: await container
-        .read(diveTypeRepositoryProvider)
-        .getAllDiveTypes(),
+    diveTypes: payload.entitiesOf(ImportEntityType.diveTypes).isEmpty
+        ? const []
+        : await container.read(diveTypeRepositoryProvider).getAllDiveTypes(),
   );
 }

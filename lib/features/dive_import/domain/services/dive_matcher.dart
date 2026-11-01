@@ -8,6 +8,13 @@ class DiveMatcher {
   /// Creates a [DiveMatcher] instance.
   const DiveMatcher();
 
+  /// Minutes apart at which the time score, and so the whole score, is zero.
+  static const _timeZeroMinutes = 15;
+
+  /// How far apart two dives' starts can be and still score above zero, so
+  /// the widest gap worth scoring at all (see [MatchScorer.gateOnZeroTime]).
+  static const candidateWindow = Duration(minutes: _timeZeroMinutes);
+
   /// Weighted scorer for file imports: time 50%, depth 30%, duration 20%.
   ///
   /// Time is scored over 5-15 min (whole minutes), depth as a percentage
@@ -18,7 +25,7 @@ class DiveMatcher {
     depthWeight: 0.30,
     durationWeight: 0.20,
     timeFull: 5, // minutes
-    timeZero: 15,
+    timeZero: _timeZeroMinutes * 1.0,
     depthFull: 0.10, // fraction
     depthZero: 0.20,
     durationFull: 3, // minutes
