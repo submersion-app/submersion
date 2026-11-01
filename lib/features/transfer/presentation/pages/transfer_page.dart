@@ -736,12 +736,11 @@ class _ComputersSectionContentState
 
   @override
   void didPushNext() {
-    // Deferred, like `initState`: `RouteObserver` dispatches this
-    // synchronously from inside `NavigatorState.didUpdateWidget`, itself
-    // part of the current build scope's element rebuild pass.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _autoConnectController.deactivate();
-    });
+    // Right away, not deferred: `release()` sets no provider state, which is
+    // what `RouteObserver` dispatching this from inside the navigator's
+    // rebuild forbids, and waiting a frame would let a match open a download
+    // page over the page just pushed.
+    _autoConnectController.release();
   }
 
   @override

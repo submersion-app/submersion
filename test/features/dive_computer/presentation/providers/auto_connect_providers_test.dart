@@ -190,19 +190,35 @@ void main() {
     expect(requested, ['c1']);
   });
 
-  test('a failure reading the known computers requests nothing and keeps '
-      'scanning', () async {
+  test('known computers that cannot be read: no scan, nothing '
+      'requested', () async {
     final container = makeContainer(failToReadComputers: true);
     final controller = container.read(autoConnectControllerProvider.notifier);
     controller.activate();
     await pumpEventQueue();
 
-    final service = container.read(diveComputerServiceProvider);
-    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+    expect(hostApi.startDiscoveryCalls, 0);
+    expect(requested, isEmpty);
+    expect(container.read(autoConnectControllerProvider).isActive, isFalse);
+  });
+
+  test('no computer that can be auto-downloaded: no scan, so no Bluetooth '
+      'permission prompt either', () async {
+    final container = makeContainer(
+      computers: [
+        _computer(
+          'c1',
+          bluetoothAddress: '11:22:33:44:55:66',
+          autoDownloadDisabled: true,
+        ),
+      ],
+    );
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    controller.activate();
     await pumpEventQueue();
 
-    expect(requested, isEmpty);
-    expect(container.read(autoConnectControllerProvider).isActive, isTrue);
+    expect(hostApi.startDiscoveryCalls, 0);
+    expect(container.read(autoConnectControllerProvider).isActive, isFalse);
   });
 
   test('autoDownloadDisabled: skipped even with the switch on', () async {
@@ -213,6 +229,8 @@ void main() {
           bluetoothAddress: '11:22:33:44:55:66',
           autoDownloadDisabled: true,
         ),
+        // Keeps the scan running, so the opted-out computer is seen.
+        _computer('c2', bluetoothAddress: '99:99:99:99:99:99'),
       ],
     );
     final controller = container.read(autoConnectControllerProvider.notifier);
@@ -266,7 +284,9 @@ void main() {
 
   test('release() stops its own scan without notifying listeners, so it is '
       "safe from the hosting widget's dispose", () async {
-    final container = makeContainer(computers: const []);
+    final container = makeContainer(
+      computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+    );
     final controller = container.read(autoConnectControllerProvider.notifier);
     controller.activate();
     await pumpEventQueue();
@@ -290,7 +310,7 @@ void main() {
   });
 
   test(
-    'deactivate() does not stop a scan this controller never started',
+    'release() does not stop a scan this controller never started',
     () async {
       final container = makeContainer(
         computers: const [],
@@ -303,7 +323,7 @@ void main() {
 
       final controller = container.read(autoConnectControllerProvider.notifier);
       controller.activate(); // no-op: the switch is off
-      controller.deactivate();
+      controller.release();
       await pumpEventQueue();
 
       expect(hostApi.stopDiscoveryCalls, 0);
@@ -325,7 +345,7 @@ void main() {
     expect(requested, ['c1']);
 
     // The download page covers the section, then is closed again.
-    controller.deactivate();
+    controller.release();
     controller.activate();
     await pumpEventQueue();
     expect(hostApi.startDiscoveryCalls, 2);
@@ -365,7 +385,7 @@ void main() {
     expect(requested, ['b']);
 
     // B's download page is closed again; A is still in range.
-    controller.deactivate();
+    controller.release();
     controller.activate();
     await pumpEventQueue();
     service.onDeviceDiscovered(_advert('11:11:11:11:11:11', name: 'A'));
@@ -395,7 +415,9 @@ void main() {
   test(
     'flipping the switch off while scanning stops the scan right away',
     () async {
-      final container = makeContainer(computers: const []);
+      final container = makeContainer(
+        computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+      );
       final controller = container.read(autoConnectControllerProvider.notifier);
       controller.activate();
       await pumpEventQueue();
@@ -412,7 +434,9 @@ void main() {
   );
 
   test('flipping the switch back on while visible resumes the scan', () async {
-    final container = makeContainer(computers: const []);
+    final container = makeContainer(
+      computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+    );
     final controller = container.read(autoConnectControllerProvider.notifier);
     controller.activate();
     await pumpEventQueue();
@@ -432,7 +456,9 @@ void main() {
 
   group('root-navigator overlay guard (issue #3361, Task 4b)', () {
     test('pauses the scan while a root overlay is active', () async {
-      final container = makeContainer(computers: const []);
+      final container = makeContainer(
+        computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+      );
       final controller = container.read(autoConnectControllerProvider.notifier);
       controller.activate();
       await pumpEventQueue();
@@ -446,7 +472,9 @@ void main() {
     });
 
     test('resumes once the root overlay clears', () async {
-      final container = makeContainer(computers: const []);
+      final container = makeContainer(
+        computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+      );
       final controller = container.read(autoConnectControllerProvider.notifier);
       controller.activate();
       await pumpEventQueue();

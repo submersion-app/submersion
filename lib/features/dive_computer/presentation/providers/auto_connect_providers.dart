@@ -1,9 +1,7 @@
 import 'dart:async';
 
-import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overlay_providers.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
@@ -58,10 +56,9 @@ class AutoConnectState {
 /// [DownloadNotifier] itself: that page is what imports the dives and
 /// updates the computer's dive count, fingerprint and connection, so a
 /// download started here directly would never reach the logbook.
-/// [activate]/[deactivate] are
-/// called directly by the hosting widget - not left to Riverpod's own
-/// dispose - because they must also react to a route being pushed on top
-/// (pause) and popped back (resume), not just widget mount/unmount.
+/// [activate] and [release] are called directly by the hosting widget - not
+/// left to Riverpod's own dispose - because they must also react to a route
+/// being pushed on top and popped back, not just widget mount/unmount.
 class AutoConnectController extends StateNotifier<AutoConnectState> {
   AutoConnectController({required Ref ref})
     : _ref = ref,
@@ -69,18 +66,20 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
 
   final Ref _ref;
 
-  /// Whether this controller is the one that started the current scan, so
-  /// [deactivate] never stops a scan the manual discovery wizard started on
-  /// its own.
-  bool _scanOwnedByUs = false;
+  /// Whether the passive scan runs. Kept here rather than read from
+  /// [state]: [release] runs where provider state must not change, and a
+  /// controller released there has to start again on its next [activate].
+  bool _active = false;
 
   ProviderSubscription<List<DiscoveredDevice>>? _devicesSubscription;
   ProviderSubscription<bool>? _downloadingSubscription;
   ProviderSubscription<bool>? _overlaySubscription;
   ProviderSubscription<bool>? _switchSubscription;
+  ProviderSubscription<AsyncValue<List<DiveComputer>>>? _computersSubscription;
 
-  /// Starts the passive scan, if the global switch is on. Safe to call
-  /// repeatedly (resuming after a pause is a second `activate()` call).
+  /// Starts the passive scan, if the global switch is on and a known
+  /// computer can be auto-downloaded. Safe to call repeatedly (coming back
+  /// from a covering page is another `activate()` call).
   void activate() {
     _overlaySubscription ??= _ref.listen(rootOverlayActiveProvider, (
       _,
@@ -106,74 +105,95 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       }
     });
 
-    if (_ref.read(rootOverlayActiveProvider)) return;
-    _resume();
+    // No computer to auto-download, no scan: a diver with none is never
+    // asked for Bluetooth access here, and the scan starts or stops as
+    // computers are added, removed or opted out while the section is open.
+    _computersSubscription ??= _ref.listen(allDiveComputersProvider, (_, next) {
+      final computers = next.valueOrNull;
+      if (computers == null) return;
+      if (!_hasEligibleComputer(computers)) {
+        _pause();
+      } else if (!_ref.read(rootOverlayActiveProvider)) {
+        _resume();
+      }
+    });
+
+    if (!_ref.read(rootOverlayActiveProvider)) _resume();
+    // [release] leaves the shown state as it was; bring it in line now, or
+    // "Searching..." would keep spinning without a scan behind it.
+    if (!_active && state.isActive) state = state.copyWith(isActive: false);
   }
 
-  /// Pauses the passive scan while a page covers the section, and tears down
-  /// the one-shot listeners. Leaves the root-overlay and switch
-  /// subscriptions in place, matching `activate()` being idempotent; the
-  /// hosting widget's `dispose()` uses [release] instead.
-  void deactivate() {
-    _pause();
-  }
-
-  /// For the hosting widget's `dispose()`: closes every listener and stops
-  /// this controller's own scan, but never sets [state]. `dispose()` runs
-  /// while the tree is being torn down, where Riverpod rejects a provider
-  /// change, and the controller itself is discarded right after
-  /// (`autoDispose`), so its state no longer matters.
+  /// For a page covering the section and for the hosting widget's
+  /// `dispose()`: closes every listener and stops this controller's own
+  /// scan, but never sets [state]. A page is pushed from inside the
+  /// navigator's rebuild and `dispose()` runs while the tree is torn down,
+  /// both places where Riverpod rejects a provider change. Closing the
+  /// listeners right away also keeps a match from opening a download page
+  /// over the page just pushed; [activate] sets them up again.
   void release() {
-    _devicesSubscription?.close();
-    _devicesSubscription = null;
-    _downloadingSubscription?.close();
-    _downloadingSubscription = null;
+    _closeScanListeners();
     _overlaySubscription?.close();
     _overlaySubscription = null;
     _switchSubscription?.close();
     _switchSubscription = null;
-    _stopOwnedScan();
+    _computersSubscription?.close();
+    _computersSubscription = null;
+    _stopOwnScan();
   }
 
   void _resume() {
-    if (state.isActive) return;
+    if (_active) return;
     if (!_ref.read(autoConnectKnownComputersProvider)) return;
+    final computers = _ref.read(allDiveComputersProvider).valueOrNull;
+    if (computers == null || !_hasEligibleComputer(computers)) return;
 
-    _scanOwnedByUs = true;
-    unawaited(_ref.read(discoveryNotifierProvider.notifier).startScan());
+    _active = true;
+    unawaited(
+      _ref.read(discoveryNotifierProvider.notifier).startScan(owner: this),
+    );
 
-    _devicesSubscription = _ref.listen(discoveredDevicesProvider, (_, _) {
-      unawaited(_tryTriggerNextMatch());
-    });
+    _devicesSubscription = _ref.listen(
+      discoveredDevicesProvider,
+      (_, _) => _tryTriggerNextMatch(),
+    );
     _downloadingSubscription = _ref.listen(isDownloadingProvider, (
       wasDownloading,
       isDownloading,
     ) {
       if (wasDownloading == true && isDownloading == false) {
-        unawaited(_tryTriggerNextMatch());
+        _tryTriggerNextMatch();
       }
     });
 
     state = state.copyWith(isActive: true);
-    unawaited(_tryTriggerNextMatch());
+    _tryTriggerNextMatch();
   }
 
   void _pause() {
+    _closeScanListeners();
+    _stopOwnScan();
+    state = state.copyWith(isActive: false);
+  }
+
+  void _closeScanListeners() {
     _devicesSubscription?.close();
     _devicesSubscription = null;
     _downloadingSubscription?.close();
     _downloadingSubscription = null;
-
-    _stopOwnedScan();
-
-    state = state.copyWith(isActive: false);
   }
 
-  void _stopOwnedScan() {
-    if (!_scanOwnedByUs) return;
-    unawaited(_ref.read(discoveryNotifierProvider.notifier).stopScan());
-    _scanOwnedByUs = false;
+  /// Stops the scan only if this controller started it, so a scan the
+  /// wizard or a download page runs keeps running.
+  void _stopOwnScan() {
+    _active = false;
+    unawaited(
+      _ref.read(discoveryNotifierProvider.notifier).stopScanOwnedBy(this),
+    );
   }
+
+  static bool _hasEligibleComputer(List<DiveComputer> computers) =>
+      computers.any((computer) => !computer.autoDownloadDisabled);
 
   /// Consumed by the widget right after it shows the "Downloading from
   /// `name`..." feedback for [AutoConnectState.justTriggered].
@@ -188,29 +208,18 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
   /// resumes the scan, which finds the next one. Re-running on every
   /// `isDownloadingProvider` `true -> false` edge as well covers a download
   /// that was still running elsewhere when a computer was already in range.
-  Future<void> _tryTriggerNextMatch() async {
-    if (!_canTrigger) return;
+  ///
+  /// Synchronous on purpose: with no await between the checks and the
+  /// request, a pause or another pass cannot slip in between them.
+  void _tryTriggerNextMatch() {
+    if (!_active || _ref.read(isDownloadingProvider)) return;
 
-    final List<DiveComputer> computers;
-    try {
-      // Already scoped to the active diver's own computers
-      // (`getAllComputers(diverId: ...)`): a computer belonging to another
-      // diver on a shared device never appears here.
-      computers = await _ref.read(allDiveComputersProvider.future);
-    } catch (error, stackTrace) {
-      _log.error(
-        'Auto-connect failed to read known computers',
-        category: LogCategory.bluetooth,
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return;
-    }
-
-    // Checked again: the await yields, so a pause, a download started
-    // elsewhere, or another pass that already requested a page can have
-    // happened in between.
-    if (!mounted || !_canTrigger) return;
+    // Already scoped to the active diver's own computers
+    // (`getAllComputers(diverId: ...)`): a computer belonging to another
+    // diver on a shared device never appears here. Loaded before the scan
+    // started (see `_resume`).
+    final computers = _ref.read(allDiveComputersProvider).valueOrNull;
+    if (computers == null) return;
 
     final computer = _firstMatchInDiscoveryOrder(
       computers,
@@ -228,30 +237,24 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     _pause();
   }
 
-  bool get _canTrigger => state.isActive && !_ref.read(isDownloadingProvider);
-
   /// The eligible computer whose device appears earliest in [discovered],
   /// which `DiscoveryNotifier` keeps in the order the devices were found.
   DiveComputer? _firstMatchInDiscoveryOrder(
     List<DiveComputer> computers,
     List<DiscoveredDevice> discovered,
   ) {
-    DiveComputer? first;
-    var firstIndex = discovered.length;
+    final byDevice = Map<DiscoveredDevice, DiveComputer>.identity();
     for (final computer in computers) {
       if (state.triggeredComputerIds.contains(computer.id)) continue;
       if (computer.autoDownloadDisabled) continue;
-
       final device = _resolveDevice(computer, discovered);
-      if (device == null) continue;
-
-      final index = discovered.indexWhere((d) => identical(d, device));
-      if (index >= 0 && index < firstIndex) {
-        first = computer;
-        firstIndex = index;
-      }
+      if (device != null) byDevice.putIfAbsent(device, () => computer);
     }
-    return first;
+    for (final device in discovered) {
+      final computer = byDevice[device];
+      if (computer != null) return computer;
+    }
+    return null;
   }
 
   /// Resolves the discovered device for [computer]: an exact Bluetooth
@@ -270,14 +273,10 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     }
     return sameModelFallbackDevice(computer: computer, discovered: discovered);
   }
-
-  static final LoggerService _log = LoggerService.forClass(
-    AutoConnectController,
-  );
 }
 
 /// `autoDispose` so leaving the Transfer tab entirely tears this down even
-/// if the hosting widget somehow failed to call `deactivate()`.
+/// if the hosting widget somehow failed to call `release()`.
 final autoConnectControllerProvider =
     StateNotifierProvider.autoDispose<AutoConnectController, AutoConnectState>(
       (ref) => AutoConnectController(ref: ref),

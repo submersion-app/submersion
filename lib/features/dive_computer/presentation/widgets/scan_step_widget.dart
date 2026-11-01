@@ -51,9 +51,10 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
   void dispose() {
     // The wizard's close button only pops the route (issue #4088): without
     // this, leaving the step mid-scan left the native Bluetooth scan running
-    // until another scan replaced it or the app exited. A no-op when the
-    // scan was already stopped (e.g. via "Stop searching").
-    _discovery.stopScan();
+    // until another scan replaced it or the app exited. Only a manual scan:
+    // the auto-connect scan the Dive Computers section restarts on the way
+    // back must keep running (issue #3361).
+    _discovery.stopScanOwnedBy(null);
     _tabController?.dispose();
     super.dispose();
   }

@@ -230,10 +230,14 @@ void main() {
     /// Registers `computersRouteObserver` on this test's own `GoRouter`,
     /// unlike `pumpComputersSection` above: only this group exercises the
     /// push/pop pause-resume path, so only it pays for the extra route.
+    /// [computers] defaults to one known Bluetooth computer: with none the
+    /// section never scans at all.
     Future<GoRouter> pumpWithRouteObserver(
       WidgetTester tester, {
-      List<DiveComputer> computers = const [],
+      List<DiveComputer>? computers,
     }) async {
+      final known =
+          computers ?? [computer(bluetoothAddress: 'AA:BB:CC:DD:EE:FF')];
       await tester.binding.setSurfaceSize(const Size(420, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -267,7 +271,7 @@ void main() {
         ProviderScope(
           overrides: [
             diveComputerServiceProvider.overrideWithValue(service),
-            allDiveComputersProvider.overrideWith((ref) async => computers),
+            allDiveComputersProvider.overrideWith((ref) async => known),
           ],
           child: MaterialApp.router(
             routerConfig: router,

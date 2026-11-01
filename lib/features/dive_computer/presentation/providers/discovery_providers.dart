@@ -162,6 +162,13 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   StreamSubscription<pigeon.DiscoveredDevice>? _discoverySubscription;
   StreamSubscription<void>? _discoveryCompleteSubscription;
 
+  /// Who started the current scan, and a count of scans started. Every
+  /// flow shares this one notifier, so a flow stopping "its" scan must not
+  /// stop one another flow started since, and a stop that finishes late must
+  /// not mark a newer scan as ended (issue #3361).
+  Object? _scanOwner;
+  int _scanGeneration = 0;
+
   DiscoveryNotifier({
     required pigeon.DiveComputerService service,
     bool? requiresRuntimePermissions,
@@ -174,8 +181,12 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     });
   }
 
-  /// Start scanning for devices via BLE.
-  Future<void> startScan() async {
+  /// Start scanning for devices via BLE. [owner] identifies the caller for
+  /// [stopScanOwnedBy]; null is every manual flow (the wizards and download
+  /// pages).
+  Future<void> startScan({Object? owner}) async {
+    _scanGeneration++;
+    _scanOwner = owner;
     try {
       // Request Bluetooth permissions on Android before scanning.
       if (_requiresRuntimePermissions) {
@@ -258,6 +269,7 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
 
   /// Stop scanning.
   Future<void> stopScan() async {
+    final generation = _scanGeneration;
     _discoverySubscription?.cancel();
     _discoverySubscription = null;
     await _service.stopDiscovery();
@@ -269,7 +281,17 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
       '${state.discoveredDevices.length} supported device(s) found',
       category: LogCategory.bluetooth,
     );
+    // A scan started while this stop was in flight is running now; marking
+    // it finished would end that caller's wait early.
+    if (generation != _scanGeneration) return;
     state = state.copyWith(isScanning: false);
+  }
+
+  /// Stops the current scan only if [owner] started it (null: a manual
+  /// flow), so closing one flow never stops a scan another one runs.
+  Future<void> stopScanOwnedBy(Object? owner) async {
+    if (!identical(_scanOwner, owner)) return;
+    await stopScan();
   }
 
   /// Scans until a device advertising [address] is seen, then stops.

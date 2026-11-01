@@ -80,7 +80,9 @@ starts the download on its own.
 2. If the global auto-scan switch is on, a passive BLE scan starts
    automatically - no tap needed. A small inline indicator shows that a scan
    is running (distinct from the existing "Connect new computer" wizard,
-   which keeps its own explicit, user-initiated scan).
+   which keeps its own explicit, user-initiated scan). With no known
+   computer that can be auto-downloaded there is no scan at all, so a
+   diver who has none is never asked for Bluetooth access here.
 3. Each scan result is matched against the stored `DiveComputer` records
    using the existing reacquisition matcher. A match that belongs to a
    computer with auto-download opted out is ignored for this purpose (it
