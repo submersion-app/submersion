@@ -1,5 +1,5 @@
-import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/features/agent_access/data/query_roots.dart';
 import 'package:submersion/features/agent_access/data/resources/agent_resource.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
@@ -79,7 +79,7 @@ class QueryLanguageResource implements AgentResource {
     final out = StringBuffer(kQueryGrammarText);
     out.writeln();
     out.writeln('# Roots and fields');
-    for (final subject in QuerySubject.values.take(9)) {
+    for (final subject in kQueryRoots) {
       _writeEntity(out, appQueryRegistry.entityFor(subject));
     }
     return out.toString();

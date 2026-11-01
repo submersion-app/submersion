@@ -1,11 +1,11 @@
 import 'dart:convert';
 
+import 'package:submersion/features/agent_access/data/diver_settings_lookup.dart';
 import 'package:submersion/features/agent_access/data/documents/diver_document.dart';
 import 'package:submersion/features/agent_access/data/resources/agent_resource.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Every profile's display units, so an agent can convert metric values
 /// before presenting them.
@@ -31,9 +31,10 @@ class UnitsResource implements AgentResource {
   @override
   Future<String> read(AgentToolContext context) async {
     final rows = <Map<String, Object?>>[];
-    for (final diver in await _divers.getAllDivers()) {
-      final settings =
-          await _settings.getSettingsForDiver(diver.id) ?? const AppSettings();
+    for (final (:diver, :settings) in await diversWithSettings(
+      _divers,
+      _settings,
+    )) {
       final doc = diverDocument(
         diver,
         isActive: false,

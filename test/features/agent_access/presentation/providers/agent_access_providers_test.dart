@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -8,12 +6,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/agent_access/data/agent_access_token_store.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
-import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/global_test_defaults.dart';
+import '../../../../helpers/test_log_file_service.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../support/fake_keychain_storage.dart';
@@ -30,37 +28,6 @@ class _FakeDebugMode extends DebugModeNotifier {
 
   @override
   Future<void> disable() async => state = false;
-}
-
-/// A keychain that answers slowly, so a rotation can race a start.
-class _SlowKeychain extends InMemoryKeychain {
-  @override
-  Future<String?> read({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async {
-    await Future<void>.delayed(const Duration(milliseconds: 150));
-    return values[key];
-  }
-}
-
-/// A keychain whose every operation fails, like a locked or absent store.
-class _ThrowingKeychain extends InMemoryKeychain {
-  @override
-  Future<String?> read({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async => throw StateError('keychain down');
 }
 
 Future<void> pumpUntil(bool Function() condition) async {
@@ -107,7 +74,7 @@ void main() {
   }) async {
     debugDefaultTargetPlatformOverride = platform;
     final base = await getBaseOverrides();
-    final logFiles = LogFileService(logDirectory: Directory.systemTemp.path);
+    final logFiles = testLogFileService();
     final c = ProviderContainer(
       overrides: [
         ...base,
@@ -204,7 +171,7 @@ void main() {
     test(
       'a rotation during a slow start wins over the token being read',
       () async {
-        final slow = _SlowKeychain()..values[AgentAccessTokenStore.key] = 'old';
+        final slow = SlowKeychain()..values[AgentAccessTokenStore.key] = 'old';
         final c = await container(
           platform: TargetPlatform.macOS,
           storage: slow,
@@ -225,7 +192,7 @@ void main() {
     );
 
     test('a scope disposed mid-start leaves no listener behind', () async {
-      final slow = _SlowKeychain();
+      final slow = SlowKeychain();
       final c = await container(platform: TargetPlatform.macOS, storage: slow);
       startController(c);
       await c.read(agentAccessSettingsProvider.notifier).setPort(0);
@@ -263,7 +230,7 @@ void main() {
     test('a token store failure surfaces as a status error', () async {
       final broken = await container(
         platform: TargetPlatform.macOS,
-        storage: _ThrowingKeychain(),
+        storage: ThrowingKeychain(),
       );
       startController(broken);
       await broken.read(agentAccessSettingsProvider.notifier).setPort(0);

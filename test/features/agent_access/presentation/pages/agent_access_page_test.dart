@@ -14,20 +14,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/test_app.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
-/// A keychain whose every read fails, like a locked store.
-class _ThrowingKeychain extends InMemoryKeychain {
-  @override
-  Future<String?> read({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async => throw StateError('keychain down');
-}
-
 /// A controller that never touches the real server.
 class _QuietController extends AgentAccessController {
   _QuietController(this.testRef) : super(testRef);
@@ -118,7 +104,7 @@ void main() {
     });
 
     testWidgets('survives a token read that fails', (tester) async {
-      await pump(tester, storage: _ThrowingKeychain());
+      await pump(tester, storage: ThrowingKeychain());
       expect(find.text('Agent access'), findsWidgets);
       expect(find.text('Listening'), findsOneWidget);
       expect(find.text('Claude Code'), findsNothing);

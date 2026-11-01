@@ -6,6 +6,7 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/documents/dive_summary_document.dart';
+import 'package:submersion/features/agent_access/data/query_roots.dart';
 import 'package:submersion/features/agent_access/data/root_scope.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/tool_args.dart';
@@ -16,9 +17,6 @@ import 'package:submersion/features/equipment/query/equipment_query_entity.dart'
     show serviceStatusTable;
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
-
-/// The nine subjects a query may root at, in the registry's order.
-final List<QuerySubject> kQueryRoots = QuerySubject.values.take(9).toList();
 
 const kQueryDefaultLimit = 500;
 const kQueryMaxLimit = 5000;

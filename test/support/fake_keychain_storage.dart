@@ -206,3 +206,42 @@ class ProbeFailingKeychain extends Fake implements FlutterSecureStorage {
     WindowsOptions? wOptions,
   }) async => throw _securityError(status, 'interaction not allowed');
 }
+
+/// A keychain whose every read fails, like a locked or absent store.
+class ThrowingKeychain extends InMemoryKeychain {
+  ThrowingKeychain({this.message = 'keychain down'});
+
+  final String message;
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => throw StateError(message);
+}
+
+/// A keychain that answers reads after [delay], so a caller can race it.
+class SlowKeychain extends InMemoryKeychain {
+  SlowKeychain({this.delay = const Duration(milliseconds: 150)});
+
+  final Duration delay;
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    await Future<void>.delayed(delay);
+    return values[key];
+  }
+}

@@ -1,9 +1,9 @@
 import 'package:submersion/features/agent_access/data/diver_context.dart';
+import 'package:submersion/features/agent_access/data/diver_settings_lookup.dart';
 import 'package:submersion/features/agent_access/data/documents/diver_document.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Lists every diver profile on the device with its unit preferences.
 class ListDiversTool implements AgentTool {
@@ -42,21 +42,20 @@ class ListDiversTool implements AgentTool {
     AgentToolContext context,
   ) async {
     final activeId = await _loader.resolveDiverId(null);
-    final divers = await _divers.getAllDivers();
-    final counts = await _divers.getDiveCountsByDiver();
-    final docs = <Map<String, Object?>>[];
-    for (final diver in divers) {
-      final settings =
-          await _settings.getSettingsForDiver(diver.id) ?? const AppSettings();
-      docs.add(
-        diverDocument(
-          diver,
-          isActive: diver.id == activeId,
-          diveCount: counts[diver.id] ?? 0,
-          settings: settings,
-        ),
-      );
-    }
-    return {'divers': docs};
+    final (profiles, counts) = await (
+      diversWithSettings(_divers, _settings),
+      _divers.getDiveCountsByDiver(),
+    ).wait;
+    return {
+      'divers': [
+        for (final (:diver, :settings) in profiles)
+          diverDocument(
+            diver,
+            isActive: diver.id == activeId,
+            diveCount: counts[diver.id] ?? 0,
+            settings: settings,
+          ),
+      ],
+    };
   }
 }

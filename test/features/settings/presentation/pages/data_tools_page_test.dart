@@ -1,25 +1,26 @@
 // Issue #3482: the four data tools moved off the Data page onto their own
 // Data tools page under Advanced, each still opening its own page.
 
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/test_log_file_service.dart';
+
 void main() {
   Future<GoRouter> pumpPage(
     WidgetTester tester, {
     bool debugMode = false,
+    bool demoActive = false,
   }) async {
     await tester.binding.setSurfaceSize(const Size(400, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -49,9 +50,8 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          logFileServiceProvider.overrideWithValue(
-            LogFileService(logDirectory: Directory.systemTemp.path),
-          ),
+          logFileServiceProvider.overrideWithValue(testLogFileService()),
+          demoModeActiveProvider.overrideWithValue(demoActive),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -127,6 +127,17 @@ void main() {
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester, debugMode: true);
     expect(find.byType(DataRowTile), findsNWidgets(4));
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('disables the agent access row in demo mode', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await pumpPage(tester, debugMode: true, demoActive: true);
+    final row = tester.widget<DataRowTile>(
+      find.widgetWithText(DataRowTile, 'Agent access'),
+    );
+    expect(row.enabled, isFalse);
     debugDefaultTargetPlatformOverride = null;
   });
 }
