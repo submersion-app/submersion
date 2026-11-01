@@ -72,8 +72,8 @@ void main() {
     return id;
   }
 
-  /// Log whatever has happened so far as settled history, so the next
-  /// operation is the only one a revert can pick up.
+  /// Clears the log, so the next operation is the only one a revert can pick
+  /// up.
   Future<void> startFresh() async {
     await repository.settleAll();
     await clearLog(db);

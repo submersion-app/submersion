@@ -190,9 +190,12 @@ void main() {
       // rest are still running, which is what restarted them.
       for (final (i, gate) in simplifier.waiting.toList().indexed) {
         gate.complete();
-        await until(
-          () async => await cache.read(ids[i], TrackLod.thumbnail) != null,
-        );
+        await until(() async {
+          final rows = await cacheDb
+              .select(cacheDb.gpsTrackGeometryCache)
+              .get();
+          return rows.length == i + 1;
+        });
         await settle();
       }
 

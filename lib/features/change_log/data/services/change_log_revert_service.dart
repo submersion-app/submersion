@@ -277,12 +277,12 @@ class ChangeLogRevertService {
               if (item.removesRecord) item.event,
           ], dependencies);
         });
+        await _evictTrackGeometryOf(applying);
         await _repairRestoredMedia(applying);
         return ChangeLogScope.currentOperationId;
       },
     );
     await _finish(plan, applying, kept, operationId);
-    await _evictTrackGeometryOf(applying);
     return ChangeLogRevertResult(
       reverted: applying.length,
       kept: kept.length,
@@ -294,8 +294,8 @@ class ChangeLogRevertService {
   /// Drops the cached lines of the tracks in [applied]. A reverted trim draws
   /// different points, and a restored track's previews still hold the empty
   /// line of its delete; the cache has no TTL, so neither corrects itself.
-  /// Runs after the commit, and a failure stays here: the revert has landed,
-  /// and this is derived data.
+  /// Runs straight after the commit, ahead of steps that can throw, and a
+  /// failure stays here: the revert has landed, and this is derived data.
   Future<void> _evictTrackGeometryOf(List<ChangeLogRevertItem> applied) async {
     final trackIds = {
       for (final item in applied)
