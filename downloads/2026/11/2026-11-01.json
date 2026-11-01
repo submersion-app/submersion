@@ -1,0 +1,2452 @@
+{
+  "schema": 1,
+  "date": "2026-11-01",
+  "captured_at": "2026-11-01T20:49:39Z",
+  "releases": [
+    {
+      "tag": "demo-data",
+      "published_at": "2026-10-27T02:10:06Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "demo-manifest.json",
+          "downloads": 102
+        },
+        {
+          "name": "submersion-demo-s318.zip",
+          "downloads": 21
+        },
+        {
+          "name": "submersion-demo-s326.zip",
+          "downloads": 11
+        },
+        {
+          "name": "submersion-demo-s327.zip",
+          "downloads": 12
+        }
+      ]
+    },
+    {
+      "tag": "v1.8.3.9095",
+      "published_at": "2026-10-26T19:25:54Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 546
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 3
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.8.3.9095-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.8.3.9095-Android.apk",
+          "downloads": 67
+        },
+        {
+          "name": "Submersion-v1.8.3.9095-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.8.3.9095-Linux-amd64.deb",
+          "downloads": 10
+        },
+        {
+          "name": "Submersion-v1.8.3.9095-Linux-x86_64.rpm",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.8.3.9095-Linux.tar.gz",
+          "downloads": 8
+        },
+        {
+          "name": "Submersion-v1.8.3.9095-macOS.dmg",
+          "downloads": 165
+        },
+        {
+          "name": "Submersion-v1.8.3.9095-Windows-Setup.exe",
+          "downloads": 78
+        }
+      ]
+    },
+    {
+      "tag": "v1.8.2.8916",
+      "published_at": "2026-10-14T17:26:52Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 950
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 3
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.8.2.8916-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.8.2.8916-Android.apk",
+          "downloads": 126
+        },
+        {
+          "name": "Submersion-v1.8.2.8916-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.8.2.8916-Linux-amd64.deb",
+          "downloads": 11
+        },
+        {
+          "name": "Submersion-v1.8.2.8916-Linux-x86_64.rpm",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.8.2.8916-Linux.tar.gz",
+          "downloads": 30
+        },
+        {
+          "name": "Submersion-v1.8.2.8916-macOS.dmg",
+          "downloads": 206
+        },
+        {
+          "name": "Submersion-v1.8.2.8916-Windows-Setup.exe",
+          "downloads": 112
+        }
+      ]
+    },
+    {
+      "tag": "v1.8.1.8710",
+      "published_at": "2026-10-04T20:59:43Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 668
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.8.1.8710-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.8.1.8710-Android.apk",
+          "downloads": 80
+        },
+        {
+          "name": "Submersion-v1.8.1.8710-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.8.1.8710-Linux-amd64.deb",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.8.1.8710-Linux-x86_64.rpm",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.8.1.8710-Linux.tar.gz",
+          "downloads": 26
+        },
+        {
+          "name": "Submersion-v1.8.1.8710-macOS.dmg",
+          "downloads": 149
+        },
+        {
+          "name": "Submersion-v1.8.1.8710-Windows-Setup.exe",
+          "downloads": 95
+        }
+      ]
+    },
+    {
+      "tag": "v1.8.0.8404",
+      "published_at": "2026-09-24T18:19:21Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 1796
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.8.0.8404-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.8.0.8404-Android.apk",
+          "downloads": 177
+        },
+        {
+          "name": "Submersion-v1.8.0.8404-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.8.0.8404-Linux-amd64.deb",
+          "downloads": 6
+        },
+        {
+          "name": "Submersion-v1.8.0.8404-Linux-x86_64.rpm",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.8.0.8404-Linux.tar.gz",
+          "downloads": 33
+        },
+        {
+          "name": "Submersion-v1.8.0.8404-macOS.dmg",
+          "downloads": 1470
+        },
+        {
+          "name": "Submersion-v1.8.0.8404-Windows-Setup.exe",
+          "downloads": 88
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.10.8264",
+      "published_at": "2026-09-14T06:18:08Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 1374
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.10.8264-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.10.8264-Android.apk",
+          "downloads": 122
+        },
+        {
+          "name": "Submersion-v1.7.10.8264-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.10.8264-Linux-amd64.deb",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.7.10.8264-Linux-x86_64.rpm",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.7.10.8264-Linux.tar.gz",
+          "downloads": 24
+        },
+        {
+          "name": "Submersion-v1.7.10.8264-macOS.dmg",
+          "downloads": 913
+        },
+        {
+          "name": "Submersion-v1.7.10.8264-Windows-Setup.exe",
+          "downloads": 64
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.9.8162",
+      "published_at": "2026-09-10T23:52:34Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 678
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.9.8162-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.9.8162-Android.apk",
+          "downloads": 59
+        },
+        {
+          "name": "Submersion-v1.7.9.8162-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.9.8162-Linux-amd64.deb",
+          "downloads": 8
+        },
+        {
+          "name": "Submersion-v1.7.9.8162-Linux-x86_64.rpm",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.7.9.8162-Linux.tar.gz",
+          "downloads": 12
+        },
+        {
+          "name": "Submersion-v1.7.9.8162-macOS.dmg",
+          "downloads": 564
+        },
+        {
+          "name": "Submersion-v1.7.9.8162-Windows-Setup.exe",
+          "downloads": 35
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.8.8156",
+      "published_at": "2026-09-10T17:23:53Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 40
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.8.8156-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.8.8156-Android.apk",
+          "downloads": 25
+        },
+        {
+          "name": "Submersion-v1.7.8.8156-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.8.8156-Linux-amd64.deb",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.8.8156-Linux-x86_64.rpm",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.8.8156-Linux.tar.gz",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.7.8.8156-macOS.dmg",
+          "downloads": 32
+        },
+        {
+          "name": "Submersion-v1.7.8.8156-Windows-Setup.exe",
+          "downloads": 6
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.7.8077",
+      "published_at": "2026-09-06T15:48:51Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 670
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.7.8077-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.7.8077-Android.apk",
+          "downloads": 80
+        },
+        {
+          "name": "Submersion-v1.7.7.8077-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.7.7.8077-Linux-amd64.deb",
+          "downloads": 10
+        },
+        {
+          "name": "Submersion-v1.7.7.8077-Linux-x86_64.rpm",
+          "downloads": 9
+        },
+        {
+          "name": "Submersion-v1.7.7.8077-Linux.tar.gz",
+          "downloads": 18
+        },
+        {
+          "name": "Submersion-v1.7.7.8077-macOS.dmg",
+          "downloads": 499
+        },
+        {
+          "name": "Submersion-v1.7.7.8077-Windows-Setup.exe",
+          "downloads": 56
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.6.7161",
+      "published_at": "2026-08-28T05:51:55Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 1532
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.6.7161-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.6.7161-Android.apk",
+          "downloads": 97
+        },
+        {
+          "name": "Submersion-v1.7.6.7161-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.6.7161-Linux.tar.gz",
+          "downloads": 30
+        },
+        {
+          "name": "Submersion-v1.7.6.7161-macOS.dmg",
+          "downloads": 1177
+        },
+        {
+          "name": "Submersion-v1.7.6.7161-Windows-Setup.exe",
+          "downloads": 74
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.5.6772",
+      "published_at": "2026-08-24T21:26:05Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 467
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.7.5.6772-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.5.6772-Android.apk",
+          "downloads": 64
+        },
+        {
+          "name": "Submersion-v1.7.5.6772-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.7.5.6772-Linux.tar.gz",
+          "downloads": 12
+        },
+        {
+          "name": "Submersion-v1.7.5.6772-macOS.dmg",
+          "downloads": 355
+        },
+        {
+          "name": "Submersion-v1.7.5.6772-Windows-Setup.exe",
+          "downloads": 41
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.4.6062",
+      "published_at": "2026-08-15T19:09:37Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 838
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.4.6062-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.4.6062-Android.apk",
+          "downloads": 80
+        },
+        {
+          "name": "Submersion-v1.7.4.6062-iOS.ipa",
+          "downloads": 8
+        },
+        {
+          "name": "Submersion-v1.7.4.6062-Linux.tar.gz",
+          "downloads": 13
+        },
+        {
+          "name": "Submersion-v1.7.4.6062-macOS.dmg",
+          "downloads": 515
+        },
+        {
+          "name": "Submersion-v1.7.4.6062-Windows-Setup.exe",
+          "downloads": 63
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.3.6027",
+      "published_at": "2026-08-14T23:24:59Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 49
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 5
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.3.6027-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.7.3.6027-Android.apk",
+          "downloads": 37
+        },
+        {
+          "name": "Submersion-v1.7.3.6027-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.7.3.6027-Linux.tar.gz",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.7.3.6027-macOS.dmg",
+          "downloads": 36
+        },
+        {
+          "name": "Submersion-v1.7.3.6027-Windows-Setup.exe",
+          "downloads": 12
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.2.4977",
+      "published_at": "2026-08-03T05:02:48Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 598
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.7.2.4977-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.7.2.4977-Android.apk",
+          "downloads": 90
+        },
+        {
+          "name": "Submersion-v1.7.2.4977-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.2.4977-Linux.tar.gz",
+          "downloads": 20
+        },
+        {
+          "name": "Submersion-v1.7.2.4977-macOS.dmg",
+          "downloads": 624
+        },
+        {
+          "name": "Submersion-v1.7.2.4977-Windows-Setup.exe",
+          "downloads": 75
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.1.118",
+      "published_at": "2026-07-31T04:03:18Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 280
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.7.1.118-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.7.1.118-Android.apk",
+          "downloads": 35
+        },
+        {
+          "name": "Submersion-v1.7.1.118-iOS.ipa",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.7.1.118-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.7.1.118-macOS.dmg",
+          "downloads": 21
+        },
+        {
+          "name": "Submersion-v1.7.1.118-Windows-Setup.exe",
+          "downloads": 24
+        }
+      ]
+    },
+    {
+      "tag": "v1.7.0.117",
+      "published_at": "2026-07-26T03:56:16Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 227
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.7.0.117-Android.aab",
+          "downloads": 6
+        },
+        {
+          "name": "Submersion-v1.7.0.117-Android.apk",
+          "downloads": 61
+        },
+        {
+          "name": "Submersion-v1.7.0.117-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.7.0.117-Linux.tar.gz",
+          "downloads": 14
+        },
+        {
+          "name": "Submersion-v1.7.0.117-macOS.dmg",
+          "downloads": 23
+        },
+        {
+          "name": "Submersion-v1.7.0.117-Windows-Setup.exe",
+          "downloads": 22
+        }
+      ]
+    },
+    {
+      "tag": "v1.6.1-beta.116",
+      "published_at": "2026-07-10T07:31:38Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.116-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.116-Android.apk",
+          "downloads": 12
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.116-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.116-Linux.tar.gz",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.116-macOS.dmg",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.116-Windows-Setup.exe",
+          "downloads": 13
+        }
+      ]
+    },
+    {
+      "tag": "v1.6.1-beta.115",
+      "published_at": "2026-07-10T01:44:42Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.115-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.115-Android.apk",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.115-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.115-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.115-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.6.1-beta.115-Windows-Setup.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.6.0.114",
+      "published_at": "2026-07-09T05:14:46Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 1111
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.6.0.114-Android.aab",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.6.0.114-Android.apk",
+          "downloads": 87
+        },
+        {
+          "name": "Submersion-v1.6.0.114-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.6.0.114-Linux.tar.gz",
+          "downloads": 23
+        },
+        {
+          "name": "Submersion-v1.6.0.114-macOS.dmg",
+          "downloads": 45
+        },
+        {
+          "name": "Submersion-v1.6.0.114-Windows-Setup.exe",
+          "downloads": 63
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.9.113",
+      "published_at": "2026-07-05T20:17:59Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 150
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.9.113-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.9.113-Android.apk",
+          "downloads": 43
+        },
+        {
+          "name": "Submersion-v1.5.9.113-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.9.113-Linux.tar.gz",
+          "downloads": 10
+        },
+        {
+          "name": "Submersion-v1.5.9.113-macOS.dmg",
+          "downloads": 11
+        },
+        {
+          "name": "Submersion-v1.5.9.113-Windows-Setup.exe",
+          "downloads": 34
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.8-beta.112",
+      "published_at": "2026-06-30T02:50:16Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.8-beta.112-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.8-beta.112-Android.apk",
+          "downloads": 12
+        },
+        {
+          "name": "Submersion-v1.5.8-beta.112-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.8-beta.112-Linux.tar.gz",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.5.8-beta.112-macOS.dmg",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.5.8-beta.112-Windows-Setup.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.8.111",
+      "published_at": "2026-06-27T15:06:36Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 266
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.8.111-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.8.111-Android.apk",
+          "downloads": 42
+        },
+        {
+          "name": "Submersion-v1.5.8.111-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.5.8.111-Linux.tar.gz",
+          "downloads": 20
+        },
+        {
+          "name": "Submersion-v1.5.8.111-macOS.dmg",
+          "downloads": 21
+        },
+        {
+          "name": "Submersion-v1.5.8.111-Windows-Setup.exe",
+          "downloads": 34
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.6.108",
+      "published_at": "2026-06-24T05:21:37Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 109
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.6.108-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.6.108-Android.apk",
+          "downloads": 34
+        },
+        {
+          "name": "Submersion-v1.5.6.108-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.6.108-Linux.tar.gz",
+          "downloads": 7
+        },
+        {
+          "name": "Submersion-v1.5.6.108-macOS.dmg",
+          "downloads": 16
+        },
+        {
+          "name": "Submersion-v1.5.6.108-Windows-Setup.exe",
+          "downloads": 31
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.5.107",
+      "published_at": "2026-06-22T04:31:41Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 70
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.5.107-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.5.107-Android.apk",
+          "downloads": 28
+        },
+        {
+          "name": "Submersion-v1.5.5.107-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.5.107-Linux.tar.gz",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.5.5.107-macOS.dmg",
+          "downloads": 11
+        },
+        {
+          "name": "Submersion-v1.5.5.107-Windows-Setup.exe",
+          "downloads": 13
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.4-rc.106",
+      "published_at": "2026-06-22T01:35:27Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.4-rc.106-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-rc.106-Android.apk",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-rc.106-iOS.ipa",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-rc.106-Linux.tar.gz",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-rc.106-macOS.dmg",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-rc.106-Windows-Setup.exe",
+          "downloads": 1
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.4-beta.105",
+      "published_at": "2026-06-21T00:18:25Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.105-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.105-Android.apk",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.105-iOS.ipa",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.105-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.105-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.105-Windows-Setup.exe",
+          "downloads": 4
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.4-beta.104",
+      "published_at": "2026-06-20T16:24:17Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.104-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.104-Android.apk",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.104-iOS.ipa",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.104-Linux.tar.gz",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.104-macOS.dmg",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.4-beta.104-Windows-Setup.exe",
+          "downloads": 1
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.4.102",
+      "published_at": "2026-06-18T11:06:13Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 124
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.4.102-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.4.102-Android.apk",
+          "downloads": 37
+        },
+        {
+          "name": "Submersion-v1.5.4.102-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.4.102-Linux.tar.gz",
+          "downloads": 6
+        },
+        {
+          "name": "Submersion-v1.5.4.102-macOS.dmg",
+          "downloads": 23
+        },
+        {
+          "name": "Submersion-v1.5.4.102-Windows-Setup.exe",
+          "downloads": 22
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.3-beta.101",
+      "published_at": "2026-06-18T00:26:04Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.3-beta.101-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.3-beta.101-Android.apk",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.5.3-beta.101-iOS.ipa",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.3-beta.101-Linux.tar.gz",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.3-beta.101-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.3-beta.101-Windows-Setup.exe",
+          "downloads": 4
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.2-beta.100",
+      "published_at": "2026-06-17T23:52:49Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.2-beta.100-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.2-beta.100-Android.apk",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.2-beta.100-iOS.ipa",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.2-beta.100-Linux.tar.gz",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.2-beta.100-macOS.dmg",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.5.2-beta.100-Windows-Setup.exe",
+          "downloads": 1
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.1.98",
+      "published_at": "2026-06-16T02:26:52Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 113
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.1.98-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.5.1.98-Android.apk",
+          "downloads": 44
+        },
+        {
+          "name": "Submersion-v1.5.1.98-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.5.1.98-Linux.tar.gz",
+          "downloads": 7
+        },
+        {
+          "name": "Submersion-v1.5.1.98-macOS.dmg",
+          "downloads": 26
+        },
+        {
+          "name": "Submersion-v1.5.1.98-Windows-Setup.exe",
+          "downloads": 30
+        }
+      ]
+    },
+    {
+      "tag": "v1.5.0.97",
+      "published_at": "2026-06-15T23:29:12Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 7
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.5.0.97-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.0.97-Android.apk",
+          "downloads": 13
+        },
+        {
+          "name": "Submersion-v1.5.0.97-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.0.97-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.5.0.97-macOS.dmg",
+          "downloads": 6
+        },
+        {
+          "name": "Submersion-v1.5.0.97-Windows-Setup.exe",
+          "downloads": 6
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.9-beta.96",
+      "published_at": "2026-06-11T23:13:52Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.4.9-beta.96-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.9-beta.96-Android.apk",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.9-beta.96-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.9-beta.96-Linux.tar.gz",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.9-beta.96-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.9-beta.96-Windows-Setup.exe",
+          "downloads": 1
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.9.95",
+      "published_at": "2026-05-29T18:32:56Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 430
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.4.9.95-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.9.95-Android.apk",
+          "downloads": 47
+        },
+        {
+          "name": "Submersion-v1.4.9.95-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.9.95-Linux.tar.gz",
+          "downloads": 21
+        },
+        {
+          "name": "Submersion-v1.4.9.95-macOS.dmg",
+          "downloads": 62
+        },
+        {
+          "name": "Submersion-v1.4.9.95-Windows-Setup.exe",
+          "downloads": 47
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.8.94",
+      "published_at": "2026-05-28T02:22:43Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 56
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 0
+        },
+        {
+          "name": "Submersion-v1.4.8.94-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.8.94-Android.apk",
+          "downloads": 16
+        },
+        {
+          "name": "Submersion-v1.4.8.94-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.8.94-Linux.tar.gz",
+          "downloads": 10
+        },
+        {
+          "name": "Submersion-v1.4.8.94-macOS.dmg",
+          "downloads": 16
+        },
+        {
+          "name": "Submersion-v1.4.8.94-Windows-Setup.exe",
+          "downloads": 16
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.7.93",
+      "published_at": "2026-05-25T23:32:12Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 69
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.7.93-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.7.93-Android.apk",
+          "downloads": 25
+        },
+        {
+          "name": "Submersion-v1.4.7.93-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.7.93-Linux.tar.gz",
+          "downloads": 8
+        },
+        {
+          "name": "Submersion-v1.4.7.93-macOS.dmg",
+          "downloads": 25
+        },
+        {
+          "name": "Submersion-v1.4.7.93-Windows-Setup.exe",
+          "downloads": 13
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.6.92",
+      "published_at": "2026-04-22T13:12:31Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 576
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.6.92-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.6.92-Android.apk",
+          "downloads": 91
+        },
+        {
+          "name": "Submersion-v1.4.6.92-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.6.92-Linux.tar.gz",
+          "downloads": 35
+        },
+        {
+          "name": "Submersion-v1.4.6.92-macOS.dmg",
+          "downloads": 62
+        },
+        {
+          "name": "Submersion-v1.4.6.92-Windows-Setup.exe",
+          "downloads": 74
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.5.91",
+      "published_at": "2026-04-21T05:25:08Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 47
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.5.91-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.5.91-Android.apk",
+          "downloads": 15
+        },
+        {
+          "name": "Submersion-v1.4.5.91-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.5.91-Linux.tar.gz",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.4.5.91-macOS.dmg",
+          "downloads": 15
+        },
+        {
+          "name": "Submersion-v1.4.5.91-Windows-Setup.exe",
+          "downloads": 16
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.4.90",
+      "published_at": "2026-04-15T05:46:58Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 162
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.4.90-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.4.90-Android.apk",
+          "downloads": 40
+        },
+        {
+          "name": "Submersion-v1.4.4.90-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.4.90-Linux.tar.gz",
+          "downloads": 11
+        },
+        {
+          "name": "Submersion-v1.4.4.90-macOS.dmg",
+          "downloads": 14
+        },
+        {
+          "name": "Submersion-v1.4.4.90-Windows-Setup.exe",
+          "downloads": 34
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.4-beta.89",
+      "published_at": "2026-04-14T16:35:18Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.4-beta.89-Android.aab",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.4-beta.89-Android.apk",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.4-beta.89-iOS.ipa",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.4-beta.89-Linux.tar.gz",
+          "downloads": 1
+        },
+        {
+          "name": "Submersion-v1.4.4-beta.89-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.4-beta.89-Windows-Setup.exe",
+          "downloads": 3
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.3.88",
+      "published_at": "2026-04-10T04:20:21Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 263
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 4
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.3.88-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.3.88-Android.apk",
+          "downloads": 43
+        },
+        {
+          "name": "Submersion-v1.4.3.88-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.3.88-Linux.tar.gz",
+          "downloads": 20
+        },
+        {
+          "name": "Submersion-v1.4.3.88-macOS.dmg",
+          "downloads": 31
+        },
+        {
+          "name": "Submersion-v1.4.3.88-Windows-Setup.exe",
+          "downloads": 37
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.2.87",
+      "published_at": "2026-04-05T07:02:02Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 167
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 3
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.2.87-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.4.2.87-Android.apk",
+          "downloads": 43
+        },
+        {
+          "name": "Submersion-v1.4.2.87-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.2.87-Linux.tar.gz",
+          "downloads": 9
+        },
+        {
+          "name": "Submersion-v1.4.2.87-macOS.dmg",
+          "downloads": 32
+        },
+        {
+          "name": "Submersion-v1.4.2.87-Windows-Setup.exe",
+          "downloads": 30
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.1.86",
+      "published_at": "2026-04-03T12:46:06Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 49
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 9
+        },
+        {
+          "name": "Submersion-v1.4.1.86-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.1.86-Android.apk",
+          "downloads": 17
+        },
+        {
+          "name": "Submersion-v1.4.1.86-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.1.86-Linux.tar.gz",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.4.1.86-macOS.dmg",
+          "downloads": 8
+        },
+        {
+          "name": "Submersion-v1.4.1.86-Windows-Setup.exe",
+          "downloads": 10
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.1.85",
+      "published_at": "2026-04-03T07:11:11Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 11
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.4.1.85-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.1.85-Android.apk",
+          "downloads": 6
+        },
+        {
+          "name": "Submersion-v1.4.1.85-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.1.85-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.1.85-macOS.dmg",
+          "downloads": 6
+        },
+        {
+          "name": "Submersion-v1.4.1.85-Windows-Setup.exe",
+          "downloads": 10
+        }
+      ]
+    },
+    {
+      "tag": "v1.4.0.84",
+      "published_at": "2026-03-29T07:34:28Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 190
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "release-notes.html",
+          "downloads": 17
+        },
+        {
+          "name": "Submersion-v1.4.0.84-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.4.0.84-Android.apk",
+          "downloads": 21
+        },
+        {
+          "name": "Submersion-v1.4.0.84-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.4.0.84-Linux.tar.gz",
+          "downloads": 6
+        },
+        {
+          "name": "Submersion-v1.4.0.84-macOS.dmg",
+          "downloads": 17
+        },
+        {
+          "name": "Submersion-v1.4.0.84-Windows-Setup.exe",
+          "downloads": 25
+        }
+      ]
+    },
+    {
+      "tag": "v1.3.7.82",
+      "published_at": "2026-03-24T22:11:28Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 3
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.7.82-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.3.7.82-Android.apk",
+          "downloads": 22
+        },
+        {
+          "name": "Submersion-v1.3.7.82-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.7.82-Linux.tar.gz",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.3.7.82-macOS.dmg",
+          "downloads": 10
+        },
+        {
+          "name": "Submersion-v1.3.7.82-Windows-Setup.exe",
+          "downloads": 31
+        }
+      ]
+    },
+    {
+      "tag": "v1.3.6.81",
+      "published_at": "2026-03-21T07:36:57Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 53
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.6.81-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.3.6.81-Android.apk",
+          "downloads": 17
+        },
+        {
+          "name": "Submersion-v1.3.6.81-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.3.6.81-Linux.tar.gz",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.3.6.81-macOS.dmg",
+          "downloads": 10
+        },
+        {
+          "name": "Submersion-v1.3.6.81-Windows-Setup.exe",
+          "downloads": 17
+        }
+      ]
+    },
+    {
+      "tag": "v1.3.5.80",
+      "published_at": "2026-03-19T06:07:39Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 46
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.5.80-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.5.80-Android.apk",
+          "downloads": 7
+        },
+        {
+          "name": "Submersion-v1.3.5.80-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.5.80-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.5.80-macOS.dmg",
+          "downloads": 7
+        },
+        {
+          "name": "Submersion-v1.3.5.80-Windows-Setup.exe",
+          "downloads": 14
+        }
+      ]
+    },
+    {
+      "tag": "v1.3.3-beta.78",
+      "published_at": "2026-03-18T05:30:12Z",
+      "prerelease": true,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 2
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.3-beta.78-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.3-beta.78-Android.apk",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.3.3-beta.78-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.3-beta.78-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.3-beta.78-macOS.dmg",
+          "downloads": 5
+        },
+        {
+          "name": "Submersion-v1.3.3-beta.78-Windows-Setup.exe",
+          "downloads": 6
+        }
+      ]
+    },
+    {
+      "tag": "v1.3.2.77",
+      "published_at": "2026-03-16T04:44:39Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 39
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.2.77-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.2.77-Android.apk",
+          "downloads": 8
+        },
+        {
+          "name": "Submersion-v1.3.2.77-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.2.77-Linux.tar.gz",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.3.2.77-macOS.dmg",
+          "downloads": 8
+        },
+        {
+          "name": "Submersion-v1.3.2.77-Windows-Setup.exe",
+          "downloads": 20
+        }
+      ]
+    },
+    {
+      "tag": "v1.3.2.76",
+      "published_at": "2026-03-16T02:15:27Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 3
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.2.76-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.2.76-Android.apk",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.3.2.76-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.2.76-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.2.76-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.2.76-Windows-Setup.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.3.1.75",
+      "published_at": "2026-03-14T21:58:59Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 9
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.1.75-Android.aab",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.3.1.75-Android.apk",
+          "downloads": 9
+        },
+        {
+          "name": "Submersion-v1.3.1.75-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.1.75-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.1.75-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.1.75-Windows-Setup.exe",
+          "downloads": 11
+        }
+      ]
+    },
+    {
+      "tag": "v1.3.0.74",
+      "published_at": "2026-03-14T12:46:28Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 2
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.0.74-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.0.74-Android.apk",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.0.74-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.0.74-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.0.74-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.3.0.74-Windows-Setup.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.25.73",
+      "published_at": "2026-03-12T07:46:18Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 6
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.25.73-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.25.73-Android.apk",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.25.73-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.25.73-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.25.73-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.25.73-Windows-Setup.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.24.72",
+      "published_at": "2026-03-11T23:03:43Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 4
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.24.72-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.24.72-Android.apk",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.24.72-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.24.72-Linux.tar.gz",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.24.72-macOS.dmg",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.2.24.72-Windows-Setup.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.24.71",
+      "published_at": "2026-03-11T04:25:25Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 3
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.24.71-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.24.71-Android.apk",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.24.71-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.24.71-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.24.71-macOS.dmg",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.24.71-Windows-Setup.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.23.69",
+      "published_at": "2026-03-10T22:33:56Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 4
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.23.69-Android.aab",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.23.69-Android.apk",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.23.69-iOS.ipa",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.23.69-Linux.tar.gz",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.23.69-macOS.dmg",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.23.69-Windows-Setup.exe",
+          "downloads": 2
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.22.66",
+      "published_at": "2026-03-10T05:39:56Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 4
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.22.66-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.22.66-Android.apk",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.22.66-iOS.ipa",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.22.66-Linux.tar.gz",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.2.22.66-macOS.dmg",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.2.22.66-Windows-Setup.exe",
+          "downloads": 4
+        }
+      ]
+    },
+    {
+      "tag": "v1.2.21.65",
+      "published_at": "2026-03-10T05:22:12Z",
+      "prerelease": false,
+      "assets": [
+        {
+          "name": "appcast.xml",
+          "downloads": 2
+        },
+        {
+          "name": "checksums-sha256.txt",
+          "downloads": 2
+        },
+        {
+          "name": "Submersion-v1.2.21.65-Android.aab",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.21.65-Android.apk",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.21.65-iOS.ipa",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.2.21.65-Linux.tar.gz",
+          "downloads": 4
+        },
+        {
+          "name": "Submersion-v1.2.21.65-macOS.dmg",
+          "downloads": 3
+        },
+        {
+          "name": "Submersion-v1.2.21.65-Windows-Setup.exe",
+          "downloads": 3
+        }
+      ]
+    }
+  ]
+}
