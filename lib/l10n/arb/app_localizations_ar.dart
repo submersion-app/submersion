@@ -55611,8 +55611,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return 'البطارية: $start فولت -> $end فولت';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return 'البطارية: $start فولت ← $end فولت ($change فولت)';
   }
 
   @override

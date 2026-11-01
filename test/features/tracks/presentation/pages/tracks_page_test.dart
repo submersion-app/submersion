@@ -36,7 +36,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
 import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
-import 'package:submersion/features/tracks/presentation/widgets/track_row_card.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_list_card.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_overview_map.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_summary_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -803,14 +803,14 @@ void main() {
       expect(
         find.descendant(
           of: row('underwater:r1'),
-          matching: find.byType(TrackRowCard),
+          matching: find.byType(TrackListCard),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
           of: row('gps:$gpsId'),
-          matching: find.byType(TrackRowCard),
+          matching: find.byType(TrackListCard),
         ),
         findsOneWidget,
       );

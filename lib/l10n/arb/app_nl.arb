@@ -16380,7 +16380,7 @@
   "navTrack_detail_maxSpeed": "Max. snelheid: {value}",
   "navTrack_detail_avgSpeed": "Gem. snelheid: {value}",
   "navTrack_detail_duration": "Duur: {hours}u {minutes}min",
-  "navTrack_detail_battery": "Batterij: {start} V -> {end} V",
+  "navTrack_detail_battery": "Batterij: {start} V → {end} V ({change} V)",
   "navTrack_detail_noDiveLinked": "Geen duik gekoppeld",
   "navTrack_detail_chooseDive": "Duik kiezen",
   "navTrack_detail_noSite": "Geen duikstek",

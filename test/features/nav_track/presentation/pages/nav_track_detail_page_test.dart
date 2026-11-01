@@ -630,6 +630,13 @@ void main() {
   });
 
   group('the battery row', () {
+    // The recording-device card sits below the equipment card, past the
+    // default test viewport.
+    Future<void> tallView(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+    }
+
     testWidgets(
       'skips a leading 0.00V sample (sensor not settled yet) when picking '
       'the start reading (018.DAT.csv: row 1 reads 0, row 2 reads the real '
@@ -661,10 +668,58 @@ void main() {
                 ),
               ],
             );
+        await tallView(tester);
         await _pump(tester, route: route);
 
-        expect(find.text('Battery: 3.90 V -> 3.78 V'), findsOneWidget);
+        expect(find.text('Battery: 3.90 V → 3.78 V (-0.12 V)'), findsOneWidget);
         expect(find.textContaining('0.00 V'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'sits on the recording-device card under the console\'s name, not '
+      'among the route figures (#4100)',
+      (tester) async {
+        final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3)
+            .copyWith(
+              points: const [
+                NavTrackPoint(
+                  timestamp: 1755856800,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 3.9,
+                ),
+                NavTrackPoint(
+                  timestamp: 1755857000,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 3.78,
+                ),
+              ],
+            );
+        await tallView(tester);
+        await _pump(tester, route: route);
+
+        final recorder = find.byKey(const ValueKey('nav-track-recorder-card'));
+        expect(recorder, findsOneWidget);
+        expect(
+          find.descendant(of: recorder, matching: find.text('Seacraft ENC')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: recorder,
+            matching: find.textContaining('Battery:'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('Battery:'),
+          findsOneWidget,
+          reason: 'the stats card no longer carries the battery',
+        );
       },
     );
 
@@ -683,9 +738,18 @@ void main() {
           ),
         ],
       );
+      await tallView(tester);
       await _pump(tester, route: route);
 
       expect(find.textContaining('Battery:'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-recorder-card')),
+          matching: find.text('Seacraft ENC'),
+        ),
+        findsOneWidget,
+        reason: 'without a reading the card still names the source',
+      );
     });
   });
 

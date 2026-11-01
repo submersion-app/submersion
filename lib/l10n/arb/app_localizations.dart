@@ -86883,11 +86883,11 @@ abstract class AppLocalizations {
   /// **'Duration: {hours}h {minutes}min'**
   String navTrack_detail_duration(int hours, int minutes);
 
-  /// No description provided for @navTrack_detail_battery.
+  /// The recording console's battery over the track: first reading, last reading, and the signed change between them.
   ///
   /// In en, this message translates to:
-  /// **'Battery: {start} V -> {end} V'**
-  String navTrack_detail_battery(String start, String end);
+  /// **'Battery: {start} V → {end} V ({change} V)'**
+  String navTrack_detail_battery(String start, String end, String change);
 
   /// No description provided for @navTrack_detail_noDiveLinked.
   ///

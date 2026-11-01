@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_kind_badge.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_stat_row.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_lis
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_list_card.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -198,6 +200,23 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.delete_outline), findsNothing);
+  });
+
+  testWidgets('the figures take the dive card accent colour (#4024)', (
+    tester,
+  ) async {
+    await _pumpRow(
+      tester,
+      route: _route(id: 'r1', name: 'Wreck dive', distance: 1050, maxDepth: 38),
+      hydrated: {'r1': _route(id: 'r1').copyWith(points: _hydratedPoints())},
+    );
+    final scheme = Theme.of(
+      tester.element(find.byType(NavTrackListRow)),
+    ).colorScheme;
+    expect(
+      tester.widget<TrackStatRow>(find.byType(TrackStatRow)).color,
+      RecordCardColors.forFill(scheme, null).accent,
+    );
   });
 
   testWidgets('tapping a linked row\'s chip opens the linked dive', (

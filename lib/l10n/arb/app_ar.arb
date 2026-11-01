@@ -16380,7 +16380,7 @@
   "navTrack_detail_maxSpeed": "أقصى سرعة: {value}",
   "navTrack_detail_avgSpeed": "متوسط السرعة: {value}",
   "navTrack_detail_duration": "المدة: {hours} س {minutes} د",
-  "navTrack_detail_battery": "البطارية: {start} فولت -> {end} فولت",
+  "navTrack_detail_battery": "البطارية: {start} فولت ← {end} فولت ({change} فولت)",
   "navTrack_detail_noDiveLinked": "لا توجد غطسة مرتبطة",
   "navTrack_detail_chooseDive": "اختيار غطسة",
   "navTrack_detail_noSite": "لا يوجد موقع غوص",
