@@ -60,6 +60,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
+    show ProfileSeries;
 import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
     as domain;
@@ -294,6 +296,17 @@ class DiveRepository {
   /// either query ticks on all of these plus the filter's own tables, so a
   /// site rename (a `dive_sites`-only write) refreshes the names it shows.
   static const Set<String> statisticsTickTables = {'dives', 'dive_sites'};
+
+  /// The tables a dive comparison reads, by SQL name: the dive and its site
+  /// for the label, the series and source rows for the profile. Narrower than
+  /// the detail tick, so viewing a photo elsewhere does not reload the
+  /// compared profiles.
+  static const Set<String> comparisonTickTables = {
+    'dives',
+    'dive_sites',
+    'dive_profile_series',
+    'dive_data_sources',
+  };
 
   /// The tables the dive list renders from, by SQL name: the summary row,
   /// its site and trip joins, the safety badge, and the row chips (tag
@@ -1542,6 +1555,17 @@ class DiveRepository {
     };
   }
 
+  /// The sources a dive shows, from [rows] in shown order and
+  /// [_shownIdByRow] of them.
+  static List<ShownSource> _shownSources(
+    List<DiveDataSourcesData> rows,
+    Map<String, String> shownIdByRow,
+  ) => [
+    for (final row in rows)
+      if (shownIdByRow[row.id] == row.id)
+        (id: row.id, computerId: row.computerId),
+  ];
+
   /// Every source row of [diveId], primary first and then oldest: the order
   /// [_canonicalDataSourceRows] needs to keep the shown row of each strand.
   Future<List<DiveDataSourcesData>> _sourceRowsInShownOrder(String diveId) =>
@@ -1582,11 +1606,7 @@ class DiveRepository {
         rows,
         sourceProfilesReduction(
           diveId: diveId,
-          shownSources: [
-            for (final row in allRows)
-              if (shownIdByRow[row.id] == row.id)
-                (id: row.id, computerId: row.computerId),
-          ],
+          shownSources: _shownSources(allRows, shownIdByRow),
           shownIdByRow: shownIdByRow,
         ),
         offUiIsolate: true,
@@ -1599,6 +1619,89 @@ class DiveRepository {
       );
       return {};
     }
+  }
+
+  /// How many samples [getProfilesByDataSource] would give the primary source
+  /// of each of [diveIds], by dive id, for a selection too large to load
+  /// (issue #3856). A dive with no series is absent.
+  ///
+  /// It is that read's answer without its cost: the same series and source
+  /// rows go through the same reduction, with no blob read or decoded and a
+  /// fixed set of statements per [kSeriesIdChunkSize] ids.
+  Future<Map<String, int>> getPrimarySourceSampleCounts(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const {};
+    try {
+      return await PerfTimer.measure('getPrimarySourceSampleCounts', () async {
+        final seriesByDive = <String, List<ProfileSeries>>{};
+        for (final s in await _profileSeries.getUndecodedSeriesForDives(
+          diveIds,
+        )) {
+          (seriesByDive[s.diveId] ??= []).add(s);
+        }
+        final rowsByDive = await _sourceRowsWithoutBlobs([
+          ...seriesByDive.keys,
+        ]);
+        return {
+          for (final MapEntry(key: diveId, value: series)
+              in seriesByDive.entries)
+            diveId: _primarySampleCount(series, rowsByDive[diveId] ?? const []),
+        };
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count primary source samples',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  int _primarySampleCount(
+    List<ProfileSeries> series,
+    List<DiveDataSourcesData> rows,
+  ) {
+    final shownIdByRow = _shownIdByRow(rows);
+    return primaryProfileSampleCount(
+      series: series,
+      shownSources: _shownSources(rows, shownIdByRow),
+      shownIdByRow: shownIdByRow,
+    );
+  }
+
+  /// Every source row of [diveIds] by dive, in the order
+  /// [_sourceRowsInShownOrder] gives one dive's, without the raw download
+  /// columns: a row can carry a whole download, which a read over a selection
+  /// has no use for. Those fields read as null, so never write a row back.
+  Future<Map<String, List<DiveDataSourcesData>>> _sourceRowsWithoutBlobs(
+    List<String> diveIds,
+  ) async {
+    final table = _db.diveDataSources;
+    final columns = [
+      for (final column in table.$columns)
+        if (column != table.rawData && column != table.rawFingerprint)
+          column.$name,
+    ].join(', ');
+    final byDive = <String, List<DiveDataSourcesData>>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final rows = await _db
+          .customSelect(
+            'SELECT $columns FROM ${table.actualTableName} '
+            'WHERE dive_id IN ($placeholders) '
+            'ORDER BY dive_id, is_primary DESC, created_at ASC, id ASC',
+            variables: [for (final diveId in chunk) Variable<String>(diveId)],
+            readsFrom: {table},
+          )
+          .get();
+      for (final row in rows) {
+        final source = table.map(row.data);
+        (byDive[source.diveId] ??= []).add(source);
+      }
+    }
+    return byDive;
   }
 
   /// Restore the original profile as primary.
@@ -8430,11 +8533,7 @@ class DiveRepository {
         final shownIdByRow = _shownIdByRow(diveRows);
         final live = liveSeriesBySourceRow(
           series: seriesRows.map(undecodedProfileSeriesRow).toList(),
-          shownSources: [
-            for (final row in diveRows)
-              if (shownIdByRow[row.id] == row.id)
-                (id: row.id, computerId: row.computerId),
-          ],
+          shownSources: _shownSources(diveRows, shownIdByRow),
           shownIdByRow: shownIdByRow,
         );
         final blobById = {for (final row in seriesRows) row.id: row.samples};

@@ -64,6 +64,27 @@ Map<String, SourceProfile> _profilesBySource(
   };
 }
 
+/// How many points the first profile of [sourceProfilesReduction] would hold,
+/// given the same arguments.
+///
+/// That read keeps every sample of the series it merges, so the stored counts
+/// are its answer and [series] may hold no samples (issue #3856). A series
+/// whose blob no longer decodes still counts here, though the read skips it.
+int primaryProfileSampleCount({
+  required List<ProfileSeries> series,
+  required List<ShownSource> shownSources,
+  required Map<String, String> shownIdByRow,
+}) {
+  final counted = shownSources.isEmpty
+      ? series.where((s) => s.isPrimary)
+      : _liveSeriesByShownSource(
+          series,
+          shownSources,
+          shownIdByRow,
+        ).byShownId[shownSources.first.id]!;
+  return counted.fold(0, (total, s) => total + s.summary.sampleCount);
+}
+
 /// The series behind each source's profile in [sourceProfilesReduction], kept
 /// apart and filed under the source row that owns each one, for a reader that
 /// has to reproduce them rather than draw them (issue #3965).

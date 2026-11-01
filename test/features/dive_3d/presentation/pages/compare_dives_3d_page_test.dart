@@ -27,10 +27,13 @@ void main() {
         overrides: [
           ...overrides,
           diveComparisonProfilesProvider(DiveIdSet(['a', 'b'])).overrideWith(
-            (ref) async => [
-              prof('a', const Color(0xFF00D4FF)),
-              prof('b', const Color(0xFFFF9500)),
-            ],
+            (ref) async => DiveComparison(
+              profiles: [
+                prof('a', const Color(0xFF00D4FF)),
+                prof('b', const Color(0xFFFF9500)),
+              ],
+              comparableCount: 2,
+            ),
           ),
         ],
         child: const CompareDives3dPage(diveIds: ['a', 'b']),
@@ -40,6 +43,37 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.byType(CompareProfile3dView), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('counts every comparable dive, not only the loaded ones', (
+    tester,
+  ) async {
+    final ids = [for (var i = 0; i < 12; i++) 'd$i'];
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          diveComparisonProfilesProvider(DiveIdSet(ids)).overrideWith(
+            (ref) async => DiveComparison(
+              profiles: [
+                for (final id in ids.take(kMaxComparisonProfiles))
+                  prof(id, const Color(0xFF00D4FF)),
+              ],
+              comparableCount: ids.length,
+            ),
+          ),
+        ],
+        child: CompareDives3dPage(diveIds: ids),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('Showing 8 of 12'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
