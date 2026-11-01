@@ -53,6 +53,21 @@ void open(BuildContext context) {
     expect(scrollControlledSheetsWithoutSafeArea(source), isEmpty);
   });
 
+  test('reads a call with a nested type argument', () {
+    // The first guard missed `<List<RefValue>>`: a type-argument pattern
+    // that stopped at the first `>` never reached the opening parenthesis.
+    const source = '''
+Future<List<String>?> open(BuildContext context) {
+  return showModalBottomSheet<List<String>>(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => const Text('x'),
+  );
+}
+''';
+    expect(scrollControlledSheetsWithoutSafeArea(source), [2]);
+  });
+
   test('ignores sheets that keep the height cap', () {
     const source = '''
 void open(BuildContext context) {
@@ -121,7 +136,9 @@ void open(BuildContext context) {
   });
 }
 
-final _sheetCall = RegExp(r'\bshowModalBottomSheet\s*(?:<[^>()]*>)?\s*\(');
+/// `[^()]*` rather than `[^>]*` for the type argument, so a nested generic
+/// such as `<List<RefValue>>` is still read as one call.
+final _sheetCall = RegExp(r'\bshowModalBottomSheet\s*(?:<[^()]*>)?\s*\(');
 final _scrollControlled = RegExp(r'\bisScrollControlled\s*:\s*(\w+)');
 final _safeArea = RegExp(r'\buseSafeArea\s*:');
 

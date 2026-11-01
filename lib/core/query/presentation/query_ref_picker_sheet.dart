@@ -89,6 +89,7 @@ Future<List<RefValue>?> showQueryRefMultiPicker(
 }) => showModalBottomSheet<List<RefValue>>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   builder: (_) => _RefPickerSheet(
     entries: _entriesOf(editor, kind),
     title: title,
