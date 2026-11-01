@@ -251,6 +251,18 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Null when the selection clears.
   final void Function(int? seconds)? onTimeSelected;
 
+  /// Dive time in seconds the pointer settled on: a tap, or the end of a drag
+  /// across the plot. Hovering shows the tooltip but chooses nothing.
+  final ValueChanged<int>? onTimeChosen;
+
+  /// A chart embedded to read a moment off the dive (the gas switch picker):
+  /// depth and pressure lines whatever the diver's legend says, and no legend,
+  /// options or right-axis menu. Nothing here writes to the shared legend.
+  final bool depthAndPressureOnly;
+
+  /// The cylinder whose pressure line is drawn heavier than the others.
+  final String? emphasizedTankId;
+
   // Decompression visualization data (optional)
   /// Ceiling curve in meters, same length as profile
   final List<double>? ceilingCurve;
@@ -533,6 +545,22 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   static double rightAxisSize(double availableWidth) =>
       availableWidth < 350 ? 32.0 : 38.0;
 
+  /// Width from the chart's left edge to the plot, for something laid out to
+  /// line up with the plot's time axis at the default zoom.
+  static double plotLeftInset(double availableWidth) =>
+      _leftRightAxisNameSize + leftAxisSize(availableWidth) + _plotBorderWidth;
+
+  /// The same from the right edge. fl_chart reserves the gutter only while
+  /// the right axis shows a metric.
+  static double plotRightInset(
+    double availableWidth, {
+    required bool hasRightAxis,
+  }) =>
+      (hasRightAxis
+          ? _leftRightAxisNameSize + rightAxisSize(availableWidth)
+          : 0) +
+      _plotBorderWidth;
+
   /// Builds the label for a tank's pressure row in the profile tooltip,
   /// appending the gas type when the tank is known, e.g. "Tank 1 (EAN32)".
   ///
@@ -734,6 +762,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showPressure = false,
     this.onPointSelected,
     this.onTimeSelected,
+    this.onTimeChosen,
+    this.depthAndPressureOnly = false,
+    this.emphasizedTankId,
     this.ceilingCurve,
     this.decoStopCurve,
     this.labelCeilingAsCalculated = false,
@@ -1287,6 +1318,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // whose second tap lands in the strip must not zoom (the strip's own tap
   // opens the metric menu).
   bool _rightAxisSelectorActive = false;
+
+  // The time last reported by [_reportSelection], which a tap or the end of
+  // a drag hands to [DiveProfileChart.onTimeChosen].
+  int? _selectedSeconds;
 
   // Index of the last sample reported via hover, to de-dupe onPointSelected.
   int? _lastHoverIndex;
@@ -2733,8 +2768,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // same reason as in _buildChart -- so the plot rect (and so the gesture math
     // keyed on it) never disagrees with what the axis is showing this frame.
     // Still ref.read: this runs from gesture callbacks too, outside build.
-    final legendNotifier = ref.read(profileLegendProvider.notifier);
-    final preferredMetric = legendNotifier.getEffectiveRightAxisMetric();
+    final preferredMetric = _preferredRightAxisMetric;
     final effectiveRightAxisMetric =
         _hoverRightAxisMetric ??
         (preferredMetric != null
@@ -2748,20 +2782,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     const border = DiveProfileChart._plotBorderWidth;
     return (
-      left:
-          DiveProfileChart._leftRightAxisNameSize +
-          DiveProfileChart.leftAxisSize(availableWidth) +
-          border,
+      left: DiveProfileChart.plotLeftInset(availableWidth),
       top: border,
       // fl_chart reserves a side's tick gutter only while that side shows
       // titles, and the right axis shows none without a metric -- so with no
       // right-axis metric the plot rect runs to the chart's border.
-      right:
-          (hasRightAxisName
-              ? DiveProfileChart._leftRightAxisNameSize +
-                    DiveProfileChart.rightAxisSize(availableWidth)
-              : 0) +
-          border,
+      right: DiveProfileChart.plotRightInset(
+        availableWidth,
+        hasRightAxis: hasRightAxisName,
+      ),
       bottom:
           DiveProfileChart._bottomAxisNameSize +
           DiveProfileChart._bottomTickReservedSize +
@@ -2812,18 +2841,63 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return (index: best, onLeadIn: false);
   }
 
+  /// Overrides what [build] just synced from the legend, for
+  /// [DiveProfileChart.depthAndPressureOnly]. Gas switch markers stay: they are
+  /// the dive's other switches, which the picker places this one against.
+  void _showDepthAndPressureOnly() {
+    _showTemperature = false;
+    _showHeartRate = false;
+    _showSac = false;
+    _showCeiling = false;
+    _showDecoStops = false;
+    _showAscentRateColors = false;
+    _showAscentRateLine = false;
+    _showEvents = false;
+    _showComputedEvents = false;
+    _showMaxDepthMarkerLocal = false;
+    _showPressureMarkersLocal = false;
+    _showGasSwitchMarkers = true;
+    _showLateGasSwitches = false;
+    _showPhotoMarkers = false;
+    _showNdl = false;
+    _showPpO2 = false;
+    _showPpN2 = false;
+    _showPpHe = false;
+    _showO2Cells = false;
+    _showMod = false;
+    _showDensity = false;
+    _showGf = false;
+    _showSurfaceGf = false;
+    _showMeanDepth = false;
+    _showTts = false;
+    _showGtr = false;
+    _showCns = false;
+    _showOtu = false;
+    _showPressure = true;
+    _showTankPressure.clear();
+  }
+
+  /// The right-axis metric to show absent a hover: pressure in
+  /// [DiveProfileChart.depthAndPressureOnly], else the diver's choice.
+  ProfileRightAxisMetric? get _preferredRightAxisMetric {
+    if (widget.depthAndPressureOnly) {
+      return _hasMultiTankPressure ? ProfileRightAxisMetric.pressure : null;
+    }
+    return ref
+        .read(profileLegendProvider.notifier)
+        .getEffectiveRightAxisMetric();
+  }
+
   /// Reports a selection to [DiveProfileChart.onPointSelected] and
   /// [DiveProfileChart.onTimeSelected]. [onLeadIn] marks the surface lead-in
   /// vertex, whose time is 0 rather than the first sample's.
   void _reportSelection(int? index, {bool onLeadIn = false}) {
     widget.onPointSelected?.call(index);
-    final onTimeSelected = widget.onTimeSelected;
-    if (onTimeSelected == null) return;
-    if (index == null || index < 0 || index >= widget.profile.length) {
-      onTimeSelected(null);
-    } else {
-      onTimeSelected(onLeadIn ? 0 : widget.profile[index].timestamp);
-    }
+    final seconds = index == null || index < 0 || index >= widget.profile.length
+        ? null
+        : (onLeadIn ? 0 : widget.profile[index].timestamp);
+    _selectedSeconds = seconds;
+    widget.onTimeSelected?.call(seconds);
   }
 
   // Buttons have no cursor, so they zoom about the visible center.
@@ -2913,6 +2987,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showTankPressure
       ..clear()
       ..addAll(legendState.showTankPressure);
+
+    if (widget.depthAndPressureOnly) _showDepthAndPressureOnly();
 
     final bounds = _chartDataBounds(units, hasHeartRateData: hasHeartRateData);
 
@@ -3024,28 +3100,29 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Chart header with legend and zoom controls (decluttered)
-            Row(
-              key: _legendKey,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (widget.legendLeading != null) widget.legendLeading!,
-                Expanded(
-                  child: DiveProfileLegend(
-                    config: legendConfig,
-                    zoomLevel: _zoomNotifier,
-                    minZoom: ChartViewport.minZoom,
-                    maxZoom: ChartViewport.maxZoom,
-                    onZoomIn: _zoomIn,
-                    onZoomOut: _zoomOut,
-                    onResetZoom: _resetZoom,
-                    showZoomControls: widget.showZoomControls,
-                    leftPadding: widget.legendLeading == null
-                        ? legendLeftPadding
-                        : 0,
+            if (!widget.depthAndPressureOnly)
+              Row(
+                key: _legendKey,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.legendLeading != null) widget.legendLeading!,
+                  Expanded(
+                    child: DiveProfileLegend(
+                      config: legendConfig,
+                      zoomLevel: _zoomNotifier,
+                      minZoom: ChartViewport.minZoom,
+                      maxZoom: ChartViewport.maxZoom,
+                      onZoomIn: _zoomIn,
+                      onZoomOut: _zoomOut,
+                      onResetZoom: _resetZoom,
+                      showZoomControls: widget.showZoomControls,
+                      leftPadding: widget.legendLeading == null
+                          ? legendLeftPadding
+                          : 0,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
             // Fill bounded parents (e.g. fullscreen); keep the 200px default
             // in unbounded contexts such as inline scroll views. The zoom
@@ -3657,6 +3734,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       identityHashCode(widget.tanks),
       identityHashCode(widget.tankPressures),
       identityHashCode(widget.tankSourceColors),
+      widget.emphasizedTankId,
       // The temperature line lives in this group, on a scale overlays pool
       // into: toggling one moves the line without touching widget.profile.
       bounds.minTemp,
@@ -3765,8 +3843,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // line, see lineMetricTags below) takes priority over the persisted
     // preference, purely for this render -- it is never written back to the
     // provider (issue #2228 follow-up).
-    final legendNotifier = ref.read(profileLegendProvider.notifier);
-    final preferredMetric = legendNotifier.getEffectiveRightAxisMetric();
+    final preferredMetric = _preferredRightAxisMetric;
     final effectiveRightAxisMetric =
         _hoverRightAxisMetric ??
         (preferredMetric != null
@@ -3775,7 +3852,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final rightAxisRange = effectiveRightAxisMetric != null
         ? _getMetricRange(effectiveRightAxisMetric, units)
         : null;
-    _rightAxisSelectorActive = effectiveRightAxisMetric != null;
+    _rightAxisSelectorActive =
+        effectiveRightAxisMetric != null && !widget.depthAndPressureOnly;
     // Mean depth is plotted at its real depth, not stretched across
     // [metricBand], so its axis repeats the depth axis instead of unmapping
     // the band (issue #3892).
@@ -4359,7 +4437,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ),
             lineTouchData: LineTouchData(
               enabled: true,
-              touchSpotThreshold: 20,
+              // Reading a moment off the dive, a tap anywhere means the nearest
+              // sample, however sparse the profile.
+              touchSpotThreshold: widget.depthAndPressureOnly
+                  ? double.infinity
+                  : 20,
               handleBuiltInTouches: true,
               getTouchedSpotIndicator: (barData, spotIndexes) {
                 // The deco stop band's spots are compressed to its step
@@ -4411,6 +4493,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     event is FlLongPressEnd ||
                     event is FlTapUpEvent ||
                     event is FlPanEndEvent;
+                // A drag over a zoomed plot pans it, so there only a tap
+                // chooses.
+                final chosen = _selectedSeconds;
+                if (chosen != null &&
+                    (event is FlTapUpEvent ||
+                        (isTouchEnd &&
+                            event is! FlPointerExitEvent &&
+                            !_viewport.isZoomed))) {
+                  widget.onTimeChosen?.call(chosen);
+                }
                 final spots =
                     response?.lineBarSpots ?? const <TouchLineBarSpot>[];
                 final active = !isTouchEnd && spots.isNotEmpty;
@@ -4446,6 +4538,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     : null;
                 if (widget.onPointSelected != null ||
                     widget.onTimeSelected != null ||
+                    widget.onTimeChosen != null ||
                     widget.onTooltipData != null) {
                   final isExternal =
                       widget.tooltipPresentation ==
@@ -4799,7 +4892,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ),
         ),
         // Right axis tap overlay for metric selection
-        if (effectiveRightAxisMetric != null)
+        if (effectiveRightAxisMetric != null && !widget.depthAndPressureOnly)
           Positioned(
             right: 0,
             top: 0,
@@ -6266,6 +6359,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         singleTankColor: _singleTankPressureColor,
         withFlatSurfaceLeadIn: _withFlatSurfaceLeadIn,
         seriesGetsLeadIn: _seriesGetsLeadIn,
+        emphasizedTankId: widget.emphasizedTankId,
       );
 
   LineChartBarData _buildHeartRateLine(

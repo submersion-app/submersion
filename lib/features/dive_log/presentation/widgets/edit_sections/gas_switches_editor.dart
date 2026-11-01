@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/gas_switch_time_suggestions.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switch_time_chips.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_append_row.dart';
 import 'package:submersion/shared/widgets/forms/form_caption.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
+import 'package:submersion/shared/widgets/forms/form_style.dart';
 import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -38,6 +41,8 @@ class GasSwitchesEditor extends StatelessWidget {
     required this.onRemove,
     required this.onAdd,
     this.onTimeSettled,
+    this.breathStarts = const {},
+    this.onPickTime,
   });
 
   /// The switches in the order to show them.
@@ -64,6 +69,14 @@ class GasSwitchesEditor extends StatelessWidget {
 
   /// A time field was left; the argument is the switch id.
   final ValueChanged<String>? onTimeSettled;
+
+  /// When each cylinder started being breathed, by tank id, which a row
+  /// offers as one-tap fills for its time.
+  final Map<String, List<int>> breathStarts;
+
+  /// Opens the profile picker for a row; null when there is no profile to
+  /// pick on, which hides the control.
+  final ValueChanged<GasSwitch>? onPickTime;
 
   @override
   Widget build(BuildContext context) {
@@ -95,9 +108,17 @@ class GasSwitchesEditor extends StatelessWidget {
               for (final other in switches)
                 if (other.id != sw.id) other.timestamp,
             },
+            suggestedTimes: gasSwitchTimeSuggestions(
+              row: sw,
+              tank: tanks.where((t) => t.id == sw.tankId).firstOrNull,
+              starts: breathStarts[sw.tankId] ?? const [],
+              switches: switches,
+              maxTimestamp: maxTimestamp,
+            ),
             onChanged: onChanged,
             onRemove: onRemove,
             onTimeSettled: onTimeSettled,
+            onPickTime: onPickTime,
           ),
         FormAppendRow(label: l10n.diveLog_edit_gasSwitches_add, onTap: onAdd),
       ],
@@ -125,9 +146,11 @@ class _GasSwitchRow extends StatefulWidget {
     required this.units,
     required this.maxTimestamp,
     required this.otherTimestamps,
+    required this.suggestedTimes,
     required this.onChanged,
     required this.onRemove,
     required this.onTimeSettled,
+    required this.onPickTime,
   });
 
   final GasSwitch gasSwitch;
@@ -135,9 +158,11 @@ class _GasSwitchRow extends StatefulWidget {
   final UnitFormatter units;
   final int? maxTimestamp;
   final Set<int> otherTimestamps;
+  final List<int> suggestedTimes;
   final void Function(GasSwitch updated, GasSwitchField field) onChanged;
   final ValueChanged<String> onRemove;
   final ValueChanged<String>? onTimeSettled;
+  final ValueChanged<GasSwitch>? onPickTime;
 
   @override
   State<_GasSwitchRow> createState() => _GasSwitchRowState();
@@ -191,6 +216,13 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
     return null;
   }
 
+  /// A chip stands in for typing [seconds] and leaving the field.
+  void _useTime(int seconds) {
+    final sw = widget.gasSwitch;
+    widget.onChanged(sw.copyWith(timestamp: seconds), GasSwitchField.time);
+    widget.onTimeSettled?.call(sw.id);
+  }
+
   /// Below this width the three fields no longer fit on one line with their
   /// labels, so the cylinder picker, the widest, takes a line of its own.
   static const double _oneLineMinWidth = 520;
@@ -200,6 +232,7 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
     final l10n = context.l10n;
     final sw = widget.gasSwitch;
     final tankIds = {for (final t in widget.tanks) t.id};
+    final onPickTime = widget.onPickTime;
 
     final time = MinutesSecondsField(
       key: ValueKey('gas-switch-time-${sw.id}'),
@@ -208,6 +241,14 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
       formatErrorText: l10n.diveLog_edit_gasSwitches_timeFormatError,
       validator: (seconds) => _timeError(l10n, seconds),
       onSettled: () => widget.onTimeSettled?.call(sw.id),
+      suffixIcon: onPickTime == null
+          ? null
+          : IconButton(
+              key: ValueKey('gas-switch-pick-${sw.id}'),
+              icon: const Icon(Icons.show_chart),
+              tooltip: l10n.diveLog_edit_gasSwitches_pickOnProfile,
+              onPressed: () => onPickTime(sw),
+            ),
       onChanged: (seconds) {
         if (seconds == null) return;
         widget.onChanged(sw.copyWith(timestamp: seconds), GasSwitchField.time);
@@ -265,43 +306,77 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
       onPressed: () => widget.onRemove(sw.id),
     );
 
+    final fields = _buildFields(
+      time: time,
+      picker: picker,
+      depth: depth,
+      remove: remove,
+    );
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 4, 6, 4),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth >= _oneLineMinWidth) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 2, child: time),
-                const SizedBox(width: 8),
-                // The widest field: its closed label names the cylinder,
-                // its role and its gas, which is what the diver picks by.
-                Expanded(flex: 5, child: picker),
-                const SizedBox(width: 8),
-                Expanded(flex: 2, child: depth),
-                remove,
-              ],
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: time),
-                  const SizedBox(width: 8),
-                  Expanded(child: depth),
-                  remove,
-                ],
+      padding: EdgeInsets.fromLTRB(
+        FormStyle.rowPadding.left,
+        FormStyle.rowPadding.top,
+        6,
+        FormStyle.rowPadding.bottom,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          fields,
+          if (widget.suggestedTimes.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: FormStyle.fieldGap),
+              child: GasSwitchTimeChips(
+                times: widget.suggestedTimes,
+                onSelected: _useTime,
               ),
-              const SizedBox(height: 4),
-              picker,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFields({
+    required Widget time,
+    required Widget picker,
+    required Widget depth,
+    required Widget remove,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= _oneLineMinWidth) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 2, child: time),
+              const SizedBox(width: 8),
+              // The widest field: its closed label names the cylinder,
+              // its role and its gas, which is what the diver picks by.
+              Expanded(flex: 5, child: picker),
+              const SizedBox(width: 8),
+              Expanded(flex: 2, child: depth),
+              remove,
             ],
           );
-        },
-      ),
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: time),
+                const SizedBox(width: 8),
+                Expanded(child: depth),
+                remove,
+              ],
+            ),
+            const SizedBox(height: FormStyle.fieldGap),
+            picker,
+          ],
+        );
+      },
     );
   }
 }

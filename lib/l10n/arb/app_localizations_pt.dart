@@ -8047,6 +8047,28 @@ class AppLocalizationsPt extends AppLocalizations {
       'Há outra troca neste tempo';
 
   @override
+  String get diveLog_edit_gasSwitches_startedDropping => 'Começou a descer aos';
+
+  @override
+  String diveLog_edit_gasSwitches_useTime(String time) {
+    return 'Usar $time';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickOnProfile => 'Escolher no perfil';
+
+  @override
+  String get diveLog_edit_gasSwitches_pickTitle => 'Definir tempo da troca';
+
+  @override
+  String diveLog_edit_gasSwitches_pickReadout(String time, String depth) {
+    return '$time a $depth';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickConfirm => 'Definir tempo';
+
+  @override
   String diveLog_edit_gasSwitches_removedWithTank(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

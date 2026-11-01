@@ -4690,6 +4690,34 @@
   "diveLog_edit_gasSwitches_timeFormatError": "Use minutes:seconds",
   "diveLog_edit_gasSwitches_timeRangeError": "Must be within the dive",
   "diveLog_edit_gasSwitches_duplicateError": "Another switch is at this time",
+  "diveLog_edit_gasSwitches_startedDropping": "Started dropping at",
+  "@diveLog_edit_gasSwitches_startedDropping": {
+    "description": "Gas switch editor: label before the times the cylinder's pressure started falling; the times follow it"
+  },
+  "diveLog_edit_gasSwitches_useTime": "Use {time}",
+  "@diveLog_edit_gasSwitches_useTime": {
+    "description": "Gas switch editor: tooltip on a suggested time chip",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_edit_gasSwitches_pickOnProfile": "Pick on profile",
+  "diveLog_edit_gasSwitches_pickTitle": "Set switch time",
+  "diveLog_edit_gasSwitches_pickReadout": "{time} at {depth}",
+  "@diveLog_edit_gasSwitches_pickReadout": {
+    "description": "Gas switch time sheet: the chosen time from the start of the dive and the depth there",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_edit_gasSwitches_pickConfirm": "Set time",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}",
   "@diveLog_edit_gasSwitches_removedWithTank": {
     "description": "Gas switch editor: switches dropped because their cylinder was removed",

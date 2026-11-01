@@ -12655,6 +12655,42 @@ abstract class AppLocalizations {
   /// **'Another switch is at this time'**
   String get diveLog_edit_gasSwitches_duplicateError;
 
+  /// Gas switch editor: label before the times the cylinder's pressure started falling; the times follow it
+  ///
+  /// In en, this message translates to:
+  /// **'Started dropping at'**
+  String get diveLog_edit_gasSwitches_startedDropping;
+
+  /// Gas switch editor: tooltip on a suggested time chip
+  ///
+  /// In en, this message translates to:
+  /// **'Use {time}'**
+  String diveLog_edit_gasSwitches_useTime(String time);
+
+  /// No description provided for @diveLog_edit_gasSwitches_pickOnProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick on profile'**
+  String get diveLog_edit_gasSwitches_pickOnProfile;
+
+  /// No description provided for @diveLog_edit_gasSwitches_pickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set switch time'**
+  String get diveLog_edit_gasSwitches_pickTitle;
+
+  /// Gas switch time sheet: the chosen time from the start of the dive and the depth there
+  ///
+  /// In en, this message translates to:
+  /// **'{time} at {depth}'**
+  String diveLog_edit_gasSwitches_pickReadout(String time, String depth);
+
+  /// No description provided for @diveLog_edit_gasSwitches_pickConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Set time'**
+  String get diveLog_edit_gasSwitches_pickConfirm;
+
   /// Gas switch editor: switches dropped because their cylinder was removed
   ///
   /// In en, this message translates to:

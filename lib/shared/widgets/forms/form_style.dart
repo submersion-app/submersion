@@ -22,6 +22,10 @@ abstract final class FormStyle {
   /// would overlap the fifth star's own target.
   static const double clearTapTarget = 26;
 
+  /// Vertical gap between input fields stacked in one row. Room for the
+  /// floating label of the field below, which sits across its top border.
+  static const double fieldGap = 12;
+
   /// Padding around a hero stat strip.
   static const EdgeInsets heroPadding = EdgeInsets.symmetric(
     horizontal: 12,

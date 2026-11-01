@@ -7881,6 +7881,28 @@ class AppLocalizationsHe extends AppLocalizations {
       'קיימת החלפה אחרת בזמן הזה';
 
   @override
+  String get diveLog_edit_gasSwitches_startedDropping => 'התחיל לרדת ב-';
+
+  @override
+  String diveLog_edit_gasSwitches_useTime(String time) {
+    return 'השתמש ב-$time';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickOnProfile => 'בחירה בפרופיל';
+
+  @override
+  String get diveLog_edit_gasSwitches_pickTitle => 'הגדרת זמן החלפה';
+
+  @override
+  String diveLog_edit_gasSwitches_pickReadout(String time, String depth) {
+    return '$time ב-$depth';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickConfirm => 'הגדרת זמן';
+
+  @override
   String diveLog_edit_gasSwitches_removedWithTank(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

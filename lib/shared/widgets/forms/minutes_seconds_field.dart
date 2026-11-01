@@ -19,6 +19,7 @@ class MinutesSecondsField extends StatefulWidget {
     required this.formatErrorText,
     this.validator,
     this.onSettled,
+    this.suffixIcon,
   });
 
   final int? seconds;
@@ -27,6 +28,9 @@ class MinutesSecondsField extends StatefulWidget {
   final String label;
   final String formatErrorText;
   final String? Function(int seconds)? validator;
+
+  /// A control at the end of the field, for another way to set the time.
+  final Widget? suffixIcon;
 
   @override
   State<MinutesSecondsField> createState() => _MinutesSecondsFieldState();
@@ -76,7 +80,11 @@ class _MinutesSecondsFieldState extends State<MinutesSecondsField> {
     return TextFormField(
       controller: _controller,
       focusNode: _focus,
-      decoration: InputDecoration(labelText: widget.label, isDense: true),
+      decoration: InputDecoration(
+        labelText: widget.label,
+        isDense: true,
+        suffixIcon: widget.suffixIcon,
+      ),
       keyboardType: TextInputType.datetime,
       validator: (text) {
         final seconds = parseMinutesSeconds(text ?? '');
