@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -23,6 +24,63 @@ class MoveDraft {
   final String note;
 }
 
+/// Whether [partCount] parts go too.
+Future<bool> askMoveParts(BuildContext context, int partCount) {
+  final l10n = context.l10n;
+  return _ask(
+    context,
+    l10n.equipment_location_parts_title,
+    l10n.equipment_location_parts_body(partCount),
+    l10n.equipment_location_parts_yes,
+    l10n.equipment_location_parts_no,
+  );
+}
+
+/// Whether [itemCount] items change to [status].
+Future<bool> askMoveStatus(
+  BuildContext context,
+  EquipmentStatus status,
+  int itemCount,
+) {
+  final l10n = context.l10n;
+  return _ask(
+    context,
+    l10n.equipment_location_status_title,
+    l10n.equipment_location_status_body(itemCount, status.localizedName(l10n)),
+    l10n.equipment_location_status_yes,
+    l10n.equipment_location_status_no,
+  );
+}
+
+/// A prompt the page can no longer show is a no: after the moves are written,
+/// a throw here would report a saved move as failed.
+Future<bool> _ask(
+  BuildContext context,
+  String title,
+  String body,
+  String yes,
+  String no,
+) async =>
+    context.mounted &&
+    (await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(title),
+            content: Text(body),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(no),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(yes),
+              ),
+            ],
+          ),
+        ) ??
+        false);
+
 /// Moves [items]: the sheet, then the parts and status prompts, then a
 /// SnackBar. With [lendTo] the sheet opens on that buddy. Returns how many
 /// items moved, or null when cancelled or when the move failed (a SnackBar
@@ -44,42 +102,10 @@ Future<int?> showMoveEquipmentFlow(
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final notifier = ref.read(equipmentListNotifierProvider.notifier);
-  // A prompt the page can no longer show is a no: after the moves are
-  // written, a throw here would report a saved move as failed.
-  Future<bool> ask(String title, String body, String yes, String no) async =>
-      context.mounted &&
-      (await showDialog<bool>(
-            context: context,
-            builder: (dialogContext) => AlertDialog(
-              title: Text(title),
-              content: Text(body),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: Text(no),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: Text(yes),
-                ),
-              ],
-            ),
-          ) ??
-          false);
   final flow = EquipmentMoveFlow(
     moves: ref.read(equipmentLocationMoveRepositoryProvider),
-    askMoveParts: (n) => ask(
-      l10n.equipment_location_parts_title,
-      l10n.equipment_location_parts_body(n),
-      l10n.equipment_location_parts_yes,
-      l10n.equipment_location_parts_no,
-    ),
-    askStatus: (status, n) => ask(
-      l10n.equipment_location_status_title,
-      l10n.equipment_location_status_body(n, status.localizedName(l10n)),
-      l10n.equipment_location_status_yes,
-      l10n.equipment_location_status_no,
-    ),
+    askMoveParts: (n) => askMoveParts(context, n),
+    askStatus: (status, n) => askMoveStatus(context, status, n),
     setStatus: notifier.setStatusForMany,
     onStatusFailed: () => messenger.showSnackBar(
       SnackBar(content: Text(l10n.common_error_tryAgain)),
