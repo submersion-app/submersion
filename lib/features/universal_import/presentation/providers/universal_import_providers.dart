@@ -979,7 +979,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     int remotePhotoCount = 0,
   }) async {
     state = state.copyWith(
-      isLoading: true,
       clearError: true,
       photoPathsByBaseName: const {},
       unmatchedPhotoCount: 0,

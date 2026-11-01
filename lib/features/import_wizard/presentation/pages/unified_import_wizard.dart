@@ -259,11 +259,11 @@ class _UnifiedImportWizardBodyState
       await _advance();
     } catch (e, stackTrace) {
       // An ImportStepFailure carries text the step wrote for the user.
-      // Anything else -- a failed database read, a parser blowing up on an
-      // unexpected shape -- is unexpected, so log it and wrap it. Before this,
-      // the future returned by _onNext was dropped on the floor by the Next
-      // button's VoidCallback, so either kind of throw surfaced nowhere at
-      // all and the button simply looked dead.
+      // Anything else, such as a failed database read or a parser blowing up
+      // on an unexpected shape, is unexpected, so log it and wrap it. Before
+      // this, the future returned by _onNext was dropped on the floor by the
+      // Next button's VoidCallback, so either kind of throw surfaced nowhere
+      // at all and the button simply looked dead.
       if (e is! ImportStepFailure) {
         _log.error(
           'Import wizard could not advance',
