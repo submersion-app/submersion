@@ -28,7 +28,6 @@ shows where the diver was at any moment.
   it last if at all, and #4073 keeps one entry point for switch editing.
 - Any change to how switches are stored, saved, re-parsed, resynced or read by
   analysis. All of that is settled by #4073.
-- Showing the pressure curve inside the picker.
 - Deciding a switch happened. The feature suggests times for rows the diver
   has; it never adds a row, and it never changes a row until tapped.
 
@@ -164,25 +163,30 @@ Limits, all but the last of which fail by offering nothing:
 ### Picking on the profile
 
 A chart icon button in the row, beside the time, opens a bottom sheet. It shows
-only when the dive has a profile. The sheet holds:
+only when the dive has a profile. A vertical drag does not close the sheet, since
+it belongs to the chart. The sheet holds:
 
-- The depth profile, full sheet width, in the app's theme colours (light and
-  dark), with depth increasing downward and the surface lead-in the other
-  profile charts draw.
-- A vertical cursor at the chosen time, which starts at the row's time.
-- Thin markers at the dive's other switches, so the diver can place this one
-  relative to them.
-- Small ticks at the row's cylinder's starts, when it has any, and never for a
-  cylinder that gets no chips because of its role.
+- The dive detail page's own profile chart, the same widget with the same look,
+  axes, gestures and hover tooltip, limited to depth and pressure. Whatever the
+  diver's legend says, every other line stays off, and there is no legend, no
+  options menu and no right-axis menu. Nothing the sheet does changes the diver's
+  chart settings.
+- Every cylinder's recorded pressure, in its gas colour on the labelled right
+  axis, with the row's cylinder permanently drawn heavier. A switch reads as one
+  line going flat where the other starts falling. Cylinders the diver removed in
+  this session are left out, and estimated curves never appear.
+- The chart's markers at the dive's other switches, so the diver can place this
+  one relative to them, and its cursor at the chosen time, which starts at the
+  row's time.
 - A readout of the chosen time and the depth there in the diver's unit, updated
   live.
-- A slider under the chart over the same span, for keyboard and screen reader
-  use and for fine control.
-- Cancel and Confirm. Cancel leaves the row untouched.
+- A slider under the chart over the same span, inset to the plot so its thumb
+  sits under the cursor at the default zoom, for keyboard and screen reader use
+  and for times between the samples of a sparse profile.
+- Cancel and Set time. Cancel leaves the row untouched.
 
-Tapping the chart moves the cursor there; dragging across it follows the finger.
-The chart claims horizontal drags only, so the sheet can still be dragged down.
-Confirm writes the time to the row.
+Hovering shows the tooltip and chooses nothing. A tap, or the end of a drag across
+the plot, chooses the nearest sample however sparse the profile.
 
 ### Writing the time
 
@@ -225,13 +229,11 @@ These are mine, made so the builder can plan.
 ## Left to the builder
 
 - Chip and icon styling within the page's existing form style.
-- Exact sheet layout at phone and desktop widths, and how it fits the app's
-  existing bottom sheet habits (`SheetMessengerScope` is not needed; the sheet
-  raises no snackbar).
+- Exact sheet layout at phone and desktop widths (`SheetMessengerScope` is not
+  needed; the sheet raises no snackbar).
 - Test placement, following the repo's layers.
 
 ## Screenshots
 
 The gas and gear group before and after on a dive with two cylinders, and the
-sheet, at phone and desktop widths. The chart is a new coloured surface, so the
-sheet also needs light and dark.
+sheet, at phone and desktop widths, in light and dark.

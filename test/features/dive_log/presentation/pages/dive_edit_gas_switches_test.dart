@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -21,6 +20,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -701,61 +701,69 @@ void main() {
       expect(await flagged(), isFalse);
     });
 
-    group('breathing starts on the chart', () {
-      Map<String, List<TankPressurePoint>> breathed(String tankId) => {
-        tankId: [
-          for (var t = 0; t < 1500; t += 2)
-            TankPressurePoint(
-              tankId: tankId,
-              timestamp: t,
-              pressure: t < 720 ? 200 : 200 - (t - 720) * 3.4 / 60,
-            ),
-        ],
+    group('the chart in the sheet', () {
+      Map<String, List<TankPressurePoint>> recorded(List<String> tankIds) => {
+        for (final id in tankIds)
+          id: [
+            for (var t = 0; t < 1500; t += 30)
+              TankPressurePoint(
+                tankId: id,
+                timestamp: t,
+                pressure: 200 - t / 60,
+              ),
+          ],
       };
 
-      int markers(WidgetTester tester) => tester
-          .widget<LineChart>(find.byType(LineChart))
-          .data
-          .extraLinesData
-          .verticalLines
-          .length;
+      DiveProfileChart chart(WidgetTester tester) =>
+          tester.widget<DiveProfileChart>(find.byType(DiveProfileChart).last);
 
-      testWidgets('a breathed cylinder marks its start', (tester) async {
+      testWidgets('draws every cylinder, the row\'s heavier', (tester) async {
         final dive = await seedDive();
         await pumpEditor(
           tester,
           dive.id,
-          pressures: () async => breathed('tank-deco'),
+          pressures: () async => recorded(['tank-back', 'tank-deco']),
         );
         await addSwitch(tester);
 
         await openPicker(tester, find.byTooltip('Pick on profile'));
 
-        expect(markers(tester), 1);
+        expect(
+          chart(tester).tankPressures!.keys,
+          containsAll(['tank-back', 'tank-deco']),
+        );
+        expect(chart(tester).emphasizedTankId, 'tank-deco');
+        expect(chart(tester).depthAndPressureOnly, isTrue);
       });
 
-      testWidgets('a cylinder feeding the loop marks nothing', (tester) async {
-        final dive = await seedDive(
-          tanks: const [
-            back,
-            DiveTank(
-              id: 'tank-dil',
-              volume: 3,
-              role: TankRole.diluent,
-              order: 1,
-            ),
-          ],
-        );
+      testWidgets('leaves out a cylinder the diver removed', (tester) async {
+        final dive = await seedDive();
         await pumpEditor(
           tester,
           dive.id,
-          pressures: () async => breathed('tank-dil'),
+          pressures: () async => recorded(['tank-deco', 'tank-gone']),
         );
         await addSwitch(tester);
 
         await openPicker(tester, find.byTooltip('Pick on profile'));
 
-        expect(markers(tester), 0);
+        expect(chart(tester).tankPressures!.keys, ['tank-deco']);
+      });
+
+      testWidgets('marks the other switches, not the row\'s own', (
+        tester,
+      ) async {
+        final dive = await seedDive();
+        await pumpEditor(tester, dive.id);
+        await addSwitch(tester);
+        await addSwitch(tester);
+
+        await openPicker(tester, find.byTooltip('Pick on profile').first);
+
+        final marked = chart(tester).gasSwitches!;
+        expect(marked, hasLength(1));
+        expect(marked.single.timestamp, 60);
+        expect(marked.single.o2Fraction, closeTo(0.21, 0.001));
       });
     });
 

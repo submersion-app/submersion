@@ -90,22 +90,30 @@ extension _GasSwitchEditing on _DiveEditPageState {
     UnitFormatter units,
   ) async {
     final diveId = widget.diveId;
-    final starts = diveId == null
+    final recorded = diveId == null
         ? null
-        : ref.read(cylinderBreathStartsProvider(diveId)).value;
-    final tank = _tanks.where((t) => t.id == sw.tankId).firstOrNull;
+        : ref.read(tankPressuresProvider(diveId)).value;
     final seconds = await showGasSwitchTimeSheet(
       context,
       profile: profile,
       initialSeconds: sw.timestamp,
       units: units,
-      otherSwitchTimes: [
+      tanks: _tanks,
+      tankId: sw.tankId,
+      tankPressures: {for (final tank in _tanks) tank.id: ?recorded?[tank.id]},
+      gasSwitches: [
         for (final other in _gasSwitches)
-          if (other.id != sw.id) other.timestamp,
+          if (other.id != sw.id)
+            if (_tanks.where((t) => t.id == other.tankId).firstOrNull
+                case final tank?)
+              GasSwitchWithTank(
+                gasSwitch: other,
+                tankName: tank.name ?? '',
+                gasMix: tank.gasMix.name,
+                o2Fraction: tank.gasMix.o2 / 100,
+                heFraction: tank.gasMix.he / 100,
+              ),
       ],
-      breathStarts: hasBreathingStarts(tank)
-          ? (starts?[sw.tankId] ?? const [])
-          : const [],
     );
     if (!mounted || seconds == null || seconds == sw.timestamp) return;
     _onGasSwitchChanged(sw.copyWith(timestamp: seconds), GasSwitchField.time);

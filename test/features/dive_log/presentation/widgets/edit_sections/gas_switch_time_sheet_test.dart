@@ -1,8 +1,11 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switch_time_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -14,8 +17,24 @@ const _profile = [
   DiveProfilePoint(timestamp: 3000, depth: 0),
 ];
 
-const _chart = ValueKey('gas-switch-time-chart');
-const _cursor = ValueKey('gas-switch-time-cursor');
+const _back = DiveTank(id: 'back', gasMix: GasMix(o2: 21), order: 0);
+const _deco = DiveTank(id: 'deco', gasMix: GasMix(o2: 50), order: 1);
+
+final _pressures = {
+  for (final id in ['back', 'deco'])
+    id: [
+      for (var t = 0; t <= 3000; t += 60)
+        TankPressurePoint(tankId: id, timestamp: t, pressure: 200 - t / 60),
+    ],
+};
+
+class _SettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _SettingsNotifier(super.state);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 class _Sheet {
   int? result;
@@ -29,7 +48,7 @@ Future<_Sheet> _open(
   bool imperial = false,
   Locale locale = const Locale('en'),
 }) async {
-  tester.view.physicalSize = const Size(800, 900);
+  tester.view.physicalSize = const Size(800, 1000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final sheet = _Sheet();
@@ -37,25 +56,33 @@ Future<_Sheet> _open(
     AppSettings(depthUnit: imperial ? DepthUnit.feet : DepthUnit.meters),
   );
   await tester.pumpWidget(
-    MaterialApp(
-      locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: Builder(
-          builder: (context) => TextButton(
-            child: const Text('Open'),
-            onPressed: () async {
-              sheet.result = await showGasSwitchTimeSheet(
-                context,
-                profile: profile,
-                initialSeconds: initialSeconds,
-                units: units,
-                otherSwitchTimes: const [2520],
-                breathStarts: const [890],
-              );
-              sheet.closed = true;
-            },
+    ProviderScope(
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => _SettingsNotifier(const AppSettings()),
+        ),
+      ],
+      child: MaterialApp(
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              child: const Text('Open'),
+              onPressed: () async {
+                sheet.result = await showGasSwitchTimeSheet(
+                  context,
+                  profile: profile,
+                  initialSeconds: initialSeconds,
+                  units: units,
+                  tanks: const [_back, _deco],
+                  tankId: 'deco',
+                  tankPressures: _pressures,
+                );
+                sheet.closed = true;
+              },
+            ),
           ),
         ),
       ),
@@ -93,61 +120,31 @@ void main() {
       expect(find.text('15:00 at 30.0m'), findsOneWidget);
     });
 
-    testWidgets('tapping the chart moves the time and the cursor', (
+    testWidgets('hosts the dive profile chart with depth and pressure only', (
       tester,
     ) async {
       await _open(tester);
 
-      final chart = find.byKey(_chart);
-      await tester.tapAt(tester.getCenter(chart));
-      await tester.pump();
-
-      expect(find.text('25:00 at 30.0m'), findsOneWidget);
-      expect(
-        tester.getCenter(find.byKey(_cursor)).dx,
-        closeTo(tester.getCenter(chart).dx, 1),
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
       );
+      expect(chart.depthAndPressureOnly, isTrue);
+      expect(chart.emphasizedTankId, 'deco');
+      expect(chart.tankPressures, _pressures);
+      expect(chart.highlightedTimestamp, 900);
     });
 
-    testWidgets('the cursor line runs the height of the chart', (tester) async {
+    testWidgets('tapping the chart moves the time', (tester) async {
       await _open(tester);
 
-      expect(
-        tester
-            .getSize(find.byKey(const ValueKey('gas-switch-time-line')))
-            .height,
-        tester.getSize(find.byKey(_chart)).height,
-      );
-    });
-
-    testWidgets('a horizontal drag follows the finger', (tester) async {
-      await _open(tester);
-
-      final chart = find.byKey(_chart);
-      final width = tester.getSize(chart).width;
-      await tester.timedDrag(
-        chart,
-        Offset(width / 4, 0),
-        const Duration(milliseconds: 200),
-      );
+      await tester.tapAt(tester.getCenter(find.byType(LineChart).first));
       await tester.pumpAndSettle();
 
-      expect(find.text('37:30 at 30.0m'), findsOneWidget);
-    });
-
-    testWidgets('a vertical drag over the chart leaves the time alone', (
-      tester,
-    ) async {
-      await _open(tester);
-
-      await tester.timedDrag(
-        find.byKey(_chart),
-        const Offset(0, 40),
-        const Duration(milliseconds: 300),
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
       );
-      await tester.pumpAndSettle();
-
-      expect(find.text('15:00 at 30.0m'), findsOneWidget);
+      // The nearest sample of a sparse profile.
+      expect(chart.highlightedTimestamp, anyOf(600, 2400));
     });
 
     testWidgets('the slider moves the same time', (tester) async {
@@ -159,15 +156,20 @@ void main() {
       expect(find.text('2:00 at 6.0m'), findsOneWidget);
     });
 
-    testWidgets('the slider lines up with the chart', (tester) async {
+    testWidgets('the slider lines up with the chart\'s plot', (tester) async {
       await _open(tester);
 
-      final chart = tester.getRect(find.byKey(_chart));
-      final slider = tester.getRect(find.byType(Slider));
+      final sheetChart = tester.getRect(find.byType(DiveProfileChart));
+      final padding = tester
+          .widget<Slider>(find.byType(Slider))
+          .padding!
+          .resolve(TextDirection.ltr);
 
-      expect(slider.left, chart.left);
-      expect(slider.right, chart.right);
-      expect(tester.widget<Slider>(find.byType(Slider)).padding?.horizontal, 0);
+      expect(padding.left, DiveProfileChart.plotLeftInset(sheetChart.width));
+      expect(
+        padding.right,
+        DiveProfileChart.plotRightInset(sheetChart.width, hasRightAxis: true),
+      );
     });
 
     testWidgets('Set time returns the chosen seconds', (tester) async {

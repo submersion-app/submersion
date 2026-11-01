@@ -76,6 +76,7 @@ List<LineChartBarData> buildMultiTankPressureLines(
   required WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   required SeriesGetsLeadIn seriesGetsLeadIn,
   Color? singleTankColor,
+  String? emphasizedTankId,
 }) {
   if (!hasMultiTankPressure) return [];
 
@@ -138,7 +139,7 @@ List<LineChartBarData> buildMultiTankPressureLines(
         // spline overshoots it and hooks below the curve at the left edge.
         preventCurveOverShooting: seriesGetsLeadIn(tankSpots, profile),
         color: color,
-        barWidth: 1,
+        barWidth: tankId == emphasizedTankId ? 3 : 1,
         isStrokeCapRound: true,
         dotData: const FlDotData(show: false),
         dashArray: dashPattern,
