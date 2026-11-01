@@ -54905,6 +54905,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotation :';
 
   @override
+  String get navTrack_align_scaleLabel => 'Échelle :';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'La fin est fixée et détermine donc la taille de la trace. L\'échelle ne modifie que la forme du parcours entre les deux.';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

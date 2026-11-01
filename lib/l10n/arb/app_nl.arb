@@ -16335,6 +16335,8 @@
   "navTrack_align_endMode_gpsFix": "Vanaf GPS-fix",
   "navTrack_align_trustSummary": "Vertrouwen: betrouwbaar tot {distance}, {minutes} min",
   "navTrack_align_rotationLabel": "Rotatie:",
+  "navTrack_align_scaleLabel": "Schaal:",
+  "navTrack_align_scalePinnedHint": "Het einde ligt vast en bepaalt dus de grootte van de track. De schaal verandert alleen de vorm van het pad ertussen.",
   "navTrack_terrain_summary": "{onLand} punten aan land, {below} van {total} onder de zeebodem{maxPart}, {unknown} onbekend{coarsePart}",
   "navTrack_terrain_maxPart": " (max {depth})",
   "navTrack_terrain_coarsePart": " (grove bathymetrie: alleen landconflicten gecontroleerd)",

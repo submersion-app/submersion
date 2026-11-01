@@ -53913,6 +53913,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotation:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Scale:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'The end is pinned, so it sets the track\'s size. Scale only reshapes the path between.';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

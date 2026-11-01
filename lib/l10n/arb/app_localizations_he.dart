@@ -53598,6 +53598,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'סיבוב:';
 
   @override
+  String get navTrack_align_scaleLabel => 'קנה מידה:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'הסוף מקובע ולכן הוא קובע את גודל המסלול. קנה המידה משנה רק את צורת הדרך שביניהם.';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

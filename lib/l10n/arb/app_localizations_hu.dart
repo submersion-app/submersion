@@ -54482,6 +54482,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Forgatás:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Méretezés:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'A vég rögzítve van, ezért ez határozza meg a nyomvonal méretét. A méretezés csak a köztes szakasz alakját változtatja meg.';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

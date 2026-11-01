@@ -86606,6 +86606,18 @@ abstract class AppLocalizations {
   /// **'Rotation:'**
   String get navTrack_align_rotationLabel;
 
+  /// No description provided for @navTrack_align_scaleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale:'**
+  String get navTrack_align_scaleLabel;
+
+  /// No description provided for @navTrack_align_scalePinnedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The end is pinned, so it sets the track\'s size. Scale only reshapes the path between.'**
+  String get navTrack_align_scalePinnedHint;
+
   /// No description provided for @navTrack_terrain_summary.
   ///
   /// In en, this message translates to:

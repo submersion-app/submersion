@@ -55438,6 +55438,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'الدوران:';
 
   @override
+  String get navTrack_align_scaleLabel => 'المقياس:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'النهاية مثبتة، لذا فهي تحدد حجم المسار. يغيّر المقياس شكل المسار بينهما فقط.';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

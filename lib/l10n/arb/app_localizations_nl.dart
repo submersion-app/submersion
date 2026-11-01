@@ -54432,6 +54432,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotatie:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Schaal:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'Het einde ligt vast en bepaalt dus de grootte van de track. De schaal verandert alleen de vorm van het pad ertussen.';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

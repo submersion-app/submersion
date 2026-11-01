@@ -32300,6 +32300,8 @@
     }
   },
   "navTrack_align_rotationLabel": "Rotation:",
+  "navTrack_align_scaleLabel": "Scale:",
+  "navTrack_align_scalePinnedHint": "The end is pinned, so it sets the track's size. Scale only reshapes the path between.",
   "navTrack_terrain_summary": "{onLand} points on land, {below} of {total} below the seafloor{maxPart}, {unknown} unknown{coarsePart}",
   "@navTrack_terrain_summary": {
     "placeholders": {

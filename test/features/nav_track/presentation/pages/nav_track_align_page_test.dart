@@ -25,6 +25,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -1524,6 +1525,119 @@ void main() {
     testWidgets('a missing track says the track was not found', (tester) async {
       await pumpAlign(tester, () async => null);
       expect(find.text('Track not found.'), findsOneWidget);
+    });
+  });
+
+  group('track scale (#3823)', () {
+    const scaleUp = ValueKey('nav-track-align-scale-up');
+    const hint = ValueKey('nav-track-align-scale-pinned-hint');
+
+    NavTrack anchored({
+      NavTrackEndMode endMode = NavTrackEndMode.none,
+      double? endLatitude,
+      double? endLongitude,
+    }) => _route().copyWith(
+      anchorLatitude: 10,
+      anchorLongitude: 20,
+      endMode: endMode,
+      endLatitude: endLatitude,
+      endLongitude: endLongitude,
+    );
+
+    double fieldPercent(WidgetTester tester) => double.parse(
+      tester
+          .widget<TextField>(
+            find.byKey(const ValueKey('nav-track-align-scale-field')),
+          )
+          .controller!
+          .text,
+    );
+
+    testWidgets('Save persists the scale', (tester) async {
+      final repository = await _pump(tester, route: _route());
+      await tester.tap(find.byKey(scaleUp));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+      expect(repository.lastCorrection?.scaleFactor, closeTo(1.01, 1e-9));
+    });
+
+    testWidgets('Cancel does not persist the scale', (tester) async {
+      final repository = await _pump(tester, route: _route());
+      await tester.tap(find.byKey(scaleUp));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-cancel')));
+      await tester.pumpAndSettle();
+      expect(repository.lastCorrection, isNull);
+    });
+
+    testWidgets('Reset returns the scale to 100%', (tester) async {
+      await _pump(tester, route: _route());
+      await tester.tap(find.byKey(scaleUp));
+      await tester.pump();
+      expect(fieldPercent(tester), 101);
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-reset')));
+      await tester.pump();
+      expect(fieldPercent(tester), 100);
+    });
+
+    testWidgets('a saved scale opens in the field', (tester) async {
+      await _pump(tester, route: _route().copyWith(scaleFactor: 1.38));
+      expect(fieldPercent(tester), 138);
+    });
+
+    testWidgets('a scale change moves the drawn track', (tester) async {
+      await _pump(tester, route: anchored());
+      NavTrack drawn() => tester
+          .widget<NavTrackPolylineLayer>(find.byType(NavTrackPolylineLayer))
+          .route;
+      expect(drawn().scaleFactor, 1);
+      await tester.tap(find.byKey(scaleUp));
+      await tester.pump();
+      expect(drawn().scaleFactor, closeTo(1.01, 1e-9));
+    });
+
+    testWidgets('the hint shows while an end point pins the end', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        route: anchored(
+          endMode: NavTrackEndMode.point,
+          endLatitude: 10.001,
+          endLongitude: 20.001,
+        ),
+      );
+      expect(find.byKey(hint), findsOneWidget);
+    });
+
+    testWidgets('no hint for Same as start', (tester) async {
+      await _pump(
+        tester,
+        route: anchored(endMode: NavTrackEndMode.sameAsStart),
+      );
+      expect(find.byKey(hint), findsNothing);
+    });
+
+    testWidgets('no hint with no end', (tester) async {
+      await _pump(tester, route: anchored());
+      expect(find.byKey(hint), findsNothing);
+    });
+
+    testWidgets('picking Same as start clears the hint', (tester) async {
+      await _pump(
+        tester,
+        route: anchored(
+          endMode: NavTrackEndMode.point,
+          endLatitude: 10.001,
+          endLongitude: 20.001,
+        ),
+      );
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+      );
+      await tester.pump();
+      expect(find.byKey(hint), findsNothing);
     });
   });
 

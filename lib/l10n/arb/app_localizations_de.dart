@@ -54663,6 +54663,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Drehung:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Skalierung:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'Das Ende ist festgelegt und bestimmt damit die Größe des Tracks. Die Skalierung ändert nur den Verlauf dazwischen.';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

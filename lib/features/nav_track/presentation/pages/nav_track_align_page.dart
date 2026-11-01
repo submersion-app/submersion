@@ -35,6 +35,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_ali
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_rotation_control.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_position_row_controls.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_scale_control.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -85,8 +86,8 @@ bool _geoPointsMatch(GeoPoint? a, GeoPoint? b) {
 }
 
 /// The alignment page (spec 2026-09-10-underwater-nav-track-design.md, "The
-/// alignment page"): start point, end point, trust slider, rotation and the
-/// terrain check, all against a transient in-memory [NavTrackCorrection]
+/// alignment page"): start point, end point, trust slider, rotation, scale and
+/// the terrain check, all against a transient in-memory [NavTrackCorrection]
 /// that is only written back with "Save".
 ///
 /// Renders the route by constructing a transient [NavTrack] copy carrying
@@ -255,6 +256,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     endLongitude: _correction.endPoint?.longitude,
     trustFraction: _correction.trustFraction,
     headingOffsetDeg: _correction.headingOffsetDeg,
+    scaleFactor: _correction.scaleFactor,
     points: base.points,
     createdAt: base.createdAt,
     updatedAt: base.updatedAt,
@@ -773,13 +775,32 @@ class _ControlsPanel extends ConsumerWidget {
                       route,
                     ),
             ),
-            NavTrackRotationControl(
-              headingOffsetDeg: correction.headingOffsetDeg,
-              onChanged: (value) => state._updateCorrection(
-                (c) => c.copyWith(headingOffsetDeg: value),
-                route,
-              ),
+            Wrap(
+              spacing: 16,
+              runSpacing: 4,
+              children: [
+                NavTrackRotationControl(
+                  headingOffsetDeg: correction.headingOffsetDeg,
+                  onChanged: (value) => state._updateCorrection(
+                    (c) => c.copyWith(headingOffsetDeg: value),
+                    route,
+                  ),
+                ),
+                NavTrackScaleControl(
+                  scaleFactor: correction.scaleFactor,
+                  onChanged: (value) => state._updateCorrection(
+                    (c) => c.copyWith(scaleFactor: value),
+                    route,
+                  ),
+                ),
+              ],
             ),
+            if (NavTrackCorrector.endIsPinned(route.points, correction))
+              Text(
+                key: const ValueKey('nav-track-align-scale-pinned-hint'),
+                l10n.navTrack_align_scalePinnedHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             if (state._terrainResult != null)
               Padding(
                 padding: const EdgeInsets.only(top: 4),

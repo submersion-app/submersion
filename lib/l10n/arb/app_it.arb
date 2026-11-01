@@ -16335,6 +16335,8 @@
   "navTrack_align_endMode_gpsFix": "Dal fix GPS",
   "navTrack_align_trustSummary": "Affidabilità: verificato fino a {distance}, {minutes} min",
   "navTrack_align_rotationLabel": "Rotazione:",
+  "navTrack_align_scaleLabel": "Scala:",
+  "navTrack_align_scalePinnedHint": "La fine è fissata, quindi determina le dimensioni della traccia. La scala modifica solo la forma del percorso intermedio.",
   "navTrack_terrain_summary": "{onLand} punti a terra, {below} di {total} sotto il fondale{maxPart}, {unknown} sconosciuti{coarsePart}",
   "navTrack_terrain_maxPart": " (max {depth})",
   "navTrack_terrain_coarsePart": " (batimetria a bassa risoluzione: verificati solo i conflitti a terra)",

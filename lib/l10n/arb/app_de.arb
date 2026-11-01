@@ -16489,6 +16489,8 @@
   "navTrack_align_endMode_gpsFix": "GPS-Position beim Auftauchen",
   "navTrack_align_trustSummary": "Vertrauen: bestätigt bis {distance}, {minutes} Min.",
   "navTrack_align_rotationLabel": "Drehung:",
+  "navTrack_align_scaleLabel": "Skalierung:",
+  "navTrack_align_scalePinnedHint": "Das Ende ist festgelegt und bestimmt damit die Größe des Tracks. Die Skalierung ändert nur den Verlauf dazwischen.",
   "navTrack_terrain_summary": "{onLand} Punkte an Land, {below} von {total} unter dem Meeresboden{maxPart}, {unknown} unbekannt{coarsePart}",
   "navTrack_terrain_maxPart": " (max. {depth})",
   "navTrack_terrain_coarsePart": " (grobe Bathymetrie: nur Landkonflikte geprüft)",

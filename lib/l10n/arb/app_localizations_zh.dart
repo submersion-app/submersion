@@ -51362,6 +51362,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_align_rotationLabel => '旋转：';
 
   @override
+  String get navTrack_align_scaleLabel => '缩放：';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      '终点已固定，因此它决定了轨迹的大小。缩放只会改变中间路径的形状。';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
