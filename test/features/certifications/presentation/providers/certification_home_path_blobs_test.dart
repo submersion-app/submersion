@@ -116,7 +116,8 @@ void main() {
       final sub = container.listen(milestonesProvider, (_, _) {});
       addTearDown(sub.close);
       await container.read(milestonesProvider.future);
-      while (container.read(certificationListNotifierProvider).isLoading) {
+      for (var i = 0; i < 200; i++) {
+        if (!container.read(certificationListNotifierProvider).isLoading) break;
         await Future<void>.delayed(const Duration(milliseconds: 5));
       }
     });

@@ -31,11 +31,10 @@ class CertificationRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(CertificationRepository);
 
-  /// Emits whenever the `certifications` table changes so list providers can
-  /// refresh after a sync or any other write.
-  ///
-  /// Card images are read from the card document (issue #2613), so a
-  /// document or page change ticks too.
+  /// Emits whenever a certification or its card changes, for what reads card
+  /// images. They are read from the card document (issue #2613), so a document
+  /// or page change ticks too. Anything else subscribes to
+  /// [watchCertificationRowChanges].
   Stream<void> watchCertificationsChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.certifications),

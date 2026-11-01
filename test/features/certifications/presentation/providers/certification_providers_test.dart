@@ -387,7 +387,7 @@ void main() {
       expect(container.read(certificationListNotifierProvider).value, isEmpty);
 
       // A sync applies a remote certification straight to the DB (no notifier
-      // mutation call). The watchCertificationsChanges tick must silently reload
+      // mutation call). The watchCertificationRowChanges tick must silently reload
       // the list via _silentReloadCertifications.
       await certRepo.createCertification(
         _makeCertification(name: 'Synced Cert').copyWith(diverId: diver.id),
