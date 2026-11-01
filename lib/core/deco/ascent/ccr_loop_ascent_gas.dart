@@ -26,6 +26,14 @@ class CcrLoopAscentGas extends LoopAscentGas {
   final double diluentFO2;
   final double diluentFHe;
 
+  /// Whether travel between the two depths passes [switchDepth] rather than
+  /// only reaching it, with slack for float noise in an interpolated depth.
+  static bool crossesSwitch(
+    double switchDepth, {
+    required double deeperDepth,
+    required double shallowerDepth,
+  }) => switchDepth > shallowerDepth + 1e-9 && switchDepth < deeperDepth - 1e-9;
+
   /// Setpoint in force at [depthMeters].
   double setpointAt(double depthMeters) =>
       depthMeters > switchDepth ? setpointHigh : setpointLow;
@@ -46,8 +54,11 @@ class CcrLoopAscentGas extends LoopAscentGas {
   @override
   List<double> switchDepthsBetween(double deeperDepth, double shallowerDepth) {
     // A setpoint change is a gas change: split ascent legs at the switch.
-    if (switchDepth > shallowerDepth + 1e-9 &&
-        switchDepth < deeperDepth - 1e-9) {
+    if (crossesSwitch(
+      switchDepth,
+      deeperDepth: deeperDepth,
+      shallowerDepth: shallowerDepth,
+    )) {
       return [switchDepth];
     }
     return const [];

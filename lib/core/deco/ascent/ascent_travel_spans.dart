@@ -37,6 +37,41 @@ List<AscentLeg> splitAscentLeg(
   return spans;
 }
 
+/// [splitAscentLeg] for walking the leg itself, as a tissue replay does: each
+/// span runs along the leg's own straight line from where the last one ended,
+/// and a span rounded away to no time is left out.
+///
+/// A switch just above a stop leaves such a span, as O2's MOD does 18 mm above
+/// a 6 m stop in salt water. Its seconds and gas charge nothing, which is all
+/// the table needs, but stopping at its depth would leave the walk short of the
+/// stop.
+List<AscentLeg> straightAscentSpans(
+  AscentGasPlan ascentPlan, {
+  required double fromDepth,
+  required double toDepth,
+  required int seconds,
+}) {
+  double depthAt(int elapsed) =>
+      fromDepth + (toDepth - fromDepth) * elapsed / seconds;
+  final spans = <AscentLeg>[];
+  var elapsed = 0;
+  for (final span in splitAscentLeg(
+    ascentPlan,
+    fromDepth: fromDepth,
+    toDepth: toDepth,
+    seconds: seconds,
+  )) {
+    if (span.seconds <= 0) continue;
+    spans.add((
+      fromDepth: depthAt(elapsed),
+      toDepth: depthAt(elapsed + span.seconds),
+      seconds: span.seconds,
+    ));
+    elapsed += span.seconds;
+  }
+  return spans;
+}
+
 /// Every stretch of travel in a computed ascent from [fromDepth], up through
 /// [stopDepths] (deepest first) to the surface, split wherever [ascentPlan]
 /// changes gas.
