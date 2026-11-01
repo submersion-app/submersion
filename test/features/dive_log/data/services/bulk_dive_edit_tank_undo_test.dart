@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain_buddy;
@@ -27,14 +28,20 @@ class _TankArrivesDuringCapture extends BuddyRepository {
 
   final DiveRepository _diveRepo;
 
+  // The bulk edit captures buddies through the chunked reader (#4041), so
+  // that is where the tank lands.
   @override
-  Future<List<domain_buddy.BuddyWithRole>> getBuddiesForDive(
-    String diveId,
-  ) async {
-    await _diveRepo.bulkAddTank([
-      diveId,
-    ], const domain.DiveTank(id: '', name: 'Synced'));
-    return super.getBuddiesForDive(diveId);
+  Future<Map<String, List<domain_buddy.BuddyWithRole>>>
+  getBuddiesForDivesInChunks(
+    List<String> diveIds, {
+    int chunkSize = kSeriesIdChunkSize,
+  }) async {
+    for (final diveId in diveIds) {
+      await _diveRepo.bulkAddTank([
+        diveId,
+      ], const domain.DiveTank(id: '', name: 'Synced'));
+    }
+    return super.getBuddiesForDivesInChunks(diveIds, chunkSize: chunkSize);
   }
 }
 
