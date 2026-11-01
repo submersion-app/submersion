@@ -110,15 +110,15 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
 
   /// Whether a series with unsaved changes may go, saved or discarded.
   Future<bool> _confirmReplacingSeries() async {
-    final choice = await showUnsavedSeriesDialog(context);
+    final choice = await showUnsavedPlanDialog(context, isSeries: true);
     if (!mounted) return false;
     switch (choice) {
-      case UnsavedSeriesChoice.save:
+      case UnsavedPlanChoice.save:
         await saveCurrentSeries(ref.container);
         return mounted;
-      case UnsavedSeriesChoice.discard:
+      case UnsavedPlanChoice.discard:
         return true;
-      case UnsavedSeriesChoice.cancel:
+      case UnsavedPlanChoice.cancel:
         return false;
     }
   }

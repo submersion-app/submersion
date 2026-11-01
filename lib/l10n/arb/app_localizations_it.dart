@@ -20822,6 +20822,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Scarta';
 
   @override
+  String get plannerSeries_unsaved_titleDive => 'Salvare questa immersione?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Questa immersione ha modifiche non salvate.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count immersioni';
   }

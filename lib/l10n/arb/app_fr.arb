@@ -5874,6 +5874,8 @@
   "plannerSeries_unsaved_title": "Enregistrer cette série ?",
   "plannerSeries_unsaved_body": "Cette série contient des modifications non enregistrées.",
   "plannerSeries_unsaved_discard": "Abandonner",
+  "plannerSeries_unsaved_titleDive": "Enregistrer cette plongée ?",
+  "plannerSeries_unsaved_bodyDive": "Cette plongée contient des modifications non enregistrées.",
   "plannerSeries_saved_diveCount": "{count} plongées",
   "plannerSeries_scope_series": "Série",
   "plannerSeries_scope_seriesHint": "Les plongées suivantes prennent ces réglages sauf si elles ont les leurs",

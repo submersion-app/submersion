@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_series_dialog.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_dialog.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
@@ -89,7 +89,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       Future.microtask(() {
         if (!mounted) return;
         logFailure(
-          openSavedPlan(ref.container, planId),
+          _openRoutePlan(planId),
           _PlanCanvasPageState,
           'open a saved plan',
         );
@@ -920,17 +920,59 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
+  /// Opens the saved plan this page was pushed for, asking first when that
+  /// would replace unsaved work: the editor is app-wide, so what it holds may
+  /// be another plan altogether. A dive of the series being edited is not
+  /// another plan, so it is selected, keeping the edits.
+  Future<void> _openRoutePlan(String planId) async {
+    final series = ref.read(planSeriesNotifierProvider);
+    if (series.isDirty) {
+      final index = series.dives.indexWhere((d) => d.state.id == planId);
+      if (index >= 0) {
+        ref.read(planSeriesNotifierProvider.notifier).select(index);
+        return;
+      }
+      final choice = await showUnsavedPlanDialog(
+        context,
+        isSeries: series.savesAsSeries,
+      );
+      if (!mounted) return;
+      switch (choice) {
+        case UnsavedPlanChoice.save:
+          await _runSavePlan();
+          if (!mounted) return;
+          // The naming prompt can be cancelled, which leaves it unsaved.
+          if (ref.read(planSeriesDirtyProvider)) return _leaveUnopenedRoute();
+        case UnsavedPlanChoice.discard:
+          break;
+        case UnsavedPlanChoice.cancel:
+          return _leaveUnopenedRoute();
+      }
+    }
+    await openSavedPlan(ref.container, planId);
+  }
+
+  /// Backs out of a route whose plan was not opened: this page's [widget]
+  /// planId names a plan the editor does not hold, and Delete prefers it.
+  void _leaveUnopenedRoute() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      context.go('/planning/dive-planner');
+    }
+  }
+
   Future<void> _confirmLeavingSeries() async {
-    final choice = await showUnsavedSeriesDialog(context);
+    final choice = await showUnsavedPlanDialog(context, isSeries: true);
     if (!mounted) return;
     switch (choice) {
-      case UnsavedSeriesChoice.save:
+      case UnsavedPlanChoice.save:
         await _runSavePlan();
         // The naming prompt can be cancelled, which leaves it unsaved.
         if (!mounted || ref.read(planSeriesDirtyProvider)) return;
-      case UnsavedSeriesChoice.discard:
+      case UnsavedPlanChoice.discard:
         ref.read(divePlanNotifierProvider.notifier).newPlan();
-      case UnsavedSeriesChoice.cancel:
+      case UnsavedPlanChoice.cancel:
         return;
     }
     if (mounted) Navigator.of(context).pop();

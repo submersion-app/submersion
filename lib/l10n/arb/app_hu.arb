@@ -5874,6 +5874,8 @@
   "plannerSeries_unsaved_title": "Menti ezt a sorozatot?",
   "plannerSeries_unsaved_body": "A sorozat nem mentett módosításokat tartalmaz.",
   "plannerSeries_unsaved_discard": "Elvetés",
+  "plannerSeries_unsaved_titleDive": "Menti ezt a merülést?",
+  "plannerSeries_unsaved_bodyDive": "A merülés nem mentett módosításokat tartalmaz.",
   "plannerSeries_saved_diveCount": "{count} merülés",
   "plannerSeries_scope_series": "Sorozat",
   "plannerSeries_scope_seriesHint": "A későbbi merülések ezeket a beállításokat használják, hacsak nincs sajátjuk",

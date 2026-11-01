@@ -5874,6 +5874,8 @@
   "plannerSeries_unsaved_title": "Salvare questa serie?",
   "plannerSeries_unsaved_body": "Questa serie ha modifiche non salvate.",
   "plannerSeries_unsaved_discard": "Scarta",
+  "plannerSeries_unsaved_titleDive": "Salvare questa immersione?",
+  "plannerSeries_unsaved_bodyDive": "Questa immersione ha modifiche non salvate.",
   "plannerSeries_saved_diveCount": "{count} immersioni",
   "plannerSeries_scope_series": "Serie",
   "plannerSeries_scope_seriesHint": "Le immersioni successive usano queste impostazioni salvo che abbiano le proprie",

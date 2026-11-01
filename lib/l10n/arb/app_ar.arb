@@ -5975,6 +5975,8 @@
   "plannerSeries_unsaved_title": "هل تريد حفظ هذه السلسلة؟",
   "plannerSeries_unsaved_body": "تحتوي هذه السلسلة على تغييرات غير محفوظة.",
   "plannerSeries_unsaved_discard": "تجاهل",
+  "plannerSeries_unsaved_titleDive": "هل تريد حفظ هذه الغطسة؟",
+  "plannerSeries_unsaved_bodyDive": "تحتوي هذه الغطسة على تغييرات غير محفوظة.",
   "plannerSeries_saved_diveCount": "{count} غطسات",
   "plannerSeries_scope_series": "السلسلة",
   "plannerSeries_scope_seriesHint": "تستخدم الغطسات التالية هذه الإعدادات ما لم تكن لها إعداداتها الخاصة",

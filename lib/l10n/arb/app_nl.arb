@@ -5975,6 +5975,8 @@
   "plannerSeries_unsaved_title": "Deze reeks opslaan?",
   "plannerSeries_unsaved_body": "Deze reeks heeft niet-opgeslagen wijzigingen.",
   "plannerSeries_unsaved_discard": "Verwerpen",
+  "plannerSeries_unsaved_titleDive": "Deze duik opslaan?",
+  "plannerSeries_unsaved_bodyDive": "Deze duik heeft niet-opgeslagen wijzigingen.",
   "plannerSeries_saved_diveCount": "{count} duiken",
   "plannerSeries_scope_series": "Reeks",
   "plannerSeries_scope_seriesHint": "Latere duiken nemen deze instellingen over, tenzij ze eigen instellingen hebben",

@@ -6126,6 +6126,8 @@
   "plannerSeries_unsaved_title": "保存此系列？",
   "plannerSeries_unsaved_body": "此系列有未保存的更改。",
   "plannerSeries_unsaved_discard": "放弃",
+  "plannerSeries_unsaved_titleDive": "保存此潜水？",
+  "plannerSeries_unsaved_bodyDive": "此潜水有未保存的更改。",
   "plannerSeries_saved_diveCount": "{count} 次潜水",
   "plannerSeries_scope_series": "系列",
   "plannerSeries_scope_seriesHint": "后续潜水使用这些设置，除非有自己的设置",

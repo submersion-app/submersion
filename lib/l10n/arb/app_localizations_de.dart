@@ -20795,6 +20795,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerfen';
 
   @override
+  String get plannerSeries_unsaved_titleDive => 'Diesen Tauchgang speichern?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Dieser Tauchgang hat ungespeicherte Änderungen.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count Tauchgänge';
   }

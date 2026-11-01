@@ -20880,6 +20880,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Abandonner';
 
   @override
+  String get plannerSeries_unsaved_titleDive => 'Enregistrer cette plongée ?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Cette plongée contient des modifications non enregistrées.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count plongées';
   }

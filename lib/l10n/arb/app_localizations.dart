@@ -33138,6 +33138,18 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get plannerSeries_unsaved_discard;
 
+  /// No description provided for @plannerSeries_unsaved_titleDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this dive?'**
+  String get plannerSeries_unsaved_titleDive;
+
+  /// No description provided for @plannerSeries_unsaved_bodyDive.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive has changes that haven\'t been saved.'**
+  String get plannerSeries_unsaved_bodyDive;
+
   /// How many dives a saved series has, in the saved plans list
   ///
   /// In en, this message translates to:

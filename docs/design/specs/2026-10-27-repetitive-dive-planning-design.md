@@ -115,6 +115,11 @@ is shared as one.
 with unsaved series changes asks: Save, Discard or Cancel. A series with nothing
 to save goes without asking.
 
+**Opening a different saved plan** with unsaved changes asks the same, as "Save
+this series?" or "Save this dive?" by what is being edited. Cancel, or cancelling
+the name prompt that a first save opens, stays on the plan being edited. Opening
+a dive of the series being edited selects it, keeping the edits.
+
 **A `.subplan` file** at version 4 holds a series: each dive's plan, name and
 interval, its setting overrides, and which tank of the dive before each tank
 carries from, by position. The followed dive and start times stay out: the

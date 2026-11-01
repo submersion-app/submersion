@@ -20822,6 +20822,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Descartar';
 
   @override
+  String get plannerSeries_unsaved_titleDive => 'Guardar este mergulho?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Este mergulho tem alterações por guardar.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count mergulhos';
   }

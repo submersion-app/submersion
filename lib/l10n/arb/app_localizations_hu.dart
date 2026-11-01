@@ -20744,6 +20744,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Elvetés';
 
   @override
+  String get plannerSeries_unsaved_titleDive => 'Menti ezt a merülést?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'A merülés nem mentett módosításokat tartalmaz.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count merülés';
   }

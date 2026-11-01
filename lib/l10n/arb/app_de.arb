@@ -6102,6 +6102,8 @@
   "plannerSeries_unsaved_title": "Diese Serie speichern?",
   "plannerSeries_unsaved_body": "Diese Serie hat ungespeicherte Änderungen.",
   "plannerSeries_unsaved_discard": "Verwerfen",
+  "plannerSeries_unsaved_titleDive": "Diesen Tauchgang speichern?",
+  "plannerSeries_unsaved_bodyDive": "Dieser Tauchgang hat ungespeicherte Änderungen.",
   "plannerSeries_saved_diveCount": "{count} Tauchgänge",
   "plannerSeries_scope_series": "Serie",
   "plannerSeries_scope_seriesHint": "Spätere Tauchgänge übernehmen diese Einstellungen, sofern sie keine eigenen haben",

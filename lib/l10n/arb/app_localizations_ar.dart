@@ -21116,6 +21116,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'تجاهل';
 
   @override
+  String get plannerSeries_unsaved_titleDive => 'هل تريد حفظ هذه الغطسة؟';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'تحتوي هذه الغطسة على تغييرات غير محفوظة.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count غطسات';
   }
