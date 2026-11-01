@@ -591,11 +591,16 @@ void main() {
       ).read(planSeriesNotifierProvider).follow;
       expect(follow?.followed.id, 'd42');
       expect(find.textContaining('Dive #42 ended'), findsNothing);
-      // Planned for now: the interval is the time since the dive ended.
+      // Planned for now: the interval is the time since the dive ended, which
+      // is 2:15 plus however long this test has taken, rounded up.
+      final interval = containerOf(
+        tester,
+      ).read(divePlanNotifierProvider).surfaceInterval!;
       expect(
-        containerOf(tester).read(divePlanNotifierProvider).surfaceInterval,
-        const Duration(hours: 2, minutes: 15),
+        interval,
+        greaterThanOrEqualTo(const Duration(hours: 2, minutes: 15)),
       );
+      expect(interval, lessThan(const Duration(hours: 2, minutes: 20)));
     });
 
     testWidgets('names a named dive', (tester) async {

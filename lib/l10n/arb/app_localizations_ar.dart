@@ -21132,9 +21132,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_nextPlannedDive => 'الغطسة المخططة التالية';
 
   @override
-  String get accessibility_shortcut_addPlannedDive => 'إضافة غطسة مخططة';
-
-  @override
   String get accessibility_shortcutCategory_planner => 'المخطط';
 
   @override

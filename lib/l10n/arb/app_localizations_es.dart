@@ -20829,10 +20829,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Inmersión planificada siguiente';
 
   @override
-  String get accessibility_shortcut_addPlannedDive =>
-      'Añadir una inmersión planificada';
-
-  @override
   String get accessibility_shortcutCategory_planner => 'Planificador';
 
   @override

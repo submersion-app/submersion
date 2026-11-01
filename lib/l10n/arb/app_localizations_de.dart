@@ -20812,10 +20812,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nächster geplanter Tauchgang';
 
   @override
-  String get accessibility_shortcut_addPlannedDive =>
-      'Geplanten Tauchgang hinzufügen';
-
-  @override
   String get accessibility_shortcutCategory_planner => 'Planer';
 
   @override

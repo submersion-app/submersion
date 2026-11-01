@@ -67,8 +67,13 @@ Duration followSurfaceInterval(DateTime end, {required DateTime now}) {
   if (elapsed < defaultSeriesSurfaceInterval) {
     return defaultSeriesSurfaceInterval;
   }
-  return Duration(minutes: (elapsed.inSeconds + 59) ~/ 60);
+  return elapsedToTheMinute(end, now: now);
 }
+
+/// The time from [end] to [now], rounded up to the minute: what the Follow
+/// prompt says and what following then sets, so the two agree.
+Duration elapsedToTheMinute(DateTime end, {required DateTime now}) =>
+    Duration(minutes: (now.difference(end).inSeconds + 59) ~/ 60);
 
 /// Whether [a] and [b] are the same tank for carrying a pressure from one to
 /// the other: the same size and gas.

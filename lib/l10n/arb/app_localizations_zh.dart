@@ -19820,9 +19820,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_nextPlannedDive => '下一次计划潜水';
 
   @override
-  String get accessibility_shortcut_addPlannedDive => '添加计划潜水';
-
-  @override
   String get accessibility_shortcutCategory_planner => '计划器';
 
   @override

@@ -221,8 +221,8 @@ Copy `dive_scenarios` (`cfbf933e9` + `110d8b672`):
   v2/v3. The followed dive and the sites are not exported, since they're
   local references.
 - **Shortcuts:**
-  - `Alt+Left` and `Alt+Right` select the previous and next dive. `Alt+N`
-    adds a dive.
+  - `Alt+Left` and `Alt+Right` select the previous and next dive. (`Alt+N`
+    was tried and removed: Windows beeps at Alt+letter, and it added little.)
   - Register them in `ShortcutCatalog` and wrap them in
     `NotWhileTypingActivator`.
 

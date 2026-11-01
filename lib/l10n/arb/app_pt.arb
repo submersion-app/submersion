@@ -5980,7 +5980,6 @@
   "plannerSeries_scope_applyAll": "Aplicar a todos os mergulhos",
   "accessibility_shortcut_previousPlannedDive": "Mergulho planeado anterior",
   "accessibility_shortcut_nextPlannedDive": "Mergulho planeado seguinte",
-  "accessibility_shortcut_addPlannedDive": "Adicionar um mergulho planeado",
   "accessibility_shortcutCategory_planner": "Planeador",
   "plannerSeries_fill": "Encher {tank}",
   "plannerSeries_fillAll": "Encher todas as garrafas",

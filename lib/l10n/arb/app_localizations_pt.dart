@@ -20839,10 +20839,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mergulho planeado seguinte';
 
   @override
-  String get accessibility_shortcut_addPlannedDive =>
-      'Adicionar um mergulho planeado';
-
-  @override
   String get accessibility_shortcutCategory_planner => 'Planeador';
 
   @override

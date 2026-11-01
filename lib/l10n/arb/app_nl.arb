@@ -5980,7 +5980,6 @@
   "plannerSeries_scope_applyAll": "Op alle duiken toepassen",
   "accessibility_shortcut_previousPlannedDive": "Vorige geplande duik",
   "accessibility_shortcut_nextPlannedDive": "Volgende geplande duik",
-  "accessibility_shortcut_addPlannedDive": "Geplande duik toevoegen",
   "accessibility_shortcutCategory_planner": "Planner",
   "plannerSeries_fill": "{tank} vullen",
   "plannerSeries_fillAll": "Alle flessen vullen",

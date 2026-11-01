@@ -325,13 +325,6 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
     case WM_SYSCOMMAND:
-      // Alt+letter is a menu mnemonic to Windows, and this window has no menu,
-      // so it would beep at every Alt shortcut the app handles. Alt alone and
-      // Alt+Space (the system menu) carry on as usual.
-      if ((wparam & 0xFFF0) == SC_KEYMENU && lparam != 0 &&
-          lparam != VK_SPACE) {
-        return 0;
-      }
       if ((wparam & 0xFFF0) == kCheckForUpdatesCmd) {
         if (flutter_controller_) {
           flutter_controller_->engine()->ProcessMessages();

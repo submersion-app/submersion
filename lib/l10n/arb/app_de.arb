@@ -6107,7 +6107,6 @@
   "plannerSeries_scope_applyAll": "Auf alle Tauchgänge anwenden",
   "accessibility_shortcut_previousPlannedDive": "Vorheriger geplanter Tauchgang",
   "accessibility_shortcut_nextPlannedDive": "Nächster geplanter Tauchgang",
-  "accessibility_shortcut_addPlannedDive": "Geplanten Tauchgang hinzufügen",
   "accessibility_shortcutCategory_planner": "Planer",
   "plannerSeries_fill": "{tank} füllen",
   "plannerSeries_fillAll": "Alle Flaschen füllen",

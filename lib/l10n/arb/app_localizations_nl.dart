@@ -20704,9 +20704,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_nextPlannedDive => 'Volgende geplande duik';
 
   @override
-  String get accessibility_shortcut_addPlannedDive => 'Geplande duik toevoegen';
-
-  @override
   String get accessibility_shortcutCategory_planner => 'Planner';
 
   @override

@@ -20761,10 +20761,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Következő tervezett merülés';
 
   @override
-  String get accessibility_shortcut_addPlannedDive =>
-      'Tervezett merülés hozzáadása';
-
-  @override
   String get accessibility_shortcutCategory_planner => 'Tervező';
 
   @override

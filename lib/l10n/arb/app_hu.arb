@@ -5879,7 +5879,6 @@
   "plannerSeries_scope_applyAll": "Alkalmazás minden merülésre",
   "accessibility_shortcut_previousPlannedDive": "Előző tervezett merülés",
   "accessibility_shortcut_nextPlannedDive": "Következő tervezett merülés",
-  "accessibility_shortcut_addPlannedDive": "Tervezett merülés hozzáadása",
   "accessibility_shortcutCategory_planner": "Tervező",
   "plannerSeries_fill": "{tank} töltése",
   "plannerSeries_fillAll": "Minden palack töltése",

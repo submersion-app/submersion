@@ -20375,9 +20375,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_nextPlannedDive => 'הצלילה המתוכננת הבאה';
 
   @override
-  String get accessibility_shortcut_addPlannedDive => 'הוספת צלילה מתוכננת';
-
-  @override
   String get accessibility_shortcutCategory_planner => 'מתכנן';
 
   @override

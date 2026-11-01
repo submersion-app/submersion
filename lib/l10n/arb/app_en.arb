@@ -12968,7 +12968,6 @@
   "plannerSeries_scope_applyAll": "Apply to all dives",
   "accessibility_shortcut_previousPlannedDive": "Previous planned dive",
   "accessibility_shortcut_nextPlannedDive": "Next planned dive",
-  "accessibility_shortcut_addPlannedDive": "Add a planned dive",
   "accessibility_shortcutCategory_planner": "Planner",
   "plannerSeries_fill": "Fill {tank}",
   "@plannerSeries_fill": {

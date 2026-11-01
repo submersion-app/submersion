@@ -33168,12 +33168,6 @@ abstract class AppLocalizations {
   /// **'Next planned dive'**
   String get accessibility_shortcut_nextPlannedDive;
 
-  /// No description provided for @accessibility_shortcut_addPlannedDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a planned dive'**
-  String get accessibility_shortcut_addPlannedDive;
-
   /// No description provided for @accessibility_shortcutCategory_planner.
   ///
   /// In en, this message translates to:

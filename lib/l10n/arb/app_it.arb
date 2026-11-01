@@ -5879,7 +5879,6 @@
   "plannerSeries_scope_applyAll": "Applica a tutte le immersioni",
   "accessibility_shortcut_previousPlannedDive": "Immersione pianificata precedente",
   "accessibility_shortcut_nextPlannedDive": "Immersione pianificata successiva",
-  "accessibility_shortcut_addPlannedDive": "Aggiungi un'immersione pianificata",
   "accessibility_shortcutCategory_planner": "Pianificatore",
   "plannerSeries_fill": "Riempi {tank}",
   "plannerSeries_fillAll": "Riempi tutte le bombole",

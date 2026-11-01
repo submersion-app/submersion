@@ -28,7 +28,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Alt+Left, Alt+Right and Alt+N in the planner (issue #3565).
+/// Alt+Left and Alt+Right in the planner (issue #3565).
 void main() {
   setUp(() async {
     await setUpTestDatabase();
@@ -78,16 +78,13 @@ void main() {
   int selected(WidgetTester tester) =>
       containerOf(tester).read(planSeriesNotifierProvider).selectedIndex;
 
-  testWidgets('Alt+N adds a dive and Alt+arrows move between them', (
-    tester,
-  ) async {
-    await pumpPlan(tester);
+  void addDive(WidgetTester tester) =>
+      containerOf(tester).read(planSeriesNotifierProvider.notifier).addDive();
 
-    await alt(tester, LogicalKeyboardKey.keyN);
-    expect(
-      containerOf(tester).read(planSeriesNotifierProvider).dives,
-      hasLength(2),
-    );
+  testWidgets('Alt+arrows move between the dives', (tester) async {
+    await pumpPlan(tester);
+    addDive(tester);
+    await tester.pumpAndSettle();
     expect(selected(tester), 1);
 
     await alt(tester, LogicalKeyboardKey.arrowLeft);
@@ -97,10 +94,8 @@ void main() {
     expect(selected(tester), 1);
   });
 
-  testWidgets('they stand down while a text field has focus', (tester) async {
+  testWidgets('Alt+N does nothing', (tester) async {
     await pumpPlan(tester);
-    await tester.tap(find.byKey(const Key('diveNameField')));
-    await tester.pump();
 
     await alt(tester, LogicalKeyboardKey.keyN);
 
@@ -108,6 +103,18 @@ void main() {
       containerOf(tester).read(planSeriesNotifierProvider).dives,
       hasLength(1),
     );
+  });
+
+  testWidgets('they stand down while a text field has focus', (tester) async {
+    await pumpPlan(tester);
+    addDive(tester);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('diveNameField')));
+    await tester.pump();
+
+    await alt(tester, LogicalKeyboardKey.arrowLeft);
+
+    expect(selected(tester), 1);
   });
 
   testWidgets('the planner lists them in the shortcuts help while open', (
@@ -118,11 +125,7 @@ void main() {
       for (final e in ShortcutCatalog.instance.entries)
         if (e.category == plannerShortcutCategory) e.label,
     ];
-    expect(labels, [
-      previousPlannedDiveShortcut,
-      nextPlannedDiveShortcut,
-      addPlannedDiveShortcut,
-    ]);
+    expect(labels, [previousPlannedDiveShortcut, nextPlannedDiveShortcut]);
 
     await tester.pumpWidget(const SizedBox());
     expect(

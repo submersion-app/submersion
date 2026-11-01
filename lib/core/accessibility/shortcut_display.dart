@@ -42,7 +42,6 @@ final Map<String, String Function(AppLocalizations)> _shortcutEntryLabels = {
   'Previous planned dive': (l10n) =>
       l10n.accessibility_shortcut_previousPlannedDive,
   'Next planned dive': (l10n) => l10n.accessibility_shortcut_nextPlannedDive,
-  'Add a planned dive': (l10n) => l10n.accessibility_shortcut_addPlannedDive,
 };
 
 /// Localized name for a built-in shortcut category; the raw string otherwise.

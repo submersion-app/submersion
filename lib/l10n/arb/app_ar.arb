@@ -5980,7 +5980,6 @@
   "plannerSeries_scope_applyAll": "تطبيق على كل الغطسات",
   "accessibility_shortcut_previousPlannedDive": "الغطسة المخططة السابقة",
   "accessibility_shortcut_nextPlannedDive": "الغطسة المخططة التالية",
-  "accessibility_shortcut_addPlannedDive": "إضافة غطسة مخططة",
   "accessibility_shortcutCategory_planner": "المخطط",
   "plannerSeries_fill": "ملء {tank}",
   "plannerSeries_fillAll": "ملء كل الأسطوانات",

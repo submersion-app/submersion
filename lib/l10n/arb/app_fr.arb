@@ -5879,7 +5879,6 @@
   "plannerSeries_scope_applyAll": "Appliquer à toutes les plongées",
   "accessibility_shortcut_previousPlannedDive": "Plongée planifiée précédente",
   "accessibility_shortcut_nextPlannedDive": "Plongée planifiée suivante",
-  "accessibility_shortcut_addPlannedDive": "Ajouter une plongée planifiée",
   "accessibility_shortcutCategory_planner": "Planificateur",
   "plannerSeries_fill": "Remplir {tank}",
   "plannerSeries_fillAll": "Remplir tous les blocs",

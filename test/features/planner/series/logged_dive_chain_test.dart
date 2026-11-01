@@ -150,6 +150,14 @@ void main() {
       );
     });
 
+    test('rounds as the Follow prompt does', () {
+      final now = end.add(const Duration(hours: 2, seconds: 1));
+      expect(
+        followSurfaceInterval(end, now: now),
+        elapsedToTheMinute(end, now: now),
+      );
+    });
+
     test('rounds up, so the start is not a few seconds in the past', () {
       expect(
         followSurfaceInterval(
