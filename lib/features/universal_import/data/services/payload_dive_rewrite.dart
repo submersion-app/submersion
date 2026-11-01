@@ -11,7 +11,9 @@ typedef DiveRewrite = Map<String, dynamic> Function(Map<String, dynamic> dive);
 /// slower device too.
 ///
 /// Counted in samples rather than timed so that a small payload never yields,
-/// on any machine.
+/// on any machine. A dive is never split, so one longer than a slice holds the
+/// event loop for its own length: about 20 ms for three hours at one sample a
+/// second, in that same build.
 const int kDiveRewriteSliceSamples = 2000;
 
 /// [payload] with every dive replaced by what [rewrite] returns. The payload is

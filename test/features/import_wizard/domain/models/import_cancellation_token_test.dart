@@ -68,6 +68,34 @@ void main() {
         );
       });
 
+      test('gives null when a cancel lands in the tick work fails', () async {
+        // As with a result, the cancel is the last thing the diver asked for,
+        // so a failure nobody is waiting for is not reported as one.
+        final token = ImportCancellationToken();
+        final work = Completer<int>();
+        final result = token.untilCancelled(work.future);
+
+        work.completeError(StateError('bad file'));
+        token.cancel();
+
+        expect(await result, isNull);
+      });
+
+      test('keeps the stack trace of work that fails first', () async {
+        final token = ImportCancellationToken();
+        final trace = StackTrace.fromString('from the parser');
+
+        await expectLater(
+          token
+              .untilCancelled(Future<int>.error(StateError('bad'), trace))
+              .catchError((Object e, StackTrace s) {
+                expect(s.toString(), contains('from the parser'));
+                return 0;
+              }),
+          completion(0),
+        );
+      });
+
       test('leaves no unhandled error when abandoned work fails', () async {
         final token = ImportCancellationToken();
         final work = Completer<int>();

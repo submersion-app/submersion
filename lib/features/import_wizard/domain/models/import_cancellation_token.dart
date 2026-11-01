@@ -32,10 +32,15 @@ class ImportCancellationToken {
   /// on unseen, so its result and any error it later ends in are dropped. It
   /// must not be work that writes: the cooperative rule above still applies.
   Future<T?> untilCancelled<T extends Object>(Future<T> work) async {
-    final result = await Future.any<T?>([
-      work,
-      _cancelled.future.then((_) => null),
-    ]);
-    return isCancelled ? null : result;
+    try {
+      final result = await Future.any<T?>([
+        work,
+        _cancelled.future.then((_) => null),
+      ]);
+      return isCancelled ? null : result;
+    } catch (_) {
+      if (isCancelled) return null;
+      rethrow;
+    }
   }
 }
