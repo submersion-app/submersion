@@ -162,8 +162,9 @@ void main() {
 
   // The neighbor window once compared every pair of a diver's dives, and the
   // per-dive lookups read every dive a diver has, so a full scan was
-  // quadratic twice over (issue #3863). Each of these must seek a time range.
-  void pinNeighborWindowSeeks() {
+  // quadratic twice over (issue #3863). Matching a download read every dive
+  // too. Each of these must seek a time range on a dive's start.
+  void pinDiveStartSeeks() {
     test('the same-diver pair window seeks a time range', () async {
       expect(
         await plan(db, qualityPairWindowSql, params: 1),
@@ -214,11 +215,11 @@ void main() {
     });
   }
 
-  group('neighbor window on an empty database', pinNeighborWindowSeeks);
+  group('dive start lookups on an empty database', pinDiveStartSeeks);
 
   // Creating an index runs ANALYZE, so a library's real plans come from
   // statistics this empty test database would not otherwise have.
-  group('neighbor window with statistics', () {
+  group('dive start lookups with statistics', () {
     setUp(() async {
       await db.customStatement(
         'INSERT INTO divers (id, name, created_at, updated_at) '
@@ -241,6 +242,6 @@ void main() {
       await db.customStatement('ANALYZE');
     });
 
-    pinNeighborWindowSeeks();
+    pinDiveStartSeeks();
   });
 }
