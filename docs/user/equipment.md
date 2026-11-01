@@ -242,8 +242,9 @@ uses that buddy's Person place, or creates one the first time.
 The item's **Location** card then reads **With** and the buddy's name, and tapping
 it opens the buddy. The buddy's page lists everything they have under **Gear
 with** their name. When gear comes back, tap **Returned** there, or **All
-returned** for a whole kit. Each item goes back to where it was before the loan
-and is offered **Active**. To send it somewhere else, use **Move** instead.
+returned** for a whole kit. Each item goes back to where it was before the loan,
+and Loaned Out gear is offered **Active**. To send it somewhere else, use **Move**
+instead.
 
 Gear a family member always uses works the same way: lend it to them and answer
 **Keep status** when asked about **Loaned Out**. It stays Active and still shows
