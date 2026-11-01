@@ -8033,6 +8033,53 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Quand vous avez changé de bloc. La déco, la charge tissulaire et la SAC par bloc suivent ces changements.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Commence sur $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Ajouter un changement';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Temps';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Passer à';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Profondeur';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Retirer le changement';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'Utilisez minutes:secondes';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Doit être dans la plongée';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Un autre changement est à ce moment';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changements de gaz retirés avec leur bloc',
+      one: '$count changement de gaz retiré avec son bloc',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Obtention de la position...';
 
   @override
@@ -8166,6 +8213,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'Ajoute des notes sur cette plongée...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Changements de gaz';
 
   @override
   String get diveLog_edit_overline_tanks => 'Blocs';
@@ -24592,6 +24642,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_evidenceFingerprint =>
       'Empreinte de la preuve';
+
+  @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Changements de gaz modifiés à la main';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>

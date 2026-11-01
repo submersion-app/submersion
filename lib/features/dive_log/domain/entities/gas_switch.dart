@@ -68,13 +68,14 @@ class GasSwitch extends Equatable {
     DateTime? createdAt,
     String? computerId,
     bool clearComputerId = false,
+    bool clearDepth = false,
   }) {
     return GasSwitch(
       id: id ?? this.id,
       diveId: diveId ?? this.diveId,
       timestamp: timestamp ?? this.timestamp,
       tankId: tankId ?? this.tankId,
-      depth: depth ?? this.depth,
+      depth: clearDepth ? null : (depth ?? this.depth),
       createdAt: createdAt ?? this.createdAt,
       computerId: clearComputerId ? null : (computerId ?? this.computerId),
     );

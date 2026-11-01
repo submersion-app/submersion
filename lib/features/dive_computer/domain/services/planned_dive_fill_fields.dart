@@ -50,6 +50,7 @@ const Set<String> kHumanDiveFields = {
   'isFavorite',
   'excludedFromStats',
   'excludedFromGasStats',
+  'gasSwitchesEdited',
   'airTemp',
   'visibility',
   'visibilityMeters',

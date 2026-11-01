@@ -7845,6 +7845,53 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'מתי החלפת מיכל. הדקו, העמסת הרקמות וה-SAC לכל מיכל עוקבים אחרי ההחלפות האלה.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'מתחיל על $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'הוספת החלפה';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'זמן';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'החלפה אל';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'עומק';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'הסרת החלפה';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'יש להשתמש בדקות:שניות';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'חייב להיות בתוך הצלילה';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'קיימת החלפה אחרת בזמן הזה';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count החלפות גז הוסרו עם המיכל שלהן',
+      one: 'החלפת גז $count הוסרה עם המיכל שלה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'מקבל מיקום...';
 
   @override
@@ -7975,6 +8022,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'הוסף הערות לצלילה זו...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'החלפות גז';
 
   @override
   String get diveLog_edit_overline_tanks => 'מיכלים';
@@ -23932,6 +23982,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_evidenceFingerprint =>
       'טביעת אצבע של הראיה';
+
+  @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'החלפות גז נערכו ידנית';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
