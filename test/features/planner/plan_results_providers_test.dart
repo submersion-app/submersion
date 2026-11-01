@@ -69,13 +69,15 @@ void main() {
       if (seeded) {
         final prior = BuhlmannAlgorithm(gfLow: 0.40, gfHigh: 0.80)
           ..calculateSegment(depthMeters: 40.0, durationSeconds: 40 * 60);
-        container
-            .read(divePlanNotifierProvider.notifier)
-            .setFollowedDive(
-              diveId: 'prior',
-              compartments: prior.compartments,
-              surfaceInterval: const Duration(minutes: 30),
-            );
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.loadPlan(
+          container
+              .read(divePlanNotifierProvider)
+              .copyWith(
+                initialTissueState: prior.compartments,
+                surfaceInterval: const Duration(minutes: 30),
+              ),
+        );
       }
       container.read(contingenciesExpandedProvider.notifier).state = true;
       listenToAllPlanResults(container);

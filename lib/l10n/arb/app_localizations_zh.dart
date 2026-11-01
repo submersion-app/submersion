@@ -19680,11 +19680,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return '跟随 $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => '还没有记录的潜水';
 
   @override
@@ -19725,6 +19720,41 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return '已记录潜水 $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => '在潜水日志中打开';
+
+  @override
+  String get plannerSeries_stopFollowing => '停止跟随';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return '带入 $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => '结束时 CNS';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive 已于 $time 前结束。';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return '潜水 #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => '跟随';
+
+  @override
   String get plannerSeries_surfaceInterval => '水面间隔';
 
   @override
@@ -19759,7 +19789,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_missionUnavailable => '潜水系列无法规划为 DPV 任务';
 
   @override
-  String get plannerSeries_followFirstDiveOnly => '只有系列中的第一次潜水可以跟随已记录的潜水';
+  String get plannerSeries_followUnavailableInReplan => '重新规划无法跟随另一次潜水';
 
   @override
   String get plannerCanvas_follow_title => '跟随一次潜水';
@@ -51590,6 +51620,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => '对比…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => '计划重复潜水';
 
   @override
   String get plannerCanvas_sourceCompare_title => '对比原始潜水';
