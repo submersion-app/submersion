@@ -4,8 +4,10 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/compare_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -15,6 +17,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../domain/support/synthetic_dives.dart';
 
 const _air = GasMix(o2: 21);
 
@@ -161,6 +164,42 @@ void main() {
     expect(column.maxDepthMeters, 28);
     expect(column.runtimeSeconds, 2400);
     expect(column.ndl, isNull);
+  });
+
+  test('the dive column reads the samples its analysis replayed', () async {
+    // A dive with two computers: the primary profile and the series the
+    // analysis replays are different lists.
+    final d = squareDive(depth: 40, bottomMinutes: 25);
+    final series = [
+      for (var i = 0; i < d.depths.length; i++)
+        DiveProfilePoint(timestamp: d.timestamps[i], depth: d.depths[i]),
+    ];
+    final analysis = ProfileAnalysisService(
+      gfLow: 0.30,
+      gfHigh: 0.70,
+    ).analyze(diveId: 'd', depths: d.depths, timestamps: d.timestamps);
+    final local = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        diveProvider.overrideWith(
+          (ref, id) async => Dive(id: id, dateTime: DateTime.utc(2026)),
+        ),
+        diveProfileProvider.overrideWith(
+          (ref, id) async => series.sublist(0, series.length ~/ 2),
+        ),
+        diveAnalysisSeriesProvider.overrideWith(
+          (ref, id) async =>
+              (points: series, sourceProfile: null, source: null),
+        ),
+        profileAnalysisProvider.overrideWith((ref, id) async => analysis),
+      ],
+    );
+    addTearDown(local.dispose);
+
+    final column = await local.read(divedColumnProvider('d').future);
+
+    expect(column!.ndl, isNotNull);
+    expect(column.decoRequiredSeconds, isNotNull);
   });
 
   group('compareLineOn', () {

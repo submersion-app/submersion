@@ -58,8 +58,9 @@ void main() {
     List<DownloadedTank>? tanks,
     ComputerTissueSnapshot? computerTissue,
     bool reportsDecoSettings = true,
+    DateTime? startTime,
   }) => DownloadedDive(
-    startTime: DateTime(2026, 6, 1, 9, 3),
+    startTime: startTime ?? DateTime(2026, 6, 1, 9, 3),
     durationSeconds: 2700,
     maxDepth: 18.4,
     avgDepth: 11.2,
@@ -144,6 +145,39 @@ void main() {
       expect(filled?.profile.length, greaterThan(50));
     },
   );
+
+  test('a same-day fill keeps the date as planned', () async {
+    final planned = await plannedDive();
+
+    await service.fill(
+      plannedDiveId: planned.id,
+      dive: download(),
+      computerId: computerId,
+    );
+
+    final filled = await dives.getDiveById(planned.id);
+    expect(
+      filled?.dateTime.millisecondsSinceEpoch,
+      planned.dateTime.millisecondsSinceEpoch,
+    );
+  });
+
+  test('a next-day fill moves the dive to the day it was dived', () async {
+    final planned = await plannedDive();
+    final nextDay = DateTime(2026, 6, 2, 0, 30);
+
+    await service.fill(
+      plannedDiveId: planned.id,
+      dive: download(startTime: nextDay),
+      computerId: computerId,
+    );
+
+    final filled = await dives.getDiveById(planned.id);
+    expect(
+      filled?.dateTime.millisecondsSinceEpoch,
+      nextDay.millisecondsSinceEpoch,
+    );
+  });
 
   test('fill takes the tissue state the computer reported', () async {
     const tissue = ComputerTissueSnapshot(

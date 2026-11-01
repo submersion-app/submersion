@@ -136,6 +136,34 @@ void main() {
     expect(opened, ['sc']);
   });
 
+  testWidgets('rows grow with the text scale', (tester) async {
+    double rowGap() =>
+        tester.getCenter(_cell('planned', CompareRow.bottomTime)).dy -
+        tester.getCenter(_cell('planned', CompareRow.maxDepth)).dy;
+
+    await pump(tester, const [_planned, _dived]);
+    final normal = rowGap();
+
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: MediaQuery.withClampedTextScaling(
+          minScaleFactor: 2,
+          maxScaleFactor: 2,
+          child: const Align(
+            alignment: Alignment.topLeft,
+            child: CompareTable(
+              columns: [_planned, _dived],
+              units: UnitFormatter(AppSettings()),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(rowGap(), normal * 2);
+  });
+
   testWidgets('five columns on a German phone scroll and do not overflow', (
     tester,
   ) async {

@@ -103,10 +103,15 @@ void main() {
     );
     container.read(divePlanNotifierProvider.notifier).setLinkedDive(dive!.id);
     await save(tester, container);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
     await openMenu(tester);
 
     expect(find.text('Change linked dive'), findsOneWidget);
     expect(find.text('Unlink dive'), findsOneWidget);
+    expect(find.text('Dived as #7'), findsOneWidget);
     expect(find.text('Link to a logged dive'), findsNothing);
   });
 }

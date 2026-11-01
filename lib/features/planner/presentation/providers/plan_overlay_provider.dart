@@ -106,7 +106,8 @@ List<DiveProfilePoint> _denseProfile(List<CanvasPoint> profile) {
     final span = next.timeSeconds - point.timeSeconds;
     for (
       var t = kPlannedOverlayStepSeconds.toDouble();
-      t < span;
+      // Stopping a second short keeps two points off one rounded timestamp.
+      t < span - 1;
       t += kPlannedOverlayStepSeconds
     ) {
       points.add(

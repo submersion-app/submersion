@@ -14,8 +14,9 @@ const double _rowHeight = 44;
 
 /// One row per measure and a column per line, Planned first. The row labels
 /// stay put while the columns scroll sideways, so a phone shows three columns
-/// and a dive with more stays readable. Rows have a fixed height because the
-/// labels and the scrolling columns are separate lists that have to line up.
+/// and a dive with more stays readable. Rows share one height, scaled with the
+/// text, because the labels and the scrolling columns are separate lists that
+/// have to line up.
 class CompareTable extends StatelessWidget {
   const CompareTable({
     super.key,
@@ -34,6 +35,7 @@ class CompareTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final rowHeight = MediaQuery.textScalerOf(context).scale(_rowHeight);
     final labelStyle = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
@@ -81,10 +83,10 @@ class CompareTable extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: _rowHeight),
+                  SizedBox(height: rowHeight),
                   for (final row in CompareRow.values)
                     SizedBox(
-                      height: _rowHeight,
+                      height: rowHeight,
                       child: Align(
                         alignment: AlignmentDirectional.centerStart,
                         child: Text(
@@ -109,9 +111,15 @@ class CompareTable extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _Cell(child: headingCell(column)),
+                            _Cell(
+                              height: rowHeight,
+                              child: headingCell(column),
+                            ),
                             for (final row in CompareRow.values)
-                              _Cell(child: valueCell(row, column)),
+                              _Cell(
+                                height: rowHeight,
+                                child: valueCell(row, column),
+                              ),
                           ],
                         ),
                       ),
@@ -127,13 +135,14 @@ class CompareTable extends StatelessWidget {
 }
 
 class _Cell extends StatelessWidget {
-  const _Cell({required this.child});
+  const _Cell({required this.height, required this.child});
 
+  final double height;
   final Widget child;
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    height: _rowHeight,
+    height: height,
     child: Padding(
       padding: const EdgeInsetsDirectional.only(end: 8),
       child: Align(alignment: AlignmentDirectional.centerStart, child: child),

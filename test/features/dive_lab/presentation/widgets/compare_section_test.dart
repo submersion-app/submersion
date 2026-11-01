@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -133,6 +135,8 @@ void main() {
     List<DiveScenario> scenarios = const [],
     double width = 420,
     CompareColumn dived = _dived,
+    Future<LinkedPlanComparison?>? linkedLater,
+    void Function()? onLabInputs,
   }) async {
     tester.view.physicalSize = Size(width, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -153,7 +157,7 @@ void main() {
           diveProfileProvider.overrideWith((ref, id) async => shown.profile),
           divedColumnProvider.overrideWith((ref, id) async => dived),
           linkedPlanComparisonProvider.overrideWith(
-            (ref, id) async => comparison,
+            (ref, id) => linkedLater ?? Future.value(comparison),
           ),
           diveScenariosForDiveProvider.overrideWith(
             (ref, id) async => scenarios,
@@ -172,7 +176,10 @@ void main() {
               ),
             );
           }),
-          labRequestInputsProvider.overrideWith((ref, id) async => null),
+          labRequestInputsProvider.overrideWith((ref, id) async {
+            onLabInputs?.call();
+            return null;
+          }),
           labDefaultBranchProvider.overrideWith((ref, id) async => 0),
         ],
         locale: const Locale('en'),
@@ -281,6 +288,32 @@ void main() {
     expect(find.text('Ask a what-if'), findsOneWidget);
     expect(find.text('Link a plan'), findsOneWidget);
     expect(find.byType(CompareTable), findsNothing);
+  });
+
+  testWidgets('the empty state waits until the link has loaded', (
+    tester,
+  ) async {
+    final link = Completer<LinkedPlanComparison?>();
+    await pump(tester, linkedLater: link.future);
+
+    expect(find.text('Nothing to compare yet'), findsNothing);
+    expect(find.text('Compare'), findsOneWidget);
+
+    link.complete(_comparison());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(chip('Planned'), findsOneWidget);
+  });
+
+  testWidgets('a dive with nothing saved assembles no lab inputs', (
+    tester,
+  ) async {
+    var assembled = false;
+    await pump(tester, onLabInputs: () => assembled = true);
+
+    expect(find.text('Nothing to compare yet'), findsOneWidget);
+    expect(assembled, isFalse);
   });
 
   testWidgets('a dive with what-ifs and no plan can still link one', (

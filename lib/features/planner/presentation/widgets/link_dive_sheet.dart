@@ -6,6 +6,25 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// How the dive pickers name [dive]: its name, else its number, else its date,
+/// over the date, depth and runtime.
+({String title, String subtitle}) diveRowLabels(
+  Dive dive,
+  UnitFormatter units,
+) {
+  final date = units.formatDate(dive.entryTime ?? dive.dateTime);
+  return (
+    title: (dive.name?.isNotEmpty ?? false)
+        ? dive.name!
+        : (dive.diveNumber != null ? '#${dive.diveNumber}' : date),
+    subtitle: [
+      date,
+      if (dive.maxDepth != null) units.formatDepth(dive.maxDepth!),
+      if (dive.effectiveRuntime != null) '${dive.effectiveRuntime!.inMinutes}′',
+    ].join(' · '),
+  );
+}
+
 /// Picks a logged dive for a saved plan, returning its id, or null if the
 /// sheet was dismissed.
 Future<String?> showLinkDiveSheet(
@@ -112,20 +131,11 @@ class LinkDiveSheet extends ConsumerWidget {
   }
 
   Widget _diveTile(BuildContext context, Dive dive, UnitFormatter units) {
-    final date = units.formatDate(_start(dive));
-    final subtitleParts = <String>[
-      date,
-      if (dive.maxDepth != null) units.formatDepth(dive.maxDepth!),
-      if (dive.effectiveRuntime != null) '${dive.effectiveRuntime!.inMinutes}′',
-    ];
-    final title = (dive.name?.isNotEmpty ?? false)
-        ? dive.name!
-        : (dive.diveNumber != null ? '#${dive.diveNumber}' : date);
-
+    final labels = diveRowLabels(dive, units);
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(title),
-      subtitle: Text(subtitleParts.join(' · ')),
+      title: Text(labels.title),
+      subtitle: Text(labels.subtitle),
       trailing: dive.id == currentDiveId ? const Icon(Icons.check) : null,
       onTap: () => Navigator.of(context).pop(dive.id),
     );

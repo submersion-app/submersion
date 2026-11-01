@@ -47,10 +47,17 @@ LinkedPlanComparison _comparison() {
   );
 }
 
-Widget _harness(Dive dive, {LinkedPlanComparison? linked}) => testApp(
+Widget _harness(
+  Dive dive, {
+  LinkedPlanComparison? linked,
+  bool linkFails = false,
+}) => testApp(
   overrides: [
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-    linkedPlanComparisonProvider.overrideWith((ref, id) async => linked),
+    linkedPlanComparisonProvider.overrideWith((ref, id) async {
+      if (linkFails) throw StateError('plan would not compute');
+      return linked;
+    }),
     labRequestInputsProvider('d').overrideWith((ref) async => null),
     labDefaultBranchProvider('d').overrideWith((ref) async => 0),
     diveProvider.overrideWith((ref, id) async => dive),
@@ -84,6 +91,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(WhatIfSheet), findsOneWidget);
     expect(find.byType(DiveLabPage), findsNothing);
+  });
+
+  testWidgets('a plan that fails to load still opens the sheet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(_dive(DiveMode.gauge), linkFails: true));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byType(WhatIfSheet), findsOneWidget);
   });
 
   testWidgets('a linked gauge dive opens the page', (tester) async {

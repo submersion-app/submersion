@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' as db;
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_settings.dart';
 import 'package:submersion/features/dive_lab/domain/services/scenario_engine.dart';
@@ -30,6 +31,9 @@ import '../../../../helpers/test_database.dart';
 import '../../domain/support/synthetic_dives.dart';
 
 const _air = GasMix(o2: 21);
+
+/// What the inputs depend on: a change reloads them, keeping the old value.
+final _inputsSource = StateProvider<int>((_) => 0);
 
 domain.DivePlan _plan({String? linkedDiveId}) => domain.DivePlan(
   id: 'plan-1',
@@ -123,7 +127,13 @@ void main() {
       testApp(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          labRequestInputsProvider('d').overrideWith((ref) async => inputs),
+          labRequestInputsProvider('d').overrideWith((ref) async {
+            // A reload stays in flight long enough to be looked at.
+            if (ref.watch(_inputsSource) > 0) {
+              await Future<void>.delayed(const Duration(seconds: 1));
+            }
+            return inputs;
+          }),
           labDefaultBranchProvider('d').overrideWith((ref) async => 900),
           scenarioEngineRunnerProvider.overrideWithValue(
             (request) async => const ScenarioEngine().run(request),
@@ -163,6 +173,21 @@ void main() {
       tester.widget<LabChart>(find.byType(LabChart)).planOverlay,
       isNotNull,
     );
+  });
+
+  testWidgets('the app bar actions stay through a reload', (tester) async {
+    await pump(tester, inputs: _inputs(), comparison: _comparison());
+    expect(find.byIcon(Icons.save_outlined), findsOneWidget);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveLabPage)),
+    );
+    container.read(_inputsSource.notifier).state++;
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byIcon(Icons.save_outlined), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2));
+    await settle(tester);
   });
 
   testWidgets('with no link there is no Planned anything', (tester) async {

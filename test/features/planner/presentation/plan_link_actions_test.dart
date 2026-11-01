@@ -180,6 +180,30 @@ void main() {
     expect(results, [true]);
   });
 
+  testWidgets('relinking a plan to its own dive writes nothing', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await seedDive('dive-1');
+      await seedPlan('plan-1', linkedDiveId: 'dive-1');
+    });
+    final before = await tester.runAsync(() => repository.getPlan('plan-1'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 5)),
+    );
+    await pumpAction(
+      tester,
+      (context, ref) =>
+          linkPlanWithConfirm(context, ref, planId: 'plan-1', diveId: 'dive-1'),
+    );
+
+    await tester.tap(find.text('go'));
+    await settle(tester);
+
+    final after = await tester.runAsync(() => repository.getPlan('plan-1'));
+    expect(after!.updatedAt, before!.updatedAt);
+  });
+
   testWidgets('the open plan adopts a link written through the action', (
     tester,
   ) async {

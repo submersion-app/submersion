@@ -340,7 +340,8 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
         false;
     final loaded = inputsAsync.hasValue;
     // What-if controls need a dive to branch from, and a sketch is not one.
-    final canBranch = inputs != null && !isPlanned;
+    // value, not valueOrNull: a reload must not take them off the screen.
+    final canBranch = inputsAsync.value != null && !isPlanned;
     final linkEntries = <PopupMenuEntry<String>>[
       PopupMenuItem(
         value: 'linkPlan',
@@ -406,7 +407,7 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
             itemBuilder: (context) {
               if (!canBranch) return linkEntries;
               final canShare = draft.isSeeded;
-              final isOc = inputs.diveMode == DiveMode.oc;
+              final isOc = inputs?.diveMode == DiveMode.oc;
               return [
                 ...linkEntries,
                 const PopupMenuDivider(),

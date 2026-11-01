@@ -25,6 +25,15 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Width at or above which the table sits beside the chart.
 const double kCompareSectionWideBreakpoint = 720;
 
+/// What-if line colours in order, the first the Compare page's own ghost, none
+/// of them the plan's purple.
+const List<Color> _whatIfColors = [
+  kLabGhostColor,
+  Colors.orange,
+  Colors.pink,
+  Colors.indigo,
+];
+
 /// Compare on dive detail: the plan, the dive and its saved what-ifs on one
 /// chart and in one table, and the way into the Compare page.
 class CompareSection extends ConsumerWidget {
@@ -39,13 +48,19 @@ class CompareSection extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final linked = ref.watch(hasLinkedPlanProvider(diveId));
-    final scenarios =
-        ref.watch(diveScenariosForDiveProvider(diveId)).valueOrNull ??
-        const <DiveScenario>[];
+    final scenariosAsync = ref.watch(diveScenariosForDiveProvider(diveId));
+    final scenarios = scenariosAsync.value ?? const <DiveScenario>[];
     final eligible = isDiveLabEligible(dive);
+    // Until both have answered, "nothing yet" would only be a guess, and it
+    // would flash over a dive that has a plan.
+    final settled =
+        scenariosAsync.hasSettled &&
+        ref.watch(linkedPlanComparisonProvider(diveId)).hasSettled;
 
     final Widget body;
-    if (dive.isPlanned) {
+    if (!settled) {
+      body = const SizedBox.shrink();
+    } else if (dive.isPlanned) {
       body = _Message(
         text: l10n.diveLab_compare_waiting,
         actions: [if (!linked) _LinkPlanButton(diveId: diveId)],
@@ -220,7 +235,7 @@ class _Comparison extends ConsumerWidget {
 
     for (var i = 0; i < scenarios.length; i++) {
       final scenario = scenarios[i];
-      final color = kCompareWhatIfColors[i % kCompareWhatIfColors.length];
+      final color = _whatIfColors[i % _whatIfColors.length];
       final on = isOn(scenario.id);
       chips.add(
         CompareChipData(
@@ -286,7 +301,16 @@ class _Comparison extends ConsumerWidget {
                 label: Text(l10n.diveLab_compare_addWhatIf),
                 onPressed: () => showDiveLab(context, diveId),
               ),
-            if (comparison == null) _LinkPlanButton(diveId: diveId),
+            if (comparison == null)
+              ActionChip(
+                avatar: const Icon(Icons.link, size: 18),
+                label: Text(l10n.diveLab_compare_linkPlan),
+                onPressed: () => logFailure(
+                  pickPlanAndLink(context, ref, diveId: diveId),
+                  _Comparison,
+                  'link plan to dive',
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 8),

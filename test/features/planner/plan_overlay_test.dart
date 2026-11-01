@@ -83,7 +83,7 @@ void main() {
     for (var i = 1; i < points.length; i++) {
       expect(
         points[i].timestamp - points[i - 1].timestamp,
-        lessThanOrEqualTo(kPlannedOverlayStepSeconds),
+        inInclusiveRange(1, kPlannedOverlayStepSeconds + 1),
       );
       expect(points[i].depth, lessThanOrEqualTo(45.01));
     }

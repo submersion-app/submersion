@@ -26,6 +26,7 @@ Future<bool> linkPlanWithConfirm(
   final planner = ref.read(divePlanNotifierProvider.notifier);
   final plan = await repository.getPlan(planId);
   if (plan == null) return false;
+  if (plan.linkedDiveId == diveId) return true;
   final holder = await repository.getPlanByLinkedDiveId(diveId);
   final displaced = holder != null && holder.id != planId ? holder : null;
   final moving = plan.linkedDiveId != null && plan.linkedDiveId != diveId;

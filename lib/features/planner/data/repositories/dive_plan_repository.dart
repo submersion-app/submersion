@@ -19,8 +19,6 @@ import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 
-/// Denormalized summary numbers written on save so the saved-plans list
-/// renders without running the engine per row.
 /// What [DivePlanRepository.linkPlanToDive] changed besides the link it set.
 class PlanLinkResult {
   /// The dive this plan named before, if any.
@@ -32,6 +30,8 @@ class PlanLinkResult {
   const PlanLinkResult({this.previousDiveId, this.displacedPlanIds = const []});
 }
 
+/// Denormalized summary numbers written on save so the saved-plans list
+/// renders without running the engine per row.
 class PlanSummaryData {
   final double maxDepth;
   final int runtimeSeconds;

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -8,19 +6,9 @@ import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart'
 import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
 import 'package:submersion/features/dive_lab/domain/services/compare_columns.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
-import 'package:submersion/features/dive_lab/presentation/widgets/lab_chart.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
-
-/// What-if line colours in order, the first the Compare page's own ghost, none
-/// of them the plan's purple.
-const List<Color> kCompareWhatIfColors = [
-  kLabGhostColor,
-  Colors.orange,
-  Colors.pink,
-  Colors.indigo,
-];
 
 /// Whether a dive has a linked plan, for deciding if Compare shows at all.
 final hasLinkedPlanProvider = Provider.family<bool, String>(
@@ -53,11 +41,17 @@ final divedColumnProvider = FutureProvider.autoDispose
     .family<CompareColumn?, String>((ref, diveId) async {
       final dive = await ref.watch(diveProvider(diveId).future);
       if (dive == null) return null;
-      final profile = await ref.watch(diveProfileProvider(diveId).future);
-      final analysis = profile.isEmpty
+      // The samples the analysis replayed, so its curves line up with them:
+      // on a dive with several computers the stored profile is another list.
+      final series = await ref.watch(diveAnalysisSeriesProvider(diveId).future);
+      final analysis = series == null
           ? null
           : await ref.watch(profileAnalysisProvider(diveId).future);
-      return divedColumn(dive: dive, profile: profile, analysis: analysis);
+      return divedColumn(
+        dive: dive,
+        profile: series?.points ?? const [],
+        analysis: analysis,
+      );
     });
 
 /// A saved what-if's outcome and its column; null when it cannot be run.
