@@ -20614,11 +20614,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return '$name követése';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Még nincsenek naplózott merülések';
 
   @override
@@ -20660,6 +20655,41 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Naplózott merülés: $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Megnyitás a naplóban';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Követés leállítása';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Átvitel ide: $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS a végén';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive $time ideje ért véget.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return '#$number. merülés';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Követés';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Felszíni idő';
 
   @override
@@ -20698,8 +20728,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülések sorozata nem tervezhető DPV-küldetésként';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Csak a sorozat első merülése követhet egy naplózott merülést';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Az újratervezés nem követhet másik merülést';
 
   @override
   String get plannerCanvas_follow_title => 'Merülés követése';
@@ -54734,6 +54764,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Összehasonlítás…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Ismétlő merülés tervezése';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. eredeti merülés';
