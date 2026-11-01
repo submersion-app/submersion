@@ -10,6 +10,9 @@ import 'package:submersion/features/planner/domain/services/plan_series_calculat
     as calculator;
 import 'package:submersion/features/planner/domain/services/plan_series_edits.dart'
     as edits;
+import 'package:submersion/features/planner/domain/services/plan_series_settings.dart'
+    as settings;
+import 'package:submersion/features/planner/domain/services/plan_setting_groups.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
 const _uuid = Uuid();
@@ -66,7 +69,11 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
       state = PlanSeries.single(next);
       return;
     }
+    final before = state.dives[index].state;
     state = edits.updateDiveState(state, index, next);
+    // A setting changed on the first dive is the series'; on a later dive,
+    // that dive's own.
+    state = settings.shareSettingEdits(state, index, before: before);
     // The name is the whole plan's, so every dive takes a new one.
     if (previous?.name != next.name) {
       state = edits.setPlanName(state, next.name);
@@ -146,6 +153,18 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
         follow: state.follow,
       ),
     );
+  }
+
+  /// Puts the selected dive back on the series' settings of [group].
+  void resetGroupToSeries(PlanSettingGroup group) {
+    state = settings.resetGroupToSeries(state, state.selectedIndex, group);
+    _loadSelected();
+  }
+
+  /// Makes the selected dive's settings of [group] the series'.
+  void applyGroupToAll(PlanSettingGroup group) {
+    state = settings.applyGroupToAll(state, state.selectedIndex, group);
+    _loadSelected();
   }
 
   /// Follows the logged dives in [follow]: the first dive starts from the
@@ -274,6 +293,38 @@ PlanSeries _chainInputs(PlanSeries series) => PlanSeries(
   dives: [for (final dive in series.dives) dive.copyWith(clearName: true)],
   follow: series.follow,
 );
+
+/// Where the selected dive's settings of a group come from, for its Setup
+/// section: null on a single dive, which has no series to share with.
+final settingScopeProvider = Provider.family<SettingScope?, PlanSettingGroup>((
+  ref,
+  group,
+) {
+  final (isSeries, index, overridden) = ref.watch(
+    planSeriesNotifierProvider.select(
+      (s) => (
+        s.isSeries,
+        s.selectedIndex,
+        s.selected.settingOverrides.contains(group),
+      ),
+    ),
+  );
+  if (!isSeries) return null;
+  if (index == 0) return SettingScope.series;
+  return overridden ? SettingScope.thisDive : SettingScope.fromSeries;
+});
+
+/// Where a dive's settings of a group come from.
+enum SettingScope {
+  /// The first dive: its settings are the series'.
+  series,
+
+  /// A later dive taking the series' settings.
+  fromSeries,
+
+  /// A later dive with its own.
+  thisDive,
+}
 
 /// Whether a dive can be added after the last one.
 final canAddSeriesDiveProvider = Provider<bool>(

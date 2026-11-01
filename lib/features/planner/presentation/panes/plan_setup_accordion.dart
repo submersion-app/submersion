@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/presentation/mission/mission_team_se
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/ccr_settings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_settings_section.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_setting_scope.dart';
 import 'package:submersion/features/planner/presentation/widgets/pscr_settings_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -133,9 +134,18 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
                     expanded;
               },
               title: Text(title, style: Theme.of(context).textTheme.titleSmall),
+              // In a series, whose settings these are (issue #3565).
+              subtitle: switch (settingGroupForSection(key)) {
+                final group? => PlanSettingScopeLabel(group),
+                null => null,
+              },
               tilePadding: const EdgeInsets.symmetric(horizontal: 12),
               childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              children: [child],
+              children: [
+                if (settingGroupForSection(key) case final group?)
+                  PlanSettingScopeActions(group),
+                child,
+              ],
             ),
           ),
       ],
