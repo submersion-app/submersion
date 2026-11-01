@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/setpoint_switch_split.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 
 /// Loop setpoints for a rebreather remainder: high below [switchDepth], low
@@ -25,6 +27,9 @@ class LoopSetpoints {
   final double high;
   final double switchDepth;
   final GasMix diluent;
+
+  /// Setpoint in force at [depth].
+  double setpointAt(double depth) => depth > switchDepth ? high : low;
 }
 
 class SynthesizedRemainder {
@@ -113,7 +118,7 @@ class _Builder {
         t: t,
         fN2: fN2Of(l.diluent),
         fHe: l.diluent.he / 100.0,
-        setpoint: depth > l.switchDepth ? l.high : l.low,
+        setpoint: l.setpointAt(depth),
       );
       return;
     }
@@ -177,30 +182,36 @@ SynthesizedRemainder synthesizeRemainder({
 
   final segments = List<PlanSegment>.from(plan.segments)
     ..sort((x, y) => x.order.compareTo(y.order));
-  // The setpoint is chosen once per leg from the leg's average depth, the
-  // rule PlanEngine charges by: a segment carries no start depth of its own,
-  // so the builder's position when the leg begins stands in for it.
-  void segmentGas(PlanSegment s, double legAvgDepth) => b.gas(
+  // The setpoint follows the stretches PlanEngine breathes: a leg over the
+  // switch changes setpoint there, each side on the setpoint at its own mean
+  // depth. A segment carries no start depth of its own, so the builder's
+  // position when the leg begins stands in for it.
+  void segmentGas(PlanSegment s, double depth) => b.gas(
     t: b.now,
     fN2: fN2Of(s.gasMix),
     fHe: s.gasMix.he / 100.0,
     tankId: s.tankId,
-    setpoint: loop == null
-        ? null
-        : (legAvgDepth > loop.switchDepth ? loop.high : loop.low),
+    setpoint: loop?.setpointAt(depth),
   );
   for (final s in segments) {
-    final legAvgDepth = (b.depths.last + s.targetDepth) / 2;
-    segmentGas(s, legAvgDepth);
-    if (s.durationSeconds <= 0) {
+    for (final piece in splitAtSetpointSwitch(
+      plan,
+      s,
+      DecoSegment(
+        startDepth: b.depths.last,
+        endDepth: s.targetDepth,
+        durationSeconds: s.durationSeconds,
+      ),
+    )) {
+      segmentGas(s, piece.avgDepth);
       // A zero-duration hold (ascend-now anchor) adds no time.
-      continue;
+      if (piece.durationSeconds <= 0) continue;
+      b.leg(
+        piece.endDepth,
+        piece.durationSeconds,
+        (t, d) => segmentGas(s, piece.avgDepth),
+      );
     }
-    b.leg(
-      s.targetDepth,
-      s.durationSeconds,
-      (t, d) => segmentGas(s, legAvgDepth),
-    );
   }
   final bottomEnd = b.now;
 
