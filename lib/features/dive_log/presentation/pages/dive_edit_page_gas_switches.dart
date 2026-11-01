@@ -198,12 +198,17 @@ extension _GasSwitchEditing on _DiveEditPageState {
     });
   }
 
-  /// Runs inside the setState that removes a cylinder: its switches go with
-  /// it, and the list says how many until the next edit.
-  void _dropGasSwitchesOf(String tankId) {
+  /// Runs inside the setState that removes or replaces cylinders: a switch
+  /// whose cylinder is no longer in [_tanks] goes with it, whether the
+  /// cylinder was removed by hand or swapped for a copy under a new id
+  /// (Apply last dive), and the list says how many until the next edit. A
+  /// switch left pointing at a gone cylinder would be saved against a row
+  /// the dive save has just deleted.
+  void _dropGasSwitchesWithoutTank() {
+    final tankIds = {for (final t in _tanks) t.id};
     final kept = [
       for (final s in _gasSwitches)
-        if (s.tankId != tankId) s,
+        if (tankIds.contains(s.tankId)) s,
     ];
     final dropped = _gasSwitches.length - kept.length;
     if (dropped == 0) return;

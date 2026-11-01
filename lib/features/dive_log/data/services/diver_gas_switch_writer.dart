@@ -57,14 +57,12 @@ class DiverGasSwitchWriter {
 
       final inserts = <GasSwitch>[];
       final updates = <GasSwitch>[];
-      final keptIds = <String>{};
       for (final sw in switches) {
         final row = stored[sw.id];
         if (row == null) {
           inserts.add(sw);
           continue;
         }
-        keptIds.add(sw.id);
         if (row.timestamp != sw.timestamp ||
             row.tankId != sw.tankId ||
             row.depth != sw.depth) {
@@ -74,9 +72,10 @@ class DiverGasSwitchWriter {
       // A loaded id the list no longer holds is a delete whether or not its
       // row is still there: removing a cylinder cascades its switches away
       // before this runs, and a peer still needs the tombstone.
+      final listed = {for (final s in switches) s.id};
       final deletes = [
         for (final id in loadedIds)
-          if (!keptIds.contains(id) && !switches.any((s) => s.id == id)) id,
+          if (!listed.contains(id)) id,
       ];
       if (inserts.isEmpty && updates.isEmpty && deletes.isEmpty) return false;
 

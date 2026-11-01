@@ -2,29 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 
+/// The field's own behaviour; parseMinutesSeconds and formatMinutesSeconds
+/// are covered in test/core/utils/minutes_seconds_test.dart.
 void main() {
-  group('parseMinutesSeconds', () {
-    test('reads minutes and seconds, or bare minutes', () {
-      expect(parseMinutesSeconds('12:30'), 750);
-      expect(parseMinutesSeconds('7'), 420);
-      expect(parseMinutesSeconds('1:7'), 67);
-    });
-
-    test('refuses text that is not a time', () {
-      expect(parseMinutesSeconds('ab'), isNull);
-      expect(parseMinutesSeconds('1:60'), isNull);
-      expect(parseMinutesSeconds(''), isNull);
-    });
-  });
-
-  group('formatMinutesSeconds', () {
-    test('pads the seconds', () {
-      expect(formatMinutesSeconds(750), '12:30');
-      expect(formatMinutesSeconds(67), '1:07');
-      expect(formatMinutesSeconds(0), '0:00');
-    });
-  });
-
   Widget host(Widget child, GlobalKey<FormState> formKey) => MaterialApp(
     home: Scaffold(
       body: Form(key: formKey, child: child),

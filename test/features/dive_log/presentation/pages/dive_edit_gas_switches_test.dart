@@ -9,6 +9,8 @@ import 'package:submersion/core/database/database.dart'
     show DiveComputersCompanion, GasSwitche, GasSwitchesCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -60,6 +62,7 @@ void main() {
   Future<Dive> seedDive({
     List<DiveTank> tanks = const [back, deco],
     List<DiveProfilePoint> samples = profile,
+    DiveCenter? diveCenter,
   }) => repository.createDive(
     Dive(
       id: 'dive-32',
@@ -67,6 +70,7 @@ void main() {
       runtime: const Duration(seconds: 1800),
       tanks: tanks,
       profile: samples,
+      diveCenter: diveCenter,
     ),
   );
 
@@ -223,6 +227,82 @@ void main() {
             .get();
     expect(tombstones, hasLength(1));
   });
+
+  testWidgets(
+    'applying the last dive at a center drops the switches of the replaced '
+    'cylinders',
+    (tester) async {
+      final center = DiveCenter(
+        id: 'center-1',
+        name: 'Reef Divers',
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      );
+      await DiveCenterRepository().createDiveCenter(center);
+      // An earlier dive here, whose cylinders Apply last dive copies under
+      // new ids.
+      await repository.createDive(
+        Dive(
+          id: 'dive-0',
+          dateTime: DateTime.utc(2026, 4, 1, 10),
+          diveCenter: center,
+          tanks: const [
+            DiveTank(id: 'tank-old-back', volume: 11, order: 0),
+            DiveTank(
+              id: 'tank-old-deco',
+              volume: 7,
+              role: TankRole.deco,
+              gasMix: GasMix(o2: 50),
+              order: 1,
+            ),
+          ],
+        ),
+      );
+      final dive = await seedDive(diveCenter: center);
+      await repository.createGasSwitch(
+        GasSwitch(
+          id: 'gs-deco',
+          diveId: dive.id,
+          timestamp: 900,
+          tankId: 'tank-deco',
+          createdAt: DateTime.utc(2026, 5, 3, 11),
+        ),
+      );
+      String? savedId;
+      await pumpEditor(tester, dive.id, onSaved: (id) => savedId = id);
+
+      // The rental card sits in the Trip group, collapsed by default.
+      final apply = find.text('Apply last dive');
+      if (apply.evaluate().isEmpty) {
+        final trip = find.text('Trip');
+        await tester.ensureVisible(trip.first);
+        await tester.pumpAndSettle();
+        await tester.tap(trip.first);
+        await tester.pumpAndSettle();
+      }
+      await tester.ensureVisible(apply);
+      await tester.pumpAndSettle();
+      await tester.tap(apply);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+
+      // Every cylinder is new: the switch to the old deco cylinder went
+      // with it, and the list says so.
+      await openGasGear(tester);
+      expect(find.byType(GasSwitchesEditor), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('gas-switch-row-gs-deco')),
+        findsNothing,
+      );
+      expect(find.text('1 gas switch removed with its tank'), findsOneWidget);
+
+      await save(tester);
+      expect(savedId, isNotNull, reason: 'save should complete');
+      expect(await storedSwitches(), isEmpty);
+      expect(await flagged(), isTrue);
+    },
+  );
 
   testWidgets('a typed time reorders its row only once the field is left', (
     tester,

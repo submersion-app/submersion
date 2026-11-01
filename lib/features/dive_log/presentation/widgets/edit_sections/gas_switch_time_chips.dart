@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 
 /// The moments a switch row's cylinder started being breathed, as one-tap
 /// fills for its time (issue #4089). Only ever shown with at least one time.
