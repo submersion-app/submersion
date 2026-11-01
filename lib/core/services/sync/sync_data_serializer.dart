@@ -932,7 +932,9 @@ class SyncDataSerializer {
         if (row.trimStartTime == next.trimStartTime &&
             row.trimEndTime == next.trimEndTime &&
             row.pointCount == next.pointCount &&
-            _sameBytes(row.points, next.points)) {
+            // A null blob is left out of the upsert, so the stored points
+            // stand and the cached lines still match them.
+            (next.points == null || _sameBytes(row.points, next.points))) {
           geometryChanged.remove(row.id);
         }
       }

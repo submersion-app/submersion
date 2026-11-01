@@ -47,6 +47,10 @@ class TrackGeometryCacheRepository {
 
   /// How many times each track has been evicted this session. Static for the
   /// same reason as [_evictions]. A track with no entry is at generation 0.
+  ///
+  /// Never pruned, on purpose: an entry costs one int per track in the library,
+  /// and dropping one would let a simplification still running write the
+  /// pre-eviction line back.
   static final _generations = <String, int>{};
 
   LocalCacheDatabase get _db => LocalCacheDatabaseService.instance.database;

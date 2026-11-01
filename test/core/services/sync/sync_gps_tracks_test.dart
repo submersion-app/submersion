@@ -266,6 +266,21 @@ void main() {
       expect(await cachedTrackIds(), isEmpty);
     });
 
+    test('a row arriving without its points keeps the cached LODs', () async {
+      // The upsert leaves a null blob out, so the stored points still stand
+      // and the cached lines still match them.
+      final id = await seedTrack();
+      await cacheAllLods(id);
+      final stored = (await serializer.fetchRecord('gpsTracks', id))!;
+
+      await serializer.upsertRecord('gpsTracks', {...stored, 'points': null});
+      await serializer.upsertRecords('gpsTracks', [
+        {...stored, 'points': null},
+      ]);
+
+      expect(await cachedTrackIds(), {id});
+    });
+
     test('a peer rename keeps the cached LODs', () async {
       final id = await seedTrack();
       await cacheAllLods(id);
