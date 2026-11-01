@@ -1,12 +1,22 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/data_quality/data/services/quality_neighbor_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 
 /// Returns the concatenated EXPLAIN QUERY PLAN detail lines for [sql].
-Future<String> plan(AppDatabase db, String sql) async {
-  final rows = await db.customSelect('EXPLAIN QUERY PLAN $sql').get();
+///
+/// [params] is how many `?` placeholders [sql] has. The plan does not depend
+/// on their values, but a statement with one unbound does not run.
+Future<String> plan(AppDatabase db, String sql, {int params = 0}) async {
+  final rows = await db
+      .customSelect(
+        'EXPLAIN QUERY PLAN $sql',
+        variables: List.filled(params, const Variable<int>(1)),
+      )
+      .get();
   return rows.map((r) => r.read<String>('detail')).join('\n');
 }
 
@@ -20,6 +30,24 @@ const _summariesPage1Sql =
     "WHERE d.diver_id = 'x' "
     "ORDER BY sort_timestamp DESC, COALESCE(d.dive_number, 0) DESC, d.id DESC "
     "LIMIT 50";
+
+/// Filter shape of QualityContextBuilder._neighbors. Keep in sync with
+/// quality_context_builder.dart.
+const _sameDiverNeighborsSql =
+    'SELECT id FROM dives WHERE id != ?1 AND diver_id IS ?2 '
+    'AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4 '
+    'ORDER BY COALESCE(entry_time, dive_date_time) ASC';
+
+/// Filter shape of the shared-gear lookup in QualityContextBuilder. Keep in
+/// sync with quality_context_builder.dart.
+const _otherDiverNeighborsSql =
+    'SELECT id FROM dives '
+    'WHERE id != ?1 AND diver_id IS NOT NULL AND diver_id != ?2 '
+    'AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4';
+
+const _sameDiverSeek =
+    'idx_dives_diver_start (diver_id=? AND <expr>>? AND <expr><?)';
+const _timeSeek = 'idx_dives_start (<expr>>? AND <expr><?)';
 
 void main() {
   late AppDatabase db;
@@ -130,5 +158,90 @@ void main() {
     );
     expect(p, contains('idx_dives_entry_date'));
     expect(p, isNot(contains('SCAN history_dive')));
+  });
+
+  // The neighbor window once compared every pair of a diver's dives, and the
+  // per-dive lookups read every dive a diver has, so a full scan was
+  // quadratic twice over (issue #3863). Matching a download read every dive
+  // too. Each of these must seek a time range on a dive's start.
+  void pinDiveStartSeeks() {
+    test('the same-diver pair window seeks a time range', () async {
+      expect(
+        await plan(db, qualityPairWindowSql, params: 1),
+        contains(_sameDiverSeek),
+      );
+    });
+
+    test('targeted expansion seeks a time range', () async {
+      expect(
+        await plan(db, qualityExpandNeighborsSql(2, 1000), params: 2),
+        contains(_sameDiverSeek),
+      );
+    });
+
+    test('the shared-gear pair window seeks a time range', () async {
+      expect(
+        await plan(db, qualitySharedGearWindowSql, params: 1),
+        contains(_timeSeek),
+      );
+    });
+
+    test('the per-dive same-diver lookup seeks a time range', () async {
+      expect(
+        await plan(db, _sameDiverNeighborsSql, params: 4),
+        contains(_sameDiverSeek),
+      );
+    });
+
+    test('the per-dive other-diver lookup seeks a time range', () async {
+      expect(
+        await plan(db, _otherDiverNeighborsSql, params: 4),
+        contains(_timeSeek),
+      );
+    });
+
+    test('matching a download across divers seeks a time range', () async {
+      expect(
+        await plan(db, diveMatchCandidatesSql(scopedToDiver: false), params: 3),
+        contains(_timeSeek),
+      );
+    });
+
+    test('matching a download for one diver seeks a time range', () async {
+      expect(
+        await plan(db, diveMatchCandidatesSql(scopedToDiver: true), params: 4),
+        contains(_sameDiverSeek),
+      );
+    });
+  }
+
+  group('dive start lookups on an empty database', pinDiveStartSeeks);
+
+  // Creating an index runs ANALYZE, so a library's real plans come from
+  // statistics this empty test database would not otherwise have.
+  group('dive start lookups with statistics', () {
+    setUp(() async {
+      await db.customStatement(
+        'INSERT INTO divers (id, name, created_at, updated_at) '
+        "VALUES ('bill', 'bill', 1, 1), ('anna', 'anna', 1, 1)",
+      );
+      // Two profiles and unassigned dives: the shared-gear query only runs
+      // on a multi-profile library, so its statistics have to look like one.
+      await db.customStatement(
+        'WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n '
+        'WHERE i < 2000) '
+        'INSERT INTO dives (id, diver_id, dive_date_time, entry_time, '
+        'created_at, updated_at) '
+        "SELECT 'd' || i, "
+        "CASE i % 3 WHEN 0 THEN 'bill' WHEN 1 THEN 'anna' END, "
+        'i * 86400000, CASE WHEN i % 2 = 0 THEN i * 86400000 END, 1, 1 FROM n',
+      );
+      // As ensurePerformanceIndexes runs it, so the planner reads the same
+      // sampled statistics a library gets.
+      await db.customStatement('PRAGMA analysis_limit = 400');
+      await db.customStatement('ANALYZE');
+    });
+
+    pinDiveStartSeeks();
   });
 }

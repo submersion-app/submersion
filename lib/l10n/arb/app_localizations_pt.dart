@@ -20699,6 +20699,28 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem dados de perfil nesse mergulho — intervalo de superfície definido sem saturação dos tecidos';
 
   @override
+  String get plannerCanvas_link_action => 'Associar a um mergulho registrado';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Alterar mergulho associado';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Desassociar mergulho';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Realizado como #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Realizado em $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Salve o plano primeiro';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Mergulho $letter';
   }
@@ -20889,6 +20911,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'O plano de descompressão não leva gás de bailout';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'O gás de bailout é hipóxico a $depth (ppO₂ $value bar). Leve um gás respirável até à superfície.';
+  }
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -34464,6 +34491,15 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>
       'Alguns valores ficaram em branco';
+
+  @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Algumas misturas de gás foram corrigidas';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'O oxigênio e o hélio somavam mais de 100% nestas linhas: $rows. O hélio foi reduzido para que o total seja 100%. Verifique o gás destes mergulhos.';
+  }
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
@@ -52903,11 +52939,92 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Novo cenário';
+  String get diveLab_compare_line_planned => 'Planejado';
 
   @override
-  String get diveLab_section_hint =>
-      'Ramifique este mergulho em qualquer momento e compare o que teria acontecido.';
+  String get diveLab_compare_line_asDived => 'Como mergulhado';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'E se';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Prof. máx.';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Tempo de fundo';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL ao deixar o fundo';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'restam $minutes min';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco aos $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done feitos';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Nenhuma';
+
+  @override
+  String get diveLab_compare_empty => 'Ainda não há nada para comparar';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Fazer um e se';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Associar um plano';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Desassociar plano';
+
+  @override
+  String get diveLab_compare_planTable => 'Plano e mergulho';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programação planejada';
+
+  @override
+  String get diveLab_compare_waiting => 'À espera do mergulho';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Desassociar este plano?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'O plano e o mergulho permanecem. Apenas deixam de ser comparados.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Desassociar';
+
+  @override
+  String get diveLab_link_moveTitle => 'Mover a associação deste plano?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Este plano está associado a outro mergulho. Associá-lo aqui remove essa associação.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'Substituir o plano deste mergulho?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Este mergulho é comparado com \"$plan\". Associar outro plano desassocia esse.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Associar';
 
   @override
   String get diveDetailSection_diveLab_name => 'Comparar';

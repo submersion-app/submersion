@@ -270,7 +270,7 @@ void main() {
       expect(summary(), equals(summary()));
       expect(summary().hashCode, summary().hashCode);
       expect(summary(), isNot(equals(summary(name: 'Wreck'))));
-      expect(summary().props, hasLength(7));
+      expect(summary().props, hasLength(11));
     });
 
     test('mode defaults to open circuit', () {

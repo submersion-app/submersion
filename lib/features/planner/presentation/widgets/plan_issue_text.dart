@@ -93,6 +93,11 @@ String planIssueMessage(
         depthMeters: issue.value ?? 0,
         deepestModMeters: issue.threshold ?? 0,
       );
+    case PlanIssueType.bailoutGasHypoxic:
+      return l10n.plannerCanvas_issue_bailoutHypoxic(
+        units.formatDepth(issue.atDepth ?? 0, decimals: 0),
+        issue.value?.toStringAsFixed(2) ?? '--',
+      );
     case PlanIssueType.minGasViolation:
       return l10n.plannerCanvas_issue_minGas(
         units.formatPressure(issue.threshold ?? 0),

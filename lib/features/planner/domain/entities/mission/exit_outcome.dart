@@ -22,7 +22,7 @@ class ExitOutcome extends Equatable {
   final int ttsSeconds;
 
   /// Surface litres each member breathes from the failure point to the
-  /// surface, by member id.
+  /// surface, by member id, the plan's problem-solving time included.
   final Map<String, double> exitLitersByMember;
   final Set<String> gasShortfallMemberIds;
   final Set<String> batteryShortfallMemberIds;

@@ -107,6 +107,9 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         },
         isCancelled: () => _cancelRequested,
       );
+      // A partial scan is not a full one: recording it would clear the new
+      // checks banner while the checks had not reached the whole library.
+      if (summary.cancelled) return;
       await store.recordFullScan(DateTime.now(), qualityDetectorVersions());
       messenger.showSnackBar(
         SnackBar(
