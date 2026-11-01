@@ -76,7 +76,7 @@ class TestDiscoveryNotifier extends DiscoveryNotifier {
   TestDiscoveryNotifier() : super(service: FakeDiveComputerService());
 
   @override
-  Future<void> startScan() async {
+  Future<void> startScan({Object? owner}) async {
     // no-op: avoid platform channel calls in tests
   }
 }

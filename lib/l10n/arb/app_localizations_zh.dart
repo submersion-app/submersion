@@ -30560,6 +30560,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_computers_appleWatchTitle => '从 Apple Watch 导入';
 
   @override
+  String transfer_computers_autoConnect_downloadingSnackbar(String name) {
+    return '正在从 $name 下载...';
+  }
+
+  @override
+  String get transfer_computers_autoConnect_searching => '正在搜索已知潜水电脑...';
+
+  @override
+  String get transfer_computers_autoConnect_switchSubtitle =>
+      '此屏幕打开时，会搜索已知潜水电脑，并在其进入范围后自动从其下载。';
+
+  @override
+  String get transfer_computers_autoConnect_switchTitle => '自动连接已知潜水电脑';
+
+  @override
   String get transfer_computers_connectSubtitle => '发现并配对潜水电脑';
 
   @override
@@ -33166,6 +33181,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_certificate_thisCertifies => '特此证明';
+
+  @override
+  String get diveComputer_autoDownload_disableSubtitle =>
+      '即使该开关已开启，也将此潜水电脑排除在被动自动连接扫描之外。';
+
+  @override
+  String get diveComputer_autoDownload_disableTitle => '跳过此潜水电脑的自动连接';
 
   @override
   String get diveComputer_clockSync_appSettingOff => '应用设置：关';

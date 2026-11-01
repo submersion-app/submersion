@@ -168,6 +168,13 @@ void BleScanner::OnAdvertisementReceived(
     snprintf(addr_str, sizeof(addr_str), "%012llX",
              static_cast<unsigned long long>(address));
 
+    // Logged natively, as Android's BleScanner.kt does: without it a match
+    // that never reaches Dart leaves no trace in the debug log.
+    NativeLogger::Info(kBleCategory,
+                       "Matched device " + std::string(addr_str) + " (" +
+                           name + ") -> " + info.vendor + " " +
+                           info.product);
+
     DiscoveredDevice device(
         std::string(info.vendor), std::string(info.product),
         static_cast<int64_t>(info.model), std::string(addr_str),

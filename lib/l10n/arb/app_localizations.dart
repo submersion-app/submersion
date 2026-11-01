@@ -51560,6 +51560,30 @@ abstract class AppLocalizations {
   /// **'Import from Apple Watch'**
   String get transfer_computers_appleWatchTitle;
 
+  /// No description provided for @transfer_computers_autoConnect_downloadingSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading from {name}...'**
+  String transfer_computers_autoConnect_downloadingSnackbar(String name);
+
+  /// No description provided for @transfer_computers_autoConnect_searching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for known computers...'**
+  String get transfer_computers_autoConnect_searching;
+
+  /// No description provided for @transfer_computers_autoConnect_switchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'While this screen is open, scans for known computers and downloads from one automatically when it\'s in range.'**
+  String get transfer_computers_autoConnect_switchSubtitle;
+
+  /// No description provided for @transfer_computers_autoConnect_switchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-connect known computers'**
+  String get transfer_computers_autoConnect_switchTitle;
+
   /// No description provided for @transfer_computers_connectSubtitle.
   ///
   /// In en, this message translates to:
@@ -55554,6 +55578,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This certifies that'**
   String get certifications_certificate_thisCertifies;
+
+  /// No description provided for @diveComputer_autoDownload_disableSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps this computer out of the passive auto-connect scan, even while that switch is on.'**
+  String get diveComputer_autoDownload_disableSubtitle;
+
+  /// No description provided for @diveComputer_autoDownload_disableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip auto-connect for this computer'**
+  String get diveComputer_autoDownload_disableTitle;
 
   /// No description provided for @diveComputer_clockSync_appSettingOff.
   ///

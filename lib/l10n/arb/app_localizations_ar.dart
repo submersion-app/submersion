@@ -32739,6 +32739,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_computers_appleWatchTitle => 'الاستيراد من Apple Watch';
 
   @override
+  String transfer_computers_autoConnect_downloadingSnackbar(String name) {
+    return 'جارٍ التنزيل من $name...';
+  }
+
+  @override
+  String get transfer_computers_autoConnect_searching =>
+      'جارٍ البحث عن أجهزة كمبيوتر معروفة...';
+
+  @override
+  String get transfer_computers_autoConnect_switchSubtitle =>
+      'ما دامت هذه الشاشة مفتوحة، يبحث التطبيق عن أجهزة كمبيوتر معروفة ويقوم بالتنزيل تلقائيًا من أحدها عندما يكون ضمن النطاق.';
+
+  @override
+  String get transfer_computers_autoConnect_switchTitle =>
+      'الاتصال التلقائي بأجهزة الكمبيوتر المعروفة';
+
+  @override
   String get transfer_computers_connectSubtitle => 'اكتشاف وإقران حاسوب غوص';
 
   @override
@@ -35703,6 +35720,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get certifications_certificate_thisCertifies => 'يشهد هذا بأن';
+
+  @override
+  String get diveComputer_autoDownload_disableSubtitle =>
+      'يستبعد هذا الكمبيوتر من فحص الاتصال التلقائي السلبي، حتى إذا كان هذا المفتاح مفعّلاً.';
+
+  @override
+  String get diveComputer_autoDownload_disableTitle =>
+      'تخطي الاتصال التلقائي لهذا الكمبيوتر';
 
   @override
   String get diveComputer_clockSync_appSettingOff => 'إعداد التطبيق: معطّل';

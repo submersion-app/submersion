@@ -219,7 +219,7 @@ class _TestDiscoveryNotifier extends DiscoveryNotifier {
   _TestDiscoveryNotifier() : super(service: _FakeDiveComputerService());
 
   @override
-  Future<void> startScan() async {}
+  Future<void> startScan({Object? owner}) async {}
 }
 
 // ---------------------------------------------------------------------------

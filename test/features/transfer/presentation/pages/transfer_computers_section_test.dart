@@ -3,11 +3,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+/// Host API stub that records discovery calls without touching a platform
+/// channel, mirroring `discovery_scan_for_address_test.dart`.
+class _FakeHostApi extends pigeon.DiveComputerHostApi {
+  int startDiscoveryCalls = 0;
+  int stopDiscoveryCalls = 0;
+
+  @override
+  Future<void> startDiscovery(pigeon.TransportType transport) async {
+    startDiscoveryCalls++;
+  }
+
+  @override
+  Future<void> stopDiscovery() async {
+    stopDiscoveryCalls++;
+  }
+}
 
 /// The Dive Computers tab was the last place leaking hardcoded English
 /// (#152): its section header, dive count, download tooltip and
@@ -31,6 +53,7 @@ void main() {
     String name = 'Perdix 2',
     int diveCount = 3,
     DateTime? lastDownload,
+    String? bluetoothAddress,
   }) => DiveComputer(
     id: id,
     name: name,
@@ -38,6 +61,7 @@ void main() {
     model: name,
     diveCount: diveCount,
     lastDownload: lastDownload,
+    bluetoothAddress: bluetoothAddress,
     createdAt: now,
     updatedAt: now,
   );
@@ -64,6 +88,14 @@ void main() {
       ProviderScope(
         overrides: [
           allDiveComputersProvider.overrideWith((ref) async => computers),
+          // Off by default here: none of these tests exercise auto-connect
+          // (that is its own group below), and leaving it on would start a
+          // real scan against no platform channel, whose "Searching..."
+          // indicator is an indeterminate spinner that `pumpAndSettle`
+          // never settles on.
+          autoConnectKnownComputersProvider.overrideWith(
+            (ref) => AutoConnectKnownComputersNotifier.unstored(false),
+          ),
         ],
         child: MaterialApp.router(
           locale: locale,
@@ -118,10 +150,7 @@ void main() {
 
       expect(find.byKey(switchKey), findsOneWidget);
       expect(find.text('Sync dive computer clocks'), findsOneWidget);
-      expect(
-        tester.widget<SwitchListTile>(find.byKey(switchKey)).value,
-        isFalse,
-      );
+      expect(tester.widget<Switch>(find.byKey(switchKey)).value, isFalse);
       expect(
         tester.getTopLeft(find.byKey(switchKey)).dy,
         lessThan(tester.getTopLeft(find.text('Connect New Computer')).dy),
@@ -141,9 +170,30 @@ void main() {
         container.read(clockSyncSettingsNotifierProvider).globalEnabled,
         isTrue,
       );
+      expect(tester.widget<Switch>(find.byKey(switchKey)).value, isTrue);
+    });
+
+    testWidgets('the info icon shows the explanation as a tap tooltip', (
+      tester,
+    ) async {
+      await pumpComputersSection(tester, const []);
+
+      // Scoped to the clock sync switch: the auto-connect switch right
+      // below it (issue #3361) has its own info icon on the same screen.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(ClockSyncGlobalSwitch),
+          matching: find.byIcon(Icons.info_outline),
+        ),
+      );
+      await tester.pump();
+
       expect(
-        tester.widget<SwitchListTile>(find.byKey(switchKey)).value,
-        isTrue,
+        find.text(
+          "Sets the clock to this device's time after each download. "
+          'Applies to this device only.',
+        ),
+        findsOneWidget,
       );
     });
   });
@@ -159,5 +209,138 @@ void main() {
     expect(find.text('2 Tauchgänge'), findsOneWidget);
     expect(find.text('Nie'), findsOneWidget);
     expect(find.byTooltip('Tauchgänge herunterladen'), findsOneWidget);
+  });
+
+  group('passive auto-connect scan, route-aware (issue #3361)', () {
+    late _FakeHostApi hostApi;
+    late pigeon.DiveComputerService service;
+
+    /// A few bounded pumps, not `pumpAndSettle`: while this group's scan is
+    /// active, the "Searching..." indicator's `CircularProgressIndicator`
+    /// is an indeterminate animation `pumpAndSettle` never settles on.
+    Future<void> pumpBriefly(WidgetTester tester) async {
+      // Long enough to clear a route transition (~300ms default) and flush
+      // pending microtasks, short enough to never reach the indeterminate
+      // "Searching..." spinner's own animation loop.
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
+    /// Registers `computersRouteObserver` on this test's own `GoRouter`,
+    /// unlike `pumpComputersSection` above: only this group exercises the
+    /// push/pop pause-resume path, so only it pays for the extra route.
+    /// [computers] defaults to one known Bluetooth computer: with none the
+    /// section never scans at all.
+    Future<GoRouter> pumpWithRouteObserver(
+      WidgetTester tester, {
+      List<DiveComputer>? computers,
+    }) async {
+      final known =
+          computers ?? [computer(bluetoothAddress: 'AA:BB:CC:DD:EE:FF')];
+      await tester.binding.setSurfaceSize(const Size(420, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      hostApi = _FakeHostApi();
+      service = pigeon.DiveComputerService(hostApi: hostApi);
+      final router = GoRouter(
+        initialLocation: '/transfer?selected=computers',
+        observers: [computersRouteObserver],
+        routes: [
+          GoRoute(
+            path: '/transfer',
+            builder: (context, state) => const TransferPage(),
+            routes: [
+              GoRoute(
+                path: 'second',
+                builder: (context, state) =>
+                    const Scaffold(body: Text('Second page')),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/dive-computers/:id/download',
+            builder: (context, state) => Scaffold(
+              body: Text('Download page ${state.pathParameters['id']}'),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveComputerServiceProvider.overrideWithValue(service),
+            allDiveComputersProvider.overrideWith((ref) async => known),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await pumpBriefly(tester);
+      return router;
+    }
+
+    testWidgets('starts scanning once the section is on screen', (
+      tester,
+    ) async {
+      await pumpWithRouteObserver(tester);
+
+      expect(hostApi.startDiscoveryCalls, 1);
+    });
+
+    testWidgets('pauses while a child route (the discovery wizard, a computer '
+        'detail or download page) is pushed on top, and resumes once back', (
+      tester,
+    ) async {
+      final router = await pumpWithRouteObserver(tester);
+      expect(hostApi.startDiscoveryCalls, 1);
+
+      router.push('/transfer/second');
+      await pumpBriefly(tester);
+      expect(find.text('Second page'), findsOneWidget);
+      expect(hostApi.stopDiscoveryCalls, 1);
+
+      router.pop();
+      await pumpBriefly(tester);
+      expect(hostApi.startDiscoveryCalls, 2);
+    });
+
+    testWidgets('leaving the section stops the scan without modifying a '
+        'provider while the tree is being torn down', (tester) async {
+      await pumpWithRouteObserver(tester);
+      expect(hostApi.startDiscoveryCalls, 1);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(hostApi.stopDiscoveryCalls, 1);
+    });
+
+    testWidgets('a known computer in range opens its download page, the one '
+        'that imports the dives', (tester) async {
+      await pumpWithRouteObserver(
+        tester,
+        computers: [computer(bluetoothAddress: '11:22:33:44:55:66')],
+      );
+
+      service.onDeviceDiscovered(
+        pigeon.DiscoveredDevice(
+          vendor: 'Shearwater',
+          product: 'Perdix 2',
+          model: 10,
+          address: '11:22:33:44:55:66',
+          name: 'Perdix 2',
+          transport: pigeon.TransportType.ble,
+        ),
+      );
+      await pumpBriefly(tester);
+
+      expect(find.text('Download page dc-1'), findsOneWidget);
+    });
   });
 }

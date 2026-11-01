@@ -16,6 +16,7 @@ import 'package:submersion/core/app/app_exit.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/presentation/widgets/lock_barrier.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/root_overlay_providers.dart';
 
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/display_zoom.dart';
@@ -483,11 +484,28 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   }
 
   void _openAdoptDialog(LibraryEpochMarker marker) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final navContext = rootNavigatorKey.currentContext;
       if (navContext == null) return;
-      showAdoptReplacedLibraryDialog(navContext, ref, marker);
+      await _withRootOverlayActive(
+        () => showAdoptReplacedLibraryDialog(navContext, ref, marker),
+      );
     });
+  }
+
+  /// Marks [rootOverlayActiveProvider] active for the duration of [action],
+  /// so `AutoConnectController` pauses its passive scan while this root-
+  /// navigator overlay (a dialog, a card/tag preview) covers the shell
+  /// underneath it - none of these push through go_router, so the
+  /// `RouteAware` mechanism `AutoConnectController` otherwise relies on
+  /// never sees them (issue #3361).
+  Future<T> _withRootOverlayActive<T>(Future<T> Function() action) async {
+    ref.read(rootOverlayActiveProvider.notifier).state = true;
+    try {
+      return await action();
+    } finally {
+      if (mounted) ref.read(rootOverlayActiveProvider.notifier).state = false;
+    }
   }
 
   void _onBackupOperationChanged(
@@ -599,7 +617,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         if (navContext == null || !navContext.mounted) return false;
         // Awaited, so the share gate holds the next shared card until this
         // preview closes, as several cards shared together do.
-        await openBuddyCard(navContext, BuddyCardCodec.decodeFull(bytes));
+        await _withRootOverlayActive(
+          () => openBuddyCard(navContext, BuddyCardCodec.decodeFull(bytes)),
+        );
       case IncomingFileOutcome.none:
         break;
     }
@@ -635,7 +655,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   Future<void> _openBuddyCardLink(String text) async {
     final context = rootNavigatorKey.currentContext;
     if (context == null || !context.mounted) return;
-    await openBuddyCard(context, BuddyCardCodec.decodeLink(text));
+    await _withRootOverlayActive(
+      () => openBuddyCard(context, BuddyCardCodec.decodeLink(text)),
+    );
   }
 
   /// Opens a passport tag that arrived as a link. The root navigator's
@@ -644,7 +666,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   Future<void> _openPassportLink(String text) async {
     final context = rootNavigatorKey.currentContext;
     if (context == null || !context.mounted) return;
-    await openScannedTag(context, ref, text);
+    await _withRootOverlayActive(() => openScannedTag(context, ref, text));
   }
 
   /// Opens a batch of shared files. False when this root can no longer
@@ -660,7 +682,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         final current = rootNavigatorKey.currentContext;
         if (current == null || !current.mounted) return false;
         // Awaited: the next card opens once this one's preview closes.
-        await openBuddyCard(current, BuddyCardCodec.decodeFull(bytes));
+        await _withRootOverlayActive(
+          () => openBuddyCard(current, BuddyCardCodec.decodeFull(bytes)),
+        );
       } on FileSystemException catch (e) {
         _reportShareError(e);
       }

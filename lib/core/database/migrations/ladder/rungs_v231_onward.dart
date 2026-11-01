@@ -737,5 +737,12 @@ extension RungsFromV231 on AppDatabase {
     // no backfill; the log starts empty. Re-asserted in beforeOpen.
     if (from < 332) await _assertChangeLogSchema();
     if (from < 332) await reportProgress();
+
+    // v333: dive_computers.auto_download_disabled, the per-device opt-out
+    // for passive auto-connect/auto-download (issue #3361). Column only, no
+    // backfill; re-asserted in beforeOpen. Renumbered from 332, which
+    // upstream claimed first for issue #3922.
+    if (from < 333) await _assertDiveComputerAutoDownloadDisabledColumn();
+    if (from < 333) await reportProgress();
   }
 }

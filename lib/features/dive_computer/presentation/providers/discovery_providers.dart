@@ -162,6 +162,15 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   StreamSubscription<pigeon.DiscoveredDevice>? _discoverySubscription;
   StreamSubscription<void>? _discoveryCompleteSubscription;
 
+  /// Who started the current scan, and a count of scan starts and stops.
+  /// Every flow shares this one notifier, so a manual flow stopping its scan
+  /// must not stop the auto-connect scan running in its place, a stop that
+  /// finishes late must not mark a newer scan as ended, and a start still
+  /// waiting on the permission prompt must not begin a scan someone stopped
+  /// meanwhile (issue #3361).
+  Object? _scanOwner;
+  int _scanGeneration = 0;
+
   DiscoveryNotifier({
     required pigeon.DiveComputerService service,
     bool? requiresRuntimePermissions,
@@ -174,8 +183,12 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     });
   }
 
-  /// Start scanning for devices via BLE.
-  Future<void> startScan() async {
+  /// Start scanning for devices via BLE. [owner] is null for every manual
+  /// flow (the wizards and download pages), which [stopScan] stops; a scan
+  /// with an owner is stopped only through [stopScanOwnedBy].
+  Future<void> startScan({Object? owner}) async {
+    final generation = ++_scanGeneration;
+    _scanOwner = owner;
     try {
       // Request Bluetooth permissions on Android before scanning.
       if (_requiresRuntimePermissions) {
@@ -183,6 +196,9 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
           Permission.bluetoothScan,
           Permission.bluetoothConnect,
         ].request();
+        // Stopped, or replaced by another start, while the prompt was up:
+        // starting now would leave a scan nobody stops.
+        if (generation != _scanGeneration) return;
 
         final denied = statuses.entries
             .where((e) => !e.value.isGranted)
@@ -256,8 +272,15 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     state = state.copyWith(discoveredDevices: [...existing, device]);
   }
 
-  /// Stop scanning.
-  Future<void> stopScan() async {
+  /// Stops the current scan if a manual flow started it. An auto-connect
+  /// scan the Dive Computers section restarted in its place keeps running.
+  Future<void> stopScan() => stopScanOwnedBy(null);
+
+  /// Stops the current scan only if [owner] started it (null: a manual
+  /// flow), so closing one flow never stops a scan another one runs.
+  Future<void> stopScanOwnedBy(Object? owner) async {
+    if (!identical(_scanOwner, owner)) return;
+    final generation = ++_scanGeneration;
     _discoverySubscription?.cancel();
     _discoverySubscription = null;
     await _service.stopDiscovery();
@@ -269,6 +292,9 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
       '${state.discoveredDevices.length} supported device(s) found',
       category: LogCategory.bluetooth,
     );
+    // A scan started while this stop was in flight is running now; marking
+    // it finished would end that caller's wait early.
+    if (generation != _scanGeneration) return;
     state = state.copyWith(isScanning: false);
   }
 

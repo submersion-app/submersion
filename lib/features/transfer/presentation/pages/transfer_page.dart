@@ -8,8 +8,11 @@ import 'package:submersion/core/services/export/models/uddf_export_options.dart'
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/auto_connect_global_switch.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -676,13 +679,103 @@ class _ExportSectionContent extends ConsumerWidget {
 }
 
 /// Dive Computers section content
-class _ComputersSectionContent extends ConsumerWidget {
+class _ComputersSectionContent extends ConsumerStatefulWidget {
   final WidgetRef ref;
 
   const _ComputersSectionContent({required this.ref});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ComputersSectionContent> createState() =>
+      _ComputersSectionContentState();
+}
+
+/// Hosts the passive auto-connect scan for as long as this section stays
+/// mounted and on top (issue #3361): `initState`/`dispose` cover entering
+/// and leaving the section itself (a sibling-section switch, or leaving
+/// Transfer entirely, really disposes this widget); `RouteAware` covers a
+/// child route (the discovery wizard, a computer detail page, the download
+/// page) being pushed on top and later popped, which leaves this widget
+/// mounted but hidden underneath, so `dispose()` never runs for that case.
+class _ComputersSectionContentState
+    extends ConsumerState<_ComputersSectionContent>
+    with RouteAware {
+  // Cached, not read fresh via `ref` each time: `dispose()` runs after
+  // Riverpod has already marked this element's `ref` unsafe to use
+  // ("Using ref when a widget is about to or has been unmounted"), so the
+  // notifier reference itself - not just the `activate()`/`deactivate()`
+  // calls - has to be captured while `ref` is still valid.
+  late final AutoConnectController _autoConnectController;
+
+  @override
+  void initState() {
+    super.initState();
+    _autoConnectController = ref.read(autoConnectControllerProvider.notifier);
+    // Deferred: Riverpod forbids modifying a provider's state while the
+    // widget tree is still building, which `activate()` does (it starts the
+    // scan and writes `isActive`).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _autoConnectController.activate();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of<void>(context);
+    if (route != null) {
+      computersRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    computersRouteObserver.unsubscribe(this);
+    _autoConnectController.release();
+    super.dispose();
+  }
+
+  @override
+  void didPushNext() {
+    // Right away, not deferred: `release()` sets no provider state, which is
+    // what `RouteObserver` dispatching this from inside the navigator's
+    // rebuild forbids, and waiting a frame would let a match open a download
+    // page over the page just pushed.
+    _autoConnectController.release();
+  }
+
+  @override
+  void didPopNext() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _autoConnectController.activate();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<AutoConnectState>(autoConnectControllerProvider, (
+      previous,
+      next,
+    ) {
+      final computer = next.justTriggered;
+      if (computer == null) return;
+      // The same page the computer's own download button opens: it imports
+      // the dives, which a bare download here would not.
+      context.push('/dive-computers/${computer.id}/download');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.transfer_computers_autoConnect_downloadingSnackbar(
+              computer.displayName,
+            ),
+          ),
+        ),
+      );
+      ref.read(autoConnectControllerProvider.notifier).clearTriggerFeedback();
+    });
+
+    final isScanning = ref.watch(
+      autoConnectControllerProvider.select((s) => s.isActive),
+    );
     final computersAsync = ref.watch(allDiveComputersProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -698,6 +791,40 @@ class _ComputersSectionContent extends ConsumerWidget {
             clipBehavior: Clip.antiAlias,
             child: ClockSyncGlobalSwitch(),
           ),
+          const SizedBox(height: 8),
+
+          const Card(
+            clipBehavior: Clip.antiAlias,
+            child: AutoConnectGlobalSwitch(),
+          ),
+          if (isScanning) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.l10n.transfer_computers_autoConnect_searching,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
 
           // Connect new computer

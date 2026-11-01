@@ -31613,6 +31613,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_computers_appleWatchTitle => 'ייבוא מ-Apple Watch';
 
   @override
+  String transfer_computers_autoConnect_downloadingSnackbar(String name) {
+    return 'מוריד מ-$name...';
+  }
+
+  @override
+  String get transfer_computers_autoConnect_searching =>
+      'מחפש מחשבים מוכרים...';
+
+  @override
+  String get transfer_computers_autoConnect_switchSubtitle =>
+      'כל עוד מסך זה פתוח, המערכת מחפשת מחשבים מוכרים ומורידה אוטומטית מאחד מהם כשהוא בטווח.';
+
+  @override
+  String get transfer_computers_autoConnect_switchTitle =>
+      'חבר אוטומטית מחשבים מוכרים';
+
+  @override
   String get transfer_computers_connectSubtitle => 'גלה וצמד מחשב צלילה';
 
   @override
@@ -34382,6 +34399,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get certifications_certificate_thisCertifies => 'בזאת מאושר כי';
+
+  @override
+  String get diveComputer_autoDownload_disableSubtitle =>
+      'משאיר מחשב זה מחוץ לסריקת החיבור האוטומטי הפסיבית, גם כאשר המתג הזה פעיל.';
+
+  @override
+  String get diveComputer_autoDownload_disableTitle =>
+      'דלג על חיבור אוטומטי למחשב זה';
 
   @override
   String get diveComputer_clockSync_appSettingOff => 'הגדרת האפליקציה: כבויה';

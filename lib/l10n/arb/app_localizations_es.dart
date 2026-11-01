@@ -32457,6 +32457,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transfer_computers_appleWatchTitle => 'Importar desde Apple Watch';
 
   @override
+  String transfer_computers_autoConnect_downloadingSnackbar(String name) {
+    return 'Descargando de $name...';
+  }
+
+  @override
+  String get transfer_computers_autoConnect_searching =>
+      'Buscando computadoras conocidas...';
+
+  @override
+  String get transfer_computers_autoConnect_switchSubtitle =>
+      'Mientras esta pantalla está abierta, busca computadoras conocidas y descarga automáticamente de una de ellas cuando esté dentro del alcance.';
+
+  @override
+  String get transfer_computers_autoConnect_switchTitle =>
+      'Conectar automáticamente computadoras conocidas';
+
+  @override
   String get transfer_computers_connectSubtitle =>
       'Descubrir y emparejar una computadora de buceo';
 
@@ -35279,6 +35296,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get certifications_certificate_thisCertifies => 'Se certifica que';
+
+  @override
+  String get diveComputer_autoDownload_disableSubtitle =>
+      'Excluye esta computadora del escaneo de conexión automática pasivo, incluso si ese interruptor está activado.';
+
+  @override
+  String get diveComputer_autoDownload_disableTitle =>
+      'Omitir la conexión automática para esta computadora';
 
   @override
   String get diveComputer_clockSync_appSettingOff =>

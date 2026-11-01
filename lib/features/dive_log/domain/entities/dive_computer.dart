@@ -44,6 +44,10 @@ class DiveComputer extends Equatable {
   /// Whether this is the user's primary/favorite computer
   final bool isFavorite;
 
+  /// Excludes this computer from auto-download even when the global
+  /// auto-connect switch is on (issue #3361).
+  final bool autoDownloadDisabled;
+
   /// Additional notes
   final String notes;
 
@@ -73,6 +77,7 @@ class DiveComputer extends Equatable {
     this.lastDiveFingerprint,
     this.diveCount = 0,
     this.isFavorite = false,
+    this.autoDownloadDisabled = false,
     this.notes = '',
     this.equipmentId,
     required this.createdAt,
@@ -134,6 +139,7 @@ class DiveComputer extends Equatable {
     String? lastDiveFingerprint,
     int? diveCount,
     bool? isFavorite,
+    bool? autoDownloadDisabled,
     String? notes,
     String? equipmentId,
     DateTime? createdAt,
@@ -153,6 +159,7 @@ class DiveComputer extends Equatable {
       lastDiveFingerprint: lastDiveFingerprint ?? this.lastDiveFingerprint,
       diveCount: diveCount ?? this.diveCount,
       isFavorite: isFavorite ?? this.isFavorite,
+      autoDownloadDisabled: autoDownloadDisabled ?? this.autoDownloadDisabled,
       notes: notes ?? this.notes,
       equipmentId: equipmentId ?? this.equipmentId,
       createdAt: createdAt ?? this.createdAt,
@@ -175,6 +182,7 @@ class DiveComputer extends Equatable {
     lastDiveFingerprint,
     diveCount,
     isFavorite,
+    autoDownloadDisabled,
     notes,
     equipmentId,
     createdAt,
