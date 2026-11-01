@@ -5,8 +5,10 @@ import 'package:submersion/features/equipment/data/repositories/equipment_findin
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/counting_findings_repository.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -135,6 +137,129 @@ void main() {
     await settings.setConditionEngineEnabled(false);
     container.invalidate(conditionBadgeProvider);
     expect(await read(), isEmpty);
+  });
+
+  test('the earlier rule wins between two equal severities', () async {
+    // Stored later-rule first, so keeping the first row seen is not enough.
+    await EquipmentFindingsRepository(db: db).saveReview(
+      equipmentId: 'fins',
+      inputFingerprint: 'd2',
+      findings: [
+        finding('fins', ConditionRuleId.issueRecurring),
+        finding('fins', ConditionRuleId.cellOutputDeclining),
+      ],
+      engineVersion: 1,
+      now: DateTime(2026, 2, 1),
+    );
+    expect((await read())['fins']?.rule, ConditionRuleId.cellOutputDeclining);
+  });
+
+  test('a disabled rule hands the badge to the next worst', () async {
+    await EquipmentFindingsRepository(db: db).saveReview(
+      equipmentId: 'bcd',
+      inputFingerprint: 'b2',
+      findings: [
+        finding('bcd', ConditionRuleId.cellOutputLow, slot: 1),
+        finding('bcd', ConditionRuleId.issueRecurring),
+      ],
+      engineVersion: 1,
+      now: DateTime(2026, 2, 1),
+    );
+    expect((await read())['bcd']?.severity, ConditionSeverity.significant);
+
+    await settings.setConditionRuleEnabled(
+      ConditionRuleId.cellOutputLow,
+      false,
+    );
+    container.invalidate(conditionBadgeProvider);
+    final badge = (await read())['bcd'];
+    expect(badge?.severity, ConditionSeverity.caution);
+    expect(badge?.rule, ConditionRuleId.issueRecurring);
+  });
+
+  group('on a stored change', () {
+    late CountingFindingsRepository findings;
+    late ProviderContainer watching;
+    final now = DateTime(2026, 2, 1);
+
+    setUp(() async {
+      findings = CountingFindingsRepository(db: db);
+      watching = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => settings),
+          equipmentFindingsRepositoryProvider.overrideWithValue(findings),
+        ],
+      );
+      addTearDown(watching.dispose);
+      // A listener keeps it active, as a list tile does: an unwatched
+      // provider would only rebuild on the next read.
+      final sub = watching.listen(conditionBadgeProvider, (_, _) {});
+      addTearDown(sub.close);
+      await watching.read(conditionBadgeProvider.future);
+      expect(findings.reads, 1);
+    });
+
+    Future<Map<String, ConditionBadge>> settled() async {
+      await pumpEventQueue();
+      return watching.read(conditionBadgeProvider.future);
+    }
+
+    test('a marker-only review reloads nothing', () async {
+      for (final fingerprint in ['a2', 'a3', 'a4']) {
+        await findings.saveReview(
+          equipmentId: 'reg',
+          inputFingerprint: fingerprint,
+          findings: [
+            finding('reg', ConditionRuleId.incidentLinked),
+            finding('reg', ConditionRuleId.issueRecurring),
+          ],
+          engineVersion: 1,
+          now: now,
+        );
+      }
+      expect((await findings.getReview('reg'))?.inputFingerprint, 'a4');
+      await settled();
+      expect(findings.reads, 1);
+    });
+
+    test('a new finding reaches the badge', () async {
+      await findings.saveReview(
+        equipmentId: 'fins',
+        inputFingerprint: 'd2',
+        findings: [
+          finding('fins', ConditionRuleId.incidentLinked),
+          finding('fins', ConditionRuleId.issueRecurring),
+        ],
+        engineVersion: 1,
+        now: now,
+      );
+      expect((await settled())['fins']?.severity, ConditionSeverity.caution);
+      expect(findings.reads, greaterThan(1));
+    });
+
+    test('a dismissal clears the badge', () async {
+      await findings.setDismissed(
+        findingId: conditionFindingId(
+          'bcd',
+          ConditionRuleId.cellOutputLow,
+          slot: 1,
+        ),
+        dismissed: true,
+        now: now,
+      );
+      expect((await settled()).containsKey('bcd'), isFalse);
+    });
+
+    test('a finding that stops firing clears the badge', () async {
+      await findings.saveReview(
+        equipmentId: 'bcd',
+        inputFingerprint: 'b2',
+        findings: const [],
+        engineVersion: 1,
+        now: now,
+      );
+      expect((await settled()).containsKey('bcd'), isFalse);
+    });
   });
 
   test('the pick order is overdue, significant, due soon, caution', () {

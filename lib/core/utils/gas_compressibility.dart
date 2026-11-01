@@ -35,8 +35,8 @@ double gasCompressibilityFactor({
 /// [model].
 ///
 /// Returns liters at 1 bar. That reference matters: callers divide this by an
-/// ambient pressure ratio expressed as `depth / 10 + 1`, which is also in bar,
-/// so both sides must share a reference for the quotient to be meaningful.
+/// ambient pressure, which is also in bar, so both sides must share a
+/// reference for the quotient to be meaningful.
 /// Referencing volume to 1 atm while the ambient ratio stayed in bar
 /// understated every volumetric SAC rate by ~1.3% (issue #828).
 ///

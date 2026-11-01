@@ -28,6 +28,8 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    show DiveSite;
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -1497,7 +1499,16 @@ class UniversalAdapter implements ImportSourceAdapter {
         readProvider(settingsProvider),
       ).formatCoordinates(lat, lon);
     } else {
-      subtitle = '';
+      // Sites can share a name, and a file without coordinates leaves only
+      // this to tell them apart (#4015).
+      subtitle = DiveSite(
+        id: '',
+        name: name,
+        city: data['city'] as String?,
+        island: data['island'] as String?,
+        region: data['region'] as String?,
+        country: data['country'] as String?,
+      ).locationString;
     }
 
     return EntityItem(title: name, subtitle: subtitle);

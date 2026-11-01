@@ -22,7 +22,7 @@ class PressureAnomalyDetector extends QualityDetector {
   // reported once per tank instead of as rises (#2441), series mixed from
   // two sources reported as such (#2440).
   @override
-  int get version => 4;
+  int get version => 5;
   @override
   QualityCategory get category => QualityCategory.pressure;
 
@@ -252,7 +252,7 @@ class PressureAnomalyDetector extends QualityDetector {
             ctx.dive.avgDepth ??
             _meanDepth(ctx.primarySamples, window.first.t, window.last.t);
         if (avgDepth != null) {
-          final atm = 1 + avgDepth / 10;
+          final atm = ctx.dive.environment.pressureAtDepth(avgDepth);
           final surfaceLpm = drop * vol / (durSec / 60.0) / atm;
           if (surfaceLpm > QualityThresholds.sacSurfaceLpmMax) {
             out.add(

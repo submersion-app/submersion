@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -25,12 +26,16 @@ domain.DivePlan _plan({
   domain.PlanMode mode = domain.PlanMode.oc,
   double? ascentRate,
   double? setpointSwitchDepth,
+  double? altitude,
+  WaterType? waterType,
 }) => domain.DivePlan(
   id: 'exposure',
   name: 'Exposure',
   mode: mode,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
+  altitude: altitude,
+  waterType: waterType,
   ascentRate: ascentRate,
   problemSolvingMinutes: 0,
   setpointSwitchDepth: setpointSwitchDepth,
@@ -93,6 +98,21 @@ List<(double, int)> _computedAscent(PlanOutcome outcome) {
   }
   legs.add((0, outcome.runtimeSeconds - end));
   return legs;
+}
+
+/// [plan] with [outcome]'s two-gas ascent authored row by row: the first on
+/// the plan's last gas, the rest of the way on EAN50 from the `deco` cylinder.
+domain.DivePlan _authoredGasSwitch(domain.DivePlan plan, PlanOutcome outcome) {
+  final ascent = outcome.schedule
+      .where((row) => row.kind == PlanScheduleRowKind.ascent)
+      .toList();
+  expect(ascent, hasLength(2), reason: 'splits at the EAN50 switch depth');
+  return _authored(
+    _authored(plan, [(ascent.first.depthMeters, ascent.first.durationSeconds)]),
+    [(0, ascent.last.durationSeconds)],
+    gas: _ean50,
+    tankId: 'deco',
+  );
 }
 
 void main() {
@@ -168,21 +188,7 @@ void main() {
 
       final implicit = engine.compute(plan);
       expect(implicit.stops, isEmpty);
-      final ascent = implicit.schedule
-          .where((row) => row.kind == PlanScheduleRowKind.ascent)
-          .toList();
-      expect(ascent, hasLength(2), reason: 'splits at the EAN50 switch depth');
-
-      final explicit = engine.compute(
-        _authored(
-          _authored(plan, [
-            (ascent.first.depthMeters, ascent.first.durationSeconds),
-          ]),
-          [(0, ascent.last.durationSeconds)],
-          gas: _ean50,
-          tankId: 'deco',
-        ),
-      );
+      final explicit = engine.compute(_authoredGasSwitch(plan, implicit));
 
       expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
       expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
@@ -299,6 +305,89 @@ void main() {
       expect(crossings, 1);
       expect(outcome.cnsEnd, closeTo(expectedCns, 1e-9));
       expect(outcome.otuTotal, closeTo(expectedOtu, 1e-9));
+    });
+  });
+
+  // Every plan above is in the default water, which a hardcoded environment
+  // would satisfy just as well. These pick one that differs from it.
+  group('open-circuit computed ascent in the plan water (#4010)', () {
+    const idealEngine = PlanEngine(
+      config: PlanEngineConfig(gasModel: GasModel.ideal),
+    );
+
+    for (final (ascentRate, travelSeconds, ascentCns, ascentOtu) in [
+      (9.0, 133, 0.5364472660949917, 1.6108488366438571),
+      (1.0, 1200, 4.840125709127745, 14.533974465959611),
+    ]) {
+      test(
+        'a no-stop ascent at $ascentRate m/min is charged the plan water',
+        () {
+          final plan = _plan(
+            depth: 20,
+            minutes: 5,
+            gas: _ean50,
+            tanks: [_tank('ean50', _ean50)],
+            ascentRate: ascentRate,
+            altitude: 3000,
+            waterType: WaterType.fresh,
+          );
+
+          final implicit = idealEngine.compute(plan);
+          final authored = implicit.segmentOutcomes.last;
+          final explicit = idealEngine.compute(
+            _authored(plan, [(0, travelSeconds)]),
+          );
+
+          expect(implicit.stops, isEmpty);
+          expect(implicit.runtimeSeconds - authored.endRuntime, travelSeconds);
+          expect(implicit.cnsEnd - authored.cns, closeTo(ascentCns, 1e-9));
+          expect(implicit.otuTotal - authored.otu, closeTo(ascentOtu, 1e-9));
+          expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
+          expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
+        },
+      );
+    }
+
+    test('stops and travel match the same authored ascent', () {
+      final plan = _plan(
+        depth: 35,
+        minutes: 40,
+        gas: _ean32,
+        tanks: [_tank('back', _ean32)],
+        altitude: 3000,
+        waterType: WaterType.fresh,
+      );
+
+      final implicit = engine.compute(plan);
+      expect(implicit.stops.length, greaterThan(1));
+      final explicit = engine.compute(
+        _authored(plan, _computedAscent(implicit)),
+      );
+
+      expect(implicit.runtimeSeconds, explicit.runtimeSeconds);
+      expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
+      expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
+    });
+
+    test('each gas is charged the plan water over its own stretch', () {
+      final plan = _plan(
+        depth: 30,
+        minutes: 10,
+        gas: _air,
+        tanks: [
+          _tank('back', _air),
+          _tank('deco', _ean50, role: TankRole.deco),
+        ],
+        altitude: 3000,
+        waterType: WaterType.fresh,
+      );
+
+      final implicit = engine.compute(plan);
+      expect(implicit.stops, isEmpty);
+      final explicit = engine.compute(_authoredGasSwitch(plan, implicit));
+
+      expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
+      expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
     });
   });
 

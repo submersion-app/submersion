@@ -27,7 +27,7 @@ void main() {
       addTearDown(() => tearDownTestDatabase());
       final db = DatabaseService.instance.database;
       final serializer = SyncDataSerializer();
-      final codec = ChangesetCodec(serializer);
+      const codec = ChangesetCodec();
       // Disable compaction so the changeset @2 survives to be corrupted.
       final writer = ChangesetWriter(
         serializer,
@@ -107,7 +107,7 @@ void main() {
     addTearDown(() => tearDownTestDatabase());
     final db = DatabaseService.instance.database;
     final serializer = SyncDataSerializer();
-    final codec = ChangesetCodec(serializer);
+    const codec = ChangesetCodec();
     final writer = ChangesetWriter(
       serializer,
       codec,
@@ -177,7 +177,7 @@ void main() {
       addTearDown(() => tearDownTestDatabase());
       final db = DatabaseService.instance.database;
       final serializer = SyncDataSerializer();
-      final codec = ChangesetCodec(serializer);
+      const codec = ChangesetCodec();
       final writer = ChangesetWriter(
         serializer,
         codec,
@@ -202,7 +202,7 @@ void main() {
       );
 
       // A broken peer: a valid manifest, but its changeset bytes are not
-      // JSON, so decodeChangeset throws out of the per-peer read.
+      // JSON, so decodeVerifiedChangeset throws out of the per-peer read.
       const badPeerId = 'peer-broken';
       final manifest = SyncManifest(
         deviceId: badPeerId,
@@ -270,7 +270,7 @@ void main() {
     await setUpTestDatabase();
     addTearDown(() => tearDownTestDatabase());
     final db = DatabaseService.instance.database;
-    final codec = ChangesetCodec(SyncDataSerializer());
+    const codec = ChangesetCodec();
     final reader = ChangesetReader(codec, PeerCursorStore(db));
     final provider = FakeCloudStorageProvider();
     final folder = await provider.getOrCreateSyncFolder();
@@ -325,7 +325,7 @@ void main() {
     addTearDown(() => tearDownTestDatabase());
     final db = DatabaseService.instance.database;
     final serializer = SyncDataSerializer();
-    final codec = ChangesetCodec(serializer);
+    const codec = ChangesetCodec();
     final writer = ChangesetWriter(
       serializer,
       codec,

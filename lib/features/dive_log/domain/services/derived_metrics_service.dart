@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 
@@ -26,7 +27,7 @@ class TankPressureSeries {
 abstract final class DerivedMetricsService {
   /// Bump whenever a rule below changes; every stored row with a lower
   /// version is rebuilt by the sweep.
-  static const int version = 2;
+  static const int version = 3;
 
   /// Depth under which a level run counts as a final stop.
   static const double finalStopMaxDepthMeters = 7.0;
@@ -51,7 +52,7 @@ abstract final class DerivedMetricsService {
   static const double transitMeters = kFinalStopUnstableMeters / 2;
 
   /// Whether [m] was built by this engine from the dive as it is now;
-  /// [sourceStamp] is the dive's `diveSourceStampSql`.
+  /// [sourceStamp] is the dive's stamp from `DerivedMetricsRepository`.
   static bool isCurrent(DiveDerivedMetrics m, int sourceStamp) =>
       m.engineVersion >= version && m.sourceUpdatedAt == sourceStamp;
 
@@ -62,6 +63,7 @@ abstract final class DerivedMetricsService {
     required DiveMode diveMode,
     required int sourceUpdatedAt,
     required int computedAtMs,
+    DiveEnvironment environment = DiveEnvironment.standard,
   }) {
     DiveDerivedMetrics bare(UnsupportedReason reason) => DiveDerivedMetrics(
       diveId: diveId,
@@ -83,7 +85,7 @@ abstract final class DerivedMetricsService {
     // A rebreather's bottles do not drain with the diver's breathing, so
     // their pressure drop is not a SAC; the depth track is still read.
     final rebreather = diveMode == DiveMode.ccr || diveMode == DiveMode.scr;
-    final sac = rebreather ? null : _sac(ordered, tanks);
+    final sac = rebreather ? null : _sac(ordered, tanks, environment);
 
     return DiveDerivedMetrics(
       diveId: diveId,
@@ -227,7 +229,11 @@ abstract final class DerivedMetricsService {
     double? slope,
     double? change,
   })?
-  _sac(List<ProfileSample> samples, List<TankPressureSeries> tanks) {
+  _sac(
+    List<ProfileSample> samples,
+    List<TankPressureSeries> tanks,
+    DiveEnvironment environment,
+  ) {
     final tank = _referenceTank(tanks);
     if (tank == null) return null;
 
@@ -251,7 +257,7 @@ abstract final class DerivedMetricsService {
       if (drop <= 0) continue;
       final minutes = (to - from) / 60.0;
       if (minutes <= 0) continue;
-      final ata = 1 + _meanDepth(samples, from, to) / 10.0;
+      final ata = environment.pressureAtDepth(_meanDepth(samples, from, to));
       if (ata <= 0) continue;
       buckets.add(SacBucket(index: index, sacBarPerMin: drop / minutes / ata));
       midMinutes.add((from + to) / 2 / 60.0);

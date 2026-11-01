@@ -56,7 +56,7 @@ void main() {
           id: 'bo',
           volume: 11.1,
           startPressure: 207,
-          gasMix: GasMix(o2: 50),
+          gasMix: GasMix(o2: 32),
           role: TankRole.bailout,
         ),
       );
@@ -191,6 +191,41 @@ void main() {
         .getRect(readout)
         .intersect(tester.getRect(find.byType(PlanChartBailoutStatus)));
     expect(overlap.width <= 0 || overlap.height <= 0, isTrue);
+  });
+
+  testWidgets('a failed run does not leave the chips hidden by an older gas '
+      'gap (#3961)', (tester) async {
+    final container = await mount(
+      tester,
+      const Column(
+        children: [
+          ChartModeToggle(),
+          SizedBox(width: 760, height: 400, child: PlanProfileChart()),
+        ],
+      ),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    final tank = container
+        .read(divePlanNotifierProvider)
+        .tanks
+        .firstWhere((t) => t.id == 'bo');
+    notifier.updateTank('bo', tank.copyWith(gasMix: const GasMix(o2: 50)));
+    await tester.pump();
+    await tester.pump();
+    await landLatest(tester);
+    container.read(chartDisplayModeProvider.notifier).state =
+        ChartDisplayMode.ccr;
+    await tester.pump();
+    expect(find.text('Bailout'), findsNothing);
+
+    edit(container);
+    await tester.pump();
+    await tester.pump();
+    runner.held.last.fail(StateError('engine'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Bailout'), findsOneWidget);
   });
 
   testWidgets('the toggle does not flicker through an edit', (tester) async {

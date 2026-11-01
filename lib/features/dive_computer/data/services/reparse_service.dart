@@ -174,23 +174,19 @@ class ReparseService {
       ));
 
       // ------------------------------------------------------------------
-      // 2. Check isPrimary -- only update Dives row if the source is primary
+      // 2. Read the source row: its isPrimary gates the Dives row in step 4
       // ------------------------------------------------------------------
       final sourceRow = await (db.select(
         db.diveDataSources,
       )..where((t) => t.id.equals(sourceRowId))).getSingle();
 
-      if (sourceRow.isPrimary) {
-        // ----------------------------------------------------------------
-        // 3. Update Dives row (allowlisted columns only)
-        // ----------------------------------------------------------------
-        await _updateDiveRow(
-          diveId: diveId,
-          parsed: parsed,
-          now: now,
-          vendor: descriptorVendor,
-        );
-      }
+      // A manual edit stays the live generation of its source, the fresh
+      // parse landing beneath it. A source with no computer cannot be asked:
+      // a file import's own series has the shape hasLiveEdit looks for.
+      final beneathEdit =
+          sourceRow.isPrimary &&
+          sourceRow.computerId != null &&
+          await _profileSeries.hasLiveEdit(diveId, sourceId: sourceRow.id);
 
       final sourceRows = await (db.select(
         db.diveDataSources,
@@ -199,7 +195,7 @@ class ReparseService {
       final ownsStrand = sourceOwnsProfileStrand(sourceRow, sourceRows);
 
       // ------------------------------------------------------------------
-      // 4. Replace DiveProfiles for this source's computerId -- but only
+      // 3. Replace DiveProfiles for this source's computerId -- but only
       //    when this source actually authored that strand in its own parse
       //    frame (#1164).
       // ------------------------------------------------------------------
@@ -224,7 +220,23 @@ class ReparseService {
           sourceId: sourceRow.id,
           parsed: parsed,
           isPrimary: sourceRow.isPrimary,
+          beneathEdit: beneathEdit,
           timeOffset: sourceRow.timeOffsetSeconds ?? 0,
+        );
+      }
+
+      // ------------------------------------------------------------------
+      // 4. Update Dives row (allowlisted columns only). After the profile:
+      //    a dive re-parsed before #3189 holds its recording live beside the
+      //    edit, and the depths under an edit are read from what stays live.
+      // ------------------------------------------------------------------
+      if (sourceRow.isPrimary) {
+        await _updateDiveRow(
+          diveId: diveId,
+          parsed: parsed,
+          now: now,
+          vendor: descriptorVendor,
+          beneathEdit: beneathEdit,
         );
       }
 
@@ -706,6 +718,7 @@ class ReparseService {
     required pigeon.ParsedDive parsed,
     required DateTime now,
     required String? vendor,
+    required bool beneathEdit,
   }) async {
     // A parse with no date leaves both start columns as stored, and the exit
     // follows the dive's effective start (entry time when set, as
@@ -727,6 +740,13 @@ class ReparseService {
       totalDurationSeconds: parsed.durationSeconds,
     );
     final waterTemp = _minWaterTemp(parsed);
+    // The edit stays live, so its depths stay the dive's; the source row above
+    // holds what the recording reports. Read from the edit rather than left
+    // as stored, so a dive an earlier re-parse reset comes right again (issue
+    // #3931).
+    final liveDepths = beneathEdit
+        ? await _profileSeries.liveDepthSummary(diveId)
+        : null;
     // Diluent gas mix (issue #1879), from the same resolved tank list the
     // tank carry-over below derives roles from, so a re-parse always agrees
     // with whichever cylinder carries the Diluent role. Value.absent() keeps
@@ -744,10 +764,14 @@ class ReparseService {
       DivesCompanion(
         diluentO2: diluent != null ? Value(diluent.o2) : const Value.absent(),
         diluentHe: diluent != null ? Value(diluent.he) : const Value.absent(),
-        maxDepth: Value(parsed.maxDepthMeters),
-        avgDepth: Value(
-          parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
-        ),
+        maxDepth: beneathEdit
+            ? Value.absentIfNull(liveDepths?.maxDepth)
+            : Value(parsed.maxDepthMeters),
+        avgDepth: beneathEdit
+            ? Value.absentIfNull(liveDepths?.avgDepth)
+            : Value(
+                parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
+              ),
         runtime: Value(parsed.durationSeconds),
         diveDateTime: parsedStartMs != null
             ? Value(parsedStartMs)
@@ -798,21 +822,16 @@ class ReparseService {
     required String sourceId,
     required pigeon.ParsedDive parsed,
     required bool isPrimary,
+    required bool beneathEdit,
     required int timeOffset,
   }) async {
     // Delete existing profiles for this (diveId, computerId)
     await _profileSeries.deleteByComputer(diveId, computerId);
 
-    // A manual edit stays the live generation of its source: the fresh parse
-    // lands demoted beneath it, the rule DiveReimportService._replaceProfile
-    // follows for a file. Inserted primary it would sit live beside the edit
-    // and, stamped newer, outrank it on the next primary swap (issue #3189).
-    final beneathEdit =
-        isPrimary &&
-        computerId != null &&
-        await _profileSeries.hasLiveEdit(diveId, sourceId: sourceId);
-
-    // Re-insert from parsed samples
+    // Re-insert from parsed samples. [beneathEdit] lands them demoted, the
+    // rule DiveReimportService._replaceProfile follows for a file. Inserted
+    // primary they would sit live beside the edit and, stamped newer, outrank
+    // it on the next primary swap (issue #3189).
     if (parsed.samples.isNotEmpty) {
       await _profileSeries.insertSeries(
         diveId: diveId,

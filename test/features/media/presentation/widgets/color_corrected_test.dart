@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -86,12 +87,303 @@ void main() {
     return container;
   }
 
+  /// Pumps [item]'s tile (or [tree]) with diver auto on over [service], in
+  /// one long-lived scope so a second call updates rather than remounts.
+  Future<void> pumpTile(
+    WidgetTester tester,
+    ColorAnalysisService service,
+    MediaItem item, {
+    Widget? tree,
+    bool diverAuto = true,
+    Future<VideoColorTrack?>? track,
+  }) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          colorEnrichmentProvider.overrideWith((ref, id) async => null),
+          diverAutoColorCorrectionProvider.overrideWithValue(diverAuto),
+          colorAnalysisServiceProvider.overrideWithValue(service),
+          if (track != null)
+            videoColorTrackProvider.overrideWith((ref, key) => track),
+        ],
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child:
+              tree ??
+              ColorCorrected(
+                item: item,
+                analysisSource: source,
+                child: const SizedBox(width: 10, height: 10),
+              ),
+        ),
+      ),
+    );
+    await tester.pump();
+  }
+
   ColorFiltered? filter(WidgetTester tester) {
     final found = find.byType(ColorFiltered);
     return found.evaluate().isEmpty
         ? null
         : tester.widget<ColorFiltered>(found);
   }
+
+  group('a tile that stops needing its queued analysis (issue #3868)', () {
+    /// A service with both decode slots held, so anything asked for queues.
+    /// Built in the test body: the gate must share the test's fake clock.
+    /// `finish` ends every decode, whose timeouts would otherwise outlive
+    /// the test.
+    ({ColorAnalysisService service, Future<void> Function() finish}) held(
+      WidgetTester tester,
+    ) {
+      final gate = Completer<Uint8List?>();
+      final service = ColorAnalysisService(decodeRgba: (_) => gate.future);
+      unawaited(service.statsFor('held-1', source));
+      unawaited(service.statsFor('held-2', source));
+      return (
+        service: service,
+        finish: () async {
+          gate.complete(null);
+          await tester.pump();
+          await tester.pump();
+        },
+      );
+    }
+
+    testWidgets('leaving the screen releases its place in the queue', (
+      tester,
+    ) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+
+      await tester.pumpWidget(const SizedBox());
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+      await finish();
+    });
+
+    testWidgets('showing another photo releases the one it had queued', (
+      tester,
+    ) async {
+      final photo = item();
+      final other = photo.copyWith(id: 'm2');
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+
+      await pumpTile(tester, service, other);
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+      expect(service.isPending(colorStatsKey(other)), isTrue);
+      await finish();
+    });
+
+    testWidgets('showing a photo off any dive releases the one it had queued', (
+      tester,
+    ) async {
+      final photo = item();
+      final offDive = item(diveId: null, depth: null).copyWith(id: 'm2');
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+
+      await pumpTile(tester, service, offDive);
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+      await finish();
+    });
+
+    /// A service whose decodes each wait on their own gate, in [started]
+    /// order. `finishAll` ends them, as `held`'s `finish` does.
+    ({
+      ColorAnalysisService service,
+      List<ImageProvider> started,
+      List<Completer<Uint8List?>> gates,
+      Future<void> Function() finishAll,
+    })
+    gated(WidgetTester tester) {
+      final started = <ImageProvider>[];
+      final gates = <Completer<Uint8List?>>[];
+      return (
+        service: ColorAnalysisService(
+          decodeRgba: (provider) {
+            started.add(provider);
+            final gate = Completer<Uint8List?>();
+            gates.add(gate);
+            return gate.future;
+          },
+        ),
+        started: started,
+        gates: gates,
+        finishAll: () async {
+          for (var i = 0; i < gates.length; i++) {
+            if (!gates[i].isCompleted) gates[i].complete(null);
+            await tester.pump();
+          }
+        },
+      );
+    }
+
+    Widget tile(MediaItem photo, String key, {ImageProvider? analysisSource}) =>
+        ColorCorrected(
+          key: ValueKey(key),
+          item: photo,
+          analysisSource: analysisSource ?? source,
+          child: const SizedBox(width: 10, height: 10),
+        );
+
+    testWidgets('turning automatic correction off releases it', (tester) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+
+      await pumpTile(tester, service, photo, diverAuto: false);
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+      await finish();
+    });
+
+    testWidgets('holding the original releases it until let go', (
+      tester,
+    ) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+      final peek = ProviderScope.containerOf(
+        tester.element(find.byType(ColorCorrected)),
+      ).read(colorPeekOriginalNotifierProvider.notifier);
+
+      peek.peek(photo.id);
+      await tester.pump();
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+
+      peek.release();
+      await tester.pump();
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+      await finish();
+    });
+
+    testWidgets('a video track arriving releases the poster', (tester) async {
+      final video = item(type: MediaType.video);
+      final (:service, :finish) = held(tester);
+      final track = Completer<VideoColorTrack?>();
+      await pumpTile(tester, service, video, track: track.future);
+      expect(service.isPending(colorStatsKey(video)), isTrue);
+
+      track.complete(
+        const VideoColorTrack([
+          VideoColorKey(
+            seconds: 1,
+            params: AutoCorrectionParams(
+              redFromGreen: 0.2,
+              gainR: 1.5,
+              gainG: 1,
+              gainB: 0.9,
+            ),
+          ),
+        ]),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(service.isPending(colorStatsKey(video)), isFalse);
+      await finish();
+    });
+
+    testWidgets('a rebuild does not move it ahead of newer requests', (
+      tester,
+    ) async {
+      final photo = item();
+      final (:service, :started, :gates, :finishAll) = gated(tester);
+      final newer = MemoryImage(Uint8List(1));
+      unawaited(service.statsFor('held-1', source));
+      unawaited(service.statsFor('held-2', source));
+      await pumpTile(tester, service, photo);
+      unawaited(service.statsFor('newer', newer));
+
+      await pumpTile(tester, service, photo);
+      gates.first.complete(null);
+      await tester.pump();
+      expect(started.last, same(newer));
+      await finishAll();
+    });
+
+    testWidgets('a viewer of a queued photo moves it forward', (tester) async {
+      final photo = item();
+      final (:service, :started, :gates, :finishAll) = gated(tester);
+      final queued = MemoryImage(Uint8List(2));
+      unawaited(service.statsFor('held-1', source));
+      unawaited(service.statsFor('held-2', source));
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile(photo, 'grid', analysisSource: queued)]),
+      );
+      unawaited(service.statsFor('newer', MemoryImage(Uint8List(1))));
+
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(
+          children: [
+            tile(photo, 'grid', analysisSource: queued),
+            tile(photo, 'viewer'),
+          ],
+        ),
+      );
+      gates.first.complete(null);
+      await tester.pump();
+      expect(started.last, same(queued));
+      await finishAll();
+    });
+
+    testWidgets('after a failed decode each tile counts for its key again', (
+      tester,
+    ) async {
+      final photo = item();
+      final (:service, :started, :gates, :finishAll) = gated(tester);
+      final both = Column(children: [tile(photo, 'a'), tile(photo, 'b')]);
+      await pumpTile(tester, service, photo, tree: both);
+      unawaited(service.statsFor('held-1', source));
+      gates.first.complete(null);
+      await tester.pump();
+      unawaited(service.statsFor('held-2', source));
+      expect(started, hasLength(3));
+
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile(photo, 'a'), tile(photo, 'b')]),
+      );
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile(photo, 'b')]),
+      );
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+      await finishAll();
+    });
+
+    testWidgets('a second tile keeps a shared key queued', (tester) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile(photo, 'a'), tile(photo, 'b')]),
+      );
+
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile(photo, 'b')]),
+      );
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+      await finish();
+    });
+  });
 
   testWidgets('no adjustment and auto off draws the child as it is', (
     tester,

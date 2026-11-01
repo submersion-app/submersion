@@ -445,7 +445,7 @@ void main() {
       final serializer = SyncDataSerializer();
       writer = ChangesetWriter(
         serializer,
-        ChangesetCodec(serializer),
+        const ChangesetCodec(),
         PublishStateStore(db),
         compactionByteRatio: 1000.0,
         compactionMaxChangesets: 1 << 30,
@@ -622,7 +622,7 @@ void main() {
     test('a heartbeat reports no nonce', () async {
       final heartbeating = ChangesetWriter(
         SyncDataSerializer(),
-        ChangesetCodec(SyncDataSerializer()),
+        const ChangesetCodec(),
         PublishStateStore(DatabaseService.instance.database),
         compactionByteRatio: 1000.0,
         compactionMaxChangesets: 1 << 30,

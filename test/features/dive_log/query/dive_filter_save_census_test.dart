@@ -63,6 +63,10 @@ void main() {
     'equipmentIds': const DiveFilterState(equipmentIds: ['e1']),
     'buddyNameFilter': const DiveFilterState(buddyNameFilter: 'Ana'),
     'buddyId': const DiveFilterState(buddyId: 'b1'),
+    'equipmentUsedOnly': const DiveFilterState(
+      equipmentIds: ['e1'],
+      equipmentUsedOnly: true,
+    ),
     'diveIds': const DiveFilterState(diveIds: ['d1', 'd2']),
     'diveIdsLabel': const DiveFilterState(
       diveIds: ['d1'],

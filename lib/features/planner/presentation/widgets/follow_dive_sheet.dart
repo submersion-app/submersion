@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
-import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Present the follow-a-dive picker as a modal bottom sheet.
@@ -18,14 +18,11 @@ Future<void> showFollowDiveSheet(BuildContext context) {
   );
 }
 
-/// Picks a logged dive for the plan to follow: seeds the plan's start
-/// tissues from the dive's end-of-dive compartment state (same analysis
-/// the dive details page runs) and sets the surface interval.
+/// Picks any logged dive for the plan to follow (issue #3565): the series
+/// starts from it, with its end tissues, CNS, OTU and tank pressures, and
+/// shows it and the dives before it in the series bar.
 class FollowDiveSheet extends ConsumerStatefulWidget {
-  const FollowDiveSheet({super.key, this.maxDives = 30});
-
-  /// How many recent dives to offer.
-  final int maxDives;
+  const FollowDiveSheet({super.key});
 
   @override
   ConsumerState<FollowDiveSheet> createState() => _FollowDiveSheetState();
@@ -41,7 +38,11 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
     final units = ref.watch(unitFormatterProvider);
 
     // Render stale data during a reload rather than flashing a spinner.
-    final dives = divesAsync.valueOrNull?.take(widget.maxDives).toList();
+    // Any logged dive can be followed; judging whether the plan is
+    // realistic is left to the diver.
+    final dives = divesAsync.valueOrNull
+        ?.where((dive) => !dive.isPlanned)
+        .toList();
 
     return SafeArea(
       child: Padding(
@@ -107,43 +108,27 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
             )
           : null,
       enabled: _loadingDiveId == null,
-      onTap: () => _follow(dive),
+      onTap: () =>
+          logFailure(_follow(dive), _FollowDiveSheetState, 'follow a dive'),
     );
   }
 
   Future<void> _follow(Dive dive) async {
     setState(() => _loadingDiveId = dive.id);
-    final analysis = await ref.container.awaitFuture(
-      profileAnalysisProvider(dive.id).future,
-    );
-    if (!mounted) return;
+    try {
+      final follow = await followLoggedDive(ref, dive.id);
+      if (!mounted) return;
 
-    final compartments = (analysis != null && analysis.decoStatuses.isNotEmpty)
-        ? analysis.decoStatuses.last.compartments
-        : null;
-
-    final end = (dive.entryTime ?? dive.dateTime).add(
-      dive.effectiveRuntime ?? Duration.zero,
-    );
-    var interval = DateTime.now().difference(end);
-    if (interval < const Duration(minutes: 10)) {
-      interval = const Duration(hours: 1);
-    }
-
-    ref
-        .read(divePlanNotifierProvider.notifier)
-        .setFollowedDive(
-          diveId: dive.id,
-          compartments: compartments,
-          surfaceInterval: interval,
+      final messenger = ScaffoldMessenger.of(context);
+      if (follow != null && follow.endTissues == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(context.l10n.plannerCanvas_follow_noTissues)),
         );
-
-    final messenger = ScaffoldMessenger.of(context);
-    if (compartments == null) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.plannerCanvas_follow_noTissues)),
-      );
+      }
+      Navigator.of(context).pop();
+    } finally {
+      // The sheet is still open only when the load failed.
+      if (mounted) setState(() => _loadingDiveId = null);
     }
-    Navigator.of(context).pop();
   }
 }

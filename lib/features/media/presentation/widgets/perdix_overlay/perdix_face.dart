@@ -153,7 +153,7 @@ class PerdixFace extends StatelessWidget {
     final cns = data.cnsPercent;
     final ppO2 = data.ppO2Bar;
     return [
-      if (data.tankPressureBar != null)
+      if (data.tankPressureBar != null || data.tankPressureMissing)
         _cell(
           l10n.media_perdixOverlay_labelTank,
           units.formatPressure(data.tankPressureBar),

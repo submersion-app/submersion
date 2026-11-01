@@ -7129,6 +7129,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Merülések visszaállítva';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Merülések visszaállítva, de néhány rögzített adatot nem sikerült helyreállítani';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16858,6 +16862,212 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_export_saved_maintenance => 'Karbantartási napló mentve';
 
   @override
+  String get transfer_export_inventoryTitle => 'Felszerelésleltár';
+
+  @override
+  String get transfer_export_inventorySubtitle =>
+      'PDF sorozatszámokkal és a fizetett árakkal';
+
+  @override
+  String get transfer_export_serviceReportTitle => 'Szervizjelentés';
+
+  @override
+  String get transfer_export_serviceReportSubtitle =>
+      'PDF az esedékes szervizekről, szerviztörténettel';
+
+  @override
+  String get settings_export_progress_inventory => 'Leltár készítése...';
+
+  @override
+  String get settings_export_success_inventory => 'Leltár exportálva';
+
+  @override
+  String get settings_export_saved_inventory => 'Leltár mentve';
+
+  @override
+  String get settings_export_progress_serviceReport =>
+      'Szervizjelentés készítése...';
+
+  @override
+  String get settings_export_success_serviceReport =>
+      'Szervizjelentés exportálva';
+
+  @override
+  String get settings_export_saved_serviceReport => 'Szervizjelentés mentve';
+
+  @override
+  String get equipmentReport_sheet_continue => 'Tovább';
+
+  @override
+  String get equipmentReport_sheet_groupBy => 'Csoportosítás';
+
+  @override
+  String get equipmentReport_sheet_groupByType => 'Felszerelés típusa';
+
+  @override
+  String get equipmentReport_sheet_groupByLocation => 'Hely';
+
+  @override
+  String get equipmentReport_sheet_location => 'Hely';
+
+  @override
+  String get equipmentReport_sheet_allLocations => 'Minden hely';
+
+  @override
+  String get equipmentReport_sheet_showPrices => 'Árak megjelenítése';
+
+  @override
+  String get equipmentReport_sheet_showPricesHelp => 'Vámlistához kapcsold ki';
+
+  @override
+  String get equipmentReport_sheet_gear => 'Felszerelés';
+
+  @override
+  String get equipmentReport_sheet_gearAll => 'Minden felszerelés';
+
+  @override
+  String get equipmentReport_sheet_gearTrip => 'Útra csomagolva';
+
+  @override
+  String get equipmentReport_sheet_gearItem => 'Egy tétel';
+
+  @override
+  String get equipmentReport_sheet_trip => 'Út';
+
+  @override
+  String get equipmentReport_sheet_item => 'Tétel';
+
+  @override
+  String get equipmentReport_sheet_history => 'Szerviztörténet';
+
+  @override
+  String get equipmentReport_sheet_showCosts => 'Költségek megjelenítése';
+
+  @override
+  String get equipmentReport_pdf_inventoryTitle => 'Felszerelésleltár';
+
+  @override
+  String get equipmentReport_pdf_serviceTitle => 'Szervizjelentés';
+
+  @override
+  String equipmentReport_pdf_printedOn(String date) {
+    return 'Nyomtatva: $date';
+  }
+
+  @override
+  String equipmentReport_pdf_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tétel',
+      one: '$count tétel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentReport_pdf_currencyTotal(String currency) {
+    return '$currency összesen';
+  }
+
+  @override
+  String get equipmentReport_pdf_noLocation => 'Nincs hely megadva';
+
+  @override
+  String get equipmentReport_pdf_colItem => 'Tétel';
+
+  @override
+  String get equipmentReport_pdf_colSerial => 'Sorozatszám';
+
+  @override
+  String get equipmentReport_pdf_colBought => 'Vásárolva';
+
+  @override
+  String get equipmentReport_pdf_colPaid => 'Fizetve';
+
+  @override
+  String get equipmentReport_pdf_pricesNote =>
+      'Az árak a fizetett összegek, nem a jelenlegi érték.';
+
+  @override
+  String equipmentReport_pdf_noPrice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tételnek nincs ára.',
+      one: '$count tételnek nincs ára.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_overdue => 'lejárt';
+
+  @override
+  String get equipmentReport_pdf_dueSoon => 'hamarosan esedékes';
+
+  @override
+  String get equipmentReport_pdf_upToDate => 'rendben';
+
+  @override
+  String get equipmentReport_pdf_colService => 'Szerviz';
+
+  @override
+  String get equipmentReport_pdf_colDue => 'Esedékes';
+
+  @override
+  String get equipmentReport_pdf_colStatus => 'Állapot';
+
+  @override
+  String get equipmentReport_pdf_statusOverdue => 'Lejárt';
+
+  @override
+  String get equipmentReport_pdf_statusDueSoon => 'Hamarosan esedékes';
+
+  @override
+  String get equipmentReport_pdf_statusUpToDate => 'Rendben';
+
+  @override
+  String get equipmentReport_pdf_allUpToDate => 'Minden rendben van.';
+
+  @override
+  String equipmentReport_pdf_noSchedule(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tételnek nincs szervizütemezése.',
+      one: '$count tételnek nincs szervizütemezése.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_colDate => 'Dátum';
+
+  @override
+  String get equipmentReport_pdf_colWork => 'Munka';
+
+  @override
+  String get equipmentReport_pdf_colShop => 'Szerviz neve';
+
+  @override
+  String get equipmentReport_pdf_colCost => 'Költség';
+
+  @override
+  String get equipmentReport_pdf_noHistory => 'Nincs rögzített szerviz';
+
+  @override
+  String equipmentReport_pdf_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_serviceKinds_defaultCurrencyInherit =>
       'Alapértelmezett pénznem használata';
 
@@ -20404,11 +20614,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return '$name követése';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Még nincsenek naplózott merülések';
 
   @override
@@ -20450,6 +20655,41 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Naplózott merülés: $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Megnyitás a naplóban';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Követés leállítása';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Átvitel ide: $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS a végén';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive $time ideje ért véget.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return '#$number. merülés';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Követés';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Felszíni idő';
 
   @override
@@ -20488,8 +20728,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülések sorozata nem tervezhető DPV-küldetésként';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Csak a sorozat első merülése követhet egy naplózott merülést';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Az újratervezés nem követhet másik merülést';
 
   @override
   String get plannerCanvas_follow_title => 'Merülés követése';
@@ -20571,6 +20811,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'A dekompressziós terv nem tartalmaz bailout gázt';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Egyetlen bailout gáz sem éri el a(z) $depth mélységet: a legmélyebb vitt MOD $deepestMod. Vigyél ezen a mélységen használható gázt; ugyanabból a gázból több nem segít.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -29156,6 +29404,162 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get insights_equipment_findings_subtitleAllDives =>
       'Nyitott megállapítások szabályonként, az összes merülésre';
+
+  @override
+  String get insights_equipment_showAll => 'Összes megjelenítése';
+
+  @override
+  String get insights_equipment_showLess => 'Kevesebb megjelenítése';
+
+  @override
+  String insights_equipment_mostUsedGear_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count óra',
+      one: '$count óra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_title => 'Birtoklási költség';
+
+  @override
+  String get insights_equipment_cost_subtitle =>
+      'Vásárlás és szerviz, az összes merülésedre vetítve';
+
+  @override
+  String get insights_equipment_cost_spentTotal => 'Összes kiadás';
+
+  @override
+  String get insights_equipment_cost_perDive => 'Merülésenként';
+
+  @override
+  String get insights_equipment_cost_byYear => 'Kiadások évenként';
+
+  @override
+  String get insights_equipment_cost_metricPerDive => 'Merülésenként';
+
+  @override
+  String get insights_equipment_cost_metricPerHour => 'Óránként';
+
+  @override
+  String get insights_equipment_cost_metricTotal => 'Összesen';
+
+  @override
+  String insights_equipment_cost_rowPerDive(String amount) {
+    return '$amount / merülés';
+  }
+
+  @override
+  String insights_equipment_cost_rowPerHour(String amount) {
+    return '$amount / óra';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverDives(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount $count merülésre',
+      one: '$amount $count merülésre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverHours(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount $count órára',
+      one: '$amount $count órára',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_noDives => 'még nincs merülés';
+
+  @override
+  String insights_equipment_cost_undated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vásárlásnak nincs dátuma',
+      one: '$count vásárlásnak nincs dátuma',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tételnek nincs rögzített költsége',
+      one: '$count tételnek nincs rögzített költsége',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_empty =>
+      'Még nincsenek rögzített vételárak vagy szervizköltségek';
+
+  @override
+  String get insights_equipment_cost_error =>
+      'A felszerelés költségei nem tölthetők be';
+
+  @override
+  String get insights_equipment_idle_title => 'Használatlan felszerelés';
+
+  @override
+  String get insights_equipment_idle_subtitle =>
+      'A saját felszerelésed, amellyel mostanában nem merültél, az összes merülésedre nézve';
+
+  @override
+  String get insights_equipment_idle_over6Months => 'Több mint 6 hónapja';
+
+  @override
+  String get insights_equipment_idle_over1Year => 'Több mint 1 éve';
+
+  @override
+  String get insights_equipment_idle_over2Years => 'Több mint 2 éve';
+
+  @override
+  String get insights_equipment_idle_neverDived => 'Sosem merült';
+
+  @override
+  String insights_equipment_idle_years(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count év',
+      one: '$count év',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_idle_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hó',
+      one: '$count hó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_idle_empty =>
+      'Minden felszerelésed használatban volt mostanában';
+
+  @override
+  String get insights_equipment_idle_error =>
+      'A használatlan felszerelés nem tölthető be';
 
   @override
   String get insights_equipment_findings_empty => 'Nincs nyitott megállapítás';
@@ -41278,8 +41682,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Adatforrások';
 
   @override
-  String get reef_section_loadError =>
-      'Az ökoszisztéma-adatok jelenleg nem tölthetők be';
+  String get reef_section_checking => 'Ellenőrzés…';
 
   @override
   String get reef_habitat_title => 'Zátony élőhely';
@@ -54360,6 +54763,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Összehasonlítás…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Ismétlő merülés tervezése';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. eredeti merülés';

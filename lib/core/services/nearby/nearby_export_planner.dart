@@ -53,10 +53,10 @@ abstract final class NearbyExportPlanner {
   /// whose every clock is at or below the peer's mark for that clock's
   /// writer. A row with no clock, or from a writer the peer does not know,
   /// is kept.
-  static SyncPayload filterByWriter(
+  static Future<SyncPayload> filterByWriter(
     SyncPayload payload,
     NearbyWatermarks peers,
-  ) {
+  ) async {
     bool covered(Object? clock) {
       if (clock is! String) return false;
       final writer = NearbyWatermarks.writerOf(clock);
@@ -82,7 +82,7 @@ abstract final class NearbyExportPlanner {
       exportedAt: payload.exportedAt,
       deviceId: payload.deviceId,
       lastSyncTimestamp: payload.lastSyncTimestamp,
-      checksum: SyncDataSerializer.checksumOf(filtered),
+      checksum: await SyncDataSerializer.checksumOfOffIsolate(filtered),
       data: filtered,
       deletions: {
         for (final entry in payload.deletions.entries)
