@@ -85,8 +85,9 @@ class FakeApplePeripheralManager extends UniversalBlePeripheralPlatform {
   @override
   Future<PeripheralReadinessState> getAvailabilityState() async => state;
 
-  /// A command before power-on never reports back, so the plugin gives up
-  /// on its own timeout; the plugin's list keeps the service regardless.
+  /// A command before power-on never reports back, so the plugin's add ends
+  /// in its timeout error, raised here at once rather than after 5 seconds.
+  /// The plugin's list keeps the service regardless.
   @override
   Future<void> addService(
     PeripheralService service, {

@@ -166,8 +166,9 @@ peripheral has no flow control over them (Apple rejects them once its
 queue is full, Android drops them), while reads and acknowledged writes
 pace themselves on every platform. Apple drops every peripheral command
 sent before its manager reports power-on, and clears the hosted service
-when Bluetooth goes off, so hosting waits for the first state and adds the
-service again after Bluetooth returns. Each direction
+when Bluetooth goes off, so hosting waits for the first state and replaces
+whatever is hosted, on each carrier's first hosting and after Bluetooth
+returns. Each direction
 carries a byte stream framed by the link layer; the carrier cuts it into
 chunks that fit the negotiated MTU, never longer than the 512 bytes one
 attribute value may hold, and a peripheral's send waits while 64 KiB are

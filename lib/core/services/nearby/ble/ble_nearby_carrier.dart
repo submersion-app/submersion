@@ -84,16 +84,9 @@ class BleNearbyCarrier implements NearbyCarrier {
   /// This carrier's request handlers and peripheral listeners are set up.
   bool _peripheralWired = false;
 
-  /// The nearby service is known to be hosted.
+  /// This carrier has hosted the nearby service, and Bluetooth has not gone
+  /// off since.
   bool _serviceInPlace = false;
-
-  /// The plugin's list of hosted services can no longer be believed. It
-  /// names a service from the moment it is asked to add it, so an add that
-  /// failed is still listed, and Apple empties its GATT database when
-  /// Bluetooth goes off without the list noticing. Only adding the service
-  /// again puts it back. Static because the list outlives a carrier, as the
-  /// GATT server does.
-  static bool _serviceListStale = false;
 
   @override
   bool get canAdvertise => _canAdvertise;
@@ -156,10 +149,7 @@ class BleNearbyCarrier implements NearbyCarrier {
   void _followAvailability() {
     if (_availabilitySub != null) return;
     _availabilitySub = _availabilityUpdates().listen((state) {
-      if (state != AvailabilityState.poweredOn) {
-        _serviceInPlace = false;
-        _serviceListStale = true;
-      }
+      if (state != AvailabilityState.poweredOn) _serviceInPlace = false;
       if (!_availability.isClosed) _availability.add(_map(state));
     }, onError: (Object e) => _log.info('Bluetooth availability error: $e'));
   }
@@ -326,22 +316,20 @@ class BleNearbyCarrier implements NearbyCarrier {
   Future<void> _hostService() async {
     if (_serviceInPlace) return;
     await _awaitPeripheralManager();
-    // Cleared first: Bluetooth going off during an await below sets it again.
-    final stale = _serviceListStale;
-    _serviceListStale = false;
+    // Set first: Bluetooth going off during an await below clears it.
+    _serviceInPlace = true;
     try {
-      if (stale) await UniversalBlePeripheral.clearServices();
-      // The GATT server outlives this carrier: after a restart of the
-      // provider scope (a restore, demo mode) the service is still hosted,
-      // and adding it again would give centrals two of it.
-      if (stale || !await _serviceHosted()) {
-        await UniversalBlePeripheral.addService(_nearbyService());
-      }
+      // Never added to what is there. The GATT server outlives a carrier, so
+      // adding alone could give centrals two of the service, and the plugin's
+      // list cannot say what is hosted: it names a service from the moment
+      // it is asked to add it, and keeps it when Apple empties its GATT
+      // database as Bluetooth goes off.
+      await UniversalBlePeripheral.clearServices();
+      await UniversalBlePeripheral.addService(_nearbyService());
     } on Object {
-      _serviceListStale = true;
+      _serviceInPlace = false;
       rethrow;
     }
-    _serviceInPlace = !_serviceListStale;
   }
 
   static BlePeripheralService _nearbyService() => BlePeripheralService(
@@ -385,17 +373,8 @@ class BleNearbyCarrier implements NearbyCarrier {
     }
   }
 
-  static Future<bool> _serviceHosted() async {
-    try {
-      final hosted = await UniversalBlePeripheral.getServices();
-      return hosted.any((uuid) => uuid.toLowerCase() == nearbyServiceUuid);
-    } on Object {
-      return false;
-    }
-  }
-
-  /// Stops listening to Bluetooth. The service stays hosted for the next
-  /// carrier, which takes the request handlers over.
+  /// Stops listening to Bluetooth. The service stays hosted until the next
+  /// carrier replaces it and takes the request handlers over.
   Future<void> dispose() async {
     await _scanSub?.cancel();
     _scanSub = null;

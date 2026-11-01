@@ -161,6 +161,24 @@ void main() {
     expect(peripheral.database, hasLength(1));
   });
 
+  test('Bluetooth turned off and on with no carrier listening still hosts '
+      'the service: the next carrier cannot know, so it believes no '
+      'list', () async {
+    peripheral.powerOn();
+    final first = newCarrier();
+    await first.startAdvertising();
+    await first.dispose();
+
+    peripheral
+      ..bluetoothOff()
+      ..powerOn();
+    expect(peripheral.registry, isNotEmpty, reason: 'the stale list');
+
+    await newCarrier().startAdvertising();
+    expect(peripheral.database, hasLength(1));
+    expect(peripheral.advertising, isTrue);
+  });
+
   test('a failed add is tried again: the plugin lists the service though '
       'it was never hosted', () async {
     peripheral
