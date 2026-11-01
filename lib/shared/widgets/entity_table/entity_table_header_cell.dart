@@ -58,6 +58,10 @@ class EntityTableHeaderCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final labelStyle = theme.textTheme.labelSmall?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: colorScheme.onSurfaceVariant,
+    );
 
     // Wider hit target on mobile for easier resizing.
     final isMobile =
@@ -100,18 +104,16 @@ class EntityTableHeaderCell extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          labelSuffix == null
-                              ? field.localizedDisplayName(context.l10n)
-                              : '${field.localizedDisplayName(context.l10n)} '
-                                    '($labelSuffix)',
+                          field.localizedDisplayName(context.l10n),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: labelStyle,
                         ),
                       ),
+                      // Apart from the label, so a narrow column cuts the
+                      // label short and keeps the suffix.
+                      if (labelSuffix case final suffix?)
+                        Text(' ($suffix)', maxLines: 1, style: labelStyle),
                       if (isFiltered)
                         Padding(
                           key: ValueKey('entity-table-filtered-${field.name}'),

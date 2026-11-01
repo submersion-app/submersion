@@ -652,7 +652,9 @@ void main() {
     ) async {
       await pumpSheet(tester, settings: imperial);
 
-      expect(find.text('Visibility (ft)'), findsOneWidget);
+      // Its own text, so a narrow column truncates the label and not the unit.
+      expect(find.text('Visibility'), findsOneWidget);
+      expect(find.text(' (ft)'), findsOneWidget);
     });
   });
 
