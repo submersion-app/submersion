@@ -194,6 +194,14 @@ class ReparseService {
       final isMultiSource = sourceRows.length > 1;
       final ownsStrand = sourceOwnsProfileStrand(sourceRow, sourceRows);
 
+      // A switch list the diver edited is theirs (issue #32): the re-parse
+      // rewrites events, cylinders and pressure as before but leaves every
+      // switch row alone, the way it keeps an edited profile.
+      final diveRow = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      final keepsSwitches = diveRow.gasSwitchesEdited;
+
       // ------------------------------------------------------------------
       // 3. Replace DiveProfiles for this source's computerId -- but only
       //    when this source actually authored that strand in its own parse
@@ -276,6 +284,7 @@ class ReparseService {
             )
           : const <DownloadedTank>[];
       final rewritesTanks = resolvedTanks.isNotEmpty;
+      final rewritesSwitches = rewritesTanks && !keepsSwitches;
 
       if (rewritesEvents) {
         // Tombstoned: a peer's import only upserts these, so a row removed
@@ -285,12 +294,14 @@ class ReparseService {
           await _idsOf(db.diveProfileEvents, diveId),
           diveId: diveId,
         );
-        if (rewritesTanks) {
+        if (rewritesSwitches) {
           await _deleteAndTombstone(
             'gasSwitches',
             await _idsOf(db.gasSwitches, diveId),
             diveId: diveId,
           );
+        }
+        if (rewritesTanks) {
           await _tankSeries.deleteForDive(diveId);
         }
 
@@ -335,13 +346,15 @@ class ReparseService {
           parsed: parsed,
           tankIdsByIndex: tankIdsByIndex,
         );
-        await _insertGasSwitches(
-          diveId: diveId,
-          computerId: computerId,
-          switches: switches,
-          tankIdsByIndex: tankIdsByIndex,
-          now: now,
-        );
+        if (rewritesSwitches) {
+          await _insertGasSwitches(
+            diveId: diveId,
+            computerId: computerId,
+            switches: switches,
+            tankIdsByIndex: tankIdsByIndex,
+            now: now,
+          );
+        }
       }
 
       // ------------------------------------------------------------------
@@ -372,8 +385,11 @@ class ReparseService {
       }
       if (rewritesTanks) {
         await stage('diveTanks', await _idsOf(db.diveTanks, diveId));
+      }
+      if (rewritesSwitches) {
         // gasSwitches is only touched (deleted + re-inserted) alongside
-        // tanks; see the guard above.
+        // tanks, and never on a dive whose list the diver edited; see the
+        // guards above.
         await stage('gasSwitches', await _idsOf(db.gasSwitches, diveId));
       }
       if (sourceRow.isPrimary) await stage('dives', [diveId]);
