@@ -4,6 +4,8 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -25,14 +27,30 @@ final tripFlightWindowProvider =
       final flightAt = trip?.returnFlightAt;
       if (flightAt == null) return null;
 
+      final diveRepository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+
       final preset = ref.watch(settingsProvider.select((s) => s.noFlyPreset));
-      final current = await ref.watch(noFlyStatusProvider.future);
+      final diverId = ref.watch(currentDiverIdProvider);
 
       // The flight is stored wall-clock-as-UTC. Read it in the device's zone
       // to get a real instant before taking a guideline interval off it, as
-      // noFlyStatusProvider does for dive end times: interval arithmetic on
+      // activeNoFlyStatus does for dive end times: interval arithmetic on
       // clock digits is an hour off across a DST change (issue #3926).
       final now = clock.now().toUtc();
+
+      // Asked directly, not by watching noFlyStatusProvider: a dependency
+      // change is a reload, which hides the card and banner on every dive
+      // write, where the self-invalidation above is a refresh.
+      final current = diverId == null
+          ? null
+          : await activeNoFlyStatus(
+              diveRepository,
+              diverId: diverId,
+              preset: preset,
+              now: now,
+            );
+
       final category = current?.category == NoFlyCategory.deco
           ? NoFlyCategory.deco
           : NoFlyCategory.repetitive;

@@ -5,6 +5,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -176,7 +177,11 @@ void main() {
       diveRepository: repository,
     );
     final provider = tripFlightWindowProvider('t1');
-    final subscription = container.listen(provider, (_, _) {});
+    final readings = <FlightWindowStatus?>[];
+    final subscription = container.listen(
+      provider,
+      (_, next) => readings.add(next.valueOrNull),
+    );
     addTearDown(subscription.close);
     expect(
       (await container.read(provider.future))!.category,
@@ -196,6 +201,9 @@ void main() {
       (await container.read(provider.future))!.category,
       NoFlyCategory.deco,
     );
+    // The card and the banner hide on a null reading, so a refresh that drops
+    // the value makes them blink on every dive write.
+    expect(readings, isNot(contains(isNull)));
   });
 
   // Issue #3926: the flight and any dives are stored as clock digits, so an
