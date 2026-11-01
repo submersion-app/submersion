@@ -144,19 +144,10 @@ class _TracksPageState extends ConsumerState<TracksPage> {
     if (ref.read(section).selectedId == item.selectionKey) {
       ref.read(section.notifier).deselect();
     }
-    // Nor stay highlighted as "last opened" (#4024): there is nothing left
-    // to come back to.
-    if (ref.read(highlightedTrackKeyProvider) == item.selectionKey) {
-      ref.read(highlightedTrackKeyProvider.notifier).state = null;
-    }
+    forgetOpenedTrack(ref, item);
   }
 
-  void _open(TrackListItem item) {
-    // Kept highlighted after returning (issue #4024), mirroring the dive
-    // list's highlightedDiveIdProvider.
-    ref.read(highlightedTrackKeyProvider.notifier).state = item.selectionKey;
-    context.push(trackLocationOf(item));
-  }
+  void _open(TrackListItem item) => openTrack(context, ref, item);
 
   void _select(TrackListItem item) => ref
       .read(mapListSelectionProvider(kTracksSectionKey).notifier)

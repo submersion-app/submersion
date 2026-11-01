@@ -1536,7 +1536,7 @@ void main() {
 
   group('controls panel height cap (#3994)', () {
     // The widest the Start row gets: a linked dive (From dive entry), a
-    // site (From site) and a pre-dive GPS fix (From GPS), all at once --
+    // site (From site) and a pre-dive GPS fix (From GPS), all at once:
     // the shape from the "From GPS" chip test above, with a dive added.
     const site = DiveSite(
       id: 'site-1',
@@ -1673,6 +1673,62 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
         await tester.pumpAndSettle();
         expect(repository.lastRouteId, 'r1');
+      },
+    );
+
+    for (final (name, size) in const [
+      ('a phone in landscape', Size(844, 390)),
+      ('a short desktop window', Size(1000, 500)),
+    ]) {
+      testWidgets('the cap also holds on $name, whatever its width', (
+        tester,
+      ) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        final repository = await _pump(
+          tester,
+          route: wideRowRoute,
+          linkedDive: wideRowDive,
+          site: site,
+        );
+
+        expect(tester.takeException(), isNull);
+        final height = bodyHeight(tester);
+        expect(
+          tester.getSize(find.byType(FlutterMap)).height,
+          greaterThanOrEqualTo(height * 0.55 - 1),
+        );
+
+        await tester.ensureVisible(
+          find.byKey(const ValueKey('nav-track-align-save')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.pumpAndSettle();
+        expect(repository.lastRouteId, 'r1');
+      });
+    }
+
+    // A scroll view inherits the PrimaryScrollController on mobile only, so
+    // a Scrollbar without its own controller fails on every desktop platform.
+    // Widget tests default to Android and would never see it.
+    testWidgets(
+      'the panel\'s visible scrollbar works on a desktop platform',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        await pumpWideRowOnPhone(tester);
+
+        expect(tester.takeException(), isNull);
+        final scrollbar = tester.widget<Scrollbar>(
+          find
+              .ancestor(
+                of: find.byKey(const ValueKey('nav-track-align-save')),
+                matching: find.byType(Scrollbar),
+              )
+              .last,
+        );
+        expect(scrollbar.controller!.position.maxScrollExtent, greaterThan(0));
       },
     );
 

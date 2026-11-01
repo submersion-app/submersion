@@ -23,6 +23,7 @@ import 'package:submersion/features/nav_track/data/repositories/nav_track_reposi
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -398,8 +399,8 @@ void main() {
     '(item 3)',
     (tester) async {
       // The title card (#4022) pushed the map further down the ListView,
-      // past the default 800x600 test surface -- a ListView only builds
-      // the children within its viewport, so TileLayer/FlutterMap are not
+      // past the default 800x600 test surface. A ListView only builds the
+      // children within its viewport, so TileLayer/FlutterMap are not
       // in the tree at all here without the extra room (same hazard as
       // the compass test below, #3386/#3635).
       await tester.binding.setSurfaceSize(const Size(800, 1400));
@@ -1167,7 +1168,7 @@ void main() {
         final repository = _RecordingNavTrackRepository();
         final route = _route();
         // _delete calls context.pop() (go_router), which needs a GoRouter
-        // ancestor -- a plain MaterialApp throws "No GoRouter found in
+        // ancestor: a plain MaterialApp throws "No GoRouter found in
         // context" once the delete reaches that line. Two routes, as the
         // delete-and-pop test above uses, so pop() has somewhere to go.
         final router = GoRouter(
@@ -1424,7 +1425,93 @@ void main() {
     expectZoomsAndScrollsLikeOtherMaps(tester);
   });
 
+  testWidgets('the title card names the route for a screen reader, as an '
+      'AppBar title does (#4022)', (tester) async {
+    await _pump(tester, route: _route());
+
+    final semantics = tester.widget<Semantics>(
+      find.ancestor(
+        of: find.text('r1.csv'),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Semantics && widget.properties.header == true,
+        ),
+      ),
+    );
+    expect(semantics.properties.namesRoute, isTrue);
+  });
+
   group('consistent open/change actions (#4023)', () {
+    testWidgets('a tappable card clips its ink to its rounded corners', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await _pump(
+        tester,
+        route: _route(diveId: 'dive-1', siteId: 'site-1'),
+        linkedDive: Dive(
+          id: 'dive-1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 8, 22, 10, 8),
+        ),
+        site: const DiveSite(id: 'site-1', name: 'Test Site'),
+      );
+
+      for (final card in [
+        find.ancestor(
+          of: find.byKey(const ValueKey('nav-track-linked-dive')),
+          matching: find.byType(Card),
+        ),
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-site-row')),
+          matching: find.byType(Card),
+        ),
+        find.byKey(const ValueKey('nav-track-correction-status')),
+      ]) {
+        expect(tester.widget<Card>(card).clipBehavior, Clip.antiAlias);
+      }
+    });
+
+    testWidgets(
+      '"Change dive" still offers and marks a linked dive that is no longer '
+      'among the nearest',
+      (tester) async {
+        final linkedDive = Dive(
+          id: 'dive-far',
+          diveNumber: 500,
+          dateTime: DateTime(2020, 1, 1, 9),
+          entryTime: DateTime(2020, 1, 1, 9),
+        );
+        final nearby = [
+          for (var i = 0; i < NavTrackMatcher.nearestLimit; i++)
+            Dive(
+              id: 'dive-$i',
+              diveNumber: i + 1,
+              dateTime: DateTime(2026, 8, 22, 9).add(Duration(hours: i)),
+              entryTime: DateTime(2026, 8, 22, 9).add(Duration(hours: i)),
+            ),
+        ];
+        await _pump(
+          tester,
+          route: _route(diveId: 'dive-far'),
+          linkedDive: linkedDive,
+          allDives: [...nearby, linkedDive],
+        );
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-change-dive')));
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<ListTile>(
+                find.byKey(const ValueKey('nav-track-dive-choice-dive-far')),
+              )
+              .selected,
+          isTrue,
+        );
+      },
+    );
+
     GoRouter routerTo(NavTrack route, {required List<GoRoute> extra}) =>
         GoRouter(
           initialLocation: '/tracks/underwater/${route.id}',

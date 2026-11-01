@@ -27,17 +27,22 @@ desktop exactly as it does today.
 **Cap:** 45% of the body height (`Scaffold.body`'s own height, below the
 app bar), the same fraction `color_adjust_layout.dart` uses for the same
 viewer-plus-panel shape. The map (`Expanded`) therefore never drops below
-55% of that height, regardless of panel content.
+55% of that height, regardless of panel content, wherever the cap applies.
+
+**Where it applies:** everywhere except a desktop-width body at least 540px
+tall, which shows the whole panel so Save is on screen without scrolling.
+Width alone is not enough for that exemption: a phone in landscape is
+desktop-width (844 wide) with a body of about 334, shorter than the panel
+itself, so an uncapped panel leaves no map and pushes Save off-screen.
 
 **Scope decision:** `color_adjust_layout.dart` also docks its panel into
 a side column from the desktop breakpoint instead of capping it. The
 issue here is specifically about phone portrait, the alignment page has
 no existing desktop-specific layout to extend, and a side dock is a
-layout redesign, not a bug fix. This plan applies only the height cap,
-on every width; Task 1's wide-screen test confirms that choice does not
-regress desktop/tablet (the panel already fits well under 45% there
-today, so the cap never engages). A side-docked desktop layout, if
-wanted later, is a separate, larger follow-up.
+layout redesign, not a bug fix. This plan applies only the height cap;
+Task 1's wide-screen tests confirm that a tall desktop window stays
+uncapped and that a wide but short one does not. A side-docked desktop
+layout, if wanted later, is a separate, larger follow-up.
 
 ## Global Constraints
 
@@ -57,11 +62,11 @@ wanted later, is a separate, larger follow-up.
    tablet-sized surface keeps the map at its current, much larger share
    instead of dropping to 55%.
 3. **The Save/Cancel row stays reachable** when the panel is scrolling
-   internally -- a diver must be able to scroll the capped panel and
+   internally: a diver must be able to scroll the capped panel and
    still tap Save.
-4. **Landscape and desktop are unaffected.** The cap only ever shrinks
-   the panel below its natural size when that natural size exceeds 45%
-   of the body height; it never enlarges the panel.
+4. **Landscape is capped; a tall desktop window is not.** The cap only
+   ever shrinks the panel below its natural size when that natural size
+   exceeds 45% of the body height; it never enlarges the panel.
 
 ---
 
@@ -93,7 +98,7 @@ Add a new group near the end of the existing test file, following the
   Pump a route with a linked dive AND a site (so the Start row renders
   its "From dive entry" and "From site" chips) and the pre-dive-fix
   fixture the existing `'the "From GPS" chip...'` tests already build
-  (so the GPS chip renders too -- all three present at once is the
+  (so the GPS chip renders too; all three present at once is the
   widest the Start row gets), through `_pump`. Read `bodyHeight =
   tester.getSize(find.byKey(const ValueKey('nav-track-align-body'))).
   height`. Assert `tester.getSize(find.byType(FlutterMap)).height >=
@@ -103,7 +108,7 @@ Add a new group near the end of the existing test file, following the
   `tester.getSize(find.byKey(const ValueKey(
   'nav-track-align-controls-panel'))).height <= bodyHeight * 0.45 + 1`.
 - `'no RenderFlex overflow is reported on the phone-sized screen
-  (#3994)'`: same pump, `expect(tester.takeException(), isNull)` -- the
+  (#3994)'`: same pump, `expect(tester.takeException(), isNull)`, the
   regression check for the "disappears entirely" case, where the
   uncapped panel's natural height could exceed the whole body and clip
   the `Expanded` map to a negative-turned-zero size with a debug
@@ -113,7 +118,7 @@ Add a new group near the end of the existing test file, following the
   1;`. Pump a route with no linked dive, no site, and no pre-dive fix
   (today's narrowest Start row: only the "Place on map" button, no
   chips). Assert the panel's rendered height is well under 45% of the
-  body height, e.g. `< bodyHeight * 0.3` -- proving the `ConstrainedBox`
+  body height, e.g. `< bodyHeight * 0.3`, proving the `ConstrainedBox`
   only clamps a panel that actually needs it and does not force a short
   panel up to the cap.
 - `'Save is reachable by scrolling when the panel is capped'`: reuse the
@@ -142,7 +147,7 @@ map untouched.
 
 In `_ControlsPanel.build`, wrap the existing `Padding(...)` (currently
 the direct child of the top-level `SafeArea`) in a plain
-`SingleChildScrollView(...)` (no `shrinkWrap` -- that parameter does not
+`SingleChildScrollView(...)` (no `shrinkWrap`: that parameter does not
 exist on it), keeping `SafeArea(top: false, ...)` as the outermost
 widget so its bottom inset still applies after scrolling.
 
@@ -153,7 +158,7 @@ Add a one-line doc comment on the `ConstrainedBox` pointing at
 
 Run: `flutter test test/features/nav_track/presentation/pages/nav_track_align_page_test.dart`
 Expected: all pass, including the full existing suite in that file (over
-40 cases) with no change to any of them -- this is a pure layout change,
+40 cases) with no change to any of them: this is a pure layout change,
 not a behavior change.
 
 - [ ] **Step 5: `flutter analyze`**

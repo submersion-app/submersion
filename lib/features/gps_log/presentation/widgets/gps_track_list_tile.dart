@@ -49,16 +49,10 @@ class GpsTrackListTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    final highlighted = selected || isHighlighted;
     return TrackRowCard(
-      onTap: onTap,
-      highlighted: highlighted,
+      highlighted: selected || isHighlighted,
       child: ListTile(
-        // Only the live split-layout map-pane pick, not the "last opened"
-        // highlight too (#4024 review): Material's selected semantics mean
-        // "currently picked", which the card's own fill already covers for
-        // both cases without also claiming that a11y state for a row that
-        // is merely the one last opened.
+        onTap: onTap,
         selected: selected,
         contentPadding: contentPadding,
         minLeadingWidth: kTrackThumbnailWidth,

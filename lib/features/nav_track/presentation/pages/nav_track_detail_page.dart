@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,7 +32,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_div
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
-import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
+import 'package:submersion/features/tracks/presentation/track_item_location.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -161,12 +162,7 @@ class NavTrackDetailPage extends ConsumerWidget {
     if (confirmed != true) return;
     await ref.read(navTrackRepositoryProvider).delete(route.id);
     if (!context.mounted) return;
-    // Matches tracks_page.dart's own delete path: a deleted track must not
-    // stay highlighted as "last opened" on the Tracks list (#4024).
-    final selectionKey = UnderwaterTrackItem(route).selectionKey;
-    if (ref.read(highlightedTrackKeyProvider) == selectionKey) {
-      ref.read(highlightedTrackKeyProvider.notifier).state = null;
-    }
+    forgetOpenedTrack(ref, UnderwaterTrackItem(route));
     context.pop();
   }
 
@@ -180,23 +176,30 @@ class NavTrackDetailPage extends ConsumerWidget {
       routeStartSeconds: route.startTime ~/ 1000,
       dives: dives,
     );
-    // Pre-selects the sole time-overlapping dive (#2394: one used to be
-    // linked silently instead of offered as a choice), so confirming it is a
-    // single tap rather than hunting it down in the proximity-sorted list
-    // below. Computed from the [dives] already fetched above.
-    final suggestedDiveId = NavTrackMatcher.soleCandidateFor(
-      routeStartSeconds: route.startTime ~/ 1000,
-      routeEndSeconds: route.endTime ~/ 1000,
-      dives: dives,
-    )?.id;
+    final linkedId = route.diveId;
+    // "Change dive" (#4023) always shows the dive it is changing from, even
+    // one that dropped out of the nearest list once closer dives were logged.
+    final linkedOutsideNearest =
+        linkedId == null || nearest.any((dive) => dive.id == linkedId)
+        ? null
+        : dives.where((dive) => dive.id == linkedId).firstOrNull;
+    // Pre-selects the dive it is already linked to. Otherwise the sole
+    // time-overlapping dive (#2394: one used to be linked silently instead of
+    // offered as a choice), so confirming it is a single tap rather than
+    // hunting it down in the proximity-sorted list below. Computed from the
+    // [dives] already fetched above.
+    final selectedDiveId =
+        linkedId ??
+        NavTrackMatcher.soleCandidateFor(
+          routeStartSeconds: route.startTime ~/ 1000,
+          routeEndSeconds: route.endTime ~/ 1000,
+          dives: dives,
+        )?.id;
     if (!context.mounted) return;
     final chosen = await showNavTrackDiveChoiceSheet(
       context,
-      dives: nearest,
-      // "Change dive" (#4023) reopens on the dive it is already linked to,
-      // not the time-proximity guess -- that guess is only useful while
-      // there is no real answer yet.
-      selectedDiveId: route.diveId ?? suggestedDiveId,
+      dives: [?linkedOutsideNearest, ...nearest],
+      selectedDiveId: selectedDiveId,
     );
     if (chosen == null) return;
     await ref
@@ -358,7 +361,6 @@ class NavTrackDetailPage extends ConsumerWidget {
               _LinkCard(
                 route: route,
                 onChooseDive: () => _chooseDive(context, ref, route),
-                onChangeDive: () => _chooseDive(context, ref, route),
               ),
               const SizedBox(height: 16),
               _SiteCard(
@@ -373,6 +375,7 @@ class NavTrackDetailPage extends ConsumerWidget {
               const SizedBox(height: 16),
               Card(
                 key: const ValueKey('nav-track-correction-status'),
+                clipBehavior: Clip.antiAlias,
                 // Opens the same alignment page as the AppBar's tune icon
                 // (#4023): the status it summarizes is what that page sets.
                 child: InkWell(
@@ -533,10 +536,15 @@ class _TitleCard extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        // Restores the heading landmark AppBar.title gives its text, lost
-        // by moving the title out of the AppBar (#4022).
+        // Restores what AppBar.title gives its text, lost by moving the
+        // title out of the AppBar (#4022): the heading landmark, and the
+        // route name where AppBar sets one.
         child: Semantics(
           header: true,
+          namesRoute: switch (defaultTargetPlatform) {
+            TargetPlatform.iOS || TargetPlatform.macOS => null,
+            _ => true,
+          },
           child: Text(title, style: Theme.of(context).textTheme.headlineSmall),
         ),
       ),
@@ -630,19 +638,13 @@ class _StatsCard extends ConsumerWidget {
 }
 
 class _LinkCard extends ConsumerWidget {
-  const _LinkCard({
-    required this.route,
-    required this.onChooseDive,
-    required this.onChangeDive,
-  });
+  const _LinkCard({required this.route, required this.onChooseDive});
 
   final NavTrack route;
-  final VoidCallback onChooseDive;
 
-  /// Links a different dive, once one is already linked (#4023); the same
-  /// picker flow as [onChooseDive] -- [NavTrackDetailPage._chooseDive]
-  /// already re-links on top of an existing link.
-  final VoidCallback onChangeDive;
+  /// Picks the dive, or a different one once one is linked (#4023):
+  /// [NavTrackDetailPage._chooseDive] re-links on top of an existing link.
+  final VoidCallback onChooseDive;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -659,13 +661,14 @@ class _LinkCard extends ConsumerWidget {
     }
     final dive = ref.watch(diveProvider(diveId)).value;
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: ListTile(
         key: const ValueKey('nav-track-linked-dive'),
         leading: const Icon(Icons.link),
         title: Text(navTrackDiveLabel(l10n, diveId, dive)),
         subtitle: TileSubtitleAction(
           actionKey: const ValueKey('nav-track-change-dive'),
-          onPressed: onChangeDive,
+          onPressed: onChooseDive,
           label: l10n.navTrack_detail_menuChangeDive,
         ),
         trailing: const Icon(Icons.chevron_right),
@@ -781,6 +784,7 @@ class _ActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),

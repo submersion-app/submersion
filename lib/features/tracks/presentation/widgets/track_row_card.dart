@@ -11,23 +11,20 @@ import 'package:flutter/material.dart';
 /// catching exactly the #2692 hazard that line's own comment warns about).
 /// `dive_list_page.dart`'s row has no equivalent last line this tight.
 ///
-/// The tap handler lives on this card's [InkWell], not on [child]'s own
-/// `ListTile.onTap`: a [ListTile] only adds its own ink response when given
-/// a tap callback, so leaving that null lets this card's splash show
-/// instead, in its own rounded shape.
+/// [child]'s `ListTile` keeps its own `onTap`, and with it the tap's cursor,
+/// focus and button semantics; this card only gives its ink the card's shape.
+/// The tile's `selected` stays the live split-layout pick alone: Material
+/// reads it as "currently picked", which the row merely last opened is not,
+/// and [highlighted]'s fill already marks both.
 class TrackRowCard extends StatelessWidget {
   const TrackRowCard({
     super.key,
-    required this.onTap,
     required this.highlighted,
     required this.child,
   });
 
-  final VoidCallback onTap;
-
   /// Selected in the split layout's map pane, or the row last opened in
-  /// either layout -- either way, the row the diver is currently looking at
-  /// or just came back from.
+  /// either layout: the row the diver is looking at or just came back from.
   final bool highlighted;
 
   final Widget child;
@@ -35,23 +32,16 @@ class TrackRowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
+    return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Card(
-        margin: EdgeInsets.zero,
-        color: highlighted
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-            : null,
-        child: InkWell(
-          onTap: onTap,
-          customBorder:
-              theme.cardTheme.shape ??
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          // The inner ListTile carries no onTap of its own (see above), so
-          // without this the row's tap target would announce none of its
-          // text as actionable.
-          child: Semantics(button: true, child: child),
-        ),
+      color: highlighted
+          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+          : null,
+      child: ListTileTheme.merge(
+        shape:
+            theme.cardTheme.shape ??
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: child,
       ),
     );
   }

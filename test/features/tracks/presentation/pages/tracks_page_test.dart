@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -838,6 +840,69 @@ void main() {
         expect(cardColorOf('underwater:r1'), isNotNull);
       },
     );
+
+    testWidgets('only the picked row is marked while the map has a pick', (
+      tester,
+    ) async {
+      // Room for both rows: the list only builds what fits its viewport.
+      await tester.binding.setSurfaceSize(_desktop);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final id = await seedGps();
+      await tester.pumpWidget(
+        await app(
+          size: _desktop,
+          underwater: [_uw(anchored: true)],
+          geometry: {id: _twoFixes},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Color? cardColorOf(String key) => tester
+          .widget<Card>(
+            find.descendant(of: row(key), matching: find.byType(Card)),
+          )
+          .color;
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TracksPage)),
+      );
+      final section = mapListSelectionProvider(kTracksSectionKey);
+      container.read(highlightedTrackKeyProvider.notifier).state =
+          'underwater:r1';
+      await tester.pumpAndSettle();
+      expect(cardColorOf('underwater:r1'), isNotNull);
+
+      container.read(section.notifier).select('gps:$id');
+      await tester.pumpAndSettle();
+      expect(cardColorOf('gps:$id'), isNotNull);
+      expect(cardColorOf('underwater:r1'), isNull);
+
+      // Clearing the pick brings the last-opened mark back.
+      container.read(section.notifier).deselect();
+      await tester.pumpAndSettle();
+      expect(cardColorOf('gps:$id'), isNull);
+      expect(cardColorOf('underwater:r1'), isNotNull);
+    });
+
+    testWidgets('a mouse over a row gets the click cursor', (tester) async {
+      await tester.pumpWidget(await app(underwater: [_uw()]));
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.createGesture(
+        kind: PointerDeviceKind.mouse,
+        pointer: 1,
+      );
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(
+        location: tester.getCenter(find.text('Wreck dive')),
+      );
+      await tester.pump();
+
+      expect(
+        RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+        SystemMouseCursors.click,
+      );
+    });
 
     testWidgets('deleting the previously opened track clears its highlight', (
       tester,

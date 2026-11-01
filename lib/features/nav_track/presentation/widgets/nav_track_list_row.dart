@@ -122,16 +122,10 @@ class NavTrackListRow extends ConsumerWidget {
     // gives the title column whatever is left, so a text-bearing label
     // there starves the file name down to one fragment per line on a phone
     // or in the map view's list pane (issue #2692, same hazard as #935).
-    final highlighted = selected || isHighlighted;
     return TrackRowCard(
-      onTap: onTap,
-      highlighted: highlighted,
+      highlighted: selected || isHighlighted,
       child: ListTile(
-        // Only the live split-layout map-pane pick, not the "last opened"
-        // highlight too (#4024 review): Material's selected semantics mean
-        // "currently picked", which the card's own fill already covers for
-        // both cases without also claiming that a11y state for a row that
-        // is merely the one last opened.
+        onTap: onTap,
         selected: selected,
         isThreeLine: true,
         leading: anchored
@@ -147,7 +141,7 @@ class NavTrackListRow extends ConsumerWidget {
             TrackStatRow(stats: navTrackStats(l10n, units, route)),
             // Same gap the dive list uses between its stat row and its own
             // tag chips (`dive_list_page.dart`, where this chip style came
-            // from) -- without it the link label crowded the stats above it.
+            // from); without it the link label crowded the stats above it.
             const SizedBox(height: 4),
             TrackBadgeLine(
               badge: kindBadge,
