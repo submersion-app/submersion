@@ -612,6 +612,11 @@ class UddfExportBuilders {
             if (dive.excludedFromGasStats) {
               builder.element('excludedfromgasstats', nest: 'true');
             }
+            // The diver-owned switch list (issue #32): without it a
+            // restored dive's next re-parse would delete their switches.
+            if (dive.gasSwitchesEdited) {
+              builder.element('gasswitchesedited', nest: 'true');
+            }
             if (dive.photoIds.isNotEmpty) {
               builder.element(
                 'photos',

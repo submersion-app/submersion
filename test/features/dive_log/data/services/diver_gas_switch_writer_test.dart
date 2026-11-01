@@ -266,6 +266,24 @@ void main() {
     },
   );
 
+  test(
+    'a save ticks the analysis inputs every analysis provider watches',
+    () async {
+      // gasSwitchesProvider, and through it deco, tissue, exposure and the
+      // per-cylinder SAC, invalidate on this stream (gas_switch_providers).
+      final tick = DiveRepository().watchAnalysisInputChanges().first;
+
+      await writer.save(
+        diveId: 'dive-1',
+        switches: [stored1.copyWith(timestamp: 30)],
+        loadedIds: {'gs-1'},
+        now: now,
+      );
+
+      await tick.timeout(const Duration(seconds: 5));
+    },
+  );
+
   test('an unchanged list writes nothing', () async {
     final reviews = SafetyFindingsRepository(db: db, syncRepository: sync);
     await reviews.saveReview(

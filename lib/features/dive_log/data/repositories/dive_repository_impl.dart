@@ -2146,6 +2146,9 @@ class DiveRepository {
                 isFavorite: Value(dive.isFavorite),
                 excludedFromStats: Value(dive.excludedFromStats),
                 excludedFromGasStats: Value(dive.excludedFromGasStats),
+                // A restored backup brings the diver-owned switch list
+                // flag with it (issue #32); an edit never rewrites it.
+                gasSwitchesEdited: Value(dive.gasSwitchesEdited),
                 // CCR/SCR rebreather fields (v1.5)
                 diveMode: Value(dive.diveMode.code),
                 setpointLow: Value(dive.setpointLow),
@@ -4912,6 +4915,7 @@ class DiveRepository {
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
+      gasSwitchesEdited: row.gasSwitchesEdited,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
       diveMode: DiveMode.fromCode(row.diveMode),
@@ -5374,6 +5378,7 @@ class DiveRepository {
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
+      gasSwitchesEdited: row.gasSwitchesEdited,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
       diveMode: DiveMode.fromCode(row.diveMode),
