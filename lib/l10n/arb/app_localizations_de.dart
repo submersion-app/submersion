@@ -26875,6 +26875,86 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung neu zuordnen, Datenqualität';
 
   @override
+  String get settings_agentAccess_title => 'Agentenzugriff';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'Einem KI-Agenten auf diesem Computer erlauben, dein Logbuch zu lesen und zu ändern';
+
+  @override
+  String get settings_agentAccess_enable => 'Agentenzugriff aktivieren';
+
+  @override
+  String get settings_agentAccess_statusListening => 'Lauscht';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'Gestoppt';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'Letzte Anfrage $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'Port $port wird bereits verwendet';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'Port';
+
+  @override
+  String get settings_agentAccess_token => 'Zugriffstoken';
+
+  @override
+  String get settings_agentAccess_reveal => 'Anzeigen';
+
+  @override
+  String get settings_agentAccess_hide => 'Verbergen';
+
+  @override
+  String get settings_agentAccess_copy => 'Kopieren';
+
+  @override
+  String get settings_agentAccess_regenerate => 'Neu erzeugen';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'Jeder verbundene Agent benötigt das neue Token. Fortfahren?';
+
+  @override
+  String get settings_agentAccess_confirmWrites =>
+      'Vor dem Anwenden von Änderungen nachfragen';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'In Submersion eine Bestätigung anzeigen, bevor ein Agent Datensätze ändert';
+
+  @override
+  String get settings_agentAccess_snippets => 'Client verbinden';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (via mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'Andere Clients';
+
+  @override
+  String get settings_agentAccess_copied => 'Kopiert';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'Agenten sehen jedes Taucherprofil auf diesem Computer.';
+
+  @override
+  String get settings_agentAccess_portInvalid =>
+      'Port zwischen 1024 und 65535 eingeben';
+
+  @override
   String get settings_sync_title => 'Synchronisierung zwischen Geräten';
 
   @override

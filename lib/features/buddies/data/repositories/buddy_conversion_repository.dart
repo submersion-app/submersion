@@ -237,7 +237,7 @@ class BuddyConversionRepository {
       _db.buddies,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (buddy == null) return;
-    final certs = await _certRepo.getCertificationsByBuddy(id);
+    final certs = await _certRepo.getCertificationMetadataByBuddy(id);
     // Documents filed since the conversion go with the buddy (#2613).
     final documents = DocumentRepository();
     await documents.deleteForOwners(DocumentOwnerKind.certification, [

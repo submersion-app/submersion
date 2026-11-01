@@ -46,6 +46,7 @@ import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.da
 import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
@@ -56,6 +57,7 @@ import 'package:submersion/shared/services/incoming_share.dart';
 import 'package:submersion/shared/services/navigation_ready_gate.dart';
 import 'package:submersion/shared/widgets/app_scaffold_messenger.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
@@ -186,6 +188,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       syncBehaviorProvider.select((s) => s.nearbyAutoEnabled),
       (_, _) => unawaited(ref.read(nearbyLinkManagerProvider).refresh()),
     );
+    // Agent access (MCP): the controller keeps the loopback listener in step
+    // with its settings for as long as this scope lives. Desktop only.
+    if (hasDesktopWindow()) {
+      ref.listenManual(agentAccessControllerProvider, (_, _) {});
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _runStorageCleanupAfter(_maybeSyncOnLaunch(), StorageGcTrigger.launch);
       _setNearbyForeground(true);

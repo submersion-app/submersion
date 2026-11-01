@@ -20,6 +20,32 @@ void main() {
     expect(owned == base().copyWith(buddyId: 'b1'), isTrue);
   });
 
+  test('copyWith and clearPhotos keep cardImagesLoaded', () {
+    final metadata = Certification(
+      id: 'c',
+      name: 'n',
+      agency: 'padi',
+      cardImagesLoaded: false,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    expect(metadata.copyWith(name: 'm').cardImagesLoaded, isFalse);
+    expect(metadata.clearPhotos(clearFront: true).cardImagesLoaded, isFalse);
+    expect(metadata.copyWith(cardImagesLoaded: true).cardImagesLoaded, isTrue);
+  });
+
+  test('a certification read in full differs from its metadata', () {
+    final metadata = Certification(
+      id: 'c',
+      name: 'n',
+      agency: 'padi',
+      cardImagesLoaded: false,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    expect(metadata.copyWith(cardImagesLoaded: true), isNot(metadata));
+  });
+
   test('clearPhotos preserves buddyId', () {
     final owned = base().copyWith(buddyId: 'b1');
     expect(owned.clearPhotos(clearFront: true).buddyId, 'b1');
