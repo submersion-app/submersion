@@ -2005,13 +2005,8 @@ class PlanEngine {
           : ppO2OverLimit(outcome.maxPpO2, config.ppO2Working);
 
       // Where on this leg a depth limit is first passed (#3738).
-      int onset(bool Function(double depth) exceeds) => legOnsetRuntime(
-        startRuntime: outcome.startRuntime,
-        durationSeconds: outcome.endRuntime - outcome.startRuntime,
-        startDepth: leg.startDepth,
-        endDepth: leg.endDepth,
-        exceeds: exceeds,
-      );
+      int onset(bool Function(double depth) exceeds) =>
+          _legOnset(leg, outcome, exceeds);
       // The same ppO2 the leg's maxPpO2 was taken from, at any depth.
       double ppO2At(double depth) => segmentIsLoop
           ? _breathingFor(
@@ -2358,14 +2353,35 @@ class PlanEngine {
           message: 'Decompression plan carries no bailout gas',
         ),
       );
+    } else {
+      // One or the other: a plan told it carries no bailout gas has no use
+      // for the MOD of the loop's own supply, which still resolves to bailout.
+      final bailoutGasIssue = _bailoutGasIssue(
+        plan,
+        legs,
+        segmentOutcomes,
+        environment,
+      );
+      if (bailoutGasIssue != null) issues.add(bailoutGasIssue);
     }
-    final bailoutGasIssue = _bailoutGasIssue(plan, legs, environment);
-    if (bailoutGasIssue != null) issues.add(bailoutGasIssue);
 
     issues.addAll(_modOverrideIssues(plan.tanks, environment, onsets.schedule));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
     return issues;
   }
+
+  /// The runtime [leg], with its [outcome], first passes a depth limit.
+  int _legOnset(
+    ResolvedLeg leg,
+    SegmentOutcome outcome,
+    bool Function(double depth) exceeds,
+  ) => legOnsetRuntime(
+    startRuntime: outcome.startRuntime,
+    durationSeconds: outcome.endRuntime - outcome.startRuntime,
+    startDepth: leg.startDepth,
+    endDepth: leg.endDepth,
+    exceeds: exceeds,
+  );
 
   /// The loop can die anywhere, and carrying a bailout gas does not help
   /// where it may not be breathed (#3961), so this does not wait for deco as
@@ -2375,6 +2391,7 @@ class PlanEngine {
   PlanIssue? _bailoutGasIssue(
     domain.DivePlan plan,
     List<ResolvedLeg> legs,
+    List<SegmentOutcome> segmentOutcomes,
     DiveEnvironment environment,
   ) {
     if (plan.mode == domain.PlanMode.oc) return null;
@@ -2385,12 +2402,20 @@ class PlanEngine {
     final gases = config.bailoutAscentGas(bailoutTanks, environment);
     final deepest = legs.fold(0.0, (d, leg) => math.max(d, leg.deeperEnd));
     if (gases.coversDepth(deepest)) return null;
+    final firstPast = legs.indexWhere(
+      (leg) => !gases.coversDepth(leg.deeperEnd),
+    );
     return PlanIssue(
       type: PlanIssueType.noEligibleBailoutGas,
       severity: PlanIssueSeverity.alert,
       message:
           'No bailout gas reaches ${deepest.toStringAsFixed(1)} m: the '
           'deepest MOD carried is ${gases.deepestMod.toStringAsFixed(1)} m',
+      atRuntime: _legOnset(
+        legs[firstPast],
+        segmentOutcomes[firstPast],
+        (depth) => !gases.coversDepth(depth),
+      ),
       atDepth: deepest,
       value: deepest,
       threshold: gases.deepestMod,

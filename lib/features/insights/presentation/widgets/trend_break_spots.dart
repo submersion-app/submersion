@@ -3,13 +3,17 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/trend_time_scale.dart';
 
+/// A series placed on a chart: its spots, and the index of the item behind
+/// each.
+typedef PlacedSpots = ({List<FlSpot> spots, List<int?> source});
+
 /// One spot per item, placed through [scale], with a null spot wherever two
 /// neighbours sit in different periods so fl_chart lifts the pen across the
 /// gap (issue #3251). [items] must be in date order.
 ///
 /// `source[i]` is the index into [items] behind spot `i`, null for a null
 /// spot, so a tap's spot index can be mapped back to its item.
-({List<FlSpot> spots, List<int?> source}) spotsAcrossBreaks<T>(
+PlacedSpots spotsAcrossBreaks<T>(
   List<T> items,
   DateTime Function(T item) dateOf,
   double Function(T item) valueOf,

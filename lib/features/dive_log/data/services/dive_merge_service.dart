@@ -812,6 +812,7 @@ class DiveMergeService {
       for (final r in snapshot.tankSeriesRows) {
         await _tankSeries.restoreSeriesRow(r, now: now);
       }
+      await _profileSeries.restoreRevisions(snapshot.profileRevisions);
       for (final r in snapshot.weightRows) {
         await _db
             .into(_db.diveWeights)
