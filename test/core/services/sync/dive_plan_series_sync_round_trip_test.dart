@@ -32,7 +32,7 @@ db.DivePlansCompanion _plan(String id, String seriesId, int index) =>
       seriesIndex: Value(index),
       diveName: Value('Dive ${index + 1}'),
       fixedStart: Value(index == 0),
-      settingOverrides: const Value('{"gfHigh":70}'),
+      settingOverrides: const Value('deco,tanks'),
       createdAt: _now,
       updatedAt: _now,
       hlc: const Value('0001-test-hlc'),
@@ -95,7 +95,7 @@ void main() {
       expect(plan['seriesIndex'], 1);
       expect(plan['diveName'], 'Dive 2');
       expect(plan['fixedStart'], isFalse);
-      expect(plan['settingOverrides'], '{"gfHigh":70}');
+      expect(plan['settingOverrides'], 'deco,tanks');
       final tank = decoded.divePlanTanks.single;
       expect(tank['sourceTankId'], 'logged-tank-1');
       expect(tank['startPressurePinned'], isTrue);
