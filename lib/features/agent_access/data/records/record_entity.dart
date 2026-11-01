@@ -163,6 +163,13 @@ Future<Map<String, T>> loadEach<T>(
   return loaded;
 }
 
+/// One read per parent, for [loadChildren] over a repository with no batch
+/// method.
+Future<Map<String, List<T>>> eachParent<T>(
+  List<String> parents,
+  Future<List<T>> Function(String) read,
+) async => {for (final id in parents) id: await read(id)};
+
 /// Loads children by id through a repository that only reads by parent: finds
 /// each child's parent, reads those parents' children once, and keeps the
 /// ones asked for.

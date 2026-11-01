@@ -1,3 +1,4 @@
+import 'package:submersion/features/agent_access/data/documents/dive_document.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
@@ -70,8 +71,6 @@ Map<String, Object?> tripCylinderDocument(TripCylinder c) => {
   'notes': c.notes,
 };
 
-double? _fraction(double? percent) => percent == null ? null : percent / 100;
-
 Map<String, Object?> tripCylinderEventDocument(TripCylinderEvent e) => {
   'id': e.id,
   'trip_cylinder_id': e.tripCylinderId,
@@ -79,10 +78,10 @@ Map<String, Object?> tripCylinderEventDocument(TripCylinderEvent e) => {
   'occurred_time': wallClock(e.occurredAt),
   'bottle_label': e.bottleLabel,
   'pressure_bar': e.pressure,
-  'o2_fraction': _fraction(e.o2Percent),
-  'he_fraction': _fraction(e.hePercent),
-  'analyzed_o2_fraction': _fraction(e.analyzedO2),
-  'analyzed_he_fraction': _fraction(e.analyzedHe),
+  'o2_fraction': gasFraction(e.o2Percent),
+  'he_fraction': gasFraction(e.hePercent),
+  'analyzed_o2_fraction': gasFraction(e.analyzedO2),
+  'analyzed_he_fraction': gasFraction(e.analyzedHe),
   'dive_center_id': e.diveCenterId,
   'cost': e.cost,
   'currency': e.currency,

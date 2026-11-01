@@ -58,7 +58,21 @@ List<RecordEntry> trainingEntries(RecordRepositories r) => [
     table: 'certifications',
     scope: _certificationScope,
     orderBy: 'r0.issue_date DESC',
-    load: (ids, _) => loadEach(ids, r.certifications.getCertificationById),
+    // Metadata leaves the card images unread; the document never uses them.
+    // A buddy's certification is not in the diver's list, so it reads alone.
+    load: (ids, load) async {
+      final own = byId(
+        await r.certifications.getCertificationMetadata(diverId: load.diverId),
+        (c) => c.id,
+      );
+      return {
+        ...own,
+        ...await loadEach([
+          for (final id in ids)
+            if (!own.containsKey(id)) id,
+        ], r.certifications.getCertificationById),
+      };
+    },
     document: certificationDocument,
     summaryKeys: const ['name', 'agency', 'level', 'issue_date', 'expiry_date'],
     blocks: {
@@ -157,9 +171,7 @@ List<RecordEntry> trainingEntries(RecordRepositories r) => [
       parentColumn: 'course_id',
       ids: ids,
       idOf: (x) => x.id,
-      byParents: (courses) async => {
-        for (final id in courses) id: await _requirements(r, id),
-      },
+      byParents: (courses) => eachParent(courses, (id) => _requirements(r, id)),
     ),
     document: courseRequirementDocument,
     summaryKeys: const ['course_id', 'name', 'kind', 'completed_at'],

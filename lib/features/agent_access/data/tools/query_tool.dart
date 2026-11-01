@@ -8,7 +8,6 @@ import 'package:submersion/features/agent_access/data/documents/document_dates.d
 import 'package:submersion/features/agent_access/data/query_roots.dart';
 import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
-import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/root_scope.dart';
 import 'package:submersion/features/agent_access/data/service_status_overlay.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
@@ -26,14 +25,11 @@ const kQueryMaxLimit = 5000;
 class QueryTool implements AgentTool {
   QueryTool({
     required DiverContextLoader loader,
-    required RecordRepositories records,
     required RecordCatalog catalog,
   }) : _loader = loader,
-       _records = records,
        _catalog = catalog;
 
   final DiverContextLoader _loader;
-  final RecordRepositories _records;
   final RecordCatalog _catalog;
 
   @override
@@ -137,7 +133,7 @@ class QueryTool implements AgentTool {
         ? await serviceStatusOverlay(
             diverId: ctx.diverId,
             settings: ctx.settings,
-            repositories: _records,
+            repositories: _catalog.repositories,
             now: DateTime.now(),
           )
         : null;

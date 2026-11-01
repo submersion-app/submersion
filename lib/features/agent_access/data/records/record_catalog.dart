@@ -14,7 +14,8 @@ import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 /// Every entity an agent can read.
 class RecordCatalog {
   RecordCatalog(RecordRepositories r)
-    : all = List.unmodifiable([
+    : repositories = r,
+      all = List.unmodifiable([
         ...diveEntries(r),
         ...siteEntries(r),
         ...gearEntries(r),
@@ -25,6 +26,7 @@ class RecordCatalog {
         ...profileEntries(r),
       ]);
 
+  final RecordRepositories repositories;
   final List<RecordEntry> all;
 
   /// The entities `query` does not root at, which `list_records` serves.

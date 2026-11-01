@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/documents/trip_documents.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
+import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
@@ -51,8 +52,12 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
       },
       'dive_ids': (trip, load) =>
           r.trips.getDiveIdsForTrip(trip.id, diverId: load.diverId),
-      'equipment_ids': (trip, _) =>
-          r.tripEquipment.equipmentIdsForTrip(trip.id),
+      'equipment_ids': (trip, load) async => RecordReader(r.db).visibleRows(
+        'equipment',
+        rootScope(QuerySubject.equipment),
+        await r.tripEquipment.equipmentIdsForTrip(trip.id),
+        load.diverId,
+      ),
       'side_trips': (trip, load) async => [
         for (final side in await r.sideTrips.getSideTrips(
           trip.id,
@@ -83,9 +88,7 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
       parentColumn: 'trip_id',
       ids: ids,
       idOf: (d) => d.id,
-      byParents: (trips) async => {
-        for (final id in trips) id: await r.itineraryDays.getByTripId(id),
-      },
+      byParents: (trips) => eachParent(trips, r.itineraryDays.getByTripId),
     ),
     document: itineraryDayDocument,
     summaryKeys: const ['trip_id', 'day_number', 'day_date', 'day_type'],
@@ -132,10 +135,8 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
       parentColumn: 'trip_cylinder_id',
       ids: ids,
       idOf: (e) => e.id,
-      byParents: (cylinders) async => {
-        for (final id in cylinders)
-          id: await r.tripCylinders.getEventsForCylinder(id),
-      },
+      byParents: (cylinders) =>
+          eachParent(cylinders, r.tripCylinders.getEventsForCylinder),
     ),
     document: tripCylinderEventDocument,
     summaryKeys: const ['trip_cylinder_id', 'kind', 'occurred_time'],
@@ -152,10 +153,8 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
       parentColumn: 'trip_id',
       ids: ids,
       idOf: (s) => s.id,
-      byParents: (trips) async => {
-        for (final id in trips)
-          id: await r.tripChecklists.getSectionsForTrip(id),
-      },
+      byParents: (trips) =>
+          eachParent(trips, r.tripChecklists.getSectionsForTrip),
     ),
     document: tripChecklistSectionDocument,
     summaryKeys: const ['trip_id', 'title'],
@@ -172,9 +171,7 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
       parentColumn: 'trip_id',
       ids: ids,
       idOf: (i) => i.id,
-      byParents: (trips) async => {
-        for (final id in trips) id: await r.tripChecklists.getByTripId(id),
-      },
+      byParents: (trips) => eachParent(trips, r.tripChecklists.getByTripId),
     ),
     document: tripChecklistItemDocument,
     summaryKeys: const ['trip_id', 'title', 'is_done', 'due_date'],

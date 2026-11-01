@@ -49,7 +49,7 @@ class AgentToolRegistry {
     return AgentToolRegistry(
       tools: [
         ListDiversTool(loader: loader, divers: divers, settings: settings),
-        QueryTool(loader: loader, records: records, catalog: catalog),
+        QueryTool(loader: loader, catalog: catalog),
         GetRecordsTool(loader: loader, catalog: catalog),
         ListRecordsTool(loader: loader, catalog: catalog),
       ],

@@ -369,6 +369,19 @@ void main() {
       expect(await h.one('equipment_sets', 'set-b'), isNull);
     });
 
+    test('a set\'s items leave out gear the diver cannot see', () async {
+      await db
+          .into(db.equipmentSetItems)
+          .insert(
+            EquipmentSetItemsCompanion.insert(
+              setId: 'set-a',
+              equipmentId: 'theirs',
+            ),
+          );
+      final doc = (await h.one('equipment_sets', 'set-a', include: ['items']))!;
+      expect((doc['items'] as List).cast<Map>().map((e) => e['id']), ['mine']);
+    });
+
     test('a cylinder config folds its items in', () async {
       final doc = (await h.one(
         'cylinder_configs',

@@ -11,6 +11,7 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
@@ -315,17 +316,31 @@ void main() {
       expect(doc['start_time'], endsWith('Z'));
     });
 
-    test('nav track points are paged', () async {
+    test('nav track points are paged and carry a wall clock', () async {
+      await (db.update(db.navTracks)..where((n) => n.id.equals('nav-a'))).write(
+        NavTracksCompanion(
+          pointCount: const Value(2),
+          points: Value(
+            encodeNavTrackPoints(const [
+              NavTrackPoint(timestamp: 0, north: 1, east: 2, depth: 3),
+              NavTrackPoint(timestamp: 60, north: 4, east: 5, depth: 6),
+            ]),
+          ),
+        ),
+      );
       final doc = (await h.one(
         'nav_tracks',
         'nav-a',
         include: ['points'],
-        profileLimit: 10,
+        profileLimit: 1,
       ))!;
       final points = doc['points'] as Map;
-      expect(points['total'], 0);
-      expect(points['limit'], 10);
-      expect(points['samples'], isEmpty);
+      expect(points['total'], 2);
+      expect(points['limit'], 1);
+      final sample = (points['samples'] as List).cast<Map>().single;
+      expect(sample['sample_time'], '1970-01-01T00:00:00.000Z');
+      expect(sample['north_m'], 1.0);
+      expect(sample.keys, isNot(contains('time_s')));
     });
 
     test('GPS tracks read for every profile', () async {

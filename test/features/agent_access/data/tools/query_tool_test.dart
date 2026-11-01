@@ -81,8 +81,6 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  final records = RecordRepositories();
-
   QueryTool tool() => QueryTool(
     loader: DiverContextLoader(
       db: () => db,
@@ -91,8 +89,7 @@ void main() {
       localeTag: 'en',
       activeDiverId: () async => a,
     ),
-    records: records,
-    catalog: RecordCatalog(records),
+    catalog: RecordCatalog(RecordRepositories()),
   );
 
   AgentToolContext ctx() => AgentToolContext(db: db, clientName: 'test');

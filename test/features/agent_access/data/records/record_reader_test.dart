@@ -104,7 +104,7 @@ void main() {
     }
   });
 
-  tearDown(() => db.close());
+  tearDown(tearDownTestDatabase);
 
   group('visibleIds', () {
     test('visibleIds keeps only what the diver may see', () async {

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
+import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
@@ -25,14 +26,22 @@ class RecordReader {
     RecordEntry entry,
     List<String> ids,
     String diverId,
+  ) => visibleRows(entry.table, entry.scope, ids, diverId);
+
+  /// [visibleIds] for a block that lists ids from another table.
+  Future<List<String>> visibleRows(
+    String table,
+    RecordScope rule,
+    List<String> ids,
+    String diverId,
   ) async {
     final visible = <String>{};
-    final scope = entry.scope(diverId, 'r0');
+    final scope = rule(diverId, 'r0');
     for (final chunk in seriesIdChunks(ids)) {
       final marks = List.filled(chunk.length, '?').join(', ');
       final rows = await _db
           .customSelect(
-            'SELECT r0.id AS id FROM ${entry.table} r0 '
+            'SELECT r0.id AS id FROM $table r0 '
             'WHERE r0.id IN ($marks)'
             '${scope == null ? '' : ' AND ${scope.sql}'}',
             variables: [

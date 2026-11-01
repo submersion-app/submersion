@@ -6,14 +6,14 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 /// A diver's full profile, medical and insurance details included. `list_divers`
 /// stays the short view; this one is read only when an agent asks for it. The
-/// photo is bytes and the buddy card share is a device setting, so neither is
-/// here.
+/// photo is bytes, so it is not here.
 Map<String, Object?> diverRecordDocument(Diver d) => {
   'id': d.id,
   'name': d.name,
   'email': d.email,
   'phone': d.phone,
   'social_handle': d.socialHandle,
+  'buddy_card_share': d.buddyCardShare,
   'photo_path': d.photoPath,
   'emergency_contact': _contact(d.emergencyContact),
   'emergency_contact_2': _contact(d.emergencyContact2),

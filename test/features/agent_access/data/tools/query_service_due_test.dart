@@ -15,8 +15,6 @@ import '../records/record_harness.dart';
 void main() {
   late AppDatabase db;
   const t = kSeedTime;
-  final records = RecordRepositories();
-
   QueryTool tool() => QueryTool(
     loader: DiverContextLoader(
       db: () => db,
@@ -25,8 +23,7 @@ void main() {
       localeTag: 'en',
       activeDiverId: () async => kDiverA,
     ),
-    records: records,
-    catalog: RecordCatalog(records),
+    catalog: RecordCatalog(RecordRepositories()),
   );
 
   AgentToolContext ctx() => AgentToolContext(db: db, clientName: 'test');

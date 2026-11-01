@@ -50,7 +50,7 @@ Map<String, Object?> navTrackPointsDocument(
   'samples': [
     for (final p in points.skip(offset).take(limit))
       {
-        'time_s': p.timestamp,
+        'sample_time': _clock(p.timestamp * 1000),
         'north_m': p.north,
         'east_m': p.east,
         'depth_m': p.depth,
@@ -88,7 +88,7 @@ Map<String, Object?> gpsTrackPointsDocument(
   'samples': [
     for (final p in points.skip(offset).take(limit))
       {
-        'time_s': p.timestamp,
+        'sample_time': _clock(p.timestamp * 1000),
         'latitude': p.latitude,
         'longitude': p.longitude,
         'accuracy_m': p.accuracy,

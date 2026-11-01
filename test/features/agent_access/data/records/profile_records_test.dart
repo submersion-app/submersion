@@ -29,6 +29,7 @@ void main() {
         bloodType: const Value('O+'),
         emergencyContactName: const Value('Sam'),
         emergencyContactPhone: const Value('+1 555'),
+        buddyCardShare: const Value('{"phone":true}'),
         photo: Value(Uint8List.fromList([1, 2, 3])),
       ),
     );
@@ -75,6 +76,11 @@ void main() {
       expect((doc['insurance'] as Map)['policy_number'], 'P-1');
       expect((doc['insurance'] as Map)['expiry_date'], '2027-01-31');
       expect((doc['insurance'] as Map)['emergency_phone'], '+1 919');
+    });
+
+    test('a diver record carries the card share choices', () async {
+      final doc = (await h.one('divers', kDiverA))!;
+      expect(doc['buddy_card_share'], '{"phone":true}');
     });
 
     test('a diver record carries no photo bytes', () async {

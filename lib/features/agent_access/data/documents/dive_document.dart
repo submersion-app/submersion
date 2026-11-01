@@ -103,8 +103,8 @@ Map<String, Object?> diveDocument(Dive dive) {
     'scr_addition_ratio': dive.scrAdditionRatio,
     'scr_orifice_size': dive.scrOrificeSize,
     'assumed_vo2_l_min': dive.assumedVo2,
-    'diluent_o2_fraction': _fraction(dive.diluentGas?.o2),
-    'diluent_he_fraction': _fraction(dive.diluentGas?.he),
+    'diluent_o2_fraction': gasFraction(dive.diluentGas?.o2),
+    'diluent_he_fraction': gasFraction(dive.diluentGas?.he),
     'loop_o2_min_percent': dive.loopO2Min,
     'loop_o2_max_percent': dive.loopO2Max,
     'loop_o2_avg_percent': dive.loopO2Avg,
@@ -134,7 +134,8 @@ Map<String, Object?>? _point(GeoPoint? point) => point == null
     ? null
     : {'latitude': point.latitude, 'longitude': point.longitude};
 
-double? _fraction(double? percent) => percent == null ? null : percent / 100;
+/// A stored gas percentage as the fraction documents carry.
+double? gasFraction(double? percent) => percent == null ? null : percent / 100;
 
 /// One tank; [diveId] is set when the tank is read as a record of its own.
 Map<String, Object?> diveTankDocument(DiveTank t, {String? diveId}) => {

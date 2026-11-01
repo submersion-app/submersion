@@ -43,17 +43,10 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
           diveBuddyDocument(b),
       ],
       'tags': (dive, _) async => [for (final tag in dive.tags) tag.name],
-      'types': (dive, load) async {
-        final names = {
-          for (final t in await r.diveTypes.getAllDiveTypes(
-            diverId: load.diverId,
-          ))
-            t.id: t.name,
-        };
-        return [
-          for (final id in dive.diveTypeIds) {'id': id, 'name': names[id]},
-        ];
-      },
+      'types': (dive, _) async => [
+        for (final id in dive.diveTypeIds)
+          {'id': id, 'name': (await r.diveTypes.getDiveTypeById(id))?.name},
+      ],
       'weights': (dive, _) async => [
         for (final w in dive.weights) diveWeightDocument(w),
       ],
@@ -134,7 +127,7 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
     name: 'sightings',
     table: 'sightings',
     idOf: (s) => s.id,
-    byDive: r.species.getSightingsForDives,
+    byDive: (ids) => r.species.getSightingsForDives(ids),
     document: sightingDocument,
     summaryKeys: const ['dive_id', 'species_name', 'count'],
   ),
@@ -157,7 +150,7 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
     table: 'gas_switches',
     orderBy: 'r0.dive_id, r0.timestamp',
     idOf: (s) => s.gasSwitch.id,
-    byDive: r.dives.getGasSwitchesForDives,
+    byDive: (ids) => r.dives.getGasSwitchesForDives(ids),
     document: gasSwitchDocument,
     summaryKeys: const ['dive_id', 't_s', 'tank_name', 'o2_fraction'],
   ),
@@ -167,7 +160,7 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
     table: 'dive_profile_events',
     orderBy: 'r0.dive_id, r0.timestamp',
     idOf: (e) => e.id,
-    byDive: r.computers.getEventsForDives,
+    byDive: (ids) => r.computers.getEventsForDives(ids),
     document: diveEventDocument,
     summaryKeys: const ['dive_id', 't_s', 'type', 'severity'],
   ),

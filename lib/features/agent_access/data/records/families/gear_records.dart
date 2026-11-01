@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/agent_access/data/documents/gear_documents.dart';
 import 'package:submersion/features/agent_access/data/documents/media_document.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
+import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
@@ -148,10 +149,8 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
       parentColumn: 'parent_equipment_id',
       ids: ids,
       idOf: (c) => c.id,
-      byParents: (parents) async => {
-        for (final id in parents)
-          id: await r.equipmentComponents.getComponents(id),
-      },
+      byParents: (parents) =>
+          eachParent(parents, r.equipmentComponents.getComponents),
     ),
     document: equipmentComponentDocument,
     summaryKeys: const [
@@ -188,10 +187,8 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
       parentColumn: 'equipment_id',
       ids: ids,
       idOf: (m) => m.id,
-      byParents: (parents) async => {
-        for (final id in parents)
-          id: await r.equipmentLocationMoves.getMovesFor(id),
-      },
+      byParents: (parents) =>
+          eachParent(parents, r.equipmentLocationMoves.getMovesFor),
     ),
     document: equipmentLocationMoveDocument,
     summaryKeys: const ['equipment_id', 'location_id', 'moved_at'],
@@ -225,8 +222,16 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
     document: equipmentSetDocument,
     summaryKeys: const ['name', 'description', 'is_default'],
     blocks: {
-      'items': (set, _) async => [
-        for (final e in await r.equipment.getEquipmentByIds(set.equipmentIds))
+      // A set can outlive a share, so a member may not be this diver's to see.
+      'items': (set, load) async => [
+        for (final e in await r.equipment.getEquipmentByIds(
+          await RecordReader(r.db).visibleRows(
+            'equipment',
+            _equipmentScope,
+            set.equipmentIds,
+            load.diverId,
+          ),
+        ))
           equipmentDocument(e),
       ],
       'geofences': (set, _) async => [

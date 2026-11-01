@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
@@ -28,6 +29,8 @@ final Set<String> kForbiddenDocumentKeys = {
 
 /// Fails on a forbidden key or on bytes anywhere inside [value]. Every read
 /// the harness makes passes through here, so each family test covers it.
+///
+/// [expectWireResult] adds the check the server's `jsonEncode` makes.
 void expectCleanDocument(Object? value, {String path = r'$'}) {
   switch (value) {
     case final Map<Object?, Object?> map:
@@ -48,6 +51,12 @@ void expectCleanDocument(Object? value, {String path = r'$'}) {
     default:
       break;
   }
+}
+
+/// [expectCleanDocument] on a whole tool result, which must also encode.
+void expectWireResult(Map<String, Object?> result) {
+  expectCleanDocument(result);
+  expect(() => jsonEncode(result), returnsNormally);
 }
 
 /// Two profiles, A the default and active one.
@@ -101,7 +110,7 @@ class RecordHarness {
       'include': ?include,
       'profile_limit': ?profileLimit,
     }, _context);
-    expectCleanDocument(out);
+    expectWireResult(out);
     return out;
   }
 
@@ -148,7 +157,7 @@ class RecordHarness {
       'parent_id': ?parentId,
       'limit': 500,
     }, _context);
-    expectCleanDocument(out);
+    expectWireResult(out);
     return out;
   }
 }

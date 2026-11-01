@@ -140,7 +140,7 @@ void main() {
     }
   });
 
-  tearDown(() => db.close());
+  tearDown(tearDownTestDatabase);
 
   test('everyone returns null', () {
     expect(everyone()(a, 'r0'), isNull);

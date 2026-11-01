@@ -179,6 +179,30 @@ void main() {
       expect((doc['scenarios'] as List).cast<Map>().single['name'], 'What if');
     });
 
+    test('gear names the equipment on the dive', () async {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'reg',
+              name: 'Regulator',
+              type: 'regulator',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverA),
+            ),
+          );
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(diveId: 'a1', equipmentId: 'reg'),
+          );
+      final doc = (await h.one('dives', 'a1', include: ['gear']))!;
+      final gear = (doc['gear'] as List).cast<Map>().single;
+      expect(gear['equipment_id'], 'reg');
+      expect(gear['name'], 'Regulator');
+    });
+
     test('gear and data_sources are empty lists when there are none', () async {
       final doc = (await h.one(
         'dives',

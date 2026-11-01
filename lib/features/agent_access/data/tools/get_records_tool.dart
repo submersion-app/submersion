@@ -53,7 +53,10 @@ class GetRecordsTool implements AgentTool {
       'include': {
         'type': 'array',
         'items': {'type': 'string'},
-        'description': 'Child blocks to include.',
+        'description':
+            'Child blocks to include, by entity. '
+            '${[for (final e in _catalog.all)
+              if (e.blocks.isNotEmpty) '${e.name}: ${e.blocks.join(', ')}'].join('; ')}.',
       },
       'fields': {
         'type': 'array',

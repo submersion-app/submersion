@@ -271,6 +271,12 @@ void main() {
       );
     });
 
+    test('the schema lists each entity\'s blocks', () {
+      final properties = tool().inputSchema['properties'] as Map;
+      final include = properties['include'] as Map;
+      expect(include['description'], contains('dives: tanks'));
+    });
+
     test('include names only that entity\'s blocks', () async {
       await expectLater(
         tool().call({

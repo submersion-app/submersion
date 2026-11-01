@@ -37,7 +37,7 @@
 
 | Key | Meaning | Formatter |
 | --- | --- | --- |
-| `date_time`, `entry_time`, `exit_time` and other dive clock keys | The dive's local wall clock with a nominal `Z`; do not shift it | `wallClock(dt)`: `dt.toIso8601String()` |
+| `date_time` and `*_time` | The local wall clock of the dive or event with a nominal `Z`; do not shift it | `wallClock(dt)`: `dt.toIso8601String()` |
 | `*_date` | A calendar date, `2025-03-14` | `calendarDate(dt)`: `y-m-d` from the value as held, never via `toUtc()`, so a local midnight cannot slip a day |
 | `*_at` | A true instant in UTC | `instant(dt)`: `dt.toUtc().toIso8601String()` |
 
@@ -317,7 +317,7 @@ const kListRecordsMaxLimit = 500;
 
 **Interfaces:** Produces `tripEntries(RecordRepositories r)`.
 
-- [ ] **Step 1: Write the failing tests**: `a shared trip reads for a share row holder`, `a hidden trip hides its children`, `cylinder events read through a shared trip` (two-level parent), `start and end are calendar dates`, `return_flight_at is an instant`, `dive_ids lists only what the diver sees`, parity for `getAllTrips`.
+- [ ] **Step 1: Write the failing tests**: `a shared trip reads for a share row holder`, `a hidden trip hides its children`, `cylinder events read through a shared trip` (two-level parent), `start and end are calendar dates`, `return_flight_time keeps its wall clock`, `dive_ids lists only what the diver sees`, parity for `getAllTrips`.
 
 - [ ] **Step 2: Run them, expect FAIL**
 
@@ -455,9 +455,9 @@ final cte = compiled.tablesTouched.contains(serviceStatusTable)
 
 **Interfaces:**
 
-- Produces `profileEntries(RecordRepositories r)`, plus `const kLinkTables`, `const kFoldedTables`, `const kUnexposedTables` in `record_catalog.dart`.
+- Produces `profileEntries(RecordRepositories r)`. The link, folded and unexposed table lists live in the guard test.
 
-`divers` maps the domain `Diver` with a whitelist that omits `photo` and `buddyCardShare`.
+`divers` maps the domain `Diver` with a whitelist that omits `photo`.
 
 `diver_settings` is the one mapper over a Drift row, and the deliberate exception to the spec's rule: 217 columns with no domain shape of their own, most of them view preferences, would drift the moment a setting is added. `settingsDocument(DiverSetting row)` takes `row.toJson()`, drops `deviceLocalSyncColumns['diverSettings']` plus `id`, `createdAt`, `updatedAt` and `hlc`, converts keys to snake_case, and renames dimensioned keys from `kSettingUnitKeys` (`default_tank_volume` to `default_tank_volume_l`, `default_start_pressure` to `default_start_pressure_bar`, `planner_descent_rate` to `planner_descent_rate_m_min`).
 

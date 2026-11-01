@@ -212,6 +212,35 @@ void main() {
       expect(doc['equipment_ids'], isEmpty);
     });
 
+    test('equipment_ids leaves out gear the diver cannot see', () async {
+      for (final (id, owner) in [('own-reg', kDiverA), ('b-reg', kDiverB)]) {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: id,
+                name: id,
+                type: 'regulator',
+                createdAt: t,
+                updatedAt: t,
+                diverId: Value(owner),
+              ),
+            );
+        await db
+            .into(db.tripEquipment)
+            .insert(
+              TripEquipmentCompanion.insert(
+                id: 'pack-$id',
+                tripId: 'open',
+                equipmentId: id,
+                createdAt: t,
+              ),
+            );
+      }
+      final doc = (await h.one('trips', 'open', include: ['equipment_ids']))!;
+      expect(doc['equipment_ids'], ['own-reg']);
+    });
+
     test('side_trips names the children of a trip', () async {
       await trip('side', kDiverA, parent: 'mine');
       await (db.update(db.trips)..where((x) => x.id.equals('side'))).write(
