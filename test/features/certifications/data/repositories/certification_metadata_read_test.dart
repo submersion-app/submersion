@@ -72,7 +72,7 @@ void main() {
     expect(statements, isNotEmpty);
     for (final statement in statements) {
       expect(statement, isNot(contains('document_pages')));
-      expect(statement, isNot(contains('photo_front')));
+      expect(statement, isNot(contains('photo_')));
       expect(statement, isNot(contains('SELECT *')));
     }
   }

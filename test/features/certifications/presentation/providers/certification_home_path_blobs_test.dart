@@ -84,7 +84,7 @@ void main() {
         (s) =>
             s.contains('SELECT * FROM "certifications"') ||
             s.contains('SELECT * FROM certifications') ||
-            s.contains('photo_front'),
+            s.contains('photo_'),
       ),
       isEmpty,
       reason: 'a metadata path must not read the legacy photo columns',
