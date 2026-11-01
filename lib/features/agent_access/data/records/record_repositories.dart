@@ -1,6 +1,9 @@
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/dive_lab/data/repositories/dive_scenario_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
@@ -16,8 +19,12 @@ class RecordRepositories {
   AppDatabase get db => DatabaseService.instance.database;
 
   late final buddies = BuddyRepository();
+  late final computers = DiveComputerRepository();
   late final dives = DiveRepository();
+  late final diveScenarios = DiveScenarioRepository();
   late final diveTypes = DiveTypeRepository();
   late final media = MediaRepository();
   late final species = SpeciesRepository();
+
+  DiveCustomFieldRepository get customFields => DiveCustomFieldRepository(db);
 }
