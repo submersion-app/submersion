@@ -5885,6 +5885,7 @@
   "plannerCanvas_issue_diluentModExceeded": "המדלל חורג מ-MOD מדלל ב-{depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "הפרופיל חוצה את תקרת הדקומפרסיה של {ceiling} ומדלג על עצירות נדרשות",
   "plannerCanvas_issue_noBailout": "תוכנית דקומפרסיה ללא גז חילוץ (bailout)",
+  "plannerCanvas_issue_bailoutHypoxic": "גז החילוץ (bailout) היפוקסי ב-{depth} (ppO₂ {value} bar). יש לשאת גז שניתן לנשימה עד פני המים.",
   "plannerCanvas_issue_noEligibleBailoutGas": "אף גז חילוץ (bailout) אינו מגיע ל-{depth}: ה-MOD העמוק ביותר שנישא הוא {deepestMod}. יש לשאת גז שמיש בעומק זה; תוספת מאותו גז לא תעזור.",
   "plannerCanvas_issue_noDecoGas": "נדרשת דקומפרסיה אך לא נלקח גז דקו",
   "plannerCanvas_range_base": "בסיס",

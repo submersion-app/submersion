@@ -32,6 +32,62 @@ Map<String, Expression> fillOf(
 }) => consolidationFieldFill(target, secondaries, targetHasProfile: hasProfile);
 
 void main() {
+  group('the outing a dive was mirrored on (#3924)', () {
+    test('is adopted from a secondary, so its mirrors stay real', () {
+      final fill = fillOf(row('t'), [
+        row('s').copyWith(outingId: const Value('outing')),
+      ]);
+
+      expect(filled(fill, 'outing_id'), 'outing');
+    });
+
+    test("leaves the target's own alone", () {
+      final fill = fillOf(row('t').copyWith(outingId: const Value('own')), [
+        row('s').copyWith(outingId: const Value('outing')),
+      ]);
+
+      expect(filled(fill, 'outing_id'), isNull);
+    });
+  });
+
+  group('a plan taking in a logged dive (#3924)', () {
+    final plan = row('t').copyWith(isPlanned: true);
+
+    test('is logged, with the first logged number there is', () {
+      final fill = fillOf(plan, [
+        row('s1'),
+        row('s2').copyWith(diveNumber: const Value(42)),
+      ]);
+
+      expect(filled(fill, 'is_planned'), isFalse);
+      expect(filled(fill, 'dive_number'), 42);
+    });
+
+    test('takes no number from a secondary that is still a plan', () {
+      final fill = fillOf(plan, [
+        row('s1').copyWith(isPlanned: true, diveNumber: const Value(7)),
+        row('s2'),
+      ]);
+
+      expect(filled(fill, 'is_planned'), isFalse);
+      expect(filled(fill, 'dive_number'), isNull);
+    });
+
+    test('keeps a number it already has', () {
+      final fill = fillOf(plan.copyWith(diveNumber: const Value(3)), [
+        row('s1').copyWith(diveNumber: const Value(42)),
+      ]);
+
+      expect(filled(fill, 'dive_number'), isNull);
+    });
+
+    test('stays a plan when every secondary is one', () {
+      final fill = fillOf(plan, [row('s1').copyWith(isPlanned: true)]);
+
+      expect(fill.containsKey('is_planned'), isFalse);
+    });
+  });
+
   group('consolidationFieldFill (#2932)', () {
     test('an empty target adopts conditions, logistics and measurements '
         'from a secondary', () {
@@ -127,7 +183,6 @@ void main() {
         importSource: const Value('uddf'),
         importId: const Value('imp-1'),
         importVersion: const Value(1),
-        outingId: const Value('outing-s'),
         hlc: const Value('hlc-s'),
         siteSuggestionDismissedAt: const Value(5),
       );

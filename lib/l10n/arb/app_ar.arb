@@ -5986,6 +5986,7 @@
   "plannerCanvas_issue_diluentModExceeded": "يتجاوز غاز التخفيف حد MOD الخاص به عند {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "المسار يتجاوز سقف تخفيف الضغط عند {ceiling} ويتخطى توقفات إلزامية",
   "plannerCanvas_issue_noBailout": "خطة تخفيف الضغط لا تتضمن غاز إنقاذ (bailout)",
+  "plannerCanvas_issue_bailoutHypoxic": "غاز الإنقاذ (bailout) ناقص الأكسجين عند {depth} (ppO₂ {value} bar). احمل غازًا صالحًا للتنفس حتى السطح.",
   "plannerCanvas_issue_noEligibleBailoutGas": "لا يصل أي غاز إنقاذ (bailout) إلى {depth}: أعمق MOD محمول هو {deepestMod}. احمل غازًا صالحًا للاستخدام عند هذا العمق؛ فالمزيد من الغاز نفسه لن يفيد.",
   "plannerCanvas_issue_noDecoGas": "يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف",
   "plannerCanvas_range_base": "أساسي",

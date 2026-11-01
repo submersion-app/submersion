@@ -457,9 +457,7 @@ class ScenarioEngine {
           else if (plan.mode == domain.PlanMode.scr)
             scrTail?[i] ?? 0.0
           else if (isLoop)
-            (spliced.depths[i] > plan.effectiveSetpointSwitchDepth
-                ? engine.config.setpointHighFor(plan)
-                : engine.config.setpointLowFor(plan))
+            setpointAt(plan, spliced.depths[i], config: engine.config)
           else
             _ocPpO2(
               spliced.gasSegments,
