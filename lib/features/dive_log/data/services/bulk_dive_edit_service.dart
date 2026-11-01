@@ -121,7 +121,7 @@ class BulkDiveEditService {
           priorTankSpecRows = await (_db.select(
             _db.diveTanks,
           )..where((t) => t.diveId.isIn(ids))).get();
-        case WeightsOp():
+        case WeightsOp() || WeightAmountOp():
           final rows = await (_db.select(
             _db.diveWeights,
           )..where((t) => t.diveId.isIn(ids))).get();
@@ -395,6 +395,14 @@ class BulkDiveEditService {
             );
           case BulkCollectionMode.update:
             throw UnsupportedError('Weights have no in-place update');
+        }
+      case WeightAmountOp(:final amountKg, :final newRowType):
+        for (final id in ids) {
+          await _diveRepo.setSingleWeightAmount(
+            id,
+            amountKg,
+            newRowType: newRowType,
+          );
         }
       case SightingsOp(:final mode, :final sightings):
         switch (mode) {
