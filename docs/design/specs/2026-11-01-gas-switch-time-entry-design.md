@@ -70,7 +70,9 @@ row's time.
 A sidemount diver rotates cylinders, so a cylinder can have many starts. The row
 offers every start of its cylinder except:
 
-- the one the row already holds (the same second), and
+- the one the row already holds (the same second),
+- one on the second another row sits on, whatever its cylinder, since two
+  switches cannot share a second, and
 - one another row on the same cylinder already claims, meaning that row's time
   is within 60 seconds of it. A computer-logged switch at 14:55 claims a start
   at 14:50, so a second row is not offered the same moment.
@@ -170,7 +172,8 @@ only when the dive has a profile. The sheet holds:
 - A vertical cursor at the chosen time, which starts at the row's time.
 - Thin markers at the dive's other switches, so the diver can place this one
   relative to them.
-- Small ticks at the row's cylinder's starts, when it has any.
+- Small ticks at the row's cylinder's starts, when it has any, and never for a
+  cylinder that gets no chips because of its role.
 - A readout of the chosen time and the depth there in the diver's unit, updated
   live.
 - A slider under the chart over the same span, for keyboard and screen reader

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -653,6 +654,64 @@ void main() {
 
       expect(savedId, isNotNull, reason: 'save should complete');
       expect(await flagged(), isFalse);
+    });
+
+    group('breathing starts on the chart', () {
+      Map<String, List<TankPressurePoint>> breathed(String tankId) => {
+        tankId: [
+          for (var t = 0; t < 1500; t += 2)
+            TankPressurePoint(
+              tankId: tankId,
+              timestamp: t,
+              pressure: t < 720 ? 200 : 200 - (t - 720) * 3.4 / 60,
+            ),
+        ],
+      };
+
+      int markers(WidgetTester tester) => tester
+          .widget<LineChart>(find.byType(LineChart))
+          .data
+          .extraLinesData
+          .verticalLines
+          .length;
+
+      testWidgets('a breathed cylinder marks its start', (tester) async {
+        final dive = await seedDive();
+        await pumpEditor(
+          tester,
+          dive.id,
+          pressures: () async => breathed('tank-deco'),
+        );
+        await addSwitch(tester);
+
+        await openPicker(tester, find.byTooltip('Pick on profile'));
+
+        expect(markers(tester), 1);
+      });
+
+      testWidgets('a cylinder feeding the loop marks nothing', (tester) async {
+        final dive = await seedDive(
+          tanks: const [
+            back,
+            DiveTank(
+              id: 'tank-dil',
+              volume: 3,
+              role: TankRole.diluent,
+              order: 1,
+            ),
+          ],
+        );
+        await pumpEditor(
+          tester,
+          dive.id,
+          pressures: () async => breathed('tank-dil'),
+        );
+        await addSwitch(tester);
+
+        await openPicker(tester, find.byTooltip('Pick on profile'));
+
+        expect(markers(tester), 0);
+      });
     });
 
     testWidgets('a dive with no profile offers no picker', (tester) async {

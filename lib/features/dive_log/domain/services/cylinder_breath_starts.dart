@@ -20,8 +20,8 @@ const double kBreathNetLossBar = 5.0;
 /// breathing carries on.
 const int kBreathMinFallingSeconds = 240;
 
-/// How far below the reading the fall was measured from the first reading of
-/// a turn sits, in bar.
+/// A start is the first reading at least this far below the reading the fall
+/// was measured from, in bar.
 const double kBreathStartOffsetBar = 0.5;
 
 /// The longest silence before a start that still locates it, in seconds.
