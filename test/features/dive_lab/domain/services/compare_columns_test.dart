@@ -380,6 +380,20 @@ void main() {
     });
   });
 
+  test('copyWith changes only what it is given', () {
+    const column = CompareColumn(
+      id: 'dived',
+      kind: CompareLineKind.asDived,
+      maxDepthMeters: 30,
+      runtimeSeconds: 1800,
+    );
+
+    final copy = column.copyWith(runtimeSeconds: 1900);
+
+    expect(copy.runtimeSeconds, 1900);
+    expect(copy.copyWith(runtimeSeconds: 1800), column);
+  });
+
   group('overshootsPlan', () {
     const planned = CompareColumn(
       id: 'planned',

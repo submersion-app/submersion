@@ -234,6 +234,71 @@ void main() {
     expect(container.read(divePlanNotifierProvider).linkedDiveId, 'dive-1');
   });
 
+  testWidgets('a plan open in the planner lets go of a dive it lost', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await seedDive('dive-1');
+      await seedPlan('plan-new');
+    });
+    late String openId;
+    await pumpAction(tester, (context, ref) async {
+      final notifier = ref.read(divePlanNotifierProvider.notifier);
+      notifier.setLinkedDive('dive-1');
+      await notifier.save();
+      openId = ref.read(divePlanNotifierProvider).id;
+      if (!context.mounted) return false;
+      return linkPlanWithConfirm(
+        context,
+        ref,
+        planId: 'plan-new',
+        diveId: 'dive-1',
+      );
+    });
+
+    await tester.tap(find.text('go'));
+    await settle(tester);
+    await tester.tap(find.text('Link'));
+    await settle(tester);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('go')),
+    );
+    expect(container.read(divePlanNotifierProvider).linkedDiveId, isNull);
+    await tester.runAsync(
+      () => container.read(divePlanNotifierProvider.notifier).save(),
+    );
+    final open = await tester.runAsync(() => repository.getPlan(openId));
+    expect(open!.linkedDiveId, isNull);
+  });
+
+  testWidgets('a plan open in the planner lets go when it is unlinked', (
+    tester,
+  ) async {
+    await tester.runAsync(() => seedDive('dive-1'));
+    await pumpAction(tester, (context, ref) async {
+      final notifier = ref.read(divePlanNotifierProvider.notifier);
+      notifier.setLinkedDive('dive-1');
+      await notifier.save();
+      if (!context.mounted) return false;
+      return unlinkPlanWithConfirm(
+        context,
+        ref,
+        planId: ref.read(divePlanNotifierProvider).id,
+      );
+    });
+
+    await tester.tap(find.text('go'));
+    await settle(tester);
+    await tester.tap(find.text('Unlink'));
+    await settle(tester);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('go')),
+    );
+    expect(container.read(divePlanNotifierProvider).linkedDiveId, isNull);
+  });
+
   testWidgets('unlink asks first and cancelling changes nothing', (
     tester,
   ) async {

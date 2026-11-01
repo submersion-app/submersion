@@ -69,6 +69,32 @@ class CompareColumn extends Equatable {
   /// Where the chart marks the line running out of no-deco time.
   final int? decoStartSeconds;
 
+  CompareColumn copyWith({
+    String? id,
+    CompareLineKind? kind,
+    String? title,
+    double? maxDepthMeters,
+    int? bottomTimeSeconds,
+    CompareNdl? ndl,
+    int? decoRequiredSeconds,
+    int? decoDoneSeconds,
+    int? runtimeSeconds,
+    double? surfaceGf,
+    int? decoStartSeconds,
+  }) => CompareColumn(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    title: title ?? this.title,
+    maxDepthMeters: maxDepthMeters ?? this.maxDepthMeters,
+    bottomTimeSeconds: bottomTimeSeconds ?? this.bottomTimeSeconds,
+    ndl: ndl ?? this.ndl,
+    decoRequiredSeconds: decoRequiredSeconds ?? this.decoRequiredSeconds,
+    decoDoneSeconds: decoDoneSeconds ?? this.decoDoneSeconds,
+    runtimeSeconds: runtimeSeconds ?? this.runtimeSeconds,
+    surfaceGf: surfaceGf ?? this.surfaceGf,
+    decoStartSeconds: decoStartSeconds ?? this.decoStartSeconds,
+  );
+
   @override
   List<Object?> get props => [
     id,

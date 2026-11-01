@@ -244,7 +244,7 @@ class _PlanTile extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(subtitleParts.join(' · ')),
-          if (badge != null) PlanLinkBadge(label: badge),
+          if (badge != null) _PlanLinkBadge(label: badge),
         ],
       ),
       onTap: () {
@@ -355,8 +355,8 @@ class _PlanTile extends ConsumerWidget {
 
 /// A linked plan's mark: what it was dived as. A linked plan is read as saved,
 /// so an edit changes the comparison, and this is how the diver knows.
-class PlanLinkBadge extends StatelessWidget {
-  const PlanLinkBadge({super.key, required this.label});
+class _PlanLinkBadge extends StatelessWidget {
+  const _PlanLinkBadge({required this.label});
 
   final String label;
 
