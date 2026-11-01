@@ -4,6 +4,8 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
 /// How much raw dive computer data the library holds.
@@ -55,7 +57,13 @@ class RawDiveDataService {
   /// Each cleared row gets a fresh clock and is staged, so peers drop their
   /// copy of the bytes too and the cloud base shrinks; without the clock the
   /// null would tie with every peer's copy and never reach them (#2644).
-  Future<int> discard({String? computerId}) async {
+  Future<int> discard({String? computerId}) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _discardInner(computerId: computerId),
+  );
+
+  Future<int> _discardInner({String? computerId}) async {
     // The read and the writes share one transaction, so a row a concurrent
     // sync deletes cannot be staged or counted after it is gone.
     final diveCount = await db.transaction(() async {

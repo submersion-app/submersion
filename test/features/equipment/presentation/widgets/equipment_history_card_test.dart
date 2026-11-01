@@ -129,7 +129,7 @@ void main() {
     await tester.tap(find.text('Bill'));
     await tester.pumpAndSettle();
     expect(find.text('dive list'), findsOneWidget);
-    expect(container.read(diveFilterProvider).equipmentIds, ['x']);
+    expect(container.read(diveFilterProvider), DiveFilterState.itemUse('x'));
   });
 
   testWidgets('names both sides of a transfer and an unshare', (tester) async {

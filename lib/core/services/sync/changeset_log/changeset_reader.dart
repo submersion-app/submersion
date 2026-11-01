@@ -360,10 +360,11 @@ class ChangesetReader {
             // peer's whole backlog and still never advance past this seq.
             break;
           }
-          final cs = _codec.decodeChangeset(csBytes);
-          if (!_codec.serializer.validateChecksum(cs)) {
+          final decoded = await _codec.decodeVerifiedChangeset(csBytes);
+          if (!decoded.checksumValid) {
             break; // corrupt changeset -> stop; a fixed sync retries from here
           }
+          final cs = decoded.payload;
           await apply(cs);
           payloadsApplied++;
           appliedThrough = seq;

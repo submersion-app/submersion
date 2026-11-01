@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Equipment reports mockups</title>
+<style>
+  :root { --bg-primary: #fff; color-scheme: light dark; }
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 24px; background: #f4f6f8; color: #1a1a1a; }
+  section { margin-bottom: 40px; }
+  .subtitle { opacity: .75; }
+  .card { border: 1px solid #8884; border-radius: 12px; background: #fff; overflow: hidden; }
+  .card-body { padding: 10px 14px; }
+  .card-body h3 { margin: 0 0 4px; font-size: 15px; }
+  .card-body p { margin: 0; font-size: 13px; }
+</style></head><body>
+<h1>Equipment reports mockups</h1>
+<p>Chosen designs for the reports in 2026-10-31-equipment-reports-design.md. Gear names and figures are made up.</p>
+<section>
+<style>
+  .pg { width: 340px; background: #fff; color: #1a1a1a; border-radius: 3px; box-shadow: 0 2px 10px #0006; padding: 18px 16px; font-size: 9.5px; line-height: 1.3; margin: 0 auto; font-family: Helvetica, Arial, sans-serif; }
+  .pg h4 { font-size: 13px; margin: 0; }
+  .pg .meta { color: #555; margin: 2px 0 8px; }
+  .pg .sum { display: flex; gap: 14px; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 5px 0; margin-bottom: 8px; }
+  .pg .sum b { display: block; font-size: 11px; }
+  .pg .grp { font-weight: 700; background: #eef4f6; padding: 3px 4px; margin-top: 7px; display: flex; justify-content: space-between; }
+  .pg table { width: 100%; border-collapse: collapse; }
+  .pg th { text-align: left; color: #666; font-weight: 600; border-bottom: 1px solid #bbb; padding: 2px 3px; }
+  .pg td { padding: 2px 3px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .pg td.r, .pg th.r { text-align: right; }
+  .pg .sub td:first-child { padding-left: 11px; color: #444; }
+  .pg .foot { color: #777; margin-top: 8px; font-size: 8.5px; }
+  .opt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+  .note { font-size: 13px; opacity: .8; margin: 8px 0 0; }
+</style>
+
+<h2>Equipment inventory PDF: how should it be organised?</h2>
+<p class="subtitle">One page of the printed document. Gear names, serials and prices are made up. Components sit under the item they belong to.</p>
+
+<div class="cards opt-grid">
+  <div class="card" data-choice="a-by-type">
+    <div class="card-image" style="padding:14px;background:#6663">
+      <div class="pg">
+        <h4>Equipment inventory</h4>
+        <div class="meta">Sam Diver &middot; Printed 30 Oct 2026</div>
+        <div class="sum"><div><b>38</b>items</div><div><b>$9,420</b>USD total</div><div><b>&euro;1,180</b>EUR total</div></div>
+        <div class="grp"><span>Regulators</span><span>$2,310</span></div>
+        <table>
+          <tr><th>Item</th><th>Serial</th><th>Bought</th><th class="r">Paid</th></tr>
+          <tr><td>Apex Reg Set</td><td></td><td>Mar 2023</td><td class="r">$1,290</td></tr>
+          <tr class="sub"><td>First stage</td><td>F-20419</td><td></td><td class="r"></td></tr>
+          <tr class="sub"><td>Second stage</td><td>S-88312</td><td></td><td class="r"></td></tr>
+          <tr><td>Travel Reg</td><td>T-55120</td><td>Jun 2021</td><td class="r">$1,020</td></tr>
+        </table>
+        <div class="grp"><span>BCDs and wings</span><span>$840</span></div>
+        <table>
+          <tr><td>Wing 30</td><td>W-30177</td><td>Jan 2022</td><td class="r">$840</td></tr>
+        </table>
+        <div class="grp"><span>Dive computers</span><span>$1,450</span></div>
+        <table>
+          <tr><td>Teric</td><td>A1B2C3</td><td>Aug 2022</td><td class="r">$1,450</td></tr>
+        </table>
+        <div class="foot">Prices are what was paid, not current value. 4 items have no price.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Grouped by gear type</h3>
+      <p>Regulators, BCDs, computers and so on, with a subtotal per group. Reads the way an insurer or customs officer would go through it.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b-by-location">
+    <div class="card-image" style="padding:14px;background:#6663">
+      <div class="pg">
+        <h4>Equipment inventory</h4>
+        <div class="meta">Sam Diver &middot; Printed 30 Oct 2026</div>
+        <div class="sum"><div><b>38</b>items</div><div><b>$9,420</b>USD total</div><div><b>&euro;1,180</b>EUR total</div></div>
+        <div class="grp"><span>Home garage</span><span>$5,180</span></div>
+        <table>
+          <tr><th>Item</th><th>Serial</th><th>Bought</th><th class="r">Paid</th></tr>
+          <tr><td>Apex Reg Set</td><td></td><td>Mar 2023</td><td class="r">$1,290</td></tr>
+          <tr class="sub"><td>First stage</td><td>F-20419</td><td></td><td class="r"></td></tr>
+          <tr class="sub"><td>Second stage</td><td>S-88312</td><td></td><td class="r"></td></tr>
+          <tr><td>Wing 30</td><td>W-30177</td><td>Jan 2022</td><td class="r">$840</td></tr>
+        </table>
+        <div class="grp"><span>Travel bag</span><span>$2,470</span></div>
+        <table>
+          <tr><td>Travel Reg</td><td>T-55120</td><td>Jun 2021</td><td class="r">$1,020</td></tr>
+          <tr><td>Teric</td><td>A1B2C3</td><td>Aug 2022</td><td class="r">$1,450</td></tr>
+        </table>
+        <div class="grp"><span>No location set</span><span>$1,770</span></div>
+        <table>
+          <tr><td>Dry suit</td><td>DS-1190</td><td>Feb 2020</td><td class="r">$1,770</td></tr>
+        </table>
+        <div class="foot">Prices are what was paid, not current value. 4 items have no price.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Grouped by location</h3>
+      <p>Home, travel bag, dive shop locker. Handy after a theft or for one bag at customs, but it only works well if you have set locations on your gear.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c-choose">
+    <div class="card-image" style="padding:14px;background:#6663">
+      <div class="pg" style="min-height:0">
+        <h4>Before export</h4>
+        <div class="meta">A short sheet on the Transfer page</div>
+        <table>
+          <tr><td><b>Group by</b></td><td class="r">Gear type &#9662;</td></tr>
+          <tr><td><b>Location</b></td><td class="r">All locations &#9662;</td></tr>
+          <tr><td><b>Show prices</b></td><td class="r">On</td></tr>
+        </table>
+        <div class="foot">Turn prices off to get a customs list that does not show what you paid. Pick one location to print a single bag.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Both, with a short options sheet</h3>
+      <p>Gear type by default. A small sheet lets you switch to location, print one location, or hide prices. A little more to build.</p>
+    </div>
+  </div>
+</div>
+
+
+</section>
+<section>
+<style>
+  .pg { width: 340px; background: #fff; color: #1a1a1a; border-radius: 3px; box-shadow: 0 2px 10px #0006; padding: 18px 16px; font-size: 9.5px; line-height: 1.3; margin: 0 auto; font-family: Helvetica, Arial, sans-serif; }
+  .pg h4 { font-size: 13px; margin: 0; }
+  .pg .meta { color: #555; margin: 2px 0 8px; }
+  .pg .grp { font-weight: 700; background: #eef4f6; padding: 3px 4px; margin-top: 7px; display: flex; justify-content: space-between; }
+  .pg table { width: 100%; border-collapse: collapse; }
+  .pg th { text-align: left; color: #666; font-weight: 600; border-bottom: 1px solid #bbb; padding: 2px 3px; }
+  .pg td { padding: 2px 3px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .pg td.r, .pg th.r { text-align: right; }
+  .pg .od { color: #b3261e; font-weight: 700; }
+  .pg .ds { color: #a15c00; font-weight: 700; }
+  .pg .foot { color: #777; margin-top: 8px; font-size: 8.5px; }
+  .pg .sum { display: flex; gap: 14px; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 5px 0; margin-bottom: 6px; }
+  .pg .sum b { display: block; font-size: 11px; }
+  .opt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+  .note { font-size: 13px; opacity: .8; margin: 8px 0 0; }
+</style>
+
+<h2>Service report PDF: what is it mainly for?</h2>
+<p class="subtitle">Gear, dates and shops are made up. Dues come from the service clocks you already set up.</p>
+
+<div class="cards opt-grid">
+  <div class="card" data-choice="a-due-list">
+    <div class="card-image" style="padding:14px;background:#6663">
+      <div class="pg">
+        <h4>Service report</h4>
+        <div class="meta">Sam Diver &middot; Printed 30 Oct 2026</div>
+        <div class="sum"><div><b>3</b>overdue</div><div><b>2</b>due soon</div><div><b>31</b>up to date</div></div>
+        <table>
+          <tr><th>Item</th><th>Service</th><th>Due</th><th class="r">Status</th></tr>
+          <tr><td>Apex Reg Set</td><td>Annual service</td><td>12 Aug 2026</td><td class="r od">Overdue</td></tr>
+          <tr><td>Wing 30</td><td>Inflator rebuild</td><td>1 Oct 2026</td><td class="r od">Overdue</td></tr>
+          <tr><td>Steel 12L</td><td>Visual inspection</td><td>18 Oct 2026</td><td class="r od">Overdue</td></tr>
+          <tr><td>Teric</td><td>Battery</td><td>12 dives left</td><td class="r ds">Due soon</td></tr>
+          <tr><td>Dry suit</td><td>Seal check</td><td>4 Dec 2026</td><td class="r ds">Due soon</td></tr>
+        </table>
+        <div class="foot">Only items that need attention are listed.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. What needs doing</h3>
+      <p>One page you take to the dive shop or check before a trip. No past history.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b-service-book">
+    <div class="card-image" style="padding:14px;background:#6663">
+      <div class="pg">
+        <h4>Service report</h4>
+        <div class="meta">Sam Diver &middot; Printed 30 Oct 2026</div>
+        <div class="grp"><span>Apex Reg Set &middot; F-20419</span><span>312 dives</span></div>
+        <table>
+          <tr><th>Date</th><th>Work</th><th>Shop</th><th class="r">Cost</th></tr>
+          <tr><td>12 Aug 2025</td><td>Annual service</td><td>Blue Water</td><td class="r">$145</td></tr>
+          <tr><td>9 Aug 2024</td><td>Annual service</td><td>Blue Water</td><td class="r">$130</td></tr>
+          <tr><td>2 Mar 2023</td><td>First inspection</td><td>Blue Water</td><td class="r">$0</td></tr>
+        </table>
+        <div class="grp"><span>Wing 30 &middot; W-30177</span><span>204 dives</span></div>
+        <table>
+          <tr><td>1 Oct 2025</td><td>Inflator rebuild</td><td>Reef Shop</td><td class="r">$60</td></tr>
+        </table>
+        <div class="foot">Every item with its full service history, like the stamped book that comes with a regulator.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Service history book</h3>
+      <p>Proof of care, item by item. Useful when selling gear or for a warranty claim. The maintenance log export has the same data as a spreadsheet.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c-both">
+    <div class="card-image" style="padding:14px;background:#6663">
+      <div class="pg">
+        <h4>Before export</h4>
+        <div class="meta">A short sheet, like the inventory one</div>
+        <table>
+          <tr><td><b>Gear</b></td><td class="r">All gear &#9662;</td></tr>
+          <tr><td></td><td class="r">or: packed for a trip, or one item</td></tr>
+          <tr><td><b>Service history</b></td><td class="r">On</td></tr>
+          <tr><td><b>Show costs</b></td><td class="r">On</td></tr>
+        </table>
+        <div class="foot">Page one is always the due list. History pages follow when turned on. Picking a trip lists only the gear packed for it, and date-based dues are judged at the end of that trip.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Both, with a short options sheet</h3>
+      <p>Due list first, history after. Choose all gear, one trip's packed gear, or a single item for selling it.</p>
+    </div>
+  </div>
+</div>
+
+
+</section>
+<section>
+<style>
+  .ph { width: 300px; border: 1px solid #8884; border-radius: 14px; overflow: hidden; font-size: 12px; line-height: 1.35; margin: 0 auto; background: #15181c; color: #eee; }
+  .ph .body { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .ph .sc { border: 1px solid #fff2; border-radius: 12px; padding: 10px; }
+  .ph .sc > b { font-size: 13px; display: block; }
+  .ph .sc > small { opacity: .68; display: block; margin-bottom: 7px; }
+  .ph .row { display: grid; grid-template-columns: 1fr auto; gap: 1px 8px; padding: 4px 0; border-top: 1px solid #fff1; }
+  .ph .row small { opacity: .65; grid-column: 1 / -1; }
+  .ph .pick { display: inline-block; border: 1px solid #fff4; border-radius: 12px; padding: 1px 8px; font-size: 11px; margin-bottom: 6px; }
+  .ph .bars { display: flex; align-items: flex-end; gap: 8px; height: 62px; margin: 6px 0 3px; }
+  .ph .bars i { display: block; flex: 1; background: #22a3bd; border-radius: 3px 3px 0 0; }
+  .ph .lbl { display: flex; gap: 8px; font-size: 9.5px; opacity: .7; }
+  .ph .lbl span { flex: 1; text-align: center; }
+  .ph .kpi { display: flex; gap: 14px; margin-bottom: 4px; }
+  .ph .kpi b { display: block; font-size: 15px; }
+  .ph .kpi small { opacity: .7; }
+  .opt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+  .note { font-size: 13px; opacity: .8; margin: 8px 0 0; }
+</style>
+
+<h2>Insights &gt; Equipment: how should cost read?</h2>
+<p class="subtitle">Both options add the same Idle gear section. Gear names and figures are made up.</p>
+
+<div class="cards opt-grid">
+  <div class="card" data-choice="b-spend-by-year">
+    <div class="card-image" style="padding:14px">
+      <div class="ph"><div class="body">
+        <div class="sc">
+          <b>Cost of ownership</b><small>Purchase plus service, across all your dives</small>
+          <div class="kpi"><div><b>$11,960</b><small>Spent in total</small></div><div><b>$7.40</b><small>Per dive</small></div></div>
+          <div class="bars"><i style="height:30%"></i><i style="height:100%"></i><i style="height:45%"></i><i style="height:18%"></i><i style="height:26%"></i></div>
+          <div class="lbl"><span>2022</span><span>2023</span><span>2024</span><span>2025</span><span>2026</span></div>
+          <span class="pick" style="margin-top:7px">Per dive &#9662;</span>
+          <div class="row"><span>Apex Reg Set</span><span>$4.60 / dive</span><small>$1,565 over 340 dives</small></div>
+          <div class="row"><span>Wing 30</span><span>$4.41 / dive</span><small>$900 over 204 dives</small></div>
+        </div>
+        <div class="sc">
+          <b>Idle gear</b><small>Gear you own and have not dived lately</small>
+          <span class="pick">Over 1 year &#9662;</span>
+          <div class="row"><span>Backup mask</span><span>2 yrs 4 mo</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="card-body">
+      <h3>B. Totals, spending by year, then the list</h3>
+      <p>Everything in A, plus what the hobby costs you overall and which years you spent the most. Each currency gets its own totals and bars.</p>
+    </div>
+  </div>
+</div>
+
+
+</section>
+</body></html>

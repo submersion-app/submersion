@@ -77,12 +77,9 @@ List<BandCount> countIntoBands(
   List<double> edges, {
   required int decimals,
 }) {
-  int bandOf(double value) {
-    final shown = double.parse(value.toStringAsFixed(decimals));
-    return edges.lastIndexWhere((edge) => shown >= edge) + 1;
-  }
-
-  final indexes = values.map(bandOf).toList();
+  final indexes = [
+    for (final value in values) bandIndexOf(value, edges, decimals: decimals),
+  ];
   return [
     for (var band = 0; band <= edges.length; band++)
       (
@@ -91,4 +88,11 @@ List<BandCount> countIntoBands(
         count: indexes.where((i) => i == band).length,
       ),
   ];
+}
+
+/// The index of the band [value] falls in, once rounded to the [decimals] the
+/// app displays it at.
+int bandIndexOf(double value, List<double> edges, {required int decimals}) {
+  final shown = double.parse(value.toStringAsFixed(decimals));
+  return edges.lastIndexWhere((edge) => shown >= edge) + 1;
 }

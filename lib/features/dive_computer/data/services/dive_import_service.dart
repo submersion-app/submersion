@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/dive_computer/domain/services/profile_overla
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_computer/data/services/unused_oc_gas_cleanup.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
@@ -375,6 +377,33 @@ class DiveImportService {
     String? descriptorProduct,
     int? descriptorModel,
     String? libdivecomputerVersion,
+  }) => ChangeLogScope.run(
+    DatabaseService.instance.databaseOrNull,
+    source: ChangeLogSource.download,
+    label: computer.displayName,
+    body: () => _importDivesInner(
+      dives: dives,
+      computer: computer,
+      mode: mode,
+      defaultResolution: defaultResolution,
+      diverId: diverId,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
+    ),
+  );
+
+  Future<ImportResult> _importDivesInner({
+    required List<DownloadedDive> dives,
+    required DiveComputer computer,
+    required ImportMode mode,
+    required ConflictResolution defaultResolution,
+    required String? diverId,
+    required String? descriptorVendor,
+    required String? descriptorProduct,
+    required int? descriptorModel,
+    required String? libdivecomputerVersion,
   }) async {
     int imported = 0;
     int skipped = 0;

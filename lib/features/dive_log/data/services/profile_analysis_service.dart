@@ -20,6 +20,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency_analyzer.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/profile_depth_sanitizer.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
@@ -39,7 +40,15 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dar
 ///
 /// v2: a dive with several computers is analysed over the primary source's
 /// own samples, not every computer's interleaved by timestamp (#2888).
-const int analysisEngineVersion = 2;
+/// v3: a depth spike is repaired by time-weighted interpolation rather than
+/// the midpoint of its neighbours, so an unevenly sampled dive replays
+/// different depths (#3910).
+/// v4: a logged dive's residual load no longer starts from a plan that was
+/// never dived (#3924).
+/// v5: tissues carried between dives off-gas at the dives' own surface, not at
+/// 1.0 bar, so a repetitive dive with a known surface pressure, at altitude
+/// above all, starts from different tissues (#3925).
+const int analysisEngineVersion = 5;
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {
@@ -311,6 +320,12 @@ class ProfileAnalysis {
   /// [DecoStatus] pair and show no provenance.
   final GradientFactorSource? gfSource;
 
+  /// The water and surface pressure every pressure-derived number here was
+  /// read against: the deco curves and the oxygen and gas curves alike, so a
+  /// surface extrapolating one of them back to the surface uses the same
+  /// pressures (issue #3958).
+  final DiveEnvironment environment;
+
   /// True when this is a rebreather dive whose loop could not be modelled (no
   /// setpoint, no measured loop ppO2), so tissue loading and everything built
   /// on it (NDL, ceiling, TTS, GF, inert-gas overlays) were deliberately not
@@ -363,6 +378,7 @@ class ProfileAnalysis {
     required this.maxDepthTimestamp,
     required this.durationSeconds,
     this.gfSource,
+    this.environment = DiveEnvironment.standard,
     this.tissueLoadingWithheld = false,
     this.inputsFingerprint,
     this.gasSwitchEfficiency,
@@ -465,6 +481,7 @@ class ProfileAnalysis {
     int? maxDepthTimestamp,
     int? durationSeconds,
     GradientFactorSource? gfSource,
+    DiveEnvironment? environment,
     bool? tissueLoadingWithheld,
     String? inputsFingerprint,
     GasSwitchEfficiency? gasSwitchEfficiency,
@@ -506,6 +523,7 @@ class ProfileAnalysis {
       maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       gfSource: gfSource ?? this.gfSource,
+      environment: environment ?? this.environment,
       tissueLoadingWithheld:
           tissueLoadingWithheld ?? this.tissueLoadingWithheld,
       inputsFingerprint: inputsFingerprint ?? this.inputsFingerprint,
@@ -547,6 +565,7 @@ class ProfileAnalysisService {
   final O2ToxicityCalculator _o2ToxicityCalculator;
   final BuhlmannAlgorithm _buhlmannAlgorithm;
   final GradientFactorSource _gfSource;
+  final DiveEnvironment _environment;
   final Uuid _uuid;
 
   /// [gfSource] names the gradient factors AND where they came from, and takes
@@ -577,6 +596,7 @@ class ProfileAnalysisService {
          ppO2CriticalThreshold: ppO2CriticalThreshold,
          cnsWarningThreshold: cnsWarningThreshold,
          cnsMethod: cnsCalculationMethod,
+         environment: environment,
        ),
        _buhlmannAlgorithm = BuhlmannAlgorithm(
          gfLow: gfSource?.lowFraction ?? gfLow,
@@ -592,6 +612,7 @@ class ProfileAnalysisService {
              high: (gfHigh * 100).round(),
              origin: GfOrigin.diverSettings,
            ),
+       _environment = environment,
        _uuid = const Uuid();
 
   /// The gradient factors this service decompresses with, and their origin.
@@ -649,7 +670,10 @@ class ProfileAnalysisService {
     if (depths.isEmpty || depths.length != timestamps.length) {
       // Still an answer from a configured service, so it can say which
       // gradient factors it would have used.
-      return ProfileAnalysis.empty().copyWith(gfSource: _gfSource);
+      return ProfileAnalysis.empty().copyWith(
+        gfSource: _gfSource,
+        environment: _environment,
+      );
     }
 
     // Repair implausible single-sample depth readings once, here, so every
@@ -720,6 +744,7 @@ class ProfileAnalysisService {
             ? timestamps.last - timestamps.first
             : 0,
         gfSource: _gfSource,
+        environment: _environment,
       );
     }
 
@@ -924,11 +949,19 @@ class ProfileAnalysisService {
       sacCurve = _calculateSacCurve(depths, timestamps, pressures);
 
       if (sacCurve != null) {
+        final depthSeries = PiecewiseLinearSeries(
+          times: timestamps,
+          values: depths,
+        );
+        final pressureSeries = PiecewiseLinearSeries(
+          times: timestamps,
+          values: pressures,
+        );
+
         // Calculate 5-minute segment SAC values first (needed for fallback)
         sacSegments = _calculateSacSegments(
-          depths: depths,
-          timestamps: timestamps,
-          pressures: pressures,
+          depthSeries: depthSeries,
+          pressureSeries: pressureSeries,
           intervalSeconds: 300, // 5 minutes
         );
 
@@ -936,20 +969,21 @@ class ProfileAnalysisService {
         // This is more accurate than smoothing the noisy point-by-point SAC values
         // Use 60-second window for better accuracy with sparse pressure data
         smoothedSacCurve = _calculateRollingWindowSac(
-          depths: depths,
-          timestamps: timestamps,
-          pressures: pressures,
+          depthSeries: depthSeries,
+          pressureSeries: pressureSeries,
           windowSeconds: 60, // 60-second rolling window
         );
 
         // Check if rolling window produced mostly zeros (sparse/noisy data)
         // If so, fall back to interpolating from segment data
-        final nonZeroCount = smoothedSacCurve.where((s) => s > 0).length;
-        final totalCount = smoothedSacCurve.length;
-        if (totalCount > 0 &&
-            nonZeroCount < totalCount * 0.3 &&
+        final validShare = TimeWeightedMean();
+        for (var i = 0; i < smoothedSacCurve.length; i++) {
+          validShare.add(timestamps[i], smoothedSacCurve[i] > 0 ? 1 : 0);
+        }
+        if (smoothedSacCurve.isNotEmpty &&
+            validShare.value! < 0.3 &&
             sacSegments.isNotEmpty) {
-          // Less than 30% valid data - interpolate from segments instead
+          // Valid for less than 30% of the dive - interpolate from segments
           smoothedSacCurve = _interpolateSacFromSegments(
             timestamps: timestamps,
             segments: sacSegments,
@@ -1028,6 +1062,7 @@ class ProfileAnalysisService {
             pressures: pressures,
             reserveBar: gtrReserveBar,
             ceilings: tissueLoadingWithheld ? null : ceilingCurve,
+            environment: _environment,
           )
         : null;
     final cnsCurve =
@@ -1089,6 +1124,7 @@ class ProfileAnalysisService {
       maxDepthTimestamp: maxDepthTimestamp,
       durationSeconds: durationSeconds,
       gfSource: _gfSource,
+      environment: _environment,
       tissueLoadingWithheld: tissueLoadingWithheld,
       gasSwitchEfficiency: gasSwitchEfficiency,
     );
@@ -1375,7 +1411,7 @@ class ProfileAnalysisService {
 
       // Average depth for segment
       final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
-      final ambientPressure = 1.0 + (avgDepth / 10.0);
+      final ambientPressure = _environment.pressureAtDepth(avgDepth);
 
       // Gas consumed in bar/min
       final consumptionRate = pressureDrop / (duration / 60.0);
@@ -1396,18 +1432,15 @@ class ProfileAnalysisService {
   /// smoothing noisy point-by-point SAC values because it uses the actual
   /// pressure delta over a meaningful time period (like segments do).
   ///
-  /// [windowSeconds] is the time window in seconds (default 60).
-  /// The function handles sparse data by expanding the window if needed to
-  /// ensure we have at least 2 data points with meaningful time span.
+  /// [windowSeconds] is the time window in seconds (default 60). Depth and
+  /// pressure are read at the window's edges, which stop at the ends of the
+  /// dive, so sparse samples fill the same window as dense ones.
   List<double> _calculateRollingWindowSac({
-    required List<double> depths,
-    required List<int> timestamps,
-    required List<double> pressures,
+    required PiecewiseLinearSeries depthSeries,
+    required PiecewiseLinearSeries pressureSeries,
     int windowSeconds = 60,
   }) {
-    if (timestamps.isEmpty || pressures.length != depths.length) {
-      return [];
-    }
+    final timestamps = depthSeries.times;
 
     // Need at least 2 points to calculate any SAC
     if (timestamps.length < 2) {
@@ -1418,63 +1451,36 @@ class ProfileAnalysisService {
     final halfWindow = windowSeconds ~/ 2;
 
     // Minimum time span required for valid SAC calculation (5 seconds)
-    // Lower threshold helps with sparse data
     const minDuration = 5;
+
+    var startIdx = 0;
+    var endIdx = 0;
 
     for (int i = 0; i < timestamps.length; i++) {
       final centerTime = timestamps[i];
 
-      // Find window bounds by time (not index)
-      final windowStart = centerTime - halfWindow;
-      final windowEnd = centerTime + halfWindow;
-
-      // Find indices that fall within the time window
-      var startIdx = i;
-      var endIdx = i;
-
-      // Expand backwards to find window start
-      while (startIdx > 0 && timestamps[startIdx - 1] >= windowStart) {
-        startIdx--;
-      }
-
-      // Expand forwards to find window end
-      while (endIdx < timestamps.length - 1 &&
-          timestamps[endIdx + 1] <= windowEnd) {
-        endIdx++;
-      }
-
-      // If window is too small, expand it to get more data points
-      // This helps with sparse pressure data (e.g., recordings every 30 sec)
-      int duration = timestamps[endIdx] - timestamps[startIdx];
-      while (duration < minDuration &&
-          (startIdx > 0 || endIdx < timestamps.length - 1)) {
-        // Expand in the direction that adds more time
-        if (startIdx > 0 &&
-            (endIdx >= timestamps.length - 1 ||
-                (timestamps[startIdx] - timestamps[startIdx - 1]) <=
-                    (timestamps[endIdx + 1] - timestamps[endIdx]))) {
-          startIdx--;
-        } else if (endIdx < timestamps.length - 1) {
-          endIdx++;
-        } else {
-          break;
-        }
-        duration = timestamps[endIdx] - timestamps[startIdx];
-      }
+      final windowStart = math.max(centerTime - halfWindow, timestamps.first);
+      final windowEnd = math.min(centerTime + halfWindow, timestamps.last);
+      startIdx = depthSeries.advanceTo(windowStart, startIdx);
+      endIdx = depthSeries.advanceTo(windowEnd, endIdx);
 
       // Calculate SAC for this window
-      final pressureDrop = pressures[startIdx] - pressures[endIdx];
+      final duration = windowEnd - windowStart;
+      final pressureDrop =
+          pressureSeries.valueAt(windowStart, startIdx) -
+          pressureSeries.valueAt(windowEnd, endIdx);
 
       if (duration >= minDuration && pressureDrop > 0) {
         // Calculate average depth over the window
-        final windowDepth = TimeWeightedMean();
-        for (int j = startIdx; j <= endIdx; j++) {
-          windowDepth.add(timestamps[j], depths[j]);
-        }
-        final avgDepth = windowDepth.value!;
+        final avgDepth = depthSeries.meanBetween(
+          windowStart,
+          startIdx,
+          windowEnd,
+          endIdx,
+        );
 
         // Calculate SAC
-        final ambientPressure = 1.0 + (avgDepth / 10.0);
+        final ambientPressure = _environment.pressureAtDepth(avgDepth);
         final consumptionRate = pressureDrop / (duration / 60.0);
         final sac = consumptionRate / ambientPressure;
 
@@ -1555,76 +1561,65 @@ class ProfileAnalysisService {
   /// Calculate SAC over fixed time intervals.
   ///
   /// [intervalSeconds] is the segment duration (default 300 = 5 minutes).
+  /// Depth and pressure are read at each boundary, so segments meet with no
+  /// gas between them however the dive was sampled.
   List<SacSegment> _calculateSacSegments({
-    required List<double> depths,
-    required List<int> timestamps,
-    required List<double> pressures,
+    required PiecewiseLinearSeries depthSeries,
+    required PiecewiseLinearSeries pressureSeries,
     int intervalSeconds = 300,
   }) {
-    if (timestamps.isEmpty || pressures.length != depths.length) {
-      return [];
-    }
-
+    final timestamps = depthSeries.times;
+    final depths = depthSeries.values;
     final segments = <SacSegment>[];
-    final startTime = timestamps.first;
     final endTime = timestamps.last;
+    var startIdx = 0;
+    var endIdx = 0;
 
-    int segmentStart = startTime;
+    int segmentStart = timestamps.first;
 
     while (segmentStart < endTime) {
       final segmentEnd = math.min(segmentStart + intervalSeconds, endTime);
+      startIdx = depthSeries.advanceTo(segmentStart, startIdx);
+      endIdx = depthSeries.advanceTo(segmentEnd, endIdx);
 
-      // Find indices within this segment
-      final startIdx = timestamps.indexWhere((t) => t >= segmentStart);
-      final endIdx = timestamps.lastIndexWhere((t) => t <= segmentEnd);
-
-      if (startIdx < 0 || endIdx < 0 || endIdx <= startIdx) {
-        segmentStart = segmentEnd;
-        continue;
-      }
-
-      // Calculate segment metrics
-      final segmentDepth = TimeWeightedMean();
-      double minDepth = double.infinity;
-      double maxDepth = 0;
-      int count = 0;
-
-      for (int i = startIdx; i <= endIdx; i++) {
-        final depth = depths[i];
-        segmentDepth.add(timestamps[i], depth);
-        minDepth = math.min(minDepth, depth);
-        maxDepth = math.max(maxDepth, depth);
-        count++;
-      }
-
-      if (count == 0) {
-        segmentStart = segmentEnd;
-        continue;
-      }
-
-      final avgDepth = segmentDepth.value!;
-      final pressureStart = pressures[startIdx];
-      final pressureEnd = pressures[endIdx];
-      final pressureDrop = pressureStart - pressureEnd;
-      final segmentDuration = timestamps[endIdx] - timestamps[startIdx];
-
-      // Calculate SAC for segment
-      double sacRate = 0;
-      if (pressureDrop > 0 && segmentDuration > 0) {
-        final ambientPressure = 1.0 + (avgDepth / 10.0);
-        final consumptionRate = pressureDrop / (segmentDuration / 60.0);
-        sacRate = consumptionRate / ambientPressure;
-      }
+      final segmentDuration = segmentEnd - segmentStart;
 
       // Only add segment if we have valid data
       if (segmentDuration > 30) {
         // At least 30 seconds
+        final depthStart = depthSeries.valueAt(segmentStart, startIdx);
+        final depthEnd = depthSeries.valueAt(segmentEnd, endIdx);
+        var minDepth = math.min(depthStart, depthEnd);
+        var maxDepth = math.max(depthStart, depthEnd);
+        for (int i = startIdx + 1; i <= endIdx; i++) {
+          minDepth = math.min(minDepth, depths[i]);
+          maxDepth = math.max(maxDepth, depths[i]);
+        }
+
+        final avgDepth = depthSeries.meanBetween(
+          segmentStart,
+          startIdx,
+          segmentEnd,
+          endIdx,
+        );
+        final pressureDrop =
+            pressureSeries.valueAt(segmentStart, startIdx) -
+            pressureSeries.valueAt(segmentEnd, endIdx);
+
+        // Calculate SAC for segment
+        double sacRate = 0;
+        if (pressureDrop > 0) {
+          final ambientPressure = _environment.pressureAtDepth(avgDepth);
+          final consumptionRate = pressureDrop / (segmentDuration / 60.0);
+          sacRate = consumptionRate / ambientPressure;
+        }
+
         segments.add(
           SacSegment(
-            startTimestamp: timestamps[startIdx],
-            endTimestamp: timestamps[endIdx],
+            startTimestamp: segmentStart,
+            endTimestamp: segmentEnd,
             avgDepth: avgDepth,
-            minDepth: minDepth == double.infinity ? 0 : minDepth,
+            minDepth: minDepth,
             maxDepth: maxDepth,
             sacRate: sacRate,
             gasConsumed: pressureDrop > 0 ? pressureDrop : 0,
@@ -1654,8 +1649,6 @@ class ProfileAnalysisService {
 
     double totalCns = 0.0;
     double totalOtu = 0.0;
-    double maxPpO2 = 0.0;
-    double depthAtMaxPpO2 = 0.0;
     int timeAboveWarning = 0;
     int timeAboveCritical = 0;
 
@@ -1665,13 +1658,6 @@ class ProfileAnalysisService {
 
       // Use average ppO2 for segment
       final avgPpO2 = (ppO2Curve[i - 1] + ppO2Curve[i]) / 2.0;
-      final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
-
-      // Track max ppO2
-      if (avgPpO2 > maxPpO2) {
-        maxPpO2 = avgPpO2;
-        depthAtMaxPpO2 = avgDepth;
-      }
 
       // Calculate CNS for this segment
       totalCns += _o2ToxicityCalculator.calculateCnsForSegment(
@@ -1694,12 +1680,14 @@ class ProfileAnalysisService {
       }
     }
 
+    final peak = O2ToxicityCalculator.peakPpO2(ppO2Curve, depths);
+
     return O2Exposure(
       cnsStart: startCns,
       cnsEnd: startCns + totalCns,
       otu: totalOtu,
-      maxPpO2: maxPpO2,
-      maxPpO2Depth: depthAtMaxPpO2,
+      maxPpO2: peak.ppO2,
+      maxPpO2Depth: peak.depth,
       timeAboveWarning: timeAboveWarning,
       timeAboveCritical: timeAboveCritical,
       warningThreshold: _o2ToxicityCalculator.ppO2WarningThreshold,
@@ -1739,10 +1727,13 @@ class ProfileAnalysisService {
     final otuCurve = <double>[0.0];
     double cumulativeCns = startCns;
     double cumulativeOtu = 0.0;
-    double maxPpO2 = 0.0;
-    double depthAtMaxPpO2 = 0.0;
     int timeAboveWarning = 0;
     int timeAboveCritical = 0;
+    // The curve holds one gas per sample. A switch also needs both gases at
+    // the switch itself, which may fall between samples or leave a sample's
+    // outgoing gas off the curve.
+    final peakPpO2s = [...ppO2Curve];
+    final peakDepths = [...depths];
 
     for (int i = 1; i < depths.length; i++) {
       final intervalStart = timestamps[i - 1];
@@ -1795,15 +1786,15 @@ class ProfileAnalysisService {
           targetTimestamp: subIntervalEnd,
         );
         final avgDepth = (startDepth + endDepth) / 2.0;
-        final avgPpO2 = O2ToxicityCalculator.calculatePpO2(
-          avgDepth,
-          o2Fraction,
-        );
+        final avgPpO2 = _environment.pressureAtDepth(avgDepth) * o2Fraction;
 
-        if (avgPpO2 > maxPpO2) {
-          maxPpO2 = avgPpO2;
-          depthAtMaxPpO2 = avgDepth;
-        }
+        // On one gas, ppO2 follows depth, so it peaks at an end of the stretch.
+        peakPpO2s
+          ..add(_environment.pressureAtDepth(startDepth) * o2Fraction)
+          ..add(_environment.pressureAtDepth(endDepth) * o2Fraction);
+        peakDepths
+          ..add(startDepth)
+          ..add(endDepth);
 
         cumulativeCns += _o2ToxicityCalculator.calculateCnsForSegment(
           avgPpO2,
@@ -1826,6 +1817,8 @@ class ProfileAnalysisService {
       otuCurve.add(cumulativeOtu);
     }
 
+    final peak = O2ToxicityCalculator.peakPpO2(peakPpO2s, peakDepths);
+
     return (
       o2Fractions: o2Fractions,
       n2Fractions: n2Fractions,
@@ -1835,8 +1828,8 @@ class ProfileAnalysisService {
         cnsStart: startCns,
         cnsEnd: cumulativeCns,
         otu: cumulativeOtu,
-        maxPpO2: maxPpO2,
-        maxPpO2Depth: depthAtMaxPpO2,
+        maxPpO2: peak.ppO2,
+        maxPpO2Depth: peak.depth,
         timeAboveWarning: timeAboveWarning,
         timeAboveCritical: timeAboveCritical,
         warningThreshold: _o2ToxicityCalculator.ppO2WarningThreshold,
@@ -1898,7 +1891,7 @@ class ProfileAnalysisService {
         continue;
       }
 
-      final ambientPressure = 1.0 + (depths[i] / 10.0);
+      final ambientPressure = _environment.pressureAtDepth(depths[i]);
       final loopPpO2 = i < loopPpO2Curve.length ? loopPpO2Curve[i] : 0.0;
       if (loopPpO2 <= 0 || diluentInert <= 0) {
         o2Fractions.add(1.0 - diluentInert);
@@ -1936,26 +1929,29 @@ class ProfileAnalysisService {
       final gas = _activeGasSegmentAtTimestamp(timestamps[i], gasSegments);
       if (gas.setpoint != null) return loopPpO2Curve[i];
       final fO2 = (1.0 - gas.fN2 - gas.fHe).clamp(0.0, 1.0);
-      return (1.0 + depths[i] / 10.0) * fO2;
+      return _environment.pressureAtDepth(depths[i]) * fO2;
     });
   }
 
   /// Calculate partial pressure curve from per-point gas fractions.
   List<double> _calculatePpCurve(List<double> depths, List<double> fractions) {
-    return List<double>.generate(depths.length, (i) {
-      final depth = depths[i];
-      final ambientPressure = 1.0 + (depth / 10.0);
-      return ambientPressure * fractions[i];
-    });
+    return List<double>.generate(
+      depths.length,
+      (i) => _environment.pressureAtDepth(depths[i]) * fractions[i],
+    );
   }
 
   /// Calculate MOD (Maximum Operating Depth) curve.
   ///
-  /// MOD = ((maxPpO2 / O2_fraction) - 1) × 10
-  /// Using 1.4 bar as the standard recreational MOD limit.
+  /// The depth in this dive's water where the gas reaches 1.4 bar, the
+  /// standard recreational MOD limit.
   List<double> _calculateModCurve(List<double> o2Fractions) {
     return o2Fractions.map((o2Fraction) {
-      return O2ToxicityCalculator.calculateMod(o2Fraction, maxPpO2: 1.4);
+      return maxOperatingDepthMeters(
+        o2Fraction,
+        maxPpO2: 1.4,
+        environment: _environment,
+      );
     }).toList();
   }
 
@@ -1974,11 +1970,10 @@ class ProfileAnalysisService {
     required List<double> heFractions,
   }) {
     return List<double>.generate(depths.length, (i) {
-      final ambientPressure = 1.0 + (depths[i] / 10.0);
       return gasDensityGPerL(
         fO2: o2Fractions[i],
         fHe: heFractions[i],
-        ambientPressureBar: ambientPressure,
+        ambientPressureBar: _environment.pressureAtDepth(depths[i]),
       );
     });
   }

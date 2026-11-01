@@ -51,20 +51,36 @@ const _exemptions = <String, String>{
 /// refusal surfaces as a raw exception in an error snackbar.
 const _guardedHandlers = <(String, String)>[
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_exports.dart',
     'Future<void> _exportProfileChart(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_exports.dart',
     'Future<void> _exportDiveDetailsPage(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_exports.dart',
     'Future<void> _exportDivePdf(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart',
     'Future<void> _resyncDive(',
+  ),
+  (
+    'lib/features/dive_lab/presentation/pages/dive_lab_page.dart',
+    'Future<void> _share(',
+  ),
+  (
+    'lib/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart',
+    'Future<void> _import(',
+  ),
+  (
+    'lib/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart',
+    'Future<void> _shareSelectedPdf(',
+  ),
+  (
+    'lib/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart',
+    'Future<void> _shareFile(',
   ),
   (
     'lib/features/gas_calculators/presentation/widgets/blender/blender_invoice_card.dart',
@@ -81,7 +97,7 @@ const _guardedHandlers = <(String, String)>[
     'Future<List<AssetInfo>?> showPhotoPicker(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart',
     'Future<void> _scanGalleryForDive(',
   ),
   (

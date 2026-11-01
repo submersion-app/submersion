@@ -744,10 +744,10 @@ class DiveComputerAdapter
     }
 
     // Planned pass (issue #2002): downloads that matched nothing may fill a
-    // planned dive of the target profile on the same local day. Runs after
-    // the fingerprint, fuzzy and contained passes so a real duplicate never
-    // becomes a fill. An empty diver id means an unscoped library, where
-    // every planned dive is a candidate.
+    // planned dive of the target profile from the same local day or the day
+    // before (issue #4003). Runs after the fingerprint, fuzzy and contained
+    // passes so a real duplicate never becomes a fill. An empty diver id means
+    // an unscoped library, where every planned dive is a candidate.
     final planned = await _diveRepository.getPlannedDives(
       diverId: targetDiverId.isEmpty ? null : targetDiverId,
     );

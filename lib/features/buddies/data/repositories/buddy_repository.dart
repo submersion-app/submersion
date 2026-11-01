@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -336,7 +337,13 @@ class BuddyRepository {
   }
 
   /// Delete a buddy
-  Future<void> deleteBuddy(String id) async {
+  Future<void> deleteBuddy(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteBuddyInner(id),
+  );
+
+  Future<void> _deleteBuddyInner(String id) async {
     try {
       _log.info('Deleting buddy: $id');
       // Atomic (issue #553 review): tombstone the buddy's certs, delete the
@@ -448,10 +455,11 @@ class BuddyRepository {
   /// Returns a map keyed by dive id (dives with no buddies are simply absent).
   /// Unlike [getBuddiesForDive] this skips the primary-certification hydration
   /// ([_withPrimaryCerts]) because list/table views only render names and
-  /// roles -- keeping it to two queries total (the junction join plus
-  /// dive_roles) regardless of how many dives are passed. Uses the same
-  /// `isIn(diveIds)` batching as the other related-data loads in
-  /// [DiveRepository.getAllDives].
+  /// roles, keeping it to four queries total (the junction join, dive_roles
+  /// and the two role-set reads) regardless of how many dives are passed.
+  /// Uses the same `isIn(diveIds)` batching as the other related-data loads in
+  /// [DiveRepository.getAllDives]. A person on several dives is one record,
+  /// so their photo bytes are held once however long the result is kept.
   Future<Map<String, List<domain.BuddyWithRole>>> getBuddiesForDives(
     List<String> diveIds,
   ) async {
@@ -483,6 +491,7 @@ class BuddyRepository {
     final roleSets = await _roleLinks.buddyRoleIdsForDives(diveIds);
 
     final byDive = <String, List<domain.BuddyWithRole>>{};
+    final people = <String, domain.Buddy>{};
     final seen = <(String, String)>{};
     for (final jr in sortedByText(
       joinRows,
@@ -492,7 +501,7 @@ class BuddyRepository {
       final link = jr.readTable(_db.diveBuddies);
       // A buddy linked to a dive twice is still one person on it (#3895).
       if (!seen.add((link.diveId, link.buddyId))) continue;
-      final buddy = _mapRowToBuddy(b);
+      final buddy = people.putIfAbsent(b.id, () => _mapRowToBuddy(b));
       final roleIds =
           roleSets[link.diveId]?[link.buddyId] ??
           DiveRoleSet.resolveBuddy(scalar: link.role, junction: const []);
@@ -511,27 +520,50 @@ class BuddyRepository {
     return byDive;
   }
 
+  /// [getBuddiesForDives] for a selection of any size, with an entry for
+  /// every dive: one with no buddies maps to an empty list rather than being
+  /// absent. The ids are bound in runs of [chunkSize], since a selection has
+  /// no upper bound and each id is one SQL variable. A person stays one record
+  /// across the runs, as within [getBuddiesForDives].
+  Future<Map<String, List<domain.BuddyWithRole>>> getBuddiesForDivesInChunks(
+    List<String> diveIds, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async {
+    final ids = diveIds.toSet().toList();
+    final byDive = <String, List<domain.BuddyWithRole>>{
+      for (final id in ids) id: const [],
+    };
+    final people = <String, domain.Buddy>{};
+    for (final chunk in seriesIdChunks(ids, size: chunkSize)) {
+      final loaded = await getBuddiesForDives(chunk);
+      for (final entry in loaded.entries) {
+        byDive[entry.key] = [
+          for (final row in entry.value)
+            domain.BuddyWithRole(
+              buddy: people.putIfAbsent(row.buddy.id, () => row.buddy),
+              roles: row.roles,
+            ),
+        ];
+      }
+    }
+    return byDive;
+  }
+
   /// [dives] with [dive_domain.Dive.buddies] loaded from the `dive_buddies`
-  /// junction, in batched [getBuddiesForDives] queries.
+  /// junction, through [getBuddiesForDivesInChunks].
   ///
   /// For dives read through `getDiveById` or `getDivesByIds`, which leave the
   /// junction unloaded (`getAllDives` and `getDivesByIdsWithoutSamples` hydrate
-  /// it), when the caller shows or exports the people on them (#3039). The ids
-  /// are bound in runs of [chunkSize], since a whole trip or a large export
-  /// selection has no upper bound and each id is one SQL variable.
+  /// it), when the caller shows or exports the people on them (#3039).
   Future<List<dive_domain.Dive>> withBuddies(
     List<dive_domain.Dive> dives, {
     @visibleForTesting int chunkSize = kSeriesIdChunkSize,
   }) async {
-    final ids = dives.map((d) => d.id).toSet().toList();
-    final byDive = <String, List<domain.BuddyWithRole>>{};
-    for (final chunk in seriesIdChunks(ids, size: chunkSize)) {
-      byDive.addAll(await getBuddiesForDives(chunk));
-    }
-    return [
-      for (final dive in dives)
-        dive.copyWith(buddies: byDive[dive.id] ?? const []),
-    ];
+    final byDive = await getBuddiesForDivesInChunks(
+      dives.map((d) => d.id).toList(),
+      chunkSize: chunkSize,
+    );
+    return [for (final dive in dives) dive.copyWith(buddies: byDive[dive.id]!)];
   }
 
   /// [getBuddiesForDives] plus each person's derived primary certification,

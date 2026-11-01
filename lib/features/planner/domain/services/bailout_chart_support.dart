@@ -1,9 +1,11 @@
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/ascent/ascent_travel_spans.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
@@ -49,7 +51,12 @@ List<(int, double)> worstCaseCeilingTrace({
   var depth = points[worstIndex].depthMeters;
   var phase = AscentPhase.toFirstStop;
 
-  void sampleLeg(double startDepth, double endDepth, int durationSeconds) {
+  void sampleLeg(
+    double startDepth,
+    double endDepth,
+    int durationSeconds, {
+    BreathingConfig? breathing,
+  }) {
     var elapsed = 0;
     while (elapsed < durationSeconds) {
       final remaining = durationSeconds - elapsed;
@@ -68,11 +75,24 @@ List<(int, double)> worstCaseCeilingTrace({
           endDepth: legEnd,
           durationSeconds: step,
         ),
-        ascentBreathingAt((legStart + legEnd) / 2.0),
+        breathing ?? ascentBreathingAt((legStart + legEnd) / 2.0),
       );
       runtime += step;
       elapsed += step;
       trace.add((runtime, owesDeco(state) ? model.ceilingMeters(state) : 0.0));
+    }
+  }
+
+  // A travel leg cut wherever the ascent changes gas, as PlanEngine's own
+  // ceiling trace cuts it.
+  void sampleTravel(double fromDepth, double toDepth, int seconds) {
+    for (final span in straightAscentSpans(
+      bailoutPlan,
+      fromDepth: fromDepth,
+      toDepth: toDepth,
+      seconds: seconds,
+    )) {
+      sampleLeg(span.fromDepth, span.toDepth, span.seconds);
     }
   }
 
@@ -82,8 +102,22 @@ List<(int, double)> worstCaseCeilingTrace({
       toDepth: stop.depthMeters,
       phase: phase,
     );
-    if (legSeconds > 0) sampleLeg(depth, stop.depthMeters, legSeconds);
-    if (stop.durationSeconds > 0) {
+    sampleTravel(depth, stop.depthMeters, legSeconds);
+    // A stop with air breaks is breathed in the scheduler's own runs, so the
+    // ceiling falls as it did when the stop was timed.
+    final breakGas = bailoutPlan.breakGasForDepth(stop.depthMeters);
+    final airBreaks = policy.airBreaks;
+    if (stop.airBreakSeconds > 0 && breakGas != null && airBreaks != null) {
+      final onBreak = OpenCircuit(fO2: breakGas.fO2, fHe: breakGas.fHe);
+      for (final run in airBreakRuns(stop.durationSeconds, airBreaks)) {
+        sampleLeg(
+          stop.depthMeters,
+          stop.depthMeters,
+          run.seconds,
+          breathing: run.onBreak ? onBreak : null,
+        );
+      }
+    } else if (stop.durationSeconds > 0) {
       sampleLeg(stop.depthMeters, stop.depthMeters, stop.durationSeconds);
     }
     depth = stop.depthMeters;
@@ -95,7 +129,7 @@ List<(int, double)> worstCaseCeilingTrace({
       toDepth: 0,
       phase: AscentPhase.surfacingAfter(phase),
     );
-    if (legSeconds > 0) sampleLeg(depth, 0, legSeconds);
+    sampleTravel(depth, 0, legSeconds);
   }
 
   return trace;
@@ -138,6 +172,7 @@ List<PlanStop> unfoldedOcStops(
     );
     final gas = bailoutPlan.gasForDepth(stop.depthMeters);
     final fO2 = 1.0 - gas.fN2 - gas.fHe;
+    final tankId = tankForGas(fO2, gas.fHe);
     stops.add(
       PlanStop(
         depthMeters: stop.depthMeters,
@@ -145,7 +180,13 @@ List<PlanStop> unfoldedOcStops(
         airBreakSeconds: stop.airBreakSeconds,
         gasFO2: fO2,
         gasFHe: gas.fHe,
-        tankId: tankForGas(fO2, gas.fHe),
+        tankId: tankId,
+        airBreakTankId: airBreakTankIdFor(
+          stop,
+          plan: bailoutPlan,
+          stopTankId: tankId,
+          tankForGas: tankForGas,
+        ),
         arrivalRuntimeSeconds: arrival,
       ),
     );

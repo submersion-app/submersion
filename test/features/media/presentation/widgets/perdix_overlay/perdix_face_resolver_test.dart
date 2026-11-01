@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
@@ -87,6 +88,7 @@ void main() {
       expect(d.ndlSeconds, isNull);
       expect(d.gasLabel, isNull);
       expect(d.tankPressureBar, isNull);
+      expect(d.tankPressureMissing, isFalse);
       expect(d.inDeco, isFalse);
     });
   });
@@ -162,6 +164,199 @@ void main() {
       );
       expect(r.resolve(10).tankPressureBar, 200.0);
       expect(r.resolve(35).tankPressureBar, 180.0);
+    });
+
+    group('active cylinder with no pressure series (#4006)', () {
+      const airOnly = {
+        'tank-air': [
+          TankPressurePoint(tankId: 'tank-air', timestamp: 0, pressure: 150.0),
+          TankPressurePoint(tankId: 'tank-air', timestamp: 40, pressure: 150.0),
+        ],
+      };
+      const ean50Only = {
+        'tank-ean50': [
+          TankPressurePoint(
+            tankId: 'tank-ean50',
+            timestamp: 30,
+            pressure: 210.0,
+          ),
+          TankPressurePoint(
+            tankId: 'tank-ean50',
+            timestamp: 40,
+            pressure: 190.0,
+          ),
+        ],
+      };
+
+      test('does not show the previous cylinder after a switch', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          gasSwitches: switches,
+          tankPressures: airOnly,
+        );
+
+        final before = r.resolve(20);
+        expect(before.gasLabel, 'Air');
+        expect(before.tankPressureBar, 150.0);
+        expect(before.tankPressureMissing, isFalse);
+
+        final after = r.resolve(35);
+        expect(after.gasLabel, 'EAN50');
+        expect(after.tankPressureBar, isNull);
+        expect(after.tankPressureMissing, isTrue);
+      });
+
+      test('stays empty through the final second of the dive', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          gasSwitches: switches,
+          tankPressures: airOnly,
+        );
+
+        final last = r.resolve(40);
+        expect(last.gasLabel, 'EAN50');
+        expect(last.tankPressureBar, isNull);
+      });
+
+      test('does not show a later cylinder before its switch', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          gasSwitches: switches,
+          tankPressures: ean50Only,
+        );
+
+        final before = r.resolve(10);
+        expect(before.gasLabel, 'Air');
+        expect(before.tankPressureBar, isNull);
+
+        final after = r.resolve(35);
+        expect(after.gasLabel, 'EAN50');
+        expect(after.tankPressureBar, 210.0);
+      });
+
+      test('does not show another cylinder on a dive with no switches', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          tankPressures: ean50Only,
+        );
+
+        final d = r.resolve(35);
+        expect(d.gasLabel, 'Air');
+        expect(d.tankPressureBar, isNull);
+      });
+
+      test('a rebreather does not show oxygen beside its diluent', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: const [
+            DiveTank(
+              id: 'diluent',
+              gasMix: GasMix(o2: 21.0, he: 0.0),
+              role: TankRole.diluent,
+              order: 0,
+            ),
+            DiveTank(
+              id: 'oxygen',
+              gasMix: GasMix(o2: 100.0, he: 0.0),
+              role: TankRole.oxygenSupply,
+              order: 1,
+            ),
+          ],
+          tankPressures: const {
+            'oxygen': [
+              TankPressurePoint(
+                tankId: 'oxygen',
+                timestamp: 0,
+                pressure: 180.0,
+              ),
+            ],
+          },
+        );
+
+        final d = r.resolve(20);
+        expect(d.gasLabel, 'Air');
+        expect(d.tankPressureBar, isNull);
+        expect(d.tankPressureMissing, isTrue);
+      });
+
+      test('a switch back brings the measured cylinder back', () {
+        final switchBack = GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'gs2',
+            diveId: 'd1',
+            timestamp: 35,
+            tankId: 'tank-air',
+            createdAt: DateTime(2026, 1, 1),
+          ),
+          tankName: 'Back',
+          gasMix: 'Air',
+          o2Fraction: 0.21,
+          heFraction: 0.0,
+        );
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          gasSwitches: [...switches, switchBack],
+          tankPressures: airOnly,
+        );
+
+        expect(r.resolve(30).tankPressureBar, isNull);
+
+        final back = r.resolve(38);
+        expect(back.gasLabel, 'Air');
+        expect(back.tankPressureBar, 150.0);
+      });
+    });
+  });
+
+  group('no known active cylinder', () {
+    const first = [
+      TankPressurePoint(tankId: 'first', timestamp: 0, pressure: 150.0),
+    ];
+    const second = [
+      TankPressurePoint(tankId: 'second', timestamp: 0, pressure: 210.0),
+    ];
+
+    test('the only reading is still shown', () {
+      final r = PerdixFaceResolver(
+        profile: profile,
+        tankPressures: const {'first': first},
+      );
+
+      final d = r.resolve(35);
+      expect(d.gasLabel, isNull);
+      expect(d.tankPressureBar, 150.0);
+      expect(d.tankPressureMissing, isFalse);
+    });
+
+    test('several readings show none rather than a guess', () {
+      final r = PerdixFaceResolver(
+        profile: profile,
+        tankPressures: const {'first': first, 'second': second},
+      );
+
+      final d = r.resolve(35);
+      expect(d.tankPressureBar, isNull);
+      expect(d.tankPressureMissing, isTrue);
+    });
+
+    test('a sample before t=0 reads no cylinder on a dive with tanks', () {
+      final r = PerdixFaceResolver(
+        profile: [p(-10, 0.0), p(0, 2.0), p(30, 12.0)],
+        tanks: const [
+          DiveTank(id: 'first', gasMix: GasMix(o2: 21.0, he: 0.0), order: 0),
+          DiveTank(id: 'second', gasMix: GasMix(o2: 50.0, he: 0.0), order: 1),
+        ],
+        tankPressures: const {'first': first, 'second': second},
+      );
+
+      final d = r.resolve(-5);
+      expect(d.gasLabel, isNull);
+      expect(d.tankPressureBar, isNull);
     });
   });
 }

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -68,6 +69,26 @@ void main() {
       expect(overlay.points.last.timestamp, greaterThan(25 * 60));
     },
   );
+
+  test('overlay points sit close enough that the curve cannot overshoot', () {
+    // The chart curves between points, so a flat bottom held by two far-apart
+    // points bows past the plan's own depth.
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25);
+    final plan = divePlanFromState(container.read(divePlanNotifierProvider));
+
+    final points = buildPlannedOverlay(plan).points;
+
+    expect(points.first.timestamp, 0);
+    for (var i = 1; i < points.length; i++) {
+      expect(
+        points[i].timestamp - points[i - 1].timestamp,
+        inInclusiveRange(1, kPlannedOverlayStepSeconds + 1),
+      );
+      expect(points[i].depth, lessThanOrEqualTo(45.01));
+    }
+    expect(points.last.depth, 0.0);
+  });
 
   test('overlay is null for a dive with no linked plan', () async {
     final repository = container.read(divePlanRepositoryProvider);

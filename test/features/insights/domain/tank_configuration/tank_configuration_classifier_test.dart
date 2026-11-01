@@ -241,24 +241,41 @@ void main() {
     });
   });
 
-  test('fromDives counts base configurations and extras', () {
-    TankConfigurationDive d(List<DiveTank> tanks) => TankConfigurationDive(
-      diveMode: DiveMode.oc,
-      tanks: tanks,
-      hasProfile: true,
-    );
-    final stats = TankConfigurationStats.fromDives([
-      d([tank(TankRole.sidemountLeft), tank(TankRole.sidemountRight)]),
-      d([tank(TankRole.sidemountLeft), tank(TankRole.stage, o2: 50)]),
-      d([tank(TankRole.backGas)]),
-      d(const []),
+  test('fromGroups adds each group under its base and every extra', () {
+    final stats = TankConfigurationStats.fromGroups([
+      (
+        result: (
+          base: TankBaseConfiguration.sidemount,
+          extras: {TankConfigurationExtra.stages},
+        ),
+        dives: 3,
+      ),
+      (
+        result: (
+          base: TankBaseConfiguration.sidemount,
+          extras: {
+            TankConfigurationExtra.stages,
+            TankConfigurationExtra.decoGas,
+          },
+        ),
+        dives: 2,
+      ),
+      (
+        result: (
+          base: TankBaseConfiguration.noTanks,
+          extras: const <TankConfigurationExtra>{},
+        ),
+        dives: 1,
+      ),
     ]);
-    expect(stats.totalDives, 4);
+    expect(stats.totalDives, 6);
     expect(stats.baseCounts, {
-      TankBaseConfiguration.sidemount: 2,
-      TankBaseConfiguration.singleBackmount: 1,
+      TankBaseConfiguration.sidemount: 5,
       TankBaseConfiguration.noTanks: 1,
     });
-    expect(stats.extraCounts, {TankConfigurationExtra.stages: 1});
+    expect(stats.extraCounts, {
+      TankConfigurationExtra.stages: 5,
+      TankConfigurationExtra.decoGas: 2,
+    });
   });
 }

@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/domain/saved_query_load.dart';
 
@@ -62,7 +63,15 @@ void main() {
     'equipmentIds': const DiveFilterState(equipmentIds: ['e1']),
     'buddyNameFilter': const DiveFilterState(buddyNameFilter: 'Ana'),
     'buddyId': const DiveFilterState(buddyId: 'b1'),
+    'equipmentUsedOnly': const DiveFilterState(
+      equipmentIds: ['e1'],
+      equipmentUsedOnly: true,
+    ),
     'diveIds': const DiveFilterState(diveIds: ['d1', 'd2']),
+    'diveIdsLabel': const DiveFilterState(
+      diveIds: ['d1'],
+      diveIdsLabel: 'Water type: Salt',
+    ),
     'minO2Percent': const DiveFilterState(minO2Percent: 28),
     'maxO2Percent': const DiveFilterState(maxO2Percent: 36),
     'minRating': const DiveFilterState(minRating: 4),
@@ -84,6 +93,18 @@ void main() {
     'minVisibility': const DiveFilterState(minVisibility: 5),
     'maxVisibility': const DiveFilterState(maxVisibility: 20),
     'waterTypes': const DiveFilterState(waterTypes: [WaterType.salt]),
+    'tankConfigurations': const DiveFilterState(
+      tankConfigurations: [
+        TankBaseConfiguration.sidemount,
+        TankBaseConfiguration.rebreather,
+      ],
+    ),
+    'tankExtras': const DiveFilterState(
+      tankExtras: [
+        TankConfigurationExtra.stages,
+        TankConfigurationExtra.multiGas,
+      ],
+    ),
     'speciesIds': const DiveFilterState(speciesIds: ['sp1']),
     'siteIds': const DiveFilterState(siteIds: ['s1', 's2']),
     'query': DiveFilterState(query: TextNode(['manta'])),

@@ -153,6 +153,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_day;
     case 'query_dives_deco':
       return l10n.query_dives_deco;
+    case 'query_dives_decoGas':
+      return l10n.query_dives_decoGas;
     case 'query_dives_depth':
       return l10n.query_dives_depth;
     case 'query_dives_diveMaster':
@@ -199,6 +201,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_media;
     case 'query_dives_month':
       return l10n.query_dives_month;
+    case 'query_dives_multiGas':
+      return l10n.query_dives_multiGas;
     case 'query_dives_name':
       return l10n.query_dives_name;
     case 'query_dives_notes':
@@ -229,12 +233,16 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_sightings;
     case 'query_dives_site':
       return l10n.query_dives_site;
+    case 'query_dives_stages':
+      return l10n.query_dives_stages;
     case 'query_dives_surfaceConditions':
       return l10n.query_dives_surfaceConditions;
     case 'query_dives_surfaceInterval':
       return l10n.query_dives_surfaceInterval;
     case 'query_dives_tags':
       return l10n.query_dives_tags;
+    case 'query_dives_tankConfig':
+      return l10n.query_dives_tankConfig;
     case 'query_dives_tanks':
       return l10n.query_dives_tanks;
     case 'query_dives_trip':

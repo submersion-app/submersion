@@ -11,6 +11,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -79,6 +81,99 @@ void main() {
       expect(find.textContaining('Eric'), findsOneWidget);
       // Stats subtitle includes dive count
       expect(find.textContaining('2 dives logged'), findsOneWidget);
+    });
+
+    group('headline with nothing in the statistics', () {
+      Future<void> pumpHero(
+        WidgetTester tester,
+        FutureOr<LogbookDiveCounts> Function() counts,
+      ) async {
+        // The headline only renders below the desktop breakpoint.
+        tester.view.physicalSize = const Size(500, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              divesProvider.overrideWith((ref) async => <Dive>[]),
+              diveStatisticsProvider.overrideWith(
+                (ref) async => DiveStatistics(
+                  totalDives: 0,
+                  totalTimeSeconds: 0,
+                  maxDepth: 0,
+                  avgMaxDepth: 0,
+                  totalSites: 0,
+                ),
+              ),
+              currentDiverProvider.overrideWith((ref) async => null),
+              logbookDiveCountsProvider.overrideWith((ref) async => counts()),
+            ].cast(),
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+            ),
+          ),
+        );
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      }
+
+      testWidgets('an empty logbook is invited to log a first dive', (
+        tester,
+      ) async {
+        await pumpHero(
+          tester,
+          () => const LogbookDiveCounts(logged: 0, counted: 0),
+        );
+
+        expect(find.text('Ready to log your first dive?'), findsOneWidget);
+      });
+
+      testWidgets('holds the prompt back until the counts arrive', (
+        tester,
+      ) async {
+        final counts = Completer<LogbookDiveCounts>();
+        await pumpHero(tester, () => counts.future);
+
+        expect(find.text('Ready to log your first dive?'), findsNothing);
+
+        counts.complete(const LogbookDiveCounts(logged: 3, counted: 0));
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(
+          find.text('All your dives are excluded from statistics'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('a failed count never reads as an empty logbook', (
+        tester,
+      ) async {
+        await pumpHero(tester, () => throw StateError('database'));
+
+        expect(find.text('Ready to log your first dive?'), findsNothing);
+        expect(find.text('Ready to explore the depths?'), findsOneWidget);
+      });
+
+      testWidgets('a fully excluded logbook is told why it reads zero', (
+        tester,
+      ) async {
+        await pumpHero(
+          tester,
+          () => const LogbookDiveCounts(logged: 3, counted: 0),
+        );
+
+        expect(find.text('Ready to log your first dive?'), findsNothing);
+        expect(
+          find.text('All your dives are excluded from statistics'),
+          findsOneWidget,
+        );
+      });
     });
 
     testWidgets('shows fallback name when no diver set', (tester) async {

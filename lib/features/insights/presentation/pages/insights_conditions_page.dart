@@ -4,6 +4,9 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
@@ -128,6 +131,19 @@ class InsightsConditionsPage extends ConsumerWidget {
                 // would otherwise reuse green.
                 Colors.purple.shade300,
               ],
+              onOpenSegment: (index) => openChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_conditions_visibility_title,
+                row: data[index].label,
+                load: (repository, diverId, scope) =>
+                    repository.getVisibilityDiveIds(
+                      scale: ref.read(settingsProvider).visibilityScale,
+                      bucket: raw[index].label,
+                      diverId: diverId,
+                      filter: scope,
+                    ),
+              ),
             ),
           );
         },
@@ -167,6 +183,14 @@ class InsightsConditionsPage extends ConsumerWidget {
             child: DistributionPieChart(
               data: data,
               colors: [for (final s in raw) _waterTypeColor(s.label)],
+              onOpenSegment: (index) => openFilteredChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_conditions_waterType_title,
+                row: data[index].label,
+                narrow: (scope) =>
+                    waterTypeDivesFilter(scope, raw[index].label),
+              ),
             ),
           );
         },
@@ -224,6 +248,18 @@ class InsightsConditionsPage extends ConsumerWidget {
             child: HorizontalCategoryBarChart(
               data: data,
               barColor: Colors.teal.shade400,
+              onRowTap: (index) => openChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_conditions_siteType_title,
+                row: data[index].label,
+                load: (repository, diverId, scope) =>
+                    repository.getSiteTypeDiveIds(
+                      siteTypeId: raw[index].key!,
+                      diverId: diverId,
+                      filter: scope,
+                    ),
+              ),
             ),
           );
         },
@@ -273,7 +309,18 @@ class InsightsConditionsPage extends ConsumerWidget {
             label: l10n.insights_conditions_entryMethod_semanticLabel(
               description,
             ),
-            child: CategoryBarChart(data: chartData, barColor: Colors.teal),
+            child: CategoryBarChart(
+              data: chartData,
+              barColor: Colors.teal,
+              onOpenBar: (index) => openFilteredChartDives(
+                context,
+                ref,
+                chart: l10n.insights_conditions_entryMethod_title,
+                row: chartData[index].label,
+                narrow: (scope) =>
+                    entryMethodDivesFilter(scope, data[index].label),
+              ),
+            ),
           );
         },
         loading: () => const SizedBox(
@@ -421,6 +468,23 @@ class InsightsConditionsPage extends ConsumerWidget {
                   barColor: Colors.cyan.shade600,
                   valueFormatter: l10n.insights_summary_tagUsage_diveCount,
                   xAxisLabel: symbol,
+                  onOpenBar: (band) => openChartDives(
+                    context,
+                    ref,
+                    chart: l10n.insights_conditions_waterTempBands_title,
+                    row: '${chartData[band].label} $symbol',
+                    load: (repository, diverId, scope) async {
+                      final bands = await repository.getWaterTempBandPerDive(
+                        unit: ref.read(settingsProvider).temperatureUnit,
+                        diverId: diverId,
+                        filter: scope,
+                      );
+                      return [
+                        for (final entry in bands.entries)
+                          if (entry.value == band) entry.key,
+                      ];
+                    },
+                  ),
                 ),
               ),
               _buildTemperatureBandMetrics(context, ref),

@@ -23,6 +23,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
@@ -696,8 +697,8 @@ void main() {
   });
 
   // =========================================================================
-  // Gas segments wiring — exercises the inline buildGasUsageSegments logic
-  // added to DiveDetailPage._buildProfilePanel in the latest commit.
+  // Gas segments wiring: exercises the buildGasUsageSegments call in
+  // DiveProfileChartHost.
   // =========================================================================
 
   group('DiveDetailPage - gas segments wiring', () {
@@ -789,15 +790,72 @@ void main() {
       final dive = makeDiveWithTanksAndProfile();
       await _pumpDetailPage(tester, dive);
 
-      // The header row stays focused on the chart itself; replanning is a
+      // The header row stays focused on the chart itself; Compare is a
       // whole-dive action, so it is offered only from the overflow menu.
       expect(find.byIcon(Icons.alt_route), findsNothing);
-      expect(find.byTooltip('Replan this dive'), findsNothing);
+      expect(find.byTooltip('Compare…'), findsNothing);
 
       await tester.tap(find.byIcon(Icons.more_vert).last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Replan this dive'), findsOneWidget);
+      expect(find.text('Compare…'), findsOneWidget);
+    });
+
+    testWidgets('Plan repetitive dive follows Compare in the menu', (
+      tester,
+    ) async {
+      await _pumpDetailPage(tester, makeDiveWithTanksAndProfile());
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Plan repetitive dive'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Plan repetitive dive')).dy,
+        greaterThan(tester.getTopLeft(find.text('Compare…')).dy),
+      );
+    });
+
+    testWidgets('Plan repetitive dive asks before replacing unsaved work', (
+      tester,
+    ) async {
+      await _pumpDetailPage(tester, makeDiveWithTanksAndProfile());
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      final editor = container.read(divePlanNotifierProvider.notifier);
+      editor.loadPlan(
+        container.read(divePlanNotifierProvider).copyWith(isDirty: true),
+      );
+      final plan = container.read(divePlanNotifierProvider);
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Plan repetitive dive'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Are you sure you want to reset the plan?'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(divePlanNotifierProvider).id, plan.id);
+    });
+
+    testWidgets('a planned dive offers no repetitive dive to plan', (
+      tester,
+    ) async {
+      await _pumpDetailPage(
+        tester,
+        makeDiveWithTanksAndProfile().copyWith(isPlanned: true),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Plan repetitive dive'), findsNothing);
     });
 
     testWidgets('renders without crash when dive has tanks and a profile', (

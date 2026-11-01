@@ -66,9 +66,7 @@ void main() {
 
     final tmpDir = await Directory.systemTemp.createTemp('adopt_builtin');
     final tmp = File('${tmpDir.path}/base.json');
-    await tmp.writeAsBytes(
-      utf8.encode(SyncDataSerializer().serializePayload(base)),
-    );
+    await tmp.writeAsBytes(utf8.encode(jsonEncode(base.toJson())));
     await _svc().debugAdoptStreaming([tmp.path], [base.exportedAt], const []);
     await tmpDir.delete(recursive: true);
 

@@ -114,7 +114,7 @@ void main() {
         id: 'bo',
         volume: 11.1,
         startPressure: 207,
-        gasMix: GasMix(o2: 50),
+        gasMix: GasMix(o2: 28),
         role: TankRole.bailout,
       ),
     );
@@ -161,7 +161,7 @@ void main() {
         id: 'bo',
         volume: 11.1,
         startPressure: 207,
-        gasMix: GasMix(o2: 50),
+        gasMix: GasMix(o2: 28),
         role: TankRole.bailout,
       ),
     );
@@ -175,7 +175,7 @@ void main() {
     expect(find.text('Onboard O2'), findsOneWidget);
     final gasList = find.ancestor(
       of: find.text('Onboard O2'),
-      matching: find.byType(ListView),
+      matching: find.byType(SingleChildScrollView),
     );
     expect(gasList, findsOneWidget);
     // Diluent + oxygen supply in the main list, plus the single bailout
@@ -210,7 +210,7 @@ void main() {
         id: 'bo',
         volume: 11.1,
         startPressure: 207,
-        gasMix: GasMix(o2: 50),
+        gasMix: GasMix(o2: 28),
         role: TankRole.bailout,
       ),
     );
@@ -219,7 +219,7 @@ void main() {
       bottom.id,
       bottom.copyWith(
         tankId: 'bo',
-        gasMix: const GasMix(o2: 50),
+        gasMix: const GasMix(o2: 28),
         diveModeOverride: domain.PlanMode.oc,
       ),
     );

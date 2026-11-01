@@ -32,7 +32,7 @@ void main() {
     state = PublishStateStore(db);
     writer = ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       state,
       compactionByteRatio: 1000.0,
       compactionMaxChangesets: 1 << 30,
@@ -77,9 +77,9 @@ void main() {
               a.name,
             )!.compareTo(ChangesetLogLayout.changesetSeqOf(b.name)!),
           );
-    return ChangesetCodec(
-      SyncDataSerializer(),
-    ).decodeChangeset(await provider.downloadFile(cs.last.id));
+    return (await const ChangesetCodec().decodeVerifiedChangeset(
+      await provider.downloadFile(cs.last.id),
+    )).payload;
   }
 
   Future<List<String>> latestChangesetDiveIds() async => [

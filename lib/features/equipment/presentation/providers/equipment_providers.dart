@@ -420,31 +420,24 @@ final equipmentDiveTimeProvider = FutureProvider.family<int, String>((
   return repository.getDiveTimeForEquipment(equipmentId, diverId: diverId);
 });
 
-/// Trip count for equipment provider.
-///
-/// Reaches trips through the equipment's dives, so it takes the trips tick as
-/// well: deleting a trip changes the count without writing `equipment`.
+/// The trips an item's Trips row counts: the ones the list it opens shows,
+/// read through that list's own filter so the two cannot disagree (issue
+/// #4016). That filter refreshes this on a write to anything it reads.
+final equipmentTripIdsProvider = FutureProvider.family<Set<String>, String>(
+  (ref, equipmentId) => ref.watch(
+    queryFilteredTripIdsProvider(
+      TripFilterState(equipmentId: equipmentId),
+    ).future,
+  ),
+);
+
+/// Trip count for equipment provider. See [equipmentTripIdsProvider].
 final equipmentTripCountProvider = FutureProvider.family<int, String>((
   ref,
   equipmentId,
 ) async {
-  final repository = ref.watch(equipmentRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
-  ref.invalidateSelfWhen(ref.read(tripRepositoryProvider).watchTripsChanges());
-  return repository.getTripCountForEquipment(equipmentId);
-});
-
-/// Trip IDs for equipment provider.
-///
-/// Same junction read as [equipmentTripCountProvider].
-final equipmentTripIdsProvider = FutureProvider.family<List<String>, String>((
-  ref,
-  equipmentId,
-) async {
-  final repository = ref.watch(equipmentRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
-  ref.invalidateSelfWhen(ref.read(tripRepositoryProvider).watchTripsChanges());
-  return repository.getTripIdsForEquipment(equipmentId);
+  final ids = await ref.watch(equipmentTripIdsProvider(equipmentId).future);
+  return ids.length;
 });
 
 /// Active gear whose service is due, narrowed to one severity, worst first.

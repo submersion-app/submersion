@@ -7,12 +7,12 @@ void main() {
       final a = decoInputsHash(
         engineVersion: 3,
         settingsFingerprint: 'a1;gf=50/85',
-        diveUpdatedAt: 1000,
+        diveRevision: 1000,
       );
       final b = decoInputsHash(
         engineVersion: 3,
         settingsFingerprint: 'a1;gf=50/85',
-        diveUpdatedAt: 1000,
+        diveRevision: 1000,
       );
       expect(a, b);
     });
@@ -21,12 +21,12 @@ void main() {
       final a = decoInputsHash(
         engineVersion: 3,
         settingsFingerprint: 'a1;gf=50/85',
-        diveUpdatedAt: 1000,
+        diveRevision: 1000,
       );
       final b = decoInputsHash(
         engineVersion: 3,
         settingsFingerprint: 'a1;gf=50/80',
-        diveUpdatedAt: 1000,
+        diveRevision: 1000,
       );
       expect(a, isNot(b));
     });
@@ -35,12 +35,12 @@ void main() {
       final a = decoInputsHash(
         engineVersion: 3,
         settingsFingerprint: 'a1;gf=50/85',
-        diveUpdatedAt: 1000,
+        diveRevision: 1000,
       );
       final b = decoInputsHash(
         engineVersion: 3,
         settingsFingerprint: 'a1;gf=50/85',
-        diveUpdatedAt: 2000,
+        diveRevision: 2000,
       );
       expect(a, isNot(b));
     });
@@ -49,12 +49,12 @@ void main() {
       final a = decoInputsHash(
         engineVersion: 3,
         settingsFingerprint: 'a1;gf=50/85',
-        diveUpdatedAt: 1000,
+        diveRevision: 1000,
       );
       final b = decoInputsHash(
         engineVersion: 4,
         settingsFingerprint: 'a1;gf=50/85',
-        diveUpdatedAt: 1000,
+        diveRevision: 1000,
       );
       expect(a, isNot(b));
     });
@@ -65,12 +65,12 @@ void main() {
       final a = decoInputsHash(
         engineVersion: 1,
         settingsFingerprint: 'x',
-        diveUpdatedAt: 21,
+        diveRevision: 21,
       );
       final b = decoInputsHash(
         engineVersion: 12,
         settingsFingerprint: 'x',
-        diveUpdatedAt: 1,
+        diveRevision: 1,
       );
       expect(a, isNot(b));
     });

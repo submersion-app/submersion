@@ -72,6 +72,9 @@ apply to the item's type.
 
 - **Details:** status, the number of **Dives** and **Trips** the item was used
   on (tap either to see them), purchase details and how long you have owned it.
+  Neither counts planned dives, and those lists leave them out too. Trips
+  counts the trips its list shows, so a dive on a side trip counts both the
+  side trip and its parent, and trips you have hidden are left out.
 - **Location:** where the item is now. **Move** sends it somewhere else.
 - **Cylinder passport:** for a Tank. See [Cylinder Passports](cylinder-passports.md).
 - **Gear passport:** for any other item. See [Gear Tags](gear-tags.md).
@@ -97,6 +100,10 @@ window (see [Service reminders](#service-reminders)) or in the last 10% of any
 other limit (dives, hours, or an exposure such as cold dives), and as overdue
 once a limit is passed. The item's icon in
 the list turns red when any clock is overdue.
+
+Only dives that happened count. Gear linked to a planned dive picks up no dives,
+hours or exposure until you log that dive, while a dive you excluded from
+statistics still counts, because it still wore the gear.
 
 A clock counts from the last service you logged for it. Until then it counts
 from its **Baseline date**, which you can set in **Edit intervals**. From a
@@ -183,6 +190,21 @@ finding you have dealt with, and **Restore** it later from the dismissed list.
 **Check-ins** are your own notes on how an item behaved, on a dive or on the
 bench. Tap **Add check-in**, tag what happened, and add a note. Check-ins feed
 the recurring-issue findings.
+
+## Reports
+
+**Insights > Equipment** shows what your gear has cost and how much you use it:
+
+- **Most used gear** ranks items by dives and hours, and follows the Insights
+  filter, so a date range or a trip gives usage for that period.
+- **Cost of ownership** adds purchase prices and service costs, with spending by
+  year and a list by cost per dive, per hour or in total. Each currency stands
+  alone, and a part's cost counts toward its assembly.
+- **Idle gear** lists gear you own and have not dived in 6 months, 1 year or 2
+  years, including gear never dived.
+
+For a document to hand to someone, use the **Equipment Inventory** and **Service
+Report** PDFs in [Import & Export](import-export.md#supported-export-formats).
 
 ## Parts and assemblies
 

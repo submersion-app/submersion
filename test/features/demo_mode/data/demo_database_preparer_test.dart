@@ -303,4 +303,15 @@ void main() {
 
     expect(await intOf('SELECT COUNT(*) FROM scheduled_notifications'), 0);
   });
+
+  test('preparing leaves nothing in the change log', () async {
+    await DemoDatabasePreparer().prepare(
+      db,
+      now: DateTime(2026, 7, 1),
+      photosDir: '/demo/photos',
+      deviceId: 'device-1',
+    );
+
+    expect(await intOf('SELECT COUNT(*) AS v FROM change_log_events'), 0);
+  });
 }

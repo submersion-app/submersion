@@ -5,13 +5,17 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
+import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
+import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
 /// the ONLY place a dive filter axis is defined: the paginated list, its
@@ -32,13 +36,12 @@ const _month =
 const _day =
     "CAST(strftime('%d', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 
-/// No weight entry at all: neither a `dive_weights` row nor the legacy
-/// scalar the edit form migrates into the table on load (#1392). ONE rule,
-/// read by the `weight` field and the `weights` relation so `weight:none`
-/// and `weights:none` cannot disagree.
-const kDiveNoWeightSql =
-    '({r}.weight_amount IS NULL AND NOT EXISTS '
-    '(SELECT 1 FROM dive_weights w WHERE w.dive_id = {r}.id))';
+/// No weight entry at all: neither a `dive_weights` row nor a positive legacy
+/// scalar, the one the edit form migrates into the table on load (#1392). ONE
+/// rule, read by the `weight` field and the `weights` relation so `weight:none`
+/// and `weights:none` cannot disagree, and defined as the NULL case of
+/// [recordedWeightKgSql] so neither can disagree with the value (#3914).
+final kDiveNoWeightSql = '(${recordedWeightKgSql('{r}')} IS NULL)';
 
 /// The gear union the equipment axes have always used: items linked
 /// through `dive_equipment`, cylinders the transmitter registry matched
@@ -55,10 +58,7 @@ final kDiveGearJoinSql =
 /// The SQL twin of `Dive.effectiveWaterType`, matching the insights water
 /// type chart, so a dive at a salt-water site is found by `waterType:salt`
 /// whether or not the value was ever copied onto the dive.
-const _effectiveWaterType =
-    "COALESCE(NULLIF({r}.water_type, ''), "
-    "(SELECT NULLIF(s.water_type, '') FROM dive_sites s "
-    'WHERE s.id = {r}.site_id))';
+final String _effectiveWaterType = diveEffectiveWaterTypeSql('{r}');
 
 /// A dive's effective entry method: its own, else its site's when the site
 /// lists exactly one (issue #3806). The SQL twin of
@@ -132,6 +132,21 @@ QueryField _bool(String key, String column) => QueryField(
   labelKey: _label(key),
 );
 
+/// One of a dive's tank configuration extras, a yes or no in the shape of
+/// `deco`. Its key is the [TankConfigurationExtra]'s name.
+QueryField _tankExtra(TankConfigurationExtra extra) => QueryField(
+  key: extra.name,
+  type: FieldType.bool,
+  sql: '',
+  emptySql: '0',
+  labelKey: _label(extra.name),
+  boolSql: (
+    whenTrue: tankConfigHasExtraSql('{r}', extra),
+    whenFalse: 'NOT (${tankConfigHasExtraSql('{r}', extra)})',
+  ),
+  tables: kTankConfigurationTables,
+);
+
 QueryRelation _fk(
   String key,
   QuerySubject target,
@@ -193,8 +208,8 @@ String _derived(String column) =>
 /// chart plots (`InsightsRepository.getSacPressurePerDive`): every breathed
 /// cylinder's drop in bar of the back gas (issue #3109) over the runtime,
 /// normalised by the average depth, so a search and the chart agree. Empty
-/// with no back-gas drop, no runtime or no average depth, and on a CCR or
-/// SCR dive (issue #3673).
+/// with no back-gas pressures, no drop to count (#3974), no runtime or no
+/// average depth, and on a CCR or SCR dive (issue #3673).
 final String kDiveSacSql =
     '(CASE WHEN COALESCE({r}.runtime, {r}.bottom_time) > 0 '
     'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';
@@ -244,7 +259,10 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'dive_dive_types',
     'dive_types',
   ],
-  textSearchExpansions: const [kDiveTypeTranslatedTextSearch],
+  textSearchExpansions: const [
+    kDiveTypeTranslatedTextSearch,
+    kDiveNumberTextSearch,
+  ],
   fields: [
     QueryField(
       key: 'id',
@@ -402,8 +420,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
     // legacy scalar the edit form retired (#1392). Empty means neither.
     _num(
       'weight',
-      'COALESCE((SELECT SUM(w.amount_kg) FROM dive_weights w '
-          'WHERE w.dive_id = {r}.id), {r}.weight_amount)',
+      recordedWeightKgSql('{r}'),
       aliases: ['lead'],
       dimension: FieldDimension.weight,
       emptySql: kDiveNoWeightSql,
@@ -418,12 +435,26 @@ final QueryEntity diveQueryEntity = QueryEntity(
           'NOT EXISTS (SELECT 1 FROM dive_tanks t WHERE t.dive_id = {r}.id)',
       tables: ['dive_tanks'],
     ),
+    QueryField(
+      key: 'tankConfig',
+      type: FieldType.enumName,
+      sql: tankConfigBaseSql('{r}'),
+      // The No tanks logged bar, not "no tank rows": a rebreather dive with
+      // none is still Rebreather, so `:none` leaves it out where
+      // `gasCount:none` finds it.
+      emptySql: "${tankConfigBaseSql('{r}')} = 'noTanks'",
+      labelKey: _label('tankConfig'),
+      enumValues: _names(TankBaseConfiguration.values),
+      tables: kTankConfigurationTables,
+    ),
+    for (final extra in TankConfigurationExtra.values) _tankExtra(extra),
     _num(
       'sac',
       kDiveSacSql,
       dimension: FieldDimension.pressureRate,
       sanity: (min: 0, max: 20),
-      tables: ['dive_tanks'],
+      // dive_sites: a dive with no water of its own reads its site's.
+      tables: ['dive_tanks', 'dive_sites'],
     ),
     QueryField(
       key: 'sacTrend',

@@ -3,7 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 
-/// Physical environment for decompression calculations.
+/// Physical environment of a dive: what decompression, oxygen exposure, gas
+/// curves and consumption all read pressure from.
 ///
 /// Replaces the engine's historical hardcoded assumptions (1.0 bar surface,
 /// exactly 10 m of water per bar). [standard] reproduces those assumptions
@@ -54,6 +55,18 @@ class DiveEnvironment extends Equatable {
   /// also floors, for the same reason.
   static double clampSalinityPpt(double ppt) => ppt > 0 ? ppt : 0.0;
 
+  /// The surface a diver off-gasses at between a dive in [previous] and the
+  /// next one in [next].
+  ///
+  /// Two dives at one altitude share their surface. Across a change of
+  /// altitude the log does not say when the diver travelled, so this takes
+  /// the higher pressure: a lower one would off-gas further than the diver
+  /// may have, and start the next dive with too little residual gas.
+  static DiveEnvironment surfaceIntervalBetween(
+    DiveEnvironment previous,
+    DiveEnvironment next,
+  ) => next.surfacePressureBar > previous.surfacePressureBar ? next : previous;
+
   /// Inverse of [densityFromSalinityPpt].
   static double salinityPptFromDensity(double densityKgM3) =>
       (densityKgM3 - freshWaterDensity) /
@@ -64,7 +77,9 @@ class DiveEnvironment extends Equatable {
   ///
   /// An explicit [surfacePressureBar] wins over [altitudeMeters]. A null
   /// altitude keeps the legacy 1.0 bar surface so dives without altitude
-  /// data are unchanged.
+  /// data are unchanged. Neither counts unless it gives a positive pressure:
+  /// a logged 0 or an altitude past the top of the barometric formula (which
+  /// gives NaN) would otherwise be divided by.
   ///
   /// Density precedence: [waterDensityKgM3], then [salinityPpt], then
   /// [waterType], then EN13319.
@@ -75,11 +90,15 @@ class DiveEnvironment extends Equatable {
     double? salinityPpt,
     double? waterDensityKgM3,
   }) {
+    double? usable(double? bar) => bar != null && bar > 0 ? bar : null;
     final surface =
-        surfacePressureBar ??
-        (altitudeMeters != null
-            ? AltitudeCalculator.calculateBarometricPressure(altitudeMeters)
-            : 1.0);
+        usable(surfacePressureBar) ??
+        usable(
+          altitudeMeters == null
+              ? null
+              : AltitudeCalculator.calculateBarometricPressure(altitudeMeters),
+        ) ??
+        1.0;
     final density =
         waterDensityKgM3 ??
         (salinityPpt != null
@@ -99,7 +118,13 @@ class DiveEnvironment extends Equatable {
   static const double _gravity = 9.80665;
 
   /// Pressure increase per meter of depth, in bar.
-  double get barPerMeter => waterDensityKgM3 * _gravity / 100000.0;
+  ///
+  /// EN13319 is defined by this figure, and [en13319Density] only rounds it:
+  /// through the density it comes out 1e-10 high, enough to carry a ppO2 that
+  /// sits exactly on a limit over it.
+  double get barPerMeter => waterDensityKgM3 == en13319Density
+      ? 0.1
+      : waterDensityKgM3 * _gravity / 100000.0;
 
   /// Absolute ambient pressure at [depthMeters], in bar.
   double pressureAtDepth(double depthMeters) =>

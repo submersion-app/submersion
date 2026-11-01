@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -81,7 +82,13 @@ class EquipmentFileConverter {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
-  Future<EquipmentFileConversionResult> run() async {
+  Future<EquipmentFileConversionResult> run() => ChangeLogScope.automatic(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.gearFileConversion,
+    body: () => _runInner(),
+  );
+
+  Future<EquipmentFileConversionResult> _runInner() async {
     final previouslyTooLarge = {...?_prefs.getStringList(skippedKey)};
     // Runs unawaited after a sync, so a restore, a storage move or demo mode
     // can open another database part way through (issue #3798).

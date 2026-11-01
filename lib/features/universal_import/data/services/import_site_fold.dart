@@ -36,11 +36,12 @@ const double _unnamedFoldMeters = 100;
 /// carries nothing worth importing and is dropped.
 ///
 /// With [foldSameName], named entries also fold into an earlier entry of the
-/// same name nearby. Subsurface needs that: it starts a new site whenever a
-/// dive's GPS drifts. UDDF passes false, because Submersion's own export can
-/// carry two distinct sites under one name and a round trip must keep both;
-/// its unnamed entries still fold, which is what collapses the one-site-per-
-/// dive placeholders Oceanic+ writes (#2938).
+/// same name nearby, or one with no position that states no different place.
+/// Subsurface needs that: it starts a new site whenever a dive's GPS drifts.
+/// UDDF passes false, because Submersion's own export can carry two distinct
+/// sites under one name and a round trip must keep both; its unnamed entries
+/// still fold, which is what collapses the one-site-per-dive placeholders
+/// Oceanic+ writes (#2938).
 FoldedSites foldImportSites(
   List<Map<String, dynamic>> raw, {
   bool foldSameName = true,
@@ -152,8 +153,13 @@ _Survivor? _findSameName(
     if (survivor.normalizedName != name) continue;
     final hostPoint = _pointOf(survivor.site);
     // A side without coordinates cannot contradict the other, so the shared
-    // name decides on its own.
-    if (point == null || hostPoint == null) return survivor;
+    // name decides, unless the two state different places (#4015). Positions
+    // that agree outrank that: a region looked up from a drifting fix can
+    // differ across one reef.
+    if (point == null || hostPoint == null) {
+      if (ImportSiteLocation.placesConflict(survivor.site, candidate)) continue;
+      return survivor;
+    }
     if (distanceMeters(hostPoint, point) <= _sameNameFoldMeters) {
       return survivor;
     }

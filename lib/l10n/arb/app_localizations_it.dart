@@ -7150,6 +7150,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Immersioni ripristinate';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Immersioni ripristinate, ma non è stato possibile recuperare alcuni dati registrati';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8695,6 +8699,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'Senza tipo di acqua';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Fino al $date';
   }
@@ -8808,6 +8817,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionGasMix => 'Miscela gas (O2%)';
+
+  @override
+  String get diveLog_filter_sectionTankConfiguration =>
+      'Configurazione bombole';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Extra bombole';
 
   @override
   String get diveLog_filter_sectionMinRating => 'Valutazione minima';
@@ -10108,6 +10124,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String diveLog_o2tox_cnsBadgeLabel(Object value) {
     return 'CNS $value';
   }
+
+  @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Un\'immersione precedente non ha dati sull\'ossigeno, quindi questo valore potrebbe essere più alto.';
 
   @override
   String get diveLog_o2tox_cnsOxygenClock => 'Orologio ossigeno CNS';
@@ -16940,6 +16960,215 @@ class AppLocalizationsIt extends AppLocalizations {
       'Registro di manutenzione salvato';
 
   @override
+  String get transfer_export_inventoryTitle => 'Inventario attrezzatura';
+
+  @override
+  String get transfer_export_inventorySubtitle =>
+      'PDF con numeri di serie e prezzi pagati';
+
+  @override
+  String get transfer_export_serviceReportTitle => 'Rapporto di manutenzione';
+
+  @override
+  String get transfer_export_serviceReportSubtitle =>
+      'PDF delle scadenze, con la cronologia di manutenzione';
+
+  @override
+  String get settings_export_progress_inventory =>
+      'Creazione dell\'inventario...';
+
+  @override
+  String get settings_export_success_inventory => 'Inventario esportato';
+
+  @override
+  String get settings_export_saved_inventory => 'Inventario salvato';
+
+  @override
+  String get settings_export_progress_serviceReport =>
+      'Creazione del rapporto di manutenzione...';
+
+  @override
+  String get settings_export_success_serviceReport =>
+      'Rapporto di manutenzione esportato';
+
+  @override
+  String get settings_export_saved_serviceReport =>
+      'Rapporto di manutenzione salvato';
+
+  @override
+  String get equipmentReport_sheet_continue => 'Continua';
+
+  @override
+  String get equipmentReport_sheet_groupBy => 'Raggruppa per';
+
+  @override
+  String get equipmentReport_sheet_groupByType => 'Tipo di attrezzatura';
+
+  @override
+  String get equipmentReport_sheet_groupByLocation => 'Posizione';
+
+  @override
+  String get equipmentReport_sheet_location => 'Posizione';
+
+  @override
+  String get equipmentReport_sheet_allLocations => 'Tutte le posizioni';
+
+  @override
+  String get equipmentReport_sheet_showPrices => 'Mostra prezzi';
+
+  @override
+  String get equipmentReport_sheet_showPricesHelp =>
+      'Disattiva per un elenco doganale';
+
+  @override
+  String get equipmentReport_sheet_gear => 'Attrezzatura';
+
+  @override
+  String get equipmentReport_sheet_gearAll => 'Tutta l\'attrezzatura';
+
+  @override
+  String get equipmentReport_sheet_gearTrip => 'Portata in un viaggio';
+
+  @override
+  String get equipmentReport_sheet_gearItem => 'Un articolo';
+
+  @override
+  String get equipmentReport_sheet_trip => 'Viaggio';
+
+  @override
+  String get equipmentReport_sheet_item => 'Articolo';
+
+  @override
+  String get equipmentReport_sheet_history => 'Cronologia di manutenzione';
+
+  @override
+  String get equipmentReport_sheet_showCosts => 'Mostra costi';
+
+  @override
+  String get equipmentReport_pdf_inventoryTitle => 'Inventario attrezzatura';
+
+  @override
+  String get equipmentReport_pdf_serviceTitle => 'Rapporto di manutenzione';
+
+  @override
+  String equipmentReport_pdf_printedOn(String date) {
+    return 'Stampato il $date';
+  }
+
+  @override
+  String equipmentReport_pdf_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articoli',
+      one: '$count articolo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentReport_pdf_currencyTotal(String currency) {
+    return 'Totale $currency';
+  }
+
+  @override
+  String get equipmentReport_pdf_noLocation => 'Nessuna posizione impostata';
+
+  @override
+  String get equipmentReport_pdf_colItem => 'Articolo';
+
+  @override
+  String get equipmentReport_pdf_colSerial => 'N. di serie';
+
+  @override
+  String get equipmentReport_pdf_colBought => 'Acquistato';
+
+  @override
+  String get equipmentReport_pdf_colPaid => 'Pagato';
+
+  @override
+  String get equipmentReport_pdf_pricesNote =>
+      'I prezzi sono quelli pagati, non il valore attuale.';
+
+  @override
+  String equipmentReport_pdf_noPrice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articoli non hanno prezzo.',
+      one: '$count articolo non ha prezzo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_overdue => 'scaduti';
+
+  @override
+  String get equipmentReport_pdf_dueSoon => 'in scadenza';
+
+  @override
+  String get equipmentReport_pdf_upToDate => 'in regola';
+
+  @override
+  String get equipmentReport_pdf_colService => 'Manutenzione';
+
+  @override
+  String get equipmentReport_pdf_colDue => 'Scadenza';
+
+  @override
+  String get equipmentReport_pdf_colStatus => 'Stato';
+
+  @override
+  String get equipmentReport_pdf_statusOverdue => 'Scaduto';
+
+  @override
+  String get equipmentReport_pdf_statusDueSoon => 'In scadenza';
+
+  @override
+  String get equipmentReport_pdf_statusUpToDate => 'In regola';
+
+  @override
+  String get equipmentReport_pdf_allUpToDate => 'È tutto in regola.';
+
+  @override
+  String equipmentReport_pdf_noSchedule(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articoli non hanno un piano di manutenzione.',
+      one: '$count articolo non ha un piano di manutenzione.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_colDate => 'Data';
+
+  @override
+  String get equipmentReport_pdf_colWork => 'Lavoro';
+
+  @override
+  String get equipmentReport_pdf_colShop => 'Centro';
+
+  @override
+  String get equipmentReport_pdf_colCost => 'Costo';
+
+  @override
+  String get equipmentReport_pdf_noHistory => 'Nessuna manutenzione registrata';
+
+  @override
+  String equipmentReport_pdf_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_serviceKinds_defaultCurrencyInherit =>
       'Usa la valuta predefinita';
 
@@ -20498,16 +20727,144 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Segue $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Nessuna immersione registrata';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'Nessun dato di profilo per quell\'immersione — intervallo di superficie impostato senza saturazione dei tessuti';
+
+  @override
+  String get plannerCanvas_link_action => 'Collega a un\'immersione registrata';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Cambia immersione collegata';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Scollega immersione';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Eseguita come #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Eseguita il $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Salva prima il piano';
+
+  @override
+  String plannerSeries_dive(String letter) {
+    return 'Immersione $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Aggiungi un\'immersione';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Rimuovi l\'immersione $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'L\'immersione $letter e le sue modifiche verranno rimosse dalla serie.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'L\'immersione $letter ha degli avvisi';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Dettagli dell\'immersione';
+
+  @override
+  String get plannerSeries_diveName => 'Nome dell\'immersione';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Immersione $letter: $name';
+  }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Immersione registrata $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Apri nel logbook';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Smetti di seguire';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Riportato su $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS alla fine';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive è finita $time fa.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Immersione #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Segui';
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Intervallo di superficie';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Intervallo di superficie $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'Inserisci una durata come h:mm';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 minuti in meno';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 minuti in più';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'Riempi $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Riempi tutte le bombole';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Non è ancora possibile salvare una serie di immersioni';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Non è ancora possibile convertire una serie di immersioni in immersioni registrate';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'Non è possibile pianificare una serie di immersioni come missione DPV';
+
+  @override
+  String get plannerSeries_followUnavailableInReplan =>
+      'Una ripianificazione non può seguire un\'altra immersione';
 
   @override
   String get plannerCanvas_follow_title => 'Segui un\'immersione';
@@ -20588,7 +20945,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'Il piano di decompressione CCR non prevede gas di bailout';
+      'Il piano di decompressione non prevede gas di bailout';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'Il gas di bailout è ipossico a $depth (ppO₂ $value bar). Porta un gas respirabile fino alla superficie.';
+  }
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Nessun gas di bailout raggiunge $depth: la MOD più profonda trasportata è $deepestMod. Porta un gas utilizzabile a quella profondità; altro gas dello stesso tipo non servirà.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -24918,6 +25288,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_sacFactor => 'Fattore di consumo di gas';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'Modalità dello scenario';
+
+  @override
   String get settings_conflict_field_sacStressed =>
       'Consumo di gas sotto stress';
 
@@ -29060,6 +29433,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'Grafico a torta con $count segmenti';
   }
@@ -29082,6 +29460,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'Non registrato';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Impossibile aprire queste immersioni';
+
+  @override
+  String get insights_chart_viewDives => 'Vedi immersioni';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {
@@ -29234,6 +29624,162 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get insights_equipment_findings_subtitleAllDives =>
       'Rilievi aperti per regola, su tutte le immersioni';
+
+  @override
+  String get insights_equipment_showAll => 'Mostra tutto';
+
+  @override
+  String get insights_equipment_showLess => 'Mostra meno';
+
+  @override
+  String insights_equipment_mostUsedGear_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ore',
+      one: '$count ora',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_title => 'Costo di possesso';
+
+  @override
+  String get insights_equipment_cost_subtitle =>
+      'Acquisto più manutenzione, su tutte le tue immersioni';
+
+  @override
+  String get insights_equipment_cost_spentTotal => 'Speso in totale';
+
+  @override
+  String get insights_equipment_cost_perDive => 'Per immersione';
+
+  @override
+  String get insights_equipment_cost_byYear => 'Spesa per anno';
+
+  @override
+  String get insights_equipment_cost_metricPerDive => 'Per immersione';
+
+  @override
+  String get insights_equipment_cost_metricPerHour => 'Per ora';
+
+  @override
+  String get insights_equipment_cost_metricTotal => 'Totale';
+
+  @override
+  String insights_equipment_cost_rowPerDive(String amount) {
+    return '$amount / immersione';
+  }
+
+  @override
+  String insights_equipment_cost_rowPerHour(String amount) {
+    return '$amount / ora';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverDives(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount su $count immersioni',
+      one: '$amount su $count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverHours(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount su $count ore',
+      one: '$amount su $count ora',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_noDives => 'ancora nessuna immersione';
+
+  @override
+  String insights_equipment_cost_undated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count acquisti non hanno data',
+      one: '$count acquisto non ha data',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articoli non hanno costi registrati',
+      one: '$count articolo non ha costi registrati',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_empty =>
+      'Nessun prezzo d\'acquisto o costo di manutenzione registrato';
+
+  @override
+  String get insights_equipment_cost_error =>
+      'Impossibile caricare i costi dell\'attrezzatura';
+
+  @override
+  String get insights_equipment_idle_title => 'Attrezzatura inutilizzata';
+
+  @override
+  String get insights_equipment_idle_subtitle =>
+      'Attrezzatura tua non usata di recente, su tutte le tue immersioni';
+
+  @override
+  String get insights_equipment_idle_over6Months => 'Oltre 6 mesi';
+
+  @override
+  String get insights_equipment_idle_over1Year => 'Oltre 1 anno';
+
+  @override
+  String get insights_equipment_idle_over2Years => 'Oltre 2 anni';
+
+  @override
+  String get insights_equipment_idle_neverDived => 'Mai usata';
+
+  @override
+  String insights_equipment_idle_years(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count anni',
+      one: '$count anno',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_idle_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mesi',
+      one: '$count mese',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_idle_empty =>
+      'Tutta la tua attrezzatura è stata usata di recente';
+
+  @override
+  String get insights_equipment_idle_error =>
+      'Impossibile caricare l\'attrezzatura inutilizzata';
 
   @override
   String get insights_equipment_findings_empty => 'Nessun rilievo aperto';
@@ -33998,6 +34544,15 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>
       'Alcuni valori lasciati vuoti';
+
+  @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Alcune miscele di gas sono state corrette';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'Ossigeno ed elio superavano insieme il 100% in queste righe: $rows. L\'elio è stato ridotto per portare il totale al 100%. Controlla il gas di queste immersioni.';
+  }
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
@@ -41447,8 +42002,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Fonti dei dati';
 
   @override
-  String get reef_section_loadError =>
-      'Impossibile caricare i dati dell\'ecosistema al momento';
+  String get reef_section_checking => 'Verifica in corso…';
 
   @override
   String get reef_habitat_title => 'Habitat della barriera';
@@ -48470,6 +49024,16 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count configurazioni di bombole';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count extra bombole';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'Vita marina';
 
   @override
@@ -50765,7 +51329,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Seleziona un intervallo sul grafico per abilitare le operazioni';
+      'Trascina sul grafico per selezionare un intervallo e abilitare le operazioni';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Prof. +1 m';
@@ -50871,6 +51435,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_profileEditor_noProfileData =>
       'Nessun dato di profilo disponibile';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Impossibile spostare: la selezione non ha spazio in quella direzione';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Impossibile eliminare l\'intero profilo';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'Impossibile smussare: seleziona almeno tre campioni';
 
   @override
   String get diveLog_profileEditor_undo => 'Annulla';
@@ -51999,6 +52575,608 @@ class AppLocalizationsIt extends AppLocalizations {
       'HealthKit non è disponibile su questo dispositivo';
 
   @override
+  String get diveLab_title => 'Confronta';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'Questa immersione non ha un profilo da cui diramare.';
+
+  @override
+  String get diveLab_loading => 'Caricamento dell\'immersione…';
+
+  @override
+  String get diveLab_branch_label => 'Diramazione';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time a $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 min';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 s';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 s';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 min';
+
+  @override
+  String get diveLab_mode_replay => 'Ripeti';
+
+  @override
+  String get diveLab_mode_replan => 'Ripianifica';
+
+  @override
+  String get diveLab_mode_replayHint =>
+      'Stesso profilo di profondità, input diversi';
+
+  @override
+  String get diveLab_mode_replanHint =>
+      'Il motore pianifica la risalita dalla diramazione';
+
+  @override
+  String get diveLab_mode_forced =>
+      'Un intervento richiede la ripianificazione';
+
+  @override
+  String get diveLab_interventions_label => 'Interventi';
+
+  @override
+  String get diveLab_interventions_add => 'Aggiungi';
+
+  @override
+  String get diveLab_interventions_none =>
+      'Nessun intervento: lo scenario coincide con l\'immersione reale.';
+
+  @override
+  String get diveLab_kind_switchGas => 'Cambia gas';
+
+  @override
+  String get diveLab_kind_loseTank => 'Perdi una bombola';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'Sposta la risalita';
+
+  @override
+  String get diveLab_kind_ascendNow => 'Risali ora';
+
+  @override
+  String get diveLab_kind_changeGf => 'Fattori di gradiente';
+
+  @override
+  String get diveLab_kind_shareGas => 'Condividi gas con un compagno';
+
+  @override
+  String get diveLab_kind_bailOut => 'Bailout in circuito aperto';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'Regole di risalita';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'Respira da un\'altra bombola dal punto di diramazione';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'Una bombola deco o stage va persa dal punto di diramazione';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'Inizia la risalita finale prima o dopo';
+
+  @override
+  String get diveLab_kindDesc_ascendNow =>
+      'Interrompi la fase di fondo alla diramazione';
+
+  @override
+  String get diveLab_kindDesc_changeGf =>
+      'Calcola lo scenario con altri fattori di gradiente';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'Un compagno senza gas respira dalla tua bombola dalla diramazione';
+
+  @override
+  String get diveLab_kindDesc_bailOut =>
+      'Lascia il circuito e risali con il gas di bailout';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'Altra velocità di risalita, ultima tappa o durata delle tappe';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'Passa a $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return '$tank persa';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'Risalita $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'Risali ora';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'Condividi gas x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'Bailout';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'Regole di risalita';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return 'Rimuovi $name';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'Aggiungi un intervento';
+
+  @override
+  String get diveLab_sheet_add => 'Aggiungi';
+
+  @override
+  String get diveLab_sheet_cylinder => 'Bombola';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'Bombola ipotetica';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'Volume ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'Pressione iniziale ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'Minuti';
+
+  @override
+  String get diveLab_sheet_earlier => 'prima';
+
+  @override
+  String get diveLab_sheet_later => 'dopo';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'Fattore compagno';
+
+  @override
+  String get diveLab_sheet_noCandidates =>
+      'Nessuna bombola di questa immersione è utilizzabile qui.';
+
+  @override
+  String get diveLab_sheet_allAdded =>
+      'Tutti gli interventi sono già nello scenario.';
+
+  @override
+  String get diveLab_panel_verdict => 'Verdetto';
+
+  @override
+  String get diveLab_panel_actual => 'Reale';
+
+  @override
+  String get diveLab_panel_whatIf => 'Scenario';
+
+  @override
+  String get diveLab_panel_delta => 'Differenza';
+
+  @override
+  String get diveLab_panel_tissues => 'Tessuti in superficie';
+
+  @override
+  String get diveLab_panel_gas => 'Gas';
+
+  @override
+  String get diveLab_panel_issues => 'Problemi';
+
+  @override
+  String get diveLab_panel_runtime => 'Runtime';
+
+  @override
+  String get diveLab_panel_noIssues => 'Nessun problema';
+
+  @override
+  String get diveLab_panel_computing => 'Calcolo in corso…';
+
+  @override
+  String get diveLab_panel_identity =>
+      'Nessuna modifica: lo scenario coincide con l\'immersione reale.';
+
+  @override
+  String get diveLab_panel_notes => 'Note';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: da $actual a $whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC stimato';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'Pressione stimata per $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'Pressione sconosciuta per $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'Volume presunto per $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining =>
+      'La diramazione è già nella risalita';
+
+  @override
+  String get diveLab_flag_replanNotCompletable =>
+      'Non completabile così come diramato';
+
+  @override
+  String get diveLab_flag_loopGasMissing =>
+      'Gas del circuito sconosciuto; circuito aperto presunto';
+
+  @override
+  String get diveLab_metric_runtime => 'Runtime';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS alla diramazione';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch =>
+      'Tempo di deco dopo la diramazione';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'Tappa più profonda';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'GF in superficie';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch =>
+      'GF99 massimo dopo la diramazione';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS in superficie';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU in superficie';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch =>
+      'ppO2 massima dopo la diramazione';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return 'Pressione finale $tank';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank esaurita alle';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch =>
+      'Margine di gas minimo alla diramazione';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'Violazioni del ceiling';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation =>
+      'Peggior superamento del ceiling';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'riserva alle $time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'vuota alle $time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'sconosciuto';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'Deco';
+
+  @override
+  String get diveLab_tile_surfGf => 'GF sup.';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'Gas di fondo';
+
+  @override
+  String get diveLab_value_none => 'n/d';
+
+  @override
+  String get diveLab_action_save => 'Salva';
+
+  @override
+  String get diveLab_action_saved => 'Scenari salvati';
+
+  @override
+  String get diveLab_save_title => 'Dai un nome allo scenario';
+
+  @override
+  String get diveLab_saved_snackbar => 'Scenario salvato';
+
+  @override
+  String get diveLab_saved_title => 'Scenari salvati';
+
+  @override
+  String get diveLab_saved_empty =>
+      'Nessuno scenario salvato per questa immersione.';
+
+  @override
+  String get diveLab_saved_open => 'Apri';
+
+  @override
+  String get diveLab_saved_rename => 'Rinomina';
+
+  @override
+  String get diveLab_saved_duplicate => 'Duplica';
+
+  @override
+  String get diveLab_saved_delete => 'Elimina';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'Eliminare \"$name\"?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Ripeti a $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Ripianifica a $time';
+  }
+
+  @override
+  String get diveLab_compare_line_planned => 'Pianificato';
+
+  @override
+  String get diveLab_compare_line_asDived => 'Eseguita';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'E se';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Prof. max';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Tempo di fondo';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL lasciando il fondo';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return '$minutes min rimasti';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco a $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done fatti';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Nessuna';
+
+  @override
+  String get diveLab_compare_empty => 'Ancora niente da confrontare';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Chiedi un e se';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Collega un piano';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Scollega piano';
+
+  @override
+  String get diveLab_compare_planTable => 'Piano e immersione';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programma pianificato';
+
+  @override
+  String get diveLab_compare_waiting => 'In attesa dell\'immersione';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Scollegare questo piano?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'Il piano e l\'immersione restano entrambi. Semplicemente non vengono più confrontati.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Scollega';
+
+  @override
+  String get diveLab_link_moveTitle =>
+      'Spostare il collegamento di questo piano?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Questo piano è collegato a un\'altra immersione. Collegarlo qui rimuove quel collegamento.';
+
+  @override
+  String get diveLab_link_replaceTitle =>
+      'Sostituire il piano di questa immersione?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Questa immersione è confrontata con \"$plan\". Collegare un altro piano lo scollega.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Collega';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'Confronta';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'Piano, immersione e scenari ipotetici salvati a confronto';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Assetto';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Assetto netto alla tappa';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Spinta massima richiesta';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Zavorra sganciabile minima';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'L\'assetto richiede bombole o una muta nell\'immersione.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Velocità di risalita ($unit/min)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Profondità dell\'ultima tappa';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'Prolunga l\'ultima tappa (min)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Tappa per cambio gas (s)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Bombola di bailout';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Tutte le bombole di bailout';
+
+  @override
+  String get diveLab_share_pdf => 'Condividi scheda PDF';
+
+  @override
+  String get diveLab_share_file => 'Condividi file scenario';
+
+  @override
+  String get diveLab_share_image => 'Condividi immagine del grafico';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'Condivisione non riuscita: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'Importa file scenario';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '\"$name\" importato';
+  }
+
+  @override
+  String get diveLab_import_diveCreated =>
+      'L\'immersione è stata creata dal file scenario';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'Importazione non riuscita: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'Seleziona';
+
+  @override
+  String get diveLab_saved_done => 'Fatto';
+
+  @override
+  String get diveLab_saved_sharePdf => 'Condividi selezione come PDF';
+
+  @override
+  String get diveLab_pdf_title => 'Scheda scenario';
+
+  @override
+  String get diveLab_pdf_branch => 'Diramazione';
+
+  @override
+  String get diveLab_pdf_mode => 'Modalità';
+
+  @override
+  String get diveLab_pdf_interventions => 'Interventi';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'Impostazioni: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, gas $gasModel';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'Generato da Submersion';
+
+  @override
+  String get diveLab_sublab_notes => 'Condiviso tramite un file scenario';
+
+  @override
   String get insights_trend_aggregation_monthly => 'Media mensile';
 
   @override
@@ -52344,6 +53522,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'Esclusa';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'Tutte le tue immersioni sono escluse dalle statistiche';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'Restano nel tuo logbook. Modifica un\'immersione per conteggiarla di nuovo.';
 
   @override
   String insights_excludedDivesFootnote(int count) {
@@ -54039,7 +55225,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Ripianifica questa immersione';
+  String get diveLog_detail_menu_whatIf => 'Confronta…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive =>
+      'Pianifica immersione ripetitiva';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. immersione originale';
@@ -54498,6 +55688,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'Ha un profilo';
+
+  @override
+  String get query_dives_tankConfig => 'Configurazione bombole';
+
+  @override
+  String get query_dives_stages => 'Stage';
+
+  @override
+  String get query_dives_decoGas => 'Gas deco';
+
+  @override
+  String get query_dives_multiGas => 'Più gas';
 
   @override
   String get query_dives_id => 'ID immersione';
@@ -54985,6 +56187,38 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Tipo';
+
+  @override
+  String diveLab_handoff_failed(String error) {
+    return 'Impossibile aprire nel pianificatore: $error';
+  }
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      'La bombola persa resta in elenco perché è stata respirata prima della diramazione; rimuovila nel pianificatore se serve.';
+
+  @override
+  String get diveLab_handoff_note_replay =>
+      'Il pianificatore ricalcola la risalita; il percorso del replay non è stato riportato.';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return 'E se: $dive ($scenario)';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => 'Apri nel pianificatore';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled =>
+      'Apri nel pianificatore è disponibile solo per immersioni a circuito aperto';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner =>
+      'Ricostruisci nel pianificatore...';
+
+  @override
+  String get diveLab_menu_title => 'Altro';
 
   @override
   String get query_op_eq => 'è';
@@ -57360,4 +58594,412 @@ class AppLocalizationsIt extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'Registro modifiche';
+
+  @override
+  String get changeLog_settings_subtitle =>
+      'Scopri cosa è cambiato e ripristinalo';
+
+  @override
+  String get changeLog_empty_title => 'Ancora nessuna modifica';
+
+  @override
+  String get changeLog_empty_body =>
+      'Qui compaiono le modifiche a immersioni, siti, attrezzatura e impostazioni.';
+
+  @override
+  String get changeLog_empty_filtered =>
+      'Nessuna modifica corrisponde a questo filtro.';
+
+  @override
+  String get changeLog_filter_all => 'Tutto';
+
+  @override
+  String get changeLog_filter_dives => 'Immersioni';
+
+  @override
+  String get changeLog_filter_sites => 'Siti';
+
+  @override
+  String get changeLog_filter_gear => 'Attrezzatura';
+
+  @override
+  String get changeLog_filter_settings => 'Impostazioni';
+
+  @override
+  String get changeLog_filter_source => 'Origine';
+
+  @override
+  String get changeLog_filter_anySource => 'Qualsiasi origine';
+
+  @override
+  String get changeLog_source_manual => 'Modifica manuale';
+
+  @override
+  String get changeLog_source_import => 'Importazione';
+
+  @override
+  String get changeLog_source_download => 'Computer subacqueo';
+
+  @override
+  String get changeLog_source_rule => 'Regola';
+
+  @override
+  String get changeLog_source_sync => 'Sincronizzazione';
+
+  @override
+  String get changeLog_source_automatic => 'Automatico';
+
+  @override
+  String get changeLog_source_revert => 'Ripristino';
+
+  @override
+  String get changeLog_source_system => 'Sistema';
+
+  @override
+  String get changeLog_thisDevice => 'Questo dispositivo';
+
+  @override
+  String get changeLog_anotherDevice => 'un altro dispositivo';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'Sincronizzato da $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count altri';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vedi $count record',
+      one: 'Vedi $count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return 'Immersione $number, $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return 'Immersione $number';
+  }
+
+  @override
+  String get changeLog_dive => 'Immersione';
+
+  @override
+  String get changeLog_action_added => 'Aggiunto';
+
+  @override
+  String get changeLog_action_deleted => 'Eliminato';
+
+  @override
+  String get changeLog_action_edited => 'Modificato';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'Importato da $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'Scaricato da $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'Modifiche sincronizzate';
+
+  @override
+  String get changeLog_title_rule => 'Esecuzione regola';
+
+  @override
+  String get changeLog_title_revert => 'Modifica ripristinata';
+
+  @override
+  String get changeLog_title_changes => 'Modifiche';
+
+  @override
+  String get changeLog_label_bulkEdit => 'Modifica in blocco';
+
+  @override
+  String get changeLog_label_bulkDelete => 'Eliminazione in blocco';
+
+  @override
+  String get changeLog_label_deletedRecord => 'Record eliminato';
+
+  @override
+  String get changeLog_label_merge => 'Record uniti';
+
+  @override
+  String get changeLog_label_undoMerge => 'Unione annullata';
+
+  @override
+  String get changeLog_label_undoRule => 'Esecuzione regola annullata';
+
+  @override
+  String get changeLog_label_qualityRepair => 'Riparazione qualità dati';
+
+  @override
+  String get changeLog_label_libraryAdopted =>
+      'Libreria aggiunta a questo dispositivo';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'Libreria sostituita';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'Libreria ripristinata da un backup';
+
+  @override
+  String get changeLog_label_reparse => 'Immersioni rianalizzate';
+
+  @override
+  String get changeLog_label_splitDive => 'Immersione divisa';
+
+  @override
+  String get changeLog_label_gearTransfer => 'Attrezzatura trasferita';
+
+  @override
+  String get changeLog_label_mediaRepair =>
+      'Collegamenti multimediali riparati';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'File attrezzatura spostati in Documenti';
+
+  @override
+  String get changeLog_label_galleryBackfill =>
+      'Foto collegate alle copie cloud';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'File inutilizzati rimossi';
+
+  @override
+  String get changeLog_label_accountMigration =>
+      'Collegamenti account aggiornati';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count record',
+      one: '$count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size di dati';
+  }
+
+  @override
+  String get changeLog_table_settings => 'Impostazioni app';
+
+  @override
+  String get changeLog_table_diverSettings => 'Impostazioni subacqueo';
+
+  @override
+  String get changeLog_history => 'Cronologia';
+
+  @override
+  String get changeLog_detail_title => 'Dettagli modifica';
+
+  @override
+  String get changeLog_detail_open => 'Apri record';
+
+  @override
+  String get changeLog_detail_history => 'Cronologia di questo record';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'E altri $count record',
+      one: 'E altri $count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'Ripristina';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'Ripristina tutti ($count)';
+  }
+
+  @override
+  String get changeLog_restore => 'Ripristina';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'Ripristinare $field?';
+  }
+
+  @override
+  String get changeLog_revert_changedSince =>
+      'Questo campo è cambiato dopo questa voce.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'Impostato in questa voce: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'Ora: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'Dopo il ripristino: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'Gli altri dispositivi la riceveranno come nuova modifica. Compare nel registro e può essere ripristinata a sua volta.';
+
+  @override
+  String get changeLog_revert_anyway => 'Ripristina comunque';
+
+  @override
+  String get changeLog_undoImport => 'Annulla questa importazione';
+
+  @override
+  String get changeLog_undoEntry => 'Annulla questa modifica';
+
+  @override
+  String get changeLog_undo_explain =>
+      'Rimuove ciò che è stato aggiunto e annulla le altre modifiche. Chiede prima ed elenca ciò che hai modificato nel frattempo.';
+
+  @override
+  String get changeLog_bulk_title => 'Annullare questa voce?';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count record sono cambiati dopo questa voce.',
+      one: '$count record è cambiato dopo questa voce.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'Ripristina il resto';
+
+  @override
+  String get changeLog_bulk_revertAll => 'Ripristina tutto';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modifiche ripristinate',
+      one: '$count modifica ripristinata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count record sono stati mantenuti',
+      one: '$count record è stato mantenuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'Questo record non esiste più.';
+
+  @override
+  String get changeLog_block_columnGone => 'Questo campo non esiste più.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'Un aggiornamento ha cambiato il modo in cui è salvato questo valore, quindi non può essere ripristinato.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'Il record a cui appartiene non esiste più.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'Questo record è già tornato.';
+
+  @override
+  String get changeLog_block_inUse =>
+      'Dati successivi usano ancora questo record.';
+
+  @override
+  String get changeLog_reverted => 'Ripristinato';
+
+  @override
+  String get changeLog_revert_failed =>
+      'Impossibile ripristinare questa modifica. Non è stato cambiato nulla.';
+
+  @override
+  String get changeLog_menu_settings => 'Impostazioni registro';
+
+  @override
+  String get changeLog_settings_title => 'Impostazioni registro modifiche';
+
+  @override
+  String get changeLog_retention_title => 'Conserva le voci per';
+
+  @override
+  String get changeLog_retention_note =>
+      'Ogni dispositivo ha il proprio registro. Le voci più vecchie vengono rimosse automaticamente.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count mesi';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'Per sempre';
+
+  @override
+  String get changeLog_clear => 'Cancella registro';
+
+  @override
+  String get changeLog_clear_title => 'Cancellare il registro modifiche?';
+
+  @override
+  String get changeLog_clear_body =>
+      'Rimuove le voci del subacqueo attivo da questo dispositivo. Dopo non potrai ripristinarle.';
+
+  @override
+  String get changeLog_clear_confirm => 'Cancella';
+
+  @override
+  String get changeLog_clear_failed =>
+      'Impossibile cancellare il registro delle modifiche. Non è stato rimosso nulla.';
+
+  @override
+  String get changeLog_day_today => 'Oggi';
+
+  @override
+  String get changeLog_day_yesterday => 'Ieri';
+
+  @override
+  String get changeLog_storage_label => 'Registro modifiche';
 }

@@ -188,4 +188,215 @@ void main() {
       expect(await failing.fetchRecord('gpsTracks', id), isNull);
     });
   });
+
+  group('upserts evict cached geometry when it changed (issue #2447)', () {
+    late LocalCacheDatabase local;
+    late TrackGeometryCacheRepository cache;
+
+    setUp(() {
+      local = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      LocalCacheDatabaseService.instance.setTestDatabase(local);
+      cache = TrackGeometryCacheRepository();
+    });
+
+    tearDown(() async {
+      LocalCacheDatabaseService.instance.resetForTesting();
+      await local.close();
+    });
+
+    Future<void> cacheAllLods(String trackId) async {
+      for (final lod in TrackLod.values) {
+        await cache.write(trackId, lod, const []);
+      }
+    }
+
+    Future<Set<String>> cachedTrackIds() async {
+      final rows = await local.select(local.gpsTrackGeometryCache).get();
+      return rows.map((r) => r.trackId).toSet();
+    }
+
+    test('a track trimmed by a peer leaves no cached LODs', () async {
+      final id = await seedTrack();
+      final other = await seedTrack();
+      await cacheAllLods(id);
+      await cacheAllLods(other);
+      final trimmed = {
+        ...(await serializer.fetchRecord('gpsTracks', id))!,
+        'trimStartTime': 1700000600000,
+      };
+
+      await serializer.upsertRecord('gpsTracks', trimmed);
+
+      expect(await cachedTrackIds(), {other});
+    });
+
+    test('a batch carrying a peer trim leaves no cached LODs', () async {
+      final id = await seedTrack();
+      final other = await seedTrack();
+      await cacheAllLods(id);
+      await cacheAllLods(other);
+      final trimmed = {
+        ...(await serializer.fetchRecord('gpsTracks', id))!,
+        'trimEndTime': 1700003000000,
+      };
+      final unchanged = (await serializer.fetchRecord('gpsTracks', other))!;
+
+      await serializer.upsertRecords('gpsTracks', [trimmed, unchanged]);
+
+      expect(await cachedTrackIds(), {other});
+    });
+
+    test('a track arriving with no stored row drops orphaned LODs', () async {
+      // LODs can outlive their track: a delete from a peer before eviction
+      // existed, or an eviction that failed. A row that then reappears with
+      // different geometry has nothing to compare against, so the orphaned
+      // LODs must not be trusted.
+      final id = await seedTrack();
+      final row = (await serializer.fetchRecord('gpsTracks', id))!;
+      final db = DatabaseService.instance.database;
+      await (db.delete(db.gpsTracks)..where((t) => t.id.equals(id))).go();
+      await cacheAllLods(id);
+
+      await serializer.upsertRecords('gpsTracks', [
+        {...row, 'trimStartTime': 1700000600000},
+      ]);
+
+      expect(await cachedTrackIds(), isEmpty);
+    });
+
+    test('a row arriving without its points keeps the cached LODs', () async {
+      // The upsert leaves a null blob out, so the stored points still stand
+      // and the cached lines still match them.
+      final id = await seedTrack();
+      await cacheAllLods(id);
+      final stored = (await serializer.fetchRecord('gpsTracks', id))!;
+
+      await serializer.upsertRecord('gpsTracks', {...stored, 'points': null});
+      await serializer.upsertRecords('gpsTracks', [
+        {...stored, 'points': null},
+      ]);
+
+      expect(await cachedTrackIds(), {id});
+    });
+
+    test('a peer rename keeps the cached LODs', () async {
+      final id = await seedTrack();
+      await cacheAllLods(id);
+      final renamed = {
+        ...(await serializer.fetchRecord('gpsTracks', id))!,
+        'name': 'Palancar morning',
+      };
+
+      await serializer.upsertRecord('gpsTracks', renamed);
+
+      expect(await cachedTrackIds(), {id});
+    });
+
+    test('a failed eviction does not fail the upsert', () async {
+      final id = await seedTrack();
+      final failing = SyncDataSerializer(
+        evictTrackGeometry: (_) async => throw StateError('cache broken'),
+      );
+      final trimmed = {
+        ...(await failing.fetchRecord('gpsTracks', id))!,
+        'trimStartTime': 1700000600000,
+      };
+
+      await failing.upsertRecord('gpsTracks', trimmed);
+
+      final row = await failing.fetchRecord('gpsTracks', id);
+      expect(row!['trimStartTime'], 1700000600000);
+    });
+  });
+
+  group('a peer resetting a trim', () {
+    late LocalCacheDatabase local;
+
+    setUp(() {
+      local = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      LocalCacheDatabaseService.instance.setTestDatabase(local);
+    });
+
+    tearDown(() async {
+      LocalCacheDatabaseService.instance.resetForTesting();
+      await local.close();
+    });
+
+    Future<String> seedTrimmedTrack() async {
+      final id = await seedTrack();
+      await repo.setTrimBounds(
+        id,
+        startMs: 1700000600000,
+        endMs: 1700003000000,
+      );
+      return id;
+    }
+
+    test('lands through a single upsert', () async {
+      final id = await seedTrimmedTrack();
+
+      await serializer.upsertRecord('gpsTracks', {
+        ...(await serializer.fetchRecord('gpsTracks', id))!,
+        'trimStartTime': null,
+        'trimEndTime': null,
+      });
+
+      final row = await serializer.fetchRecord('gpsTracks', id);
+      expect(row!['trimStartTime'], isNull);
+      expect(row['trimEndTime'], isNull);
+    });
+
+    test('lands through a batch upsert', () async {
+      final id = await seedTrimmedTrack();
+
+      await serializer.upsertRecords('gpsTracks', [
+        {
+          ...(await serializer.fetchRecord('gpsTracks', id))!,
+          'trimStartTime': null,
+          'trimEndTime': null,
+        },
+      ]);
+
+      final row = await serializer.fetchRecord('gpsTracks', id);
+      expect(row!['trimStartTime'], isNull);
+      expect(row['trimEndTime'], isNull);
+    });
+
+    test('evicts the cached LODs of the trimmed line', () async {
+      final id = await seedTrimmedTrack();
+      final cache = TrackGeometryCacheRepository();
+      await cache.write(id, TrackLod.detail, const []);
+
+      await serializer.upsertRecord('gpsTracks', {
+        ...(await serializer.fetchRecord('gpsTracks', id))!,
+        'trimStartTime': null,
+        'trimEndTime': null,
+      });
+
+      expect(await cache.read(id, TrackLod.detail), isNull);
+    });
+
+    test('still keeps a stored column the payload left null', () async {
+      // Only the trim bounds carry a clear. A row arriving without its points
+      // blob must not wipe the recording.
+      final id = await seedTrimmedTrack();
+      final stored = (await serializer.fetchRecord('gpsTracks', id))!;
+
+      await serializer.upsertRecord('gpsTracks', {
+        ...stored,
+        'points': null,
+        'trimStartTime': null,
+      });
+      await serializer.upsertRecords('gpsTracks', [
+        {...stored, 'points': null, 'trimEndTime': null},
+      ]);
+
+      final row = await serializer.fetchRecord('gpsTracks', id);
+      expect(row!['points'], stored['points']);
+    });
+  });
 }

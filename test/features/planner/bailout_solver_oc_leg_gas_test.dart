@@ -242,6 +242,25 @@ void main() {
     expect(outcome.availableLiters, closeTo(loop.availableLiters, 1e-6));
   });
 
+  test('a semi-closed leg spends what the plan charges it, not SAC', () {
+    final semiClosed = PlanSegment.hold(
+      id: 'semi-closed',
+      depth: 30,
+      durationMinutes: 10,
+      tankId: 'bo',
+      gasMix: _air,
+      order: 1,
+      diveModeOverride: domain.PlanMode.scr,
+    );
+    final outcome = solver.solve(_plan([_descent, semiClosed]))!;
+    final loop = solver.solve(_plan([_descent, _loopHold()]))!;
+
+    expect(
+      loop.availableLiters - outcome.availableLiters,
+      closeTo(solver.config.scrInjectionRateLpm * 10, 1e-6),
+    );
+  });
+
   test('a plan that never leaves the loop reads as it always did', () {
     final outcome = solver.solve(_plan([_descent, _loopHold()]))!;
 

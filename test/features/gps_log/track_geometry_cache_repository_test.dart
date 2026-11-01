@@ -136,4 +136,126 @@ void main() {
       expect(await repo.read('track-1', TrackLod.detail), hasLength(3));
     });
   });
+
+  group('watchEvictions (issue #3866)', () {
+    test('fires for the evicted track only', () async {
+      final fired = <String>[];
+      final subs = [
+        repo.watchEvictions('evicted').listen((_) => fired.add('evicted')),
+        repo.watchEvictions('kept').listen((_) => fired.add('kept')),
+      ];
+      addTearDown(() => Future.wait(subs.map((s) => s.cancel())));
+
+      await repo.invalidate('evicted');
+      await pumpEventQueue();
+
+      expect(fired, ['evicted']);
+    });
+
+    test('stays silent on a write', () async {
+      var fired = 0;
+      final sub = repo.watchEvictions('track-1').listen((_) => fired++);
+      addTearDown(sub.cancel);
+
+      await repo.write('track-1', TrackLod.thumbnail, [p(1), p(2)]);
+      await pumpEventQueue();
+
+      expect(fired, 0);
+    });
+
+    test('fires after the rows are gone', () async {
+      await repo.write('track-1', TrackLod.detail, [p(1), p(2)]);
+      List<GpsTrackPoint>? seen = [p(1)];
+      var fired = 0;
+      final sub = repo.watchEvictions('track-1').listen((_) async {
+        seen = await repo.read('track-1', TrackLod.detail);
+        fired++;
+      });
+      addTearDown(sub.cancel);
+
+      await repo.invalidate('track-1');
+      await pumpEventQueue();
+
+      expect(fired, 1);
+      expect(seen, isNull);
+    });
+
+    test('reaches a listener on another repository instance', () async {
+      var fired = 0;
+      final sub = repo.watchEvictions('track-1').listen((_) => fired++);
+      addTearDown(sub.cancel);
+
+      // Sync builds its own repository rather than reading the provider.
+      await TrackGeometryCacheRepository().invalidate('track-1');
+      await pumpEventQueue();
+
+      expect(fired, 1);
+    });
+
+    test('still fires with the local cache database not up', () async {
+      LocalCacheDatabaseService.instance.resetForTesting();
+      var fired = 0;
+      final sub = repo.watchEvictions('track-1').listen((_) => fired++);
+      addTearDown(sub.cancel);
+
+      await repo.invalidate('track-1');
+      await pumpEventQueue();
+
+      expect(fired, 1);
+    });
+  });
+
+  group('generations (issue #3866)', () {
+    test('a write from before an eviction is dropped', () async {
+      final generation = repo.generationOf('track-1');
+
+      await repo.invalidate('track-1');
+      await repo.write('track-1', TrackLod.detail, [
+        p(1),
+        p(2),
+      ], generation: generation);
+
+      expect(await repo.read('track-1', TrackLod.detail), isNull);
+    });
+
+    test('a write from the current generation lands', () async {
+      await repo.invalidate('track-1');
+      final generation = repo.generationOf('track-1');
+
+      await repo.write('track-1', TrackLod.detail, [
+        p(1),
+        p(2),
+      ], generation: generation);
+
+      expect(await repo.read('track-1', TrackLod.detail), hasLength(2));
+    });
+
+    test('an eviction on one track leaves another current', () async {
+      final generation = repo.generationOf('track-1');
+
+      await repo.invalidate('track-2');
+      await repo.write('track-1', TrackLod.detail, [
+        p(1),
+        p(2),
+      ], generation: generation);
+
+      expect(await repo.read('track-1', TrackLod.detail), hasLength(2));
+    });
+
+    test('moves on another repository instance too', () async {
+      final generation = repo.generationOf('track-1');
+
+      await TrackGeometryCacheRepository().invalidate('track-1');
+
+      expect(repo.generationOf('track-1'), generation + 1);
+    });
+
+    test('a write with no generation always lands', () async {
+      await repo.invalidate('track-1');
+
+      await repo.write('track-1', TrackLod.detail, [p(1), p(2)]);
+
+      expect(await repo.read('track-1', TrackLod.detail), hasLength(2));
+    });
+  });
 }
