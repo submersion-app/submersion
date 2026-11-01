@@ -3,6 +3,7 @@
 // that there was no progress on Confirm Source.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -116,6 +117,41 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(anOption), findsWidgets);
+    });
+
+    /// Tabs through the step and says whether focus ever reached the section.
+    Future<bool> tabReachesOverride(WidgetTester tester) async {
+      for (var i = 0; i < 6; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        final focused = FocusManager.instance.primaryFocus?.context;
+        if (focused?.findAncestorWidgetOfExactType<ExpansionTile>() != null) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    testWidgets('takes keyboard focus while nothing is parsing', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const SourceConfirmationStep(),
+        seed: (s) => s.copyWith(detectionResult: _detection),
+      );
+
+      expect(await tabReachesOverride(tester), isTrue);
+    });
+
+    testWidgets('takes no keyboard focus while a file parses', (tester) async {
+      await _pump(
+        tester,
+        const SourceConfirmationStep(),
+        seed: (s) => s.copyWith(detectionResult: _detection, isLoading: true),
+      );
+
+      expect(await tabReachesOverride(tester), isFalse);
     });
 
     testWidgets('holds still while a file parses', (tester) async {

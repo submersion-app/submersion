@@ -881,6 +881,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   }
 
   /// Runs [parse] as the parse in flight, under a token of its own.
+  ///
+  /// Whatever way it ends, it does not leave the step loading: Next waits on
+  /// that, so an error nothing else caught would hold the wizard for good.
   Future<void> _underNewParse(
     Future<void> Function(ImportCancellationToken token) parse,
   ) async {
@@ -889,7 +892,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     try {
       await parse(token);
     } finally {
-      if (_ownsState(token)) _parseToken = null;
+      if (_ownsState(token)) {
+        _parseToken = null;
+        if (state.isLoading) state = state.copyWith(isLoading: false);
+      }
     }
   }
 

@@ -85,15 +85,14 @@ void main() {
         final token = ImportCancellationToken();
         final trace = StackTrace.fromString('from the parser');
 
-        await expectLater(
-          token
-              .untilCancelled(Future<int>.error(StateError('bad'), trace))
-              .catchError((Object e, StackTrace s) {
-                expect(s.toString(), contains('from the parser'));
-                return 0;
-              }),
-          completion(0),
-        );
+        try {
+          await token.untilCancelled(
+            Future<int>.error(StateError('bad'), trace),
+          );
+          fail('the failure should have come through');
+        } on StateError catch (_, stackTrace) {
+          expect(stackTrace.toString(), contains('from the parser'));
+        }
       });
 
       test('leaves no unhandled error when abandoned work fails', () async {

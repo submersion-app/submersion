@@ -12,6 +12,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -87,6 +88,18 @@ PickedImportFile _pending(String name) => PickedImportFile(
   status: ImportFileStatus.pending,
 );
 
+/// Fails the way an unexpected error after the parse would.
+class _ThrowingBatchService extends BatchParseService {
+  const _ThrowingBatchService();
+
+  @override
+  Future<BatchParseResult> parseAll(
+    List<PickedImportFile> files, {
+    void Function(int current, int total)? onProgress,
+    ImportCancellationToken? cancelToken,
+  }) async => throw StateError('merge blew up');
+}
+
 final _cancelled = throwsA(isA<ImportStepCancelled>());
 
 void main() {
@@ -99,7 +112,10 @@ void main() {
   late UniversalImportNotifier notifier;
 
   /// [overrides] can hold a later stage of the pipeline open as well.
-  Future<void> startWith({List<Override> overrides = const []}) async {
+  Future<void> startWith({
+    List<Override> overrides = const [],
+    BatchParseService? batchParseService,
+  }) async {
     parser = _HeldParser();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -111,7 +127,9 @@ void main() {
           (ref) => UniversalImportNotifier(
             ref,
             parserFor: (_) => parser,
-            batchParseService: BatchParseService(parserFor: (_) => parser),
+            batchParseService:
+                batchParseService ??
+                BatchParseService(parserFor: (_) => parser),
           ),
         ),
         ...overrides,
@@ -289,6 +307,16 @@ void main() {
 
     await expectLater(confirming, _cancelled);
     expect(notifier.state.payload, isNull);
+    expect(notifier.state.isLoading, isFalse);
+  });
+
+  test('an unexpected error does not leave the step loading', () async {
+    await startWith(batchParseService: const _ThrowingBatchService());
+    notifier.debugSetFilesForTest([_pending('a.ssrf'), _pending('b.ssrf')]);
+
+    await expectLater(notifier.confirmSource(), throwsStateError);
+
+    // Next waits on this, so left set it would hold the wizard for good.
     expect(notifier.state.isLoading, isFalse);
   });
 
