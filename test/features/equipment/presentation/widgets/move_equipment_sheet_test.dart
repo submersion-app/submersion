@@ -36,11 +36,15 @@ class _FakeLocations extends Fake implements EquipmentLocationRepository {
 }
 
 class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
+  _FakeMoves({this.parts = const {}});
+
+  final Map<String, EquipmentStatus> parts;
   final recorded = <String?>[];
+  final movedIds = <String>[];
 
   @override
   Future<Map<String, EquipmentStatus>> partsOf(Iterable<String> ids) async =>
-      const {};
+      parts;
 
   @override
   Future<List<EquipmentLocationMove>> recordMoves({
@@ -50,6 +54,7 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
     String note = '',
   }) async {
     recorded.add(locationId);
+    movedIds.addAll(equipmentIds);
     return const [];
   }
 }
@@ -148,9 +153,13 @@ void main() {
     Future<
       ({_FakeLocations locations, _FakeMoves moves, _StatusNotifier status})
     >
-    pumpFlow(WidgetTester tester, {Buddy? lendTo}) async {
+    pumpFlow(
+      WidgetTester tester, {
+      Buddy? lendTo,
+      Map<String, EquipmentStatus> parts = const {},
+    }) async {
       final locations = _FakeLocations(annasPlace);
-      final moves = _FakeMoves();
+      final moves = _FakeMoves(parts: parts);
       final status = _StatusNotifier();
       await tester.pumpWidget(
         testApp(
@@ -226,6 +235,22 @@ void main() {
 
       expect(fakes.locations.calls, isEmpty);
       expect(fakes.moves.recorded, isEmpty);
+    });
+
+    testWidgets('a lend asks whether the parts go too', (tester) async {
+      final fakes = await pumpFlow(
+        tester,
+        lendTo: anna,
+        parts: const {'hood': EquipmentStatus.active},
+      );
+
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
+      expect(find.text('Move parts too?'), findsOneWidget);
+      await tester.tap(find.text('Move parts'));
+      await tester.pumpAndSettle();
+
+      expect(fakes.moves.movedIds, ['wet', 'hood']);
     });
 
     testWidgets('the picker path lends through the same steps', (tester) async {

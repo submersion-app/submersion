@@ -9,6 +9,11 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
@@ -725,6 +730,11 @@ void main() {
             ).overrideWith((ref) async => const BuddyStats(totalDives: 0)),
             diveIdsForBuddyProvider(buddy.id).overrideWith((ref) async => []),
             divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+            currentEquipmentLocationsProvider.overrideWith(
+              (ref) async => const <String, EquipmentLocation>{},
+            ),
+            activeEquipmentProvider.overrideWith((ref) async => const []),
+            allDiversProvider.overrideWith((ref) async => const []),
           ].cast(),
           child: MaterialApp(
             locale: const Locale('en'),
@@ -745,8 +755,10 @@ void main() {
 
         await tester.tap(find.byType(PopupMenuButton<String>));
         await tester.pumpAndSettle();
+        await tester.tap(find.text('Lend gear'));
+        await tester.pumpAndSettle();
 
-        expect(find.text('Lend gear'), findsOneWidget);
+        expect(find.byType(EquipmentPickerSheet), findsOneWidget);
       });
     }
   });

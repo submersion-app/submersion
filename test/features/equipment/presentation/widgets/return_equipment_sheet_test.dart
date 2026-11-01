@@ -45,14 +45,18 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
 
 class _StatusNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>>>
     implements EquipmentListNotifier {
-  _StatusNotifier() : super(const AsyncValue.data([]));
+  _StatusNotifier({this.failing = false}) : super(const AsyncValue.data([]));
+  final bool failing;
   final statuses = <EquipmentStatus>[];
 
   @override
   Future<void> setStatusForMany(
     List<String> ids,
     EquipmentStatus status,
-  ) async => statuses.add(status);
+  ) async {
+    if (failing) throw StateError('no');
+    statuses.add(status);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -118,9 +122,10 @@ void main() {
     List<EquipmentItem> items,
     Map<String, List<EquipmentLocationMove>> history, {
     bool failing = false,
+    bool statusFails = false,
   }) async {
     final moves = _FakeMoves(history, failing: failing);
-    final status = _StatusNotifier();
+    final status = _StatusNotifier(failing: statusFails);
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
@@ -199,6 +204,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(fakes.status.statuses, [EquipmentStatus.active]);
     expect(find.text('1 item returned'), findsOneWidget);
+  });
+
+  testWidgets('a picked day is the day recorded, at noon', (tester) async {
+    final fakes = await pump(
+      tester,
+      [wet],
+      {'wet': historyFrom('wet', 'shelf')},
+    );
+
+    await tester.tap(find.byKey(const ValueKey('return_equipment_date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Previous month'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('15'));
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.tap(confirm);
+    await tester.pumpAndSettle();
+
+    final now = DateTime.now();
+    expect(
+      fakes.moves.recorded.single.$2,
+      DateTime(now.year, now.month - 1, 15, 12),
+    );
+  });
+
+  testWidgets('a failed status write says so, and the return still counts', (
+    tester,
+  ) async {
+    final fakes = await pump(
+      tester,
+      [wet],
+      {'wet': historyFrom('wet', 'shelf')},
+      statusFails: true,
+    );
+
+    await tester.tap(confirm);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Update'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(fakes.moves.recorded, hasLength(1));
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('dismissing writes nothing', (tester) async {

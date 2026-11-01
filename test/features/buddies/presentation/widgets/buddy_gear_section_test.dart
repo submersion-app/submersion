@@ -5,6 +5,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
@@ -130,6 +132,9 @@ void main() {
           equipmentListNotifierProvider.overrideWith(
             (ref) => _StatusNotifier(),
           ),
+          activeEquipmentProvider.overrideWith((ref) async => items),
+          allDiversProvider.overrideWith((ref) async => const []),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
           for (final i in items)
             equipmentLocationMovesProvider(i.id).overrideWith(
               (ref) async => [
@@ -314,10 +319,13 @@ void main() {
     expect(allReturned, findsNothing);
   });
 
-  testWidgets('the header offers Lend gear', (tester) async {
+  testWidgets('the header\'s Lend gear opens the gear picker', (tester) async {
     await pump(tester, items: [item('a', 'Drysuit')], current: {'a': hers});
 
-    expect(find.text('Lend gear'), findsOneWidget);
+    await tester.tap(find.text('Lend gear'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EquipmentPickerSheet), findsOneWidget);
   });
 
   testWidgets('the Active prompt still shows once the row has left the list', (
