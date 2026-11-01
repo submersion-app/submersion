@@ -91,7 +91,10 @@ class QualityContextBuilder {
     _transmittersByDiver.clear();
     _profileCount = null;
     _diverNames = null;
-    final dives = await _diveRepo.getDivesByIds(diveIds);
+    // Sample-free, because _build reads the series the detectors want itself.
+    // A dive whose row leaves a value to its samples still gets the full read,
+    // so what a detector takes off the dive matches getDivesByIds (#3864).
+    final dives = await _diveRepo.getDivesByIdsWithoutSamples(diveIds);
     final out = <DiveQualityContext>[];
     for (final dive in dives) {
       out.add(await _build(dive, effectiveNow));

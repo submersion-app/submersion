@@ -55,6 +55,7 @@ void main() {
     int minutes, {
     List<ProfileSample>? samples,
     String diveMode = 'oc',
+    bool isPlanned = false,
   }) async {
     final startMs = start.millisecondsSinceEpoch;
     await db
@@ -67,6 +68,7 @@ void main() {
             exitTime: Value(startMs + minutes * 60000),
             runtime: Value(minutes * 60),
             diveMode: Value(diveMode),
+            isPlanned: Value(isPlanned),
             createdAt: Value(startMs),
             updatedAt: Value(startMs),
           ),
@@ -151,6 +153,21 @@ void main() {
         closeTo(CnsTable.cnsAfterSurfaceInterval(100, 50), 0.001),
       );
       expect(exposure.cnsIsMinimum, isTrue);
+    });
+
+    test('a plan never dived is no dive at all (#3924)', () async {
+      await seedKnownAndCurrent();
+      await seedDive('plan', middleStart, 10, isPlanned: true);
+
+      final exposure = await currentExposure(
+        containerFor(overrides: [knownCns100]),
+      );
+
+      expect(
+        exposure.cnsStart,
+        closeTo(CnsTable.cnsAfterSurfaceInterval(100, 60), 0.001),
+      );
+      expect(exposure.cnsIsMinimum, isFalse);
     });
 
     test('carries past a gauge dive', () async {
@@ -447,6 +464,13 @@ void main() {
       await seedDive('manual', middleStart, 10);
 
       await expectTissuesOffGassedFor(50, containerFor());
+    });
+
+    test('a plan never dived is no dive at all (#3924)', () async {
+      await seedDeepKnownAndCurrent();
+      await seedDive('plan', middleStart, 10, isPlanned: true);
+
+      await expectTissuesOffGassedFor(60, containerFor());
     });
 
     test('carries past a gauge dive', () async {

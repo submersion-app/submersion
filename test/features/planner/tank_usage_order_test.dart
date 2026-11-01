@@ -12,7 +12,11 @@ PlanTankUsage _usage(String id) => PlanTankUsage(
   reserveViolation: false,
 );
 
-PlanScheduleRow _row(String? tankId, {double depth = 10}) => PlanScheduleRow(
+PlanScheduleRow _row(
+  String? tankId, {
+  double depth = 10,
+  String? airBreakTankId,
+}) => PlanScheduleRow(
   kind: PlanScheduleRowKind.stop,
   depthMeters: depth,
   durationSeconds: 60,
@@ -21,6 +25,7 @@ PlanScheduleRow _row(String? tankId, {double depth = 10}) => PlanScheduleRow(
   gasFHe: 0,
   tankId: tankId,
   gasSwitch: false,
+  airBreakTankId: airBreakTankId,
 );
 
 PlanScheduleRow _foldedRow(String tankId, List<PlanFoldedTravel> legs) =>
@@ -71,6 +76,15 @@ void main() {
       [_row('back'), _row('back'), _row('stage'), _row('deco')],
     );
     expect(ordered.map((u) => u.tankId), ['back', 'stage', 'deco']);
+  });
+
+  test('a cylinder only ever breathed on an air break takes its place after '
+      'the stop gas', () {
+    final ordered = orderUsagesByFirstUse(
+      [_usage('unused'), _usage('break'), _usage('deco'), _usage('back')],
+      [_row('back'), _row('deco', airBreakTankId: 'break')],
+    );
+    expect(ordered.map((u) => u.tankId), ['back', 'deco', 'break', 'unused']);
   });
 
   test('tanks no row charges keep their relative order and follow at the '

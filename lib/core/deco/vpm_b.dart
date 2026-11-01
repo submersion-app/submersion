@@ -179,7 +179,7 @@ class VpmB implements DecoModel {
     BreathingConfig breathing,
   ) {
     _load(state as VpmBState);
-    final meanDepth = (segment.startDepth + segment.endDepth) / 2.0;
+    final meanDepth = segment.avgDepth;
     final gas = _gasFromBreathing(breathing, meanDepth);
     final durationMin = segment.durationSeconds / 60.0;
     if (segment.startDepth == segment.endDepth) {

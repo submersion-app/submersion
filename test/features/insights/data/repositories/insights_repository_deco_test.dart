@@ -131,9 +131,74 @@ void main() {
       final scan = await repo.scanRecordedDecoSignals();
 
       expect(scan.needsCompute.keys, {'bare'});
-      expect(scan.needsCompute['bare'], now);
+      // The dive's own stamp plus its one profile series.
+      expect(scan.needsCompute['bare'], now * 2);
       expect(scan.recordedNoDeco, isEmpty);
       expect(scan.noProfile, isEmpty);
+    });
+
+    group('the revision (#3924)', () {
+      Future<int> revision() async =>
+          (await repo.scanRecordedDecoSignals()).needsCompute['bare']!;
+
+      setUp(() async {
+        await dive('bare');
+        await profile('bare', [(0, 10.0, null, null)]);
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion(
+                id: const Value('earlier'),
+                diveDateTime: Value(
+                  now - const Duration(hours: 6).inMilliseconds,
+                ),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
+      });
+
+      test('moves with a write to a dive in the lookback', () async {
+        final before = await revision();
+
+        await db.customStatement(
+          "UPDATE dives SET updated_at = updated_at + 5 WHERE id = 'earlier'",
+        );
+
+        expect(await revision(), isNot(before));
+      });
+
+      test('moves on a write stamped older than the dive itself', () async {
+        await db.customStatement(
+          "UPDATE dives SET updated_at = $now + 1000 WHERE id = 'bare'",
+        );
+        final before = await revision();
+
+        await db.customStatement(
+          "UPDATE dives SET updated_at = updated_at - 5 WHERE id = 'earlier'",
+        );
+
+        expect(await revision(), isNot(before));
+      });
+
+      test('moves on a profile that does not re-stamp its dive', () async {
+        final before = await revision();
+
+        await profile('earlier', [(0, 10.0, null, null)]);
+
+        expect(await revision(), isNot(before));
+      });
+
+      test("moves on the dive's own profile too", () async {
+        final before = await revision();
+
+        await db.customStatement(
+          "UPDATE dive_profile_series SET updated_at = updated_at + 5 "
+          "WHERE dive_id = 'bare'",
+        );
+
+        expect(await revision(), isNot(before));
+      });
     });
 
     test('a dive with no profile is unclassifiable', () async {

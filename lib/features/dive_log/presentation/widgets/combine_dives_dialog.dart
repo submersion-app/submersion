@@ -63,7 +63,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// Selected primary dive id for the multi-computer consolidation panel.
   /// Null until the user picks one, in which case
   /// [DiveConsolidationBuilder.classify]/`build` default to the earliest
-  /// entry time.
+  /// logged dive.
   String? _selectedPrimaryId;
 
   /// Whether a non-overlapping selection may instead be merged as additional
@@ -487,8 +487,8 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
 
   /// An overlapping selection looks like the same physical dive recorded by
   /// more than one dive computer. Runs [DiveConsolidationBuilder.classify]
-  /// with the currently-selected primary (defaulting to the earliest entry
-  /// time) and renders either the mapped error text or the consolidation
+  /// with the currently-selected primary (defaulting to the earliest logged
+  /// dive) and renders either the mapped error text or the consolidation
   /// preview/selector/confirm panel.
   Widget _buildConsolidationPanel(BuildContext context) {
     // Always with a mode, so a selection that does not overlap (or only

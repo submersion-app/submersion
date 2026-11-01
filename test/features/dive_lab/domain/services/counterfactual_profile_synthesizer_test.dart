@@ -166,9 +166,10 @@ void main() {
     expect(r.gasSegments.last.setpoint, 0.7);
   });
 
-  test('a leg keeps one setpoint, chosen from its average depth', () {
-    // PlanEngine picks the loop setpoint per leg from the leg's average
-    // depth; the synthesized samples must not switch partway down a leg.
+  test('a leg changes setpoint where it crosses the switch', () {
+    // PlanEngine breathes each side of the switch on its own setpoint, however
+    // many waypoints draw the leg (#4009), and the remainder must load the
+    // same gas.
     final plan = domain.DivePlan(
       id: 'p',
       name: 'p',
@@ -180,6 +181,7 @@ void main() {
       mode: domain.PlanMode.ccr,
       setpointLow: 0.7,
       setpointHigh: 1.3,
+      setpointSwitchDepth: 30,
       segments: [
         PlanSegment.hold(
           id: 'a',
@@ -221,10 +223,12 @@ void main() {
         diluent: GasMix(o2: 21),
       ),
     );
-    // The 20 to 40 m leg averages exactly 30 m: not deeper than the switch
-    // depth, so it stays on the low setpoint until the hold begins at 120 s.
+    // The 20 to 40 m leg reaches 30 m halfway through its 120 s, with a sample
+    // there, even though the leg's own average is exactly the switch depth.
+    expect(r.gasSegments.first.setpoint, 0.7);
     final firstHigh = r.gasSegments.firstWhere((g) => g.setpoint == 1.3);
-    expect(firstHigh.startTimestamp, greaterThanOrEqualTo(120));
+    expect(firstHigh.startTimestamp, 60);
+    expect(r.depths[r.timestamps.indexOf(60)], 30);
   });
 
   test('a switch between two cylinders of the same mix is recorded', () {

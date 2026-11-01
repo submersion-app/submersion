@@ -67,6 +67,36 @@ void main() {
     },
   );
 
+  test(
+    'markFactsPendingForAll stamps only its group clock on every row',
+    () async {
+      await db.customStatement(
+        "INSERT INTO media (id, file_path, created_at, updated_at) "
+        "VALUES ('m2', '/y.jpg', 0, 0)",
+      );
+      await SyncRepository().markRecordPending(
+        entityType: 'media',
+        recordId: 'm2',
+        localUpdatedAt: 0,
+      );
+      final before = {'m1': await clocksOf('m1'), 'm2': await clocksOf('m2')};
+
+      await SyncRepository().markFactsPendingForAll(
+        entityType: 'media',
+        recordIds: ['m1', 'm2'],
+        localUpdatedAt: 1,
+        group: SyncFactGroups.mediaUpload,
+      );
+
+      for (final id in ['m1', 'm2']) {
+        final after = await clocksOf(id);
+        expect(after['hlc'], before[id]!['hlc']);
+        expect(after['verify'], before[id]!['verify']);
+        expect(after['upload']!.compareTo(before[id]!['hlc']!), greaterThan(0));
+      }
+    },
+  );
+
   test('markRecordPending can stamp fact clocks with the row clock', () async {
     await SyncRepository().markRecordPending(
       entityType: 'media',

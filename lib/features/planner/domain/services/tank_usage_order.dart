@@ -2,7 +2,8 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 
 /// Reorders per-tank usages so they read in the order the schedule actually
 /// breathes them: the first cylinder a row charges comes first, the next new
-/// one after it, and so on, travel folded into a row before the row itself.
+/// one after it, and so on: travel folded into a row first, then the row's
+/// own gas, then its air-break cylinder.
 /// Cylinders no row ever charges keep their original relative order and follow
 /// at the end.
 ///
@@ -24,6 +25,7 @@ List<PlanTankUsage> orderUsagesByFirstUse(
       if (leg.seconds > 0) note(leg.tankId);
     }
     note(row.tankId);
+    note(row.airBreakTankId);
   }
   if (rank.isEmpty) return usages;
   final indexed = usages.indexed.toList()
