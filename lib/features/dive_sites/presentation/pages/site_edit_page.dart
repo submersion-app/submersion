@@ -1239,10 +1239,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             // Only the first edit rebuilds this page, so the row follows the
             // coordinate fields itself.
             placeLookup: ListenableBuilder(
-              listenable: Listenable.merge([
-                _latitudeController,
-                _longitudeController,
-              ]),
+              listenable: _coordinateChanges,
               builder: (context, _) => PlaceLookupRow(
                 isBusy: _isGettingLocation,
                 onLookup: _parsedCoordinates() == null
@@ -1745,6 +1742,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
   bool _isGettingLocation = false;
 
+  late final Listenable _coordinateChanges = Listenable.merge([
+    _latitudeController,
+    _longitudeController,
+  ]);
+
   Future<void> _useMyLocation() async {
     setState(() => _isGettingLocation = true);
 
@@ -1875,6 +1877,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             languageCode: ref.read(placeNameLanguageProvider),
           );
       if (!mounted) return;
+      // The answer describes where the site was when the button was pressed.
+      if (_parsedCoordinates() != point) return;
       // The busy indicator must stop before any dialog waits for input.
       setState(() => _isGettingLocation = false);
 

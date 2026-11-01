@@ -241,6 +241,38 @@ void main() {
     expect(find.text('Weggis'), findsOneWidget);
   });
 
+  testWidgets('drops the answer when the coordinates changed meanwhile', (
+    tester,
+  ) async {
+    final seeded = await seedSite();
+    final gate = Completer<void>();
+    await pumpEditor(tester, seeded: seeded, lookupGate: gate.future);
+
+    await tester.tap(find.text(_lookupButton));
+    await tester.pump();
+
+    // The running spinner would keep pumpAndSettle from ever settling.
+    await tester.tap(find.text('Location'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(
+      find
+          .descendant(
+            of: find.byType(CoordinateFieldGroup),
+            matching: find.byType(TextFormField),
+          )
+          .first,
+      '10.5',
+    );
+    await tester.pump();
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Weggis'), findsNothing);
+    expect(find.text('Lake Lucerne'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
   testWidgets('fills the empty fields and saves them', (tester) async {
     final seeded = await seedSite();
     await pumpEditor(tester, seeded: seeded);
