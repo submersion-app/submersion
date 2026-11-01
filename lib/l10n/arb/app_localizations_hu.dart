@@ -52230,11 +52230,55 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Új forgatókönyv';
+  String get diveLab_compare_line_planned => 'Tervezett';
 
   @override
-  String get diveLab_section_hint =>
-      'Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.';
+  String get diveLab_compare_line_asDived => 'Ahogy merültél';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'Mi lenne, ha';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Max. mélység';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Fenékidő';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL a fenék elhagyásakor';
+
+  @override
+  String get diveLab_compare_row_deco => 'Dekó';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'még $minutes perc';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Dekó ekkortól: $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done elvégezve';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Nincs';
+
+  @override
+  String get diveLab_compare_empty => 'Még nincs mit összehasonlítani';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Mi lenne, ha kérdés';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Terv kapcsolása';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Terv leválasztása';
 
   @override
   String get diveLab_compare_waiting => 'Várakozás a merülésre';

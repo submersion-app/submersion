@@ -51393,11 +51393,55 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'תרחיש חדש';
+  String get diveLab_compare_line_planned => 'מתוכנן';
 
   @override
-  String get diveLab_section_hint =>
-      'הסתעפו מהצלילה בכל רגע והשוו מה היה קורה.';
+  String get diveLab_compare_line_asDived => 'כפי שבוצעה';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'מה אם';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'עומק מרבי';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'זמן קרקעית';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL בעזיבת הקרקעית';
+
+  @override
+  String get diveLab_compare_row_deco => 'דקו';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'נותרו $minutes דק׳';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'דקו ב-$time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, בוצעו $done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'אין';
+
+  @override
+  String get diveLab_compare_empty => 'אין עדיין מה להשוות';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'שאל מה אם';
+
+  @override
+  String get diveLab_compare_linkPlan => 'קישור תוכנית';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'ביטול קישור התוכנית';
 
   @override
   String get diveLab_compare_waiting => 'ממתין לצלילה';

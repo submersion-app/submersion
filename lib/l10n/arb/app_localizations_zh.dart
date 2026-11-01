@@ -49255,10 +49255,55 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => '新建情形';
+  String get diveLab_compare_line_planned => '计划';
 
   @override
-  String get diveLab_section_hint => '在任意时刻分支此次潜水，比较本可能发生的情况。';
+  String get diveLab_compare_line_asDived => '实际潜水';
+
+  @override
+  String get diveLab_compare_addWhatIf => '假设';
+
+  @override
+  String get diveLab_compare_row_maxDepth => '最大深度';
+
+  @override
+  String get diveLab_compare_row_bottomTime => '水底时间';
+
+  @override
+  String get diveLab_compare_row_ndl => '离开水底时的免减压时间';
+
+  @override
+  String get diveLab_compare_row_deco => '减压';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return '剩余 $minutes 分钟';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return '$time 进入减压';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required，已完成 $done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => '无';
+
+  @override
+  String get diveLab_compare_empty => '暂无可比较的内容';
+
+  @override
+  String get diveLab_compare_askWhatIf => '提出假设';
+
+  @override
+  String get diveLab_compare_linkPlan => '关联计划';
+
+  @override
+  String get diveLab_compare_unlinkPlan => '取消关联计划';
 
   @override
   String get diveLab_compare_waiting => '等待潜水';

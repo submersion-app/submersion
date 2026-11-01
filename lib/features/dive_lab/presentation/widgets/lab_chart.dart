@@ -12,6 +12,35 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// overlay (purple) so plan-vs-actual and what-if never collide.
 const Color kLabGhostColor = Colors.teal;
 
+/// [outcome]'s counterfactual from the branch on, as a chart overlay; null
+/// when too little of it remains to draw.
+ChartSourceOverlay? labWhatIfOverlay(
+  ScenarioOutcome outcome, {
+  required int branchSeconds,
+  required String sourceId,
+  required String name,
+  required Color color,
+  bool tintByMetric = true,
+}) {
+  final points = <DiveProfilePoint>[
+    for (var i = 0; i < outcome.counterfactualTimestamps.length; i++)
+      if (outcome.counterfactualTimestamps[i] >= branchSeconds)
+        DiveProfilePoint(
+          timestamp: outcome.counterfactualTimestamps[i],
+          depth: outcome.counterfactualDepths[i],
+        ),
+  ];
+  if (points.length < 2) return null;
+  return ChartSourceOverlay(
+    sourceId: sourceId,
+    name: name,
+    color: color,
+    computerId: null,
+    points: points,
+    tintByMetric: tintByMetric,
+  );
+}
+
 /// The dive's profile with the counterfactual drawn as a dashed ghost from
 /// the branch point and the branch marked by a vertical line. In replay
 /// mode the chart's ceiling band is the what-if's (same sample count); in
@@ -39,27 +68,15 @@ class LabChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final o = outcome;
-    final branch = branchSeconds ?? 0;
-    ChartSourceOverlay? ghost;
-    if (o != null) {
-      final points = <DiveProfilePoint>[
-        for (var i = 0; i < o.counterfactualTimestamps.length; i++)
-          if (o.counterfactualTimestamps[i] >= branch)
-            DiveProfilePoint(
-              timestamp: o.counterfactualTimestamps[i],
-              depth: o.counterfactualDepths[i],
-            ),
-      ];
-      if (points.length >= 2) {
-        ghost = ChartSourceOverlay(
-          sourceId: 'lab:draft',
-          name: l10n.diveLab_panel_whatIf,
-          color: kLabGhostColor,
-          computerId: null,
-          points: points,
-        );
-      }
-    }
+    final ghost = o == null
+        ? null
+        : labWhatIfOverlay(
+            o,
+            branchSeconds: branchSeconds ?? 0,
+            sourceId: 'lab:draft',
+            name: l10n.diveLab_panel_whatIf,
+            color: kLabGhostColor,
+          );
     final replay = o?.mode == ScenarioMode.replay;
     return DiveProfileChart(
       profile: inputs.profile,

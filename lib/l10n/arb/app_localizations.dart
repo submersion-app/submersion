@@ -83204,17 +83204,95 @@ abstract class AppLocalizations {
   /// **'Re-plan at {time}'**
   String diveLab_summary_replan(String time);
 
-  /// No description provided for @diveLab_section_new.
+  /// No description provided for @diveLab_compare_line_planned.
   ///
   /// In en, this message translates to:
-  /// **'New scenario'**
-  String get diveLab_section_new;
+  /// **'Planned'**
+  String get diveLab_compare_line_planned;
 
-  /// No description provided for @diveLab_section_hint.
+  /// No description provided for @diveLab_compare_line_asDived.
   ///
   /// In en, this message translates to:
-  /// **'Branch this dive at any moment and compare what would have happened.'**
-  String get diveLab_section_hint;
+  /// **'As dived'**
+  String get diveLab_compare_line_asDived;
+
+  /// No description provided for @diveLab_compare_addWhatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'What if'**
+  String get diveLab_compare_addWhatIf;
+
+  /// No description provided for @diveLab_compare_row_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get diveLab_compare_row_maxDepth;
+
+  /// No description provided for @diveLab_compare_row_bottomTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get diveLab_compare_row_bottomTime;
+
+  /// No description provided for @diveLab_compare_row_ndl.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL on leaving bottom'**
+  String get diveLab_compare_row_ndl;
+
+  /// No description provided for @diveLab_compare_row_deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco'**
+  String get diveLab_compare_row_deco;
+
+  /// No description provided for @diveLab_compare_ndlLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left'**
+  String diveLab_compare_ndlLeft(int minutes);
+
+  /// No description provided for @diveLab_compare_decoAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco at {time}'**
+  String diveLab_compare_decoAt(String time);
+
+  /// No description provided for @diveLab_compare_decoDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{required}, {done} done'**
+  String diveLab_compare_decoDone(String required, String done);
+
+  /// No description provided for @diveLab_compare_noDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get diveLab_compare_noDeco;
+
+  /// No description provided for @diveLab_compare_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to compare yet'**
+  String get diveLab_compare_empty;
+
+  /// No description provided for @diveLab_compare_askWhatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a what-if'**
+  String get diveLab_compare_askWhatIf;
+
+  /// No description provided for @diveLab_compare_linkPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a plan'**
+  String get diveLab_compare_linkPlan;
+
+  /// No description provided for @diveLab_compare_unlinkPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink plan'**
+  String get diveLab_compare_unlinkPlan;
 
   /// No description provided for @diveLab_compare_waiting.
   ///

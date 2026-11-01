@@ -52189,11 +52189,55 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Nieuw scenario';
+  String get diveLab_compare_line_planned => 'Gepland';
 
   @override
-  String get diveLab_section_hint =>
-      'Vertak deze duik op elk moment en vergelijk wat er gebeurd zou zijn.';
+  String get diveLab_compare_line_asDived => 'Zoals gedoken';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'Wat als';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Max. diepte';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Bodemtijd';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL bij verlaten bodem';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'nog $minutes min';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco vanaf $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done gedaan';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Geen';
+
+  @override
+  String get diveLab_compare_empty => 'Nog niets om te vergelijken';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Stel een wat-als';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Een plan koppelen';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Plan ontkoppelen';
 
   @override
   String get diveLab_compare_waiting => 'Wacht op de duik';

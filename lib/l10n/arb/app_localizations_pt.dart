@@ -52520,11 +52520,55 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Novo cenário';
+  String get diveLab_compare_line_planned => 'Planejado';
 
   @override
-  String get diveLab_section_hint =>
-      'Ramifique este mergulho em qualquer momento e compare o que teria acontecido.';
+  String get diveLab_compare_line_asDived => 'Como mergulhado';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'E se';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Prof. máx.';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Tempo de fundo';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL ao deixar o fundo';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'restam $minutes min';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco aos $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done feitos';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Nenhuma';
+
+  @override
+  String get diveLab_compare_empty => 'Ainda não há nada para comparar';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Fazer um e se';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Associar um plano';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Desassociar plano';
 
   @override
   String get diveLab_compare_waiting => 'À espera do mergulho';

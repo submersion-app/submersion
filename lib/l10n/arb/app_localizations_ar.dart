@@ -53132,11 +53132,55 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'سيناريو جديد';
+  String get diveLab_compare_line_planned => 'مخطط';
 
   @override
-  String get diveLab_section_hint =>
-      'تفرّع من هذه الغطسة في أي لحظة وقارن ما كان سيحدث.';
+  String get diveLab_compare_line_asDived => 'كما نُفذت';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'ماذا لو';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'أقصى عمق';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'زمن القاع';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL عند مغادرة القاع';
+
+  @override
+  String get diveLab_compare_row_deco => 'تخفيف الضغط';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'متبقي $minutes د';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'تخفيف الضغط عند $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required، تم $done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'لا يوجد';
+
+  @override
+  String get diveLab_compare_empty => 'لا يوجد ما تتم مقارنته بعد';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'اطرح سؤال ماذا لو';
+
+  @override
+  String get diveLab_compare_linkPlan => 'ربط خطة';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'إلغاء ربط الخطة';
 
   @override
   String get diveLab_compare_waiting => 'بانتظار الغطسة';

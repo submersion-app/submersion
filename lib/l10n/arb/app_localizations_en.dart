@@ -51693,11 +51693,55 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'New scenario';
+  String get diveLab_compare_line_planned => 'Planned';
 
   @override
-  String get diveLab_section_hint =>
-      'Branch this dive at any moment and compare what would have happened.';
+  String get diveLab_compare_line_asDived => 'As dived';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'What if';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Max depth';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Bottom time';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL on leaving bottom';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return '$minutes min left';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco at $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'None';
+
+  @override
+  String get diveLab_compare_empty => 'Nothing to compare yet';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Ask a what-if';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Link a plan';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Unlink plan';
 
   @override
   String get diveLab_compare_waiting => 'Waiting for the dive';
