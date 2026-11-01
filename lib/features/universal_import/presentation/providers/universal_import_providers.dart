@@ -949,16 +949,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       );
     }
 
-    await _installPayload(payload);
+    _installPayload(payload);
   }
 
   /// Makes [payload] the one the review steps act on, with every row
   /// selected. Shared by file parsing and [setExternalPayload] so both leave
   /// the notifier in the same state.
-  Future<void> _installPayload(
-    ImportPayload payload, {
-    int remotePhotoCount = 0,
-  }) async {
+  void _installPayload(ImportPayload payload, {int remotePhotoCount = 0}) {
     state = state.copyWith(
       isLoading: false,
       payload: payload,
@@ -991,7 +988,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       clearPhotoFolderPath: true,
       clearBundledPhotoFolderPath: true,
     );
-    await _installPayload(
+    _installPayload(
       _applySurfacingPressureRule(payload),
       remotePhotoCount: remotePhotoCount,
     );
