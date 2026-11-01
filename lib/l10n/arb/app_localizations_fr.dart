@@ -20870,6 +20870,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_site_clear => 'Effacer le site';
 
   @override
+  String get plannerSeries_unsaved_title => 'Enregistrer cette série ?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Cette série contient des modifications non enregistrées.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Abandonner';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count plongées';
   }

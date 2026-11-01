@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_series_dialog.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
@@ -299,13 +300,26 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           ),
         ],
       ),
-      body: PlanSeriesShortcuts(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
-            return _buildPhone(constraints);
-          },
+      // Leaving a series with unsaved changes asks first (issue #3565).
+      body: PopScope(
+        canPop: !(isDirty && ref.watch(planSeriesSavesAsSeriesProvider)),
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            logFailure(
+              _confirmLeavingSeries(),
+              _PlanCanvasPageState,
+              'leave an unsaved series',
+            );
+          }
+        },
+        child: PlanSeriesShortcuts(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
+              return _buildPhone(constraints);
+            },
+          ),
         ),
       ),
     );
@@ -683,7 +697,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       title: l10n.plannerCanvas_share_menu,
       savedMessage: l10n.plannerCanvas_share_saved,
       shareAnchor: shareAnchor,
-      build: () async => mounted ? planFileExport(ref) : null,
+      build: () async {
+        if (!mounted) return null;
+        if (!ref.read(planSeriesNotifierProvider).isSeries) {
+          return planFileExport(ref);
+        }
+        return seriesExport(await currentStoredSeries(ref.container));
+      },
     );
   }
 
@@ -898,6 +918,22 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmLeavingSeries() async {
+    final choice = await showUnsavedSeriesDialog(context);
+    if (!mounted) return;
+    switch (choice) {
+      case UnsavedSeriesChoice.save:
+        await _runSavePlan();
+        // The naming prompt can be cancelled, which leaves it unsaved.
+        if (!mounted || ref.read(planSeriesDirtyProvider)) return;
+      case UnsavedSeriesChoice.discard:
+        ref.read(divePlanNotifierProvider.notifier).newPlan();
+      case UnsavedSeriesChoice.cancel:
+        return;
+    }
+    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _deleteSeries(String seriesId) async {

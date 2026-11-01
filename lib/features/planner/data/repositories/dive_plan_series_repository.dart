@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' as db;
@@ -20,6 +21,7 @@ class DivePlanSeriesRepository {
   final DivePlanRepository _plans;
   final SyncRepository _syncRepository = SyncRepository();
   final _log = LoggerService.forClass(DivePlanSeriesRepository);
+  final _uuid = const Uuid();
 
   db.AppDatabase get _db => DatabaseService.instance.database;
 
@@ -198,6 +200,48 @@ class DivePlanSeriesRepository {
       diverId: row.diverId,
       followedDiveId: row.followedDiveId,
       dives: dives,
+    );
+  }
+
+  /// Copies the series [id] under a new name, with new ids throughout, and
+  /// the links between its dives moved to them. Returns the copy, or null when
+  /// the series does not exist.
+  Future<StoredSeries?> duplicateSeries(String id) async {
+    final source = await getSeries(id);
+    if (source == null) return null;
+    final name = '${source.name} (copy)';
+
+    final dives = <StoredSeriesDive>[];
+    var previousIds = const <String, String>{};
+    for (final dive in source.dives) {
+      final copy = await _plans.duplicatePlan(dive.plan.id);
+      if (copy == null) continue;
+      final ids = {
+        for (var t = 0; t < copy.tanks.length; t++)
+          dive.plan.tanks[t].id: copy.tanks[t].id,
+      };
+      dives.add(
+        dive.copyWith(
+          plan: copy.copyWith(name: name),
+          sourceTankIds: {
+            for (final e in dive.sourceTankIds.entries)
+              ?ids[e.key]: previousIds[e.value] ?? e.value,
+          },
+          pinnedTankIds: {
+            for (final tankId in dive.pinnedTankIds) ?ids[tankId],
+          },
+        ),
+      );
+      previousIds = ids;
+    }
+    return saveSeries(
+      StoredSeries(
+        id: _uuid.v4(),
+        name: name,
+        diverId: source.diverId,
+        followedDiveId: source.followedDiveId,
+        dives: dives,
+      ),
     );
   }
 

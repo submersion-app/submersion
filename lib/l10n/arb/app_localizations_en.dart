@@ -20501,6 +20501,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_site_clear => 'Clear the site';
 
   @override
+  String get plannerSeries_unsaved_title => 'Save this series?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'This series has changes that haven\'t been saved.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Discard';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count dives';
   }

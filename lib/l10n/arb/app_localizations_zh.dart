@@ -19796,6 +19796,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_site_clear => '清除潜点';
 
   @override
+  String get plannerSeries_unsaved_title => '保存此系列？';
+
+  @override
+  String get plannerSeries_unsaved_body => '此系列有未保存的更改。';
+
+  @override
+  String get plannerSeries_unsaved_discard => '放弃';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count 次潜水';
   }

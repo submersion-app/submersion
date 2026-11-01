@@ -105,6 +105,32 @@ void main() {
     expect(await plans.getPlan('b'), isNull);
   });
 
+  test('a duplicate has new ids, with its links moved to them', () async {
+    await repo.saveSeries(twoDives());
+
+    final copy = (await repo.duplicateSeries('s1'))!;
+
+    expect(copy.id, isNot('s1'));
+    expect(copy.name, 'Reef day (copy)');
+    expect(copy.dives, hasLength(2));
+    final a = copy.dives[0].plan;
+    final b = copy.dives[1];
+    expect(a.id, isNot('a'));
+    expect(a.name, 'Reef day (copy)');
+    expect(b.sourceTankIds, {
+      b.plan.tanks[0].id: a.tanks[0].id,
+      b.plan.tanks[1].id: a.tanks[1].id,
+    });
+    expect(b.pinnedTankIds, {b.plan.tanks[1].id});
+    // The original is untouched, and the copy reads back the same.
+    expect((await repo.getSeries('s1'))!.dives.first.plan.id, 'a');
+    expect((await repo.getSeries(copy.id))!.dives, hasLength(2));
+  });
+
+  test('duplicating a series that is gone gives nothing', () async {
+    expect(await repo.duplicateSeries('missing'), isNull);
+  });
+
   test('a followed dive that is gone is dropped, not a failed save', () async {
     final stored = await repo.saveSeries(
       twoDives().copyWith(followedDiveId: 'gone'),

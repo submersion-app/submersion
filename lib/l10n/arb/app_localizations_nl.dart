@@ -20678,6 +20678,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_site_clear => 'Duikstek wissen';
 
   @override
+  String get plannerSeries_unsaved_title => 'Deze reeks opslaan?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Deze reeks heeft niet-opgeslagen wijzigingen.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Verwerpen';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count duiken';
   }

@@ -27,6 +27,8 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
   final repository = ref.watch(diveRepositoryProvider);
   var dives = await ref.watch(divesProvider.future);
   if (!dives.any((dive) => dive.id == diveId)) {
+    // Another diver's dive, which divesProvider neither holds nor refreshes.
+    ref.invalidateSelfWhen(repository.watchDivesChanges());
     final dive = await repository.getDiveById(diveId);
     if (dive == null) return null;
     dives = await repository.getAllDives(diverId: dive.diverId);

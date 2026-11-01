@@ -20349,6 +20349,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_site_clear => 'ניקוי האתר';
 
   @override
+  String get plannerSeries_unsaved_title => 'לשמור את הסדרה?';
+
+  @override
+  String get plannerSeries_unsaved_body => 'בסדרה זו יש שינויים שלא נשמרו.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'ביטול שינויים';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count צלילות';
   }

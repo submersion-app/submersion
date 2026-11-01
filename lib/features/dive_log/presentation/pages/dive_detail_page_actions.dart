@@ -108,13 +108,29 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     openDivePlanner(context);
   }
 
-  /// Whether the plan being edited may go, asking as Reset does when it holds
-  /// unsaved work. A series always does: it cannot be saved yet.
+  /// Whether a series with unsaved changes may go, saved or discarded.
+  Future<bool> _confirmReplacingSeries() async {
+    final choice = await showUnsavedSeriesDialog(context);
+    if (!mounted) return false;
+    switch (choice) {
+      case UnsavedSeriesChoice.save:
+        await saveCurrentSeries(ref.container);
+        return mounted;
+      case UnsavedSeriesChoice.discard:
+        return true;
+      case UnsavedSeriesChoice.cancel:
+        return false;
+    }
+  }
+
+  /// Whether the plan being edited may go, asking when it holds unsaved work:
+  /// a series with the chance to save it, a single plan as Reset does.
   Future<bool> _confirmReplacingPlan() async {
-    final unsaved =
-        ref.read(divePlanNotifierProvider).isDirty ||
-        ref.read(planSeriesNotifierProvider).isSeries;
-    if (!unsaved) return true;
+    final series = ref.read(planSeriesNotifierProvider);
+    if (series.savesAsSeries) {
+      return series.isDirty ? _confirmReplacingSeries() : true;
+    }
+    if (!ref.read(divePlanNotifierProvider).isDirty) return true;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(

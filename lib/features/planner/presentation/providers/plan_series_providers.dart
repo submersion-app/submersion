@@ -376,6 +376,11 @@ final planConvertAllowedProvider = Provider<bool>((ref) {
   return !series.savesAsSeries;
 });
 
+/// Whether the plan saves as a series rather than an ordinary plan.
+final planSeriesSavesAsSeriesProvider = Provider<bool>(
+  (ref) => ref.watch(planSeriesNotifierProvider.select((s) => s.savesAsSeries)),
+);
+
 /// Whether anything in the series has changed since it was saved or opened,
 /// on any dive, not only the one in the editor.
 final planSeriesDirtyProvider = Provider<bool>(

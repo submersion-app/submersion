@@ -27,6 +27,24 @@ final divePlanSeriesRepositoryProvider = Provider<DivePlanSeriesRepository>(
 Future<void> saveCurrentSeries(ProviderContainer container) async {
   final notifier = container.read(planSeriesNotifierProvider.notifier);
   final repository = container.read(divePlanSeriesRepositoryProvider);
+  final series = container.read(planSeriesNotifierProvider);
+
+  final stored = await repository.saveSeries(
+    await currentStoredSeries(container),
+  );
+  if (!notifier.mounted) return;
+  notifier.loadSeries(
+    _toSeries(
+      stored,
+      // A followed dive deleted since it was followed has gone from the row.
+      follow: stored.followedDiveId == null ? null : series.follow,
+      selectedIndex: series.selectedIndex,
+    ),
+  );
+}
+
+/// The series in the editor as it would be stored, for saving or sharing.
+Future<StoredSeries> currentStoredSeries(ProviderContainer container) async {
   final plans = container.read(divePlanRepositoryProvider);
   final series = container.read(planSeriesNotifierProvider);
   final results = container.read(planSeriesResultsProvider);
@@ -53,23 +71,12 @@ Future<void> saveCurrentSeries(ProviderContainer container) async {
     );
   }
 
-  final stored = await repository.saveSeries(
-    StoredSeries(
-      id: series.id ?? const Uuid().v4(),
-      name: series.dives.first.state.name,
-      diverId: container.read(currentDiverIdProvider),
-      followedDiveId: series.follow?.followed.id,
-      dives: dives,
-    ),
-  );
-  if (!notifier.mounted) return;
-  notifier.loadSeries(
-    _toSeries(
-      stored,
-      // A followed dive deleted since it was followed has gone from the row.
-      follow: stored.followedDiveId == null ? null : series.follow,
-      selectedIndex: series.selectedIndex,
-    ),
+  return StoredSeries(
+    id: series.id ?? const Uuid().v4(),
+    name: series.dives.first.state.name,
+    diverId: container.read(currentDiverIdProvider),
+    followedDiveId: series.follow?.followed.id,
+    dives: dives,
   );
 }
 

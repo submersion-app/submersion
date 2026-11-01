@@ -8,8 +8,10 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
@@ -28,6 +30,8 @@ import 'trip_seeder.dart';
 /// Dive plans (an open-circuit deco plan, a rebreather plan and a scooter
 /// mission), checklists before a dive and before a trip, and travel
 /// documents.
+final _seriesDate = DateTime.utc(2026, 1, 10);
+
 class PlanningSeeder implements DemoSeeder {
   @override
   String get name => 'plans, checklists and documents';
@@ -39,8 +43,78 @@ class PlanningSeeder implements DemoSeeder {
     await _documents(ctx);
   }
 
+  /// A day of three repetitive dives, each carrying from the one before.
+  Future<void> _series(DivePlanRepository plans) async {
+    DivePlan dive(String id, double depth, int minutes, Duration? interval) {
+      final tank = DiveTank(
+        id: 'demo-series-tank-$id',
+        volume: 11.1,
+        workingPressure: 207,
+        startPressure: 200,
+        gasMix: const GasMix(o2: 32),
+        role: TankRole.backGas,
+      );
+      return DivePlan(
+        id: 'demo-series-dive-$id',
+        name: 'Saturday reef day',
+        createdAt: _seriesDate,
+        updatedAt: _seriesDate,
+        surfaceInterval: interval,
+        tanks: [tank],
+        segments: [
+          PlanSegment.travel(
+            id: 'demo-series-descent-$id',
+            fromDepth: 0,
+            targetDepth: depth,
+            tankId: tank.id,
+            gasMix: tank.gasMix,
+            order: 0,
+            ratePerMinute: 18,
+          ),
+          PlanSegment.hold(
+            id: 'demo-series-bottom-$id',
+            depth: depth,
+            durationMinutes: minutes,
+            tankId: tank.id,
+            gasMix: tank.gasMix,
+            order: 1,
+          ),
+        ],
+      );
+    }
+
+    await DivePlanSeriesRepository(plans: plans).saveSeries(
+      StoredSeries(
+        id: 'demo-series-reef-day',
+        name: 'Saturday reef day',
+        dives: [
+          StoredSeriesDive(
+            plan: dive('a', 25, 30, null),
+            name: 'North wall',
+            summaryMaxDepth: 25,
+            summaryRuntimeSeconds: 2520,
+          ),
+          StoredSeriesDive(
+            plan: dive('b', 18, 40, const Duration(hours: 1, minutes: 30)),
+            name: 'Coral garden',
+            sourceTankIds: const {'demo-series-tank-b': 'demo-series-tank-a'},
+            summaryMaxDepth: 18,
+            summaryRuntimeSeconds: 2880,
+          ),
+          StoredSeriesDive(
+            plan: dive('c', 12, 45, const Duration(hours: 2)),
+            sourceTankIds: const {'demo-series-tank-c': 'demo-series-tank-b'},
+            summaryMaxDepth: 12,
+            summaryRuntimeSeconds: 3000,
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _plans(DemoSeedContext ctx) async {
     final plans = DivePlanRepository();
+    await _series(plans);
     // The deepest home wreck the diver has dived, planned again on trimix.
     final wreck = ctx.plan.dives
         .where((d) => d.destination.key == 'home')

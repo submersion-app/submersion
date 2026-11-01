@@ -104,6 +104,28 @@ with.
 Convert to dive stays off for a series, or a plan following a dive, until the
 update of planned dives in the log is built.
 
+**The saved plans list** shows a series as one row with its dive count, deepest
+depth and total runtime, and each dive on a line that opens the series on it.
+Rename, Duplicate, Share and Delete act on the whole series. Compare stays on
+single plans: a series' later dives depend on the dives before them. A single
+dive that follows a logged dive is saved as a series but reads as one plan, and
+is shared as one.
+
+**Leaving** the planner, or replacing the plan with "Plan repetitive dive",
+with unsaved series changes asks: Save, Discard or Cancel. A series with nothing
+to save goes without asking.
+
+**A `.subplan` file** at version 4 holds a series: each dive's plan, name and
+interval, its setting overrides, and which tank of the dive before each tank
+carries from, by position. The followed dive and start times stay out: the
+dive is in the sender's log, and a start belongs to the sender's day. Older
+installs refuse the file rather than open one dive as if it stood alone. A
+single dive is still written as version 2 or 3.
+
+**Across profiles**, saved plans aren't scoped to a diver yet (#4074). A plan
+following another diver's dive still finds that dive, so it carries the same
+load, and a series keeps the diver who first saved it.
+
 ## Phase 4 behaviour
 
 - **Follow or replan.** Until phase 4, `sourceDiveId` named both the dive a
