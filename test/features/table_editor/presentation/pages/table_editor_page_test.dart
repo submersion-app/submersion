@@ -11,7 +11,12 @@ import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_servic
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/table_editor/entities/site_table_editor_entity.dart';
+import 'package:flutter/services.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -66,6 +71,7 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     Size size = const Size(1200, 800),
+    List<SiteWithCount> sites = const [],
   }) async {
     // The width gate reads MediaQuery, which follows the view, not the
     // test surface.
@@ -120,7 +126,15 @@ void main() {
           tableEditorDiveEntityProvider.overrideWithValue(
             AsyncValue.data(entity),
           ),
-          tableEditorSitesProvider.overrideWithValue(const AsyncValue.data([])),
+          tableEditorSitesProvider.overrideWithValue(AsyncValue.data(sites)),
+          tableEditorSiteEntityProvider.overrideWithValue(
+            AsyncValue.data(
+              SiteTableEditorEntity(
+                repo: SiteRepository(),
+                editableLibrarySites: const {},
+              ),
+            ),
+          ),
           tableEditorCentersProvider.overrideWithValue(
             const AsyncValue.data([]),
           ),
@@ -312,5 +326,122 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.forms_discard_title), findsOneWidget);
+  });
+
+  group('toolbar', () {
+    void mockClipboard(String text) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+            if (call.method == 'Clipboard.getData') return {'text': text};
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+    }
+
+    testWidgets('Paste lands a numbered block as drafts and the summary '
+        'names the matching', (tester) async {
+      mockClipboard('2\t12\n1\t14\n');
+      await pumpPage(tester);
+      // Select a cell without typing: Escape closes it, the selection stays.
+      await tester.tap(find.text(vis(15)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+
+      await tester.tap(find.byTooltip(l10n.tableEditor_paste));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.tableEditor_draftCount(2)), findsOneWidget);
+      await tester.tap(
+        find.widgetWithText(FilledButton, l10n.tableEditor_saveAll),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text(l10n.tableEditor_summary_matching_number),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Undo after Save all restores the value', (tester) async {
+      await pumpPage(tester);
+      await draftVisibility(tester, '12');
+      await tester.tap(
+        find.widgetWithText(FilledButton, l10n.tableEditor_saveAll),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(FilledButton, l10n.tableEditor_saveAll).last,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(
+        (await diveRepo.getDivesByIdsWithoutSamples([
+          'd1',
+        ])).single.visibilityMeters,
+        12,
+      );
+
+      await tester.tap(find.text(l10n.tableEditor_undo));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(
+        (await diveRepo.getDivesByIdsWithoutSamples([
+          'd1',
+        ])).single.visibilityMeters,
+        15,
+      );
+      expect(find.text(l10n.tableEditor_undoneAll), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('Clear filters appears with an active dive filter and '
+        'resets it', (tester) async {
+      await pumpPage(tester);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TableEditorPage)),
+      );
+      container
+          .read(tableEditorDiveFilterProvider.notifier)
+          .state = DiveFilterState(
+        query: ConditionNode(FieldPath(const ['notes']), QueryOp.isEmpty, null),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.tableEditor_clearFilters), findsOneWidget);
+
+      await tester.tap(find.text(l10n.tableEditor_clearFilters));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.tableEditor_clearFilters), findsNothing);
+      expect(container.read(tableEditorDiveFilterProvider).query, isNull);
+    });
+
+    testWidgets('the Sites tab shows its rows and opens a cell', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        sites: const [
+          SiteWithDiveCount(
+            site: DiveSite(id: 's1', name: 'Reef', country: 'Mexico'),
+            diveCount: 3,
+          ),
+        ],
+      );
+      await tester.tap(find.text(l10n.tableEditor_tab_sites));
+      await tester.pumpAndSettle();
+      expect(find.text('Reef'), findsOneWidget);
+
+      await tester.tap(find.text('Reef'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(TextField), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Blue Hole');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(find.text(l10n.tableEditor_draftCount(1)), findsOneWidget);
+    });
   });
 }

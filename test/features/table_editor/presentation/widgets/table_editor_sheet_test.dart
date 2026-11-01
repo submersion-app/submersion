@@ -365,4 +365,47 @@ void main() {
       expect(draft, isNull); // true again equals the remembered original
     },
   );
+
+  group('choice and keyboard', () {
+    final choiceConfig = EntityTableViewConfig<DiveField>(
+      columns: [
+        EntityTableColumnConfig(field: DiveField.diveNumber, isPinned: true),
+        EntityTableColumnConfig(field: DiveField.visibility),
+        EntityTableColumnConfig(field: DiveField.waterType),
+      ],
+    );
+
+    testWidgets('a choice cell opens a pulldown and selecting commits', (
+      tester,
+    ) async {
+      await pumpSheet(tester, sheetConfig: choiceConfig);
+      await tapCell(tester, find.text('--').first);
+      expect(find.byType(DropdownMenu<String?>), findsOneWidget);
+
+      await tester.tap(find.byType(DropdownMenu<String?>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(MenuItemButton, 'Salt Water').last);
+      await tester.pumpAndSettle();
+
+      expect(draftOf(tester, 'd1', DiveField.waterType)?.value, 'salt');
+      expect(find.text('Salt Water'), findsOneWidget);
+    });
+
+    testWidgets('Tab commits and moves to the next editable cell', (
+      tester,
+    ) async {
+      await pumpSheet(tester, sheetConfig: choiceConfig);
+      await tapCell(tester, cell(vis(15)));
+      await tester.enterText(find.byType(TextField), '12');
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+
+      expect(draftOf(tester, 'd1', DiveField.visibility)?.value, 12.0);
+      final state = containerOf(
+        tester,
+      ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+      expect(state.editing, CellPosition('d1', DiveField.waterType.name));
+      expect(find.byType(DropdownMenu<String?>), findsOneWidget);
+    });
+  });
 }
