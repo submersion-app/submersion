@@ -747,5 +747,11 @@ extension RungsFromV231 on AppDatabase {
     // for (issue #3790). Column only, no backfill; re-asserted in beforeOpen.
     if (from < 334) await _assertEquipmentLocationBuddyColumn();
     if (from < 334) await reportProgress();
+
+    // v335: nav_tracks.scale_factor (issue #3823). Column only; the default
+    // gives every existing track 100%. Re-asserted in beforeOpen through
+    // _assertNavTracksSchema.
+    if (from < 335) await _assertNavTrackScaleFactorColumn();
+    if (from < 335) await reportProgress();
   }
 }

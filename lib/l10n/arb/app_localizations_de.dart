@@ -24729,6 +24729,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kurskorrektur in Grad';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Track-Skalierungsfaktor';
+
+  @override
   String get settings_conflict_field_height => 'Höhe in Pixeln';
 
   @override
@@ -35612,6 +35615,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Der Tauchcomputer wurde verbunden, hat aber vor dem Start des Downloads nicht mehr geantwortet. Meist ist die Bluetooth-Kopplung veraltet: Entfernen Sie den Tauchcomputer in den Bluetooth-Einstellungen Ihres Geräts und versuchen Sie es erneut.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Dieser Tauchcomputer wurde über Bluetooth LE nicht gefunden. Schalten Sie seinen Bluetooth-Modus ein und suchen Sie erneut. Wenn er in den Bluetooth-Einstellungen Ihres Geräts aufgeführt ist, entfernen Sie ihn dort zuerst: Möglicherweise ist er dort nur als klassisches Bluetooth-Gerät bekannt.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Ihr Gerät kommuniziert erst mit diesem Tauchcomputer, wenn beide gekoppelt sind. Schalten Sie den Bluetooth-Modus des Tauchcomputers ein, koppeln Sie ihn in den Bluetooth-Einstellungen Ihres Geräts und versuchen Sie es erneut.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'Der Tauchcomputer hat über Bluetooth nicht geantwortet. Prüfen Sie, ob sein Bluetooth-Modus noch eingeschaltet ist und er sich nahe an Ihrem Gerät befindet, und versuchen Sie es erneut.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -54871,6 +54886,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Drehung:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Skalierung:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'Das Ende ist festgelegt und bestimmt damit die Größe des Tracks. Die Skalierung ändert nur den Verlauf dazwischen.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Ziehen, um die Größe des Tracks zu ändern';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -54923,6 +54949,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Noch keine Korrektur angewendet.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Track-Skalierung: $percent %';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

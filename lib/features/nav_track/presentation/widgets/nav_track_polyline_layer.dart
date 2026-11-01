@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
@@ -65,6 +66,29 @@ List<NavTrackDrawnSample> navTrackDrawnSamples(NavTrack route) {
 List<LatLng> navTrackDrawnPoints(NavTrack route) => [
   for (final sample in navTrackDrawnSamples(route)) sample.latLng,
 ];
+
+/// How to frame anchored [route] on a map.
+///
+/// Fits the whole drawn route rather than a fixed zoom on the anchor alone:
+/// centering on only the start point left most of a long route off-screen.
+/// TrackCamera (shared with the Tracks overview map) falls back to a centre
+/// and zoom for a route crossing the antimeridian, which a raw
+/// LatLngBounds.fromPoints cannot express at all (flutter_map asserts east <=
+/// 180). The anchor at a fixed zoom covers the rare route with fewer than two
+/// drawable points.
+TrackCamera navTrackCamera(
+  NavTrack route, {
+  required EdgeInsets padding,
+  required double maxZoom,
+}) {
+  final drawn = navTrackDrawnPoints(route);
+  final fitted = drawn.length >= 2
+      ? TrackCamera.forLatLngs(drawn, padding: padding, maxZoom: maxZoom)
+      : null;
+  final anchor = route.anchor!;
+  return fitted ??
+      TrackCamera(center: LatLng(anchor.latitude, anchor.longitude), zoom: 15);
+}
 
 /// Draws a route on a flutter_map map, depth-coloured and thinner than
 /// `GpsTrackPolylineLayer` (spec 2026-09-10-underwater-nav-track-design.md,

@@ -24777,6 +24777,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Correzione di rotta in gradi';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'Fattore di scala della traccia';
+
+  @override
   String get settings_conflict_field_height => 'Altezza in pixel';
 
   @override
@@ -35691,6 +35695,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Connessione al computer subacqueo riuscita, ma ha smesso di rispondere prima dell\'avvio del download. Di solito significa che l\'associazione Bluetooth non è più valida: dimentica il computer subacqueo nelle impostazioni Bluetooth del tuo dispositivo e riprova.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Impossibile trovare questo computer subacqueo tramite Bluetooth LE. Attiva la sua modalità Bluetooth e ripeti la ricerca. Se compare nelle impostazioni Bluetooth del tuo dispositivo, rimuovilo prima da lì: potrebbe essere noto solo come dispositivo Bluetooth classico.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Il tuo dispositivo non comunicherà con questo computer subacqueo finché non saranno associati. Attiva la modalità Bluetooth del computer subacqueo, associalo nelle impostazioni Bluetooth del tuo dispositivo e riprova.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'Il computer subacqueo non ha risposto tramite Bluetooth. Verifica che la sua modalità Bluetooth sia ancora attiva e che sia vicino al tuo dispositivo, quindi riprova.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -54996,6 +55012,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotazione:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Scala:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'La fine è fissata, quindi determina le dimensioni della traccia. La scala modifica solo la forma della traccia intermedia.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Trascina per ridimensionare la traccia';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55048,6 +55075,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Nessuna correzione applicata ancora.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Scala della traccia: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

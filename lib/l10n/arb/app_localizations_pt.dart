@@ -24764,6 +24764,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Correção de rumo em graus';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Fator de escala da trilha';
+
+  @override
   String get settings_conflict_field_height => 'Altura em pixels';
 
   @override
@@ -35669,6 +35672,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Ligou-se ao computador de mergulho, mas ele deixou de responder antes de a transferência começar. Normalmente isto significa que o emparelhamento Bluetooth está desatualizado: esqueça o computador de mergulho nas definições de Bluetooth do seu dispositivo e tente novamente.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Não foi possível encontrar este computador de mergulho por Bluetooth LE. Ative o modo Bluetooth e pesquise novamente. Se aparecer nas definições de Bluetooth do seu dispositivo, remova-o primeiro daí: pode ser conhecido apenas como dispositivo Bluetooth clássico.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'O seu dispositivo só comunicará com este computador de mergulho depois de emparelhados. Ative o modo Bluetooth do computador de mergulho, emparelhe-o nas definições de Bluetooth do seu dispositivo e tente novamente.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'O computador de mergulho não respondeu por Bluetooth. Verifique se o modo Bluetooth ainda está ativo e se está perto do seu dispositivo, e tente novamente.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -54989,6 +55004,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotação:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Escala:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'O fim está fixado e, por isso, define o tamanho da trilha. A escala só altera a forma da trilha entre os pontos.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Arraste para redimensionar a trilha';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55040,6 +55066,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Nenhuma correção aplicada ainda.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Escala da trilha: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

@@ -22,18 +22,17 @@ import 'package:submersion/features/maps/presentation/widgets/submersion_tile_la
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
-import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_correction_card.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
 import 'package:submersion/features/tracks/presentation/track_item_location.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -264,16 +263,6 @@ class NavTrackDetailPage extends ConsumerWidget {
         );
   }
 
-  String _correctionStatus(AppLocalizations l10n, NavTrack route) {
-    return switch (route.endMode) {
-      NavTrackEndMode.none => l10n.navTrack_detail_correctionStatus_none,
-      NavTrackEndMode.sameAsStart =>
-        l10n.navTrack_detail_correctionStatus_sameAsStart,
-      NavTrackEndMode.point => l10n.navTrack_detail_correctionStatus_point,
-      NavTrackEndMode.gpsFix => l10n.navTrack_detail_correctionStatus_gpsFix,
-    };
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final routeAsync = ref.watch(navTrackByIdProvider(trackId));
@@ -385,27 +374,7 @@ class NavTrackDetailPage extends ConsumerWidget {
                 onChangeDevice: () => _changeDevice(context, ref, route),
               ),
               const SizedBox(height: 16),
-              Card(
-                key: const ValueKey('nav-track-correction-status'),
-                clipBehavior: Clip.antiAlias,
-                // Opens the same alignment page as the AppBar's tune icon
-                // (#4023): the status it summarizes is what that page sets.
-                child: InkWell(
-                  onTap: () =>
-                      context.push(underwaterTrackAlignLocation(route.id)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.tune, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(_correctionStatus(l10n, route))),
-                        const Icon(Icons.chevron_right),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              NavTrackCorrectionCard(route: route),
               const SizedBox(height: 16),
               SizedBox(
                 height: 220,
@@ -444,29 +413,8 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
   final _controller = MapController();
   late TrackCamera _camera = _cameraFor(widget.route);
 
-  /// Fits the whole drawn route rather than a fixed zoom on the anchor
-  /// alone: centering on only the start point left most of a long route
-  /// off-screen. TrackCamera (shared with the Tracks overview map) falls
-  /// back to a centre and zoom for a route crossing the antimeridian, which
-  /// a raw LatLngBounds.fromPoints cannot express at all (flutter_map
-  /// asserts east <= 180). The anchor at a fixed zoom covers the rare route
-  /// with fewer than two drawable points.
-  static TrackCamera _cameraFor(NavTrack route) {
-    final drawn = navTrackDrawnPoints(route);
-    final fitted = drawn.length >= 2
-        ? TrackCamera.forLatLngs(
-            drawn,
-            padding: const EdgeInsets.all(32),
-            maxZoom: 17,
-          )
-        : null;
-    final anchor = route.anchor!;
-    return fitted ??
-        TrackCamera(
-          center: LatLng(anchor.latitude, anchor.longitude),
-          zoom: 15,
-        );
-  }
+  static TrackCamera _cameraFor(NavTrack route) =>
+      navTrackCamera(route, padding: const EdgeInsets.all(32), maxZoom: 17);
 
   /// What the drawn route's extent depends on. Everything else (a rename,
   /// a dive link) leaves the diver's own pan and zoom alone.
@@ -476,6 +424,7 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
     route.endPoint,
     route.trustFraction,
     route.headingOffsetDeg,
+    route.scaleFactor,
     route.points.length,
   );
 

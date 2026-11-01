@@ -24173,6 +24173,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => 'תיקון כיוון במעלות';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'מקדם קנה המידה של המסלול';
+
+  @override
   String get settings_conflict_field_height => 'גובה בפיקסלים';
 
   @override
@@ -34796,6 +34799,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'ההתחברות למחשב הצלילה הצליחה, אך הוא הפסיק להגיב לפני תחילת ההורדה. בדרך כלל המשמעות היא שהתאמת ה-Bluetooth אינה עדכנית: שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'מחשב הצלילה הזה לא נמצא ב-Bluetooth LE. הפעל את מצב ה-Bluetooth שלו וסרוק שוב. אם הוא מופיע בהגדרות ה-Bluetooth של המכשיר שלך, הסר אותו משם תחילה: ייתכן שהוא מוכר שם רק כמכשיר Bluetooth קלאסי.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'המכשיר שלך לא יתקשר עם מחשב הצלילה הזה עד שהם יותאמו. הפעל את מצב ה-Bluetooth של מחשב הצלילה, התאם אותו בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'מחשב הצלילה לא ענה דרך Bluetooth. ודא שמצב ה-Bluetooth שלו עדיין פעיל ושהוא קרוב למכשיר שלך, ונסה שוב.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -53803,6 +53818,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'סיבוב:';
 
   @override
+  String get navTrack_align_scaleLabel => 'קנה מידה:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'הסוף מקובע ולכן הוא קובע את גודל המסלול. קנה המידה משנה רק את צורת הדרך שביניהם.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel => 'גררו כדי לשנות את גודל המסלול';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -53853,6 +53878,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_detail_correctionStatus_none => 'טרם הוחל תיקון.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'קנה מידה של המסלול: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

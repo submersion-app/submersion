@@ -579,6 +579,7 @@ class NavTrackRepository {
           endLongitude: Value(correction.endPoint?.longitude),
           trustFraction: Value(correction.trustFraction),
           headingOffsetDeg: Value(correction.headingOffsetDeg),
+          scaleFactor: Value(correction.scaleFactor),
           updatedAt: Value(now),
         ),
       );
@@ -1050,6 +1051,7 @@ class NavTrackRepository {
       endLongitude: row.endLongitude,
       trustFraction: row.trustFraction,
       headingOffsetDeg: row.headingOffsetDeg,
+      scaleFactor: row.scaleFactor,
       sourceMetadata: decodeNavTrackSourceMetadata(row.sourceMetadata),
       points: includePoints
           ? _decodePointsOrNull(row.id, row.points) ?? const []

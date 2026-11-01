@@ -1019,6 +1019,84 @@ void main() {
       expect(find.text('Failed to connect to device'), findsNothing);
     });
 
+    // Issue #4094: Windows used to report every BLE connect failure as the
+    // same "Failed to connect to device", so a Petrel 2 report carried no
+    // cause. The transport now names the step that broke, and the codes a
+    // diver can act on get localized advice instead of the native English.
+    testWidgets('shows ble_device_not_found localized error', (tester) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'ble_device_not_found',
+            errorMessage: 'No Bluetooth LE device for 0013437214EE',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('scan again'), findsOneWidget);
+      expect(
+        find.textContaining('No Bluetooth LE device for 0013437214EE'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('shows pairing_required localized error', (tester) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'pairing_required',
+            errorMessage: 'Service discovery failed: access denied',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('paired'), findsOneWidget);
+      expect(find.textContaining('access denied'), findsNothing);
+    });
+
+    testWidgets('shows device_unreachable localized error', (tester) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'device_unreachable',
+            errorMessage: 'Service discovery failed: unreachable',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('did not answer'), findsOneWidget);
+      expect(find.textContaining('Service discovery failed'), findsNothing);
+    });
+
+    // An unclassified failure keeps the native detail on screen, so the step
+    // that broke can be read straight off a screenshot.
+    testWidgets('shows connect_failed with its diagnostic details', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'connect_failed',
+            errorMessage: 'Service discovery failed: protocol error',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Diagnostic details'), findsOneWidget);
+      expect(
+        find.textContaining('Service discovery failed: protocol error'),
+        findsOneWidget,
+      );
+    });
+
     // Issue #1271: a USB HID computer (the Scubapro G2 family, the Suunto EON
     // Steel family) has no serial port to go looking for, so the no_serial_ports
     // wording would send the diver hunting for the wrong thing. The native

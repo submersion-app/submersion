@@ -25042,6 +25042,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تصحيح الاتجاه بالدرجات';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'معامل مقياس المسار';
+
+  @override
   String get settings_conflict_field_height => 'الارتفاع بالبكسل';
 
   @override
@@ -36134,6 +36137,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'تم الاتصال بكمبيوتر الغوص، لكنه توقف عن الاستجابة قبل بدء التنزيل. يعني هذا عادةً أن إقران البلوتوث لم يعد صالحًا: انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك ثم حاول مرة أخرى.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'تعذّر العثور على كمبيوتر الغوص هذا عبر Bluetooth LE. شغّل وضع البلوتوث فيه وأعد البحث. إذا كان ظاهرًا في إعدادات البلوتوث في جهازك، فأزله من هناك أولًا: فقد يكون معروفًا هناك كجهاز بلوتوث تقليدي فقط.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'لن يتواصل جهازك مع كمبيوتر الغوص هذا حتى يتم إقرانهما. شغّل وضع البلوتوث في كمبيوتر الغوص، وأقرنه من إعدادات البلوتوث في جهازك، ثم حاول مرة أخرى.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'لم يستجب كمبيوتر الغوص عبر البلوتوث. تأكد من أن وضع البلوتوث فيه لا يزال مفعّلًا وأنه قريب من جهازك، ثم حاول مرة أخرى.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -55652,6 +55667,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'الدوران:';
 
   @override
+  String get navTrack_align_scaleLabel => 'المقياس:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'النهاية مثبتة، لذا فهي تحدد حجم المسار. يغيّر المقياس شكل المسار بينهما فقط.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel => 'اسحب لتغيير حجم المسار';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55703,6 +55728,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'لم يُطبَّق أي تصحيح بعد.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'مقياس المسار: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>
