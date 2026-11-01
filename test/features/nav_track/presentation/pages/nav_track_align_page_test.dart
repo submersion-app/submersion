@@ -906,6 +906,51 @@ void main() {
     },
   );
 
+  testWidgets('dragging the end marker moves the end point on its own', (
+    tester,
+  ) async {
+    final repository = await _pump(tester, route: _route());
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-place-start')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-place-end')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+    await tester.pump();
+
+    await tester.drag(
+      find.byKey(const ValueKey('nav-track-align-end-marker')),
+      const Offset(40, 30),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.pumpAndSettle();
+
+    final correction = repository.lastCorrection;
+    expect(correction?.endPoint?.longitude, greaterThan(0));
+    expect(correction?.endPoint?.latitude, lessThan(0));
+    expect(correction?.anchor, const GeoPoint(0, 0));
+  });
+
+  testWidgets('the "None" end chip clears a chosen end mode', (tester) async {
+    final repository = await _pump(tester, route: _route());
+
+    await tester.tap(
+      find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-end-none')));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.pumpAndSettle();
+
+    expect(repository.lastCorrection?.endMode, NavTrackEndMode.none);
+  });
+
   testWidgets(
     'shows a "Start:" heading above the start-point actions, mirroring '
     'the "End:" heading above the end-mode dropdown (item 2)',
