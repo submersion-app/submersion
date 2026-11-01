@@ -168,25 +168,29 @@ class _SourceConfirmationStepState
 
           const SizedBox(height: 12),
 
-          // Override section (collapsed by default)
-          _OverrideSection(
-            selectedOverride: SourceOverrideOption.findMatch(
-              selectedOverride,
-              state.pendingFormatOverride,
-            ),
-            onChanged: (option) {
-              final notifier = ref.read(
-                universalImportNotifierProvider.notifier,
-              );
-              if (option != null) {
-                notifier.setPendingSourceOverride(
-                  option.sourceApp,
-                  format: option.format,
+          // Override section (collapsed by default). A parse already has its
+          // answer, so a change here could only be ignored.
+          IgnorePointer(
+            ignoring: state.isLoading,
+            child: _OverrideSection(
+              selectedOverride: SourceOverrideOption.findMatch(
+                selectedOverride,
+                state.pendingFormatOverride,
+              ),
+              onChanged: (option) {
+                final notifier = ref.read(
+                  universalImportNotifierProvider.notifier,
                 );
-              } else {
-                notifier.setPendingSourceOverride(null);
-              }
-            },
+                if (option != null) {
+                  notifier.setPendingSourceOverride(
+                    option.sourceApp,
+                    format: option.format,
+                  );
+                } else {
+                  notifier.setPendingSourceOverride(null);
+                }
+              },
+            ),
           ),
         ],
       ),

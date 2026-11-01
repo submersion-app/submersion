@@ -99,6 +99,39 @@ void main() {
     });
   });
 
+  group('the source override', () {
+    final selectSource = lookupAppLocalizations(
+      const Locale('en'),
+    ).universalImport_label_selectCorrectSource;
+    final anOption = SourceOverrideOption.supported.first.displayName;
+
+    testWidgets('opens while nothing is parsing', (tester) async {
+      await _pump(
+        tester,
+        const SourceConfirmationStep(),
+        seed: (s) => s.copyWith(detectionResult: _detection),
+      );
+
+      await tester.tap(find.text(selectSource));
+      await tester.pumpAndSettle();
+
+      expect(find.text(anOption), findsWidgets);
+    });
+
+    testWidgets('holds still while a file parses', (tester) async {
+      await _pump(
+        tester,
+        const SourceConfirmationStep(),
+        seed: (s) => s.copyWith(detectionResult: _detection, isLoading: true),
+      );
+
+      await tester.tap(find.text(selectSource), warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text(anOption), findsNothing);
+    });
+  });
+
   group('batch triage', () {
     testWidgets('counts the files and cancels through the same path', (
       tester,

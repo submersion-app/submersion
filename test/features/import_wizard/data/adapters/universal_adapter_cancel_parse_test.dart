@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
+import 'package:submersion/features/universal_import/data/models/detection_result.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 class _CountingNotifier extends UniversalImportNotifier {
@@ -20,16 +22,14 @@ class _CountingNotifier extends UniversalImportNotifier {
 void main() {
   for (final label in const ['Confirm Source', 'Map Fields']) {
     testWidgets('$label stops the parse its advance started', (tester) async {
-      final notifier = <_CountingNotifier>[];
+      late _CountingNotifier notifier;
       late UniversalAdapter adapter;
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            universalImportNotifierProvider.overrideWith((ref) {
-              final created = _CountingNotifier(ref);
-              notifier.add(created);
-              return created;
-            }),
+            universalImportNotifierProvider.overrideWith(
+              (ref) => notifier = _CountingNotifier(ref),
+            ),
           ],
           child: MaterialApp(
             home: Consumer(
@@ -47,7 +47,25 @@ void main() {
       );
       step.onCancelAdvance!();
 
-      expect(notifier.single.cancels, 1);
+      expect(notifier.cancels, 1);
     });
   }
+
+  test('Confirm Source holds Next while a parse runs', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final notifier = container.read(universalImportNotifierProvider.notifier);
+
+    notifier.state = notifier.state.copyWith(
+      detectionResult: const DetectionResult(
+        format: ImportFormat.subsurfaceXml,
+        confidence: 1,
+      ),
+      isLoading: true,
+    );
+    expect(container.read(universalAdapterSourceReadyProvider), isFalse);
+
+    notifier.state = notifier.state.copyWith(isLoading: false);
+    expect(container.read(universalAdapterSourceReadyProvider), isTrue);
+  });
 }

@@ -698,6 +698,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Confirm the detected source or override with a user selection.
   ///
   /// When [overrideApp] is null the pending override from state is used.
+  ///
+  /// Throws [ImportStepFailure] when nothing could be parsed, and
+  /// [ImportStepCancelled] when the parse was stopped. Both stop the wizard.
   Future<void> confirmSource({
     SourceApp? overrideApp,
     ImportFormat? overrideFormat,
@@ -914,7 +917,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
     if (result.parsed.isEmpty) {
       // Clear the detection result so the Confirm Source / triage step's
-      // canAdvance gate (universalAdapterSourceReadyProvider, which only checks
+      // canAdvance gate (universalAdapterSourceReadyProvider, which checks
       // detectionResult.isFormatSupported) goes false -- there is no payload to
       // review, so Next must not stay enabled.
       state = state.copyWith(
@@ -987,7 +990,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// gates every later step on that payload, so returning quietly here would
   /// let it advance onto a step with nothing to act on -- for a non-CSV file
   /// that is the CSV-only Map Fields step, which then reads "0 of 0 columns
-  /// mapped" with Next disabled and no explanation.
+  /// mapped" with Next disabled and no explanation. For the same reason it
+  /// throws [ImportStepCancelled] when the parse was stopped.
   Future<void> _parseAndCheckDuplicates() async {
     final bytes = state.fileBytes;
     final opts = state.options;

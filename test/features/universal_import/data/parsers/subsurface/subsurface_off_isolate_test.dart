@@ -80,6 +80,24 @@ void main() {
       });
     }
 
+    test('matches an inline parse of dual-cylinder.ssrf', () async {
+      // A bare <dive> fragment, so it needs a divelog around it.
+      final bytes = _pastThreshold(
+        "<divelog program='subsurface' version='3'><dives>"
+        '${_fixture('dual-cylinder.ssrf')}'
+        '</dives></divelog>',
+      );
+
+      final worker = await SubsurfaceXmlParser().parse(bytes);
+      final inline = await SubsurfaceXmlParser(runner: _inline).parse(bytes);
+
+      expect(
+        worker.entitiesOf(ImportEntityType.dives).single['tanks'],
+        hasLength(2),
+      );
+      _expectSamePayload(worker, inline);
+    });
+
     test('matches an inline parse of a dive the file left no date', () async {
       // Warnings and their enums are what a parse of real data rarely shows.
       final bytes = _pastThreshold('''

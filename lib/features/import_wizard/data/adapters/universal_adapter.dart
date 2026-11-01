@@ -105,11 +105,12 @@ final universalAdapterFileSelectedProvider = Provider<bool>((ref) {
       state.currentStep != ImportWizardStep.fileSelection;
 });
 
-/// True once detection completed and the format is supported.
+/// True once detection completed and the format is supported, and no parse is
+/// running: the wizard would ignore a Next tapped during one.
 final universalAdapterSourceReadyProvider = Provider<bool>((ref) {
   final state = ref.watch(universalImportNotifierProvider);
   final detection = state.detectionResult;
-  return detection != null && detection.isFormatSupported;
+  return detection != null && detection.isFormatSupported && !state.isLoading;
 });
 
 /// True once the Next button should be enabled on the Map Fields step.
