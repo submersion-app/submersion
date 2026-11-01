@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
-import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
@@ -75,9 +73,16 @@ class _NoFlyPageState extends ConsumerState<NoFlyPage> {
         // one is set. The page's minute ticker keeps the countdown fresh.
         Builder(
           builder: (context) {
+            // This provider follows the trip's window, so a refresh there is
+            // a reload here, which must not hide the card for a frame.
             final flight = ref
                 .watch(activeTripFlightWindowProvider)
-                .valueOrNull;
+                .when(
+                  skipLoadingOnReload: true,
+                  data: (status) => status,
+                  error: (_, _) => null,
+                  loading: () => null,
+                );
             if (flight == null) return const SizedBox.shrink();
             return Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -126,12 +131,7 @@ class NoFlyStatusCard extends ConsumerWidget {
     }
 
     final remaining = status!.remaining(now);
-    final untilLocal = status!.until.toLocal();
-    // The weekday has no ordering to respect, so it stays locale-derived; the
-    // clock half goes through the diver's 12h/24h preference.
     final units = ref.watch(unitFormatterProvider);
-    final untilText =
-        '${DateFormat.E().format(untilLocal)} ${units.formatTime(untilLocal)}';
 
     return Card(
       child: Padding(
@@ -160,7 +160,7 @@ class NoFlyStatusCard extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.safetyHub_noFly_until(untilText),
+              l10n.safetyHub_noFly_until(formatNoFlyWhen(status!.until, units)),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 4),
