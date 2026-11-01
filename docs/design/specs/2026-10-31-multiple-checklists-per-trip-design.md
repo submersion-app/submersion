@@ -147,11 +147,17 @@ checklist" name dialog above entirely:
   three-dot menu. A persistent "Add checklist" row always sits at the end of
   the list, with nothing but that menu on it -- selecting a template there
   **creates** a new checklist (named after the template, populated with its
-  items) rather than acting on an existing one. There is no separate
-  "type a name" dialog anywhere in the flow: a checklist's name always comes
-  from the template that produced it. (`TripChecklistsRepository.createChecklist`
-  still accepts an arbitrary name for programmatic/test use, but the UI
-  never calls it that way.)
+  items) rather than acting on an existing one, with no name prompt: a
+  template-created checklist's name always comes from the template that
+  produced it.
+- The placeholder's menu also carries "New checklist...", for a checklist
+  with no template behind it: this one does prompt for a name
+  (`ChecklistNameDialog`, shared with the rename dialog), then creates an
+  empty checklist the diver fills in by hand through the existing manual
+  "Add section"/"Add item" affordances, and can save as a template later
+  through that checklist's own menu -- restoring a capability the
+  template-only placeholder from the first UI pass had dropped (maintainer
+  feedback after testing that pass).
 - Picking the same template more than once is allowed and expected: each
   pick is a new, separate checklist, even if same-named as an earlier one --
   mirrors how two sections can already share a title today.

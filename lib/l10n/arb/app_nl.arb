@@ -17005,6 +17005,8 @@
   "checklists_menu_rename": "Naam wijzigen...",
   "checklists_nameLabel": "Checklistnaam",
   "checklists_nameRequired": "Naam is verplicht",
+  "checklists_newChecklist_title": "Nieuwe checklist",
+  "checklists_menu_newChecklist": "Nieuwe checklist...",
   "checklists_noChecklists_past": "Geen checklists",
   "checklists_noChecklists_upcoming": "Nog geen checklists - voeg er een toe om te beginnen met plannen",
   "checklists_renameChecklist_title": "Checklist hernoemen",

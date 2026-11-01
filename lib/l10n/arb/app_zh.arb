@@ -17005,6 +17005,8 @@
   "checklists_menu_rename": "重命名…",
   "checklists_nameLabel": "清单名称",
   "checklists_nameRequired": "名称为必填项",
+  "checklists_newChecklist_title": "新清单",
+  "checklists_menu_newChecklist": "新清单…",
   "checklists_noChecklists_past": "暂无清单",
   "checklists_noChecklists_upcoming": "还没有清单 - 添加一个开始规划",
   "checklists_renameChecklist_title": "重命名清单",

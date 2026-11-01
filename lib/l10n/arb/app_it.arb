@@ -17005,6 +17005,8 @@
   "checklists_menu_rename": "Rinomina...",
   "checklists_nameLabel": "Nome della lista di controllo",
   "checklists_nameRequired": "Il nome è obbligatorio",
+  "checklists_newChecklist_title": "Nuova lista di controllo",
+  "checklists_menu_newChecklist": "Nuova lista di controllo...",
   "checklists_noChecklists_past": "Nessuna lista di controllo",
   "checklists_noChecklists_upcoming": "Ancora nessuna lista di controllo - aggiungine una per iniziare a pianificare",
   "checklists_renameChecklist_title": "Rinomina lista di controllo",

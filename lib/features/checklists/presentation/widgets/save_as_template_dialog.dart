@@ -11,6 +11,7 @@ Future<void> showSaveAsTemplateDialog({
   required BuildContext context,
   required Trip trip,
   required String checklistId,
+  required String initialName,
 }) {
   return showDialog<void>(
     context: context,
@@ -18,16 +19,24 @@ Future<void> showSaveAsTemplateDialog({
     // SnackBar; a tap-outside dismiss mid-save would leave it popping a
     // disposed route. Dismissal is only via the explicit Cancel/Save buttons.
     barrierDismissible: false,
-    builder: (context) =>
-        _SaveAsTemplateDialog(trip: trip, checklistId: checklistId),
+    builder: (context) => _SaveAsTemplateDialog(
+      trip: trip,
+      checklistId: checklistId,
+      initialName: initialName,
+    ),
   );
 }
 
 class _SaveAsTemplateDialog extends ConsumerStatefulWidget {
   final Trip trip;
   final String checklistId;
+  final String initialName;
 
-  const _SaveAsTemplateDialog({required this.trip, required this.checklistId});
+  const _SaveAsTemplateDialog({
+    required this.trip,
+    required this.checklistId,
+    required this.initialName,
+  });
 
   @override
   ConsumerState<_SaveAsTemplateDialog> createState() =>
@@ -35,7 +44,7 @@ class _SaveAsTemplateDialog extends ConsumerStatefulWidget {
 }
 
 class _SaveAsTemplateDialogState extends ConsumerState<_SaveAsTemplateDialog> {
-  final _controller = TextEditingController();
+  late final _controller = TextEditingController(text: widget.initialName);
   final _formKey = GlobalKey<FormState>();
   bool _saving = false;
 

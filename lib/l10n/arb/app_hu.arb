@@ -17005,6 +17005,8 @@
   "checklists_menu_rename": "Átnevezés...",
   "checklists_nameLabel": "Ellenőrzőlista neve",
   "checklists_nameRequired": "A név megadása kötelező",
+  "checklists_newChecklist_title": "Új ellenőrzőlista",
+  "checklists_menu_newChecklist": "Új ellenőrzőlista...",
   "checklists_noChecklists_past": "Nincsenek ellenőrzőlisták",
   "checklists_noChecklists_upcoming": "Még nincs ellenőrzőlista - adjon hozzá egyet a tervezés megkezdéséhez",
   "checklists_renameChecklist_title": "Ellenőrzőlista átnevezése",

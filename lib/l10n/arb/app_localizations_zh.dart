@@ -4546,6 +4546,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_nameRequired => '名称为必填项';
 
   @override
+  String get checklists_newChecklist_title => '新清单';
+
+  @override
+  String get checklists_menu_newChecklist => '新清单…';
+
+  @override
   String get checklists_renameChecklist_title => '重命名清单';
 
   @override

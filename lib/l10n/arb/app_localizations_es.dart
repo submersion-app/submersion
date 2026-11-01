@@ -4826,6 +4826,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checklists_nameRequired => 'El nombre es obligatorio';
 
   @override
+  String get checklists_newChecklist_title => 'Nueva lista de verificación';
+
+  @override
+  String get checklists_menu_newChecklist => 'Nueva lista de verificación...';
+
+  @override
   String get checklists_renameChecklist_title =>
       'Cambiar nombre de la lista de verificación';
 

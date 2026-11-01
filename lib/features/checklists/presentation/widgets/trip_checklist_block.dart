@@ -10,6 +10,7 @@ import 'package:submersion/features/checklists/presentation/providers/checklist_
 import 'package:submersion/features/checklists/presentation/widgets/apply_template_sheet.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_edit_sheet.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_tile.dart';
+import 'package:submersion/features/checklists/presentation/widgets/checklist_name_dialog.dart';
 import 'package:submersion/features/checklists/presentation/widgets/save_as_template_dialog.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -23,10 +24,14 @@ import 'package:submersion/shared/widgets/section_list_editor.dart';
 ///
 /// Every checklist starts collapsed when a trip is opened -- with several
 /// checklists on a trip, nothing is auto-expanded, unlike this widget's
-/// single-checklist predecessor.
+/// single-checklist predecessor. The one exception is [initiallyExpanded]:
+/// [TripChecklistsPanel] sets it for the checklist it just created in this
+/// session, so the diver sees its contents (or the empty-state "Add
+/// section" prompt) right away instead of having to tap it open.
 class TripChecklistBlock extends ConsumerWidget {
   final Trip trip;
   final domain.TripChecklist checklist;
+  final bool initiallyExpanded;
 
   /// Null when this is the only (or first/last) checklist in its direction,
   /// disabling that arrow.
@@ -37,6 +42,7 @@ class TripChecklistBlock extends ConsumerWidget {
     super.key,
     required this.trip,
     required this.checklist,
+    this.initiallyExpanded = false,
     this.onMoveUp,
     this.onMoveDown,
   });
@@ -56,7 +62,7 @@ class TripChecklistBlock extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ExpansionTile(
-        initiallyExpanded: false,
+        initiallyExpanded: initiallyExpanded,
         title: Text(
           checklist.name,
           style: Theme.of(
@@ -181,6 +187,7 @@ class TripChecklistBlock extends ConsumerWidget {
               context: context,
               trip: trip,
               checklistId: checklist.id,
+              initialName: checklist.name,
             );
           case 'clear':
             _clearChecklist(context, ref, items.length);
@@ -336,7 +343,10 @@ class TripChecklistBlock extends ConsumerWidget {
   Future<void> _renameChecklist(BuildContext context, WidgetRef ref) async {
     final name = await showDialog<String>(
       context: context,
-      builder: (context) => _RenameChecklistDialog(initialName: checklist.name),
+      builder: (context) => ChecklistNameDialog(
+        title: context.l10n.checklists_renameChecklist_title,
+        initialName: checklist.name,
+      ),
     );
     if (name == null || !context.mounted) return;
     await ref
@@ -458,70 +468,6 @@ class TripChecklistBlock extends ConsumerWidget {
         orderedIds: orderedIds,
       ),
       onDeleteItem: (item) => repository.deleteItem(item.id),
-    );
-  }
-}
-
-/// Owns its [TextEditingController] through its own State so disposal
-/// happens when the framework actually removes this widget from the tree
-/// (after the dialog's exit transition finishes), not right after
-/// `showDialog` returns -- disposing eagerly there raced the still-animating
-/// `TextFormField` and threw "A TextEditingController was used after being
-/// disposed."
-class _RenameChecklistDialog extends StatefulWidget {
-  final String initialName;
-
-  const _RenameChecklistDialog({required this.initialName});
-
-  @override
-  State<_RenameChecklistDialog> createState() => _RenameChecklistDialogState();
-}
-
-class _RenameChecklistDialogState extends State<_RenameChecklistDialog> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialName);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return AlertDialog(
-      title: Text(l10n.checklists_renameChecklist_title),
-      content: Form(
-        key: _formKey,
-        child: TextFormField(
-          controller: _controller,
-          autofocus: true,
-          decoration: InputDecoration(labelText: l10n.checklists_nameLabel),
-          validator: (value) => (value == null || value.trim().isEmpty)
-              ? l10n.checklists_nameRequired
-              : null,
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-        ),
-        FilledButton(
-          onPressed: () {
-            if (!_formKey.currentState!.validate()) return;
-            Navigator.of(context).pop(_controller.text.trim());
-          },
-          child: Text(MaterialLocalizations.of(context).saveButtonLabel),
-        ),
-      ],
     );
   }
 }

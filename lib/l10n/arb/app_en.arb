@@ -2976,6 +2976,8 @@
   "checklists_noChecklists_past": "No checklists",
   "checklists_nameLabel": "Checklist name",
   "checklists_nameRequired": "Name is required",
+  "checklists_newChecklist_title": "New checklist",
+  "checklists_menu_newChecklist": "New checklist...",
   "checklists_renameChecklist_title": "Rename checklist",
   "checklists_menu_rename": "Rename...",
   "checklists_menu_delete": "Delete...",

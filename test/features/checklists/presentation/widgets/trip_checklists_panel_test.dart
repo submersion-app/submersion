@@ -85,7 +85,10 @@ void main() {
       ]);
 
       await pumpPanel(tester);
-      await tester.tap(find.byType(PopupMenuButton<String>));
+      // Not find.byType(PopupMenuButton<String>): the "add checklist" row's
+      // menu opens from tapping the row itself now, same as tapping its
+      // trailing icon (issue #3356 maintainer feedback).
+      await tester.tap(find.widgetWithText(ListTile, 'Add checklist'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Apply template...'));
       await tester.pumpAndSettle();
@@ -97,9 +100,40 @@ void main() {
         upcomingTrip.id,
       );
       expect(checklists.single.name, 'Dive equipment');
-      // The checklist row itself shows its new name; expanding it would
-      // show "Mask" too, covered by trip_checklist_block_test.dart.
       expect(find.text('Dive equipment'), findsOneWidget);
+      // A just-created checklist renders expanded (maintainer feedback
+      // after testing): "Mask" is visible without an extra tap.
+      expect(find.text('Mask'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    '"New checklist..." prompts for a name, creates an empty checklist and '
+    'renders it expanded',
+    (tester) async {
+      await pumpPanel(tester);
+
+      await tester.tap(find.widgetWithText(ListTile, 'Add checklist'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New checklist...'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Checklist name'),
+        'Beach vacation',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final checklists = await checklistsRepository.getChecklistsForTrip(
+        upcomingTrip.id,
+      );
+      expect(checklists.single.name, 'Beach vacation');
+      expect(find.text('Beach vacation'), findsOneWidget);
+      // Renders expanded, like a template-created checklist: the empty
+      // state's "Add section" affordance is already on screen.
+      expect(find.text('Add section'), findsOneWidget);
     },
   );
 
@@ -116,7 +150,11 @@ void main() {
 
     await pumpPanel(tester);
     for (var i = 0; i < 2; i++) {
-      await tester.tap(find.byType(PopupMenuButton<String>).last);
+      // Not find.byType(PopupMenuButton<String>).last: on the second pass
+      // that would hit the checklist block's own menu instead of the "add
+      // checklist" row's, now that the row opens its menu via a plain
+      // IconButton/row tap rather than PopupMenuButton.
+      await tester.tap(find.widgetWithText(ListTile, 'Add checklist'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Apply template...'));
       await tester.pumpAndSettle();

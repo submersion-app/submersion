@@ -68,6 +68,7 @@ void main() {
               context: context,
               trip: trip,
               checklistId: checklist.id,
+              initialName: checklist.name,
             ),
             child: const Text('open'),
           ),
@@ -78,9 +79,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('opens pre-filled with the checklist\'s own name', (
+    tester,
+  ) async {
+    await openDialog(tester);
+
+    expect(
+      tester.widget<TextFormField>(find.byType(TextFormField)).controller!.text,
+      'Checklist',
+    );
+  });
+
   testWidgets('empty name fails validation and does not save', (tester) async {
     await openDialog(tester);
 
+    // The field opens pre-filled with the checklist's own name; clear it to
+    // exercise the "required" validator rather than saving that name.
+    await tester.enterText(find.byType(TextFormField), '');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
 

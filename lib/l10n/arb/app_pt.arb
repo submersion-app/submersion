@@ -17005,6 +17005,8 @@
   "checklists_menu_rename": "Mudar o nome...",
   "checklists_nameLabel": "Nome da lista de verificação",
   "checklists_nameRequired": "O nome é obrigatório",
+  "checklists_newChecklist_title": "Nova lista de verificação",
+  "checklists_menu_newChecklist": "Nova lista de verificação...",
   "checklists_noChecklists_past": "Nenhuma lista de verificação",
   "checklists_noChecklists_upcoming": "Ainda não há listas de verificação - adicione uma para começar a planejar",
   "checklists_renameChecklist_title": "Renomear lista de verificação",

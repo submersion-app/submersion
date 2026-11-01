@@ -4802,6 +4802,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_nameRequired => 'A név megadása kötelező';
 
   @override
+  String get checklists_newChecklist_title => 'Új ellenőrzőlista';
+
+  @override
+  String get checklists_menu_newChecklist => 'Új ellenőrzőlista...';
+
+  @override
   String get checklists_renameChecklist_title => 'Ellenőrzőlista átnevezése';
 
   @override

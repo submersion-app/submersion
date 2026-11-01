@@ -4798,6 +4798,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_nameRequired => 'Naam is verplicht';
 
   @override
+  String get checklists_newChecklist_title => 'Nieuwe checklist';
+
+  @override
+  String get checklists_menu_newChecklist => 'Nieuwe checklist...';
+
+  @override
   String get checklists_renameChecklist_title => 'Checklist hernoemen';
 
   @override

@@ -4716,6 +4716,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_nameRequired => 'שם נדרש';
 
   @override
+  String get checklists_newChecklist_title => 'רשימת משימות חדשה';
+
+  @override
+  String get checklists_menu_newChecklist => 'רשימת משימות חדשה...';
+
+  @override
   String get checklists_renameChecklist_title => 'שינוי שם רשימת המשימות';
 
   @override

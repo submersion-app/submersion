@@ -4902,6 +4902,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_nameRequired => 'الاسم مطلوب';
 
   @override
+  String get checklists_newChecklist_title => 'قائمة تحقق جديدة';
+
+  @override
+  String get checklists_menu_newChecklist => 'قائمة تحقق جديدة...';
+
+  @override
   String get checklists_renameChecklist_title => 'إعادة تسمية قائمة التحقق';
 
   @override

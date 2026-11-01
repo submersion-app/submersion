@@ -7466,6 +7466,18 @@ abstract class AppLocalizations {
   /// **'Name is required'**
   String get checklists_nameRequired;
 
+  /// No description provided for @checklists_newChecklist_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New checklist'**
+  String get checklists_newChecklist_title;
+
+  /// No description provided for @checklists_menu_newChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'New checklist...'**
+  String get checklists_menu_newChecklist;
+
   /// No description provided for @checklists_renameChecklist_title.
   ///
   /// In en, this message translates to:

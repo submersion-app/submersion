@@ -17005,6 +17005,8 @@
   "checklists_menu_rename": "שינוי שם...",
   "checklists_nameLabel": "שם רשימת המשימות",
   "checklists_nameRequired": "שם נדרש",
+  "checklists_newChecklist_title": "רשימת משימות חדשה",
+  "checklists_menu_newChecklist": "רשימת משימות חדשה...",
   "checklists_noChecklists_past": "אין רשימות משימות",
   "checklists_noChecklists_upcoming": "אין עדיין רשימות משימות - הוסף אחת כדי להתחיל לתכנן",
   "checklists_renameChecklist_title": "שינוי שם רשימת המשימות",

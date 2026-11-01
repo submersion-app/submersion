@@ -17005,6 +17005,8 @@
   "checklists_menu_rename": "إعادة التسمية...",
   "checklists_nameLabel": "اسم قائمة التحقق",
   "checklists_nameRequired": "الاسم مطلوب",
+  "checklists_newChecklist_title": "قائمة تحقق جديدة",
+  "checklists_menu_newChecklist": "قائمة تحقق جديدة...",
   "checklists_noChecklists_past": "لا توجد قوائم تحقق",
   "checklists_noChecklists_upcoming": "لا توجد قوائم تحقق بعد - أضف واحدة لبدء التخطيط",
   "checklists_renameChecklist_title": "إعادة تسمية قائمة التحقق",

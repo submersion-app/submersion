@@ -17130,6 +17130,8 @@
   "checklists_menu_rename": "Umbenennen...",
   "checklists_nameLabel": "Checklistenname",
   "checklists_nameRequired": "Name ist erforderlich",
+  "checklists_newChecklist_title": "Neue Checkliste",
+  "checklists_menu_newChecklist": "Neue Checkliste...",
   "checklists_noChecklists_past": "Keine Checklisten",
   "checklists_noChecklists_upcoming": "Noch keine Checklisten - fügen Sie eine hinzu, um mit der Planung zu beginnen",
   "checklists_renameChecklist_title": "Checkliste umbenennen",
