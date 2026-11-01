@@ -246,8 +246,9 @@ final tripByIdProvider = FutureProvider.family<Trip?, String>((ref, id) async {
 /// [TripListNotifier] subscribes to them: `getTripWithStats` LEFT JOINs the
 /// dives table, so a merge/consolidate or a sync apply changes the counts
 /// without touching the trip row. The trip detail page renders this through
-/// `TripStatStrip` directly above the itinerary that [divesForTripProvider]
-/// feeds, so leaving it stale would show "5 dives" over a list of 4.
+/// the hero card's `TripStatStrip` above the day chapters that
+/// [divesForTripProvider] feeds, so leaving it stale would show "5 dives"
+/// over a list of 4.
 ///
 /// Watches BOTH tables because `getTripWithStats` reads both: it calls
 /// `getTripById` before running the dives aggregate, and the page renders the

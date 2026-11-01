@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_checklist_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_progress_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -36,6 +37,7 @@ class TripStoryHero extends ConsumerWidget {
     final trip = story.trip;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
+    final progress = tripProgressLine(context, story);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,22 +68,10 @@ class TripStoryHero extends ConsumerWidget {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        if (trip.isInProgress) ...[
+        if (progress != null) ...[
           const SizedBox(height: 8),
           Text(
-            context.l10n.trips_story_dayOfTrip(
-              (story.todayIndex ?? 0) + 1,
-              story.days.length,
-            ),
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ] else if (trip.isUpcoming) ...[
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.trips_story_daysUntil(trip.daysUntilStart),
+            progress,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.primary,
               fontWeight: FontWeight.bold,

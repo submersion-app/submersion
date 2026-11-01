@@ -16,6 +16,7 @@ import 'package:submersion/features/maps/presentation/widgets/world_copies.dart'
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_progress_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -53,6 +54,7 @@ class TripHeroCard extends ConsumerWidget {
     final Color? foreground = hasMap ? null : scheme.onPrimary;
     final Color accent = hasMap ? scheme.primary : scheme.onPrimary;
     final units = ref.watch(unitFormatterProvider);
+    final progress = tripProgressLine(context, story);
 
     final content = Padding(
       padding: const EdgeInsets.all(16),
@@ -88,22 +90,10 @@ class TripHeroCard extends ConsumerWidget {
                   scheme.onSurfaceVariant,
             ),
           ),
-          if (trip.isInProgress) ...[
+          if (progress != null) ...[
             const SizedBox(height: 8),
             Text(
-              context.l10n.trips_story_dayOfTrip(
-                (story.todayIndex ?? 0) + 1,
-                story.days.length,
-              ),
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ] else if (trip.isUpcoming) ...[
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.trips_story_daysUntil(trip.daysUntilStart),
+              progress,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: accent,
                 fontWeight: FontWeight.bold,
