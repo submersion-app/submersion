@@ -82,6 +82,32 @@ void main() {
     });
   });
 
+  // Issue #3996. Unlike the pdfium tests below, these run in CI.
+  group('renderWholePage', () {
+    test('sizes the full page and leaves the crop window unset', () async {
+      final page = _RecordingPage(841.89, 595.28);
+
+      await PdfPageRenderer.renderWholePage(page, 1024);
+
+      expect(page.renderArgs[#fullWidth], 1024);
+      expect(page.renderArgs[#fullHeight], 724);
+      expect(page.renderArgs[#width], isNull);
+      expect(page.renderArgs[#height], isNull);
+    });
+
+    test(
+      'scales a portrait page by its height, to the nearest pixel',
+      () async {
+        final page = _RecordingPage(612, 792);
+
+        await PdfPageRenderer.renderWholePage(page, 1536);
+
+        expect(page.renderArgs[#fullWidth], 1187);
+        expect(page.renderArgs[#fullHeight], 1536);
+      },
+    );
+  });
+
   test('renders first page of a pdf to a jpeg within maxDimension', () async {
     final bytes = await PdfPageRenderer.renderFirstPageJpeg(
       file: File('test/fixtures/sample.pdf'),
@@ -103,4 +129,53 @@ void main() {
     );
     expect(bytes, isNull);
   }, skip: _pdfiumAvailable ? false : 'needs PDFIUM_PATH (see header note)');
+
+  // Issue #3996. pdfium blanks the page only when the target is larger than
+  // the page's 72 dpi size (842 points wide here); below that the old crop
+  // stays inside this solid red page and looks correct. So this test needs a
+  // target above 842, which leaves the old code's far corner white.
+  test(
+    'fills the rendered bitmap to every edge, not just its own corner',
+    () async {
+      final bytes = await PdfPageRenderer.renderFirstPageJpeg(
+        file: File('test/fixtures/landscape_fullbleed.pdf'),
+        maxDimension: 1024,
+      );
+      expect(bytes, isNotNull);
+      final decoded = img.decodeJpg(bytes!);
+      expect(decoded, isNotNull);
+      // A4 landscape, 1.414:1. The crop bug kept this right too, since the
+      // bitmap took its size from the same request, so the corner below is
+      // what catches it.
+      expect(decoded!.width / decoded.height, closeTo(1.414, 0.05));
+      // A couple of pixels in, so JPEG compression at the exact edge cannot
+      // produce a false negative.
+      final corner = decoded.getPixel(decoded.width - 2, decoded.height - 2);
+      expect(corner.r, greaterThan(200));
+      expect(corner.g, lessThan(30));
+      expect(corner.b, lessThan(30));
+    },
+    skip: _pdfiumAvailable ? false : 'needs PDFIUM_PATH (see header note)',
+  );
+}
+
+/// A page that records what [PdfPage.render] was asked for, so the arguments
+/// can be checked on a host with no pdfium binary.
+class _RecordingPage implements PdfPage {
+  _RecordingPage(this.width, this.height);
+
+  @override
+  final double width;
+
+  @override
+  final double height;
+
+  Map<Symbol, dynamic> renderArgs = const {};
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName != #render) return super.noSuchMethod(invocation);
+    renderArgs = invocation.namedArguments;
+    return Future<PdfImage?>.value();
+  }
 }
