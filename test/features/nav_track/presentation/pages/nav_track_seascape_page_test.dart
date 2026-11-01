@@ -171,6 +171,37 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('scrubbing while playing stops playback', (tester) async {
+    final overrides = await getBaseOverrides();
+    final path = _reckoned();
+    final scene = const SpatialGeometryService().build(path, siteMaxDepth: 15);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          navTrackSceneProvider(
+            't1',
+          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
+        ],
+        child: const NavTrackSeascapePage(trackId: 't1'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.drag(find.byType(Slider), const Offset(20, 0));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('shows the no-scene message when the scene fails to build', (
     tester,
   ) async {

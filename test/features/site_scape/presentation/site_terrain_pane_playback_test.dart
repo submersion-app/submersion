@@ -45,6 +45,48 @@ void main() {
     },
   );
 
+  testWidgets('scrubbing while playing stops playback', (tester) async {
+    await tester.pumpWidget(
+      page(
+        readyState(),
+        playbackContext: const DivePlaybackContext('d1'),
+        extraOverrides: [
+          siteActivePathOverlayProvider((
+            siteId: 'site-1',
+            pathId: 'd1',
+            source: PathOverlaySource.dive,
+            isolatePaths: true,
+          )).overrideWith(
+            (ref) async =>
+                (overlay: testActivePathOverlay(), hasLinkedRoute: false),
+          ),
+        ],
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(
+      tester.widget<TimeScrubBar>(find.byType(TimeScrubBar)).playing,
+      isTrue,
+    );
+
+    // Dragging the scrub bar mid-playback must stop it, not fight the drag
+    // (see TimeScrubBar.onScrubStart's doc).
+    await tester.drag(find.byType(Slider), const Offset(20, 0));
+    await tester.pump();
+
+    expect(
+      tester.widget<TimeScrubBar>(find.byType(TimeScrubBar)).playing,
+      isFalse,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('dive playback with no linked route hides the route toggle', (
     tester,
   ) async {

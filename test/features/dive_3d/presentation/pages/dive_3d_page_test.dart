@@ -94,6 +94,18 @@ void main() {
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
   });
 
+  testWidgets('scrubbing while playing stops playback', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.drag(find.byType(Slider), const Offset(20, 0));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+  });
+
   testWidgets('overlay menu toggles an overlay entry', (tester) async {
     await pumpPage(tester);
     await tester.tap(find.byIcon(Icons.layers));

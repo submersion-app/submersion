@@ -85,6 +85,36 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('scrubbing while playing stops playback', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: CompareProfile3dView(
+          profiles: AsyncValue.data([
+            prof('a', const Color(0xFF00D4FF)),
+            prof('b', const Color(0xFFFF9500)),
+          ]),
+          initialLayout: CompareLayout.overlay,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.drag(find.byType(Slider), const Offset(20, 0));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('shows the empty state with fewer than two profiles', (
     tester,
   ) async {
