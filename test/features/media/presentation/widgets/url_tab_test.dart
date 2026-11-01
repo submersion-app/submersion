@@ -39,6 +39,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -51,6 +52,7 @@ import 'package:submersion/features/media/domain/value_objects/media_attach_targ
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_import_suggestion_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/network_signin_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
@@ -490,6 +492,59 @@ void main() {
         displayName: anyNamed('displayName'),
       ),
     ).called(1);
+  });
+
+  // Issue #3851. Saved hosts is kept alive, so a host added here stayed out of
+  // the Settings list for as long as the app ran.
+  testWidgets('saving the sign-in sheet refreshes the saved hosts', (
+    tester,
+  ) async {
+    var saved = false;
+    when(
+      credentials.save(
+        hostname: anyNamed('hostname'),
+        authType: anyNamed('authType'),
+        username: anyNamed('username'),
+        password: anyNamed('password'),
+        token: anyNamed('token'),
+        displayName: anyNamed('displayName'),
+      ),
+    ).thenAnswer((_) async => saved = true);
+    const savedRow = NetworkCredentialHost(
+      id: 'host-1',
+      hostname: 'example.com',
+      authType: 'basic',
+      credentialsRef: 'example.com',
+      addedAt: 0,
+    );
+    when(
+      credentials.list(),
+    ).thenAnswer((_) async => saved ? [savedRow] : const []);
+
+    await tester.pumpWidget(
+      wrap(
+        const UrlTab(),
+        seed: const UrlTabState(unauthenticatedHosts: {'example.com'}),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(UrlTab)),
+    );
+    final hosts = container.listen(savedHostsProvider, (_, _) {});
+    addTearDown(hosts.close);
+    expect(await container.read(savedHostsProvider.future), isEmpty);
+
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Username'), 'eric');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Password'),
+      'hunter2',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(await container.read(savedHostsProvider.future), [savedRow]);
   });
 
   // Issue #1098. Opened from a dive site, the URL tab's "Add" button ingested

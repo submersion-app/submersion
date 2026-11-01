@@ -144,6 +144,7 @@ void main() {
     'dive_plan_mission_legs': 'divePlanMissionLegs',
     'dive_plan_mission_members': 'divePlanMissionMembers',
     'dive_plan_equipment': 'divePlanEquipment',
+    'dive_scenarios': 'diveScenarios',
     'pre_dive_checklist_templates': 'preDiveChecklistTemplates',
     'pre_dive_checklist_template_sections': 'preDiveChecklistTemplateSections',
     'pre_dive_checklist_template_items': 'preDiveChecklistTemplateItems',

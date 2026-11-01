@@ -131,8 +131,15 @@ class PlannedDiveFillService {
       );
 
       // 4. Promote: clears the flag and takes the next dive number. The date
-      //    stays as planned; the computer's start already went to entryTime.
-      await _dives.convertPlanToActualDive(plannedDiveId);
+      //    stays as planned, the computer's start having gone to entryTime,
+      //    unless the dive happened on another day: a dive pushed back a day
+      //    belongs on the day it was dived (issue #4003).
+      await _dives.convertPlanToActualDive(
+        plannedDiveId,
+        actualDateTime: _sameDay(planned.dateTime, dive.startTime)
+            ? null
+            : dive.startTime,
+      );
       final promoted = await _dives.getDiveById(plannedDiveId);
 
       return PlannedDiveFillOutcome(
@@ -145,6 +152,10 @@ class PlannedDiveFillService {
       );
     });
   }
+
+  /// Both are the dive's wall clock, so their own dates compare as they stand.
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   /// Restores the planned dive from the snapshot: row, tanks, series,
   /// sources, events, switches and pressure series. The consolidation undo

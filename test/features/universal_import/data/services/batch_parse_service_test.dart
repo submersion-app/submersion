@@ -1,11 +1,17 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_options.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
+import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 
 // The two Subsurface fixtures already in the repo.
@@ -41,6 +47,31 @@ PickedImportFile wrappedDualCylinder() {
     ),
     status: ImportFileStatus.pending,
   );
+}
+
+/// Counts its parses, runs [onParse] during each and answers with [result].
+class _ScriptedParser implements ImportParser {
+  void Function()? onParse;
+  int calls = 0;
+  Future<ImportPayload> result = Future.value(
+    const ImportPayload(
+      entities: {
+        ImportEntityType.dives: [
+          {'diveNumber': 1},
+        ],
+      },
+    ),
+  );
+
+  @override
+  List<ImportFormat> get supportedFormats => const [];
+
+  @override
+  Future<ImportPayload> parse(Uint8List fileBytes, {ImportOptions? options}) {
+    calls++;
+    onParse?.call();
+    return result;
+  }
 }
 
 void main() {
@@ -141,14 +172,73 @@ void main() {
     expect(result.parsed, hasLength(1));
   });
 
-  test('cancellation stops at the next file boundary', () async {
-    var calls = 0;
-    final result = await service.parseAll([
+  test('cancelling between files stops before the next one', () async {
+    final token = ImportCancellationToken();
+    final parser = _ScriptedParser()..onParse = token.cancel;
+
+    final result = await BatchParseService(parserFor: (_) => parser).parseAll([
       wrappedDualCylinder(),
       ssrfFile('profile-events-variety.ssrf'),
-    ], isCancelled: () => ++calls >= 2);
+    ], cancelToken: token);
+
     expect(result.cancelled, isTrue);
-    expect(result.parsed.length, lessThan(2));
+    expect(parser.calls, 1);
+    expect(result.files[1].status, ImportFileStatus.pending);
+  });
+
+  test('a token cancelled before the start parses nothing', () async {
+    final parser = _ScriptedParser();
+
+    final result = await BatchParseService(parserFor: (_) => parser).parseAll([
+      wrappedDualCylinder(),
+    ], cancelToken: ImportCancellationToken()..cancel());
+
+    expect(result.cancelled, isTrue);
+    expect(parser.calls, 0);
+  });
+
+  test('a cancel while reading a file starts no parse', () async {
+    final dir = await Directory.systemTemp.createTemp('batch_cancel');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File(p.join(dir.path, 'log.ssrf'))..writeAsStringSync('<x/>');
+    final token = ImportCancellationToken();
+    final parser = _ScriptedParser();
+
+    final result = await BatchParseService(parserFor: (_) => parser).parseAll(
+      [
+        PickedImportFile(
+          name: 'log.ssrf',
+          path: file.path,
+          detection: wrappedDualCylinder().detection,
+          status: ImportFileStatus.pending,
+        ),
+      ],
+      // Progress is reported just before the read, so this lands during it.
+      onProgress: (_, _) => token.cancel(),
+      cancelToken: token,
+    );
+
+    expect(result.cancelled, isTrue);
+    expect(parser.calls, 0);
+  });
+
+  test('cancelling during a file does not wait for it', () async {
+    // A parse that never ends, so this test only finishes if the batch
+    // stopped waiting.
+    final token = ImportCancellationToken();
+    final parser = _ScriptedParser()
+      ..onParse = token.cancel
+      ..result = Completer<ImportPayload>().future;
+
+    final result = await BatchParseService(parserFor: (_) => parser).parseAll([
+      wrappedDualCylinder(),
+      ssrfFile('profile-events-variety.ssrf'),
+    ], cancelToken: token);
+
+    expect(result.cancelled, isTrue);
+    expect(result.parsed, isEmpty);
+    expect(result.files.first.status, ImportFileStatus.pending);
+    expect(parser.calls, 1);
   });
 
   test('reports progress per file', () async {

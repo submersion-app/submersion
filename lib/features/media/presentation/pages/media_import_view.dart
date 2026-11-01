@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/media/data/services/dive_gallery_lookup.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
@@ -62,10 +65,14 @@ class MediaImportView extends ConsumerWidget {
   /// A failing group never blocks another: a throw inside one group is
   /// recorded against that group's assets and the loop moves on.
   ///
+  /// A photo going to a dive first gets the time its dive calls for: see
+  /// [DiveGalleryLookup.correctedForDive]. Sites have no times to match.
+  ///
   /// Shared with the species import, which tags the rows this creates.
   static Future<ImportReviewResult> importResolved({
     required MediaImportService service,
     required DiveRepository diveRepository,
+    required PhotoPickerService photoPickerService,
     required List<AssetInfo> assets,
     required Map<String, MediaAttachTarget> targets,
   }) async {
@@ -100,8 +107,14 @@ class MediaImportView extends ConsumerWidget {
           failGroup(value, 'dive $key no longer exists');
           continue;
         }
+        final (entryTime, exitTime) = TripMediaScanner.diveBounds(dive);
         final result = await service.importPhotosForDive(
-          selectedAssets: value,
+          selectedAssets: await DiveGalleryLookup.correctedForDive(
+            assets: value,
+            windowStart: entryTime.subtract(DivePhotoMatcher.preBuffer),
+            windowEnd: exitTime.add(DivePhotoMatcher.postBuffer),
+            photoPickerService: photoPickerService,
+          ),
           dive: dive,
         );
         linked += result.imported.length;
@@ -159,6 +172,7 @@ class MediaImportView extends ConsumerWidget {
             final result = await importResolved(
               service: ref.read(mediaImportServiceProvider),
               diveRepository: ref.read(diveRepositoryProvider),
+              photoPickerService: ref.read(photoPickerServiceProvider),
               assets: assets,
               targets: targets,
             );

@@ -12,12 +12,13 @@ final divePlanRepositoryProvider = Provider<DivePlanRepository>(
   (ref) => DivePlanRepository(),
 );
 
-/// Saved-plans list (newest first), live across saves/deletes/sync.
+/// Saved-plans list (newest first), live across saves/deletes/sync, and
+/// across changes to the dives its link badges describe.
 final divePlanSummariesProvider = FutureProvider<List<domain.DivePlanSummary>>((
   ref,
 ) async {
   final repository = ref.watch(divePlanRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchPlanChanges());
+  ref.invalidateSelfWhen(repository.watchPlanSummaryChanges());
   return repository.getAllPlanSummaries();
 });
 

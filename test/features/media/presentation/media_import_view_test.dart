@@ -176,10 +176,11 @@ class _RecordingImportService implements MediaImportService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// The dive [asset] is taken during, so its confident match reads no EXIF.
 class _OneDiveRepo implements DiveRepository {
   @override
   Future<Dive?> getDiveById(String id) async =>
-      Dive(id: id, dateTime: DateTime(2026, 6, 12));
+      Dive(id: id, dateTime: DateTime.utc(2026, 6, 12, 9, 45));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

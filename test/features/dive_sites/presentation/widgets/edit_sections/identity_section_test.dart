@@ -32,6 +32,7 @@ void main() {
             islandController: controllers[5],
             bodyOfWaterController: controllers[6],
             nameValidator: (_) => null,
+            placeLookup: const SizedBox.shrink(),
           ),
         ),
       ),

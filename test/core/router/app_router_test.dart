@@ -2192,6 +2192,7 @@ void main() {
       '/settings/data-quality',
       '/settings/import-options',
       '/settings/data-tools',
+      '/settings/agent-access',
       '/settings/setup',
       '/settings/setup?step=sync',
       '/settings/setup?again=true',

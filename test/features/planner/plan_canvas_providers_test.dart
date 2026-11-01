@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -115,6 +116,7 @@ PlanOutcome _withIssues(PlanOutcome outcome, List<PlanIssue> issues) {
     otuTotal: outcome.otuTotal,
     issues: issues,
     endTissue: outcome.endTissue,
+    surfacedTissue: outcome.surfacedTissue,
     tissueTimeline: outcome.tissueTimeline,
     ceilingTrace: outcome.ceilingTrace,
     authoredDecoSeconds: outcome.authoredDecoSeconds,
@@ -312,6 +314,86 @@ void main() {
       expect(marker.depth, lessThanOrEqualTo(22.0));
       expect(marker.label, isNotEmpty);
     }
+  });
+
+  test('a switch set inside a folded leg is marked where it happens', () {
+    const air = GasMix();
+    final plan = domain.DivePlan(
+      id: 'folded-switch',
+      name: 'Folded switch',
+      gfLow: 50,
+      gfHigh: 80,
+      tanks: const [
+        DiveTank(id: 'back', volume: 22, startPressure: 200, gasMix: air),
+        DiveTank(
+          id: 'deco',
+          volume: 11,
+          startPressure: 200,
+          gasMix: GasMix(o2: 50),
+          role: TankRole.deco,
+          decoSwitchDepth: 10,
+        ),
+      ],
+      segments: [
+        PlanSegment.travel(
+          id: 'down',
+          fromDepth: 0,
+          targetDepth: 45,
+          ratePerMinute: 18,
+          tankId: 'back',
+          gasMix: air,
+          order: 0,
+        ),
+        PlanSegment.hold(
+          id: 'bottom',
+          depth: 45,
+          durationMinutes: 25,
+          tankId: 'back',
+          gasMix: air,
+          order: 1,
+        ),
+      ],
+      createdAt: DateTime(2026, 10, 31),
+      updatedAt: DateTime(2026, 10, 31),
+    );
+    const engine = PlanEngine();
+    final outcome = engine.compute(plan);
+    final row = outcome.schedule.firstWhere((r) => r.foldedTravel.length > 1);
+    final onDeco = row.foldedTravel.last;
+    expect(onDeco.tankId, 'deco');
+
+    final series = buildCanvasSeries(
+      plan: plan,
+      outcome: outcome,
+      config: engine.config,
+    );
+
+    final marker = series.gasSwitches.single;
+    expect(marker.timeSeconds, row.startRuntimeSeconds - onDeco.seconds);
+    expect(marker.depth, onDeco.fromDepthMeters);
+    expect(series.depthAt(marker.timeSeconds), closeTo(marker.depth, 0.1));
+  });
+
+  test('a switch at a stop is still marked at the stop', () {
+    final container = _container();
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25);
+    notifier.addTank(
+      const DiveTank(
+        id: 'oxygen',
+        volume: 7,
+        startPressure: 200,
+        gasMix: GasMix(o2: 100),
+        role: TankRole.deco,
+      ),
+    );
+    final outcome = container.read(planOutcomeProvider);
+    final stop = outcome.stops.firstWhere((s) => s.tankId == 'oxygen');
+
+    final marker = container.read(planCanvasSeriesProvider).gasSwitches.last;
+
+    expect(marker.timeSeconds, stop.arrivalRuntimeSeconds);
+    expect(marker.depth, stop.depthMeters);
   });
 
   test('planEngineConfig reflects settings defaults', () {

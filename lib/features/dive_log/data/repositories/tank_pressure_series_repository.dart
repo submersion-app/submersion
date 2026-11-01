@@ -457,10 +457,12 @@ class TankPressureSeriesRepository {
   /// included: consolidation undo puts back the row it captured rather than
   /// re-encoding it. When [markPending] the row is queued for sync, which
   /// restamps its hlc so the restore wins last-writer-wins on every peer.
+  /// Pass [notify] false from a caller that notifies once for a whole batch.
   Future<void> restoreSeriesRow(
     TankPressureSeriesRow row, {
     bool markPending = true,
     int? now,
+    bool notify = true,
   }) async {
     await _db.transaction(() async {
       await _db
@@ -481,7 +483,7 @@ class TankPressureSeriesRepository {
         );
       }
     });
-    SyncEventBus.notifyLocalChange();
+    if (notify) SyncEventBus.notifyLocalChange();
   }
 
   Future<List<String>> _delete(

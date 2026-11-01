@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_scrub_readout.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -55,7 +56,7 @@ void main() {
           id: 'bo',
           volume: 11.1,
           startPressure: 207,
-          gasMix: GasMix(o2: 50),
+          gasMix: GasMix(o2: 32),
           role: TankRole.bailout,
         ),
       );
@@ -155,9 +156,7 @@ void main() {
     container.read(scrubTimeProvider.notifier).state = 600;
     await tester.pump();
 
-    final readout = find.byWidgetPredicate(
-      (widget) => widget.runtimeType.toString() == '_ScrubReadout',
-    );
+    final readout = find.byType(PlanScrubReadout);
     expect(readout, findsOneWidget);
     final overlap = tester
         .getRect(readout)
@@ -187,13 +186,46 @@ void main() {
     container.read(scrubTimeProvider.notifier).state = 600;
     await tester.pump();
 
-    final readout = find.byWidgetPredicate(
-      (widget) => widget.runtimeType.toString() == '_ScrubReadout',
-    );
+    final readout = find.byType(PlanScrubReadout);
     final overlap = tester
         .getRect(readout)
         .intersect(tester.getRect(find.byType(PlanChartBailoutStatus)));
     expect(overlap.width <= 0 || overlap.height <= 0, isTrue);
+  });
+
+  testWidgets('a failed run does not leave the chips hidden by an older gas '
+      'gap (#3961)', (tester) async {
+    final container = await mount(
+      tester,
+      const Column(
+        children: [
+          ChartModeToggle(),
+          SizedBox(width: 760, height: 400, child: PlanProfileChart()),
+        ],
+      ),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    final tank = container
+        .read(divePlanNotifierProvider)
+        .tanks
+        .firstWhere((t) => t.id == 'bo');
+    notifier.updateTank('bo', tank.copyWith(gasMix: const GasMix(o2: 50)));
+    await tester.pump();
+    await tester.pump();
+    await landLatest(tester);
+    container.read(chartDisplayModeProvider.notifier).state =
+        ChartDisplayMode.ccr;
+    await tester.pump();
+    expect(find.text('Bailout'), findsNothing);
+
+    edit(container);
+    await tester.pump();
+    await tester.pump();
+    runner.held.last.fail(StateError('engine'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Bailout'), findsOneWidget);
   });
 
   testWidgets('the toggle does not flicker through an edit', (tester) async {

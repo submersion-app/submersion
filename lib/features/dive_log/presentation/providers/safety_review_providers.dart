@@ -24,7 +24,9 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// a newer engine or under a newer fingerprint format, came from a newer
 /// peer and is kept ([_isCurrent]). A review computed on another diver's
 /// settings (#2564), on settings edited since, or before inputs were recorded
-/// is recomputed on next view (#2592). saveReview keeps a recomputed
+/// is recomputed on next view (#2592). So is one graded on other history: the
+/// stored inputs also carry what its residual load read
+/// ([safetyReviewInputsHash], #3924). saveReview keeps a recomputed
 /// finding's id and dismissal, so a dismissal survives the recompute.
 ///
 /// A review is saved only from an analysis that ran on exactly those
@@ -88,10 +90,14 @@ Future<SafetyReview?> _reviewDive(
   final currentInputs = ref.watch(diverAnalysisSettingsProvider).fingerprint;
 
   final stored = await repo.getReview(diveId);
+  final reviewInputs = safetyReviewInputsHash(
+    currentInputs,
+    await ref.watch(diveRepositoryProvider).getResidualHistoryRevision(diveId),
+  );
   if (stored != null &&
       (recompute
           ? _isFromNewerBuild(stored)
-          : _isCurrent(stored, currentInputs))) {
+          : _isCurrent(stored, reviewInputs))) {
     return stored;
   }
 
@@ -125,7 +131,7 @@ Future<SafetyReview?> _reviewDive(
       diveId: diveId,
       engineVersion: SafetyReviewService.engineVersion,
       reviewedAt: now,
-      inputsHash: currentInputs,
+      inputsHash: reviewInputs,
       findings: const SafetyReviewService().review(
         diveId: diveId,
         analysis: analysis,
@@ -134,6 +140,17 @@ Future<SafetyReview?> _reviewDive(
     ),
   );
 }
+
+/// The inputs a review records: the settings [fingerprint], plus
+/// [historyRevision] when it has a residual history to record.
+///
+/// Stored here rather than beside the review so no synced column has to carry
+/// it. The fingerprint stays the prefix, which is what
+/// [AnalysisSettings.isNewerFormat] reads.
+String safetyReviewInputsHash(String fingerprint, int historyRevision) =>
+    historyRevision == 0
+    ? fingerprint
+    : '$fingerprint;history=$historyRevision';
 
 /// Whether [stored] may be served as is under [currentInputs].
 ///

@@ -225,6 +225,7 @@ class CsvTransformer {
 
     // Step 6: Second pass - combine date+time into dateTime for each row.
     final validRows = <Map<String, dynamic>>[];
+    final sourceRows = <int>[];
     for (var i = 0; i < resolvedRows.length; i++) {
       final row = resolvedRows[i];
 
@@ -236,6 +237,7 @@ class CsvTransformer {
           ..remove('time')
           ..remove('_informalTime');
         validRows.add(result);
+        sourceRows.add(csv.sourceRowNumber(i));
         continue;
       }
 
@@ -276,10 +278,12 @@ class CsvTransformer {
         ..remove('time')
         ..remove('_informalTime');
       validRows.add(result);
+      sourceRows.add(csv.sourceRowNumber(i));
     }
 
     return TransformedRows(
       rows: validRows,
+      sourceRows: sourceRows,
       warnings: warnings,
       fileRole: fileRole,
       dateOrder: dateOrder ?? dateTimeOrder,
@@ -459,6 +463,10 @@ class CsvTransformer {
       );
     }
 
+    // A null here warns about the cell, where text left in the row would
+    // silently read as air (#3930).
+    if (_isGasPercentField(lower)) return _parseGasPercent(rawValue);
+
     // Numeric (double) fields that may need unit conversion.
     if (_isDoubleField(lower)) {
       final measured = _valueConverter.parseMeasurement(
@@ -529,6 +537,7 @@ class CsvTransformer {
     if (lower == 'divenumber' || lower == 'divenum') {
       return _valueConverter.parseInt(defaultValue);
     }
+    if (_isGasPercentField(lower)) return _parseGasPercent(defaultValue);
     if (_isDoubleField(lower)) {
       return _valueConverter.parseDouble(defaultValue);
     }
@@ -561,6 +570,23 @@ class CsvTransformer {
         base == 'sampledepth' ||
         base == 'sampletemperature' ||
         base == 'samplepressure';
+  }
+
+  /// Returns true if the target field holds an oxygen or helium percentage,
+  /// numbered or not. These read through [_parseGasPercent].
+  bool _isGasPercentField(String lowerField) {
+    final base = _stripNumberSuffix(lowerField);
+    return base == 'o2percent' || base == 'hepercent';
+  }
+
+  /// [raw] as a gas percentage, or null when it is not one.
+  ///
+  /// Read strictly: the lenient parser used for measurements would turn
+  /// "31,0" into 310. The range also refuses the NaN and Infinity that
+  /// [double.tryParse] accepts.
+  double? _parseGasPercent(String raw) {
+    final percent = double.tryParse(raw);
+    return percent != null && percent >= 0 && percent <= 100 ? percent : null;
   }
 
   static final _numberSuffix = RegExp(r'_\d+$');

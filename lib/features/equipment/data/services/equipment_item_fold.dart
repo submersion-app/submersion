@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -152,7 +153,17 @@ class EquipmentItemFold {
   /// Folds `fromId` into `intoId`. Returns false, changing nothing, when
   /// either item is missing, they belong to different divers, or a dive
   /// computer or transmitter still stands for `fromId`.
-  Future<bool> fold({required String fromId, required String intoId}) async {
+  Future<bool> fold({required String fromId, required String intoId}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.merge,
+        body: () => _foldInner(fromId: fromId, intoId: intoId),
+      );
+
+  Future<bool> _foldInner({
+    required String fromId,
+    required String intoId,
+  }) async {
     if (fromId == intoId) return false;
     final from = await _item(fromId);
     final into = await _item(intoId);

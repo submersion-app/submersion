@@ -4,8 +4,10 @@ import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/certification_currency_tables.dart';
+import 'package:submersion/core/database/tables/change_log_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
+import 'package:submersion/core/database/tables/dive_lab_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
@@ -41,6 +43,7 @@ export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/certification_currency_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
+export 'package:submersion/core/database/tables/dive_lab_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
@@ -182,6 +185,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EquipmentServiceStatus,
     // Saved queries (v238, issue #2365)
     SavedQueries,
+    // Dive Lab saved scenarios (v236)
+    DiveScenarios,
     // Logbook rules and their run history (v301, issue #3513)
     Rules,
     RuleRuns,
@@ -211,7 +216,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripItineraryDays,
     TripDayWeather,
     ChecklistTemplates,
-    // Multiple checklists per trip (v332, issue #3356)
+    // Multiple checklists per trip (v336, issue #3356)
     TripChecklists,
     // Checklist sections (v297-298, issue #3360)
     TripChecklistSections,
@@ -292,6 +297,11 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SharedSiteSuggestions,
     SharedLibraryBackups,
     LibrarySiteNotes,
+    // Per-device change log (v332, issue #3922)
+    ChangeLogContext,
+    ChangeLogOperations,
+    ChangeLogEvents,
+    ChangeLogFields,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -301,7 +311,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 332;
+  static const int currentSchemaVersion = 336;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -445,19 +455,17 @@ class AppDatabase extends _$AppDatabase {
   /// payloads still arrive here and decode cleanly: a concrete value is a
   /// valid override in the nullable columns.
   ///
-  /// Raised 308 -> 332 by multiple checklists per trip (#3356): v332
+  /// Raised 308 -> 336 by multiple checklists per trip (#3356): v336
   /// renames the synced columns trip_checklist_sections.trip_id and
   /// trip_checklist_items.trip_id to checklist_id (now a reference to the
   /// new trip_checklists row rather than the trip directly), which the
   /// first rule above classifies as breaking the same way the v160 and
-  /// v170 column renames did. Peers below 332 are held until they update.
-  /// This floor is one-directional: it stops THIS build's checklistId-only
-  /// payload from reaching an older reader's non-nullable tripId decoder,
-  /// but does not by itself give THIS build tolerance for an older peer's
-  /// still-tripId-shaped payload arriving here before that peer updates --
-  /// unlike the v297 category rename, no receiving-side overlay exists yet
-  /// for this one. Known gap, tracked for before this ships broadly.
-  static const int minimumCompatibleSchemaVersion = 332;
+  /// v170 column renames did. Peers below 336 are held until they update.
+  /// Their own payloads still arrive here, along with every base published
+  /// before the update: withCurrentWireKeys points a tripId-shaped row at
+  /// its trip's default checklist, and the serializer creates that
+  /// checklist when this device does not hold it yet.
+  static const int minimumCompatibleSchemaVersion = 336;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1095,6 +1103,13 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 232 and 234: trip cylinders (#2331) shipped 232, the
     // MacDive source diver key (#1921) 233 and equipment sharing (#2046) 234.
     235,
+    // v236 (Dive Lab): dive_scenarios, saved what-if scenarios on a logged
+    // dive (branch point, mode, interventions), synced with an hlc column.
+    // Renumbered from 161, 228, 229, 231 and 232 as main shipped rungs while
+    // this branch was open; 236 was held for it when main took 237 to 240,
+    // so a database already past it gets the table from the beforeOpen
+    // backstop.
+    236,
     // v237: diver_settings.show_dive_figure, the diver-wide switch for the
     // figure in the dive detail equipment card (issue #2326). Additive, no
     // backfill, so the floor it needs stays at 224. Taken
@@ -1510,9 +1525,12 @@ class AppDatabase extends _$AppDatabase {
     // v331: equipment_locations.dive_center_id, the saved center a Dive
     // center place stands for (issue #3623).
     331,
-    // v332: trip_checklists, splitting one trip's single flat checklist
-    // into several named ones (issue #3356).
+    // v332: the per-device change log tables (issue #3922). Local only and
+    // never synced, so the floor does not move.
     332,
+    // v336: trip_checklists, splitting one trip's single flat checklist
+    // into several named ones (issue #3356).
+    336,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

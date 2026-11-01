@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/media/data/services/color_analysis_service.dart';
 import 'package:submersion/features/media/domain/color/auto_correction.dart';
 import 'package:submersion/features/media/domain/color/channel_stats.dart';
 import 'package:submersion/features/media/domain/color/color_correction_policy.dart';
@@ -35,10 +36,25 @@ class ColorCorrected extends ConsumerStatefulWidget {
 }
 
 class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
-  String? _requestedKey;
+  /// This tile's request, while it is unanswered.
+  ColorStatsRequest? _request;
 
   /// The last stats this tile drew, and for which item.
   ({String id, ChannelStats stats})? _last;
+
+  @override
+  void dispose() {
+    _cancelRequest();
+    super.dispose();
+  }
+
+  /// Gives up this tile's place in the analysis queue (issue #3868), once a
+  /// build no longer needs the answer. Another tile showing the same image
+  /// keeps its own.
+  void _cancelRequest() {
+    _request?.cancel();
+    _request = null;
+  }
 
   /// Stats for [key], asking for them when the service has no answer.
   ///
@@ -46,6 +62,7 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
   /// no longer knows; not while this tile's own request is under way or
   /// once the image proved to have no usable pixels.
   ChannelStats? _stats(String key) {
+    if (_request?.key != key) _cancelRequest();
     final service = ref.read(colorAnalysisServiceProvider);
     final cached = service.peek(key);
     if (cached != null) {
@@ -55,9 +72,10 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
     // Analysed, and too few usable pixels: nothing to correct with.
     if (service.hasAnswer(key)) return null;
     final source = widget.analysisSource;
-    if (source != null && !(_requestedKey == key && service.isPending(key))) {
-      _requestedKey = key;
-      service.statsFor(key, source).then((stats) {
+    if (source != null && _request == null) {
+      final request = _request = service.request(key, source);
+      request.stats.then((stats) {
+        if (identical(_request, request)) _request = null;
         if (mounted && stats != null) setState(() {});
       });
     }
@@ -72,6 +90,7 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
   Widget build(BuildContext context) {
     final item = widget.item;
     if (ref.watch(colorPeekOriginalNotifierProvider) == item.id) {
+      _cancelRequest();
       return widget.child;
     }
 
@@ -96,6 +115,7 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
     }
 
     AutoCorrectionParams? auto;
+    var needsStats = false;
     if (placementKnown &&
         needsAutoStats(
           placed,
@@ -113,10 +133,12 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
                 )
                 .value
           : null;
+      needsStats = track == null;
       auto = track != null
           ? track.average
           : autoParamsForPhoto(placed, _stats(colorStatsKey(item)));
     }
+    if (!needsStats) _cancelRequest();
 
     final matrix = composeCorrection(adjustment: adjustment, auto: auto);
     if (matrix.isIdentity) return widget.child;

@@ -21,6 +21,8 @@ import 'package:submersion/features/universal_import/data/parsers/macdive_xml_pa
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 
+import '../../../../helpers/dive_match_records.dart';
+
 void main() {
   const checker = ImportDuplicateChecker();
   final now = DateTime(2024, 1, 15);
@@ -42,7 +44,7 @@ void main() {
   }) {
     return checker.check(
       payload: payload ?? const ImportPayload(entities: {}),
-      existingDives: dives,
+      existingDives: dives.map(diveMatchRecordOf).toList(),
       existingSites: sites,
       existingTrips: trips,
       existingEquipment: equipment,
@@ -195,6 +197,32 @@ void main() {
 
       expect(result.duplicates[ImportEntityType.sites], {0});
     });
+
+    test(
+      'matches the namesake in the same place, not the last one (#4015)',
+      () {
+        final result = checkWith(
+          payload: const ImportPayload(
+            entities: {
+              ImportEntityType.sites: [
+                {'name': 'Blue Hole', 'country': 'Egypt'},
+                {'name': 'Blue Hole', 'country': 'Belize'},
+                {'name': 'Blue Hole'},
+              ],
+            },
+          ),
+          sites: [
+            const DiveSite(id: 'e', name: 'Blue Hole', country: 'Egypt'),
+            const DiveSite(id: 'b', name: 'Blue Hole', country: 'Belize'),
+          ],
+        );
+
+        final matches = result.entityMatches[ImportEntityType.sites]!;
+        expect(matches[0]!.existingId, 'e');
+        expect(matches[1]!.existingId, 'b');
+        expect(matches[2]!.existingId, 'b');
+      },
+    );
 
     test('finds by lat/lon proximity within 100m', () {
       final result = checkWith(

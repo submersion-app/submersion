@@ -50,12 +50,41 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_dives_entry_date '
         'ON dives(entry_time, dive_date_time)',
   ),
+  // The sibling lookup of diveUndivedSql (#3924): whether a logged dive shares
+  // a mirrored dive's outing. Partial, because most dives have no outing.
+  (
+    name: 'idx_dives_outing',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dives_outing '
+        'ON dives(outing_id) WHERE outing_id IS NOT NULL',
+  ),
   // NOTE: an expression index on (diver_id, COALESCE(entry_time,
   // dive_date_time) DESC) matching the paginated list's sort key was
   // evaluated in the WS0 baseline and DROPPED: the planner never selected
   // it (sorting a ~1k-row candidate set beats maintaining expression-index
   // order), so it would cost write amplification for nothing. Evidence in
   // docs/design/specs/2026-07-10-large-db-performance-findings.md.
+  // The two below are not that index: they serve range filters on a dive's
+  // start, which nothing else can seek, and query_plan_test pins their use.
+  //
+  // The neighbor window of a Data Quality scan, one lookup per dive in the
+  // library plus the pair prefilters, and matching a download to a logged
+  // dive, one lookup per downloaded dive (#3863). Same-diver lookups use the
+  // first, cross-diver and unscoped lookups the second, because a "different
+  // diver" filter cannot seek a diver-leading index. Without both a full scan
+  // is quadratic.
+  (
+    name: 'idx_dives_diver_start',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dives_diver_start '
+        'ON dives(diver_id, COALESCE(entry_time, dive_date_time))',
+  ),
+  (
+    name: 'idx_dives_start',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dives_start '
+        'ON dives(COALESCE(entry_time, dive_date_time))',
+  ),
   (
     name: 'idx_dives_site_id',
     ddl: 'CREATE INDEX IF NOT EXISTS idx_dives_site_id ON dives(site_id)',
@@ -471,6 +500,12 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_dive_plan_mission_members_plan_id '
         'ON dive_plan_mission_members(plan_id)',
+  ),
+  (
+    name: 'idx_dive_scenarios_dive_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_scenarios_dive_id '
+        'ON dive_scenarios(dive_id)',
   ),
   (
     name: 'idx_gps_track_points_local_track_id',

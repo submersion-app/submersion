@@ -25,7 +25,7 @@ import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_con
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Settings > Data: the health strip, the Set up this device card and the
-/// facts line (#3390, #3482), then the five "Your data" rows, each with the
+/// facts line (#3390, #3482), then the "Your data" rows, each with the
 /// strip's health mark (#3394) and a one-sentence status, then the rarely
 /// used rows under "Advanced" (#3482), demo mode's among them (#3736).
 class DataSectionContent extends ConsumerStatefulWidget {
@@ -181,6 +181,12 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             title: l10n.settings_connectedAccounts_title,
             status: ref.watch(accountsRowStatusProvider),
             route: '/settings/connected-accounts',
+          ),
+          DataRowTile(
+            icon: Icons.history,
+            title: l10n.changeLog_title,
+            subtitle: l10n.changeLog_settings_subtitle,
+            route: '/settings/change-log',
           ),
           const SizedBox(height: 16),
           _header(context, l10n.settings_data_header_advanced),

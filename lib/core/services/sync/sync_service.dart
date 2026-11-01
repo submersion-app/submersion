@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
-
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:drift/drift.dart' show TableUpdate, Variable;
 
@@ -13,6 +11,7 @@ import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -294,8 +293,9 @@ class SyncService {
   /// immediately, regardless of this.
   static const _unreadableEpochGraceMs = 60 * 60 * 1000; // 1 hour
 
+  static const ChangesetCodec _changesetCodec = ChangesetCodec();
+
   // Changeset-log transport (Phases 1-6), lazily bound to the active database.
-  late final ChangesetCodec _changesetCodec = ChangesetCodec(_serializer);
 
   /// Assembles a peer's base parts into a temp file (per-part + whole-file
   /// checksum verified) for the bounded-memory replace-adopt (#358).
@@ -389,11 +389,13 @@ class SyncService {
   debugApplyBaseFile(
     String filePath, {
     DateTime? lastSync,
+    String? peerDeviceId,
     void Function(double fraction)? onProgress,
   }) async {
     final r = await _applyRemoteBaseFile(
       filePath,
       lastSync,
+      peerDeviceId: peerDeviceId,
       onProgress: onProgress,
     );
     return (
@@ -427,6 +429,7 @@ class SyncService {
   Future<NearbyApplyResult> applyNearbyBaseFile(
     String filePath, {
     required DateTime? lastSync,
+    String? peerDeviceId,
     void Function(double fraction)? onProgress,
   }) {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
@@ -434,6 +437,7 @@ class SyncService {
       final r = await _applyRemoteBaseFile(
         filePath,
         lastSync,
+        peerDeviceId: peerDeviceId,
         onProgress: onProgress,
       );
       return (
@@ -761,6 +765,7 @@ class SyncService {
           final r = await _applyRemoteBaseFile(
             path,
             lastSyncTime,
+            peerDeviceId: manifest.deviceId,
             onProgress: (fraction) => _reportProgress(
               SyncPhase.downloading,
               0.55 + 0.25 * fraction,
@@ -1429,14 +1434,20 @@ class SyncService {
     // courseId points at a course in the same payload) fail immediately and
     // the affected rows never reach the receiving DB. See
     // docs/design/findings/2026-06-02-icloud-sync-diagnosis.md.
-    return _serializer.applyInDeferredFkTransaction(() async {
-      final result = await _applyRemotePayloadInner(
-        remotePayload,
-        localLastSync,
-      );
-      await _moveLegacyComputerTissueScalars();
-      return result;
-    });
+    return ChangeLogScope.run(
+      DatabaseService.instance.databaseOrNull,
+      source: ChangeLogSource.sync,
+      deviceId: remotePayload.deviceId,
+      lease: kChangeLogLongLease,
+      body: () => _serializer.applyInDeferredFkTransaction(() async {
+        final result = await _applyRemotePayloadInner(
+          remotePayload,
+          localLastSync,
+        );
+        await _moveLegacyComputerTissueScalars();
+        return result;
+      }),
+    );
   }
 
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
@@ -1720,6 +1731,12 @@ class SyncService {
             type: 'divePlanEquipment',
             records: data.divePlanEquipment,
             hasUpdatedAt: false,
+          ),
+          // After dives (the scenario's parent).
+          (
+            type: 'diveScenarios',
+            records: data.diveScenarios,
+            hasUpdatedAt: true,
           ),
           (
             type: 'diverWeightEntries',
@@ -2228,7 +2245,56 @@ class SyncService {
   ///
   /// [onProgress] receives a 0.0 to 1.0 fraction spanning the three passes
   /// (each pass is one third), with a final 1.0 once the transaction commits.
+  ///
+  /// A device with no library of its own taking its first base would log the
+  /// whole library, so that records one summary. An established device can
+  /// also meet a base when a peer's compaction has lapped it: those are real
+  /// changes, update triggers skip the rows that did not change, and they log
+  /// as a normal sync.
   Future<_MergeResult> _applyRemoteBaseFile(
+    String filePath,
+    DateTime? localLastSync, {
+    String? peerDeviceId,
+    void Function(double fraction)? onProgress,
+  }) async {
+    Future<_MergeResult> apply() => _applyRemoteBaseFileInner(
+      filePath,
+      localLastSync,
+      onProgress: onProgress,
+    );
+
+    final db = DatabaseService.instance.databaseOrNull;
+    if (localLastSync == null && !await _hasOwnLibrary(db)) {
+      return ChangeLogScope.suppressed(
+        db,
+        label: ChangeLogLabels.libraryAdopted,
+        source: ChangeLogSource.sync,
+        summaryCount: (result) => result.recordsApplied,
+        lease: kChangeLogLongLease,
+        body: apply,
+      );
+    }
+    return ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.sync,
+      deviceId: peerDeviceId,
+      lease: kChangeLogLongLease,
+      body: apply,
+    );
+  }
+
+  /// Whether this device holds any dives yet. A new device's profile row is
+  /// not a library, and connecting a new backend to an old device is not a
+  /// first adoption, though both start with no last sync time.
+  Future<bool> _hasOwnLibrary(AppDatabase? db) async {
+    if (db == null) return false;
+    final row = await db
+        .customSelect('SELECT EXISTS (SELECT 1 FROM dives) AS has_dives')
+        .getSingle();
+    return row.read<int>('has_dives') == 1;
+  }
+
+  Future<_MergeResult> _applyRemoteBaseFileInner(
     String filePath,
     DateTime? localLastSync, {
     void Function(double fraction)? onProgress,
@@ -2896,6 +2962,7 @@ class SyncService {
     'gpsTracks': true,
     'navTracks': true,
     'divePlans': true,
+    'diveScenarios': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
     'divePlanMissions': true,
@@ -3615,6 +3682,7 @@ class SyncService {
       (field: 'viaEquipmentId', parent: 'equipment', nullable: true),
       (field: 'viaSetId', parent: 'equipmentSets', nullable: true),
     ],
+    'diveScenarios': [(field: 'diveId', parent: 'dives', nullable: false)],
     'serviceRecords': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
@@ -5156,9 +5224,7 @@ class SyncService {
       version: pending.version,
       exportedAt: pending.exportedAt,
       deviceId: pending.deviceId,
-      checksum: sha256
-          .convert(utf8.encode(jsonEncode(data.toJson())))
-          .toString(),
+      checksum: await SyncDataSerializer.checksumOfOffIsolate(data),
       data: data,
       deletions: pending.deletions,
     );
@@ -5276,11 +5342,17 @@ class SyncService {
       }
 
       try {
-        await _serializer.applyInDeferredFkTransaction(
-          () => _adoptApplyStreaming(
-            baseFilePaths: sources.baseFilePaths,
-            baseExportedAt: sources.baseExportedAt,
-            changesets: sources.changesets,
+        await ChangeLogScope.suppressed<void>(
+          DatabaseService.instance.databaseOrNull,
+          label: ChangeLogLabels.libraryReplaced,
+          source: ChangeLogSource.sync,
+          lease: kChangeLogLongLease,
+          body: () => _serializer.applyInDeferredFkTransaction(
+            () => _adoptApplyStreaming(
+              baseFilePaths: sources.baseFilePaths,
+              baseExportedAt: sources.baseExportedAt,
+              changesets: sources.changesets,
+            ),
           ),
         );
       } finally {
@@ -5804,15 +5876,27 @@ class SyncService {
         baseFilePaths.add(path);
         baseExportedAt.add(await _readBaseExportedAt(path));
         // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
-        // first gap) so adopt can record it as this peer's cursor -- otherwise the
-        // next sync cold-starts and re-downloads the whole base we just applied.
+        // first gap or damaged one) so adopt can record it as this peer's
+        // cursor. Otherwise the next sync cold-starts and re-downloads the whole
+        // base we just applied.
         var appliedThrough = baseSeq;
         for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
           final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
           if (cf == null) break;
-          changesets.add(
-            _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
-          );
+          // Damage has the standing of a gap, as in ChangesetReader.pull: the
+          // cursor stops short of it, which a replace reads as a library it
+          // must wait for. An encrypted library shows it as a corrupt envelope
+          // and a plain one as a failed checksum. A read that failed says
+          // nothing about the file, so that still aborts the collection.
+          final Uint8List bytes;
+          try {
+            bytes = await provider.downloadFile(cf.id);
+          } on EnvelopeCorruptException {
+            break;
+          }
+          final decoded = await _changesetCodec.decodeVerifiedChangeset(bytes);
+          if (!decoded.checksumValid) break;
+          changesets.add(decoded.payload);
           appliedThrough = seq;
         }
         cursors.add((

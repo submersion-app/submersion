@@ -8,6 +8,14 @@ class DiveMatcher {
   /// Creates a [DiveMatcher] instance.
   const DiveMatcher();
 
+  /// Minutes apart at which the time score, and so the whole score, is zero.
+  static const _timeZeroMinutes = 15;
+
+  /// The gap between two dives' starts at which the score reaches zero, so a
+  /// pair this far apart or more is not worth scoring at all (see
+  /// [MatchScorer.gateOnZeroTime]).
+  static const candidateWindow = Duration(minutes: _timeZeroMinutes);
+
   /// Weighted scorer for file imports: time 50%, depth 30%, duration 20%.
   ///
   /// Time is scored over 5-15 min (whole minutes), depth as a percentage
@@ -18,7 +26,7 @@ class DiveMatcher {
     depthWeight: 0.30,
     durationWeight: 0.20,
     timeFull: 5, // minutes
-    timeZero: 15,
+    timeZero: _timeZeroMinutes * 1.0,
     depthFull: 0.10, // fraction
     depthZero: 0.20,
     durationFull: 3, // minutes
@@ -127,10 +135,10 @@ class DiveMatchResult {
   final int? inBatchIndex;
 
   /// When non-null, [diveId] is an unfilled PLANNED dive of the target
-  /// profile on the same local day as the download (issue #2002). The
-  /// wizard defaults such a row to [DuplicateAction.fillPlanned]: the
-  /// planned dive keeps its human-entered facts and the download supplies
-  /// the measured ones. Never set together with [matchedExistingSource] or
+  /// profile on the download's local day or the day before (issues #2002 and
+  /// #4003). The wizard defaults such a row to
+  /// [DuplicateAction.fillPlanned]: the planned dive keeps its human-entered
+  /// facts and the download supplies the measured ones. Never set together with [matchedExistingSource] or
   /// [inBatchIndex]; the planned pass runs only for otherwise unmatched
   /// downloads.
   final String? plannedDiveId;

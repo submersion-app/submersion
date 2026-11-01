@@ -201,6 +201,16 @@ class DivePlan extends Equatable {
   final String? sourceDiveId;
   final String? linkedDiveId;
 
+  /// CNS% this dive starts with: the exposure earlier dives in a repetitive
+  /// series leave behind, already decayed over [surfaceInterval] (issue
+  /// #3565). An engine input only: not persisted, 0 for a fresh diver.
+  final double startCns;
+
+  /// OTU this dive starts with: the day's exposure from earlier dives in a
+  /// repetitive series (issue #3565). An engine input only: not persisted,
+  /// 0 for a fresh diver.
+  final double startOtu;
+
   // CCR config (Phase 4 UI; persisted now)
   final double? setpointLow;
   final double? setpointHigh;
@@ -285,6 +295,8 @@ class DivePlan extends Equatable {
     this.surfaceInterval,
     this.sourceDiveId,
     this.linkedDiveId,
+    this.startCns = 0,
+    this.startOtu = 0,
     this.setpointLow,
     this.setpointHigh,
     this.setpointSwitchDepth,
@@ -423,6 +435,8 @@ class DivePlan extends Equatable {
     bool clearSourceDiveId = false,
     String? linkedDiveId,
     bool clearLinkedDiveId = false,
+    double? startCns,
+    double? startOtu,
     double? setpointLow,
     bool clearSetpointLow = false,
     double? setpointHigh,
@@ -533,6 +547,8 @@ class DivePlan extends Equatable {
       linkedDiveId: clearLinkedDiveId
           ? null
           : (linkedDiveId ?? this.linkedDiveId),
+      startCns: startCns ?? this.startCns,
+      startOtu: startOtu ?? this.startOtu,
       setpointLow: clearSetpointLow ? null : (setpointLow ?? this.setpointLow),
       setpointHigh: clearSetpointHigh
           ? null
@@ -614,6 +630,8 @@ class DivePlan extends Equatable {
     surfaceInterval,
     sourceDiveId,
     linkedDiveId,
+    startCns,
+    startOtu,
     setpointLow,
     setpointHigh,
     setpointSwitchDepth,
@@ -642,6 +660,13 @@ class DivePlanSummary extends Equatable {
   final int? ttsSeconds;
   final PlanMode mode;
 
+  /// The dive this plan is linked to (issue #4003), and what the saved plans
+  /// list needs to say so without loading it.
+  final String? linkedDiveId;
+  final int? linkedDiveNumber;
+  final bool linkedDiveIsPlanned;
+  final DateTime? linkedDiveDate;
+
   const DivePlanSummary({
     required this.id,
     required this.name,
@@ -650,6 +675,10 @@ class DivePlanSummary extends Equatable {
     this.runtimeSeconds,
     this.ttsSeconds,
     this.mode = PlanMode.oc,
+    this.linkedDiveId,
+    this.linkedDiveNumber,
+    this.linkedDiveIsPlanned = false,
+    this.linkedDiveDate,
   });
 
   @override
@@ -661,5 +690,9 @@ class DivePlanSummary extends Equatable {
     runtimeSeconds,
     ttsSeconds,
     mode,
+    linkedDiveId,
+    linkedDiveNumber,
+    linkedDiveIsPlanned,
+    linkedDiveDate,
   ];
 }

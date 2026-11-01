@@ -23,7 +23,9 @@
 	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
 
-	<!-- Network access (client only - for cloud sync, no server functionality) -->
+	<!-- Network access for cloud sync. The agent access MCP listener binds -->
+	<!-- 127.0.0.1 only; an unsandboxed app needs no server entitlement for -->
+	<!-- that (the sandboxed Release.entitlements declares network.server). -->
 	<key>com.apple.security.network.client</key>
 	<true/>
 

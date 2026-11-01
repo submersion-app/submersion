@@ -792,14 +792,14 @@ void main() {
     });
 
     // Retiring and reactivating go through the Edit page's Status field;
-    // the overflow menu offers only Open in Connections, Clone and Delete,
+    // the overflow menu offers only History, Open in Connections, Clone and Delete,
     // whatever the item's state.
     for (final embedded in [false, true]) {
       for (final isActive in [true, false]) {
         final state = isActive ? 'an active' : 'a retired';
         final layout = embedded ? 'embedded' : 'standalone';
         testWidgets(
-          'the $layout overflow menu of $state item offers only Connections, Clone and Delete',
+          'the $layout overflow menu of $state item offers only History, Connections, Clone and Delete',
           (tester) async {
             final equipment = EquipmentItem(
               id: 'equip-menu-$layout-$isActive',
@@ -829,7 +829,8 @@ void main() {
             expect(find.text('Delete'), findsOneWidget);
             expect(find.text('Retire Equipment'), findsNothing);
             expect(find.text('Reactivate'), findsNothing);
-            expect(find.byType(PopupMenuItem<String>), findsNWidgets(3));
+            expect(find.text('History'), findsOneWidget);
+            expect(find.byType(PopupMenuItem<String>), findsNWidgets(4));
 
             // Selecting Delete still reaches the handler: it asks first,
             // and cancelling leaves the item in place.

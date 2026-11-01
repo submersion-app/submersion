@@ -20,9 +20,12 @@ import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
+import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
+import 'package:submersion/features/planner/domain/services/issue_onset.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
+import 'package:submersion/features/planner/domain/services/setpoint_switch_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
@@ -31,6 +34,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart'
     show kDefaultBatteryReserveFraction, kDefaultWalkSpeedMps;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
 ///
@@ -106,6 +110,10 @@ class PlanEngineConfig extends Equatable {
 
   /// SCR supply injection rate (surface liters per minute) for the CMF loop.
   final double scrInjectionRateLpm;
+
+  /// SCR diver metabolic O2 consumption (surface liters per minute), which
+  /// sets the CMF loop's steady-state O2 fraction.
+  final double scrVo2Lpm;
 
   /// pSCR metabolic O2 consumption in surface mL/min (Subsurface
   /// `o2consumption`, default 720).
@@ -206,6 +214,7 @@ class PlanEngineConfig extends Equatable {
     this.loopVolumeLiters = 6.0,
     this.buddyFactor = 2.0,
     this.scrInjectionRateLpm = 12.0,
+    this.scrVo2Lpm = ScrCalculator.defaultVo2,
     this.pscrO2ConsumptionMlMin = 720.0,
     this.pscrSacMlMin = 20000.0,
     this.pscrRatio = 100.0,
@@ -259,6 +268,7 @@ class PlanEngineConfig extends Equatable {
     loopVolumeLiters,
     buddyFactor,
     scrInjectionRateLpm,
+    scrVo2Lpm,
     pscrO2ConsumptionMlMin,
     pscrSacMlMin,
     pscrRatio,
@@ -311,6 +321,7 @@ class PlanEngineConfig extends Equatable {
     double? loopVolumeLiters,
     double? buddyFactor,
     double? scrInjectionRateLpm,
+    double? scrVo2Lpm,
     double? pscrO2ConsumptionMlMin,
     double? pscrSacMlMin,
     double? pscrRatio,
@@ -365,6 +376,7 @@ class PlanEngineConfig extends Equatable {
       loopVolumeLiters: loopVolumeLiters ?? this.loopVolumeLiters,
       buddyFactor: buddyFactor ?? this.buddyFactor,
       scrInjectionRateLpm: scrInjectionRateLpm ?? this.scrInjectionRateLpm,
+      scrVo2Lpm: scrVo2Lpm ?? this.scrVo2Lpm,
       pscrO2ConsumptionMlMin:
           pscrO2ConsumptionMlMin ?? this.pscrO2ConsumptionMlMin,
       pscrSacMlMin: pscrSacMlMin ?? this.pscrSacMlMin,
@@ -469,6 +481,27 @@ class PlanEngineConfig extends Equatable {
     band3: ppO2DecoBand3,
     explicitO2DepthEnabled: maxO2DepthEnabled,
     explicitO2DepthMeters: maxO2DepthMeters,
+  );
+
+  /// The open-circuit ascent over [bailoutTanks], which must carry resolved
+  /// roles and be at least one: each gas joins at its cylinder's MOD (issue
+  /// #3567), the one the diver set or the default for a bailout of its mix.
+  /// Call on a [resolvedFor] config, as [decoLimits] says.
+  ///
+  /// The one definition of what a loop plan can bail out on, shared by the
+  /// bailout schedule and the plan's own issue about it (#3961), so the two
+  /// never disagree about which gases reach which depth.
+  OptimalOcAscentGas bailoutAscentGas(
+    List<DiveTank> bailoutTanks,
+    DiveEnvironment environment,
+  ) => OptimalOcAscentGas(
+    maxPpO2: ppO2Deco,
+    gases: ascentGasesFor(
+      bailoutTanks,
+      bottomPpO2: ppO2Working,
+      decoPpO2: decoLimits,
+      environment: environment,
+    ),
   );
 
   /// [plan]'s low (shallow) setpoint: its own value when set, else the
@@ -620,6 +653,9 @@ double setpointAt(
 /// PlanEngine.compute does, or the replay loads a loop's worth of gas for
 /// a leg the diver actually breathed open circuit -- caught by a Copilot
 /// review).
+///
+/// One call is one setpoint, so a replay of a ramp asks for each stretch
+/// [splitAtSetpointSwitch] returns rather than for the ramp's mean depth.
 BreathingConfig breathingFor(
   domain.DivePlan plan,
   GasMix gas,
@@ -642,6 +678,7 @@ BreathingConfig breathingFor(
       supplyFO2: gas.o2 / 100.0,
       supplyFHe: gas.he / 100.0,
       injectionRateLpm: config.scrInjectionRateLpm,
+      vo2: config.scrVo2Lpm,
     );
   }
   if (mode == domain.PlanMode.pscr) {
@@ -805,8 +842,13 @@ class PlanEngine {
 
     var state = startState ?? model.initial();
     var runtime = 0;
-    var cns = 0.0;
-    var otu = 0.0;
+    // A repetitive dive starts with the exposure earlier dives left behind.
+    var cns = plan.startCns;
+    var otu = plan.startOtu;
+    // The same exposure, stretch by stretch, so an issue can name the
+    // moment its total first reached the limit (#3738).
+    final cnsSteps = <RuntimeIncrement>[];
+    final otuSteps = <RuntimeIncrement>[];
     var maxPpO2 = 0.0;
     int? ndlAtBottom;
     var authoredDecoSeconds = 0;
@@ -814,33 +856,56 @@ class PlanEngine {
     final segmentOutcomes = <SegmentOutcome>[];
     final timeline = <(int, BuhlmannState)>[];
 
+    void addExposure(int startRuntime, int seconds, double ppO2) {
+      final stepCns = o2Calc.calculateCnsForSegment(ppO2, seconds);
+      final stepOtu = o2Calc.calculateOtuForSegment(ppO2, seconds);
+      cns += stepCns;
+      otu += stepOtu;
+      cnsSteps.add(
+        RuntimeIncrement(
+          startRuntime: startRuntime,
+          durationSeconds: seconds,
+          amount: stepCns,
+        ),
+      );
+      otuSteps.add(
+        RuntimeIncrement(
+          startRuntime: startRuntime,
+          durationSeconds: seconds,
+          amount: stepOtu,
+        ),
+      );
+    }
+
     for (final leg in legs) {
       final segment = leg.segment;
       final startRuntime = runtime;
-      final breathing = _breathingFor(
-        plan,
-        segment.gasMix,
-        leg.avgDepth,
-        segment: segment,
-      );
       // The segment's effective breathing mode is loop-based (CCR/SCR) unless
       // OC - drives the ppO2 convention below.
       final segmentIsLoop = _modeFor(plan, segment) != domain.PlanMode.oc;
+      final fO2 = segment.gasMix.o2 / 100.0;
 
-      state = model.applySegment(
-        state,
-        DecoSegment(
-          startDepth: leg.startDepth,
-          endDepth: leg.endDepth,
-          durationSeconds: segment.durationSeconds,
-        ),
-        breathing,
-      );
-      runtime += segment.durationSeconds;
+      // A ramp over the setpoint switch changes setpoint at the switch, not
+      // at its mean depth, so each side is loaded and charged on its own.
+      for (final piece in _breathedPieces(plan, leg)) {
+        final breathing = _breathingFor(
+          plan,
+          segment.gasMix,
+          piece.avgDepth,
+          segment: segment,
+        );
+        state = model.applySegment(state, piece, breathing);
+        final ambient = environment.pressureAtDepth(piece.avgDepth);
+        addExposure(
+          runtime,
+          piece.durationSeconds,
+          segmentIsLoop ? breathing.inspiredAt(ambient).pO2 : ambient * fO2,
+        );
+        runtime += piece.durationSeconds;
+      }
       timeline.add((runtime, state as BuhlmannState));
 
       final deeperEnd = leg.deeperEnd;
-      final fO2 = segment.gasMix.o2 / 100.0;
       // OC ppO2 is ambient x fraction in the plan's water, as the schedule
       // shows it (issue #3913); loop ppO2 is the inspired (setpoint/CMF)
       // value.
@@ -853,12 +918,6 @@ class PlanEngine {
             ).inspiredAt(environment.pressureAtDepth(deeperEnd)).pO2
           : environment.pressureAtDepth(deeperEnd) * fO2;
       if (segmentMaxPpO2 > maxPpO2) maxPpO2 = segmentMaxPpO2;
-
-      final avgPpO2 = segmentIsLoop
-          ? breathing.inspiredAt(environment.pressureAtDepth(leg.avgDepth)).pO2
-          : environment.pressureAtDepth(leg.avgDepth) * fO2;
-      cns += o2Calc.calculateCnsForSegment(avgPpO2, segment.durationSeconds);
-      otu += o2Calc.calculateOtuForSegment(avgPpO2, segment.durationSeconds);
 
       final ndl = model.ndlSeconds(
         state,
@@ -929,12 +988,13 @@ class PlanEngine {
       loopSupplyTankId,
     );
 
-    // A separate, finely-sampled replay purely for the chart's ceiling curve.
+    // A separate, finely-sampled replay for the chart's ceiling curve.
     // It never feeds back into `state`/cns/otu/stops, so it cannot perturb
     // the numbers the rest of this method already computed and returned.
     // The same replay walks the authored legs at that resolution, so it is
-    // also where a leg that takes the diver above the ceiling shows up.
-    final (:trace, :breaches) = _ceilingTrace(
+    // also where a leg that takes the diver above the ceiling shows up, and
+    // it ends at the surface, so its last state is the surfaced tissue.
+    final (:trace, :breaches, :surfaced) = _ceilingTrace(
       model,
       plan,
       legs,
@@ -949,19 +1009,19 @@ class PlanEngine {
     // force at its deeper end, which is the gas the deco model loaded it on.
     // A leg splits at a gas switch, so no span charges one gas for another's
     // stretch.
-    for (final span in ascentTravelSpans(
+    for (final (:span, :start) in _timedAscentSpans(
       policy,
       ascentPlan,
+      stops,
       fromDepth: lastDepth,
-      stopDepths: [for (final stop in stops) stop.depthMeters],
+      startRuntime: runtime,
     )) {
       final avgDepth = (span.fromDepth + span.toDepth) / 2.0;
       final ppO2 = ascentPlan is LoopAscentGas
           ? ascentPlan.inspiredPpO2At(avgDepth)
           : environment.pressureAtDepth(avgDepth) *
                 ascentPlan.gasForDepth(span.fromDepth).fO2;
-      cns += o2Calc.calculateCnsForSegment(ppO2, span.seconds);
-      otu += o2Calc.calculateOtuForSegment(ppO2, span.seconds);
+      addExposure(start, span.seconds, ppO2);
     }
 
     // Decompression stops carry O2 exposure too — a long stop on a rich deco
@@ -975,19 +1035,21 @@ class PlanEngine {
       final primaryPpO2 = ascentPlan is LoopAscentGas
           ? ascentPlan.inspiredPpO2At(stop.depthMeters)
           : stopPressure * stop.gasFO2;
-      cns += o2Calc.calculateCnsForSegment(primaryPpO2, primarySeconds);
-      otu += o2Calc.calculateOtuForSegment(primaryPpO2, primarySeconds);
+      addExposure(stop.arrivalRuntimeSeconds, primarySeconds, primaryPpO2);
       if (stop.airBreakSeconds > 0) {
         final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
         final breakPpO2 = breakGas != null
             ? stopPressure * breakGas.fO2
             : primaryPpO2;
-        cns += o2Calc.calculateCnsForSegment(breakPpO2, stop.airBreakSeconds);
-        otu += o2Calc.calculateOtuForSegment(breakPpO2, stop.airBreakSeconds);
+        addExposure(
+          stop.arrivalRuntimeSeconds + primarySeconds,
+          stop.airBreakSeconds,
+          breakPpO2,
+        );
       }
     }
 
-    final tankUsages = isCcr
+    final (:usages, :draws) = isCcr
         ? _computeCcrTankUsages(
             plan,
             legs: legs,
@@ -1003,6 +1065,7 @@ class PlanEngine {
             ascentPlan,
             loopSupplyTankId,
           );
+    final tankUsages = usages;
     final issues = _computeIssues(
       plan,
       legs,
@@ -1014,6 +1077,12 @@ class PlanEngine {
       breaches,
       ascentPlan,
       stops,
+      onsets: (
+        cnsSteps: cnsSteps,
+        otuSteps: otuSteps,
+        draws: draws,
+        schedule: scheduleRows,
+      ),
     );
 
     // The last table line's end, so the headline runtime can never
@@ -1048,6 +1117,7 @@ class PlanEngine {
       issues: issues,
       endTissue: state as BuhlmannState,
       tissueTimeline: timeline,
+      surfacedTissue: surfaced,
       ceilingTrace: trace,
     );
   }
@@ -1074,7 +1144,14 @@ class PlanEngine {
   /// descent only takes the diver deeper: when one starts above the ceiling
   /// (a repetitive dive begun while still owing deco), no edit to it could
   /// clear the breach.
-  ({List<(int, double)> trace, Iterable<_CeilingBreach> breaches})
+  ///
+  /// [surfaced] is the replay's tissue state at the end: the state on
+  /// reaching the surface, stops and air breaks included.
+  ({
+    List<(int, double)> trace,
+    Iterable<_CeilingBreach> breaches,
+    BuhlmannState surfaced,
+  })
   _ceilingTrace(
     DecoModel model,
     domain.DivePlan plan,
@@ -1085,8 +1162,9 @@ class PlanEngine {
     TissueState initialState,
   ) {
     final trace = <(int, double)>[];
-    // Keyed by the authored segment, so the legs one segment expands into
-    // (a rate-split travel and hold) report as that one segment.
+    // Keyed by the authored segment, so the stretches one segment expands
+    // into (a rate-split travel and hold, the two sides of a setpoint switch)
+    // report as that one segment.
     final breaches = <String, _CeilingBreach>{};
     var traceState = initialState;
     var runtime = 0;
@@ -1162,22 +1240,46 @@ class PlanEngine {
       }
     }
 
-    BreathingConfig ascentBreathingAt(double depth) {
-      final gas = ascentPlan.gasForDepth(depth);
-      return OpenCircuit(fO2: 1.0 - gas.fN2 - gas.fHe, fHe: gas.fHe);
+    BreathingConfig breathing(AscentGas gas) =>
+        OpenCircuit(fO2: 1.0 - gas.fN2 - gas.fHe, fHe: gas.fHe);
+
+    BreathingConfig ascentBreathingAt(double depth) =>
+        breathing(ascentPlan.gasForDepth(depth));
+
+    // A travel leg cut wherever the ascent changes gas, as the scheduler
+    // loaded it, so no sample breathes one gas across the switch.
+    void sampleTravel(double fromDepth, double toDepth, int seconds) {
+      for (final span in straightAscentSpans(
+        ascentPlan,
+        fromDepth: fromDepth,
+        toDepth: toDepth,
+        seconds: seconds,
+      )) {
+        sampleLeg(
+          span.fromDepth,
+          span.toDepth,
+          span.seconds,
+          ascentBreathingAt,
+        );
+      }
     }
 
     for (final leg in legs) {
       final segment = leg.segment;
-      sampleLeg(
-        leg.startDepth,
-        leg.endDepth,
-        leg.durationSeconds,
-        (depth) => _breathingFor(plan, segment.gasMix, depth, segment: segment),
-        authoredSegmentId: leg.endDepth > leg.startDepth
-            ? null
-            : _authoredSegmentId(segment.id),
-      );
+      final authoredSegmentId = leg.endDepth > leg.startDepth
+          ? null
+          : _authoredSegmentId(segment.id);
+      BreathingConfig breathingAt(double depth) =>
+          _breathingFor(plan, segment.gasMix, depth, segment: segment);
+      for (final piece in _breathedPieces(plan, leg)) {
+        sampleLeg(
+          piece.startDepth,
+          piece.endDepth,
+          piece.durationSeconds,
+          breathingAt,
+          authoredSegmentId: authoredSegmentId,
+        );
+      }
     }
 
     final policy = _policyFor(plan);
@@ -1189,13 +1291,29 @@ class PlanEngine {
         toDepth: stop.depthMeters,
         phase: phase,
       );
-      sampleLeg(depth, stop.depthMeters, legSeconds, ascentBreathingAt);
-      sampleLeg(
-        stop.depthMeters,
-        stop.depthMeters,
-        stop.durationSeconds,
-        (_) => ascentBreathingAt(stop.depthMeters),
-      );
+      sampleTravel(depth, stop.depthMeters, legSeconds);
+      // A stop with air breaks is breathed in the scheduler's own runs, so
+      // the tissues come out as they did when it timed the stop.
+      final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
+      final airBreaks = policy.airBreaks;
+      if (stop.airBreakSeconds > 0 && breakGas != null && airBreaks != null) {
+        final onBreak = breathing(breakGas);
+        for (final run in airBreakRuns(stop.durationSeconds, airBreaks)) {
+          sampleLeg(
+            stop.depthMeters,
+            stop.depthMeters,
+            run.seconds,
+            (_) => run.onBreak ? onBreak : ascentBreathingAt(stop.depthMeters),
+          );
+        }
+      } else {
+        sampleLeg(
+          stop.depthMeters,
+          stop.depthMeters,
+          stop.durationSeconds,
+          (_) => ascentBreathingAt(stop.depthMeters),
+        );
+      }
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
     }
@@ -1205,11 +1323,29 @@ class PlanEngine {
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),
       );
-      sampleLeg(depth, 0, legSeconds, ascentBreathingAt);
+      sampleTravel(depth, 0, legSeconds);
     }
 
-    return (trace: trace, breaches: breaches.values);
+    return (
+      trace: trace,
+      breaches: breaches.values,
+      surfaced: traceState as BuhlmannState,
+    );
   }
+
+  /// [leg] as it is breathed: whole, or cut at [plan]'s setpoint switch.
+  static List<DecoSegment> _breathedPieces(
+    domain.DivePlan plan,
+    ResolvedLeg leg,
+  ) => splitAtSetpointSwitch(
+    plan,
+    leg.segment,
+    DecoSegment(
+      startDepth: leg.startDepth,
+      endDepth: leg.endDepth,
+      durationSeconds: leg.durationSeconds,
+    ),
+  );
 
   /// The diver-authored segment a resolved leg came from, or null for a leg
   /// the engine inserted on its own (a diluent switch stop), which is never
@@ -1241,14 +1377,17 @@ class PlanEngine {
   /// instead, at the SAC rates the open-circuit walk charges (#3898). A
   /// bailout tank that no such leg breathes consumes nothing here: the
   /// bailout solver sizes it.
-  List<PlanTankUsage> _computeCcrTankUsages(
+  _TankUsageResult _computeCcrTankUsages(
     domain.DivePlan plan, {
     required List<ResolvedLeg> legs,
     required int totalRuntimeSeconds,
     required DiveEnvironment environment,
   }) {
-    if (plan.tanks.isEmpty) return const [];
+    if (plan.tanks.isEmpty) return (usages: const [], draws: const {});
     final liters = <String, double>{for (final t in plan.tanks) t.id: 0.0};
+    final draws = <String, List<RuntimeIncrement>>{
+      for (final t in plan.tanks) t.id: [],
+    };
     final offLoopLegs = [
       for (final leg in legs)
         if (modeFor(plan, leg.segment) != domain.PlanMode.ccr) leg,
@@ -1270,6 +1409,23 @@ class PlanEngine {
       liters[o2TankId] =
           config.o2MetabolicRateLpm *
           ((totalRuntimeSeconds - offLoopSeconds) / 60.0);
+      // A draw only while on the loop, so an off-loop leg leaves a gap and the
+      // reserve is not marked early (#3738).
+      void drawO2(int startRuntime, int seconds) => draws[o2TankId]!.add(
+        RuntimeIncrement(
+          startRuntime: startRuntime,
+          durationSeconds: seconds,
+          amount: config.o2MetabolicRateLpm * (seconds / 60.0),
+        ),
+      );
+      var elapsed = 0;
+      for (final leg in legs) {
+        if (modeFor(plan, leg.segment) == domain.PlanMode.ccr) {
+          drawO2(elapsed, leg.durationSeconds);
+        }
+        elapsed += leg.durationSeconds;
+      }
+      drawO2(elapsed, totalRuntimeSeconds - elapsed);
     }
 
     // Loop-fill gas: as the diver goes deeper, the counterlung needs more
@@ -1285,28 +1441,58 @@ class PlanEngine {
     // hold half, #3264) or an ascent needs no extra fill -- and only while
     // the loop itself is running (a per-segment OC override breathes no
     // loop gas at all).
+    var legStart = 0;
     for (final leg in legs) {
       if (modeFor(plan, leg.segment) == domain.PlanMode.ccr &&
           leg.endDepth > leg.startDepth &&
           liters.containsKey(leg.tankId)) {
-        liters[leg.tankId] =
-            (liters[leg.tankId] ?? 0) +
+        final fill =
             config.loopVolumeLiters *
-                (environment.pressureAtDepth(leg.endDepth) -
-                    environment.pressureAtDepth(leg.startDepth));
+            (environment.pressureAtDepth(leg.endDepth) -
+                environment.pressureAtDepth(leg.startDepth));
+        liters[leg.tankId] = (liters[leg.tankId] ?? 0) + fill;
+        draws[leg.tankId]!.add(
+          RuntimeIncrement(
+            startRuntime: legStart,
+            durationSeconds: leg.durationSeconds,
+            amount: fill,
+          ),
+        );
       }
+      legStart += leg.durationSeconds;
     }
 
     // Off the loop the diver breathes the cylinder itself. Like the
     // open-circuit walk, a leg naming a cylinder no longer on the plan falls
     // back to the first one: dropping it would report that gas as free.
-    void charge(String tankId, double amount) {
+    void charge(
+      String tankId,
+      double amount, {
+      required int atRuntime,
+      required int seconds,
+    }) {
       final id = liters.containsKey(tankId) ? tankId : plan.tanks.first.id;
       liters[id] = (liters[id] ?? 0) + amount;
+      draws[id]!.add(
+        RuntimeIncrement(
+          startRuntime: atRuntime,
+          durationSeconds: seconds,
+          amount: amount,
+        ),
+      );
     }
 
-    for (final leg in offLoopLegs) {
-      charge(leg.tankId, _legLiters(plan, leg, environment));
+    legStart = 0;
+    for (final leg in legs) {
+      if (modeFor(plan, leg.segment) != domain.PlanMode.ccr) {
+        charge(
+          leg.tankId,
+          _legLiters(plan, leg, environment),
+          atRuntime: legStart,
+          seconds: leg.durationSeconds,
+        );
+      }
+      legStart += leg.durationSeconds;
     }
 
     // Only when the diver is off the loop at the bottom: a problem solved on
@@ -1320,10 +1506,12 @@ class PlanEngine {
           environment,
           mode: _modeFor(plan, bottomLeg.segment),
         ),
+        atRuntime: _bottomEndRuntime(plan, legs, bottomLeg),
+        seconds: 0,
       );
     }
 
-    return [
+    final usages = [
       for (final tank in plan.tanks)
         () {
           final used = liters[tank.id] ?? 0.0;
@@ -1374,6 +1562,7 @@ class PlanEngine {
           );
         }(),
     ];
+    return (usages: usages, draws: draws);
   }
 
   /// Surface liters [leg] costs the cylinder it names, in its own breathing
@@ -1405,12 +1594,32 @@ class PlanEngine {
     return bottomLeg;
   }
 
+  /// The runtime the bottom ends at, given [bottomLeg], the last of [legs] at
+  /// [plan]'s max depth: the end of that leg, or its start when it is the
+  /// ascent leaving that depth. 0 without one.
+  static int _bottomEndRuntime(
+    domain.DivePlan plan,
+    List<ResolvedLeg> legs,
+    ResolvedLeg? bottomLeg,
+  ) {
+    var elapsed = 0;
+    for (final leg in legs) {
+      if (identical(leg, bottomLeg)) {
+        return leg.endDepth >= plan.maxDepth - 0.1
+            ? elapsed + leg.durationSeconds
+            : elapsed;
+      }
+      elapsed += leg.durationSeconds;
+    }
+    return 0;
+  }
+
   /// Consumption for every plan but CCR: bottom SAC while the dive is still
   /// working (descending, or level at depth), deco SAC once it is heading up
   /// (ascent legs and stops), depth pressure via the plan's environment,
   /// remaining pressure compressibility-corrected. A semi-closed leg turns
   /// that into what the loop draws (see [PlanEngineConfig.cylinderLiters]).
-  List<PlanTankUsage> _computeTankUsages(
+  _TankUsageResult _computeTankUsages(
     domain.DivePlan plan,
     List<ResolvedLeg> legs,
     List<PlanStop> stops,
@@ -1419,15 +1628,32 @@ class PlanEngine {
     AscentGasPlan ascentPlan,
     String? loopSupplyTankId,
   ) {
-    if (plan.tanks.isEmpty) return const [];
+    if (plan.tanks.isEmpty) return (usages: const [], draws: const {});
     final liters = <String, double>{for (final t in plan.tanks) t.id: 0.0};
+    final draws = <String, List<RuntimeIncrement>>{
+      for (final t in plan.tanks) t.id: [],
+    };
     final fallbackTankId = plan.tanks.first.id;
 
-    void charge(String? tankId, double amount) {
+    // [atRuntime] and [seconds] place the draw in the dive, so a cylinder's
+    // reserve can be marked where it is first reached (#3738).
+    void charge(
+      String? tankId,
+      double amount, {
+      required int atRuntime,
+      required int seconds,
+    }) {
       final id = tankId != null && liters.containsKey(tankId)
           ? tankId
           : fallbackTankId;
       liters[id] = (liters[id] ?? 0) + amount;
+      draws[id]!.add(
+        RuntimeIncrement(
+          startRuntime: atRuntime,
+          durationSeconds: seconds,
+          amount: amount,
+        ),
+      );
     }
 
     String? ascentTankFor(AscentGas gas) =>
@@ -1449,13 +1675,22 @@ class PlanEngine {
     // resolvedFor this plan, so an unset field already carries the diver's
     // Settings default. sacFactor has no absolute global value of its own -
     // it always resolves through config.buddyFactor (see resolvedFor).
+    var legStart = 0;
     for (final leg in legs) {
-      charge(leg.tankId, _legLiters(plan, leg, environment));
+      charge(
+        leg.tankId,
+        _legLiters(plan, leg, environment),
+        atRuntime: legStart,
+        seconds: leg.durationSeconds,
+      );
+      legStart += leg.durationSeconds;
     }
 
     // Problem-solving time: extra N minutes at max depth on the working
     // gas, at bottom SAC x SAC factor, so the used/end figures include the
     // same bottom-hold term the gas-options row describes.
+    // It is charged as one lump where the bottom ends: gas the diver must
+    // still have in hand when leaving the bottom.
     final bottomLeg = lastLegAtMaxDepth(plan, legs);
     charge(
       bottomLeg?.tankId,
@@ -1464,6 +1699,8 @@ class PlanEngine {
         environment,
         mode: _modeFor(plan, bottomLeg?.segment),
       ),
+      atRuntime: _bottomEndRuntime(plan, legs, bottomLeg),
+      seconds: 0,
     );
 
     // Computed ascent: travel legs and stops on the deco SAC.
@@ -1471,7 +1708,13 @@ class PlanEngine {
     // Charges each sub-leg to the gas actually eligible across it, the one
     // the deco model and the exposure breathe there: the diver switches at
     // the stop, so a leg into a switch stop is still on the gas it left.
-    void chargeSplitLeg(double from, double to, int seconds) {
+    void chargeSplitLeg(
+      double from,
+      double to,
+      int seconds, {
+      required int atRuntime,
+    }) {
+      var spanStart = atRuntime;
       for (final span in splitAscentLeg(
         ascentPlan,
         fromDepth: from,
@@ -1484,7 +1727,10 @@ class PlanEngine {
             span.seconds,
             environment.pressureAtDepth((span.fromDepth + span.toDepth) / 2.0),
           ),
+          atRuntime: spanStart,
+          seconds: span.seconds,
         );
+        spanStart += span.seconds;
       }
     }
 
@@ -1499,16 +1745,27 @@ class PlanEngine {
       // Mirrors _buildSchedule's own split (#3225), rather than lumping a
       // leg onto its stop's shallow gas. A switch at a gas's MOD lands at a
       // stop, but a depth the diver set can fall between two of them.
-      chargeSplitLeg(depth, stop.depthMeters, legSeconds);
+      chargeSplitLeg(
+        depth,
+        stop.depthMeters,
+        legSeconds,
+        atRuntime: stop.arrivalRuntimeSeconds - legSeconds,
+      );
       final stopPressure = environment.pressureAtDepth(stop.depthMeters);
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
-      charge(stop.tankId, ascentLiters(primarySeconds, stopPressure));
+      charge(
+        stop.tankId,
+        ascentLiters(primarySeconds, stopPressure),
+        atRuntime: stop.arrivalRuntimeSeconds,
+        seconds: primarySeconds,
+      );
       if (stop.airBreakSeconds > 0) {
-        final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
-        final breakTankId = breakGas != null
-            ? _tankForGas(plan.tanks, breakGas.fO2, breakGas.fHe)
-            : stop.tankId;
-        charge(breakTankId, ascentLiters(stop.airBreakSeconds, stopPressure));
+        charge(
+          stop.airBreakTankId,
+          ascentLiters(stop.airBreakSeconds, stopPressure),
+          atRuntime: stop.arrivalRuntimeSeconds + primarySeconds,
+          seconds: stop.airBreakSeconds,
+        );
       }
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
@@ -1519,10 +1776,17 @@ class PlanEngine {
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),
       );
-      chargeSplitLeg(depth, 0, legSeconds);
+      chargeSplitLeg(
+        depth,
+        0,
+        legSeconds,
+        atRuntime: stops.isEmpty
+            ? legStart
+            : stops.last.arrivalRuntimeSeconds + stops.last.durationSeconds,
+      );
     }
 
-    return [
+    final usages = [
       for (final tank in plan.tanks)
         () {
           final used = liters[tank.id] ?? 0.0;
@@ -1577,6 +1841,7 @@ class PlanEngine {
           );
         }(),
     ];
+    return (usages: usages, draws: draws);
   }
 
   /// Turn pressure per the plan's rule; bottom tanks with a start pressure
@@ -1681,8 +1946,9 @@ class PlanEngine {
     DiveEnvironment environment,
     Iterable<_CeilingBreach> ceilingBreaches,
     AscentGasPlan ascentPlan,
-    List<PlanStop> stops,
-  ) {
+    List<PlanStop> stops, {
+    required _IssueOnsets onsets,
+  }) {
     final issues = <PlanIssue>[];
 
     for (final breach in ceilingBreaches) {
@@ -1745,6 +2011,40 @@ class PlanEngine {
           ? outcome.maxPpO2 > config.ppO2Working
           : ppO2OverLimit(outcome.maxPpO2, config.ppO2Working);
 
+      // Where on this leg a depth limit is first passed (#3738).
+      int onset(bool Function(double depth) exceeds) =>
+          _legOnset(leg, outcome, exceeds);
+      // The same ppO2 the leg's maxPpO2 was taken from, at any depth.
+      double ppO2At(double depth) => segmentIsLoop
+          ? _breathingFor(
+              plan,
+              segment.gasMix,
+              depth,
+              segment: segment,
+            ).inspiredAt(environment.pressureAtDepth(depth)).pO2
+          : environment.pressureAtDepth(depth) * fO2;
+      double densityAt(double depth) => gasDensityGPerL(
+        fO2: fO2,
+        fHe: fHe,
+        ambientPressureBar: environment.pressureAtDepth(depth),
+      );
+
+      // The same deco ceiling check as decoCeilingBreached, at any depth.
+      bool decoCeilingBreachedAt(double depth) => segmentIsLoop
+          ? ppO2At(depth) > config.ppO2Deco
+          : decoCeilingBreachedFor(
+              segment.gasMix,
+              decoLimits,
+              depthMeters: depth,
+              actualPpO2: ppO2At(depth),
+              environment: environment,
+            );
+
+      // The same working limit check as workingLimitExceeded, at any depth.
+      bool workingLimitExceededAt(double depth) => segmentIsLoop
+          ? ppO2At(depth) > config.ppO2Working
+          : ppO2OverLimit(ppO2At(depth), config.ppO2Working);
+
       if (decoCeilingBreached) {
         issues.add(
           PlanIssue(
@@ -1753,6 +2053,7 @@ class PlanEngine {
             message:
                 'ppO2 ${outcome.maxPpO2.toStringAsFixed(2)} bar exceeds the '
                 'deco limit',
+            atRuntime: onset(decoCeilingBreachedAt),
             atDepth: deeperEnd,
             segmentId: segment.id,
             value: outcome.maxPpO2,
@@ -1767,6 +2068,7 @@ class PlanEngine {
             message:
                 'ppO2 ${outcome.maxPpO2.toStringAsFixed(2)} bar exceeds the '
                 'working limit',
+            atRuntime: onset(workingLimitExceededAt),
             atDepth: deeperEnd,
             segmentId: segment.id,
             value: outcome.maxPpO2,
@@ -1776,13 +2078,15 @@ class PlanEngine {
       }
 
       // Mode-aware: the CCR loop holds the setpoint, so hypoxia only fires
-      // when the in-force setpoint itself is hypoxic.
-      final inspiredO2 = _breathingFor(
+      // when the in-force setpoint itself is hypoxic. A segment off the loop
+      // breathes its own gas, so its override decides.
+      double inspiredO2At(double depth) => _breathingFor(
         plan,
         segment.gasMix,
-        shallowerEnd,
+        depth,
         segment: segment,
-      ).inspiredAt(environment.pressureAtDepth(shallowerEnd)).pO2;
+      ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
+      final inspiredO2 = inspiredO2At(shallowerEnd);
       if (inspiredO2 < _hypoxicPpO2) {
         issues.add(
           PlanIssue(
@@ -1791,6 +2095,7 @@ class PlanEngine {
             message:
                 'Gas is hypoxic at ${shallowerEnd.toStringAsFixed(0)} m '
                 '(ppO2 ${inspiredO2.toStringAsFixed(2)} bar)',
+            atRuntime: onset((d) => inspiredO2At(d) < _hypoxicPpO2),
             atDepth: shallowerEnd,
             segmentId: segment.id,
             value: inspiredO2,
@@ -1815,6 +2120,11 @@ class PlanEngine {
                   'Diluent ppO2 ${diluentPpO2.toStringAsFixed(2)} bar '
                   'exceeds the Dil MOD limit at '
                   '${deeperEnd.toStringAsFixed(0)} m',
+              atRuntime: onset(
+                (d) =>
+                    environment.pressureAtDepth(d) * fO2 >
+                    config.ccrDiluentModPpO2,
+              ),
               atDepth: deeperEnd,
               segmentId: segment.id,
               value: diluentPpO2,
@@ -1833,6 +2143,11 @@ class PlanEngine {
             message:
                 'END ${end.toStringAsFixed(0)} m exceeds '
                 '${config.endLimitMeters.toStringAsFixed(0)} m',
+            atRuntime: onset(
+              (d) =>
+                  segment.gasMix.end(d, o2Narcotic: config.o2Narcotic) >
+                  config.endLimitMeters,
+            ),
             atDepth: deeperEnd,
             segmentId: segment.id,
             value: end,
@@ -1841,11 +2156,7 @@ class PlanEngine {
         );
       }
 
-      final density = gasDensityGPerL(
-        fO2: fO2,
-        fHe: fHe,
-        ambientPressureBar: environment.pressureAtDepth(deeperEnd),
-      );
+      final density = densityAt(deeperEnd);
       if (density > gasDensityCriticalGPerL) {
         issues.add(
           PlanIssue(
@@ -1854,6 +2165,7 @@ class PlanEngine {
             message:
                 'Gas density ${density.toStringAsFixed(1)} g/L exceeds the '
                 'hard limit',
+            atRuntime: onset((d) => densityAt(d) > gasDensityCriticalGPerL),
             atDepth: deeperEnd,
             segmentId: segment.id,
             value: density,
@@ -1868,6 +2180,7 @@ class PlanEngine {
             message:
                 'Gas density ${density.toStringAsFixed(1)} g/L exceeds the '
                 'recommended limit',
+            atRuntime: onset((d) => densityAt(d) > gasDensityWarnGPerL),
             atDepth: deeperEnd,
             segmentId: segment.id,
             value: density,
@@ -1877,12 +2190,19 @@ class PlanEngine {
       }
     }
 
+    // What the dive started with: the total less every stretch added to it.
+    final cnsStart = onsets.cnsSteps.fold(cns, (sum, s) => sum - s.amount);
+    final otuStart = onsets.otuSteps.fold(otu, (sum, s) => sum - s.amount);
+    int? cnsOnset(double threshold) =>
+        runtimeReaching(onsets.cnsSteps, threshold: threshold, start: cnsStart);
+
     if (cns >= 100) {
       issues.add(
         PlanIssue(
           type: PlanIssueType.cnsCritical,
           severity: PlanIssueSeverity.critical,
           message: 'CNS reaches ${cns.toStringAsFixed(0)}%',
+          atRuntime: cnsOnset(100),
           value: cns,
           threshold: 100,
         ),
@@ -1893,6 +2213,7 @@ class PlanEngine {
           type: PlanIssueType.cnsWarning,
           severity: PlanIssueSeverity.warning,
           message: 'CNS reaches ${cns.toStringAsFixed(0)}%',
+          atRuntime: cnsOnset(config.cnsWarningThreshold.toDouble()),
           value: cns,
           threshold: config.cnsWarningThreshold.toDouble(),
         ),
@@ -1904,6 +2225,11 @@ class PlanEngine {
           type: PlanIssueType.otuHigh,
           severity: PlanIssueSeverity.warning,
           message: 'OTU ${otu.toStringAsFixed(0)} exceeds the daily guideline',
+          atRuntime: runtimeReaching(
+            onsets.otuSteps,
+            threshold: config.otuLimit,
+            start: otuStart,
+          ),
           value: otu,
           threshold: config.otuLimit,
         ),
@@ -1913,13 +2239,16 @@ class PlanEngine {
     for (final usage in tankUsages) {
       final remaining = usage.remainingPressure;
       if (remaining == null) continue;
+      int? drawOnset(double pressureBar) =>
+          _drawOnset(plan, usage, onsets.draws[usage.tankId], pressureBar);
       if (remaining <= 0) {
         issues.add(
           PlanIssue(
             type: PlanIssueType.gasOut,
             severity: PlanIssueSeverity.critical,
             message: 'Tank runs out of gas',
-            segmentId: usage.tankId,
+            atRuntime: drawOnset(0),
+            tankId: usage.tankId,
             value: remaining,
             threshold: 0,
           ),
@@ -1932,7 +2261,8 @@ class PlanEngine {
             message:
                 'Tank ends below the '
                 '${config.reservePressure.toStringAsFixed(0)} bar reserve',
-            segmentId: usage.tankId,
+            atRuntime: drawOnset(config.reservePressure),
+            tankId: usage.tankId,
             value: remaining,
             threshold: config.reservePressure,
           ),
@@ -1951,7 +2281,9 @@ class PlanEngine {
                 'Rock-bottom minimum of ${minGas.toStringAsFixed(0)} bar '
                 'leaves no usable gas in a '
                 '${start.toStringAsFixed(0)} bar fill',
+            // No single moment: the fill is short before the dive starts.
             segmentId: usage.tankId,
+            tankId: usage.tankId,
             value: minGas,
             threshold: start,
           ),
@@ -1964,7 +2296,8 @@ class PlanEngine {
             message:
                 'Tank ends below the rock-bottom minimum of '
                 '${minGas.toStringAsFixed(0)} bar',
-            segmentId: usage.tankId,
+            atRuntime: drawOnset(minGas),
+            tankId: usage.tankId,
             value: remaining,
             threshold: minGas,
           ),
@@ -1972,10 +2305,15 @@ class PlanEngine {
       }
     }
 
-    final ascentHypoxia = _loopAscentHypoxia(
+    final ascentHypoxia = _ascentHypoxia(
+      _policyFor(plan),
       ascentPlan,
       stops,
-      legs.isEmpty ? 0.0 : legs.last.endDepth,
+      fromDepth: legs.isEmpty ? 0.0 : legs.last.endDepth,
+      startRuntime: segmentOutcomes.isEmpty
+          ? 0
+          : segmentOutcomes.last.endRuntime,
+      environment: environment,
     );
     // The surface is usually already reported: the descent left it on the same
     // supply.
@@ -2027,52 +2365,217 @@ class PlanEngine {
           message: 'Decompression plan carries no bailout gas',
         ),
       );
+    } else {
+      // One or the other: a plan told it carries no bailout gas has no use
+      // for a verdict on the loop's own supply, which still resolves to
+      // bailout.
+      issues.addAll(
+        _bailoutGasIssues(plan, legs, segmentOutcomes, environment),
+      );
     }
 
-    issues.addAll(_modOverrideIssues(plan.tanks, environment));
+    issues.addAll(_modOverrideIssues(plan.tanks, environment, onsets.schedule));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
     return issues;
+  }
+
+  /// The runtime [leg], with its [outcome], first passes a depth limit.
+  int _legOnset(
+    ResolvedLeg leg,
+    SegmentOutcome outcome,
+    bool Function(double depth) exceeds,
+  ) => legOnsetRuntime(
+    startRuntime: outcome.startRuntime,
+    durationSeconds: outcome.endRuntime - outcome.startRuntime,
+    startDepth: leg.startDepth,
+    endDepth: leg.endDepth,
+    exceeds: exceeds,
+  );
+
+  /// The loop can die anywhere, and carrying a bailout gas does not help
+  /// where it may not be breathed (#3961), so this does not wait for deco as
+  /// [PlanIssueType.noBailoutCarried] does: a no-stop dive needs a gas to
+  /// leave on too. Eligibility runs from a gas's MOD to the surface, so
+  /// [legs]' deepest point answers for every other failure depth.
+  ///
+  /// That only says a gas may be breathed from there, not that it stays
+  /// breathable up to the surface (#4008). This ascent is a contingency, not
+  /// part of the plan, so a hypoxic one is an alert and not a critical
+  /// [PlanIssueType.hypoxicGas]: it does not stop the plan being diveable. A
+  /// leg the plan does breathe that gas on gets the legs' own check.
+  Iterable<PlanIssue> _bailoutGasIssues(
+    domain.DivePlan plan,
+    List<ResolvedLeg> legs,
+    List<SegmentOutcome> segmentOutcomes,
+    DiveEnvironment environment,
+  ) sync* {
+    if (plan.mode == domain.PlanMode.oc) return;
+    final bailoutTanks = plan.tanks
+        .where((t) => t.role == TankRole.bailout)
+        .toList();
+    if (bailoutTanks.isEmpty) return;
+    final gases = config.bailoutAscentGas(bailoutTanks, environment);
+    final deepest = legs.fold(0.0, (d, leg) => math.max(d, leg.deeperEnd));
+    if (!gases.coversDepth(deepest)) {
+      final firstPast = legs.indexWhere(
+        (leg) => !gases.coversDepth(leg.deeperEnd),
+      );
+      yield PlanIssue(
+        type: PlanIssueType.noEligibleBailoutGas,
+        severity: PlanIssueSeverity.alert,
+        message:
+            'No bailout gas reaches ${deepest.toStringAsFixed(1)} m: the '
+            'deepest MOD carried is ${gases.deepestMod.toStringAsFixed(1)} m',
+        atRuntime: _legOnset(
+          legs[firstPast],
+          segmentOutcomes[firstPast],
+          (depth) => !gases.coversDepth(depth),
+        ),
+        atDepth: deepest,
+        value: deepest,
+        threshold: gases.deepestMod,
+      );
+    }
+    final hypoxia = _ascentHypoxia(
+      _policyFor(plan),
+      gases,
+      const [],
+      fromDepth: deepest,
+      startRuntime: 0,
+      environment: environment,
+    );
+    if (hypoxia != null) {
+      yield PlanIssue(
+        type: PlanIssueType.bailoutGasHypoxic,
+        severity: PlanIssueSeverity.alert,
+        message:
+            'Bailout gas is hypoxic at '
+            '${hypoxia.atDepth!.toStringAsFixed(0)} m '
+            '(ppO2 ${hypoxia.value!.toStringAsFixed(2)} bar)',
+        atDepth: hypoxia.atDepth,
+        value: hypoxia.value,
+        threshold: hypoxia.threshold,
+      );
+    }
+  }
+
+  /// The runtime at which [usage]'s cylinder first drops to [pressureBar],
+  /// from its [draws]; null when the cylinder has no size or start pressure
+  /// to measure from (#3738).
+  int? _drawOnset(
+    domain.DivePlan plan,
+    PlanTankUsage usage,
+    List<RuntimeIncrement>? draws,
+    double pressureBar,
+  ) {
+    final total = usage.totalLiters;
+    final tank = plan.tanks.where((t) => t.id == usage.tankId).firstOrNull;
+    if (total == null || tank == null || draws == null) return null;
+    final left = gasVolume(
+      tankSizeLiters: tank.volume ?? 11.0,
+      pressureBar: pressureBar,
+      o2Percent: tank.gasMix.o2,
+      hePercent: tank.gasMix.he,
+      model: config.gasModel,
+    );
+    return runtimeReaching(draws, threshold: total - left);
   }
 
   /// Inspired ppO2 below this is not breathable.
   static const double _hypoxicPpO2 = 0.16;
 
-  /// The deepest point a computed ascent on the loop stops being breathable,
-  /// or null (issue #3896). The legs' own check cannot see this: a loop's ppO2
-  /// drops as the diver shallows, so a final supply that is safe where it was
-  /// authored can be hypoxic at the stops, on a gas the descent never breathed.
-  /// Stops are in ascent order and ppO2 only falls on the way up, so the first
-  /// hypoxic one is the deepest.
-  PlanIssue? _loopAscentHypoxia(
+  /// [ascentTravelSpans] on the dive's clock: each span with the runtime it
+  /// leaves at, for an ascent leaving [fromDepth] at [startRuntime]. The spans
+  /// leave out the stops, so the clock jumps over each one as the ascent
+  /// passes it.
+  Iterable<({AscentLeg span, int start})> _timedAscentSpans(
+    SchedulePolicy policy,
     AscentGasPlan ascentPlan,
-    List<PlanStop> stops,
-    double lastDepth,
-  ) {
-    if (ascentPlan is! LoopAscentGas || lastDepth <= 0) return null;
-    PlanIssue? issueAt(double depth, {int? runtime}) {
-      final ppO2 = ascentPlan.inspiredPpO2At(depth);
-      if (ppO2 >= _hypoxicPpO2) return null;
+    List<PlanStop> stops, {
+    required double fromDepth,
+    required int startRuntime,
+  }) sync* {
+    var start = startRuntime;
+    var nextStop = 0;
+    for (final span in ascentTravelSpans(
+      policy,
+      ascentPlan,
+      fromDepth: fromDepth,
+      stopDepths: [for (final stop in stops) stop.depthMeters],
+    )) {
+      while (nextStop < stops.length &&
+          stops[nextStop].depthMeters >= span.fromDepth) {
+        final stop = stops[nextStop++];
+        start = stop.arrivalRuntimeSeconds + stop.durationSeconds;
+      }
+      yield (span: span, start: start);
+      start += span.seconds;
+    }
+  }
+
+  /// The first stretch of a computed ascent to end unbreathable, or null
+  /// (issues #3896, #4008), reported where it ends, or where it starts if it
+  /// starts hypoxic, and timed from where the gas crosses the limit. The legs'
+  /// own check cannot see this: ppO2 drops as the diver shallows, so a final
+  /// gas that is safe where it was authored can be hypoxic at the stops, on a
+  /// gas the descent never breathed. Each span ends on the gas it left on, so
+  /// open circuit is judged on arrival at a switch, not on the richer gas it
+  /// switches to there.
+  PlanIssue? _ascentHypoxia(
+    SchedulePolicy policy,
+    AscentGasPlan ascentPlan,
+    List<PlanStop> stops, {
+    required double fromDepth,
+    required int startRuntime,
+    required DiveEnvironment environment,
+  }) {
+    for (final (:span, :start) in _timedAscentSpans(
+      policy,
+      ascentPlan,
+      stops,
+      fromDepth: fromDepth,
+      startRuntime: startRuntime,
+    )) {
+      final gas = ascentPlan.gasForDepth(span.fromDepth);
+      double ppO2At(double depth) => ascentPlan is LoopAscentGas
+          ? ascentPlan.inspiredPpO2At(depth)
+          : OpenCircuit(
+              fO2: gas.fO2,
+              fHe: gas.fHe,
+            ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
+      bool hypoxicAt(double depth) => ppO2At(depth) < _hypoxicPpO2;
+      if (!hypoxicAt(span.toDepth)) continue;
+      // Only the first span can leave hypoxic, since any later one starts
+      // where the span before it ended, and a stop there is one no span ends
+      // at.
+      final leavesHypoxic = hypoxicAt(span.fromDepth);
+      final depth = leavesHypoxic ? span.fromDepth : span.toDepth;
+      final ppO2 = ppO2At(depth);
       return PlanIssue(
         type: PlanIssueType.hypoxicGas,
         severity: PlanIssueSeverity.critical,
         message:
             'Gas is hypoxic at ${depth.toStringAsFixed(0)} m '
             '(ppO2 ${ppO2.toStringAsFixed(2)} bar)',
-        atRuntime: runtime,
+        atRuntime: leavesHypoxic
+            ? stops
+                      .where((stop) => stop.depthMeters == depth)
+                      .firstOrNull
+                      ?.arrivalRuntimeSeconds ??
+                  start
+            : legOnsetRuntime(
+                startRuntime: start,
+                durationSeconds: span.seconds,
+                startDepth: span.fromDepth,
+                endDepth: depth,
+                exceeds: hypoxicAt,
+              ),
         atDepth: depth,
         value: ppO2,
         threshold: _hypoxicPpO2,
       );
     }
-
-    for (final stop in stops) {
-      final issue = issueAt(
-        stop.depthMeters,
-        runtime: stop.arrivalRuntimeSeconds,
-      );
-      if (issue != null) return issue;
-    }
-    return issueAt(0);
+    return null;
   }
 
   /// True when a deco/stage tank richer than the back gas is carried.
@@ -2147,6 +2650,37 @@ class PlanEngine {
         : null;
   }
 
+  /// The semi-closed loop [compute] keeps an SCR plan on through its ascent
+  /// (issue #3896), for the Dive Lab's synthesized remainder; null when the
+  /// plan's final leg is not breathed on a semi-closed loop.
+  AscentGasPlan? scrAscentPlanFor(domain.DivePlan plan) {
+    final segments = List<PlanSegment>.from(plan.segments)
+      ..sort((a, b) => a.order.compareTo(b.order));
+    return PlanEngine(config: config.resolvedFor(plan))._semiClosedLoopFor(
+      plan,
+      segments.isEmpty ? null : segments.last,
+      environmentFor(plan),
+    );
+  }
+
+  /// The schedule policy [compute] derives for [plan], for code that
+  /// retraces its schedule: the Dive Lab times its synthesized ascent with
+  /// the same legs the engine scheduled. Resolves [config] against the plan
+  /// first, as [compute] does, so a plan's own rates win and an unset one
+  /// falls back to the diver's Settings.
+  SchedulePolicy schedulePolicyFor(domain.DivePlan plan) =>
+      PlanEngine(config: config.resolvedFor(plan))._policyFor(plan);
+
+  /// The open-circuit ascent gas plan [compute] builds for [plan], with its
+  /// config resolved, its cylinder roles resolved and its water applied, so
+  /// the Dive Lab synthesizes the same gas switches the engine schedules.
+  AscentGasPlan ocAscentPlanFor(domain.DivePlan plan) {
+    final resolved = const TankRoleResolver().apply(plan);
+    return PlanEngine(
+      config: config.resolvedFor(plan),
+    )._ascentPlanFor(resolved.tanks, environmentFor(resolved));
+  }
+
   /// Each gas joins the ascent at its cylinder's MOD (issue #3567): the one
   /// the diver set, or the switch depth for its role's limit at this plan's
   /// limits, measured in [environment], the water the schedule's ppO2 is
@@ -2179,6 +2713,7 @@ class PlanEngine {
   List<PlanIssue> _modOverrideIssues(
     List<DiveTank> tanks,
     DiveEnvironment environment,
+    List<PlanScheduleRow> schedule,
   ) {
     final issues = <PlanIssue>[];
     final decoLimits = config.decoLimits;
@@ -2220,6 +2755,8 @@ class PlanEngine {
           message:
               'ppO2 ${check.ppO2.toStringAsFixed(2)} bar at the MOD set on '
               '${tank.name ?? tank.gasMix.name} exceeds its limit',
+          // Where the diver first breathes it (#3738).
+          atRuntime: _firstBreathedRuntime(schedule, tank.id),
           atDepth: tank.decoSwitchDepth,
           value: check.ppO2,
           threshold: check.limitPpO2,
@@ -2227,6 +2764,21 @@ class PlanEngine {
       );
     }
     return issues;
+  }
+
+  /// When [tankId] is first breathed, which can be partway up a leg folded
+  /// into a line rather than at the start of a line of its own.
+  int? _firstBreathedRuntime(List<PlanScheduleRow> schedule, String tankId) {
+    var runtime = 0;
+    for (final row in schedule) {
+      for (final leg in row.foldedTravel) {
+        if (leg.tankId == tankId && leg.seconds > 0) return runtime;
+        runtime += leg.seconds;
+      }
+      if (row.tankId == tankId) return row.startRuntimeSeconds;
+      runtime = row.runtimeSeconds;
+    }
+    return null;
   }
 
   List<PlanStop> _mapStops(
@@ -2239,6 +2791,7 @@ class PlanEngine {
   ) {
     final stops = <PlanStop>[];
     final policy = _policyFor(plan);
+    final isCcr = plan.mode == domain.PlanMode.ccr;
     var arrival = segmentsRuntime;
     var depth = fromDepth;
     var phase = AscentPhase.toFirstStop;
@@ -2263,6 +2816,8 @@ class PlanEngine {
       final onLoop = ascentPlan is LoopAscentGas;
       final fO2 = onLoop ? ascentPlan.supplyFO2 : 1.0 - gas.fN2 - gas.fHe;
       final fHe = onLoop ? ascentPlan.supplyFHe : gas.fHe;
+      final tankId =
+          loopSupplyTankId ?? _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr);
       stops.add(
         PlanStop(
           depthMeters: stop.depthMeters,
@@ -2270,14 +2825,14 @@ class PlanEngine {
           airBreakSeconds: stop.airBreakSeconds,
           gasFO2: fO2,
           gasFHe: fHe,
-          tankId:
-              loopSupplyTankId ??
-              _tankForGas(
-                plan.tanks,
-                fO2,
-                fHe,
-                isCcr: plan.mode == domain.PlanMode.ccr,
-              ),
+          tankId: tankId,
+          airBreakTankId: airBreakTankIdFor(
+            stop,
+            plan: ascentPlan,
+            stopTankId: tankId,
+            tankForGas: (breakFO2, breakFHe) =>
+                _tankForGas(plan.tanks, breakFO2, breakFHe, isCcr: isCcr),
+          ),
           arrivalRuntimeSeconds: arrival,
         ),
       );
@@ -2293,7 +2848,8 @@ class PlanEngine {
   static const double _gasFractionEpsilon = 0.0005;
 
   /// The dive as table lines: the authored legs, then the computed ascent as
-  /// alternating travel legs and stops, ending with the leg to the surface.
+  /// the leg to the first stop, every stop, and the leg to the surface. Travel
+  /// between two stops has no line: it folds into the stop it leads to.
   ///
   /// Travel durations are read off the stops' arrival times rather than
   /// recomputed, so a line can never disagree with the stop it leads to. A
@@ -2341,6 +2897,7 @@ class PlanEngine {
       required double fHe,
       required String? tankId,
       int airBreakSeconds = 0,
+      String? airBreakTankId,
       // Set whenever the row's gas is a loop's, through loopPpO2At, rather
       // than ambient x fO2: the real inspired ppO2
       // (the CCR setpoint, clamped once the diluent can no longer dilute
@@ -2359,6 +2916,7 @@ class PlanEngine {
       // line for. The bailout table (BailoutSolver._scheduleRowsFor) follows
       // the same convention so the two tables read alike.
       double? physicsDepth,
+      List<PlanFoldedTravel> foldedTravel = const [],
     }) {
       final lastFO2 = previousFO2;
       final lastFHe = previousFHe;
@@ -2379,6 +2937,7 @@ class PlanEngine {
           tankId: tankId,
           gasSwitch: switched,
           airBreakSeconds: airBreakSeconds,
+          airBreakTankId: airBreakTankId,
           ppO2: ppO2Override ?? environment.pressureAtDepth(pDepth) * fO2,
           // GasMix.end() goes negative once a helium-rich mix is shallower
           // than the depth at which it is as narcotic as air at the surface;
@@ -2391,6 +2950,7 @@ class PlanEngine {
               he: fHe * 100,
             ).end(pDepth, o2Narcotic: config.o2Narcotic),
           ),
+          foldedTravel: foldedTravel,
         ),
       );
       previousFO2 = fO2;
@@ -2424,6 +2984,22 @@ class PlanEngine {
       );
     }
 
+    // The cylinder a stretch of ascent leaving [depth] draws from. A loop
+    // stays on its supply the whole way up.
+    String? travelTankId(double depth) {
+      if (ascentPlan is LoopAscentGas) {
+        return loopSupplyTankId ??
+            _tankForGas(
+              plan.tanks,
+              ascentPlan.supplyFO2,
+              ascentPlan.supplyFHe,
+              isCcr: isCcr,
+            );
+      }
+      final gas = ascentPlan.gasForDepth(depth);
+      return _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr);
+    }
+
     void addTravel(double from, double to, int duration, int arrival) {
       if (ascentPlan is LoopAscentGas) {
         // The loop's displayed gas never changes mid-ascent (it stays on
@@ -2436,14 +3012,7 @@ class PlanEngine {
           runtime: arrival,
           fO2: ascentPlan.supplyFO2,
           fHe: ascentPlan.supplyFHe,
-          tankId:
-              loopSupplyTankId ??
-              _tankForGas(
-                plan.tanks,
-                ascentPlan.supplyFO2,
-                ascentPlan.supplyFHe,
-                isCcr: isCcr,
-              ),
+          tankId: travelTankId(from),
           physicsDepth: from,
           ppO2Override: loopPpO2At(from),
         );
@@ -2471,11 +3040,28 @@ class PlanEngine {
           runtime: legArrival,
           fO2: gas.fO2,
           fHe: gas.fHe,
-          tankId: _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr),
+          tankId: travelTankId(span.fromDepth),
           physicsDepth: span.fromDepth,
         );
       }
     }
+
+    // The same split and the same cylinders as addTravel, for a leg with no
+    // line of its own.
+    List<PlanFoldedTravel> foldTravel(double from, double to, int duration) => [
+      for (final span in splitAscentLeg(
+        ascentPlan,
+        fromDepth: from,
+        toDepth: to,
+        seconds: duration,
+      ))
+        PlanFoldedTravel(
+          fromDepthMeters: span.fromDepth,
+          toDepthMeters: span.toDepth,
+          seconds: span.seconds,
+          tankId: travelTankId(span.fromDepth),
+        ),
+    ];
 
     var depth = lastDepth;
     var end = segmentsRuntime;
@@ -2485,15 +3071,15 @@ class PlanEngine {
       final travel = stop.arrivalRuntimeSeconds - end;
       // The first travel leg (bottom phase to the first stop) stays its own
       // row, an informative transition. From the second stop on, a gas
-      // switch at its MOD lands exactly at the stop it leads into
-      // (AscentGasPlan's design: a switch-at-MOD never falls strictly
-      // between two 3 m-spaced stops), so a travel-between-stops row would
-      // nearly always repeat the previous line's gas, which is clutter, not
-      // information. A switch depth the diver set can fall inside the leg:
-      // the line stays folded, and _computeTankUsages and the exposure
-      // spans still split it. Dropping it loses nothing: scheduleLines()
+      // switch at its MOD lands at or just deeper than the stop it leads
+      // into, so a travel-between-stops row would nearly always repeat the
+      // previous line's gas, which is clutter, not information. A switch
+      // depth the diver set can fall further up the leg. Either way the line
+      // stays folded, and _computeTankUsages and the exposure spans still
+      // split it. Dropping it loses nothing: scheduleLines()
       // already derives each printed duration from consecutive runtimeSeconds, so
-      // the travel time folds straight into the stop it leads to (#3138).
+      // the travel time folds straight into the stop it leads to (#3138). The
+      // stop's row keeps the leg for whatever charges gas from the rows (#3927).
       if (i == 0 && travel > 0) {
         addTravel(depth, stop.depthMeters, travel, stop.arrivalRuntimeSeconds);
       }
@@ -2507,7 +3093,11 @@ class PlanEngine {
         fHe: stop.gasFHe,
         tankId: stop.tankId,
         airBreakSeconds: stop.airBreakSeconds,
+        airBreakTankId: stop.airBreakTankId,
         ppO2Override: loopPpO2At(stop.depthMeters),
+        foldedTravel: i > 0 && travel > 0
+            ? foldTravel(depth, stop.depthMeters, travel)
+            : const [],
       );
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
@@ -2564,6 +3154,23 @@ class PlanEngine {
     return match?.id;
   }
 }
+
+/// Tank consumption plus each cylinder's draws, the draws
+/// placing its reserve and minimum gas in time (#3738).
+typedef _TankUsageResult = ({
+  List<PlanTankUsage> usages,
+  Map<String, List<RuntimeIncrement>> draws,
+});
+
+/// What [PlanEngine._computeIssues] needs to place each issue in the dive
+/// (#3738): the O2 exposure and gas draws stretch by stretch, and the
+/// schedule a gas is first breathed on.
+typedef _IssueOnsets = ({
+  List<RuntimeIncrement> cnsSteps,
+  List<RuntimeIncrement> otuSteps,
+  Map<String, List<RuntimeIncrement>> draws,
+  List<PlanScheduleRow> schedule,
+});
 
 /// The point on an authored leg where the diver was furthest above the deco
 /// ceiling, found by the ceiling replay (#3354).

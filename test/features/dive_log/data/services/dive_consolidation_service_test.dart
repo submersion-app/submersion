@@ -73,6 +73,9 @@ void main() {
     domain.GeoPoint? exitLocation,
     List<domain.DiveTank> tanks = const [],
     List<domain.DiveProfilePoint>? profile,
+    bool isPlanned = false,
+    int? diveNumber,
+    String? outingId,
   }) async {
     await diveRepo.createDive(
       domain.Dive(
@@ -83,6 +86,9 @@ void main() {
         runtime: Duration(minutes: runtimeMin),
         bottomTime: bottomTime,
         maxDepth: depth,
+        diveNumber: diveNumber,
+        isPlanned: isPlanned,
+        outingId: outingId,
         diveComputerSerial: serial,
         entryLocation: entryLocation,
         exitLocation: exitLocation,
@@ -1535,6 +1541,87 @@ void main() {
   // when its secondary is tombstoned, so the fold fills the target's empty
   // columns from the secondaries (dive_consolidation_field_fill.dart covers
   // the per-column rules).
+  group('apply to a plan (#3924)', () {
+    Future<Dive> targetRow() =>
+        (db.select(db.dives)..where((t) => t.id.equals('t'))).getSingle();
+
+    Future<void> seedPair({required bool secondaryIsPlanned}) async {
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+        isPlanned: true,
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+        isPlanned: secondaryIsPlanned,
+        diveNumber: secondaryIsPlanned ? null : 42,
+      );
+    }
+
+    test('folding a logged dive into a plan logs the plan', () async {
+      await seedPair(secondaryIsPlanned: false);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.isPlanned, isFalse);
+      expect(target.diveNumber, 42);
+    });
+
+    test('undo puts the plan back', () async {
+      await seedPair(secondaryIsPlanned: false);
+
+      final outcome = await service.apply(
+        targetDiveId: 't',
+        secondaryDiveIds: ['s'],
+      );
+      await service.undo(outcome.snapshot);
+
+      final target = await targetRow();
+      expect(target.isPlanned, isTrue);
+      expect(target.diveNumber, isNull);
+    });
+
+    test('a dive mirrored from the secondary stays real', () async {
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+        outingId: 'outing',
+      );
+      await seedDive(
+        'mirror',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        isPlanned: true,
+        outingId: 'outing',
+      );
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      expect((await diveRepo.getDiveTimes('mirror'))!.isUndivedPlan, isFalse);
+    });
+
+    test('folding plans together leaves a plan', () async {
+      await seedPair(secondaryIsPlanned: true);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      expect((await targetRow()).isPlanned, isTrue);
+    });
+  });
+
   group('apply scalar field fill (#2932)', () {
     Future<Dive> targetRow() =>
         (db.select(db.dives)..where((t) => t.id.equals('t'))).getSingle();

@@ -14,7 +14,6 @@ import 'package:submersion/features/marine_life/presentation/providers/species_l
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
-import 'package:submersion/features/reef/domain/entities/reef_snapshot.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/features/reef/presentation/widgets/nearby_species_tier.dart';
 
@@ -22,12 +21,8 @@ import '../../../../helpers/l10n_test_helpers.dart';
 
 const _location = GeoPoint(12.16, -68.28);
 
-ReefSnapshot _snapshotWithUnmatched(List<String> names) => ReefSnapshot(
-  habitat: const ReefPart.empty(),
-  health: const ReefPart.empty(),
-  protection: const ReefPart.empty(),
-  species: ReefPart.ok(NearbySpecies(matched: const [], unmatchedNames: names)),
-);
+ReefPart<NearbySpecies> _speciesWithUnmatched(List<String> names) =>
+    ReefPart.ok(NearbySpecies(matched: const [], unmatchedNames: names));
 
 class _FakeLookup implements SpeciesLookupService {
   _FakeLookup(this.hits, {this.gate});
@@ -119,10 +114,8 @@ Widget _harness(_FakeLookup lookup, _RecordingRepository repository) =>
     ProviderScope(
       overrides: [
         validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-        reefSnapshotProvider(
-          const ReefSnapshotRequest(location: _location),
-        ).overrideWith(
-          (ref) async => _snapshotWithUnmatched(['Aplysina archeri']),
+        reefNearbySpeciesProvider(_location).overrideWith(
+          (ref) async => _speciesWithUnmatched(['Aplysina archeri']),
         ),
         allSpeciesProvider.overrideWith(
           (ref) async => const [

@@ -35,7 +35,7 @@ void main() {
     await setUpTestDatabase();
     final db = DatabaseService.instance.database;
     final serializer = SyncDataSerializer();
-    final codec = ChangesetCodec(serializer);
+    const codec = ChangesetCodec();
     writer = ChangesetWriter(
       serializer,
       codec,
@@ -100,7 +100,7 @@ void main() {
       // other tests sharing Directory.systemTemp.
       final tmpDir = await Directory.systemTemp.createTemp('reader_cleanup');
       final isolatedReader = ChangesetReader(
-        ChangesetCodec(SyncDataSerializer()),
+        const ChangesetCodec(),
         PeerCursorStore(DatabaseService.instance.database),
         baseSink: BasePartFileSink(tempDirProvider: () async => tmpDir),
       );
@@ -206,7 +206,7 @@ void main() {
     // other devices). Hand-craft that log shape: changesets 1..2 and a
     // manifest with a null baseSeq.
     final serializer = SyncDataSerializer();
-    final codec = ChangesetCodec(serializer);
+    const codec = ChangesetCodec();
     const peerId = 'adopted-peer';
 
     await DiveRepository().createDive(
@@ -228,12 +228,12 @@ void main() {
       seq: 2,
     );
     await provider.uploadFile(
-      codec.encodeChangeset(cs1),
+      await codec.encodeChangeset(cs1),
       ChangesetLogLayout.changesetName(peerId, 1),
       folderId: folder,
     );
     await provider.uploadFile(
-      codec.encodeChangeset(cs2),
+      await codec.encodeChangeset(cs2),
       ChangesetLogLayout.changesetName(peerId, 2),
       folderId: folder,
     );

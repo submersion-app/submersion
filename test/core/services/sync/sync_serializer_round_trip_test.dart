@@ -44,18 +44,20 @@ void main() {
           lastSyncTimestamp: null,
           deletions: deletions,
         );
-        final json = serializer.serializePayload(payload);
-        final restored = serializer.deserializePayload(json);
+        final json = jsonEncode(payload.toJson());
+        final restored = SyncPayload.fromJson(
+          jsonDecode(json) as Map<String, dynamic>,
+        );
 
         expect(
-          serializer.validateChecksum(payload),
+          SyncDataSerializer.checksumIsValid(payload),
           isTrue,
           reason:
               'a locally built payload (rawDataJson == null) must validate '
               'via the re-serialization fallback',
         );
         expect(
-          serializer.validateChecksum(restored),
+          SyncDataSerializer.checksumIsValid(restored),
           isTrue,
           reason: 'checksum should validate after a clean round-trip',
         );

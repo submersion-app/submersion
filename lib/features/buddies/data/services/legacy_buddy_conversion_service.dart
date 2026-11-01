@@ -1,3 +1,5 @@
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_name_matcher.dart';
@@ -79,12 +81,19 @@ class LegacyBuddyConversionService {
     List<ConversionPlan> plans, {
     required String diverId,
     required String newBuddyNote,
-  }) => _repository.applyLegacyConversion(
-    plans,
-    diverId: diverId,
-    newBuddyNote: newBuddyNote,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _repository.applyLegacyConversion(
+      plans,
+      diverId: diverId,
+      newBuddyNote: newBuddyNote,
+    ),
   );
 
-  Future<void> undo(ConversionReceipt receipt) =>
-      _repository.undoLegacyConversion(receipt);
+  Future<void> undo(ConversionReceipt receipt) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _repository.undoLegacyConversion(receipt),
+  );
 }

@@ -72,4 +72,63 @@ void main() {
     expect(find.byType(Dive3dInteractiveViewport), findsNothing);
     expect(find.textContaining('at least 2'), findsOneWidget);
   });
+
+  group('showing note', () {
+    final eight = [
+      for (var i = 0; i < kMaxComparisonProfiles; i++)
+        prof('p$i', const Color(0xFF00D4FF)),
+    ];
+
+    Future<void> pumpView(
+      WidgetTester tester,
+      List<ComparisonProfile> profiles, {
+      int? comparableCount,
+    }) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: CompareProfile3dView(
+            profiles: AsyncValue.data(profiles),
+            comparableCount: comparableCount,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    Future<void> unmount(WidgetTester tester) async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    testWidgets('caps a full list and counts all of it', (tester) async {
+      await pumpView(tester, [
+        ...eight,
+        prof('extra', const Color(0xFFFF9500)),
+      ]);
+
+      expect(find.text('Showing 8 of 9'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('takes the total from comparableCount when given', (
+      tester,
+    ) async {
+      await pumpView(tester, eight, comparableCount: 800);
+
+      expect(find.text('Showing 8 of 800'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('stays away when everything comparable is shown', (
+      tester,
+    ) async {
+      await pumpView(tester, eight, comparableCount: 8);
+
+      expect(find.textContaining('Showing'), findsNothing);
+      await unmount(tester);
+    });
+  });
 }

@@ -43,9 +43,10 @@ typedef GoogleDriveAuthenticatorBuilder = GoogleDriveAuthenticator Function();
 ///   freely and [DesktopOAuthAuthenticator] persists its refresh token through
 ///   [FallbackSecureStorage]'s legacy-keychain fallback.
 /// - **Sandboxed App Store / iOS**: the provisioning profile grants the access
-///   group, so google_sign_in works; that build has no
-///   `com.apple.security.network.server` entitlement, so a loopback listener
-///   would fail anyway.
+///   group, so google_sign_in works, and this flow is the one that fits it.
+///   (The sandboxed macOS build does carry `com.apple.security.network.server`
+///   since #3785, which the agent access MCP listener relies on; the choice
+///   here is about the keychain, not the listener.)
 ///
 /// Probing the real capability rather than a build flag also means a future
 /// signing change is picked up automatically instead of silently mismatching.

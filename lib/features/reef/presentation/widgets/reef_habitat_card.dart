@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
+import 'package:submersion/features/reef/presentation/widgets/reef_part_rows.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One row of the reef section: reef presence and threat classification.
 class ReefHabitatCard extends StatelessWidget {
   final ReefPart<ReefHabitat> part;
 
-  const ReefHabitatCard({super.key, required this.part});
+  /// Offered when the lookup failed; a null callback shows no button.
+  final VoidCallback? onRetry;
+
+  const ReefHabitatCard({super.key, required this.part, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +39,9 @@ class ReefHabitatCard extends StatelessWidget {
         style: theme.textTheme.titleSmall,
       ),
       subtitle: Text(text),
+      trailing: part.status == ReefDataStatus.unavailable && onRetry != null
+          ? ReefRetryButton(onPressed: onRetry!)
+          : null,
       dense: true,
     );
   }

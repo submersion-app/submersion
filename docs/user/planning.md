@@ -137,6 +137,7 @@ The planner warns about:
 | OTU | Above 300 for the dive |
 | Gas supply | A tank running empty, a reserve broken, or a tank ending below its minimum gas |
 | Missing gas | An open-circuit deco dive with no deco gas, or a rebreather deco dive with no bailout gas |
+| Bailout gas | A rebreather plan deeper than the maximum operating depth of every bailout gas, or bailout gases that turn hypoxic on the way to the surface. These do not stop a plan being diveable |
 | Diluent MOD | A diluent breathed deeper than its maximum operating depth |
 
 ### Saving, sharing and comparing plans
@@ -164,13 +165,22 @@ From the menu you can also:
 - **Follow a dive** plans a repetitive dive: pick one of your last 30 dives, and
   the planner starts from the tissue loading that dive left, with the surface
   interval set to the time since it ended. The dive needs a recorded profile.
-- **Replan this dive**, in a logged dive's menu, opens that dive in the planner.
+  A plan following a dive can't be saved or converted to a dive yet; **Stop
+  following** gives both back.
+- **Rebuild in planner** opens a logged dive in the planner. In the dive's menu
+  choose **Compare…**, then **Rebuild in planner...** in the Compare page's
+  menu; a dive Compare can't branch, such as a gauge dive, goes straight there.
   The results then compare the plan with what you actually did, and can show the
   original on the chart. A replan is discarded when you leave unless you save
   it.
 - **Convert to Dive** turns the plan into a planned dive in your log, with its
   full computed profile, linked back to the plan. It is not offered for a plan
-  with no segments or with critical warnings.
+  with no segments or with critical warnings. A download from your dive computer
+  on that day or the next fills the planned dive in place.
+- **Link to a logged dive** joins a saved plan to a dive you have already
+  logged, from the saved plans list or the plan's menu. The dive's
+  [Compare](compare.md) section then shows the plan beside what you did, and the
+  plan shows **Dived as #N**.
 
 Your current plan stays as you left it while you move around the app.
 

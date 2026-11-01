@@ -41,6 +41,9 @@ class DiveProfileLegend extends ConsumerWidget {
   final VoidCallback onResetZoom;
   final double leftPadding;
 
+  /// Off for a chart that takes no gestures, where they would do nothing.
+  final bool showZoomControls;
+
   const DiveProfileLegend({
     super.key,
     required this.config,
@@ -51,6 +54,7 @@ class DiveProfileLegend extends ConsumerWidget {
     required this.onZoomOut,
     required this.onResetZoom,
     this.leftPadding = 0.0,
+    this.showZoomControls = true,
   });
 
   @override
@@ -111,19 +115,21 @@ class DiveProfileLegend extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(width: 4),
-          ValueListenableBuilder<double>(
-            valueListenable: zoomLevel,
-            builder: (context, zoom, _) => ChartZoomControls(
-              dense: true,
-              zoomLevel: zoom,
-              minZoom: minZoom,
-              maxZoom: maxZoom,
-              onZoomIn: onZoomIn,
-              onZoomOut: onZoomOut,
-              onResetZoom: onResetZoom,
+          if (showZoomControls) ...[
+            const SizedBox(width: 4),
+            ValueListenableBuilder<double>(
+              valueListenable: zoomLevel,
+              builder: (context, zoom, _) => ChartZoomControls(
+                dense: true,
+                zoomLevel: zoom,
+                minZoom: minZoom,
+                maxZoom: maxZoom,
+                onZoomIn: onZoomIn,
+                onZoomOut: onZoomOut,
+                onResetZoom: onResetZoom,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -368,6 +374,9 @@ class _MoreOptionsButton extends ConsumerWidget {
     final renderBox = context.findRenderObject() as RenderBox;
     final buttonOffset = renderBox.localToGlobal(Offset.zero);
     final buttonSize = renderBox.size;
+    // The dialog builds above any ProviderScope around this chart; it acts
+    // on the same legend the chart shows, scoped or not.
+    final container = ProviderScope.containerOf(context, listen: false);
 
     showDialog<void>(
       context: context,
@@ -381,10 +390,13 @@ class _MoreOptionsButton extends ConsumerWidget {
       // the bottom of the (now smaller) available space instead of merely
       // leaving a gap under it.
       useSafeArea: false,
-      builder: (dialogContext) => ChartOptionsDialog(
-        config: config,
-        anchorOffset: buttonOffset,
-        anchorSize: buttonSize,
+      builder: (dialogContext) => UncontrolledProviderScope(
+        container: container,
+        child: ChartOptionsDialog(
+          config: config,
+          anchorOffset: buttonOffset,
+          anchorSize: buttonSize,
+        ),
       ),
     );
   }

@@ -1,0 +1,73 @@
+<style>
+  .sub-mock { font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif !important; font-weight: 300 !important; line-height: 1.6 !important; padding: 28px !important; background: linear-gradient(180deg, #03111f, #01060e) !important; color: #eaf6fa !important; text-align: center !important; }
+  .sub-mock.sub-page { text-align: left !important; }
+  .sub-btn { display: inline-block !important; padding: 12px 30px !important; border: 1px solid rgba(143,220,236,0.55) !important; border-radius: 8px !important; background: rgba(143,220,236,0.14) !important; color: #eaf6fa !important; font-size: 15px !important; font-weight: 500 !important; }
+  .sub-count { font-size: 14px !important; color: rgba(234,246,250,0.72) !important; margin: 14px 0 0 !important; }
+  .sub-count b { font-weight: 600 !important; color: #8fdcec !important; }
+  .sub-count u { color: #8fdcec !important; text-underline-offset: 3px !important; }
+  .sub-panel { max-width: 340px !important; margin: 12px auto 0 !important; padding: 12px 16px !important; border: 1px solid rgba(234,246,250,0.16) !important; border-radius: 8px !important; }
+  .sub-row { display: flex !important; justify-content: space-between !important; font-size: 13px !important; padding: 3px 0 !important; color: rgba(234,246,250,0.72) !important; margin: 0 !important; }
+  .sub-row b { font-weight: 500 !important; color: #eaf6fa !important; }
+  .sub-note { font-size: 11px !important; color: rgba(234,246,250,0.68) !important; margin: 10px 0 0 !important; }
+  .sub-title { font-size: 24px !important; font-weight: 600 !important; margin: 0 0 2px !important; color: #eaf6fa !important; }
+  .sub-big { font-size: 34px !important; font-weight: 600 !important; color: #8fdcec !important; margin: 8px 0 0 !important; line-height: 1.1 !important; }
+  .sub-big-l { font-size: 13px !important; color: rgba(234,246,250,0.72) !important; margin: 2px 0 16px !important; }
+  .sub-grid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; gap: 14px !important; }
+  .sub-box { border: 1px solid rgba(234,246,250,0.16) !important; border-radius: 8px !important; padding: 12px 14px !important; }
+  .sub-box-h { font-size: 12px !important; letter-spacing: 0.06em !important; text-transform: uppercase !important; color: rgba(234,246,250,0.68) !important; margin: 0 0 6px !important; }
+  .sub-empty { margin-top: 14px !important; border: 1px dashed rgba(143,220,236,0.55) !important; border-radius: 8px !important; padding: 26px 14px !important; text-align: center !important; font-size: 13px !important; color: rgba(234,246,250,0.72) !important; }
+</style>
+
+<h2>How should the breakdown be reached?</h2>
+<p class="subtitle">Both start from your choice: the quiet line under the download button. The figures are today's real ones and include updates.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Opens in place</h3>
+      <p>Tap the line and a small panel opens by platform. Simple, and visitors stay next to the download button.</p>
+      <div class="sub-mock">
+        <span class="sub-btn">Download for macOS</span>
+        <p class="sub-count"><u><b>11,452</b> downloads from GitHub</u> ▴</p>
+        <div class="sub-panel">
+          <p class="sub-row"><span>macOS</span><b>7,271</b></p>
+          <p class="sub-row"><span>Android</span><b>2,028</b></p>
+          <p class="sub-row"><span>Windows</span><b>1,537</b></p>
+          <p class="sub-row"><span>Linux</span><b>616</b></p>
+        </div>
+        <p class="sub-note">Includes app updates. App Store and Google Play installs are not counted.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Links to its own page</h3>
+      <p>The line links to submersion.app/downloads, with room for platform, release and trend over time.</p>
+      <div class="sub-mock sub-page">
+        <p class="sub-title">Downloads</p>
+        <p class="sub-big">11,452</p>
+        <p class="sub-big-l">downloads from GitHub, including app updates</p>
+        <div class="sub-grid">
+          <div class="sub-box">
+            <p class="sub-box-h">By platform</p>
+            <p class="sub-row"><span>macOS</span><b>7,271</b></p>
+            <p class="sub-row"><span>Android</span><b>2,028</b></p>
+            <p class="sub-row"><span>Windows</span><b>1,537</b></p>
+            <p class="sub-row"><span>Linux</span><b>616</b></p>
+          </div>
+          <div class="sub-box">
+            <p class="sub-box-h">Recent releases</p>
+            <p class="sub-row"><span>v1.8.3</span><b>317</b></p>
+            <p class="sub-row"><span>v1.8.2</span><b>487</b></p>
+            <p class="sub-row"><span>v1.8.1</span><b>357</b></p>
+            <p class="sub-row"><span>v1.8.0</span><b>1,779</b></p>
+          </div>
+        </div>
+        <div class="sub-empty">Trend over time goes here. It starts empty and fills in from the first daily snapshot, because GitHub keeps no history.</div>
+      </div>
+    </div>
+  </div>
+</div>
