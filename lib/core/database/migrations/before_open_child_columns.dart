@@ -45,5 +45,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v331: equipment_locations.dive_center_id (issue #3623). Every place
     // read selects the whole row, for the same reason as the tank columns.
     await _assertEquipmentLocationCenterColumn();
+
+    // v333: dives.gas_switches_edited (issue #32). Every dive read selects
+    // the whole row, for the same reason as the tank columns.
+    await _assertDiveGasSwitchesEditedColumn();
   }
 }

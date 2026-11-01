@@ -8012,6 +8012,52 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Quando hai cambiato bombola. Deco, carico tissutale e SAC per bombola seguono questi cambi.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Inizia con $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Aggiungi cambio';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Tempo';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Passa a';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Profondità';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Rimuovi cambio';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => 'Usa minuti:secondi';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Deve essere entro l\'immersione';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Un altro cambio è a questo tempo';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cambi gas rimossi con la loro bombola',
+      one: '$count cambio gas rimosso con la sua bombola',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Acquisizione posizione...';
 
   @override
@@ -8145,6 +8191,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'Aggiungi note su questa immersione...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Cambi gas';
 
   @override
   String get diveLog_edit_overline_tanks => 'Bombole';
@@ -24539,6 +24588,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impronta delle prove';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Cambi gas modificati a mano';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Escluso dalle statistiche dei gas';
 
@@ -35570,6 +35623,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Connessione al computer subacqueo riuscita, ma ha smesso di rispondere prima dell\'avvio del download. Di solito significa che l\'associazione Bluetooth non è più valida: dimentica il computer subacqueo nelle impostazioni Bluetooth del tuo dispositivo e riprova.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Impossibile trovare questo computer subacqueo tramite Bluetooth LE. Attiva la sua modalità Bluetooth e ripeti la ricerca. Se compare nelle impostazioni Bluetooth del tuo dispositivo, rimuovilo prima da lì: potrebbe essere noto solo come dispositivo Bluetooth classico.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Il tuo dispositivo non comunicherà con questo computer subacqueo finché non saranno associati. Attiva la modalità Bluetooth del computer subacqueo, associalo nelle impostazioni Bluetooth del tuo dispositivo e riprova.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'Il computer subacqueo non ha risposto tramite Bluetooth. Verifica che la sua modalità Bluetooth sia ancora attiva e che sia vicino al tuo dispositivo, quindi riprova.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {

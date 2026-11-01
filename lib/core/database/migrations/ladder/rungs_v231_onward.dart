@@ -737,5 +737,10 @@ extension RungsFromV231 on AppDatabase {
     // no backfill; the log starts empty. Re-asserted in beforeOpen.
     if (from < 332) await _assertChangeLogSchema();
     if (from < 332) await reportProgress();
+
+    // v333: dives.gas_switches_edited (issue #32). Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 333) await _assertDiveGasSwitchesEditedColumn();
+    if (from < 333) await reportProgress();
   }
 }

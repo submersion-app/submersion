@@ -24,6 +24,7 @@ class GasGearSection extends StatelessWidget {
     required this.weightChild,
     this.rebreatherPanel,
     this.applyConfigChild,
+    this.gasSwitchesChild,
     this.showTankControls = true,
     this.errorCount = 0,
   });
@@ -46,6 +47,11 @@ class GasGearSection extends StatelessWidget {
   /// ApplyConfigurationMenu, when the diver has saved configurations. Sits
   /// below the add-cylinder row because it is the bulk alternative to it.
   final Widget? applyConfigChild;
+
+  /// The gas switch list (issue #32), below the add-cylinder row so the
+  /// append row stays with the list it appends to. Null when the dive has
+  /// nothing to switch between.
+  final Widget? gasSwitchesChild;
 
   /// False for gauge dives, which log depth and time only.
   final bool showTankControls;
@@ -78,6 +84,7 @@ class GasGearSection extends StatelessWidget {
               ...tanks,
               FormAppendRow(label: addTankLabel, onTap: onAddTank),
               ?applyConfigChild,
+              ?gasSwitchesChild,
             ],
           ),
         equipmentChild,

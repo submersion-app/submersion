@@ -7991,6 +7991,53 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Mikor váltottál palackot. A dekó, a szöveti terhelés és a palackonkénti SAC ezeket a váltásokat követi.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Kezdés: $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Váltás hozzáadása';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Idő';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Váltás erre';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Mélység';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Váltás eltávolítása';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'Perc:másodperc formátum';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'A merülésen belül kell lennie';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Egy másik váltás is erre az időre esik';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gázváltás eltávolítva a palackjukkal',
+      one: '$count gázváltás eltávolítva a palackjával',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Helymeghatározás...';
 
   @override
@@ -8125,6 +8172,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_edit_notesHint =>
       'Jegyzetek hozzáadása ehhez a merüléshez...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Gázváltások';
 
   @override
   String get diveLog_edit_overline_tanks => 'Palackok';
@@ -24436,6 +24486,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Bizonyíték ujjlenyomata';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gázváltások kézzel szerkesztve';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Kihagyva a gázstatisztikából';
 
@@ -35365,6 +35419,18 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'A merülőkomputer csatlakozott, de a letöltés megkezdése előtt nem válaszolt tovább. Ez általában azt jelenti, hogy a Bluetooth-párosítás elavult: felejtesd el a merülőkomputert az eszközöd Bluetooth-beállításaiban, majd próbáld újra.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Ez a merülőkomputer nem található Bluetooth LE-n. Kapcsold be a Bluetooth módját, és keress újra. Ha szerepel az eszközöd Bluetooth-beállításaiban, előbb távolítsd el onnan: lehet, hogy ott csak klasszikus Bluetooth-eszközként ismert.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Az eszközöd addig nem kommunikál ezzel a merülőkomputerrel, amíg nincsenek párosítva. Kapcsold be a merülőkomputer Bluetooth módját, párosítsd az eszközöd Bluetooth-beállításaiban, majd próbáld újra.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'A merülőkomputer nem válaszolt Bluetooth-on. Ellenőrizd, hogy a Bluetooth módja még be van-e kapcsolva, és hogy közel van-e az eszközödhöz, majd próbáld újra.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {

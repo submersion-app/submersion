@@ -7968,6 +7968,53 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Wanneer je van fles wisselde. Deco, weefselbelasting en SAC per fles volgen deze wissels.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Begint op $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Wissel toevoegen';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Tijd';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Wissel naar';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Diepte';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Wissel verwijderen';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'Gebruik minuten:seconden';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Moet binnen de duik liggen';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Er is al een wissel op dit tijdstip';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gaswissels verwijderd met hun fles',
+      one: '$count gaswissel verwijderd met zijn fles',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Locatie ophalen...';
 
   @override
@@ -8101,6 +8148,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'Voeg notities toe over deze duik...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Gaswissels';
 
   @override
   String get diveLog_edit_overline_tanks => 'Flessen';
@@ -24380,6 +24430,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Vingerafdruk van het bewijs';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gaswissels handmatig bewerkt';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Uitgesloten van gasstatistieken';
 
@@ -35318,6 +35372,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Verbonden met de duikcomputer, maar hij reageerde niet meer voordat de download kon beginnen. Meestal betekent dit dat de Bluetooth-koppeling verouderd is: vergeet de duikcomputer in de Bluetooth-instellingen van je apparaat en probeer het opnieuw.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Deze duikcomputer is niet gevonden via Bluetooth LE. Zet de Bluetooth-modus aan en zoek opnieuw. Staat hij in de Bluetooth-instellingen van je apparaat, verwijder hem daar dan eerst: mogelijk is hij daar alleen bekend als klassiek Bluetooth-apparaat.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Je apparaat communiceert pas met deze duikcomputer als ze gekoppeld zijn. Zet de Bluetooth-modus van de duikcomputer aan, koppel hem in de Bluetooth-instellingen van je apparaat en probeer het opnieuw.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'De duikcomputer reageerde niet via Bluetooth. Controleer of de Bluetooth-modus nog aan staat en of hij dicht bij je apparaat is, en probeer het opnieuw.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
