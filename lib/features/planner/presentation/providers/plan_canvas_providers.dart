@@ -352,22 +352,25 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
 }
 
 /// Where the ascent into [stop] reaches the gas held there: the stop itself,
-/// unless a switch depth the diver set sits partway up a leg folded into it.
+/// unless that gas's switch depth, a MOD or one the diver set, sits partway up
+/// a leg folded into the stop.
 ({int time, double depth}) _gasSwitchPoint(
   List<PlanScheduleRow> schedule,
   PlanStop stop,
 ) {
   var time = stop.arrivalRuntimeSeconds;
   var depth = stop.depthMeters;
-  final legs = schedule
-      .where(
-        (row) =>
-            row.kind == PlanScheduleRowKind.stop &&
-            row.startRuntimeSeconds == time,
-      )
-      .firstOrNull
-      ?.foldedTravel;
-  for (final leg in (legs ?? const <PlanFoldedTravel>[]).reversed) {
+  final legs =
+      schedule
+          .where(
+            (row) =>
+                row.kind == PlanScheduleRowKind.stop &&
+                row.startRuntimeSeconds == time,
+          )
+          .firstOrNull
+          ?.foldedTravel ??
+      const <PlanFoldedTravel>[];
+  for (final leg in legs.reversed) {
     if (leg.seconds == 0) continue;
     if (leg.tankId != stop.tankId) break;
     time -= leg.seconds;

@@ -2976,13 +2976,12 @@ class PlanEngine {
       final travel = stop.arrivalRuntimeSeconds - end;
       // The first travel leg (bottom phase to the first stop) stays its own
       // row, an informative transition. From the second stop on, a gas
-      // switch at its MOD lands exactly at the stop it leads into
-      // (AscentGasPlan's design: a switch-at-MOD never falls strictly
-      // between two 3 m-spaced stops), so a travel-between-stops row would
-      // nearly always repeat the previous line's gas, which is clutter, not
-      // information. A switch depth the diver set can fall inside the leg:
-      // the line stays folded, and _computeTankUsages and the exposure
-      // spans still split it. Dropping it loses nothing: scheduleLines()
+      // switch at its MOD lands at or just deeper than the stop it leads
+      // into, so a travel-between-stops row would nearly always repeat the
+      // previous line's gas, which is clutter, not information. A switch
+      // depth the diver set can fall further up the leg. Either way the line
+      // stays folded, and _computeTankUsages and the exposure spans still
+      // split it. Dropping it loses nothing: scheduleLines()
       // already derives each printed duration from consecutive runtimeSeconds, so
       // the travel time folds straight into the stop it leads to (#3138). The
       // stop's row keeps the leg for whatever charges gas from the rows (#3927).
