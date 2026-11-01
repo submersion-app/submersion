@@ -47,6 +47,20 @@ void main() {
       await stopping;
     });
 
+    test('a stop issued while start is binding wins', () async {
+      final server = AgentAccessServer.instance;
+      final starting = server.start(
+        port: 0,
+        token: () => 't',
+        serverFactory: _fakeFactory,
+      );
+      final stopping = server.stop(); // issued before the bind completes
+      await Future.wait([starting, stopping]);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(server.status.listening, isFalse);
+      expect(server.boundHost, isNull);
+    });
+
     test('stop is idempotent and publishes a stopped status', () async {
       final server = AgentAccessServer.instance;
       await server.start(

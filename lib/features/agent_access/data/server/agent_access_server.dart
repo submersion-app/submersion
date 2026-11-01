@@ -61,6 +61,10 @@ class AgentAccessServer {
 
   StreamableMcpServer? _server;
   Future<void>? _pendingStop;
+
+  /// Counts every [stop], so a [start] still binding when a stop arrives
+  /// can tell, once bound, that it was cancelled under it.
+  int _stops = 0;
   AgentAccessStatus _status = const AgentAccessStatus(
     listening: false,
     port: 0,
@@ -82,9 +86,13 @@ class AgentAccessServer {
     required String Function() token,
     required McpServer Function() serverFactory,
   }) async {
+    var stopsSeen = _stops;
     final pending = _pendingStop;
     if (pending != null) await pending;
-    if (_server != null) await stop();
+    if (_server != null) {
+      await stop();
+      stopsSeen = _stops;
+    }
 
     final effectivePort = port == 0 ? await _freePort() : port;
     final authenticator = RequestAuthenticator(token);
@@ -136,11 +144,19 @@ class AgentAccessServer {
       unawaited(server.stop().catchError((_) {}));
       rethrow;
     }
+    if (_stops != stopsSeen) {
+      // A stop arrived while this bind was in flight; it found no server to
+      // close, so this one closes itself instead of outliving its owner.
+      await server.stop().timeout(_stopBound, onTimeout: () {});
+      _publish(AgentAccessStatus(listening: false, port: effectivePort));
+      return;
+    }
     _server = server;
     _publish(AgentAccessStatus(listening: true, port: server.boundPort));
   }
 
   Future<void> stop() {
+    _stops++;
     final pending = _pendingStop;
     if (pending != null) return pending;
     final server = _server;
