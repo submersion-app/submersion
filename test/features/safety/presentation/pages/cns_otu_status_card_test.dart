@@ -251,17 +251,25 @@ void main() {
 
     testWidgets('reads as clear once the unknown dive is outside the recovery '
         'window', (tester) async {
-      await pumpCard(
-        tester,
-        snapshotOf(
-          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
-            const Duration(hours: 13),
+      // Fixed, not wallClockNowUtc() off the live clock: that reinterprets
+      // the process's local digits as UTC, and the widget separately reads
+      // clock.now().toUtc() (the true instant) for elapsed time. Outside
+      // UTC (the Test job runs Sydney, see ci.yaml) those two diverge by
+      // the zone offset, eating into this test's 1-hour margin between its
+      // 13-hour dive age and the 24-hour recovery window (issue #3659's
+      // bug class).
+      final fixedNow = DateTime.utc(2026, 1, 1, 12);
+      await withClock(Clock.fixed(fixedNow), () async {
+        await pumpCard(
+          tester,
+          snapshotOf(
+            lastDiveEnd: fixedNow.subtract(const Duration(hours: 13)),
+            exposure: const O2Exposure(cnsUnknownDiveAge: Duration(hours: 12)),
           ),
-          exposure: const O2Exposure(cnsUnknownDiveAge: Duration(hours: 12)),
-        ),
-      );
+        );
 
-      expect(find.text('No active load'), findsOneWidget);
+        expect(find.text('No active load'), findsOneWidget);
+      });
     });
 
     testWidgets('drops the note when OTU alone keeps the card up', (
