@@ -1,5 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:drift/drift.dart' show Value;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
@@ -12,6 +17,38 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 const kDiverA = 'diver-a';
 const kDiverB = 'diver-b';
 const kSeedTime = 1700000000000;
+
+/// Keys no document may carry: credentials, and values that belong to one
+/// device.
+final Set<String> kForbiddenDocumentKeys = {
+  ...changeLogCredentialColumns,
+  for (final keys in deviceLocalSyncColumns.values)
+    for (final key in keys) changeLogSqlName(key),
+};
+
+/// Fails on a forbidden key or on bytes anywhere inside [value]. Every read
+/// the harness makes passes through here, so each family test covers it.
+void expectCleanDocument(Object? value, {String path = r'$'}) {
+  switch (value) {
+    case final Map<Object?, Object?> map:
+      for (final entry in map.entries) {
+        expect(
+          kForbiddenDocumentKeys,
+          isNot(contains(entry.key)),
+          reason: 'forbidden key at $path',
+        );
+        expectCleanDocument(entry.value, path: '$path.${entry.key}');
+      }
+    case final Uint8List _:
+      fail('bytes at $path');
+    case final List<Object?> list:
+      for (final (index, item) in list.indexed) {
+        expectCleanDocument(item, path: '$path[$index]');
+      }
+    default:
+      break;
+  }
+}
 
 /// Two profiles, A the default and active one.
 Future<void> seedTwoDivers(AppDatabase db) async {
@@ -56,13 +93,17 @@ class RecordHarness {
     String? diverId,
     List<String>? include,
     int? profileLimit,
-  }) => GetRecordsTool(loader: _loader, catalog: catalog).call({
-    'entity': entity,
-    'ids': ids,
-    'diver_id': ?diverId,
-    'include': ?include,
-    'profile_limit': ?profileLimit,
-  }, _context);
+  }) async {
+    final out = await GetRecordsTool(loader: _loader, catalog: catalog).call({
+      'entity': entity,
+      'ids': ids,
+      'diver_id': ?diverId,
+      'include': ?include,
+      'profile_limit': ?profileLimit,
+    }, _context);
+    expectCleanDocument(out);
+    return out;
+  }
 
   /// The one document [id] reads as, or null when it is missing.
   Future<Map<String, Object?>?> one(
@@ -100,10 +141,14 @@ class RecordHarness {
     String entity, {
     String? diverId,
     String? parentId,
-  }) => ListRecordsTool(loader: _loader, catalog: catalog).call({
-    'entity': entity,
-    'diver_id': ?diverId,
-    'parent_id': ?parentId,
-    'limit': 500,
-  }, _context);
+  }) async {
+    final out = await ListRecordsTool(loader: _loader, catalog: catalog).call({
+      'entity': entity,
+      'diver_id': ?diverId,
+      'parent_id': ?parentId,
+      'limit': 500,
+    }, _context);
+    expectCleanDocument(out);
+    return out;
+  }
 }

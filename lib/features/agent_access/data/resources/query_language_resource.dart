@@ -58,8 +58,13 @@ site.country = Mexico AND depth > 30
 Field keys are lowerCamel (`waterTemp`, `bottomTime`) with aliases listed
 below. An empty query matches every record.
 
-Times in tool results are the dive's local wall clock, carried as ISO 8601
-with a nominal Z suffix. They are not UTC instants: do not shift them.
+Times in tool results: date_time and keys ending in _time are the
+local wall clock of the dive or event, carried as ISO 8601 with a nominal Z
+suffix. They are not UTC instants: do not shift them. Keys ending in _date are calendar
+dates. Keys ending in _at are true UTC instants.
+
+serviceDue and nextServiceDue are evaluated for the named diver when a query
+runs, so they work for every profile on the device.
 ''';
 
 /// Serves the grammar plus a field and relation list generated from the

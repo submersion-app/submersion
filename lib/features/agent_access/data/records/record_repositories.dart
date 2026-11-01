@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_classifica
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -82,6 +83,7 @@ class RecordRepositories {
   late final csvPresets = CsvPresetRepository();
   late final currency = CertificationCurrencyRepository();
   late final customCertifications = CustomCertificationRepository();
+  late final divers = DiverRepository();
   late final dives = DiveRepository();
   late final cylinderConfigs = CylinderConfigRepository();
   late final cylinderFills = CylinderFillRepository();
