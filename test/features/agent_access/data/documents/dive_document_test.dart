@@ -4,7 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/agent_access/data/documents/dive_document.dart';
 import 'package:submersion/features/agent_access/data/documents/media_document.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
@@ -138,6 +143,70 @@ void main() {
           'captured_at',
         ]),
       );
+    });
+
+    test('site, trip, centre, weights, tags and types are mapped', () {
+      final linked = Dive(
+        id: 'd2',
+        dateTime: taken,
+        tripId: 'trip-1',
+        site: const DiveSite(
+          id: 'site-1',
+          name: 'Blue Hole',
+          country: 'Belize',
+          location: GeoPoint(17.3, -87.5),
+        ),
+        trip: Trip(
+          id: 'trip-1',
+          name: 'Belize 2024',
+          startDate: taken,
+          endDate: taken,
+          createdAt: taken,
+          updatedAt: taken,
+        ),
+        diveCenter: DiveCenter(
+          id: 'c1',
+          name: 'Reef Divers',
+          createdAt: taken,
+          updatedAt: taken,
+        ),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: 'd2',
+            weightType: WeightType.belt,
+            amountKg: 4,
+            label: 'belt',
+          ),
+        ],
+        tags: [
+          Tag(id: 't1', name: 'night', createdAt: taken, updatedAt: taken),
+        ],
+        diveTypeIds: const ['type-1', 'type-2'],
+      );
+      final doc = diveDocument(
+        linked,
+        include: const {'weights', 'tags', 'types'},
+        typeNames: const {'type-1': 'Reef'},
+      );
+      expect(doc['site'], {
+        'id': 'site-1',
+        'name': 'Blue Hole',
+        'country': 'Belize',
+        'region': null,
+        'latitude': 17.3,
+        'longitude': -87.5,
+      });
+      expect(doc['trip'], {'id': 'trip-1', 'name': 'Belize 2024'});
+      expect(doc['dive_center'], {'id': 'c1', 'name': 'Reef Divers'});
+      final weights = (doc['weights'] as List).cast<Map>();
+      expect(weights.single['amount_kg'], 4.0);
+      expect(weights.single['type'], 'belt');
+      expect(doc['tags'], ['night']);
+      expect(doc['types'], [
+        {'id': 'type-1', 'name': 'Reef'},
+        {'id': 'type-2', 'name': null},
+      ]);
     });
   });
 }

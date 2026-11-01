@@ -192,6 +192,60 @@ void main() {
     });
   });
 
+  group('port dialog', () {
+    testWidgets('rejects a port outside the range and keeps the setting', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.text('47831'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '80');
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(find.text('Enter a port from 1024 to 65535'), findsOneWidget);
+      expect(prefs.getInt('agent_access_port'), isNull);
+    });
+
+    testWidgets('saves a valid port', (tester) async {
+      await pump(tester);
+      await tester.tap(find.text('47831'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '50000');
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(prefs.getInt('agent_access_port'), 50000);
+      expect(find.text('50000'), findsOneWidget);
+    });
+
+    testWidgets('cancel leaves the port alone', (tester) async {
+      await pump(tester);
+      await tester.tap(find.text('47831'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '50000');
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(prefs.getInt('agent_access_port'), isNull);
+    });
+
+    testWidgets('copy token puts the raw token on the clipboard', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.text('Copy'));
+      await tester.pumpAndSettle();
+      expect(clipboard, [token]);
+    });
+
+    testWidgets('hide masks a revealed token again', (tester) async {
+      await pump(tester);
+      await tester.tap(find.text('Reveal'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Hide'));
+      await tester.pumpAndSettle();
+      expect(find.text(token), findsNothing);
+    });
+  });
+
   group('snippets', () {
     test('Claude Desktop snippet carries the token through env', () {
       final s = claudeDesktopSnippet(

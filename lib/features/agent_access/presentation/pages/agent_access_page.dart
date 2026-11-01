@@ -157,56 +157,75 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
   }
 
   Future<void> _editPort(AgentAccessSettings settings) async {
-    final l10n = context.l10n;
-    final material = MaterialLocalizations.of(context);
-    final controller = TextEditingController(text: '${settings.port}');
     final port = await showDialog<int>(
       context: context,
-      builder: (context) {
-        String? error;
-        return StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: Text(l10n.settings_agentAccess_port),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              inputFormatters: numberInputFormatters(),
-              decoration: InputDecoration(errorText: error),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(material.cancelButtonLabel),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final read = readNumber(
-                    controller.text,
-                    integer: true,
-                    allowNegative: false,
-                  );
-                  final value = read is NumberValue ? read.value.toInt() : null;
-                  if (value == null ||
-                      value < kAgentAccessMinPort ||
-                      value > kAgentAccessMaxPort) {
-                    setDialogState(
-                      () => error = l10n.settings_agentAccess_portInvalid,
-                    );
-                    return;
-                  }
-                  Navigator.of(context).pop(value);
-                },
-                child: Text(material.okButtonLabel),
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (context) => _PortDialog(initialPort: settings.port),
     );
-    controller.dispose();
-    if (port != null && port != settings.port) {
-      await ref.read(agentAccessSettingsProvider.notifier).setPort(port);
+    if (!mounted || port == null || port == settings.port) return;
+    await ref.read(agentAccessSettingsProvider.notifier).setPort(port);
+  }
+}
+
+/// Owns its text controller so the closing route can finish animating
+/// before the controller goes away.
+class _PortDialog extends StatefulWidget {
+  const _PortDialog({required this.initialPort});
+
+  final int initialPort;
+
+  @override
+  State<_PortDialog> createState() => _PortDialogState();
+}
+
+class _PortDialogState extends State<_PortDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: '${widget.initialPort}',
+  );
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final read = readNumber(
+      _controller.text,
+      integer: true,
+      allowNegative: false,
+    );
+    final value = read is NumberValue ? read.value.toInt() : null;
+    if (value == null ||
+        value < kAgentAccessMinPort ||
+        value > kAgentAccessMaxPort) {
+      setState(() => _error = context.l10n.settings_agentAccess_portInvalid);
+      return;
     }
+    Navigator.of(context).pop(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final material = MaterialLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.settings_agentAccess_port),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        keyboardType: TextInputType.number,
+        inputFormatters: numberInputFormatters(),
+        decoration: InputDecoration(errorText: _error),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(material.cancelButtonLabel),
+        ),
+        FilledButton(onPressed: _submit, child: Text(material.okButtonLabel)),
+      ],
+    );
   }
 }
