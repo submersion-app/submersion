@@ -55,6 +55,18 @@ class DiveEnvironment extends Equatable {
   /// also floors, for the same reason.
   static double clampSalinityPpt(double ppt) => ppt > 0 ? ppt : 0.0;
 
+  /// The surface a diver off-gasses at between a dive in [previous] and the
+  /// next one in [next].
+  ///
+  /// Two dives at one altitude share their surface. Across a change of
+  /// altitude the log does not say when the diver travelled, so this takes
+  /// the higher pressure: a lower one would off-gas further than the diver
+  /// may have, and start the next dive with too little residual gas.
+  static DiveEnvironment surfaceIntervalBetween(
+    DiveEnvironment previous,
+    DiveEnvironment next,
+  ) => next.surfacePressureBar > previous.surfacePressureBar ? next : previous;
+
   /// Inverse of [densityFromSalinityPpt].
   static double salinityPptFromDensity(double densityKgM3) =>
       (densityKgM3 - freshWaterDensity) /

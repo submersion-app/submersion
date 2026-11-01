@@ -13,7 +13,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
-import 'package:submersion/features/dive_lab/presentation/widgets/dive_lab_section.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/compare_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -1057,14 +1057,14 @@ void main() {
       await tester.pumpWidget(compareTestWidget(diveWithSamples(2)));
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveLabSection), findsOneWidget);
+      expect(find.byType(CompareSection), findsOneWidget);
     });
 
     testWidgets('stays off a profile too short to branch', (tester) async {
       await tester.pumpWidget(compareTestWidget(diveWithSamples(1)));
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveLabSection), findsNothing);
+      expect(find.byType(CompareSection), findsNothing);
     });
   });
 

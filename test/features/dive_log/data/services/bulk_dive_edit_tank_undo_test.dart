@@ -6,6 +6,7 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain_buddy;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
@@ -28,14 +29,16 @@ class _TankArrivesDuringCapture extends BuddyRepository {
   final DiveRepository _diveRepo;
 
   @override
-  Future<Map<String, List<domain_buddy.BuddyWithRole>>> getBuddiesForDives(
-    List<String> diveIds,
-  ) async {
+  Future<Map<String, List<domain_buddy.BuddyWithRole>>>
+  getBuddiesForDivesInChunks(
+    List<String> diveIds, {
+    int chunkSize = kSeriesIdChunkSize,
+  }) async {
     await _diveRepo.bulkAddTank(
       diveIds,
       const domain.DiveTank(id: '', name: 'Synced'),
     );
-    return super.getBuddiesForDives(diveIds);
+    return super.getBuddiesForDivesInChunks(diveIds, chunkSize: chunkSize);
   }
 }
 

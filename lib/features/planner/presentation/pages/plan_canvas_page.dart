@@ -23,6 +23,7 @@ import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/plan_link_actions.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
@@ -264,6 +265,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                       ? null
                       : context.l10n.plannerSeries_convertUnavailable,
                 ),
+                ..._linkMenuItems(context),
                 _menuItem(
                   'slate',
                   Icons.picture_as_pdf,
@@ -306,18 +308,61 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     domain.PlanMode.pscr => domain.PlanMode.oc,
   };
 
+  /// Link to a logged dive, or Change and Unlink with what the plan was dived
+  /// as. A plan has to be saved before anything can name it.
+  List<PopupMenuItem<String>> _linkMenuItems(BuildContext context) {
+    final l10n = context.l10n;
+    final plan = ref.read(divePlanNotifierProvider);
+    final saved = ref.read(divePlanNotifierProvider.notifier).isPersisted;
+    final tooltip = saved ? null : l10n.plannerCanvas_link_saveFirst;
+    if (plan.linkedDiveId == null) {
+      return [
+        _menuItem(
+          'linkDive',
+          Icons.link,
+          l10n.plannerCanvas_link_action,
+          enabled: saved,
+          tooltip: tooltip,
+        ),
+      ];
+    }
+    final summaries = ref.read(divePlanSummariesProvider).value;
+    final summary = summaries?.where((s) => s.id == plan.id).firstOrNull;
+    return [
+      _menuItem(
+        'linkDive',
+        Icons.link,
+        l10n.plannerCanvas_link_changeAction,
+        enabled: saved,
+        tooltip: tooltip,
+      ),
+      _menuItem(
+        'unlinkDive',
+        Icons.link_off,
+        l10n.plannerCanvas_unlink_action,
+        enabled: saved,
+        tooltip: tooltip,
+        subtitle: summary == null
+            ? null
+            : planLinkBadge(l10n, summary, ref.read(unitFormatterProvider)),
+      ),
+    ];
+  }
+
   /// An overflow menu entry. [tooltip] says why a disabled entry is not
-  /// available.
+  /// available; [subtitle] adds a line under the label.
   PopupMenuItem<String> _menuItem(
     String value,
     IconData icon,
     String label, {
     bool enabled = true,
     String? tooltip,
+    String? subtitle,
   }) {
     final tile = ListTile(
       leading: Icon(icon),
       title: Text(label),
+      subtitle: subtitle == null ? null : Text(subtitle),
       contentPadding: EdgeInsets.zero,
     );
     return PopupMenuItem(
@@ -357,6 +402,26 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         _focusSetup('deco');
       case 'convert':
         logFailure(_convertToDive(), _PlanCanvasPageState, 'convert to dive');
+      case 'linkDive':
+        logFailure(
+          pickDiveAndLink(
+            context,
+            ref,
+            planId: ref.read(divePlanNotifierProvider).id,
+          ),
+          _PlanCanvasPageState,
+          'link plan to dive',
+        );
+      case 'unlinkDive':
+        logFailure(
+          unlinkPlanWithConfirm(
+            context,
+            ref,
+            planId: ref.read(divePlanNotifierProvider).id,
+          ),
+          _PlanCanvasPageState,
+          'unlink plan',
+        );
       case 'slate':
         logFailure(
           _exportSlate(shareAnchor),
@@ -776,6 +841,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   }
 
   Future<void> _convertToDive() async {
+    // The new dive takes the plan's link, so a plan already linked gives up
+    // its dive here: the one move that does not go through the link actions.
+    if (ref.read(divePlanNotifierProvider).linkedDiveId != null) {
+      final confirmed = await confirmLinkMove(
+        context,
+        action: context.l10n.divePlanner_action_convertToDive,
+      );
+      if (!confirmed || !mounted) return;
+    }
     // The plan holds only the site id; the dive needs the site itself. A site
     // deleted since the plan was saved resolves to null and is left off.
     final siteId = ref.read(divePlanNotifierProvider).siteId;

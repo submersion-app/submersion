@@ -361,7 +361,10 @@ void main() {
       'the constraint names the battery-limited member, not the slowest or thirstiest',
       () {
         final outcome = engine.compute(
-          plan: _plan(tankLiters: 40, startBar: 230),
+          plan: _plan(
+            tankLiters: 40,
+            startBar: 230,
+          ).copyWith(problemSolvingMinutes: 0),
           mission: DpvMission(
             legs: [
               _leg('L1', 0, distance: 400, depth: 15),
@@ -393,6 +396,36 @@ void main() {
         // waypoint, but b's battery binds first.
         final a = outcome.members.firstWhere((m) => m.memberId == 'a');
         expect(a.bindingWaypointIndex ?? 99, greaterThan(0));
+      },
+    );
+
+    test(
+      'problem-solving time can bring a binding waypoint closer (#4059)',
+      () {
+        MemberOutcome memberA(int minutes) => engine
+            .compute(
+              plan: _plan(
+                tankLiters: 40,
+                startBar: 230,
+              ).copyWith(problemSolvingMinutes: minutes),
+              mission: DpvMission(
+                legs: [
+                  _leg('L1', 0, distance: 400, depth: 15),
+                  _leg('L2', 1, distance: 400, depth: 15),
+                ],
+                team: [
+                  _member('a', 0, sac: 25, speed: 0.9),
+                  _member('b', 1, speed: 0.7, burn: 2400),
+                  _member('c', 2, speed: 0.4),
+                ],
+              ),
+            )
+            .members
+            .firstWhere((m) => m.memberId == 'a');
+
+        expect(memberA(0).bindingWaypointIndex, 1);
+        expect(memberA(2).bindingWaypointIndex, 0);
+        expect(memberA(2).bindingFactor, MissionBindingFactor.ownGas);
       },
     );
   });

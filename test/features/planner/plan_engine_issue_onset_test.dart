@@ -270,7 +270,12 @@ void main() {
     final issue = outcome.issues.firstWhere(
       (i) => i.type == PlanIssueType.ppO2Critical && i.atDepth == 33,
     );
-    expect(issue.atRuntime, switchRow.startRuntimeSeconds);
+    // 33 m has no stop of its own, so the diver switches partway up the leg
+    // folded into the first line on that gas, not when that line starts.
+    final onEan40 = switchRow.foldedTravel.last;
+    expect(onEan40.tankId, 'ean40');
+    expect(onEan40.fromDepthMeters, 33);
+    expect(issue.atRuntime, switchRow.startRuntimeSeconds - onEan40.seconds);
   });
 
   test('a deco ppO2 issue starts where its own ceiling is passed', () {

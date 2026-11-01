@@ -94,6 +94,20 @@ void main() {
     },
   );
 
+  test('a mix rounded to its cells is still one it accepts (#4007)', () async {
+    final fill = goldenFills().first.copyWith(
+      o2Percent: 10.25,
+      hePercent: 89.75,
+    );
+    final payload = await const SubmersionFillsCsvParser().parse(
+      _bytes(CsvFillsWriter(CsvExportUnits.metric).write([fill])),
+    );
+    expect(payload.warnings, isEmpty);
+    final read = payload.entitiesOf(ImportEntityType.fills).single;
+    expect(read['o2Percent'], 10.3);
+    expect(read['hePercent'], 89.7);
+  });
+
   test('a gas mix the Log fill sheet would refuse is skipped with an '
       'error', () async {
     final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());

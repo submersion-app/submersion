@@ -4,13 +4,17 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -59,17 +63,13 @@ void main() {
     ],
   );
 
-  testWidgets('a preceding dive ends at its recorded exit time', (
-    tester,
-  ) async {
-    // Its runtime says 08:00, its exit says 06:40.
-    final preceding = Dive(
-      id: 'dive-6',
-      dateTime: DateTime(2026, 7, 1, 6),
-      entryTime: DateTime(2026, 7, 1, 6),
-      exitTime: DateTime(2026, 7, 1, 6, 40),
-      runtime: const Duration(hours: 2),
-    );
+  /// Opens [dive] in the planner from the sheet, after [preceding], and
+  /// returns the plan the sheet made.
+  Future<DivePlanState> openInPlanner(
+    WidgetTester tester,
+    Dive preceding, {
+    ProfileAnalysis? analysis,
+  }) async {
     final router = GoRouter(
       initialLocation: '/dives/dive-7',
       routes: [
@@ -104,7 +104,7 @@ void main() {
           gasSwitchesProvider.overrideWith(
             (ref, id) async => <GasSwitchWithTank>[],
           ),
-          profileAnalysisProvider.overrideWith((ref, id) async => null),
+          profileAnalysisProvider.overrideWith((ref, id) async => analysis),
         ],
       ),
     );
@@ -118,10 +118,51 @@ void main() {
     await tester.tap(find.text('Open in planner'));
     await tester.pumpAndSettle();
 
-    expect(
-      container.read(divePlanNotifierProvider).surfaceInterval,
-      const Duration(hours: 2, minutes: 20),
+    return container.read(divePlanNotifierProvider);
+  }
+
+  testWidgets('a preceding dive ends at its recorded exit time', (
+    tester,
+  ) async {
+    // Its runtime says 08:00, its exit says 06:40.
+    final plan = await openInPlanner(
+      tester,
+      Dive(
+        id: 'dive-6',
+        dateTime: DateTime(2026, 7, 1, 6),
+        entryTime: DateTime(2026, 7, 1, 6),
+        exitTime: DateTime(2026, 7, 1, 6, 40),
+        runtime: const Duration(hours: 2),
+      ),
     );
+
+    expect(plan.surfaceInterval, const Duration(hours: 2, minutes: 20));
+  });
+
+  testWidgets('a seed keeps the conditions the preceding dive ended in', (
+    tester,
+  ) async {
+    final preceding = Dive(
+      id: 'dive-6',
+      dateTime: DateTime(2026, 7, 1, 6),
+      entryTime: DateTime(2026, 7, 1, 6),
+      exitTime: DateTime(2026, 7, 1, 6, 40),
+      altitude: 3000,
+    );
+    final status = BuhlmannAlgorithm().getDecoStatus(
+      currentDepth: 0,
+      fN2: airN2Fraction,
+      fHe: 0.0,
+    );
+
+    final plan = await openInPlanner(
+      tester,
+      preceding,
+      analysis: ProfileAnalysis.empty().copyWith(decoStatuses: [status]),
+    );
+
+    expect(plan.initialTissueState, isNotNull);
+    expect(plan.initialTissueEnvironment, preceding.environment);
   });
 
   testWidgets(

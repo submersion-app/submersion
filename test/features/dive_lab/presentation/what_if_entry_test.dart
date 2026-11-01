@@ -10,6 +10,10 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -26,9 +30,34 @@ Dive _dive(DiveMode mode) => Dive(
   profile: _profile(),
 );
 
-Widget _harness(Dive dive) => testApp(
+LinkedPlanComparison _comparison() {
+  final plan = domain.DivePlan(
+    id: 'p',
+    name: 'Plan',
+    gfLow: 30,
+    gfHigh: 70,
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+  final outcome = const PlanEngine().compute(plan);
+  return LinkedPlanComparison(
+    plan: plan,
+    outcome: outcome,
+    overlay: buildPlannedOverlay(plan, outcome: outcome),
+  );
+}
+
+Widget _harness(
+  Dive dive, {
+  LinkedPlanComparison? linked,
+  bool linkFails = false,
+}) => testApp(
   overrides: [
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    linkedPlanComparisonProvider.overrideWith((ref, id) async {
+      if (linkFails) throw StateError('plan would not compute');
+      return linked;
+    }),
     labRequestInputsProvider('d').overrideWith((ref) async => null),
     labDefaultBranchProvider('d').overrideWith((ref) async => 0),
     diveProvider.overrideWith((ref, id) async => dive),
@@ -62,5 +91,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(WhatIfSheet), findsOneWidget);
     expect(find.byType(DiveLabPage), findsNothing);
+  });
+
+  testWidgets('a plan that fails to load still opens the sheet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(_dive(DiveMode.gauge), linkFails: true));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byType(WhatIfSheet), findsOneWidget);
+  });
+
+  testWidgets('a linked gauge dive opens the page', (tester) async {
+    await tester.pumpWidget(
+      _harness(_dive(DiveMode.gauge), linked: _comparison()),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DiveLabPage), findsOneWidget);
+    expect(find.byType(WhatIfSheet), findsNothing);
   });
 }

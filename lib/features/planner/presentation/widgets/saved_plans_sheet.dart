@@ -10,6 +10,7 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/presentation/plan_link_actions.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
@@ -234,11 +235,18 @@ class _PlanTile extends ConsumerWidget {
       if (summary.runtimeSeconds != null)
         '${(summary.runtimeSeconds! / 60).ceil()}′',
     ];
+    final badge = planLinkBadge(context.l10n, summary, units);
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(summary.name),
-      subtitle: Text(subtitleParts.join(' · ')),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(subtitleParts.join(' · ')),
+          if (badge != null) _PlanLinkBadge(label: badge),
+        ],
+      ),
       onTap: () {
         context.pop();
         context.push('/planning/dive-planner/${summary.id}');
@@ -296,6 +304,18 @@ class _PlanTile extends ConsumerWidget {
                     _PlanTile,
                     'export plan file',
                   );
+                } else if (value == 'link') {
+                  logFailure(
+                    pickDiveAndLink(context, ref, planId: summary.id),
+                    _PlanTile,
+                    'link plan to dive',
+                  );
+                } else if (value == 'unlink') {
+                  logFailure(
+                    unlinkPlanWithConfirm(context, ref, planId: summary.id),
+                    _PlanTile,
+                    'unlink plan',
+                  );
                 }
               },
               itemBuilder: (context) => [
@@ -311,7 +331,51 @@ class _PlanTile extends ConsumerWidget {
                   value: 'share',
                   child: Text(context.l10n.plannerCanvas_share_menu),
                 ),
+                PopupMenuItem(
+                  value: 'link',
+                  child: Text(
+                    summary.linkedDiveId == null
+                        ? context.l10n.plannerCanvas_link_action
+                        : context.l10n.plannerCanvas_link_changeAction,
+                  ),
+                ),
+                if (summary.linkedDiveId != null)
+                  PopupMenuItem(
+                    value: 'unlink',
+                    child: Text(context.l10n.plannerCanvas_unlink_action),
+                  ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A linked plan's mark: what it was dived as. A linked plan is read as saved,
+/// so an edit changes the comparison, and this is how the diver knows.
+class _PlanLinkBadge extends StatelessWidget {
+  const _PlanLinkBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.link, size: 14, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(color: color),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

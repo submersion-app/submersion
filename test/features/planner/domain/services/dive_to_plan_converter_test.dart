@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -167,6 +168,21 @@ void main() {
       );
       expect(result.waterType, WaterType.fresh);
       expect(result.altitude, 1500);
+    });
+
+    test('keeps the conditions the seed tissues ended in', () {
+      const previousDive = DiveEnvironment(surfacePressureBar: 0.7);
+      final profile = _squareProfile();
+      final result = converter.convert(
+        dive: _dive(profile: profile),
+        profile: profile,
+        gasSwitches: const [],
+        levels: 1,
+        planName: 'What if',
+        defaults: _defaults(),
+        initialTissueEnvironment: previousDive,
+      );
+      expect(result.initialTissueEnvironment, previousDive);
     });
 
     test('bottom time is preserved at every detail level', () {

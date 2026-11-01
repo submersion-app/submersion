@@ -351,6 +351,34 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
   );
 }
 
+/// Where the ascent into [stop] reaches the gas held there: the stop itself,
+/// unless that gas's switch depth, a MOD or one the diver set, sits partway up
+/// a leg folded into the stop.
+({int time, double depth}) _gasSwitchPoint(
+  List<PlanScheduleRow> schedule,
+  PlanStop stop,
+) {
+  var time = stop.arrivalRuntimeSeconds;
+  var depth = stop.depthMeters;
+  final legs =
+      schedule
+          .where(
+            (row) =>
+                row.kind == PlanScheduleRowKind.stop &&
+                row.startRuntimeSeconds == time,
+          )
+          .firstOrNull
+          ?.foldedTravel ??
+      const <PlanFoldedTravel>[];
+  for (final leg in legs.reversed) {
+    if (leg.seconds == 0) continue;
+    if (leg.tankId != stop.tankId) break;
+    time -= leg.seconds;
+    depth = leg.fromDepthMeters;
+  }
+  return (time: time, depth: depth);
+}
+
 /// Builds the chart series for any (plan, outcome) pair — the live plan or a
 /// contingency variant (ghost overlay). [outcome] is [plan]'s own computed
 /// schedule -- the same instance a caller like [PlanEngine.compute] already
@@ -433,10 +461,11 @@ PlanCanvasSeries buildCanvasSeries({
             (stop.gasFO2 - previousFO2).abs() > 0.005 ||
             (stop.gasFHe - (previousFHe ?? 0)).abs() > 0.005);
     if (switched && previousFO2 != null) {
+      final at = _gasSwitchPoint(outcome.schedule, stop);
       gasSwitches.add(
         CanvasMarker(
-          stop.arrivalRuntimeSeconds.toDouble(),
-          stop.depthMeters,
+          at.time.toDouble(),
+          at.depth,
           GasMix(o2: stop.gasFO2 * 100.0, he: stop.gasFHe * 100.0).name,
         ),
       );

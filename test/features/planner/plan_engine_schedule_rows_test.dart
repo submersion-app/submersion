@@ -6,10 +6,11 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
-/// The plan table reads like a slate: every travel leg is a line and every
-/// stop is a line, the authored legs first and then the computed ascent down
-/// to the leg that surfaces. A diver follows it against a watch, so stops end
-/// on whole minutes and the last line's runtime is the plan's runtime.
+/// The plan table reads like a slate: the authored legs first, then the leg
+/// to the first stop, every stop, and the leg that surfaces, with travel
+/// between stops folded into the stop it leads to. A diver follows it against
+/// a watch, so stops end on whole minutes and the last line's runtime is the
+/// plan's runtime.
 const _air = GasMix(o2: 21);
 const _airTank = DiveTank(
   id: 'back',
@@ -292,6 +293,117 @@ void main() {
       );
       expect(total, greaterThan(0));
       expect(total.isFinite, isTrue);
+    });
+  });
+
+  group('travel the table folds into a stop (#3927)', () {
+    int foldedSeconds(PlanScheduleRow row) =>
+        row.foldedTravel.fold(0, (sum, leg) => sum + leg.seconds);
+
+    test('every second of the dive is on a line or folded into one', () {
+      final outcome = _engine.compute(
+        _plan(bottomDepth: 50, bottomMinutes: 30),
+      );
+      final total = outcome.schedule.fold<int>(
+        0,
+        (sum, row) => sum + row.durationSeconds + foldedSeconds(row),
+      );
+      expect(outcome.schedule.map(foldedSeconds), contains(greaterThan(0)));
+      expect(total, outcome.runtimeSeconds);
+    });
+
+    test('a folded leg fills the gap back to the line before', () {
+      final rows = _engine
+          .compute(_plan(bottomDepth: 50, bottomMinutes: 30))
+          .schedule;
+      for (var i = 1; i < rows.length; i++) {
+        expect(
+          rows[i].startRuntimeSeconds - foldedSeconds(rows[i]),
+          rows[i - 1].runtimeSeconds,
+        );
+      }
+    });
+
+    test('a leg into a switch stop stays on the gas it left', () {
+      final rows = _engine
+          .compute(
+            _plan(
+              bottomDepth: 50,
+              bottomMinutes: 30,
+              tanks: const [
+                _airTank,
+                _ean50,
+                DiveTank(
+                  id: 'o2',
+                  volume: 7.0,
+                  startPressure: 200.0,
+                  gasMix: GasMix(o2: 100),
+                ),
+              ],
+            ),
+          )
+          .schedule;
+      final switchStop = rows.indexWhere((r) => r.tankId == 'o2');
+      expect(rows[switchStop - 1].kind, PlanScheduleRowKind.stop);
+      expect(rows[switchStop - 1].tankId, 'deco');
+      // A gas's MOD can sit a hair deeper than its stop, leaving a span of no
+      // length on the new gas: no time is breathed on it before the stop.
+      final breathed = rows[switchStop].foldedTravel.where(
+        (l) => l.seconds > 0,
+      );
+      expect(breathed.map((leg) => leg.tankId), ['deco']);
+    });
+
+    test('a switch set between two stops divides the folded leg', () {
+      final outcome = _engine.compute(
+        _plan(
+          bottomDepth: 50,
+          bottomMinutes: 30,
+          tanks: [_airTank, _ean50.copyWith(decoSwitchDepth: 10)],
+        ),
+      );
+      final legs = outcome.schedule
+          .firstWhere((row) => row.foldedTravel.length > 1)
+          .foldedTravel;
+      expect(legs.map((leg) => leg.tankId), ['back', 'deco']);
+      expect(legs.first.toDepthMeters, 10);
+      expect(legs.last.fromDepthMeters, 10);
+    });
+
+    test('a gas over its limit is placed where the folded leg reaches it', () {
+      final outcome = _engine.compute(
+        _plan(
+          bottomDepth: 50,
+          bottomMinutes: 30,
+          tanks: const [
+            _airTank,
+            DiveTank(
+              id: 'o2',
+              volume: 7.0,
+              startPressure: 200.0,
+              gasMix: GasMix(o2: 100),
+              decoSwitchDepth: 10,
+            ),
+          ],
+        ),
+      );
+      final row = outcome.schedule.firstWhere((r) => r.foldedTravel.length > 1);
+      final onO2 = row.foldedTravel.last;
+      expect(onO2.tankId, 'o2');
+
+      final issue = outcome.issues.firstWhere((i) => i.atDepth == 10);
+
+      expect(issue.atRuntime, row.startRuntimeSeconds - onO2.seconds);
+    });
+
+    test('the leg to the first stop keeps its own line', () {
+      final rows = _engine
+          .compute(_plan(bottomDepth: 50, bottomMinutes: 30))
+          .schedule;
+      final firstStop = rows.firstWhere(
+        (r) => r.kind == PlanScheduleRowKind.stop,
+      );
+      expect(firstStop.foldedTravel, isEmpty);
     });
   });
 

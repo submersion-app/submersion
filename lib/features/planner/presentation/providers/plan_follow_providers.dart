@@ -54,6 +54,7 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
     endTissues: statuses == null || statuses.isEmpty
         ? null
         : statuses.last.compartments,
+    endEnvironment: followed.environment,
     endCns: analysis?.o2Exposure.cnsEnd ?? 0,
     endTanks: followed.tanks,
   );
