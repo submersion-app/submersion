@@ -176,6 +176,40 @@ void main() {
       expect(dominantPhase(0, 300, const []), isNull);
     });
 
+    test(
+      'gives no phase to a stretch that only touches phases at its ends',
+      () {
+        expect(
+          dominantPhase(300, 600, [
+            _segment(0, 300, phase: DivePhase.descent),
+            _segment(600, 900, phase: DivePhase.ascent),
+          ]),
+          isNull,
+        );
+      },
+    );
+
+    test('ignores a phase that touches the stretch beside a covering one', () {
+      expect(
+        dominantPhase(300, 600, [
+          _segment(0, 300, phase: DivePhase.descent),
+          _segment(300, 600, phase: DivePhase.bottom),
+        ]),
+        DivePhase.bottom,
+      );
+    });
+
+    test('ignores a zero-length phase inside the stretch', () {
+      expect(
+        dominantPhase(300, 600, [_segment(450, 450, phase: DivePhase.deco)]),
+        isNull,
+      );
+    });
+
+    test('names the earlier phase at a zero-length stretch on a boundary', () {
+      expect(dominantPhase(120, 120, phases), DivePhase.descent);
+    });
+
     test('skips a segment with no phase', () {
       expect(dominantPhase(0, 300, [_segment(0, 300)]), isNull);
     });

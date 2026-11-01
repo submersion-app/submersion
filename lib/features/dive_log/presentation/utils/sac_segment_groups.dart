@@ -60,7 +60,7 @@ List<SacSegmentGroup> groupSegmentsByCylinder(List<SacSegment> segments) =>
 
 /// The phase that covers the most of the stretch from [start] to [end], in
 /// seconds, adding up a phase the stretch meets more than once. Null where no
-/// phase reaches it. A tie goes to the earlier phase.
+/// phase covers any of it. A tie goes to the earlier phase.
 DivePhase? dominantPhase(int start, int end, List<SacSegment> phaseSegments) {
   final seconds = <DivePhase, int>{};
   for (final segment in phaseSegments) {
@@ -73,6 +73,9 @@ DivePhase? dominantPhase(int start, int end, List<SacSegment> phaseSegments) {
     final int overlap =
         math.min(end, segment.endTimestamp) -
         math.max(start, segment.startTimestamp);
+    // Touching a stretch at one end covers none of it. A zero-length stretch
+    // has no time to cover, so there touching is all it can do.
+    if (overlap <= 0 && end > start) continue;
     seconds[phase] = (seconds[phase] ?? 0) + overlap;
   }
   if (seconds.isEmpty) return null;
