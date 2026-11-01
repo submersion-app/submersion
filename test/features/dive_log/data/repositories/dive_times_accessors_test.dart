@@ -372,7 +372,11 @@ void main() {
     final start = DateTime.utc(2026, 6, 1);
     final end = DateTime.utc(2026, 6, 3);
     final legacy = await repository.getDivesInRange(start, end);
-    final slim = await repository.getDiveTimesInRange(start, end);
+    final slim = await repository.getDiveTimesInRange(
+      start,
+      end,
+      diverId: null,
+    );
 
     expect(slim.map((t) => t.id).toList(), legacy.map((d) => d.id).toList());
     expect(slim.map((t) => t.id), isNot(contains('outside')));

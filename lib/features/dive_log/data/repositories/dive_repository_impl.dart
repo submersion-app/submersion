@@ -6095,13 +6095,23 @@ class DiveRepository {
   /// [getPreviousDiveTimes]) rather than full hydration: the formula needs
   /// only timestamps and effective runtime, and this method sits on the
   /// residual-decompression lookback hot path (WS2, large-DB performance).
+  ///
+  /// [sameDiverOnly] measures from the dive's own diver's previous dive, as
+  /// [getPreviousDiveTimes] picks it. The lookback passes it: that interval
+  /// off-gasses one person's tissues.
   // stats-scope-exempt: physiological interval between real dives, not a statistic
-  Future<Duration?> getSurfaceInterval(String diveId) async {
+  Future<Duration?> getSurfaceInterval(
+    String diveId, {
+    bool sameDiverOnly = false,
+  }) async {
     try {
       final current = await getDiveTimes(diveId);
       if (current == null) return null;
 
-      final previous = await getPreviousDiveTimes(diveId);
+      final previous = await getPreviousDiveTimes(
+        diveId,
+        sameDiverOnly: sameDiverOnly,
+      );
       if (previous == null) return null;
 
       // Calculate interval: from previous dive exit to current dive entry
@@ -6161,7 +6171,7 @@ class DiveRepository {
   /// table use [effectiveRuntimeSecondsSql] instead, which resolves the same
   /// chain but short-circuits past the profile scan.
   static final _diveTimesSelect =
-      'SELECT d.id, d.dive_date_time, d.entry_time, d.exit_time, '
+      'SELECT d.id, d.diver_id, d.dive_date_time, d.entry_time, d.exit_time, '
       'd.runtime, d.bottom_time, '
       "${diveUndivedSql('d')} AS is_undived, "
       "${profileSpanSecondsSql('d')} AS profile_span "
@@ -6189,6 +6199,7 @@ class DiveRepository {
       bottomTime: bottom != null ? Duration(seconds: bottom) : null,
       // Matches Dive.calculateRuntimeFromProfile: null unless positive.
       profileSpan: span != null && span > 0 ? Duration(seconds: span) : null,
+      diverId: row.readNullable<String>('diver_id'),
       isUndivedPlan: row.read<int>('is_undived') == 1,
     );
   }
@@ -6212,8 +6223,8 @@ class DiveRepository {
   /// link meant for the real dive) whose effective start (entryTime,
   /// falling back to the legacy diveDateTime) is at or after [notBefore].
   /// Mirrors [getPreviousDiveTimes]'s predicate and ordering in reverse, with
-  /// an explicit diver filter -- unlike [getPreviousDiveTimes], which is used
-  /// for the surface-interval lookback and does not need one.
+  /// an explicit diver filter: [getPreviousDiveTimes] has none by default,
+  /// because the surface interval a shared logbook shows spans every diver.
   ///
   /// Returns only the id, not a hydrated [domain.Dive]: the sole caller,
   /// [ChecklistDiveLinker], only compares identity, and that linker runs
@@ -6260,7 +6271,16 @@ class DiveRepository {
   ///
   /// A plan nobody has dived ([diveUndivedSql]) is the previous dive of another
   /// such plan only: a dive that happened looks past it (issue #3924).
-  Future<domain.DiveTimes?> getPreviousDiveTimes(String diveId) async {
+  ///
+  /// By default this is any diver's dive: the gap a shared logbook shows. A
+  /// residual load is one person's, so the lookback passes [sameDiverOnly] and
+  /// reads the dive's own diver's dives, whichever diver is active (#3923).
+  /// `IS` matches a null owner: unassigned dives are one implicit diver's, as
+  /// in `quality_prefilters.dart`, and never pair with an assigned diver's.
+  Future<domain.DiveTimes?> getPreviousDiveTimes(
+    String diveId, {
+    bool sameDiverOnly = false,
+  }) async {
     final current = await getDiveTimes(diveId);
     if (current == null) return null;
 
@@ -6270,12 +6290,14 @@ class DiveRepository {
           '$_diveTimesSelect '
           'WHERE d.id != ? AND (d.entry_time < ? OR '
           '(d.entry_time IS NULL AND d.dive_date_time < ?)) '
+          '${sameDiverOnly ? 'AND d.diver_id IS ? ' : ''}'
           '${current.isUndivedPlan ? '' : 'AND NOT ${diveUndivedSql('d')} '}'
           'ORDER BY d.entry_time DESC, d.dive_date_time DESC LIMIT 1',
           variables: [
             Variable<String>(diveId),
             Variable<int>(cutoff),
             Variable<int>(cutoff),
+            if (sameDiverOnly) Variable<String>(current.diverId),
           ],
           readsFrom: {_db.dives, _db.diveProfileSeries},
         )
@@ -6374,12 +6396,16 @@ class DiveRepository {
     }
   }
 
-  /// Times-only equivalent of [getDivesInRange] (identical WHERE and
+  /// Times-only equivalent of [getDivesInRange] (identical window and
   /// ordering), for same-day and weekly exposure aggregation.
+  ///
+  /// [diverId] is required because exposure is one person's (#3923), and unlike
+  /// [getDivesInRange] a null one is not "every diver": it reads the unassigned
+  /// dives, for a dive that is itself unassigned.
   Future<List<domain.DiveTimes>> getDiveTimesInRange(
     DateTime start,
     DateTime end, {
-    String? diverId,
+    required String? diverId,
   }) => _diveTimesInRange(start, end, diverId: diverId);
 
   /// [getDiveTimesInRange] for [diverId], excluding plans nobody has dived
@@ -6395,18 +6421,19 @@ class DiveRepository {
   Future<List<domain.DiveTimes>> _diveTimesInRange(
     DateTime start,
     DateTime end, {
-    String? diverId,
+    required String? diverId,
     bool executedOnly = false,
   }) async {
-    final clauses = <String>['d.dive_date_time >= ?', 'd.dive_date_time <= ?'];
+    final clauses = <String>[
+      'd.dive_date_time >= ?',
+      'd.dive_date_time <= ?',
+      'd.diver_id IS ?',
+    ];
     final args = <Variable<Object>>[
       Variable<int>(start.millisecondsSinceEpoch),
       Variable<int>(end.millisecondsSinceEpoch),
+      Variable<String>(diverId),
     ];
-    if (diverId != null) {
-      clauses.add('d.diver_id = ?');
-      args.add(Variable<String>(diverId));
-    }
     if (executedOnly) clauses.add('NOT ${diveUndivedSql('d')}');
     final rows = await _db
         .customSelect(

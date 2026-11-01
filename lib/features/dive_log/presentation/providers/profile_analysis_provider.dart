@@ -1611,6 +1611,10 @@ final sourceProfileAnalysisProvider =
 /// Walks back from [diveId] to the nearest earlier dive [readPrevious] knows
 /// something about, adding up the surface time on the way.
 ///
+/// Only [diveId]'s own diver's dives count: another diver sharing the logbook
+/// left nothing in this one's tissues (#3923), so their dives neither seed the
+/// result nor cut the surface time short.
+///
 /// A dive it knows nothing about (null: no profile) says nothing about what
 /// the dives before it left behind, so the walk carries on past it rather than
 /// treat it as a full recovery. Only the time between dives counts: the
@@ -1635,11 +1639,17 @@ _lookBackPastUnknownDives<T extends Object>(
   Duration? unknownDiveAge;
   T? known;
   while (known == null) {
-    final previousDive = await repository.getPreviousDiveTimes(cursor);
+    final previousDive = await repository.getPreviousDiveTimes(
+      cursor,
+      sameDiverOnly: true,
+    );
     if (previousDive == null) break;
 
     // Null despite a previous dive means its query failed and was logged.
-    final interval = await repository.getSurfaceInterval(cursor);
+    final interval = await repository.getSurfaceInterval(
+      cursor,
+      sameDiverOnly: true,
+    );
     if (interval == null) throw StateError('No surface interval: $cursor');
     surfaceTime += interval;
     if (surfaceTime >= window) break;
@@ -1842,10 +1852,11 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
 /// Computes cumulative OTU accrued earlier on the same calendar day, before
 /// this dive started.
 ///
-/// Non-recursive: queries the dives around that day, gets each earlier
-/// dive's profile analysis, and sums the OTU it accrued between midnight and
-/// this dive's start. A dive that began the evening before and crossed
-/// midnight contributes only its post-midnight part (see [sumOtuInWindow]).
+/// Non-recursive: queries the dive's own diver's dives around that day
+/// (#3923), gets each earlier dive's profile analysis, and sums the OTU it
+/// accrued between midnight and this dive's start. A dive that began the
+/// evening before and crossed midnight contributes only its post-midnight
+/// part (see [sumOtuInWindow]).
 ///
 /// Returns 0.0 if no earlier dives exist on the same day.
 Future<double> _computeResidualOtu(Ref ref, String diveId) async {
@@ -1867,6 +1878,7 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
     final nearbyDives = await repository.getDiveTimesInRange(
       startOfDay.subtract(otuWindowLookback),
       endOfDay,
+      diverId: currentDive.diverId,
     );
 
     // Only dives that began BEFORE this one count toward its residual.
@@ -1913,6 +1925,12 @@ final residualTissueStateProvider =
       ref,
       diveId,
     ) async {
+      // Reads earlier dives' analyses once, so it goes stale when any of them
+      // changes. The tick its neighbour residualCnsProvider inherits from
+      // profileAnalysisProvider keeps the three in step for Compare.
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
+      );
       await awaitCurrentDiverSettings(ref);
       final dive = await ref.watch(analysisDiveProvider(diveId).future);
       if (dive == null) return null;
@@ -1931,15 +1949,20 @@ final residualOtuProvider = FutureProvider.family<double, String>((
   ref,
   diveId,
 ) async {
+  // As in [residualTissueStateProvider].
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
+  );
   return _computeResidualOtu(ref, diveId);
 });
 
 /// Weekly OTU rolling total for a given dive (7-day window ending on dive date).
 ///
-/// Queries dives in the 7 days leading up to the dive's date and sums the OTU
-/// of the current dive plus any dive that occurred at or before it. Dives
-/// logged LATER than the current dive (e.g. later the same day) are excluded
-/// so the displayed "Prior" never borrows OTU from the future (issue #407).
+/// Queries the dive's own diver's dives in the 7 days leading up to its date
+/// (#3923) and sums the OTU of the current dive plus any dive that occurred at
+/// or before it. Dives logged LATER than the current dive (e.g. later the same
+/// day) are excluded so the displayed "Prior" never borrows OTU from the
+/// future (issue #407).
 /// A plan a logged dive never followed is excluded too (issue #3924, see
 /// [withoutUndivedPlans]).
 /// Used by O2ToxicityCard for REPEX compliance display.
@@ -1971,6 +1994,7 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     final weekDives = await repository.getDiveTimesInRange(
       sevenDaysAgo.subtract(otuWindowLookback),
       endOfDay,
+      diverId: currentDive.diverId,
     );
 
     // Count the current dive and any dive that occurred at or before it, but
