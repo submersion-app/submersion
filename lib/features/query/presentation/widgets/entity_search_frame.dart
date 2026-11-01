@@ -18,7 +18,6 @@ class EntitySearchFrame extends StatelessWidget {
     required this.onChanged,
     required this.child,
     this.hintText,
-    this.onEscape,
   });
 
   final QuerySubject subject;
@@ -27,9 +26,6 @@ class EntitySearchFrame extends StatelessWidget {
   final ValueChanged<QueryNode?> onChanged;
   final Widget child;
   final String? hintText;
-
-  /// See [EntitySearchHeader.onEscape].
-  final VoidCallback? onEscape;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -40,7 +36,6 @@ class EntitySearchFrame extends StatelessWidget {
         query: query,
         onChanged: onChanged,
         hintText: hintText,
-        onEscape: onEscape,
       ),
       Expanded(
         child: QueryChipsFrame(
