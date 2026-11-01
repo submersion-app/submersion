@@ -136,4 +136,48 @@ void main() {
       expect(group.containsTimestamp(180), isTrue);
     });
   });
+
+  group('dominantPhase', () {
+    final phases = [
+      _segment(0, 120, phase: DivePhase.descent),
+      _segment(120, 840, phase: DivePhase.bottom),
+      _segment(840, 960, phase: DivePhase.ascent),
+      _segment(960, 1140, phase: DivePhase.safetyStop),
+      _segment(1140, 1200, phase: DivePhase.ascent),
+    ];
+
+    test('names the phase covering a stretch', () {
+      expect(dominantPhase(300, 600, phases), DivePhase.bottom);
+    });
+
+    test('names the phase covering most of a stretch that crosses two', () {
+      expect(dominantPhase(0, 300, phases), DivePhase.bottom);
+      expect(dominantPhase(600, 900, phases), DivePhase.bottom);
+      expect(dominantPhase(900, 1200, phases), DivePhase.safetyStop);
+    });
+
+    test('adds up a phase that the stretch meets twice', () {
+      expect(
+        dominantPhase(1000, 1300, [
+          _segment(1000, 1050, phase: DivePhase.ascent),
+          _segment(1050, 1140, phase: DivePhase.safetyStop),
+          _segment(1140, 1200, phase: DivePhase.ascent),
+        ]),
+        DivePhase.ascent,
+      );
+    });
+
+    test('names the phase at a zero-length stretch', () {
+      expect(dominantPhase(600, 600, phases), DivePhase.bottom);
+    });
+
+    test('gives no phase where none reaches the stretch', () {
+      expect(dominantPhase(2000, 2300, phases), isNull);
+      expect(dominantPhase(0, 300, const []), isNull);
+    });
+
+    test('skips a segment with no phase', () {
+      expect(dominantPhase(0, 300, [_segment(0, 300)]), isNull);
+    });
+  });
 }

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 
 /// One row of the Gas consumption by segment card: a phase or a cylinder,
@@ -55,6 +57,27 @@ List<SacSegmentGroup> groupSegmentsByPhase(List<SacSegment> segments) =>
 /// per switch.
 List<SacSegmentGroup> groupSegmentsByCylinder(List<SacSegment> segments) =>
     _groupBy(segments, (s) => s.tankId ?? s.displayLabel);
+
+/// The phase that covers the most of the stretch from [start] to [end], in
+/// seconds, adding up a phase the stretch meets more than once. Null where no
+/// phase reaches it. A tie goes to the earlier phase.
+DivePhase? dominantPhase(int start, int end, List<SacSegment> phaseSegments) {
+  final seconds = <DivePhase, int>{};
+  for (final segment in phaseSegments) {
+    final phase = segment.phase;
+    if (phase == null ||
+        segment.endTimestamp < start ||
+        segment.startTimestamp > end) {
+      continue;
+    }
+    final int overlap =
+        math.min(end, segment.endTimestamp) -
+        math.max(start, segment.startTimestamp);
+    seconds[phase] = (seconds[phase] ?? 0) + overlap;
+  }
+  if (seconds.isEmpty) return null;
+  return seconds.entries.reduce((a, b) => b.value > a.value ? b : a).key;
+}
 
 /// The rows of the card's Gas section: none on a dive that stayed on one
 /// cylinder, where a single row would only repeat the Cylinders card.

@@ -1,9 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/presentation/utils/sac_rate_axis.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_rate_display.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_segment_groups.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_table.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_time_columns.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -16,6 +20,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// marks the column, phase row and gas row it falls in. A section with no data
 /// is left out rather than filled from another, which would put one
 /// breakdown's numbers under another's heading.
+///
+/// Color ties them together as well: a column takes the color of the phase it
+/// mostly falls in, and the phase rows below are its legend.
 class SacSegmentsView extends StatefulWidget {
   final List<SacSegment> timeSegments;
   final List<SacSegment> phaseSegments;
@@ -101,6 +108,25 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     return index != null && index < widget.timeSegments.length ? index : null;
   }
 
+  /// The lines of [axis]. The top one also carries the unit, as the last label
+  /// on the time axis does.
+  List<SacRateTick> _rateTicks(SacRateAxis axis, String unit) => [
+    for (final value in axis.ticks)
+      SacRateTick(
+        factor: value / axis.top,
+        label: [
+          formatFixedForDisplay(value, axis.decimals),
+          if (value == axis.top) unit,
+        ].join(' '),
+      ),
+  ];
+
+  /// A cylinder's row wears its gas, in the colors it has across the app.
+  static Color? _gasColor(SacSegmentGroup group) {
+    final mix = group.segments.first.gasMix;
+    return mix == null ? null : GasColors.forGasMix(mix);
+  }
+
   Widget _timeSection(int? activeIndex) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -112,8 +138,23 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     final peak = segments.reduce(
       (best, s) => comparable(s) > comparable(best) ? s : best,
     );
-    final peakValue = comparable(peak);
-    double share(double value) => peakValue > 0 ? value / peakValue : 0;
+    final axis = SacRateAxis.forPeak(
+      rates.displayComparable(comparable(peak), among: tankIds),
+    );
+    double share(double value) => axis.top > 0
+        ? rates.displayComparable(value, among: tankIds) / axis.top
+        : 0;
+
+    Color? columnColor(SacSegment segment) {
+      final phase = dominantPhase(
+        segment.startTimestamp,
+        segment.endTimestamp,
+        widget.phaseSegments,
+      );
+      return phase == null
+          ? null
+          : SacSegmentColors.forPhase(phase, theme.colorScheme.brightness);
+    }
 
     final active = activeIndex == null ? null : segments[activeIndex];
 
@@ -142,6 +183,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
                 startSeconds: segment.startTimestamp,
                 durationSeconds: segment.durationSeconds,
                 heightFactor: share(comparable(segment)),
+                color: columnColor(segment),
                 semanticLabel: [
                   _timeRange(segment),
                   rates.format(segment.sacRate, tankId: segment.tankId),
@@ -150,6 +192,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
               ),
           ],
           averageFactor: share(rates.averageRate(segments)),
+          rateTicks: _rateTicks(axis, rates.comparableUnit(tankIds)),
           activeIndex: activeIndex,
           endLabel: (minutes) =>
               l10n.diveLog_detail_sacSegments_axisMinutes('$minutes'),
@@ -195,6 +238,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     List<SacSegmentTableRow> rows(
       List<SacSegmentGroup> groups, {
       required String Function(SacSegmentGroup) label,
+      required Color? Function(SacSegmentGroup) color,
       IconData? Function(SacSegmentGroup)? icon,
     }) {
       final selected = focusTimestamp == null
@@ -206,6 +250,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
             label: label(group),
             icon: icon?.call(group),
             barFactor: peak > 0 ? comparable(group) / peak : 0,
+            color: color(group),
             rate: rates.cell(group.segments, headingUnit: headingUnit),
             depth: _depth(group.avgDepth),
             duration: _duration(group.durationSeconds),
@@ -231,13 +276,17 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
             rows: rows(
               phases,
               label: (g) => _phaseLabel(g.phase!),
+              color: (g) => SacSegmentColors.forPhase(
+                g.phase!,
+                Theme.of(context).colorScheme.brightness,
+              ),
               icon: (g) => _phaseIcon(g.phase!),
             ),
           ),
         if (gases.isNotEmpty)
           SacSegmentTableSection(
             title: l10n.diveLog_detail_sacSegments_gas,
-            rows: rows(gases, label: (g) => g.label),
+            rows: rows(gases, label: (g) => g.label, color: _gasColor),
           ),
       ],
     );
