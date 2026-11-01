@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter/foundation.dart';
 
@@ -16,6 +14,7 @@ import 'package:submersion/features/data_quality/data/repositories/quality_findi
 import 'package:submersion/features/data_quality/data/services/quality_context_builder.dart';
 import 'package:submersion/features/data_quality/data/services/quality_neighbor_sql.dart';
 import 'package:submersion/features/data_quality/data/services/quality_prefilters.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 class QualityScanSummary {
   const QualityScanSummary({
@@ -65,6 +64,11 @@ class QualityScanService {
 
   /// Targeted scan: the given dives plus their chronological neighbors (so
   /// cross-dive pair findings can be retired from either side).
+  ///
+  /// Contexts are built [batchSize] dives at a time, since an import can send
+  /// a whole logbook here, but the findings are written once for the whole
+  /// scope. A pair can be reported from one member alone, and a later batch
+  /// holding only the other member would delete what an earlier one wrote.
   Future<QualityScanSummary> scanDives(
     Set<String> diveIds, {
     Set<String>? enabledDetectorIds,
@@ -78,12 +82,25 @@ class QualityScanService {
       );
     }
     final enabled = _enabled(enabledDetectorIds);
-    final expanded = await _expandNeighbors(diveIds);
-    return _scanBatch(
-      expanded.toList(),
+    final expanded = (await _expandNeighbors(diveIds)).toList();
+    // Resolved here so every batch of one scan reads the same clock.
+    final scanNow = now ?? DateTime.now();
+    final produced = <QualityFinding>[];
+    var errors = 0;
+    for (final batch in seriesIdChunks(expanded, size: batchSize)) {
+      final detected = await _detect(
+        batch,
+        detectorsFor: (_) => enabled,
+        now: scanNow,
+      );
+      produced.addAll(detected.produced);
+      errors += detected.errors;
+    }
+    return _apply(
+      expanded,
       enabled: enabled,
-      detectorsFor: (_) => enabled,
-      now: now,
+      produced: produced,
+      errors: errors,
     );
   }
 
@@ -96,7 +113,12 @@ class QualityScanService {
     DateTime? now,
   }) async {
     final enabled = _enabled(enabledDetectorIds);
-    final candidates = await QualityPrefilters().candidatesByDetector(now: now);
+    // Resolved here so the dives the prefilters pick are judged by the clock
+    // that picked them, however long the batches take.
+    final scanNow = now ?? DateTime.now();
+    final candidates = await QualityPrefilters().candidatesByDetector(
+      now: scanNow,
+    );
     final allDiveIds = [
       for (final r in await _db.customSelect('SELECT id FROM dives').get())
         r.read<String>('id'),
@@ -105,15 +127,11 @@ class QualityScanService {
     var produced = 0;
     var errors = 0;
     var cancelled = false;
-    for (var i = 0; i < allDiveIds.length; i += batchSize) {
+    for (final batch in seriesIdChunks(allDiveIds, size: batchSize)) {
       if (isCancelled?.call() ?? false) {
         cancelled = true;
         break;
       }
-      final batch = allDiveIds.sublist(
-        i,
-        math.min(i + batchSize, allDiveIds.length),
-      );
       final summary = await _scanBatch(
         batch,
         enabled: enabled,
@@ -124,7 +142,7 @@ class QualityScanService {
           for (final d in enabled)
             if (candidates[d.id]?.contains(diveId) ?? true) d,
         ],
-        now: now,
+        now: scanNow,
       );
       produced += summary.findingsProduced;
       errors += summary.detectorErrors;
@@ -142,6 +160,24 @@ class QualityScanService {
   Future<QualityScanSummary> _scanBatch(
     List<String> diveIds, {
     required List<QualityDetector> enabled,
+    required List<QualityDetector> Function(String diveId) detectorsFor,
+    DateTime? now,
+  }) async {
+    final detected = await _detect(
+      diveIds,
+      detectorsFor: detectorsFor,
+      now: now,
+    );
+    return _apply(
+      diveIds,
+      enabled: enabled,
+      produced: detected.produced,
+      errors: detected.errors,
+    );
+  }
+
+  Future<({List<QualityFinding> produced, int errors})> _detect(
+    List<String> diveIds, {
     required List<QualityDetector> Function(String diveId) detectorsFor,
     DateTime? now,
   }) async {
@@ -166,6 +202,15 @@ class QualityScanService {
         }
       }
     }
+    return (produced: produced, errors: errors);
+  }
+
+  Future<QualityScanSummary> _apply(
+    List<String> diveIds, {
+    required List<QualityDetector> enabled,
+    required List<QualityFinding> produced,
+    required int errors,
+  }) async {
     await _findings.applyScanResults(
       scopeDiveIds: diveIds.toSet(),
       ranDetectorIds: {for (final d in enabled) d.id},
@@ -180,16 +225,18 @@ class QualityScanService {
   }
 
   Future<Set<String>> _expandNeighbors(Set<String> diveIds) async {
-    final rows = await _db
-        .customSelect(
-          qualityExpandNeighborsSql(
-            diveIds.length,
-            QualityThresholds.neighborWindow.inMilliseconds,
-          ),
-          variables: [for (final id in diveIds) Variable.withString(id)],
-        )
-        .get();
-    return {...diveIds, for (final r in rows) r.read<String>('id')};
+    final windowMs = QualityThresholds.neighborWindow.inMilliseconds;
+    final expanded = {...diveIds};
+    for (final chunk in seriesIdChunks(diveIds.toList())) {
+      final rows = await _db
+          .customSelect(
+            qualityExpandNeighborsSql(chunk.length, windowMs),
+            variables: [for (final id in chunk) Variable.withString(id)],
+          )
+          .get();
+      expanded.addAll(rows.map((r) => r.read<String>('id')));
+    }
+    return expanded;
   }
 }
 
