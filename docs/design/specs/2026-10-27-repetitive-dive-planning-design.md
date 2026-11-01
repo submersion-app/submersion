@@ -20,7 +20,7 @@ record covers what the phases agreed and the decisions made for phases 1 and
    Dive details card, the tissue/CNS/OTU chain, carried tank pressures with
    Fill.
 2. **Shared settings**: settings shared across the series with per-dive
-   overrides, series warnings, the series results summary.
+   overrides, series warnings.
 3. **Persistence**: a `dive_plan_series` table (synced), migration of existing
    plans into one-dive series, the saved-plans list grouped by series, keyboard
    shortcuts.
@@ -271,7 +271,7 @@ Phases 2, 3 and 5 are built together; the plan is
   logged end pressure only while it is that tank: changed to another size or
   gas, it starts full. Nothing here changes the logged dive.
 
-## Series warnings and summary
+## Series warnings
 
 Each dive of a series, and a first dive that follows a logged dive, is checked
 against what came before (`seriesIssuesFor`). The warnings join the dive's own,
@@ -292,13 +292,9 @@ CNS and OTU need no warning of their own: the engine starts each dive from the
 carried exposure, so its existing warnings already count earlier dives. The OTU
 limit stays 300 against the rolling 24-hour total.
 
-The **Series** card sits above the selected dive's results, on a series or a
-dive following a logged one: total time (dives and intervals), highest CNS, daily
-OTU, and no-fly. No-fly is the published interval after the last dive: the
-repetitive one, or when any planned dive has stops or the followed dive had deco
-(or a dive within a day before it, as the log analyses those), the greater of
-that and the deco one. It shows a clock time when the series has a start, else a
-duration.
+A series summary card, with no-fly time, was built and removed: the results
+pane has little room, and the deco schedule matters more there. The planner shows
+no no-fly time.
 
 ## Design
 

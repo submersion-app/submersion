@@ -20792,26 +20792,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_summary_title => 'Sorozat';
-
-  @override
-  String get plannerSeries_summary_total => 'Teljes idő';
-
-  @override
-  String get plannerSeries_summary_highestCns => 'Legmagasabb CNS';
-
-  @override
-  String get plannerSeries_summary_dailyOtu => 'Napi OTU';
-
-  @override
-  String get plannerSeries_summary_noFly => 'Repülési tilalom eddig';
-
-  @override
-  String plannerSeries_summary_noFlyWait(String time) {
-    return '$time az utolsó merülés után';
-  }
-
-  @override
   String get plannerSeries_unsaved_titleDive => 'Menti ezt a merülést?';
 
   @override

@@ -20404,26 +20404,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_summary_title => 'סדרה';
-
-  @override
-  String get plannerSeries_summary_total => 'זמן כולל';
-
-  @override
-  String get plannerSeries_summary_highestCns => 'CNS מרבי';
-
-  @override
-  String get plannerSeries_summary_dailyOtu => 'OTU יומי';
-
-  @override
-  String get plannerSeries_summary_noFly => 'אין טיסה עד';
-
-  @override
-  String plannerSeries_summary_noFlyWait(String time) {
-    return '$time אחרי הצלילה האחרונה';
-  }
-
-  @override
   String get plannerSeries_unsaved_titleDive => 'לשמור את הצלילה?';
 
   @override

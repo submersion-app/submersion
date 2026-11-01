@@ -21163,26 +21163,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_summary_title => 'السلسلة';
-
-  @override
-  String get plannerSeries_summary_total => 'الوقت الإجمالي';
-
-  @override
-  String get plannerSeries_summary_highestCns => 'أعلى CNS';
-
-  @override
-  String get plannerSeries_summary_dailyOtu => 'OTU اليومي';
-
-  @override
-  String get plannerSeries_summary_noFly => 'لا طيران حتى';
-
-  @override
-  String plannerSeries_summary_noFlyWait(String time) {
-    return '$time بعد آخر غطسة';
-  }
-
-  @override
   String get plannerSeries_unsaved_titleDive => 'هل تريد حفظ هذه الغطسة؟';
 
   @override

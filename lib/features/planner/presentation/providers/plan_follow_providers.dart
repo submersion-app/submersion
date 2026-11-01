@@ -40,7 +40,6 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
 
   final logged = <SeriesLoggedDive>[];
   ProfileAnalysis? analysis;
-  var hadDeco = false;
   for (final dive in chain) {
     final end = diveEnd(dive);
     // A dive that ended a day before the followed one can never count, and
@@ -48,7 +47,6 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
     analysis = followedEnd.difference(end) < otuCarryWindow
         ? await ref.watch(profileAnalysisProvider(dive.id).future)
         : null;
-    hadDeco = hadDeco || (analysis?.hadDecoObligation ?? false);
     logged.add(
       SeriesLoggedDive(
         id: dive.id,
@@ -71,7 +69,6 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
         : statuses.last.compartments,
     endCns: analysis?.o2Exposure.cnsEnd ?? 0,
     endTanks: followed.tanks,
-    hadDeco: hadDeco,
   );
 });
 

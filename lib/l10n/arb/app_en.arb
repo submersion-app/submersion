@@ -13019,19 +13019,6 @@
       }
     }
   },
-  "plannerSeries_summary_title": "Series",
-  "plannerSeries_summary_total": "Total time",
-  "plannerSeries_summary_highestCns": "Highest CNS",
-  "plannerSeries_summary_dailyOtu": "Daily OTU",
-  "plannerSeries_summary_noFly": "No flying until",
-  "plannerSeries_summary_noFlyWait": "{time} after the last dive",
-  "@plannerSeries_summary_noFlyWait": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "plannerSeries_unsaved_titleDive": "Save this dive?",
   "plannerSeries_unsaved_bodyDive": "This dive has changes that haven't been saved.",
   "plannerSeries_saved_diveCount": "{count} dives",

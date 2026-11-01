@@ -1,15 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
-import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_edits.dart';
-import 'package:submersion/features/planner/domain/services/plan_series_summary.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
-import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 
 import 'series_fixtures.dart';
 
@@ -183,116 +180,6 @@ void main() {
       expect(issues, containsAll(result.seriesIssues));
       final severities = [for (final issue in issues) issue.severity.index];
       expect(severities, [...severities]..sort((a, b) => b.compareTo(a)));
-    });
-  });
-
-  group('the series summary', () {
-    test('adds up the dives and the intervals between them', () {
-      final results = compute(_two(interval: const Duration(hours: 2)));
-
-      final summary = seriesSummary(results, preset: NoFlyPreset.standard);
-
-      expect(
-        summary.totalSeconds,
-        results[0].outcome.runtimeSeconds +
-            7200 +
-            results[1].outcome.runtimeSeconds,
-      );
-    });
-
-    test('takes the highest CNS and OTU of any dive', () {
-      final results = compute(_two());
-
-      final summary = seriesSummary(results, preset: NoFlyPreset.standard);
-
-      expect(
-        summary.highestCns,
-        [
-          results[0].outcome.cnsEnd,
-          results[1].outcome.cnsEnd,
-        ].reduce((a, b) => a > b ? a : b),
-      );
-      expect(summary.dailyOtu, greaterThan(results[0].outcome.otuTotal));
-    });
-
-    test('a series with no deco waits the repetitive no-fly time', () {
-      final results = compute(
-        _two(firstDepth: 12, secondDepth: 10, firstMinutes: 10),
-      );
-      final summary = seriesSummary(results, preset: NoFlyPreset.standard);
-
-      expect(
-        summary.noFlyWait,
-        NoFlyService.intervalFor(
-          NoFlyPreset.standard,
-          NoFlyCategory.repetitive,
-        ),
-      );
-    });
-
-    test('a followed dive with deco waits the deco no-fly time', () {
-      final series = _two(firstDepth: 12, secondDepth: 10, firstMinutes: 10);
-      final follow = SeriesFollow(
-        loggedDives: [seriesLoggedDive('d1', DateTime(2026, 10, 27, 8))],
-        hadDeco: true,
-      );
-      final results = computeSeries(series.dives, config: _config);
-
-      final summary = seriesSummary(
-        results,
-        preset: NoFlyPreset.standard,
-        follow: follow,
-      );
-
-      expect(
-        summary.noFlyWait,
-        NoFlyService.intervalFor(NoFlyPreset.standard, NoFlyCategory.deco),
-      );
-    });
-
-    test('a followed dive with no deco waits the repetitive time', () {
-      final series = _two(firstDepth: 12, secondDepth: 10, firstMinutes: 10);
-      final results = computeSeries(series.dives, config: _config);
-
-      final summary = seriesSummary(
-        results,
-        preset: NoFlyPreset.strict,
-        follow: SeriesFollow(
-          loggedDives: [seriesLoggedDive('d1', DateTime(2026, 10, 27, 8))],
-        ),
-      );
-
-      expect(
-        summary.noFlyWait,
-        NoFlyService.intervalFor(NoFlyPreset.strict, NoFlyCategory.repetitive),
-      );
-    });
-
-    test('a series with deco waits the deco no-fly time', () {
-      final results = compute(_two(firstDepth: 40, firstMinutes: 40));
-      final summary = seriesSummary(results, preset: NoFlyPreset.standard);
-
-      expect(
-        summary.noFlyWait,
-        NoFlyService.intervalFor(NoFlyPreset.standard, NoFlyCategory.deco),
-      );
-    });
-
-    test('no-fly has a clock time only when the series has a start', () {
-      final none = seriesSummary(compute(_two()), preset: NoFlyPreset.standard);
-      expect(none.noFlyUntil, isNull);
-
-      final results = compute(_two(start: DateTime.utc(2026, 10, 27, 9)));
-      final timed = seriesSummary(results, preset: NoFlyPreset.standard);
-      final last = results.last;
-      expect(
-        timed.noFlyUntil,
-        asWallClockUtc(
-          fromWallClockUtc(last.state.startDateTime!)
-              .add(Duration(seconds: last.outcome.runtimeSeconds))
-              .add(timed.noFlyWait),
-        ),
-      );
     });
   });
 

@@ -9,7 +9,6 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
-import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -28,7 +27,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// The series summary and warnings on the plan canvas (issue #3565).
+/// Series warnings on the plan canvas (issue #3565).
 void main() {
   setUp(() async {
     await setUpTestDatabase();
@@ -67,57 +66,6 @@ void main() {
   PlanSeriesNotifier series(WidgetTester tester) =>
       containerOf(tester).read(planSeriesNotifierProvider.notifier);
 
-  Finder summary() => find.byKey(const Key('planSeriesSummary'));
-
-  testWidgets('a single dive has no summary', (tester) async {
-    await pumpPlan(tester, const Size(1400, 1000));
-    expect(summary(), findsNothing);
-  });
-
-  testWidgets('a series shows its summary, on every dive', (tester) async {
-    await pumpPlan(tester, const Size(1400, 1000));
-    series(tester).addDive();
-    await tester.pumpAndSettle();
-
-    expect(summary(), findsOneWidget);
-    for (final label in ['Total time', 'Highest CNS', 'Daily OTU']) {
-      expect(
-        find.descendant(of: summary(), matching: find.text(label)),
-        findsOneWidget,
-      );
-    }
-
-    series(tester).select(0);
-    await tester.pumpAndSettle();
-    expect(summary(), findsOneWidget);
-  });
-
-  testWidgets('no-fly is a clock time only once the series has a start', (
-    tester,
-  ) async {
-    await pumpPlan(tester, const Size(1400, 1000));
-    series(tester).addDive();
-    await tester.pumpAndSettle();
-    expect(
-      find.descendant(
-        of: summary(),
-        matching: find.textContaining('after the last dive'),
-      ),
-      findsOneWidget,
-    );
-
-    series(tester).select(0);
-    series(tester).setSelectedStart(DateTime.utc(2026, 10, 27, 9));
-    await tester.pumpAndSettle();
-    expect(
-      find.descendant(
-        of: summary(),
-        matching: find.textContaining('after the last dive'),
-      ),
-      findsNothing,
-    );
-  });
-
   testWidgets('a short interval reaches the warnings and the dot', (
     tester,
   ) async {
@@ -138,15 +86,5 @@ void main() {
       contains(PlanIssueType.shortSurfaceInterval),
     );
     expect(find.bySemanticsLabel('Dive B has warnings'), findsWidgets);
-  });
-
-  testWidgets('it fits a phone', (tester) async {
-    await pumpPlan(tester, const Size(420, 900));
-    series(tester).addDive();
-    containerOf(tester).read(plannerPhoneTabProvider.notifier).state = 3;
-    await tester.pumpAndSettle();
-
-    expect(summary(), findsOneWidget);
-    expect(tester.takeException(), isNull);
   });
 }

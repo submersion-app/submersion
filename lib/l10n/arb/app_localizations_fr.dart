@@ -20928,26 +20928,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_summary_title => 'Série';
-
-  @override
-  String get plannerSeries_summary_total => 'Temps total';
-
-  @override
-  String get plannerSeries_summary_highestCns => 'CNS maximal';
-
-  @override
-  String get plannerSeries_summary_dailyOtu => 'OTU quotidien';
-
-  @override
-  String get plannerSeries_summary_noFly => 'Pas de vol avant';
-
-  @override
-  String plannerSeries_summary_noFlyWait(String time) {
-    return '$time après la dernière plongée';
-  }
-
-  @override
   String get plannerSeries_unsaved_titleDive => 'Enregistrer cette plongée ?';
 
   @override

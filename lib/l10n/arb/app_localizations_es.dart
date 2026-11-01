@@ -20860,26 +20860,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_summary_title => 'Serie';
-
-  @override
-  String get plannerSeries_summary_total => 'Tiempo total';
-
-  @override
-  String get plannerSeries_summary_highestCns => 'CNS máximo';
-
-  @override
-  String get plannerSeries_summary_dailyOtu => 'OTU diario';
-
-  @override
-  String get plannerSeries_summary_noFly => 'No volar hasta';
-
-  @override
-  String plannerSeries_summary_noFlyWait(String time) {
-    return '$time después de la última inmersión';
-  }
-
-  @override
   String get plannerSeries_unsaved_titleDive => '¿Guardar esta inmersión?';
 
   @override

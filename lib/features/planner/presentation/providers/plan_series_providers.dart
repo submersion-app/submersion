@@ -15,9 +15,7 @@ import 'package:submersion/features/planner/domain/services/plan_series_settings
     as settings;
 import 'package:submersion/features/planner/domain/services/plan_series_tanks.dart'
     as series_tanks;
-import 'package:submersion/features/planner/domain/services/plan_series_summary.dart';
 import 'package:submersion/features/planner/domain/services/plan_setting_groups.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
 const _uuid = Uuid();
@@ -368,20 +366,6 @@ final selectedSeriesIssuesProvider = Provider<List<PlanIssue>>((ref) {
   );
   final results = ref.watch(planSeriesResultsProvider);
   return index < results.length ? results[index].seriesIssues : const [];
-});
-
-/// The series as a whole, for its summary: more than one dive, or one that
-/// follows a logged dive. Null on a single dive on its own.
-final planSeriesSummaryProvider = Provider<SeriesSummary?>((ref) {
-  final (isSeries, follow) = ref.watch(
-    planSeriesNotifierProvider.select((s) => (s.isSeries, s.follow)),
-  );
-  if (!isSeries && follow == null) return null;
-  return seriesSummary(
-    ref.watch(planSeriesResultsProvider),
-    preset: ref.watch(settingsProvider.select((s) => s.noFlyPreset)),
-    follow: follow,
-  );
 });
 
 /// The series as the chain reads it: without the dives' names or the

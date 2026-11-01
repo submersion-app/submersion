@@ -284,16 +284,8 @@ dive's issues, so the dot, the markers and the warnings section show them.
 
 ### Series summary card
 
-- Sits in `PlanResultsPane` and is shown only for a series.
-- It holds:
-  - total runtime: dives plus intervals, from the timeline
-  - highest CNS
-  - daily OTU
-  - no-fly time: the last end plus `NoFlyService.intervalFor(preset,
-    deco ? deco : repetitive)`. It shows a clock time when the chain has an
-    anchor, and a duration otherwise.
-- Don't add anything after `PlanWarningsSection`:
-  `_scrollWideToIssues` scrolls to the bottom.
+Built and removed (2026-11-01): it took space above the deco schedule, which
+matters more. No no-fly time in the planner either.
 
 ## Stage 5: update planned dives in the log, and links back (R2)
 

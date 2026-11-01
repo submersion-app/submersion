@@ -19850,26 +19850,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_summary_title => '系列';
-
-  @override
-  String get plannerSeries_summary_total => '总时间';
-
-  @override
-  String get plannerSeries_summary_highestCns => '最高 CNS';
-
-  @override
-  String get plannerSeries_summary_dailyOtu => '每日 OTU';
-
-  @override
-  String get plannerSeries_summary_noFly => '禁飞至';
-
-  @override
-  String plannerSeries_summary_noFlyWait(String time) {
-    return '最后一次潜水后 $time';
-  }
-
-  @override
   String get plannerSeries_unsaved_titleDive => '保存此潜水？';
 
   @override
