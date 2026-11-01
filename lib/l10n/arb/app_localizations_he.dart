@@ -26250,6 +26250,84 @@ class AppLocalizationsHe extends AppLocalizations {
       'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה';
 
   @override
+  String get settings_agentAccess_title => 'גישת סוכנים';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'אפשר לסוכן בינה מלאכותית במחשב זה לקרוא ולשנות את יומן הצלילה שלך';
+
+  @override
+  String get settings_agentAccess_enable => 'הפעלת גישת סוכנים';
+
+  @override
+  String get settings_agentAccess_statusListening => 'מאזין';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'מופסק';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'בקשה אחרונה $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'פורט $port כבר בשימוש';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'פורט';
+
+  @override
+  String get settings_agentAccess_token => 'אסימון גישה';
+
+  @override
+  String get settings_agentAccess_reveal => 'הצגה';
+
+  @override
+  String get settings_agentAccess_hide => 'הסתרה';
+
+  @override
+  String get settings_agentAccess_copy => 'העתקה';
+
+  @override
+  String get settings_agentAccess_regenerate => 'יצירה מחדש';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'כל סוכן מחובר יזדקק לאסימון החדש. להמשיך?';
+
+  @override
+  String get settings_agentAccess_confirmWrites => 'לשאול לפני החלת שינויים';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'להציג אישור ב-Submersion לפני שסוכן משנה רשומות';
+
+  @override
+  String get settings_agentAccess_snippets => 'חיבור לקוח';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (דרך mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'לקוחות אחרים';
+
+  @override
+  String get settings_agentAccess_copied => 'הועתק';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'סוכנים רואים את כל פרופילי הצוללנים במחשב זה.';
+
+  @override
+  String get settings_agentAccess_portInvalid => 'הזן פורט בין 1024 ל-65535';
+
+  @override
   String get settings_sync_title => 'סנכרון בין מכשירים';
 
   @override

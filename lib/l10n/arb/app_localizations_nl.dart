@@ -26753,6 +26753,86 @@ class AppLocalizationsNl extends AppLocalizations {
       'Duiktijden corrigeren, buddy\'s koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker';
 
   @override
+  String get settings_agentAccess_title => 'Agenttoegang';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'Laat een AI-agent op deze computer je logboek lezen en wijzigen';
+
+  @override
+  String get settings_agentAccess_enable => 'Agenttoegang inschakelen';
+
+  @override
+  String get settings_agentAccess_statusListening => 'Luistert';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'Gestopt';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'Laatste verzoek $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'Poort $port is al in gebruik';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'Poort';
+
+  @override
+  String get settings_agentAccess_token => 'Toegangstoken';
+
+  @override
+  String get settings_agentAccess_reveal => 'Tonen';
+
+  @override
+  String get settings_agentAccess_hide => 'Verbergen';
+
+  @override
+  String get settings_agentAccess_copy => 'Kopiëren';
+
+  @override
+  String get settings_agentAccess_regenerate => 'Opnieuw genereren';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'Elke verbonden agent heeft het nieuwe token nodig. Doorgaan?';
+
+  @override
+  String get settings_agentAccess_confirmWrites =>
+      'Vragen voordat wijzigingen worden toegepast';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'Toon een bevestiging in Submersion voordat een agent records wijzigt';
+
+  @override
+  String get settings_agentAccess_snippets => 'Een client verbinden';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (via mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'Andere clients';
+
+  @override
+  String get settings_agentAccess_copied => 'Gekopieerd';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'Agents zien elk duikersprofiel op deze computer.';
+
+  @override
+  String get settings_agentAccess_portInvalid =>
+      'Voer een poort in tussen 1024 en 65535';
+
+  @override
   String get settings_sync_title => 'Synchronisatie tussen apparaten';
 
   @override

@@ -541,6 +541,13 @@ const _gates = <(String, String, String, _Kind)>[
     'sync',
     _Kind.ensure,
   ),
+  // Agent access (MCP tools).
+  (
+    'lib/features/agent_access/data/agent_tool_gate.dart',
+    'AppDatabase open(',
+    'agentAccess',
+    _Kind.ensure,
+  ),
 ];
 
 /// Providers that seal a whole subsystem by yielding nothing in demo mode:

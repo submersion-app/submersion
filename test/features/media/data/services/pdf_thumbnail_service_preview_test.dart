@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
@@ -108,6 +110,28 @@ void main() {
       PdfThumbnailService.previewCacheKeyFor(pdf(), 1024),
       isNot(PdfThumbnailService.previewCacheKeyFor(pdf(), 2048)),
     );
+  });
+
+  // Issue #3996: what an older build cached is the broken render. The key is
+  // written out here because the point is the name that build used.
+  test('a render cached before the whole-page fix is not served', () async {
+    final sizes = <int>[];
+    final svc = service(
+      sizes: sizes,
+      result: PdfPagePreview(jpeg: jpeg, pageCount: 1),
+    );
+    final dir = Directory(p.join(tmp.path, 'cache'))..createSync();
+    final oldKey = sha1.convert(utf8.encode('abc|preview|1024')).toString();
+    File(p.join(dir.path, '$oldKey.jpg')).writeAsBytesSync([9, 9]);
+
+    final preview = await svc.previewFor(
+      pdf(),
+      maxDimension: 1024,
+      bytes: () async => Uint8List(1),
+    );
+
+    expect(sizes, [1024]);
+    expect(preview!.jpeg, jpeg);
   });
 
   test('a non-PDF, missing bytes, or a failed render is null', () async {

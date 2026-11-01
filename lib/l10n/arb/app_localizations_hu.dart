@@ -26796,6 +26796,86 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülési idők javítása, társak összekapcsolása, felszerelés átsorolása, adatminőség, táblázatszerkesztő';
 
   @override
+  String get settings_agentAccess_title => 'Ügynökhozzáférés';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'Engedélyezd, hogy egy MI-ügynök ezen a számítógépen olvassa és módosítsa a merülési naplódat';
+
+  @override
+  String get settings_agentAccess_enable => 'Ügynökhozzáférés engedélyezése';
+
+  @override
+  String get settings_agentAccess_statusListening => 'Figyel';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'Leállítva';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'Utolsó kérés: $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'A(z) $port port már használatban van';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'Port';
+
+  @override
+  String get settings_agentAccess_token => 'Hozzáférési token';
+
+  @override
+  String get settings_agentAccess_reveal => 'Megjelenítés';
+
+  @override
+  String get settings_agentAccess_hide => 'Elrejtés';
+
+  @override
+  String get settings_agentAccess_copy => 'Másolás';
+
+  @override
+  String get settings_agentAccess_regenerate => 'Újragenerálás';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'Minden csatlakoztatott ügynöknek az új tokenre lesz szüksége. Folytatod?';
+
+  @override
+  String get settings_agentAccess_confirmWrites =>
+      'Kérdezzen rá a módosítások alkalmazása előtt';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'Megerősítés megjelenítése a Submersionben, mielőtt egy ügynök rekordokat módosít';
+
+  @override
+  String get settings_agentAccess_snippets => 'Kliens csatlakoztatása';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (mcp-remote útján)';
+
+  @override
+  String get settings_agentAccess_generic => 'Más kliensek';
+
+  @override
+  String get settings_agentAccess_copied => 'Másolva';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'Az ügynökök a számítógép összes búvárprofilját látják.';
+
+  @override
+  String get settings_agentAccess_portInvalid =>
+      'Adj meg egy portot 1024 és 65535 között';
+
+  @override
   String get settings_sync_title => 'Szinkronizálás eszközök között';
 
   @override
