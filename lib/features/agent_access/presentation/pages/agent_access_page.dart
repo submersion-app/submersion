@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
@@ -79,7 +78,9 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
                   ),
                 ),
                 TextButton(
-                  onPressed: token == null ? null : () => _copyToken(token),
+                  onPressed: token == null
+                      ? null
+                      : () => copyWithToast(context, token),
                   child: Text(l10n.settings_agentAccess_copy),
                 ),
                 TextButton(
@@ -114,13 +115,6 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
         ],
       ),
     );
-  }
-
-  Future<void> _copyToken(String token) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final copied = context.l10n.settings_agentAccess_copied;
-    await Clipboard.setData(ClipboardData(text: token));
-    messenger.showSnackBar(SnackBar(content: Text(copied)));
   }
 
   Future<void> _regenerate() async {

@@ -268,6 +268,20 @@ void main() {
   });
 
   group('agentAccessStatusProvider', () {
+    test(
+      'delivers a status published right after it is first listened to',
+      () async {
+        final c = await container(platform: TargetPlatform.macOS);
+        c.listen(agentAccessStatusProvider, (_, _) {});
+        AgentAccessServer.instance.publishError('published early');
+        await pumpUntil(
+          () =>
+              c.read(agentAccessStatusProvider).value?.error ==
+              'published early',
+        );
+      },
+    );
+
     test('mirrors the server status stream', () async {
       final c = await container(platform: TargetPlatform.macOS);
       c.listen(agentAccessStatusProvider, (_, _) {});

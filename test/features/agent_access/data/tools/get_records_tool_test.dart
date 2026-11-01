@@ -155,6 +155,15 @@ void main() {
       expect(out['missing'], ['a1']);
     });
 
+    test('a repeated id yields one record', () async {
+      final out = await tool().call({
+        'entity': 'dives',
+        'ids': ['a1', 'a1', 'a2'],
+      }, ctx());
+      expect((out['records'] as List).map((r) => r['id']), ['a1', 'a2']);
+      expect(out['missing'], isEmpty);
+    });
+
     test('more than 50 ids is too_many_ids', () async {
       await expectLater(
         tool().call({

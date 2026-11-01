@@ -36,6 +36,15 @@ String claudeDesktopSnippet({required String url, required String token}) =>
 String genericSnippet({required String url, required String token}) =>
     'URL: $url\nHeader: Authorization: Bearer $token';
 
+/// Copies [text] and confirms it with a toast. The messenger is taken
+/// before the await so an unmounted context cannot be read afterwards.
+Future<void> copyWithToast(BuildContext context, String text) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final copied = context.l10n.settings_agentAccess_copied;
+  await Clipboard.setData(ClipboardData(text: text));
+  messenger.showSnackBar(SnackBar(content: Text(copied)));
+}
+
 /// Three copy rows, one per client kind. Copying never shows the token.
 class AgentAccessSnippets extends StatelessWidget {
   const AgentAccessSnippets({
@@ -53,7 +62,7 @@ class AgentAccessSnippets extends StatelessWidget {
     Widget row(String title, String Function() snippet) => ListTile(
       leading: const Icon(Icons.content_copy),
       title: Text(title),
-      onTap: () => _copy(context, snippet()),
+      onTap: () => copyWithToast(context, snippet()),
     );
     return Column(
       children: [
@@ -71,12 +80,5 @@ class AgentAccessSnippets extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _copy(BuildContext context, String text) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final copied = context.l10n.settings_agentAccess_copied;
-    await Clipboard.setData(ClipboardData(text: text));
-    messenger.showSnackBar(SnackBar(content: Text(copied)));
   }
 }

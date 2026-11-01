@@ -81,11 +81,19 @@ final agentAccessTokenProvider = FutureProvider<String?>(
 );
 
 /// The listener's status, for the settings page.
-final agentAccessStatusProvider = StreamProvider<AgentAccessStatus>((
-  ref,
-) async* {
-  yield AgentAccessServer.instance.status;
-  yield* AgentAccessServer.instance.statusStream;
+final agentAccessStatusProvider = StreamProvider<AgentAccessStatus>((ref) {
+  // Subscribe before emitting the current value, so a status published in
+  // between is never lost (an async* generator subscribes only after its
+  // first yield is consumed).
+  final server = AgentAccessServer.instance;
+  final out = StreamController<AgentAccessStatus>();
+  final sub = server.statusStream.listen(out.add);
+  out.add(server.status);
+  ref.onDispose(() {
+    unawaited(sub.cancel());
+    unawaited(out.close());
+  });
+  return out.stream;
 });
 
 // no-tick: a long-lived service controller; it reads no table itself and

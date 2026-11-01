@@ -14,8 +14,11 @@ class RequestAuthenticator {
   final String Function() _expectedToken;
 
   bool accepts(String? authorizationHeader) {
+    // The scheme name is case-insensitive (RFC 7235); the token is not.
     if (authorizationHeader == null ||
-        !authorizationHeader.startsWith(_scheme)) {
+        authorizationHeader.length <= _scheme.length ||
+        authorizationHeader.substring(0, _scheme.length).toLowerCase() !=
+            _scheme.toLowerCase()) {
       return false;
     }
     final presented = utf8.encode(

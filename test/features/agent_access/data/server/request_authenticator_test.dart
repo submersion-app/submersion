@@ -23,6 +23,12 @@ void main() {
       },
     );
 
+    test('accepts the scheme in any letter case', () {
+      expect(auth.accepts('bearer $t'), isTrue);
+      expect(auth.accepts('BEARER $t'), isTrue);
+      expect(auth.accepts('bearer nope'), isFalse);
+    });
+
     test('an empty expected token never matches, not even an empty header', () {
       final none = RequestAuthenticator(() => '');
       expect(none.accepts('Bearer '), isFalse);

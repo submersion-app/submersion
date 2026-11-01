@@ -95,7 +95,8 @@ class GetRecordsTool implements AgentTool {
         details: {'entity': entity},
       );
     }
-    final ids = _ids(args['ids']);
+    // One document per distinct id, in the order first asked for.
+    final ids = _ids(args['ids']).toSet().toList();
     final include = _include(args['include']);
     final profileOffset = intArg(args, 'profile_offset', fallback: 0, min: 0);
     final profileLimit = intArg(

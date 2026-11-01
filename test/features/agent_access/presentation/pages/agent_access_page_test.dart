@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -12,6 +13,20 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/test_app.dart';
 import '../../../../support/fake_keychain_storage.dart';
+
+/// A keychain whose every read fails, like a locked store.
+class _ThrowingKeychain extends InMemoryKeychain {
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => throw StateError('keychain down');
+}
 
 /// A controller that never touches the real server.
 class _QuietController extends AgentAccessController {
@@ -65,6 +80,7 @@ void main() {
       listening: true,
       port: 47831,
     ),
+    FlutterSecureStorage? storage,
   }) async {
     await tester.binding.setSurfaceSize(const Size(500, 1400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -74,7 +90,7 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           agentAccessTokenStoreProvider.overrideWithValue(
-            AgentAccessTokenStore(storage: keychain),
+            AgentAccessTokenStore(storage: storage ?? keychain),
           ),
           agentAccessStatusProvider.overrideWith((ref) => Stream.value(status)),
           agentAccessControllerProvider.overrideWith((ref) {
@@ -99,6 +115,15 @@ void main() {
         find.text('Agents can see every diver profile on this computer.'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('survives a token read that fails', (tester) async {
+      await pump(tester, storage: _ThrowingKeychain());
+      expect(find.text('Agent access'), findsWidgets);
+      expect(find.text('Listening'), findsOneWidget);
+      expect(find.text('Claude Code'), findsNothing);
+      final reveal = find.widgetWithText(TextButton, 'Reveal');
+      expect(tester.widget<TextButton>(reveal).onPressed, isNull);
     });
 
     testWidgets('does not create a token when none is stored', (tester) async {
