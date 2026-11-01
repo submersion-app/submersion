@@ -16,6 +16,21 @@ import 'package:submersion/features/query/presentation/providers/query_unit_pref
 /// already up (Cmd/Ctrl+K pressed on it).
 final globalSearchFocusTickProvider = StateProvider<int>((ref) => 0);
 
+/// Text handed to global search from a list's search row (#3882): what the
+/// diver typed there, to search everything for. A serial, because the same
+/// text sent twice is two requests.
+final globalSearchRequestProvider = StateProvider<GlobalSearchRequest?>(
+  (ref) => null,
+);
+
+class GlobalSearchRequest {
+  GlobalSearchRequest(this.text) : serial = ++_serial;
+
+  final String text;
+  final int serial;
+  static int _serial = 0;
+}
+
 final globalSearchRepositoryProvider = Provider<GlobalSearchRepository>(
   (ref) => GlobalSearchRepository(),
 );

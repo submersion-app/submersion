@@ -60,7 +60,13 @@ final documentQueryEntity = QueryEntity(
     _ownerName('trips', 'trip_id'),
     _ownerName('equipment', 'equipment_id'),
     _ownerName('courses', 'course_id'),
-    _ownerName('certifications', 'certification_id'),
+    // A certification with no custom name is titled by its agency and
+    // level (#3366), so those find it too.
+    'EXISTS (SELECT 1 FROM certifications towner '
+        'WHERE towner.id = {r}.certification_id '
+        "AND (unicode_lower(towner.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(towner.agency) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(towner.level) LIKE ? ESCAPE '\\'))",
     _ownerName('buddies', 'buddy_id'),
     _ownerName('dive_centers', 'dive_center_id'),
     'EXISTS (SELECT 1 FROM dives tdive LEFT JOIN dive_sites tsite '

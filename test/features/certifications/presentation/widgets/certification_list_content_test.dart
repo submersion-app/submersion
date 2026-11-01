@@ -1092,7 +1092,7 @@ void main() {
       await pumpWithQuery(tester, ids: {'c1'});
       expect(find.text('Open Water'), findsWidgets);
       expect(find.text('Nitrox'), findsNothing);
-      expect(find.text('agency = padi'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'agency = padi'), findsOneWidget);
     });
 
     testWidgets('a query that keeps nothing shows the no-match state', (

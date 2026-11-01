@@ -34437,5 +34437,13 @@
   "changeLog_clear_failed": "Couldn't clear the change log. Nothing was removed.",
   "changeLog_day_today": "Today",
   "changeLog_day_yesterday": "Yesterday",
-  "changeLog_storage_label": "Change log"
+  "changeLog_storage_label": "Change log",
+  "search_everywhere": "Search everything for \"{text}\"",
+  "@search_everywhere": {"description": "Row under a list's search field that opens global search with the typed text", "placeholders": {"text": {"type": "String"}}},
+  "search_fieldHint": "Search, or type a query",
+  "@search_fieldHint": {"description": "A list's search row, shared by every list"},
+  "search_closeTooltip": "Close search",
+  "@search_closeTooltip": {"description": "A list's search row, shared by every list"},
+  "search_openTooltip": "Search",
+  "@search_openTooltip": {"description": "A list's search row, shared by every list"}
 }

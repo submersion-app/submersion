@@ -20,6 +20,7 @@ import 'package:submersion/shared/widgets/fab_clearance.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/marine_life/query/species_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
@@ -31,7 +32,6 @@ class SpeciesManagePage extends ConsumerStatefulWidget {
 }
 
 class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
-  String _searchQuery = '';
   SpeciesCategory? _selectedCategory;
 
   /// Owns the bulk-selection state machine for this page.
@@ -148,7 +148,15 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                 ),
           body: Column(
             children: [
-              _buildSearchBar(),
+              EntitySearchHeader(
+                subject: QuerySubject.species,
+                root: speciesQueryEntity,
+                query: ref.watch(speciesCatalogQueryProvider),
+                onChanged: (q) =>
+                    ref.read(speciesCatalogQueryProvider.notifier).state = q,
+                hintText: context.l10n.marineLife_speciesManage_searchHint,
+                alwaysShown: true,
+              ),
               SpeciesCategoryChips(
                 selected: _selectedCategory,
                 onSelected: (category) =>
@@ -181,49 +189,12 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: context.l10n.marineLife_speciesManage_searchHint,
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          isDense: true,
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  tooltip:
-                      context.l10n.marineLife_speciesManage_clearSearchTooltip,
-                  onPressed: () => setState(() => _searchQuery = ''),
-                )
-              : null,
-        ),
-        onChanged: (value) => setState(() => _searchQuery = value),
-      ),
-    );
-  }
-
   /// Species matching the active search query and category filter.
   ///
   /// Shared by the list and by the pruning in [build] so the selection can
   /// never hold a species the filter has hidden.
   List<Species> _visibleSpecies(List<Species> allSpecies) {
     var filtered = allSpecies;
-
-    if (_searchQuery.isNotEmpty) {
-      final l10n = context.l10n;
-      final query = _searchQuery.toLowerCase();
-      filtered = filtered.where((s) {
-        // Built-in rows render their translated name, so the diver's query
-        // has to match that as well as the English column the database
-        // stores -- otherwise searching in your own language finds nothing.
-        return s.commonName.toLowerCase().contains(query) ||
-            s.localizedCommonName(l10n).toLowerCase().contains(query) ||
-            (s.scientificName?.toLowerCase().contains(query) ?? false) ||
-            (s.taxonomyClass?.toLowerCase().contains(query) ?? false);
-      }).toList();
-    }
 
     if (_selectedCategory != null) {
       filtered = filtered

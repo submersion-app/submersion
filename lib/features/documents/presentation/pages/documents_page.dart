@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/documents/query/document_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -190,8 +193,6 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
     }
   }
 
-  String _query = '';
-
   bool _matches(
     DocumentListEntry e,
     UnitFormatter units,
@@ -205,15 +206,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
     if (tagIds.isNotEmpty && !tags.any((t) => tagIds.contains(t.id))) {
       return false;
     }
-    final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return true;
-    return [
-      d.title,
-      d.issuer,
-      d.referenceNumber,
-      e.ownerText(units),
-      for (final t in tags) t.name,
-    ].any((v) => v != null && v.toLowerCase().contains(q));
+    return true;
   }
 
   /// Every tag one of [entries] carries, by name, plus any still selected,
@@ -236,7 +229,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final all = ref.watch(allDocumentsProvider);
+    final all = ref.watch(filteredDocumentsProvider);
     final units = ref.watch(unitFormatterProvider);
     final tagsByDocument =
         ref.watch(tagsByItemProvider(TagScope.documents)).value ??
@@ -277,17 +270,14 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
         return CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: TextField(
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: l10n.documents_search_hint,
-                    isDense: true,
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (v) => setState(() => _query = v),
-                ),
+              child: EntitySearchHeader(
+                subject: QuerySubject.documents,
+                root: documentQueryEntity,
+                query: ref.watch(documentQueryProvider),
+                onChanged: (q) =>
+                    ref.read(documentQueryProvider.notifier).state = q,
+                hintText: l10n.documents_search_hint,
+                alwaysShown: true,
               ),
             ),
             // Shown whenever a filter is set, so a filter from the route can

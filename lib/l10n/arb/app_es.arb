@@ -17462,5 +17462,9 @@
   "changeLog_clear_failed": "No se pudo borrar el registro de cambios. No se eliminó nada.",
   "changeLog_day_today": "Hoy",
   "changeLog_day_yesterday": "Ayer",
-  "changeLog_storage_label": "Registro de cambios"
+  "changeLog_storage_label": "Registro de cambios",
+  "search_everywhere": "Buscar \"{text}\" en todo",
+  "search_fieldHint": "Buscar o escribir una consulta",
+  "search_closeTooltip": "Cerrar búsqueda",
+  "search_openTooltip": "Buscar"
 }

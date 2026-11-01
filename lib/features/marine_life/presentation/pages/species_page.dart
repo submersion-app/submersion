@@ -16,6 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/marine_life/query/species_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
@@ -35,14 +36,11 @@ class SpeciesPage extends ConsumerStatefulWidget {
 }
 
 class _SpeciesPageState extends ConsumerState<SpeciesPage> {
-  final TextEditingController _searchController = TextEditingController();
-  String _query = '';
   SpeciesCategory? _category;
   SeenSpeciesSort _sort = SeenSpeciesSort.mostSightings;
 
   @override
   void dispose() {
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -84,7 +82,15 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
       ),
       body: Column(
         children: [
-          _buildSearchBar(l10n),
+          EntitySearchHeader(
+            subject: QuerySubject.species,
+            root: speciesQueryEntity,
+            query: ref.watch(seenSpeciesQueryProvider),
+            onChanged: (q) =>
+                ref.read(seenSpeciesQueryProvider.notifier).state = q,
+            hintText: l10n.marineLife_speciesPage_searchHint,
+            alwaysShown: true,
+          ),
           SpeciesCategoryChips(
             selected: _category,
             onSelected: (category) => setState(() => _category = category),
@@ -115,32 +121,6 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
     );
   }
 
-  Widget _buildSearchBar(AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: l10n.marineLife_speciesPage_searchHint,
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          isDense: true,
-          suffixIcon: _query.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  tooltip: l10n.marineLife_speciesPage_clearSearchTooltip,
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _query = '');
-                  },
-                )
-              : null,
-        ),
-        onChanged: (value) => setState(() => _query = value),
-      ),
-    );
-  }
-
   Widget _buildList(List<SeenSpecies> entries) {
     // A query that hid every sighted species is not "nothing seen yet".
     if (entries.isEmpty && ref.watch(seenSpeciesQueryProvider) != null) {
@@ -163,7 +143,7 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
 
     final visible = filterSeenSpecies(
       entries,
-      query: _query,
+      query: '',
       category: _category,
       sort: _sort,
       nameOf: (species) => species.localizedCommonName(l10n),

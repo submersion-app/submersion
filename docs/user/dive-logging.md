@@ -470,9 +470,15 @@ saved searches are offered when you open it again. While you type, **Jump to div
 lists the newest dives that match across your whole log, ignoring other filters,
 and a question about your diving can **Open in Insights**.
 
-To search everything rather than just your dives, choose **Search** in the
-navigation (on a phone it starts under **More**, and you can move it to the
-bottom bar) or press Cmd/Ctrl+K. The field reads the same words and queries, with
+Every list searches the same way: tap its search icon and the same field opens
+under the app bar, with that list's own query language. Equipment reads
+`serialNumber = "SN-9931"`, documents read `type = insurance`, and so on.
+
+To search everything rather than one list, choose **Search** in the navigation
+(just above **Settings**; on a phone it starts under **More**, and you can move
+it to the bottom bar), press Cmd/Ctrl+K, or tap **Search everything for ...**
+under any list's search field to take what you typed there to every record
+type. The field reads the same words and queries, with
 the same suggestions as you type, and the results are grouped by type: dives,
 sites, trips, equipment and sets, buddies, dive centers, certifications, courses,
 species, documents, saved plans, GPS tracks and underwater routes. Each result

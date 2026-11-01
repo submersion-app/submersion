@@ -17462,5 +17462,9 @@
   "changeLog_clear_failed": "A változásnapló nem törölhető. Semmi sem lett eltávolítva.",
   "changeLog_day_today": "Ma",
   "changeLog_day_yesterday": "Tegnap",
-  "changeLog_storage_label": "Változásnapló"
+  "changeLog_storage_label": "Változásnapló",
+  "search_everywhere": "„{text}” keresése mindenhol",
+  "search_fieldHint": "Keresés, vagy írjon be egy lekérdezést",
+  "search_closeTooltip": "Keresés bezárása",
+  "search_openTooltip": "Keresés"
 }

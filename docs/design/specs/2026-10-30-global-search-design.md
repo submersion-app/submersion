@@ -152,14 +152,45 @@ behind who can see a row (shares, hides, shared library memberships).
 ## 6. Reaching it
 
 - **Route:** `/search`, inside the shell, so navigation stays visible.
-- **Navigation:** a `search` destination after Trips, which a diver can move like
-  any other. Existing phone bottom bars do not change: it lands first in More,
-  where it can be pinned. A diver with a saved order finds it at the end.
+- **Navigation:** a `search` destination last before Settings, which a diver
+  can move like any other. It is a door to the other sections rather than one
+  of them, so it sits at the end; existing phone bottom bars do not change,
+  since it lands in More, where it can be pinned.
+- **From every list:** each list's search row has a `Search everything for
+  "text"` row beneath it while the field is focused, which opens global search
+  with the text as typed, parsed or not: `expires < 2027` typed on Buddies
+  still finds the documents and certifications that read it.
 - **Keyboard:** Cmd/Ctrl+K, from anywhere, listed in the shortcuts help.
   Cmd/Ctrl+F stays the Dives search. Pressing it again on the page refocuses
   the field and selects the text.
 - **Field:** focused on open. Esc clears it. Results live in the page, so
   leaving the section starts fresh and Back from a result keeps them.
+
+## 6a. One search row for every list
+
+The Dives list had the only inline query field; every other list searched
+plain words in a full-screen box and kept its query language behind a filter
+icon. The maintainer asked for all of them to work the same way, so the Dives
+row becomes `EntitySearchHeader`, shared by the ten lists that have a query:
+dives, sites, trips, equipment, buddies, dive centers, certifications,
+courses, species (the logbook page and the catalog) and documents.
+
+- The list's search icon (`EntitySearchAction`) opens the row with the caret
+  in it, closes an idle row, and wears a badge while the list has a query.
+  The row also shows whenever the list has a query, so a search is never
+  active out of sight. Species and Documents had a search box always on show,
+  and keep it that way (`alwaysShown`): Close clears rather than hides.
+- The row is the `QueryTextField`, rooted at the list's entity: words, quoted
+  phrases, the list's fields, completions and underlined errors. It writes the
+  list's existing query provider once typing rests (300 ms), so the chips, the
+  filter sheet's query section and the saved queries all keep working on the
+  same value.
+- The old full-screen `SearchDelegate`s (buddies, dive centers,
+  certifications, sites, equipment, trips) are deleted: one way to search
+  everywhere. Documents gains a query provider (`documentQueryProvider`) in
+  place of its in-page text match, so `type = insurance` works there too.
+- Equipment sets, saved plans and tracks have no list query and keep their
+  pages as they are; global search reaches them.
 
 ## 7. Structure
 
@@ -171,6 +202,11 @@ behind who can see a row (shares, hides, shared library memberships).
 - `data/global_search_plan.dart`: reads the text against each source.
 - `data/global_search_repository.dart`: runs one source (count and ids).
 - `presentation/global_search_text_reader.dart`: the field's reading of the text.
+- `lib/features/query/presentation/widgets/entity_search_header.dart` and
+  `entity_search_action.dart`, `entity_search_frame.dart`,
+  `search_everywhere_row.dart`: the shared list search row and its parts;
+  `providers/entity_search_providers.dart` holds its open and focus state per
+  subject.
 - `presentation/providers/`: results provider, focus tick, dives by id.
 - `presentation/pages/global_search_page.dart`, plus `widgets/`, where
   `global_search_rows.dart` draws each type's own row.
@@ -192,3 +228,6 @@ every other entity does.
 - Row tests: every kind draws its own list's tile and opens its record.
 - Entity tests: each new field and relation against a real database.
 - Nav and shortcut tests updated for the new destination.
+- Header tests: opens from the icon, debounced write, the list's language,
+  Close and Esc clearing, Search everything offering unreadable text and
+  opening global search with it; a request made before the page is up.

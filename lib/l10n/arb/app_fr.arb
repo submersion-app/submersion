@@ -17462,5 +17462,9 @@
   "changeLog_clear_failed": "Impossible d'effacer le journal des modifications. Rien n'a été supprimé.",
   "changeLog_day_today": "Aujourd'hui",
   "changeLog_day_yesterday": "Hier",
-  "changeLog_storage_label": "Journal des modifications"
+  "changeLog_storage_label": "Journal des modifications",
+  "search_everywhere": "Tout rechercher pour « {text} »",
+  "search_fieldHint": "Rechercher, ou saisir une requête",
+  "search_closeTooltip": "Fermer la recherche",
+  "search_openTooltip": "Rechercher"
 }

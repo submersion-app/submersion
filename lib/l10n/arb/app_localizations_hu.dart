@@ -58658,4 +58658,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'Változásnapló';
+
+  @override
+  String search_everywhere(String text) {
+    return '„$text” keresése mindenhol';
+  }
+
+  @override
+  String get search_fieldHint => 'Keresés, vagy írjon be egy lekérdezést';
+
+  @override
+  String get search_closeTooltip => 'Keresés bezárása';
+
+  @override
+  String get search_openTooltip => 'Keresés';
 }

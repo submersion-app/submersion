@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
-import 'package:submersion/features/marine_life/domain/seen_species_filter.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -117,55 +117,51 @@ void main() {
     );
   });
 
+  /// Answers a typed word the way the database would: the species whose
+  /// name contains it.
+  Override idsByName(List<SeenSpecies> entries) =>
+      entityQueryIdsProvider.overrideWith((ref, key) async {
+        final node = key.query;
+        if (node is! TextNode) return const <String>{};
+        return {
+          for (final e in entries)
+            if (node.words.every(
+              (w) => e.species.commonName.toLowerCase().contains(w),
+            ))
+              e.species.id,
+        };
+      });
+
+  Future<void> typeInto(WidgetTester tester, String text) async {
+    await tester.enterText(find.byType(TextField), text);
+    await tester.pump();
+    await tester.pump(kEntitySearchDebounce);
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('typing narrows the list and clearing restores it', (
     tester,
   ) async {
-    await _pumpPage(tester, [_whaleShark, _turtle]);
+    final entries = [_whaleShark, _turtle];
+    await _pumpPage(tester, entries, extra: [idsByName(entries)]);
 
-    await tester.enterText(find.byType(TextField), 'turtle');
-    await tester.pump();
+    await typeInto(tester, 'turtle');
     expect(find.text('Whale Shark'), findsNothing);
     expect(find.text('Green Sea Turtle'), findsOneWidget);
     expect(find.text('1 species · 3 sightings'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.clear));
-    await tester.pump();
-    expect(find.text('Whale Shark'), findsOneWidget);
-    expect(find.text('Green Sea Turtle'), findsOneWidget);
-  });
-
-  testWidgets('a category chip narrows the list', (tester) async {
-    await _pumpPage(tester, [_whaleShark, _turtle]);
-
-    await tester.tap(find.text('Shark'));
-    await tester.pump();
-    expect(find.text('Whale Shark'), findsOneWidget);
-    expect(find.text('Green Sea Turtle'), findsNothing);
-  });
-
-  testWidgets('the sort menu reorders the list', (tester) async {
-    await _pumpPage(tester, [_whaleShark, _turtle]);
-    expect(
-      _top(tester, 'Whale Shark'),
-      lessThan(_top(tester, 'Green Sea Turtle')),
-    );
-
-    await tester.tap(find.byKey(const ValueKey('species_sort_menu')));
-    await tester.pumpAndSettle();
-    // CheckedPopupMenuItem wraps its child in an IgnorePointer, so the label
-    // can never be hit-tested; tap the menu item that handles the gesture.
+    // The field's own clear, not the chip's delete icon.
     await tester.tap(
-      find.ancestor(
-        of: find.text('Name'),
-        matching: find.byType(CheckedPopupMenuItem<SeenSpeciesSort>),
+      find.descendant(
+        of: find.byType(TextField),
+        matching: find.byIcon(Icons.clear),
       ),
     );
+    await tester.pump();
+    await tester.pump(kEntitySearchDebounce);
     await tester.pumpAndSettle();
-
-    expect(
-      _top(tester, 'Green Sea Turtle'),
-      lessThan(_top(tester, 'Whale Shark')),
-    );
+    expect(find.text('Whale Shark'), findsOneWidget);
+    expect(find.text('Green Sea Turtle'), findsOneWidget);
   });
 
   testWidgets('shows the empty state when nothing has been logged', (
@@ -180,11 +176,17 @@ void main() {
   testWidgets('shows the no-match state for a query nothing matches', (
     tester,
   ) async {
-    await _pumpPage(tester, [_whaleShark]);
+    await _pumpPage(
+      tester,
+      [_whaleShark],
+      extra: [
+        idsByName([_whaleShark]),
+      ],
+    );
 
-    await tester.enterText(find.byType(TextField), 'zzz');
-    await tester.pump();
-    expect(find.text('No species match your search'), findsOneWidget);
+    await typeInto(tester, 'zzz');
+    // The query's no-match state, as a filter sheet query shows it.
+    expect(find.byType(QueryNoMatchState), findsOneWidget);
   });
 
   testWidgets('tapping a species opens its detail page', (tester) async {
@@ -246,7 +248,10 @@ void main() {
       );
       expect(find.text('Whale Shark'), findsOneWidget);
       expect(find.text('Green Sea Turtle'), findsNothing);
-      expect(find.text('category = shark'), findsOneWidget);
+      expect(
+        find.widgetWithText(InputChip, 'category = shark'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a query that keeps nothing shows the no-match state', (

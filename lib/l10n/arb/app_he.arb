@@ -17462,5 +17462,9 @@
   "changeLog_clear_failed": "לא ניתן לנקות את יומן השינויים. שום דבר לא הוסר.",
   "changeLog_day_today": "היום",
   "changeLog_day_yesterday": "אתמול",
-  "changeLog_storage_label": "יומן שינויים"
+  "changeLog_storage_label": "יומן שינויים",
+  "search_everywhere": "חיפוש \"{text}\" בכל מקום",
+  "search_fieldHint": "חפשו, או הקלידו שאילתה",
+  "search_closeTooltip": "סגירת החיפוש",
+  "search_openTooltip": "חיפוש"
 }

@@ -58873,4 +58873,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'Änderungsprotokoll';
+
+  @override
+  String search_everywhere(String text) {
+    return 'Überall nach „$text“ suchen';
+  }
+
+  @override
+  String get search_fieldHint => 'Suchen oder eine Abfrage eingeben';
+
+  @override
+  String get search_closeTooltip => 'Suche schließen';
+
+  @override
+  String get search_openTooltip => 'Suchen';
 }

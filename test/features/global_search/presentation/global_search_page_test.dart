@@ -343,6 +343,65 @@ void main() {
     expect(find.text('See all 7'), findsOneWidget);
   });
 
+  group('a request from a list\'s Search everything row', () {
+    testWidgets('made before the page opens is searched on arrival', (
+      tester,
+    ) async {
+      final asked = <String>[];
+      await tester.pumpWidget(
+        _app(
+          (text) async {
+            asked.add(text);
+            return [_section(GlobalSearchKind.buddies, 1)];
+          },
+          overrides: [
+            globalSearchRequestProvider.overrideWith(
+              (ref) => GlobalSearchRequest('wreck'),
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+
+      expect(asked, ['wreck']);
+      expect(find.text('Hit 0'), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GlobalSearchPage)),
+      );
+      expect(container.read(globalSearchRequestProvider), isNull);
+    });
+
+    testWidgets('made while the page is up replaces its text', (tester) async {
+      final asked = <String>[];
+      await tester.pumpWidget(
+        _app((text) async {
+          asked.add(text);
+          return const [];
+        }),
+      );
+      await _search(tester, 'reef');
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GlobalSearchPage)),
+      );
+      container.read(globalSearchRequestProvider.notifier).state =
+          GlobalSearchRequest('wreck');
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+
+      expect(asked, ['reef', 'wreck']);
+      final field = tester.widget<TextField>(
+        find.byKey(const ValueKey('global-search-field')),
+      );
+      expect(field.controller!.text, 'wreck');
+      expect(field.focusNode!.hasFocus, isTrue);
+    });
+  });
+
   testWidgets('Esc clears the field and keeps the caret in it', (tester) async {
     await tester.pumpWidget(_app((_) async => const []));
     await _search(tester, 'reef');

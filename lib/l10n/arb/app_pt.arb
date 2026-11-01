@@ -17462,5 +17462,9 @@
   "changeLog_clear_failed": "Não foi possível limpar o registo de alterações. Nada foi removido.",
   "changeLog_day_today": "Hoje",
   "changeLog_day_yesterday": "Ontem",
-  "changeLog_storage_label": "Registo de alterações"
+  "changeLog_storage_label": "Registo de alterações",
+  "search_everywhere": "Pesquisar \"{text}\" em tudo",
+  "search_fieldHint": "Pesquisar ou escrever uma consulta",
+  "search_closeTooltip": "Fechar pesquisa",
+  "search_openTooltip": "Pesquisar"
 }

@@ -57754,4 +57754,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'יומן שינויים';
+
+  @override
+  String search_everywhere(String text) {
+    return 'חיפוש \"$text\" בכל מקום';
+  }
+
+  @override
+  String get search_fieldHint => 'חפשו, או הקלידו שאילתה';
+
+  @override
+  String get search_closeTooltip => 'סגירת החיפוש';
+
+  @override
+  String get search_openTooltip => 'חיפוש';
 }

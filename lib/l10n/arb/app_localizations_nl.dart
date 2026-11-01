@@ -58632,4 +58632,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'Wijzigingslogboek';
+
+  @override
+  String search_everywhere(String text) {
+    return 'Overal zoeken naar \"$text\"';
+  }
+
+  @override
+  String get search_fieldHint => 'Zoeken, of typ een query';
+
+  @override
+  String get search_closeTooltip => 'Zoeken sluiten';
+
+  @override
+  String get search_openTooltip => 'Zoeken';
 }

@@ -17462,5 +17462,9 @@
   "changeLog_clear_failed": "Kan het wijzigingslogboek niet wissen. Er is niets verwijderd.",
   "changeLog_day_today": "Vandaag",
   "changeLog_day_yesterday": "Gisteren",
-  "changeLog_storage_label": "Wijzigingslogboek"
+  "changeLog_storage_label": "Wijzigingslogboek",
+  "search_everywhere": "Overal zoeken naar \"{text}\"",
+  "search_fieldHint": "Zoeken, of typ een query",
+  "search_closeTooltip": "Zoeken sluiten",
+  "search_openTooltip": "Zoeken"
 }

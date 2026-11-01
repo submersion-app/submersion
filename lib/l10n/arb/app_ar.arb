@@ -17462,5 +17462,9 @@
   "changeLog_clear_failed": "تعذر مسح سجل التغييرات. لم تتم إزالة أي شيء.",
   "changeLog_day_today": "اليوم",
   "changeLog_day_yesterday": "أمس",
-  "changeLog_storage_label": "سجل التغييرات"
+  "changeLog_storage_label": "سجل التغييرات",
+  "search_everywhere": "البحث عن \"{text}\" في كل شيء",
+  "search_fieldHint": "ابحث، أو اكتب استعلامًا",
+  "search_closeTooltip": "إغلاق البحث",
+  "search_openTooltip": "بحث"
 }

@@ -349,7 +349,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.search));
       await tester.pumpAndSettle();
 
-      // The search delegate should open, showing a search bar
+      // The search row opens under the app bar
       expect(find.byType(TextField), findsOneWidget);
     });
 

@@ -17462,5 +17462,9 @@
   "changeLog_clear_failed": "Impossibile cancellare il registro delle modifiche. Non è stato rimosso nulla.",
   "changeLog_day_today": "Oggi",
   "changeLog_day_yesterday": "Ieri",
-  "changeLog_storage_label": "Registro modifiche"
+  "changeLog_storage_label": "Registro modifiche",
+  "search_everywhere": "Cerca \"{text}\" ovunque",
+  "search_fieldHint": "Cerca, oppure scrivi una query",
+  "search_closeTooltip": "Chiudi ricerca",
+  "search_openTooltip": "Cerca"
 }

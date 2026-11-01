@@ -17587,5 +17587,9 @@
   "changeLog_clear_failed": "Das Änderungsprotokoll konnte nicht gelöscht werden. Es wurde nichts entfernt.",
   "changeLog_day_today": "Heute",
   "changeLog_day_yesterday": "Gestern",
-  "changeLog_storage_label": "Änderungsprotokoll"
+  "changeLog_storage_label": "Änderungsprotokoll",
+  "search_everywhere": "Überall nach „{text}“ suchen",
+  "search_fieldHint": "Suchen oder eine Abfrage eingeben",
+  "search_closeTooltip": "Suche schließen",
+  "search_openTooltip": "Suchen"
 }

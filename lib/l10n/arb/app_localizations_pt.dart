@@ -58987,4 +58987,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'Registo de alterações';
+
+  @override
+  String search_everywhere(String text) {
+    return 'Pesquisar \"$text\" em tudo';
+  }
+
+  @override
+  String get search_fieldHint => 'Pesquisar ou escrever uma consulta';
+
+  @override
+  String get search_closeTooltip => 'Fechar pesquisa';
+
+  @override
+  String get search_openTooltip => 'Pesquisar';
 }

@@ -59130,4 +59130,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'Journal des modifications';
+
+  @override
+  String search_everywhere(String text) {
+    return 'Tout rechercher pour « $text »';
+  }
+
+  @override
+  String get search_fieldHint => 'Rechercher, ou saisir une requête';
+
+  @override
+  String get search_closeTooltip => 'Fermer la recherche';
+
+  @override
+  String get search_openTooltip => 'Rechercher';
 }

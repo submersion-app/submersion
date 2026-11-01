@@ -148,6 +148,17 @@ class _QueryTextFieldState extends State<QueryTextField> {
       text: widget.context.printer.print(widget.value),
     );
     _focus.addListener(_onFocusChange);
+    // An override set before the field was built (global search opened
+    // from a list's Search everything row) applies as a later one would.
+    final override = widget.textOverride;
+    if (override != null) {
+      _controller.text = override.text;
+      if (override.commit) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _onEdited(_controller.text);
+        });
+      }
+    }
   }
 
   void _onFocusChange() => setState(() {});

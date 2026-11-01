@@ -55379,4 +55379,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => '更改日志';
+
+  @override
+  String search_everywhere(String text) {
+    return '在所有内容中搜索“$text”';
+  }
+
+  @override
+  String get search_fieldHint => '搜索，或输入查询';
+
+  @override
+  String get search_closeTooltip => '关闭搜索';
+
+  @override
+  String get search_openTooltip => '搜索';
 }

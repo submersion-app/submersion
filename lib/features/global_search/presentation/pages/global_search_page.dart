@@ -39,9 +39,33 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
   QueryTextOverride? _override;
 
   @override
+  void initState() {
+    super.initState();
+    // A request made before the page was up (a list's Search everything
+    // row, pushing this page) is taken now.
+    final request = ref.read(globalSearchRequestProvider);
+    if (request != null) {
+      _text = request.text;
+      _override = QueryTextOverride(request.text, commit: true);
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(globalSearchRequestProvider.notifier).state = null,
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _focus.dispose();
     super.dispose();
+  }
+
+  void _take(GlobalSearchRequest request) {
+    setState(() {
+      _text = request.text;
+      _override = QueryTextOverride(request.text, commit: true);
+    });
+    _focus.requestFocus();
+    ref.read(globalSearchRequestProvider.notifier).state = null;
   }
 
   void _clear() {
@@ -60,6 +84,9 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
   @override
   Widget build(BuildContext context) {
     ref.listen(globalSearchFocusTickProvider, (_, _) => _focusField());
+    ref.listen(globalSearchRequestProvider, (_, request) {
+      if (request != null) _take(request);
+    });
     final l10n = context.l10n;
     // Dives stands in as the root: the reader answers for every type.
     final editorContext = watchQueryEditorContext(

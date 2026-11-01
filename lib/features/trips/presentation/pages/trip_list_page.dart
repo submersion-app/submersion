@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
@@ -113,15 +114,11 @@ class _TripListPageState extends ConsumerState<TripListPage>
             ),
           ),
           appBarActions: [
-            IconButton(
-              icon: const Icon(Icons.search, size: 20),
+            EntitySearchAction(
+              subject: QuerySubject.trips,
+              active: ref.watch(tripFilterProvider).query != null,
               tooltip: context.l10n.trips_list_tooltip_search,
-              onPressed: () {
-                showSearch(
-                  context: context,
-                  delegate: TripSearchDelegate(context.l10n),
-                );
-              },
+              compact: true,
             ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),

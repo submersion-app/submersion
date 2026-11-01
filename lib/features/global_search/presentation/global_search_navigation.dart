@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/router/global_search_location.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/router/training_locations.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
+import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -38,6 +40,16 @@ String globalSearchLocation(GlobalSearchKind kind, String id) => switch (kind) {
   GlobalSearchKind.gpsTracks => gpsTrackLocation(id),
   GlobalSearchKind.underwaterRoutes => underwaterTrackLocation(id),
 };
+
+/// Opens global search with [text] in its field, searched (#3882): from a
+/// list's Search everything row. The page is reused when it is already
+/// under the list, so Back from the results lands where it did before.
+void openGlobalSearch(BuildContext context, WidgetRef ref, String text) {
+  ref.read(globalSearchRequestProvider.notifier).state = GlobalSearchRequest(
+    text,
+  );
+  context.pushOrReturnTo(kGlobalSearchLocation);
+}
 
 /// Opens [kind]'s list narrowed to [query], its other filters cleared so its
 /// chips show exactly this search.

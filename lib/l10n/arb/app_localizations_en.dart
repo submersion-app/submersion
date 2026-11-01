@@ -58068,4 +58068,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'Change log';
+
+  @override
+  String search_everywhere(String text) {
+    return 'Search everything for \"$text\"';
+  }
+
+  @override
+  String get search_fieldHint => 'Search, or type a query';
+
+  @override
+  String get search_closeTooltip => 'Close search';
+
+  @override
+  String get search_openTooltip => 'Search';
 }

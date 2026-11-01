@@ -93123,6 +93123,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change log'**
   String get changeLog_storage_label;
+
+  /// Row under a list's search field that opens global search with the typed text
+  ///
+  /// In en, this message translates to:
+  /// **'Search everything for \"{text}\"'**
+  String search_everywhere(String text);
+
+  /// A list's search row, shared by every list
+  ///
+  /// In en, this message translates to:
+  /// **'Search, or type a query'**
+  String get search_fieldHint;
+
+  /// A list's search row, shared by every list
+  ///
+  /// In en, this message translates to:
+  /// **'Close search'**
+  String get search_closeTooltip;
+
+  /// A list's search row, shared by every list
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search_openTooltip;
 }
 
 class _AppLocalizationsDelegate
