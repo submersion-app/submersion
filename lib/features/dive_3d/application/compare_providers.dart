@@ -127,7 +127,10 @@ final diveComparisonProfilesProvider = FutureProvider.autoDispose
       var unusable = 0;
       for (final diveId in candidates) {
         if (shown.length == kMaxComparisonProfiles) break;
-        if (!ref.mounted) break;
+        // Nothing reads the result of a walk the diver has left.
+        if (!ref.mounted) {
+          return const DiveComparison(profiles: [], comparableCount: 0);
+        }
         final profilesBySource = await repository.getProfilesByDataSource(
           diveId,
         );

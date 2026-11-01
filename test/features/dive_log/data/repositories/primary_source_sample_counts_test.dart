@@ -58,6 +58,12 @@ void main() {
     bool isPrimary = false,
     int createdDay = 0,
     Uint8List? rawData,
+    int? mergeSourceSlot,
+    String? computerModel,
+    String? computerSerial,
+    DateTime? entryTime,
+    int? duration,
+    double? maxDepth,
   }) => db
       .into(db.diveDataSources)
       .insert(
@@ -69,6 +75,12 @@ void main() {
           importedAt: Value(firstDay.add(Duration(days: createdDay))),
           createdAt: Value(firstDay.add(Duration(days: createdDay))),
           rawData: Value(rawData),
+          mergeSourceSlot: Value(mergeSourceSlot),
+          computerModel: Value(computerModel),
+          computerSerial: Value(computerSerial),
+          entryTime: Value(entryTime),
+          duration: Value(duration),
+          maxDepth: Value(maxDepth),
         ),
       );
 
@@ -265,6 +277,38 @@ void main() {
         computerId: 'dc-a',
       );
 
+      // Two computer-less rows of one recording collapse into one chip on
+      // what they recorded, so the first owns what the second holds (#3654).
+      await insertDive('one-recording');
+      for (final (index, rowId) in ['or-first', 'or-second'].indexed) {
+        await insertSource(
+          rowId,
+          'one-recording',
+          isPrimary: index == 0,
+          createdDay: index,
+          computerModel: 'Perdix 2',
+          computerSerial: 'A1B2',
+          entryTime: firstDay,
+          duration: 3000,
+          maxDepth: 30,
+        );
+      }
+      await insertSeries('one-recording', 5, sourceId: 'or-second');
+
+      // A Combine of a file import: no computer, one merge slot.
+      await insertDive('merge-slot');
+      for (final (index, rowId) in ['ms-first', 'ms-second'].indexed) {
+        await insertSource(
+          rowId,
+          'merge-slot',
+          isPrimary: index == 0,
+          createdDay: index,
+          mergeSourceSlot: 0,
+        );
+      }
+      await insertSeries('merge-slot', 3, sourceId: 'ms-first');
+      await insertSeries('merge-slot', 2, sourceId: 'ms-second');
+
       const ids = [
         'plain',
         'legacy',
@@ -277,6 +321,8 @@ void main() {
         'both-flagged',
         'edited',
         'combined',
+        'one-recording',
+        'merge-slot',
       ];
       final counts = await repository.getPrimarySourceSampleCounts(ids);
 
@@ -291,8 +337,27 @@ void main() {
       expect(counts['all-demoted'], 4);
       expect(counts['both-flagged'], 6);
       expect(counts['edited'], 7);
+      expect(counts['one-recording'], 5);
+      expect(counts['merge-slot'], 5);
       expect(counts['empty-primary'] ?? 0, 0);
       expect(counts.containsKey('manual'), isFalse);
+    });
+
+    test('counts a repeated id once, even across chunks', () async {
+      await insertDive('one-sample');
+      await insertSeries('one-sample', 1);
+
+      // Far enough apart to land in different chunks, where neither `IN`
+      // clause can collapse the repeat.
+      final ids = [
+        'one-sample',
+        for (var i = 0; i < 900; i++) 'filler-$i',
+        'one-sample',
+      ];
+
+      expect(await repository.getPrimarySourceSampleCounts(ids), {
+        'one-sample': 1,
+      });
     });
 
     test('an empty selection asks nothing', () async {

@@ -1122,7 +1122,8 @@ class ProfileSeriesRepository {
   ///
   /// [getRowsForDives] plus [undecodedProfileSeriesRow] is the same answer
   /// but still copies every blob out of SQLite, which is what a read over a
-  /// whole selection exists to avoid (issue #3856).
+  /// whole selection exists to avoid (issue #3856). A repeated id is read
+  /// once, as one `IN (...)` read it.
   Future<List<ProfileSeries>> getUndecodedSeriesForDives(
     List<String> diveIds,
   ) async {
@@ -1133,7 +1134,7 @@ class ProfileSeriesRepository {
         if (column != table.samples) column.$name,
     ].join(', ');
     final rows = <DiveProfileSeriesRow>[];
-    for (final chunk in seriesIdChunks(diveIds)) {
+    for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
       final placeholders = List.filled(chunk.length, '?').join(', ');
       final selected = await _db
           .customSelect(

@@ -58,6 +58,7 @@ class _ComparisonRepository extends Fake implements DiveRepository {
 
   final StreamController<void> ticks = StreamController<void>.broadcast();
   final List<String> hydrated = [];
+  int summaryReads = 0;
 
   @override
   Stream<void> watchTables(Set<String> tableNames) => ticks.stream;
@@ -80,10 +81,13 @@ class _ComparisonRepository extends Fake implements DiveRepository {
   }
 
   @override
-  Future<List<DiveSummary>> getSummariesByIds(List<String> ids) async => [
-    for (final summary in summaries)
-      if (ids.contains(summary.id)) summary,
-  ];
+  Future<List<DiveSummary>> getSummariesByIds(List<String> ids) async {
+    summaryReads++;
+    return [
+      for (final summary in summaries)
+        if (ids.contains(summary.id)) summary,
+    ];
+  }
 }
 
 Map<String, SourceProfile> usable(String sourceId) => {
@@ -352,6 +356,7 @@ void main() {
       await pumpEventQueue();
 
       expect(repository.hydrated, ['d0']);
+      expect(repository.summaryReads, 0);
     });
 
     test('reloads when a table it reads changes', () async {
