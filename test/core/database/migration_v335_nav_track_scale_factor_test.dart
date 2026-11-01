@@ -4,13 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v334 adds `nav_tracks.scale_factor` (issue #3823): a diver can resize a
+/// v335 adds `nav_tracks.scale_factor` (issue #3823): a diver can resize a
 /// dead-reckoned track against the map. NOT NULL with a default of 1, so every
 /// existing track stays the size it was recorded.
 void main() {
-  test('v334 is in the migration ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(334));
-    expect(AppDatabase.migrationVersions, contains(334));
+  test('v335 is in the migration ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(335));
+    expect(AppDatabase.migrationVersions, contains(335));
   });
 
   test(

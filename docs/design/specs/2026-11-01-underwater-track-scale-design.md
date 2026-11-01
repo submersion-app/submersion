@@ -189,7 +189,7 @@ such a track, so the page should say why.
 
 ## Storage and sync
 
-- `nav_tracks.scale_factor`, `REAL NOT NULL DEFAULT 1`, in schema v333. Column
+- `nav_tracks.scale_factor`, `REAL NOT NULL DEFAULT 1`, in schema v335. Column
   only: the `DEFAULT` gives every existing row 1.0, so there is no backfill.
   Added through a `_assertNavTrackScaleFactorColumn` helper in
   `track_migrations.dart`, called from the rung and from `_assertNavTracksSchema`,
@@ -244,7 +244,7 @@ list them under Follow-ups.
 - Widget: stepper and typed entry; locale; clamp; Save, Cancel, Reset; the handle
   hidden with no anchor, on a short track, while placing and while pinned; the hint
   shown only while pinned; a drag updates the field; the terrain summary follows.
-- Repository and migration: v333 from an older database gives existing rows 1.0,
+- Repository and migration: v335 from an older database gives existing rows 1.0,
   and a saved scale reads back.
 - Sync: a peer payload without `scaleFactor` on merge, adopt and restore. Add it to
   the cross-version round trip test if that is where the pattern lives.

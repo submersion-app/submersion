@@ -4,7 +4,7 @@
 
 **Goal:** A diver can resize a dead-reckoned underwater track against the map on the alignment page, by a drag handle or a stepper, saved with the track.
 
-**Architecture:** `scaleFactor` joins `NavTrackCorrection`, and `NavTrackCorrector.apply` scales the active range about its first sample before the end-point stretch, so every reader of a corrected track follows without its own change. It persists as a defaulted column at schema v333. The handle's maths is a pure domain file, and its gesture lives in its own layer widget, so `nav_track_align_page.dart` only wires them in.
+**Architecture:** `scaleFactor` joins `NavTrackCorrection`, and `NavTrackCorrector.apply` scales the active range about its first sample before the end-point stretch, so every reader of a corrected track follows without its own change. It persists as a defaulted column at schema v335. The handle's maths is a pure domain file, and its gesture lives in its own layer widget, so `nav_track_align_page.dart` only wires them in.
 
 **Tech Stack:** Flutter, Drift, Riverpod, flutter_map 8.
 
@@ -15,7 +15,7 @@
 - `scaleFactor` default 1.0. Range 25% to 400%, so factors 0.25 to 4.0. Stepper step 1%. One decimal, in the diver's locale. Handle result rounded to 0.1%.
 - Depth and timestamp never change. Samples outside the active range are not scaled. At 1.0, `apply` is identical to today.
 - Handle minimum: raw farthest distance from the first active sample of 10 m.
-- Column: `nav_tracks.scale_factor`, `REAL NOT NULL DEFAULT 1`, schema 333. `minimumCompatibleSchemaVersion` does not change.
+- Column: `nav_tracks.scale_factor`, `REAL NOT NULL DEFAULT 1`, schema 335. `minimumCompatibleSchemaVersion` does not change.
 - Distance and speed readouts stay as recorded.
 - User-visible strings go in all 11 ARB files. Inside underwater-only screens the word is plain "track"; Hungarian is "nyomvonal".
 - ARB files are feature-grouped: insert next to `navTrack_align_rotationLabel` and `settings_conflict_field_headingOffsetDeg`, then run `flutter gen-l10n`.
@@ -117,14 +117,14 @@ git commit -m "feat(nav-track): scale a track about the dive's start"
 
 **Files:**
 - Modify: `lib/core/database/tables/track_tables.dart`
-- Modify: `lib/core/database/database.dart` (`currentSchemaVersion` to 333, `migrationVersions`, comment)
+- Modify: `lib/core/database/database.dart` (`currentSchemaVersion` to 335, `migrationVersions`, comment)
 - Modify: `lib/core/database/migrations/helpers/track_migrations.dart`
 - Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart`
 - Modify: `lib/features/nav_track/domain/entities/nav_track.dart`
 - Modify: `lib/features/nav_track/data/repositories/nav_track_repository.dart`
 - Modify: `lib/features/settings/presentation/conflicts/catalogue/site_trip_fields.dart`
 - Modify: all 11 `lib/l10n/arb/app_*.arb` (`settings_conflict_field_scaleFactor`, English "Track scale factor")
-- Create: `test/core/database/migration_v333_nav_track_scale_factor_test.dart`
+- Create: `test/core/database/migration_v335_nav_track_scale_factor_test.dart`
 - Test: `test/features/nav_track/data/repositories/nav_track_repository_test.dart`, `test/features/nav_track/domain/entities/nav_track_test.dart`, `test/core/services/sync/sync_nav_tracks_test.dart`
 
 **Interfaces:**
@@ -134,7 +134,7 @@ git commit -m "feat(nav-track): scale a track about the dive's start"
 - [ ] **Step 1: Write the failing tests.**
 
 Migration test, modelled on `migration_v330_buddy_excluded_from_rankings_test.dart`:
-- `v333 is in the migration ladder`
+- `v335 is in the migration ladder`
 - `a fresh database has the column, NOT NULL with a default of 1`, asserting `notnull` is 1 and `dflt_value` is `'1'`
 - `an existing track upgrades to 100%`, with a raw `nav_tracks` table at `user_version = 332`
 
@@ -147,7 +147,7 @@ Sync, in `sync_nav_tracks_test.dart`:
 
 - [ ] **Step 2: Run them and confirm they fail.**
 
-Run: `flutter test test/core/database/migration_v333_nav_track_scale_factor_test.dart`
+Run: `flutter test test/core/database/migration_v335_nav_track_scale_factor_test.dart`
 Expected: FAIL, `scale_factor` not found.
 
 - [ ] **Step 3: Add the column and the rung.**
@@ -155,7 +155,7 @@ Expected: FAIL, `scale_factor` not found.
 Column beside `headingOffsetDeg`, with a doc comment:
 `RealColumn get scaleFactor => real().withDefault(const Constant(1))();`
 
-Helper `_assertNavTrackScaleFactorColumn` in `track_migrations.dart`, in the shape of `_assertNavTrackSourceMetadataColumn`, passing `'REAL NOT NULL DEFAULT 1'`, called from `_assertNavTracksSchema`. Rung at the end of `rungs_v231_onward.dart`, with the `if (from < 333)` pair and a comment in the v330 style.
+Helper `_assertNavTrackScaleFactorColumn` in `track_migrations.dart`, in the shape of `_assertNavTrackSourceMetadataColumn`, passing `'REAL NOT NULL DEFAULT 1'`, called from `_assertNavTracksSchema`. Rung at the end of `rungs_v231_onward.dart`, with the `if (from < 335)` pair and a comment in the v330 style.
 
 - [ ] **Step 4: Regenerate.**
 

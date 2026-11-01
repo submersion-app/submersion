@@ -47,8 +47,8 @@ extension TrackMigrations on AppDatabase {
     await _addColumnIfMissing('nav_tracks', 'source_metadata', 'TEXT');
   }
 
-  /// v334: nav_tracks.scale_factor (issue #3823). Idempotent; called from the
-  /// v334 onUpgrade step and from [_assertNavTracksSchema], which the
+  /// v335: nav_tracks.scale_factor (issue #3823). Idempotent; called from the
+  /// v335 onUpgrade step and from [_assertNavTracksSchema], which the
   /// beforeOpen backstop runs on every open.
   Future<void> _assertNavTrackScaleFactorColumn() async {
     if (!await _tableExists('nav_tracks')) return;

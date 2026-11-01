@@ -738,10 +738,10 @@ extension RungsFromV231 on AppDatabase {
     if (from < 332) await _assertChangeLogSchema();
     if (from < 332) await reportProgress();
 
-    // v334: nav_tracks.scale_factor (issue #3823). Column only; the default
+    // v335: nav_tracks.scale_factor (issue #3823). Column only; the default
     // gives every existing track 100%. Re-asserted in beforeOpen through
     // _assertNavTracksSchema.
-    if (from < 334) await _assertNavTrackScaleFactorColumn();
-    if (from < 334) await reportProgress();
+    if (from < 335) await _assertNavTrackScaleFactorColumn();
+    if (from < 335) await reportProgress();
   }
 }
