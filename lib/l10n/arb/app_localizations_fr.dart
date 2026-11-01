@@ -11768,8 +11768,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rechercher depuis les coordonnées';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'Ajoutez des coordonnées dans Position pour utiliser cette option.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'Aucune information de lieu trouvée pour ces coordonnées';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'Les informations de lieu correspondent déjà à ces coordonnées';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>

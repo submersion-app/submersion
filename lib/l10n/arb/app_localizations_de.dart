@@ -11720,8 +11720,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Aus Koordinaten ermitteln';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'Fügen Sie unter Position Koordinaten hinzu, um dies zu verwenden.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'Keine Ortsangaben für diese Koordinaten gefunden';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'Die Ortsangaben stimmen bereits mit diesen Koordinaten überein';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>

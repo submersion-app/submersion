@@ -11732,8 +11732,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Cerca dalle coordinate';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'Aggiungi le coordinate in Posizione per usare questa funzione.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'Nessun dettaglio di località trovato per queste coordinate';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'I dettagli della località corrispondono già a queste coordinate';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>

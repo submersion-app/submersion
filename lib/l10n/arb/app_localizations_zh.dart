@@ -11156,7 +11156,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_gps_lookupFromCoordinates => '根据坐标查找';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates => '请先在“位置”中添加坐标。';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound => '未找到这些坐标的地点信息';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges => '地点信息已与这些坐标一致';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed => '地点查找失败。请检查网络连接后重试。';

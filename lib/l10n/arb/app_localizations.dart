@@ -18740,11 +18740,23 @@ abstract class AppLocalizations {
   /// **'Look up from coordinates'**
   String get diveSites_edit_gps_lookupFromCoordinates;
 
+  /// No description provided for @diveSites_edit_gps_lookupNeedsCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Add coordinates in Location to use this.'**
+  String get diveSites_edit_gps_lookupNeedsCoordinates;
+
   /// No description provided for @diveSites_edit_snackbar_lookupNothingFound.
   ///
   /// In en, this message translates to:
   /// **'No location details found for these coordinates'**
   String get diveSites_edit_snackbar_lookupNothingFound;
+
+  /// No description provided for @diveSites_edit_snackbar_lookupNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Location details already match these coordinates'**
+  String get diveSites_edit_snackbar_lookupNoChanges;
 
   /// No description provided for @diveSites_edit_snackbar_lookupFailed.
   ///
