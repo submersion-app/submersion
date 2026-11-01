@@ -1795,10 +1795,11 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
         );
         // Loaded by that analysis. Read as a value, not awaited: a dive that
         // failed to load is an unknown dive to walk past, as the analysis
-        // reports it, not a failed lookback.
+        // reports it, not a failed lookback. `value`, not `valueOrNull`, keeps
+        // the dive through a reload.
         final previousDive = ref.container
             .read(analysisDiveProvider(previousDiveId))
-            .valueOrNull;
+            .value;
         if (previousDive != null) {
           surface = DiveEnvironment.surfaceIntervalBetween(
             previousDive.environment,

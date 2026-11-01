@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +13,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -602,6 +606,43 @@ void main() {
           ),
           surface: highSurface,
         );
+      });
+
+      test('a dive reloading mid-walk keeps the surface it had', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
+        await seedDive('manual', middleStart, 10);
+        // A change to something the provider watches, unlike an invalidation,
+        // leaves its previous value in a loading state.
+        final dependency = StateProvider<int>((ref) => 0);
+        final reload = Completer<domain.Dive?>();
+        var loads = 0;
+        final container = containerFor(
+          overrides: [
+            analysisDiveProvider('manual').overrideWith((ref) {
+              ref.watch(dependency);
+              loads++;
+              return loads == 1
+                  ? Future.value(
+                      domain.Dive(
+                        id: 'manual',
+                        dateTime: middleStart,
+                        surfacePressure: 1.0,
+                      ),
+                    )
+                  : reload.future;
+            }),
+            profileAnalysisProvider('manual').overrideWith((ref) async => null),
+          ],
+        );
+        final dive = container.listen(
+          analysisDiveProvider('manual').future,
+          (_, _) {},
+        );
+        addTearDown(dive.close);
+        await dive.read();
+        container.read(dependency.notifier).state++;
+
+        await expectTissuesOffGassedFor(50, container);
       });
 
       test('a dive walked past counts: the diver was at its surface', () async {
