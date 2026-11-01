@@ -275,6 +275,134 @@ void main() {
       expect(litersWith(4) - litersWith(0), closeTo(4 * 15 * atFailure, 1e-6));
     });
 
+    test('is priced at the failure, not the deepest point of the dive', () {
+      final deepThenShallow = [
+        PlanSegment.travel(
+          id: 'down',
+          fromDepth: 0,
+          targetDepth: 30,
+          tankId: 'back',
+          gasMix: _air,
+          ratePerMinute: 18,
+        ),
+        PlanSegment.travel(
+          id: 'up',
+          fromDepth: 30,
+          targetDepth: 15,
+          tankId: 'back',
+          gasMix: _air,
+          ratePerMinute: 9,
+          order: 1,
+        ),
+        const PlanSegment(
+          id: 'hold',
+          targetDepth: 15,
+          durationSeconds: 300,
+          tankId: 'back',
+          gasMix: _air,
+          order: 2,
+        ),
+      ];
+      double litersWith(int minutes) {
+        final plan = _plan().copyWith(problemSolvingMinutes: minutes);
+        return const ExitPathEvaluator()
+            .evaluate(
+              plan: plan,
+              outboundSegments: deepThenShallow,
+              failureRuntimeSeconds: deepThenShallow.fold(
+                0,
+                (sum, s) => sum + s.durationSeconds,
+              ),
+              exitLegs: const [],
+              exitSpeedMps: 0.2,
+              divers: const [diver],
+            )
+            .exitLitersByMember['diver']!;
+      }
+
+      final at15m = PlanEngine.environmentFor(_plan()).pressureAtDepth(15);
+      expect(litersWith(3) - litersWith(0), closeTo(3 * 15 * at15m, 1e-6));
+    });
+
+    test('the cylinder in use at the failure pays, not the first one', () {
+      const stageGas = GasMix(o2: 32);
+      final onStage = [
+        PlanSegment.travel(
+          id: 'down',
+          fromDepth: 0,
+          targetDepth: 20,
+          tankId: 'stage',
+          gasMix: stageGas,
+          ratePerMinute: 18,
+        ),
+        const PlanSegment(
+          id: 'hold',
+          targetDepth: 20,
+          durationSeconds: 600,
+          tankId: 'stage',
+          gasMix: stageGas,
+          order: 1,
+        ),
+      ];
+      final tanks = [
+        _back,
+        const DiveTank(
+          id: 'stage',
+          volume: 40,
+          startPressure: 230,
+          gasMix: stageGas,
+          role: TankRole.stage,
+        ),
+      ];
+      final ended = const PlanEngine()
+          .compute(
+            _plan(
+              tanks: tanks,
+            ).copyWith(segments: onStage, problemSolvingMinutes: 0),
+          )
+          .tankUsages
+          .firstWhere((usage) => usage.tankId == 'stage')
+          .remainingPressure!;
+      final plan = _plan(
+        tanks: tanks,
+      ).copyWith(reservePressure: ended - 1, problemSolvingMinutes: 5);
+
+      final result = const ExitPathEvaluator().evaluate(
+        plan: plan,
+        outboundSegments: onStage,
+        failureRuntimeSeconds: 667,
+        exitLegs: const [],
+        exitSpeedMps: 0.2,
+        divers: const [diver],
+      );
+
+      expect(result.gasShortfallMemberIds, {'diver'});
+    });
+
+    test('a calm diver failing at the deepest point matches the plan', () {
+      // The plan's SAC factor counts the divers sharing one supply. A mission
+      // budgets each diver separately, so one diver matches a factor of 1.
+      final plan = _plan().copyWith(problemSolvingMinutes: 3, sacFactor: 1);
+      final engineUsed = const PlanEngine()
+          .compute(plan.copyWith(segments: _outbound))
+          .tankUsages
+          .single
+          .litersUsed;
+      final schedule = const PlanEngine()
+          .compute(plan.copyWith(segments: _outbound))
+          .schedule;
+      final outbound = const MemberGasService().litersByTank(
+        rows: [
+          for (final row in schedule)
+            if (row.runtimeSeconds <= 667) row,
+        ],
+        environment: PlanEngine.environmentFor(plan),
+        sacFor: (_) => 15,
+      )['back']!;
+
+      expect(outbound + exitLiters(plan), closeTo(engineUsed, 1e-6));
+    });
+
     test('it can take an exit below the reserve', () {
       // A reserve 1 bar under where the dive ends, and five more minutes at
       // 3 bar costs about 6 bar from this 40 L cylinder.

@@ -84,7 +84,7 @@ class ExitPathResult extends Equatable {
 /// Evaluates a way out from a point on a dive: exit legs appended to the
 /// outbound profile, the plan engine run once for the schedule and time to
 /// surface, and each diver's gas charged from the schedule rows with their
-/// own SAC.
+/// own SAC, plus the plan's problem-solving time at the failure point.
 ///
 /// Nothing here knows about scooters, so the overhead planner proposed in
 /// #2164 and discussed in #2294 can use it for any exit (issue #2086).
@@ -152,7 +152,9 @@ class ExitPathEvaluator {
     ].firstOrNull;
 
     // The time to sort out the failure before leaving: the allowance the plan
-    // engine holds back at the bottom, spent here at the failure point.
+    // engine holds back at the bottom, spent here at the failure point. Its
+    // buddy factor stands for a second diver on the same gas; here each diver
+    // pays for themselves, so it does not apply.
     final problemSolvingMinutes = engine.config
         .resolvedFor(plan)
         .problemSolvingMinutes;
