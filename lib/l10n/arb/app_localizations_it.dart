@@ -20692,11 +20692,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Segue $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Nessuna immersione registrata';
 
   @override
@@ -20738,6 +20733,41 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Immersione registrata $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Apri nel logbook';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Smetti di seguire';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Riportato su $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS alla fine';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive è finita $time fa.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Immersione #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Segui';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Intervallo di superficie';
 
   @override
@@ -20776,8 +20806,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Non è possibile pianificare una serie di immersioni come missione DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Solo la prima immersione di una serie può seguire un\'immersione registrata';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Una ripianificazione non può seguire un\'altra immersione';
 
   @override
   String get plannerCanvas_follow_title => 'Segui un\'immersione';
@@ -55043,6 +55073,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Confronta…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive =>
+      'Pianifica immersione ripetitiva';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. immersione originale';
