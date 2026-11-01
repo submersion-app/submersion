@@ -24,6 +24,7 @@ void main() {
     int? runtimeSeconds,
     int? storedSi,
     bool isPlanned = false,
+    String? outingId,
   }) async {
     await db
         .into(db.dives)
@@ -36,6 +37,7 @@ void main() {
             runtime: Value(runtimeSeconds),
             surfaceIntervalSeconds: Value(storedSi),
             isPlanned: Value(isPlanned),
+            outingId: Value(outingId),
             createdAt: Value(base),
             updatedAt: Value(base),
           ),
@@ -86,6 +88,49 @@ void main() {
       expect((await intervals())['next'], (null, 'null'));
     },
   );
+
+  test('a mirror of a logged dive is a dive to measure from (#3924)', () async {
+    await insert(
+      'source',
+      entry: base - 1000 * minute,
+      exit: base - 960 * minute,
+      outingId: 'outing',
+    );
+    await insert(
+      'mirror',
+      entry: base,
+      exit: base + 40 * minute,
+      isPlanned: true,
+      outingId: 'outing',
+    );
+    await insert('next', entry: base + 120 * minute);
+
+    expect((await intervals())['next'], (80 * 60, 'integer'));
+  });
+
+  test('a mirror of a logged dive skips a plan nobody dived (#3924)', () async {
+    await insert('source', entry: base, exit: base + 40 * minute);
+    await insert(
+      'plan',
+      entry: base + 60 * minute,
+      exit: base + 100 * minute,
+      isPlanned: true,
+    );
+    await insert(
+      'logged-sibling',
+      entry: base - 1000 * minute,
+      exit: base - 960 * minute,
+      outingId: 'outing',
+    );
+    await insert(
+      'mirror',
+      entry: base + 120 * minute,
+      isPlanned: true,
+      outingId: 'outing',
+    );
+
+    expect((await intervals())['mirror'], (80 * 60, 'integer'));
+  });
 
   test('a plan measures its gap from the plan before it (#3924)', () async {
     await insert(

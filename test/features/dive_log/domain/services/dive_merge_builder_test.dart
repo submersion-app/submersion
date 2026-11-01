@@ -355,7 +355,7 @@ void main() {
       expect(merged.rating, 4); // a is chronologically first
       expect(merged.waterTemp, 19.5); // a blank -> filled from b
       expect(merged.diveComputerModel, 'Perdix 2');
-      expect(merged.diveNumber, 101); // always the first dive's
+      expect(merged.diveNumber, 101); // the first dive's that has one
       expect(merged.surfaceInterval, const Duration(hours: 2));
       expect(merged.courseId, 'course-1'); // a has none -> filled from b
     });

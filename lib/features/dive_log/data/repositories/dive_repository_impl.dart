@@ -5851,9 +5851,9 @@ class DiveRepository {
   /// obligation a ceiling-only source (a FIT file) recorded, since that
   /// would shorten the no-fly window.
   ///
-  /// Planner rows (`isPlanned = true`) are left out: a plan whose time has
-  /// passed was not dived, so it restricts nothing until it is marked
-  /// executed (issue #3924).
+  /// A plan nobody has dived ([diveUndivedSql]) is left out: one whose time
+  /// has passed still restricts nothing until it is marked executed (issue
+  /// #3924). A dive mirrored from a logged dive counts, since it happened.
   // stats-scope-exempt: flying-after-diving safety, an excluded dive still off-gassed
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
@@ -5877,7 +5877,7 @@ class DiveRepository {
             'WHERE COALESCE(d.exit_time, '
             'COALESCE(d.entry_time, d.dive_date_time) '
             '+ COALESCE(d.runtime, 0) * 1000) >= ? '
-            'AND d.is_planned = 0 '
+            'AND NOT ${diveUndivedSql('d')} '
             '$diverClause',
             variables: [
               Variable(since.millisecondsSinceEpoch),
@@ -5989,7 +5989,8 @@ class DiveRepository {
   /// chain but short-circuits past the profile scan.
   static final _diveTimesSelect =
       'SELECT d.id, d.dive_date_time, d.entry_time, d.exit_time, '
-      'd.runtime, d.bottom_time, d.is_planned, '
+      'd.runtime, d.bottom_time, '
+      "${diveUndivedSql('d')} AS is_undived, "
       "${profileSpanSecondsSql('d')} AS profile_span "
       'FROM dives d';
 
@@ -6015,7 +6016,7 @@ class DiveRepository {
       bottomTime: bottom != null ? Duration(seconds: bottom) : null,
       // Matches Dive.calculateRuntimeFromProfile: null unless positive.
       profileSpan: span != null && span > 0 ? Duration(seconds: span) : null,
-      isPlanned: row.read<int>('is_planned') == 1,
+      isUndivedPlan: row.read<int>('is_undived') == 1,
     );
   }
 
@@ -6084,8 +6085,8 @@ class DiveRepository {
   /// lookback chains, which need only id and timestamps. Null for the first
   /// dive.
   ///
-  /// A plan that has not been dived is the previous dive of another plan only:
-  /// a logged dive looks past it (issue #3924).
+  /// A plan nobody has dived ([diveUndivedSql]) is the previous dive of another
+  /// such plan only: a dive that happened looks past it (issue #3924).
   Future<domain.DiveTimes?> getPreviousDiveTimes(String diveId) async {
     final current = await getDiveTimes(diveId);
     if (current == null) return null;
@@ -6097,7 +6098,7 @@ class DiveRepository {
           '$_diveTimesSelect '
           'WHERE d.id != ? AND (d.entry_time < ? OR '
           '(d.entry_time IS NULL AND d.dive_date_time < ?)) '
-          '${current.isPlanned ? '' : 'AND d.is_planned = 0 '}'
+          '${current.isUndivedPlan ? '' : 'AND NOT ${diveUndivedSql('d')} '}'
           'ORDER BY d.entry_time DESC, d.dive_date_time DESC LIMIT 1',
           variables: [
             Variable<String>(diveId),
@@ -6111,8 +6112,8 @@ class DiveRepository {
     return _mapDiveTimesRow(rows.first);
   }
 
-  /// The most recent EXECUTED dive of [diverId] (excludes planner rows with
-  /// `isPlanned = true`, mirroring [getNextDive]) whose effective start
+  /// The most recent EXECUTED dive of [diverId] (excludes plans nobody has
+  /// dived, [diveUndivedSql]) whose effective start
   /// (entryTime, falling back to the legacy diveDateTime) is at or before
   /// [notAfter]. Reverse of [getNextDive]'s predicate and ordering.
   ///
@@ -6131,7 +6132,7 @@ class DiveRepository {
     try {
       final cutoffMs = notAfter.millisecondsSinceEpoch;
       final clauses = <String>[
-        'd.is_planned = 0',
+        'NOT ${diveUndivedSql('d')}',
         '(d.entry_time <= ? OR (d.entry_time IS NULL AND d.dive_date_time <= ?))',
       ];
       final args = <Variable<Object>>[
@@ -6171,6 +6172,33 @@ class DiveRepository {
     }
   }
 
+  /// [earlierDivesRevisionSql] for [diveId]: the latest write to a dive inside
+  /// its residual lookback, or null when there is none.
+  ///
+  /// Rethrows like [getMostRecentDiveTimes]: it feeds a safety readout, and
+  /// reading a failure as "nothing changed" would serve a stale review.
+  // stats-scope-exempt: reads one dive's write stamps, not a statistic
+  Future<int?> getEarlierDivesRevision(String diveId) async {
+    try {
+      final row = await _db
+          .customSelect(
+            'SELECT ${earlierDivesRevisionSql('d')} AS revision '
+            'FROM dives d WHERE d.id = ?',
+            variables: [Variable<String>(diveId)],
+            readsFrom: {_db.dives},
+          )
+          .getSingleOrNull();
+      return row?.readNullable<int>('revision');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read the earlier dives revision for: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Times-only equivalent of [getDivesInRange] (identical WHERE and
   /// ordering), for same-day and weekly exposure aggregation.
   Future<List<domain.DiveTimes>> getDiveTimesInRange(
@@ -6179,10 +6207,10 @@ class DiveRepository {
     String? diverId,
   }) => _diveTimesInRange(start, end, diverId: diverId);
 
-  /// [getDiveTimesInRange] for [diverId], excluding planner rows
-  /// (`isPlanned = true`), for "current state" totals such as the live
-  /// weekly OTU readout: a saved plan has not been dived, so its exposure
-  /// must not count.
+  /// [getDiveTimesInRange] for [diverId], excluding plans nobody has dived
+  /// ([diveUndivedSql]), for "current state" totals such as the live weekly
+  /// OTU readout: a saved plan has not been dived, so its exposure must not
+  /// count.
   Future<List<domain.DiveTimes>> getExecutedDiveTimesInRange(
     DateTime start,
     DateTime end, {
@@ -6204,7 +6232,7 @@ class DiveRepository {
       clauses.add('d.diver_id = ?');
       args.add(Variable<String>(diverId));
     }
-    if (executedOnly) clauses.add('d.is_planned = 0');
+    if (executedOnly) clauses.add('NOT ${diveUndivedSql('d')}');
     final rows = await _db
         .customSelect(
           '$_diveTimesSelect WHERE ${clauses.join(' AND ')} '

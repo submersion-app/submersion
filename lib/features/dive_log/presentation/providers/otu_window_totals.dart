@@ -14,24 +14,28 @@ const otuWindowLookback = Duration(days: 1);
 
 /// [dives] without the plans that are not part of [current]'s history.
 ///
-/// A plan that has not been dived left nothing behind, so a logged dive counts
-/// none. A plan models a day of diving that has not happened yet, so it counts
-/// the plans back to the last logged dive before it, which is as far as the
-/// residual lookback reads plans (issue #3924).
+/// A plan nobody has dived left nothing behind, so a dive that happened counts
+/// none. Such a plan models a day of diving that has not happened yet, so it
+/// counts the plans back to the last real dive before it, which is as far as
+/// the residual lookback reads them (issue #3924).
 Iterable<DiveTimes> withoutUndivedPlans(
   DiveTimes current,
   Iterable<DiveTimes> dives,
 ) {
-  if (!current.isPlanned) return dives.where((d) => !d.isPlanned);
+  if (!current.isUndivedPlan) return dives.where((d) => !d.isUndivedPlan);
 
-  DateTime startOf(DiveTimes d) => d.entryTime ?? d.dateTime;
-  final start = startOf(current);
   final logged = dives
-      .where((d) => !d.isPlanned && startOf(d).isBefore(start))
-      .map(startOf);
+      .where(
+        (d) =>
+            !d.isUndivedPlan &&
+            d.effectiveEntryTime.isBefore(current.effectiveEntryTime),
+      )
+      .map((d) => d.effectiveEntryTime);
   if (logged.isEmpty) return dives;
   final lastLogged = logged.reduce((a, b) => a.isAfter(b) ? a : b);
-  return dives.where((d) => !d.isPlanned || !startOf(d).isBefore(lastLogged));
+  return dives.where(
+    (d) => !d.isUndivedPlan || !d.effectiveEntryTime.isBefore(lastLogged),
+  );
 }
 
 /// Total OTU that [dives] accrued inside `[from, to)`.

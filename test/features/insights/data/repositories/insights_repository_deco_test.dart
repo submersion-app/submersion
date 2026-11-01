@@ -136,6 +136,26 @@ void main() {
       expect(scan.noProfile, isEmpty);
     });
 
+    test('moves with a write to a dive in the lookback (#3924)', () async {
+      await dive('bare');
+      await profile('bare', [(0, 10.0, null, null)]);
+      final hoursAgo = now - const Duration(hours: 6).inMilliseconds;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value('earlier'),
+              diveDateTime: Value(hoursAgo),
+              createdAt: Value(now),
+              updatedAt: Value(now + 5000),
+            ),
+          );
+
+      final scan = await repo.scanRecordedDecoSignals();
+
+      expect(scan.needsCompute['bare'], now + 5000);
+    });
+
     test('a dive with no profile is unclassifiable', () async {
       await dive('manual');
 

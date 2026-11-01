@@ -2902,7 +2902,8 @@ class InsightsRepository with InsightsChartDives {
         )
         SELECT
           sig.dive_id AS dive_id,
-          d.updated_at AS updated_at,
+          MAX(d.updated_at, COALESCE(${earlierDivesRevisionSql('d')}, 0))
+            AS updated_at,
           CASE
             WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
             WHEN sig.has_deco_type = 1 THEN 'no_deco'

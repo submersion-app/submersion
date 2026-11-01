@@ -28,6 +28,7 @@ void main() {
     int? runtimeSeconds,
     String? diverId,
     bool isPlanned = false,
+    String? outingId,
   }) async {
     final created = now.millisecondsSinceEpoch;
     await db
@@ -43,6 +44,7 @@ void main() {
             exitTime: Value(exitTime?.millisecondsSinceEpoch),
             runtime: Value(runtimeSeconds),
             isPlanned: Value(isPlanned),
+            outingId: Value(outingId),
             createdAt: Value(created),
             updatedAt: Value(created),
           ),
@@ -226,6 +228,40 @@ void main() {
       await repository.convertPlanToActualDive('plan');
 
       expect(await repository.getNoFlyDiveInputs(since: since), hasLength(1));
+    });
+  });
+
+  group('a dive mirrored to a buddy, awaiting their download (#3924)', () {
+    final since = now.subtract(const Duration(hours: 48));
+    final exit = now.subtract(const Duration(hours: 2));
+
+    test('counts once a dive on its outing was logged', () async {
+      await insertDive('source', exitTime: exit, outingId: 'outing');
+      await insertDive(
+        'mirror',
+        exitTime: exit,
+        isPlanned: true,
+        outingId: 'outing',
+      );
+
+      expect(await repository.getNoFlyDiveInputs(since: since), hasLength(2));
+    });
+
+    test('stays out while every dive on its outing is a plan', () async {
+      await insertDive(
+        'source',
+        exitTime: exit,
+        isPlanned: true,
+        outingId: 'outing',
+      );
+      await insertDive(
+        'mirror',
+        exitTime: exit,
+        isPlanned: true,
+        outingId: 'outing',
+      );
+
+      expect(await repository.getNoFlyDiveInputs(since: since), isEmpty);
     });
   });
 

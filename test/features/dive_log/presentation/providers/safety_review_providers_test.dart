@@ -212,6 +212,91 @@ void main() {
     },
   );
 
+  group('an earlier dive written after the review (#3924)', () {
+    Future<void> insertEarlier({required DateTime updatedAt}) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value('earlier'),
+            diveDateTime: Value(
+              now.subtract(const Duration(hours: 6)).millisecondsSinceEpoch,
+            ),
+            createdAt: Value(now.millisecondsSinceEpoch),
+            updatedAt: Value(updatedAt.millisecondsSinceEpoch),
+          ),
+        );
+
+    ProviderContainer containerFor(_FakeRepo repo) {
+      final profile = rapidAscentProfile();
+      final analysis = analyzeFixture(
+        depths: profile.depths,
+        timestamps: profile.timestamps,
+      ).copyWith(inputsFingerprint: defaultFingerprint());
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    _FakeRepo currentRepo() => _FakeRepo(
+      stored: storedReview(
+        SafetyReviewService.engineVersion,
+        inputsHash: defaultFingerprint(),
+      ),
+    );
+
+    test('reviews the dive again', () async {
+      await insertEarlier(updatedAt: now.add(const Duration(minutes: 1)));
+      final repo = currentRepo();
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 1);
+    });
+
+    test('keeps a review newer than the write', () async {
+      await insertEarlier(updatedAt: now.subtract(const Duration(minutes: 1)));
+      final repo = currentRepo();
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 0);
+    });
+
+    test(
+      'a write stamped ahead of this clock cannot recompute forever',
+      () async {
+        final ahead = DateTime.now().add(const Duration(days: 1));
+        await insertEarlier(updatedAt: ahead);
+        final repo = currentRepo();
+
+        await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+        expect(
+          repo.saved!.reviewedAt.millisecondsSinceEpoch,
+          ahead.millisecondsSinceEpoch,
+        );
+      },
+    );
+
+    test('never touches a review from a newer build', () async {
+      await insertEarlier(updatedAt: now.add(const Duration(minutes: 1)));
+      final repo = _FakeRepo(
+        stored: storedReview(SafetyReviewService.engineVersion + 1),
+      );
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 0);
+    });
+  });
+
   // Issue #2592: a review records the settings its analysis ran on, and a
   // change to them invalidates it. A review stored from another diver's
   // settings (#2564), from settings since edited, or before inputs were

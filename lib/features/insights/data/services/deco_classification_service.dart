@@ -15,7 +15,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// can move the NDL curve (issue #2592; this used to name only the GF).
 /// Per-dive inputs (the dive's stored GF, altitude, water type, and the
 /// profile samples themselves) are all covered by [diveUpdatedAt], which moves
-/// whenever the dive row or its profile is written.
+/// whenever the dive row or its profile is written, and residual load by the
+/// same value moving when a dive in its lookback is (issue #3924).
 ///
 /// That makes the fingerprint computable from the statistics scan alone, with
 /// no dive hydration, which is what lets a warm library skip loading profiles
@@ -44,8 +45,9 @@ class DecoClassificationService {
   static final _log = LoggerService.forClass(DecoClassificationService);
 
   /// Returns `diveId -> hadDeco` for every dive in [revisions] that could be
-  /// classified. [revisions] maps dive id to that dive's `dives.updated_at`,
-  /// as returned by `InsightsRepository.scanRecordedDecoSignals`.
+  /// classified. [revisions] maps dive id to the latest write to that dive or
+  /// to one in its residual lookback, as returned by
+  /// `InsightsRepository.scanRecordedDecoSignals`.
   ///
   /// A first pass over a large library runs for minutes on a phone, so
   /// [onProgress] reports what is known so far: once after the cache read and

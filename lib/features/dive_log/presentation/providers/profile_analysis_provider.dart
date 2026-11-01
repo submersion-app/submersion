@@ -17,6 +17,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -1784,7 +1785,7 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     final lookback = await _lookBackPastUnknownDives<List<TissueCompartment>>(
       ref,
       diveId,
-      window: const Duration(hours: 48),
+      window: kResidualLookback,
       readPrevious: (previousDiveId) async {
         // One-shot await (not watch), as in [_knownCnsEnd].
         final previousAnalysis = await ref.container.awaitFuture(

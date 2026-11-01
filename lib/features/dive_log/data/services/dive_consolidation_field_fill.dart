@@ -213,11 +213,12 @@ Map<String, Expression> consolidationFieldFill(
   // A plan that takes in a logged dive was dived, so it stops being a plan:
   // still flagged, the real dive would drop out of no-fly and residual
   // exposure (issue #3924). It takes that dive's place in the logbook too.
-  final logged = secondaries.where((s) => !s.isPlanned).firstOrNull;
-  if (target.isPlanned && logged != null) {
+  final logged = secondaries.where((s) => !s.isPlanned);
+  if (target.isPlanned && logged.isNotEmpty) {
     fill['is_planned'] = const Variable<bool>(false);
-    if (target.diveNumber == null) {
-      fill['dive_number'] = Variable<int>(logged.diveNumber);
+    final number = logged.map((s) => s.diveNumber).nonNulls.firstOrNull;
+    if (target.diveNumber == null && number != null) {
+      fill['dive_number'] = Variable<int>(number);
     }
   }
   return fill;

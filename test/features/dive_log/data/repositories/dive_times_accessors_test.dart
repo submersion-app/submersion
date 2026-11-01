@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -6,10 +7,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import '../../../../helpers/test_database.dart';
 
 void main() {
+  late AppDatabase db;
   late DiveRepository repository;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     repository = DiveRepository();
   });
   tearDown(() async => tearDownTestDatabase());
@@ -97,12 +99,92 @@ void main() {
       isPlanned: true,
     );
 
-    test('getDiveTimes says which dives are plans', () async {
+    test('getDiveTimes says which dives are undived plans', () async {
       await repository.createDive(real);
       await repository.createDive(plan);
 
-      expect((await repository.getDiveTimes('real'))!.isPlanned, isFalse);
-      expect((await repository.getDiveTimes('plan'))!.isPlanned, isTrue);
+      expect((await repository.getDiveTimes('real'))!.isUndivedPlan, isFalse);
+      expect((await repository.getDiveTimes('plan'))!.isUndivedPlan, isTrue);
+    });
+
+    group('mirrored from a logged dive', () {
+      final source = real.copyWith(outingId: 'outing');
+      final mirror = plan.copyWith(
+        dateTime: DateTime.utc(2026, 5, 1, 8),
+        exitTime: DateTime.utc(2026, 5, 1, 9),
+        outingId: 'outing',
+      );
+
+      test('is not an undived plan', () async {
+        await repository.createDive(source);
+        await repository.createDive(mirror);
+
+        expect((await repository.getDiveTimes('plan'))!.isUndivedPlan, isFalse);
+      });
+
+      test('is the previous dive of a logged dive', () async {
+        await repository.createDive(
+          source
+              .copyWith(id: 'other-day')
+              .copyWith(
+                dateTime: DateTime.utc(2026, 4, 1, 8),
+                exitTime: DateTime.utc(2026, 4, 1, 9),
+              ),
+        );
+        await repository.createDive(mirror);
+        await repository.createDive(laterReal);
+
+        expect(
+          (await repository.getPreviousDiveTimes('later-real'))?.id,
+          'plan',
+        );
+        expect(
+          await repository.getSurfaceInterval('later-real'),
+          const Duration(hours: 5),
+        );
+      });
+
+      test('looks past a plan nobody dived', () async {
+        await repository.createDive(source);
+        await repository.createDive(
+          mirror.copyWith(
+            dateTime: DateTime.utc(2026, 5, 1, 13),
+            exitTime: DateTime.utc(2026, 5, 1, 13, 30),
+          ),
+        );
+        await repository.createDive(plan.copyWith(id: 'stale'));
+
+        expect((await repository.getPreviousDiveTimes('plan'))?.id, 'real');
+      });
+
+      test(
+        'counts toward the executed range and the most recent dive',
+        () async {
+          await repository.createDive(source);
+          await repository.createDive(mirror);
+          const diver = 'mirror-diver';
+          await db.customStatement(
+            "INSERT INTO divers (id, name, created_at, updated_at) "
+            "VALUES ('$diver', '$diver', 0, 0)",
+          );
+          await db.customStatement(
+            "UPDATE dives SET diver_id = '$diver' WHERE id = 'plan'",
+          );
+
+          final range = await repository.getExecutedDiveTimesInRange(
+            DateTime.utc(2026, 5, 1),
+            DateTime.utc(2026, 5, 2),
+            diverId: diver,
+          );
+          final latest = await repository.getMostRecentDiveTimes(
+            diverId: diver,
+            notAfter: DateTime.utc(2026, 5, 2),
+          );
+
+          expect(range.map((d) => d.id), ['plan']);
+          expect(latest?.id, 'plan');
+        },
+      );
     });
 
     test('is not the previous dive of a logged dive', () async {
@@ -144,6 +226,67 @@ void main() {
         await repository.getSurfaceInterval('later-plan'),
         const Duration(hours: 1),
       );
+    });
+  });
+
+  group('getEarlierDivesRevision (#3924)', () {
+    Future<void> touch(String id, int updatedAt) => db.customStatement(
+      "UPDATE dives SET updated_at = $updatedAt WHERE id = '$id'",
+    );
+
+    final start = DateTime.utc(2026, 5, 3, 12);
+
+    setUp(() async {
+      await repository.createDive(
+        domain.Dive(id: 'current', dateTime: start, entryTime: start),
+      );
+      await touch('current', 9000);
+    });
+
+    test('is null with no dive in the lookback', () async {
+      expect(await repository.getEarlierDivesRevision('current'), isNull);
+      expect(await repository.getEarlierDivesRevision('missing'), isNull);
+    });
+
+    test('is the newest write to a dive inside the lookback', () async {
+      await repository.createDive(
+        domain.Dive(
+          id: 'with-entry',
+          dateTime: start.subtract(const Duration(hours: 5)),
+          entryTime: start.subtract(const Duration(hours: 5)),
+        ),
+      );
+      await repository.createDive(
+        domain.Dive(
+          id: 'without-entry',
+          dateTime: start.subtract(const Duration(hours: 40)),
+        ),
+      );
+      await touch('with-entry', 100);
+      await touch('without-entry', 200);
+
+      expect(await repository.getEarlierDivesRevision('current'), 200);
+    });
+
+    test('ignores dives outside it, later ones and the dive itself', () async {
+      await repository.createDive(
+        domain.Dive(
+          id: 'too-old',
+          dateTime: start.subtract(const Duration(hours: 49)),
+          entryTime: start.subtract(const Duration(hours: 49)),
+        ),
+      );
+      await repository.createDive(
+        domain.Dive(
+          id: 'later',
+          dateTime: start.add(const Duration(hours: 1)),
+          entryTime: start.add(const Duration(hours: 1)),
+        ),
+      );
+      await touch('too-old', 100);
+      await touch('later', 200);
+
+      expect(await repository.getEarlierDivesRevision('current'), isNull);
     });
   });
 

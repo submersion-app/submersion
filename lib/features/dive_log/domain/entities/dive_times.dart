@@ -17,8 +17,9 @@ class DiveTimes {
   final Duration? bottomTime;
   final Duration? profileSpan;
 
-  /// True for a plan that has not been dived (`dives.is_planned`).
-  final bool isPlanned;
+  /// True for a plan nobody has dived: planned, with no logged dive on its
+  /// outing (see `diveUndivedSql`).
+  final bool isUndivedPlan;
 
   const DiveTimes({
     required this.id,
@@ -28,8 +29,11 @@ class DiveTimes {
     this.runtime,
     this.bottomTime,
     this.profileSpan,
-    this.isPlanned = false,
+    this.isUndivedPlan = false,
   });
+
+  /// Same fallback as `Dive.effectiveEntryTime`.
+  DateTime get effectiveEntryTime => entryTime ?? dateTime;
 
   /// Same resolution order as `Dive.effectiveRuntime`:
   /// runtime, then exit - entry, then profile span, then bottom time.
@@ -50,8 +54,7 @@ class DiveTimes {
   /// effective start plus [effectiveRuntime] when it is missing. Mirrors
   /// the fallback chain in `DiveRepository.getSurfaceInterval`.
   DateTime get effectiveExitTime =>
-      exitTime ??
-      (entryTime ?? dateTime).add(effectiveRuntime ?? Duration.zero);
+      exitTime ?? effectiveEntryTime.add(effectiveRuntime ?? Duration.zero);
 
   /// [effectiveExitTime] as a true instant, read in the device's zone, for
   /// measuring elapsed time against now.
@@ -62,7 +65,7 @@ class DiveTimes {
   DateTime get effectiveExitInstant {
     final exit = exitTime;
     if (exit != null) return fromWallClockUtc(exit).toUtc();
-    final start = fromWallClockUtc(entryTime ?? dateTime).toUtc();
+    final start = fromWallClockUtc(effectiveEntryTime).toUtc();
     return start.add(effectiveRuntime ?? Duration.zero);
   }
 }
