@@ -17,6 +17,7 @@ import 'package:submersion/features/documents/presentation/providers/document_pr
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
+import '../../document_repository_doubles.dart';
 
 DocumentPageCapture _files(PickedBytes picked) => DocumentPageCapture(
   pickFile: (_) async => picked,
@@ -24,29 +25,6 @@ DocumentPageCapture _files(PickedBytes picked) => DocumentPageCapture(
   encode: (p) async =>
       (outcome: ImageEncodeOutcome.encoded, bytes: Uint8List.fromList([9])),
 );
-
-/// Records what the editor reads of a document's pages.
-class _SpyRepository extends DocumentRepository {
-  _SpyRepository() : super(cancelReminders: (_) async {});
-
-  final contentReads = <String>[];
-  final pageListings = <bool>[];
-
-  @override
-  Future<List<DocumentPage>> getPages(
-    String documentId, {
-    bool withBytes = true,
-  }) {
-    pageListings.add(withBytes);
-    return super.getPages(documentId, withBytes: withBytes);
-  }
-
-  @override
-  Future<Uint8List?> getPageContent(String pageId) {
-    contentReads.add(pageId);
-    return super.getPageContent(pageId);
-  }
-}
 
 Document _permit() => Document(
   id: '',
@@ -128,7 +106,7 @@ void main() {
 
   group('stored page content (issue #3847)', () {
     testWidgets('opening reads only the images the strip builds', (t) async {
-      final repo = _SpyRepository();
+      final repo = DocumentReadSpy();
       final doc = await repo.save(_permit(), [
         for (var i = 0; i < 40; i++) _storedPage(i, 'image/jpeg'),
         _storedPage(40, 'application/pdf'),
@@ -145,7 +123,7 @@ void main() {
     });
 
     testWidgets('saving an edit leaves the stored pages untouched', (t) async {
-      final repo = _SpyRepository();
+      final repo = DocumentReadSpy();
       final doc = await repo.save(_permit(), [
         _storedPage(0, 'image/jpeg'),
         _storedPage(1, 'application/pdf'),

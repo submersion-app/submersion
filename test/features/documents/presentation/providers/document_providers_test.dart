@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -6,7 +9,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -17,6 +19,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../document_repository_doubles.dart';
 
 /// Records which documents had their reminders rescheduled.
 class _RecordingScheduler extends NotificationScheduler {
@@ -27,19 +30,6 @@ class _RecordingScheduler extends NotificationScheduler {
     Document document,
     AppSettings settings,
   ) async => updated.add(document.id);
-}
-
-/// Counts the page content reads that reach the database.
-class _CountingRepository extends DocumentRepository {
-  _CountingRepository() : super(cancelReminders: (_) async {});
-
-  int contentReads = 0;
-
-  @override
-  Future<Uint8List?> getPageContent(String pageId) {
-    contentReads++;
-    return super.getPageContent(pageId);
-  }
 }
 
 DocumentPage _scan(List<int> bytes) => DocumentPage(
@@ -89,11 +79,11 @@ void main() {
   }
 
   group('page content (issue #3847)', () {
-    late _CountingRepository repo;
+    late DocumentReadSpy repo;
     late ProviderContainer c;
 
     setUp(() {
-      repo = _CountingRepository();
+      repo = DocumentReadSpy();
       c = ProviderContainer(
         overrides: [documentRepositoryProvider.overrideWithValue(repo)],
       );
@@ -112,7 +102,7 @@ void main() {
       c.listen(documentPagesProvider(saved.id), (_, _) {});
       final page = (await settledPages(saved.id)).single;
       expect(page.bytes, isNull);
-      expect(repo.contentReads, 0);
+      expect(repo.contentReads, isEmpty);
 
       expect(
         await c.read(documentPageContentProvider(page.contentKey).future),
@@ -129,13 +119,55 @@ void main() {
       final key = pages.single.contentKey;
       c.listen(documentPageContentProvider(key), (_, _) {});
       await c.read(documentPageContentProvider(key).future);
-      expect(repo.contentReads, 1);
+      expect(repo.contentReads, hasLength(1));
 
       await repo.save(saved.copyWith(title: 'renamed'), pages);
 
       expect((await settledPages(saved.id)).single.contentKey, key);
       expect(await c.read(documentPageContentProvider(key).future), [1, 2]);
-      expect(repo.contentReads, 1);
+      expect(repo.contentReads, hasLength(1));
+    });
+
+    test('releasing a page drops its decoded images from the cache', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      final page = (await repo.getPages(saved.id, withBytes: false)).single;
+      final provider = documentPageContentProvider(page.contentKey);
+      final held = c.listen(provider, (_, _) {});
+      final bytes = (await c.read(provider.future))!;
+
+      final cache = PaintingBinding.instance.imageCache;
+      final keys = [
+        for (final image in <ImageProvider>[
+          MemoryImage(bytes),
+          ResizeImage.resizeIfNeeded(
+            documentPageStripImageWidth,
+            null,
+            MemoryImage(bytes),
+          ),
+          ResizeImage.resizeIfNeeded(
+            documentPageThumbnailImageWidth,
+            null,
+            MemoryImage(bytes),
+          ),
+        ])
+          await image.obtainKey(ImageConfiguration.empty),
+      ];
+      for (final key in keys) {
+        cache.putIfAbsent(
+          key,
+          () => OneFrameImageStreamCompleter(Completer<ImageInfo>().future),
+        );
+      }
+      expect(keys.where(cache.containsKey), hasLength(3));
+
+      held.close();
+      await pumpEventQueue();
+
+      expect(c.exists(provider), isFalse);
+      expect(keys.where(cache.containsKey), isEmpty);
     });
 
     test('new content gives the page a new key to read', () async {

@@ -12,13 +12,10 @@ import 'package:submersion/features/documents/presentation/providers/document_pr
 /// for a PDF, Word or text page (and for a document without pages).
 class DocumentPageThumbnail extends ConsumerWidget {
   final Document document;
-  final double size;
 
-  const DocumentPageThumbnail({
-    super.key,
-    required this.document,
-    this.size = 48,
-  });
+  const DocumentPageThumbnail({super.key, required this.document});
+
+  static const double _size = 48;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +25,7 @@ class DocumentPageThumbnail extends ConsumerWidget {
         ? ref.watch(documentPageContentProvider(page.contentKey)).value
         : null;
     return SizedBox.square(
-      dimension: size,
+      dimension: _size,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(6),
         child: _content(context, page, bytes),
@@ -43,7 +40,7 @@ class DocumentPageThumbnail extends ConsumerWidget {
     return Image.memory(
       bytes,
       fit: BoxFit.cover,
-      cacheWidth: (size * 3).round(),
+      cacheWidth: documentPageThumbnailImageWidth,
       errorBuilder: (context, _, _) => _icon(context, page),
     );
   }
@@ -57,7 +54,7 @@ class DocumentPageThumbnail extends ConsumerWidget {
     };
     return ColoredBox(
       color: scheme.surfaceContainerHighest,
-      child: Icon(icon, color: scheme.primary, size: size * 0.5),
+      child: Icon(icon, color: scheme.primary, size: _size * 0.5),
     );
   }
 }

@@ -17,31 +17,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
-
-/// The pages fill the detail page and the details stay out of their way
-/// (issue #3333): a PDF boxed into a short preview could not be read.
-/// Records what opening a document reads of its pages.
-class _SpyRepository extends DocumentRepository {
-  _SpyRepository() : super(cancelReminders: (_) async {});
-
-  final contentReads = <String>[];
-  final pageListings = <bool>[];
-
-  @override
-  Future<List<DocumentPage>> getPages(
-    String documentId, {
-    bool withBytes = true,
-  }) {
-    pageListings.add(withBytes);
-    return super.getPages(documentId, withBytes: withBytes);
-  }
-
-  @override
-  Future<Uint8List?> getPageContent(String pageId) {
-    contentReads.add(pageId);
-    return super.getPageContent(pageId);
-  }
-}
+import '../../document_repository_doubles.dart';
 
 void main() {
   late String docId;
@@ -133,7 +109,7 @@ void main() {
   testWidgets('opening a long document reads the first two pages (#3847)', (
     t,
   ) async {
-    final repo = _SpyRepository();
+    final repo = DocumentReadSpy();
     final existing = (await repo.getById(docId))!;
     await repo.save(existing, [
       for (var i = 0; i < 20; i++)

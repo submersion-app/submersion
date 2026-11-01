@@ -431,7 +431,12 @@ class DocumentRepository {
       final old = existing[pageId];
       final bytes = page.bytes;
       if (bytes == null && old == null) {
-        throw ArgumentError('page $pageId has no content');
+        if (page.id.isEmpty) {
+          throw ArgumentError('page $pageId has no content');
+        }
+        // Deleted since it was listed (a sync pull while the editor was
+        // open): the deletion stands, and the rest of the save goes ahead.
+        continue;
       }
       final contentChanged =
           bytes != null &&

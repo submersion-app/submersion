@@ -154,7 +154,7 @@ class _PageTile extends ConsumerWidget {
             Image.memory(
               bytes,
               fit: BoxFit.cover,
-              cacheWidth: 300,
+              cacheWidth: documentPageStripImageWidth,
               errorBuilder: (context, _, _) => _fileFace(context),
             )
           else

@@ -1,31 +1,13 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_viewer.dart';
 
 import '../../../../helpers/test_app.dart';
-
-/// Serves page content from memory and records every read.
-class _RecordingRepository extends DocumentRepository {
-  _RecordingRepository({this.failing = false})
-    : super(cancelReminders: (_) async {});
-
-  final bool failing;
-  final reads = <String>[];
-
-  @override
-  Future<Uint8List?> getPageContent(String pageId) async {
-    reads.add(pageId);
-    if (failing) throw StateError('read failed');
-    return Uint8List.fromList([0, 1]);
-  }
-}
+import '../../document_repository_doubles.dart';
 
 DocumentPage _stored(
   String id, {
@@ -46,7 +28,7 @@ DocumentPage _stored(
 /// The viewer's content loading (issue #3847): what it reads is bounded by
 /// the page on screen and its neighbours, not by the document.
 void main() {
-  Widget viewer(_RecordingRepository repo, List<DocumentPage> pages) => testApp(
+  Widget viewer(FakeDocumentContent repo, List<DocumentPage> pages) => testApp(
     locale: const Locale('en'),
     overrides: [documentRepositoryProvider.overrideWithValue(repo)],
     child: DocumentPageViewer(pages: pages),
@@ -69,7 +51,7 @@ void main() {
     testWidgets('opening $count pages reads no more than the first two', (
       t,
     ) async {
-      final repo = _RecordingRepository();
+      final repo = FakeDocumentContent();
       await t.pumpWidget(viewer(repo, scans(count)));
       await t.pumpAndSettle();
       expect(repo.reads, ['p0', if (count > 1) 'p1']);
@@ -79,7 +61,7 @@ void main() {
   testWidgets('a swipe reads ahead and lets go of what it leaves behind', (
     t,
   ) async {
-    final repo = _RecordingRepository();
+    final repo = FakeDocumentContent();
     final pages = scans(50);
     await t.pumpWidget(viewer(repo, pages));
     await t.pumpAndSettle();
@@ -101,7 +83,7 @@ void main() {
   });
 
   testWidgets('swiping back reads a released page again', (t) async {
-    final repo = _RecordingRepository();
+    final repo = FakeDocumentContent();
     await t.pumpWidget(viewer(repo, scans(5)));
     await t.pumpAndSettle();
     await swipeForward(t);
@@ -115,7 +97,7 @@ void main() {
   });
 
   testWidgets('a page list that kept its pages reads nothing again', (t) async {
-    final repo = _RecordingRepository();
+    final repo = FakeDocumentContent();
     await t.pumpWidget(viewer(repo, scans(3)));
     await t.pumpAndSettle();
     repo.reads.clear();
@@ -127,7 +109,7 @@ void main() {
   });
 
   testWidgets('a page whose content changed is read again', (t) async {
-    final repo = _RecordingRepository();
+    final repo = FakeDocumentContent();
     await t.pumpWidget(viewer(repo, [_stored('p0')]));
     await t.pumpAndSettle();
     repo.reads.clear();
@@ -140,7 +122,7 @@ void main() {
   });
 
   testWidgets('a Word page reads nothing to show its file tile', (t) async {
-    final repo = _RecordingRepository();
+    final repo = FakeDocumentContent();
     await t.pumpWidget(
       viewer(repo, [
         _stored('p0', mimeType: 'application/msword', fileName: 'policy.doc'),
@@ -154,7 +136,7 @@ void main() {
   });
 
   testWidgets('an image waits for its content, then zooms', (t) async {
-    final repo = _RecordingRepository();
+    final repo = FakeDocumentContent();
     await t.pumpWidget(viewer(repo, [_stored('p0')]));
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
@@ -165,14 +147,14 @@ void main() {
   });
 
   testWidgets('a corrupt image shows a placeholder', (t) async {
-    await t.pumpWidget(viewer(_RecordingRepository(), [_stored('p0')]));
+    await t.pumpWidget(viewer(FakeDocumentContent(), [_stored('p0')]));
     await t.pumpAndSettle();
     expect(find.text("Can't display this page"), findsOneWidget);
   });
 
   testWidgets('content that cannot be read shows a placeholder', (t) async {
     await t.pumpWidget(
-      viewer(_RecordingRepository(failing: true), [_stored('p0')]),
+      viewer(FakeDocumentContent(failing: true), [_stored('p0')]),
     );
     await t.pumpAndSettle();
     expect(find.text("Can't display this page"), findsOneWidget);

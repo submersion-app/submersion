@@ -1,27 +1,13 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_thumbnail.dart';
 
 import '../../../../helpers/test_app.dart';
-
-class _RecordingRepository extends DocumentRepository {
-  _RecordingRepository() : super(cancelReminders: (_) async {});
-
-  final reads = <String>[];
-
-  @override
-  Future<Uint8List?> getPageContent(String pageId) async {
-    reads.add(pageId);
-    return Uint8List.fromList([0, 1]);
-  }
-}
+import '../../document_repository_doubles.dart';
 
 void main() {
   final document = Document(
@@ -44,8 +30,8 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
-  Future<_RecordingRepository> pump(WidgetTester t, DocumentPage? first) async {
-    final repo = _RecordingRepository();
+  Future<FakeDocumentContent> pump(WidgetTester t, DocumentPage? first) async {
+    final repo = FakeDocumentContent();
     await t.pumpWidget(
       testApp(
         overrides: [
