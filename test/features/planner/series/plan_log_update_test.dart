@@ -235,6 +235,28 @@ void main() {
       },
     );
 
+    test(
+      'a switch on the fly is written, at the time the schedule has it',
+      () async {
+        // EAN50 is breathable from 21 m, so the ascent switches on the way up,
+        // above any stop.
+        final id = await decoDiveInTheLog();
+
+        final switches = await c
+            .read(diveRepositoryProvider)
+            .getGasSwitchesForDive(id);
+        final schedule = c.read(planOutcomeProvider).schedule;
+        final line = schedule.indexWhere(
+          (row) => row.gasSwitch && row.gasFO2 == 0.5,
+        );
+
+        expect(
+          switches.single.gasSwitch.timestamp,
+          schedule[line].runtimeSeconds - schedule[line].durationSeconds,
+        );
+      },
+    );
+
     test('updating replaces the switches rather than adding more', () async {
       final id = await decoDiveInTheLog();
 

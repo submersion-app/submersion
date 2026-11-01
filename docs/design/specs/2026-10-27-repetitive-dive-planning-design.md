@@ -110,9 +110,11 @@ this action, never on save.
 
 - A dive with no entry gets a planned one, with its time, site, computed profile
   and tanks, linked by the plan's `linkedDiveId`. The profile is sampled every 30
-  seconds with its corners kept, and the plan's gas switches are written, so the
-  log's analysis of it agrees with the plan. A download replaces both; undoing
-  the download restores them.
+  seconds with its corners kept, and the plan's gas switches are written, from
+  the schedule, so those on the fly count as well as those at a stop. The log's
+  analysis of it then agrees with the plan. A download replaces both; undoing the
+  download restores them. Only open circuit writes switches: a loop's gas drifts
+  with depth on every line.
 - A dive whose entry is still planned has it rewritten, keeping its id. A rename
   made in the log to a planned entry is overwritten.
 - A dive already dived is left alone: the log owns it now.
