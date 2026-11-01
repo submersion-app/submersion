@@ -5854,7 +5854,8 @@ class DiveRepository {
   ///
   /// A plan nobody has dived ([diveUndivedSql]) is left out: one whose time
   /// has passed still restricts nothing until it is marked executed (issue
-  /// #3924). A dive mirrored from a logged dive counts, since it happened.
+  /// #3924). A dive mirrored from a logged dive counts, since it happened, and
+  /// reads that dive's deco obligation and runtime, having none of its own.
   // stats-scope-exempt: flying-after-diving safety, an excluded dive still off-gassed
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
@@ -5862,22 +5863,32 @@ class DiveRepository {
   }) async {
     try {
       final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
+      // A mirrored dive holds neither a profile nor a runtime, so the logged
+      // dive it came from says what it left behind.
+      const loggedSource =
+          'd.is_planned = 1 AND source.outing_id = d.outing_id '
+          'AND source.is_planned = 0';
+      const profileDives =
+          'SELECT d.id UNION ALL '
+          'SELECT source.id FROM dives source WHERE $loggedSource';
+      const endMs =
+          'COALESCE(d.exit_time, '
+          'COALESCE(d.entry_time, d.dive_date_time) '
+          '+ COALESCE(d.runtime, (SELECT MAX(source.runtime) '
+          'FROM dives source WHERE $loggedSource), 0) * 1000)';
       final rows = await _db
           .customSelect(
             'SELECT '
-            'COALESCE(d.exit_time, '
-            'COALESCE(d.entry_time, d.dive_date_time) '
-            '+ COALESCE(d.runtime, 0) * 1000) AS end_ms, '
+            '$endMs AS end_ms, '
             '(EXISTS(SELECT 1 FROM dive_profile_series s '
-            'WHERE s.dive_id = d.id AND (s.has_deco_stop = 1 '
+            'WHERE s.dive_id IN ($profileDives) AND (s.has_deco_stop = 1 '
             'OR (s.has_deco_type = 0 AND s.has_positive_ceiling = 1))) '
             'OR EXISTS(SELECT 1 FROM dive_profile_events e '
-            "WHERE e.dive_id = d.id AND e.event_type = 'decoStopStart')) "
+            'WHERE e.dive_id IN ($profileDives) '
+            "AND e.event_type = 'decoStopStart')) "
             'AS had_deco '
             'FROM dives d '
-            'WHERE COALESCE(d.exit_time, '
-            'COALESCE(d.entry_time, d.dive_date_time) '
-            '+ COALESCE(d.runtime, 0) * 1000) >= ? '
+            'WHERE $endMs >= ? '
             'AND NOT ${diveUndivedSql('d')} '
             '$diverClause',
             variables: [
@@ -5928,14 +5939,9 @@ class DiveRepository {
       if (previous == null) return null;
 
       // Calculate interval: from previous dive exit to current dive entry
-      final previousExitTime =
-          previous.exitTime ??
-          (previous.entryTime ?? previous.dateTime).add(
-            previous.effectiveRuntime ?? Duration.zero,
-          );
-      final currentEntryTime = current.entryTime ?? current.dateTime;
-
-      final interval = currentEntryTime.difference(previousExitTime);
+      final interval = current.effectiveEntryTime.difference(
+        previous.effectiveExitTime,
+      );
       return interval.isNegative ? Duration.zero : interval;
     } catch (e, stackTrace) {
       _log.error(
@@ -6092,8 +6098,7 @@ class DiveRepository {
     final current = await getDiveTimes(diveId);
     if (current == null) return null;
 
-    final cutoff =
-        (current.entryTime ?? current.dateTime).millisecondsSinceEpoch;
+    final cutoff = current.effectiveEntryTime.millisecondsSinceEpoch;
     final rows = await _db
         .customSelect(
           '$_diveTimesSelect '
@@ -6173,17 +6178,20 @@ class DiveRepository {
     }
   }
 
-  /// [earlierDivesRevisionSql] for [diveId]: a token for the dives inside its
-  /// residual lookback, 0 when there are none. Compare it only for equality.
+  /// A version token for what [diveId]'s residual load reads: the dives in its
+  /// lookback ([earlierDivesRevisionSql]), and whether it is a plan nobody has
+  /// dived, which decides which of them count. 0 when it has no such history.
+  /// Compare it only for equality.
   ///
   /// Rethrows like [getMostRecentDiveTimes]: it feeds a safety readout, and
   /// reading a failure as "nothing changed" would serve a stale review.
   // stats-scope-exempt: reads one dive's write stamps, not a statistic
-  Future<int> getEarlierDivesRevision(String diveId) async {
+  Future<int> getResidualHistoryRevision(String diveId) async {
     try {
       final row = await _db
           .customSelect(
-            'SELECT ${earlierDivesRevisionSql('d')} AS revision '
+            'SELECT ${earlierDivesRevisionSql('d')} '
+            '+ ${diveUndivedSql('d')} AS revision '
             'FROM dives d WHERE d.id = ?',
             variables: [Variable<String>(diveId)],
             readsFrom: diveSourceStampTables(_db),
@@ -6192,7 +6200,7 @@ class DiveRepository {
       return row?.read<int>('revision') ?? 0;
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to read the earlier dives revision for: $diveId',
+        'Failed to read the residual history revision for: $diveId',
         error: e,
         stackTrace: stackTrace,
       );

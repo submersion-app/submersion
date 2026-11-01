@@ -126,6 +126,9 @@ const List<_FillGroup> _groups = [
     'scrubber_duration_minutes',
     'scrubber_remaining_minutes',
   ]),
+  // A dive mirrored from a secondary is real only through a logged dive on its
+  // outing (issue #3924), and the secondary is about to go.
+  _FillGroup(['outing_id']),
   // Statistics exclusions: one on any source survives, since silently
   // re-admitting a dive the diver took out of their statistics is the
   // harder error to notice (the sequential merge's rule).
@@ -172,7 +175,6 @@ const Map<String, String> consolidationUnfilledColumns = {
   'import_source': 'import provenance of the target row',
   'import_id': 'import provenance of the target row',
   'import_version': 'import provenance of the target row',
-  'outing_id': "the target's own mirror group",
   'site_suggestion_dismissed_at':
       "the diver's answer to the target's own "
       'site suggestion',

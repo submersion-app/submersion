@@ -68,7 +68,7 @@ Future<double> sumOtuInWindow({
       totalOtu: analysis.o2Exposure.otu,
       otuCurve: analysis.otuCurve,
       curveTimestamps: _curveTimestamps(analysis),
-      diveStart: dive.entryTime ?? dive.dateTime,
+      diveStart: dive.effectiveEntryTime,
       diveEnd: dive.effectiveExitTime,
       from: from,
       to: to,
@@ -78,7 +78,7 @@ Future<double> sumOtuInWindow({
 }
 
 bool _overlaps(DiveTimes dive, DateTime from, DateTime to) {
-  final start = dive.entryTime ?? dive.dateTime;
+  final start = dive.effectiveEntryTime;
   if (!start.isBefore(to)) return false;
   return dive.effectiveExitTime.isAfter(from) || !start.isBefore(from);
 }

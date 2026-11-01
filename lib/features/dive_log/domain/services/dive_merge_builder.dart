@@ -338,6 +338,9 @@ class DiveMergeBuilder {
       diveNumber: _firstNonNull(sorted, (d) => d.diveNumber),
       surfaceInterval: first.surfaceInterval,
       diveMode: first.diveMode,
+      // A dive mirrored from a segment is real only through a logged dive on
+      // its outing (issue #3924), and the segments are about to go.
+      outingId: _firstNonNull(sorted, (d) => d.outingId),
       // One logged segment means the dive happened. Keeping the earliest
       // segment's flag would hide it from no-fly and residual exposure
       // (issue #3924).

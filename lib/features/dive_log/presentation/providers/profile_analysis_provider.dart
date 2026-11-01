@@ -1839,7 +1839,7 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
     final currentDive = await repository.getDiveTimes(diveId);
     if (currentDive == null) return 0.0;
 
-    final diveDate = currentDive.entryTime ?? currentDive.dateTime;
+    final diveDate = currentDive.effectiveEntryTime;
     final startOfDay = DateTime.utc(
       diveDate.year,
       diveDate.month,
@@ -1856,8 +1856,7 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
     return await sumOtuInWindow(
       dives: withoutUndivedPlans(currentDive, nearbyDives).where(
         (dive) =>
-            dive.id != diveId &&
-            (dive.entryTime ?? dive.dateTime).isBefore(diveDate),
+            dive.id != diveId && dive.effectiveEntryTime.isBefore(diveDate),
       ),
       from: startOfDay,
       to: diveDate,
@@ -1942,7 +1941,7 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     final currentDive = await repository.getDiveTimes(diveId);
     if (currentDive == null) return 0.0;
 
-    final diveDate = currentDive.entryTime ?? currentDive.dateTime;
+    final diveDate = currentDive.effectiveEntryTime;
     final endOfDay = DateTime.utc(
       diveDate.year,
       diveDate.month,
@@ -1963,9 +1962,7 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
     // ordering discipline in [_computeResidualOtu].
     final counted = withoutUndivedPlans(currentDive, weekDives).where(
-      (dive) =>
-          dive.id == diveId ||
-          !(dive.entryTime ?? dive.dateTime).isAfter(diveDate),
+      (dive) => dive.id == diveId || !dive.effectiveEntryTime.isAfter(diveDate),
     );
 
     // The window closes at the end of the dive's day, or at the dive's own

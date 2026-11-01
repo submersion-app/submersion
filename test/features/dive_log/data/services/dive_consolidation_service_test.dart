@@ -75,6 +75,7 @@ void main() {
     List<domain.DiveProfilePoint>? profile,
     bool isPlanned = false,
     int? diveNumber,
+    String? outingId,
   }) async {
     await diveRepo.createDive(
       domain.Dive(
@@ -87,6 +88,7 @@ void main() {
         maxDepth: depth,
         diveNumber: diveNumber,
         isPlanned: isPlanned,
+        outingId: outingId,
         diveComputerSerial: serial,
         entryLocation: entryLocation,
         exitLocation: exitLocation,
@@ -1583,6 +1585,32 @@ void main() {
       final target = await targetRow();
       expect(target.isPlanned, isTrue);
       expect(target.diveNumber, isNull);
+    });
+
+    test('a dive mirrored from the secondary stays real', () async {
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+        outingId: 'outing',
+      );
+      await seedDive(
+        'mirror',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        isPlanned: true,
+        outingId: 'outing',
+      );
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      expect((await diveRepo.getDiveTimes('mirror'))!.isUndivedPlan, isFalse);
     });
 
     test('folding plans together leaves a plan', () async {

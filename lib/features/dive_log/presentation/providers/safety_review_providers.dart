@@ -25,8 +25,8 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// peer and is kept ([_isCurrent]). A review computed on another diver's
 /// settings (#2564), on settings edited since, or before inputs were recorded
 /// is recomputed on next view (#2592). So is one graded on other history: the
-/// stored inputs also carry the dives in its residual lookback, whose load it
-/// graded ([safetyReviewInputsHash], #3924). saveReview keeps a recomputed
+/// stored inputs also carry what its residual load read
+/// ([safetyReviewInputsHash], #3924). saveReview keeps a recomputed
 /// finding's id and dismissal, so a dismissal survives the recompute.
 ///
 /// A review is saved only from an analysis that ran on exactly those
@@ -92,7 +92,7 @@ Future<SafetyReview?> _reviewDive(
   final stored = await repo.getReview(diveId);
   final reviewInputs = safetyReviewInputsHash(
     currentInputs,
-    await ref.watch(diveRepositoryProvider).getEarlierDivesRevision(diveId),
+    await ref.watch(diveRepositoryProvider).getResidualHistoryRevision(diveId),
   );
   if (stored != null &&
       (recompute
@@ -142,15 +142,15 @@ Future<SafetyReview?> _reviewDive(
 }
 
 /// The inputs a review records: the settings [fingerprint], plus
-/// [earlierRevision] when a dive sits in its residual lookback.
+/// [historyRevision] when it has a residual history to record.
 ///
 /// Stored here rather than beside the review so no synced column has to carry
 /// it. The fingerprint stays the prefix, which is what
 /// [AnalysisSettings.isNewerFormat] reads.
-String safetyReviewInputsHash(String fingerprint, int earlierRevision) =>
-    earlierRevision == 0
+String safetyReviewInputsHash(String fingerprint, int historyRevision) =>
+    historyRevision == 0
     ? fingerprint
-    : '$fingerprint;history=$earlierRevision';
+    : '$fingerprint;history=$historyRevision';
 
 /// Whether [stored] may be served as is under [currentInputs].
 ///

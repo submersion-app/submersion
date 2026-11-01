@@ -32,6 +32,24 @@ Map<String, Expression> fillOf(
 }) => consolidationFieldFill(target, secondaries, targetHasProfile: hasProfile);
 
 void main() {
+  group('the outing a dive was mirrored on (#3924)', () {
+    test('is adopted from a secondary, so its mirrors stay real', () {
+      final fill = fillOf(row('t'), [
+        row('s').copyWith(outingId: const Value('outing')),
+      ]);
+
+      expect(filled(fill, 'outing_id'), 'outing');
+    });
+
+    test("leaves the target's own alone", () {
+      final fill = fillOf(row('t').copyWith(outingId: const Value('own')), [
+        row('s').copyWith(outingId: const Value('outing')),
+      ]);
+
+      expect(filled(fill, 'outing_id'), isNull);
+    });
+  });
+
   group('a plan taking in a logged dive (#3924)', () {
     final plan = row('t').copyWith(isPlanned: true);
 
@@ -165,7 +183,6 @@ void main() {
         importSource: const Value('uddf'),
         importId: const Value('imp-1'),
         importVersion: const Value(1),
-        outingId: const Value('outing-s'),
         hlc: const Value('hlc-s'),
         siteSuggestionDismissedAt: const Value(5),
       );

@@ -205,6 +205,15 @@ void main() {
       expect(merged.isPlanned, isTrue);
     });
 
+    test('keeps the outing, so a dive mirrored from a segment stays real', () {
+      final merged = builder.build([
+        earlier,
+        later.copyWith(outingId: 'outing'),
+      ]).mergedDive;
+
+      expect(merged.outingId, 'outing');
+    });
+
     test('the logged dive keeps its number when a plan comes first', () {
       final merged = builder.build([
         earlier.copyWith(isPlanned: true),

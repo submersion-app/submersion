@@ -233,7 +233,7 @@ void main() {
 
     Future<String> currentHash() async => safetyReviewInputsHash(
       defaultFingerprint(),
-      await DiveRepository().getEarlierDivesRevision('d1'),
+      await DiveRepository().getResidualHistoryRevision('d1'),
     );
 
     ProviderContainer containerFor(_FakeRepo repo) {
@@ -285,6 +285,20 @@ void main() {
       await insertEarlier(updatedAt: 2000);
       final repo = repoWith(await currentHash());
       await rewriteEarlier(updatedAt: 1000);
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 1);
+    });
+
+    test('reviews a plan again once it is logged', () async {
+      await db.customStatement(
+        "UPDATE dives SET is_planned = 1 WHERE id = 'd1'",
+      );
+      final repo = repoWith(await currentHash());
+      await db.customStatement(
+        "UPDATE dives SET is_planned = 0 WHERE id = 'd1'",
+      );
 
       await containerFor(repo).read(safetyReviewProvider('d1').future);
 

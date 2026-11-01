@@ -51,8 +51,7 @@ class DiveTimes {
   }
 
   /// Best-known moment the diver surfaced: the stored [exitTime], or the
-  /// effective start plus [effectiveRuntime] when it is missing. Mirrors
-  /// the fallback chain in `DiveRepository.getSurfaceInterval`.
+  /// effective start plus [effectiveRuntime] when it is missing.
   DateTime get effectiveExitTime =>
       exitTime ?? effectiveEntryTime.add(effectiveRuntime ?? Duration.zero);
 

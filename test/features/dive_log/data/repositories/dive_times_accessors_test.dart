@@ -230,13 +230,13 @@ void main() {
     });
   });
 
-  group('getEarlierDivesRevision (#3924)', () {
+  group('getResidualHistoryRevision (#3924)', () {
     Future<void> touch(String id, int updatedAt) => db.customStatement(
       "UPDATE dives SET updated_at = $updatedAt WHERE id = '$id'",
     );
 
     final start = DateTime.utc(2026, 5, 3, 12);
-    Future<int> revision() => repository.getEarlierDivesRevision('current');
+    Future<int> revision() => repository.getResidualHistoryRevision('current');
 
     Future<void> createEarlier(String id, {required Duration before}) =>
         repository.createDive(
@@ -256,7 +256,7 @@ void main() {
 
     test('is zero with no dive in the lookback', () async {
       expect(await revision(), 0);
-      expect(await repository.getEarlierDivesRevision('missing'), 0);
+      expect(await repository.getResidualHistoryRevision('missing'), 0);
     });
 
     test('moves when an earlier dive is written', () async {
@@ -316,6 +316,20 @@ void main() {
       final before = await revision();
 
       await repository.deleteDive('earlier');
+
+      expect(await revision(), isNot(before));
+    });
+
+    test('moves when the dive itself stops being a plan', () async {
+      // That decides which earlier dives count toward its load.
+      await db.customStatement(
+        "UPDATE dives SET is_planned = 1 WHERE id = 'current'",
+      );
+      final before = await revision();
+
+      await db.customStatement(
+        "UPDATE dives SET is_planned = 0 WHERE id = 'current'",
+      );
 
       expect(await revision(), isNot(before));
     });

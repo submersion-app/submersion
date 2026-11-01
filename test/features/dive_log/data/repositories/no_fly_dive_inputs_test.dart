@@ -247,6 +247,96 @@ void main() {
       expect(await repository.getNoFlyDiveInputs(since: since), hasLength(2));
     });
 
+    test('carries the deco obligation of the dive it came from', () async {
+      await insertDive('source', exitTime: exit, outingId: 'outing');
+      await insertProfilePoint('source', decoType: 2);
+      await insertDive(
+        'mirror',
+        exitTime: exit,
+        isPlanned: true,
+        outingId: 'outing',
+      );
+
+      final inputs = await repository.getNoFlyDiveInputs(since: since);
+
+      expect(inputs.map((i) => i.hadDecoObligation), [isTrue, isTrue]);
+    });
+
+    test('carries a deco stop event from the dive it came from', () async {
+      await insertDive('source', exitTime: exit, outingId: 'outing');
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'evt-mirror',
+              diveId: 'source',
+              timestamp: 600,
+              eventType: 'decoStopStart',
+              createdAt: now.millisecondsSinceEpoch,
+            ),
+          );
+      await insertDive(
+        'mirror',
+        exitTime: exit,
+        isPlanned: true,
+        outingId: 'outing',
+      );
+
+      final inputs = await repository.getNoFlyDiveInputs(since: since);
+
+      expect(inputs.map((i) => i.hadDecoObligation), [isTrue, isTrue]);
+    });
+
+    test('does not read a plan on its outing for deco', () async {
+      await insertDive('source', exitTime: exit, outingId: 'outing');
+      await insertDive(
+        'sketch',
+        exitTime: exit,
+        isPlanned: true,
+        outingId: 'outing',
+      );
+      await insertProfilePoint('sketch', decoType: 2);
+      await insertDive(
+        'mirror',
+        exitTime: exit,
+        isPlanned: true,
+        outingId: 'outing',
+      );
+
+      final inputs = await repository.getNoFlyDiveInputs(since: since);
+      final deco = inputs.where((i) => i.hadDecoObligation);
+
+      // The sketch reads its own profile; the source and the other mirror
+      // have nothing to read.
+      expect(deco, hasLength(1));
+    });
+
+    test(
+      'ends with the dive it came from when that has only a runtime',
+      () async {
+        final entry = now.subtract(const Duration(hours: 3));
+        await insertDive(
+          'source',
+          entryTime: entry,
+          runtimeSeconds: 3600,
+          outingId: 'outing',
+        );
+        await insertDive(
+          'mirror',
+          entryTime: entry,
+          isPlanned: true,
+          outingId: 'outing',
+        );
+
+        final inputs = await repository.getNoFlyDiveInputs(since: since);
+
+        expect(
+          inputs.map((i) => i.endTime),
+          everyElement(now.subtract(const Duration(hours: 2))),
+        );
+      },
+    );
+
     test('stays out while every dive on its outing is a plan', () async {
       await insertDive(
         'source',

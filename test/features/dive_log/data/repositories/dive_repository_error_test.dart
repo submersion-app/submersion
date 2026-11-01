@@ -37,6 +37,10 @@ void main() {
       );
       await expectLater(repository.getDiveCount(), throwsA(anything));
       await expectLater(
+        repository.getResidualHistoryRevision('test-id'),
+        throwsA(anything),
+      );
+      await expectLater(
         repository.getDivesForSite('test-id'),
         throwsA(anything),
       );
