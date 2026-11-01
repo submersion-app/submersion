@@ -751,6 +751,52 @@ class ProfileSeriesRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Deletes the revision nodes of [diveIds] ahead of their dives. Left to
+  /// the cascade, which table goes first depends on the order the schema was
+  /// built in, and a series going first clears its child's parent link
+  /// through ON DELETE SET NULL before the change log copies that child.
+  Future<void> deleteRevisionsForDives(List<String> diveIds) async {
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      await _db.customStatement(
+        'DELETE FROM $_historyTable WHERE dive_id IN ($placeholders)',
+        chunk,
+      );
+    }
+  }
+
+  /// Puts back revision nodes read by [getRevisionsForDives], once their
+  /// series have returned through [restoreSeriesRow], which does not carry
+  /// them: lineage is local to this device.
+  /// A series that did not return is skipped, and a child whose parent did
+  /// not return keeps no parent, as that parent's own delete leaves it.
+  Future<void> restoreRevisions(
+    Iterable<ProfileSeriesRevision> revisions,
+  ) async {
+    await _db.transaction(() async {
+      for (final r in revisions) {
+        await _db.customStatement(
+          'INSERT OR REPLACE INTO $_historyTable '
+          '(series_id, dive_id, parent_series_id, root_series_id, '
+          'content_hash, revision_kind, created_at) '
+          'SELECT ?, ?, (SELECT id FROM dive_profile_series WHERE id = ?), '
+          '?, ?, ?, ? '
+          'WHERE EXISTS (SELECT 1 FROM dive_profile_series WHERE id = ?)',
+          [
+            r.seriesId,
+            r.diveId,
+            r.parentSeriesId,
+            r.rootSeriesId,
+            r.contentHash,
+            r.revisionKind,
+            r.createdAt,
+            r.seriesId,
+          ],
+        );
+      }
+    });
+  }
+
   /// Writes `is_primary` = [value] on every matching series, marking each
   /// changed row pending. The write and the pending stamps are one
   /// transaction: a failure between them would leave rows whose flag moved

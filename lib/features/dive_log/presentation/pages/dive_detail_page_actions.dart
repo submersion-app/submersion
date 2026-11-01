@@ -93,6 +93,48 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     container.invalidate(siblingDivesProvider(dive.id));
   }
 
+  /// Open a new plan that follows this dive (issue #3565): a series whose
+  /// first dive starts from where this one left off.
+  ///
+  /// The dive is read before the plan being edited is replaced, so a failed
+  /// load, or leaving the page during it, leaves that plan alone.
+  Future<void> _planRepetitiveDive(Dive dive) async {
+    if (!await _confirmReplacingPlan()) return;
+    await ref.container.awaitFuture(seriesFollowProvider(dive.id).future);
+    if (!mounted) return;
+    ref.read(divePlanNotifierProvider.notifier).newPlan();
+    await followLoggedDive(ref, dive.id);
+    if (!mounted) return;
+    openDivePlanner(context);
+  }
+
+  /// Whether the plan being edited may go, asking as Reset does when it holds
+  /// unsaved work. A series always does: it cannot be saved yet.
+  Future<bool> _confirmReplacingPlan() async {
+    final unsaved =
+        ref.read(divePlanNotifierProvider).isDirty ||
+        ref.read(planSeriesNotifierProvider).isSeries;
+    if (!unsaved) return true;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.divePlanner_action_resetPlan),
+        content: Text(context.l10n.divePlanner_message_resetConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.divePlanner_action_reset),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true && mounted;
+  }
+
   /// Promote a planned dive by hand (issue #2002): clears the flag and takes
   /// the next dive number through the one path that does both. Invalidates
   /// through the container so the list refreshes even if this page is gone.
