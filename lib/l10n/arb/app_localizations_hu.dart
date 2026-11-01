@@ -34290,6 +34290,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Néhány érték üresen maradt';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Néhány gázkeverék javítva lett';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'Az oxigén és a hélium együtt több mint 100% volt ezekben a sorokban: $rows. A héliumot csökkentettük, így az összeg 100%. Ellenőrizze ezeknek a merüléseknek a gázát.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

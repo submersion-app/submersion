@@ -10096,6 +10096,8 @@
   "universalImport_summary_noticeColumnsNotImportedTitle": "لم يتم استيراد بعض الأعمدة",
   "universalImport_summary_noticeColumnsNotImportedBody": "طابقت هذه الأعمدة حقلًا يملؤه عمود آخر بالفعل، لذا تم استبعادها: {names}. لاستخدام أحدها بدلاً من ذلك، استورد الملف مجددًا واختره في خطوة \"Map Fields\".",
   "universalImport_summary_noticeValuesNotConvertedTitle": "تُركت بعض القيم فارغة",
+  "universalImport_summary_noticeGasMixesCappedTitle": "تم تصحيح بعض خلطات الغاز",
+  "universalImport_summary_noticeGasMixesCappedBody": "تجاوز مجموع الأكسجين والهيليوم 100% في هذه الصفوف: {rows}. تم تخفيض الهيليوم ليصبح المجموع 100%. راجع الغاز في هذه الغطسات.",
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{تعذّر تحويل قيمة واحدة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} two{تعذّر تحويل قيمتين فتُركتا فارغتين. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} few{تعذّر تحويل {count} قيم فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} many{تعذّر تحويل {count} قيمة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} other{تعذّر تحويل {count} قيمة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "تم تخطي بعض الصور",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{لم يكن لصورة واحدة اسم ملف فتعذّر ربطها.} two{لم يكن لصورتين اسم ملف فتعذّر ربطهما.} few{لم يكن لـ {count} صور اسم ملف فتعذّر ربطها.} many{لم يكن لـ {count} صورة اسم ملف فتعذّر ربطها.} other{لم يكن لـ {count} صورة اسم ملف فتعذّر ربطها.}}",

@@ -225,6 +225,7 @@ class CsvTransformer {
 
     // Step 6: Second pass - combine date+time into dateTime for each row.
     final validRows = <Map<String, dynamic>>[];
+    final sourceRows = <int>[];
     for (var i = 0; i < resolvedRows.length; i++) {
       final row = resolvedRows[i];
 
@@ -236,6 +237,7 @@ class CsvTransformer {
           ..remove('time')
           ..remove('_informalTime');
         validRows.add(result);
+        sourceRows.add(csv.sourceRowNumber(i));
         continue;
       }
 
@@ -276,10 +278,12 @@ class CsvTransformer {
         ..remove('time')
         ..remove('_informalTime');
       validRows.add(result);
+      sourceRows.add(csv.sourceRowNumber(i));
     }
 
     return TransformedRows(
       rows: validRows,
+      sourceRows: sourceRows,
       warnings: warnings,
       fileRole: fileRole,
       dateOrder: dateOrder ?? dateTimeOrder,

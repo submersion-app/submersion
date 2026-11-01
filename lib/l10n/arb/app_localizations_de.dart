@@ -34403,6 +34403,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einige Werte leer gelassen';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Einige Gasgemische wurden korrigiert';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'Sauerstoff und Helium ergaben in diesen Zeilen zusammen über 100 %: $rows. Helium wurde verringert, sodass die Summe 100 % beträgt. Prüfen Sie das Gas dieser Tauchgänge.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

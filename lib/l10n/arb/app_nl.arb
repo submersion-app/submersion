@@ -10096,6 +10096,8 @@
   "universalImport_summary_noticeColumnsNotImportedTitle": "Sommige kolommen zijn niet geïmporteerd",
   "universalImport_summary_noticeColumnsNotImportedBody": "Deze kolommen kwamen overeen met een veld dat al door een andere kolom wordt gevuld en zijn daarom weggelaten: {names}. Wil je een ervan gebruiken, importeer het bestand dan opnieuw en kies die kolom in de stap ‘Map Fields’.",
   "universalImport_summary_noticeValuesNotConvertedTitle": "Sommige waarden leeg gelaten",
+  "universalImport_summary_noticeGasMixesCappedTitle": "Sommige gasmengsels zijn gecorrigeerd",
+  "universalImport_summary_noticeGasMixesCappedBody": "Zuurstof en helium kwamen samen boven de 100% uit in deze rijen: {rows}. Helium is verlaagd zodat het totaal 100% is. Controleer het gas van deze duiken.",
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 waarde kon niet worden omgezet en is leeg gelaten. Als een veld er verkeerd uitziet, controleer dan de kolomtoewijzing en importeer opnieuw.} other{{count} waarden konden niet worden omgezet en zijn leeg gelaten. Als een veld er verkeerd uitziet, controleer dan de kolomtoewijzing en importeer opnieuw.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Sommige foto's overgeslagen",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 foto had geen bestandsnaam en kon niet worden gekoppeld.} other{{count} foto's hadden geen bestandsnaam en konden niet worden gekoppeld.}}",

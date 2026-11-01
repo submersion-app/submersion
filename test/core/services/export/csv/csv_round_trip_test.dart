@@ -298,6 +298,7 @@ void main() {
             near(got.startPressure, want.startPressure, 0.06, 'start');
             near(got.endPressure, want.endPressure, 0.06, 'end');
             expect(got.gasMix.o2, want.gasMix.o2);
+            expect(got.gasMix.he, want.gasMix.he);
             // Metric mode never wrote a working pressure.
             if (!units.isMetric) {
               near(got.workingPressure, want.workingPressure, 0.06, 'wp');

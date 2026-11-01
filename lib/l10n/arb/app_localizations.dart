@@ -54484,6 +54484,18 @@ abstract class AppLocalizations {
   /// **'Some values left blank'**
   String get universalImport_summary_noticeValuesNotConvertedTitle;
 
+  /// No description provided for @universalImport_summary_noticeGasMixesCappedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some gas mixes were corrected'**
+  String get universalImport_summary_noticeGasMixesCappedTitle;
+
+  /// No description provided for @universalImport_summary_noticeGasMixesCappedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen and helium added up to over 100% in these rows: {rows}. Helium was reduced so the total is 100%. Check the gas on these dives.'**
+  String universalImport_summary_noticeGasMixesCappedBody(String rows);
+
   /// No description provided for @universalImport_summary_noticeValuesNotConvertedBody.
   ///
   /// In en, this message translates to:

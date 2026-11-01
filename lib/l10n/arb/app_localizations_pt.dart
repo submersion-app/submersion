@@ -34471,6 +34471,15 @@ class AppLocalizationsPt extends AppLocalizations {
       'Alguns valores ficaram em branco';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Algumas misturas de gás foram corrigidas';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'O oxigênio e o hélio somavam mais de 100% nestas linhas: $rows. O hélio foi reduzido para que o total seja 100%. Verifique o gás destes mergulhos.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

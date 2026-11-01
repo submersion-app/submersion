@@ -10096,6 +10096,8 @@
   "universalImport_summary_noticeColumnsNotImportedTitle": "Algumas colunas não foram importadas",
   "universalImport_summary_noticeColumnsNotImportedBody": "Essas colunas correspondiam a um campo que outra coluna já preenche, então foram deixadas de fora: {names}. Para usar uma delas no lugar, importe o arquivo novamente e escolha-a na etapa “Map Fields”.",
   "universalImport_summary_noticeValuesNotConvertedTitle": "Alguns valores ficaram em branco",
+  "universalImport_summary_noticeGasMixesCappedTitle": "Algumas misturas de gás foram corrigidas",
+  "universalImport_summary_noticeGasMixesCappedBody": "O oxigênio e o hélio somavam mais de 100% nestas linhas: {rows}. O hélio foi reduzido para que o total seja 100%. Verifique o gás destes mergulhos.",
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{{count} valor não pôde ser convertido e ficou em branco. Se um campo parecer errado, verifique o mapeamento de colunas e importe novamente.} other{{count} valores não puderam ser convertidos e ficaram em branco. Se um campo parecer errado, verifique o mapeamento de colunas e importe novamente.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Algumas fotos ignoradas",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{{count} foto não tinha nome de arquivo e não pôde ser vinculada.} other{{count} fotos não tinham nome de arquivo e não puderam ser vinculadas.}}",

@@ -19871,6 +19871,15 @@
     }
   },
   "universalImport_summary_noticeValuesNotConvertedTitle": "Some values left blank",
+  "universalImport_summary_noticeGasMixesCappedTitle": "Some gas mixes were corrected",
+  "universalImport_summary_noticeGasMixesCappedBody": "Oxygen and helium added up to over 100% in these rows: {rows}. Helium was reduced so the total is 100%. Check the gas on these dives.",
+  "@universalImport_summary_noticeGasMixesCappedBody": {
+    "placeholders": {
+      "rows": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 value could not be converted and was left blank. If a field looks wrong, check its column mapping and import again.} other{{count} values could not be converted and were left blank. If a field looks wrong, check its column mapping and import again.}}",
   "@universalImport_summary_noticeValuesNotConvertedBody": {
     "placeholders": {
