@@ -3492,6 +3492,8 @@ class DiveRepository {
   /// `idx_dives_site_id`; the date form compares the coalesced start, which
   /// no index serves, so it scans `dives` once. Empty for a [limit] of zero
   /// or less, which SQLite would otherwise read as no limit at all.
+  // stats-scope-exempt: backs a displayed set (the career terrain's ribbons),
+  // not a statistic; an excluded dive is still a dive the diver made there.
   Future<List<domain.DiveStart>> getNewestDiveStarts({
     String? diverId,
     String? siteId,
