@@ -148,6 +148,8 @@ class _GasSwitchTimeSheetState extends State<_GasSwitchTimeSheet> {
               child: Slider(
                 value: _seconds.toDouble(),
                 max: _span.toDouble(),
+                // No inset, so the thumb sits under the chart's cursor.
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 semanticFormatterCallback: (value) =>
                     formatMinutesSeconds(value.round()),
                 onChanged: (value) => setState(() => _seconds = value.round()),
@@ -193,8 +195,14 @@ class _Cursor extends StatelessWidget {
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
-          Center(
-            child: SizedBox(width: 1.5, child: ColoredBox(color: color)),
+          Positioned(
+            top: 0,
+            bottom: 0,
+            child: SizedBox(
+              key: const ValueKey('gas-switch-time-line'),
+              width: 1.5,
+              child: ColoredBox(color: color),
+            ),
           ),
           Positioned(
             top: y - _cursorDotSize / 2,

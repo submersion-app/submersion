@@ -108,6 +108,17 @@ void main() {
       );
     });
 
+    testWidgets('the cursor line runs the height of the chart', (tester) async {
+      await _open(tester);
+
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('gas-switch-time-line')))
+            .height,
+        tester.getSize(find.byKey(_chart)).height,
+      );
+    });
+
     testWidgets('a horizontal drag follows the finger', (tester) async {
       await _open(tester);
 
@@ -145,6 +156,17 @@ void main() {
       await tester.pump();
 
       expect(find.text('2:00 at 6.0m'), findsOneWidget);
+    });
+
+    testWidgets('the slider lines up with the chart', (tester) async {
+      await _open(tester);
+
+      final chart = tester.getRect(find.byKey(_chart));
+      final slider = tester.getRect(find.byType(Slider));
+
+      expect(slider.left, chart.left);
+      expect(slider.right, chart.right);
+      expect(tester.widget<Slider>(find.byType(Slider)).padding?.horizontal, 0);
     });
 
     testWidgets('Set time returns the chosen seconds', (tester) async {
