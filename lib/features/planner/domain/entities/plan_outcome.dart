@@ -304,7 +304,7 @@ class PlanFoldedTravel extends Equatable {
 }
 
 /// One line of the dive plan table, the way a slate reads it, so a diver can
-/// follow the plan against a watch - leave the bottom, reach 21 m by minute
+/// follow the plan against a watch: leave the bottom, reach 21 m by minute
 /// 38, hold until 39, and so on. Authored legs come first, then the computed
 /// ascent: the leg to the first stop, every stop, and the leg to the surface.
 ///
