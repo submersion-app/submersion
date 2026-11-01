@@ -62,6 +62,11 @@ enum ImportWarningCode {
   /// blank. One warning per value.
   valuesNotConverted,
 
+  /// A CSV row named more than 100 % of oxygen and helium, so helium was
+  /// reduced to what the oxygen leaves. One warning per dive, carrying the
+  /// row in [ImportWarning.sourceRow].
+  gasMixesCapped,
+
   /// A photo reference had no file name, so it could not be linked. One
   /// warning per photo.
   photosSkipped,

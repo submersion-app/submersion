@@ -20699,6 +20699,28 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di profilo per quell\'immersione — intervallo di superficie impostato senza saturazione dei tessuti';
 
   @override
+  String get plannerCanvas_link_action => 'Collega a un\'immersione registrata';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Cambia immersione collegata';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Scollega immersione';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Eseguita come #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Eseguita il $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Salva prima il piano';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Immersione $letter';
   }
@@ -34487,6 +34509,15 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>
       'Alcuni valori lasciati vuoti';
+
+  @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Alcune miscele di gas sono state corrette';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'Ossigeno ed elio superavano insieme il 100% in queste righe: $rows. L\'elio è stato ridotto per portare il totale al 100%. Controlla il gas di queste immersioni.';
+  }
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
@@ -52915,11 +52946,94 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Nuovo scenario';
+  String get diveLab_compare_line_planned => 'Pianificato';
 
   @override
-  String get diveLab_section_hint =>
-      'Dirama questa immersione in qualsiasi momento e confronta cosa sarebbe successo.';
+  String get diveLab_compare_line_asDived => 'Eseguita';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'E se';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Prof. max';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Tempo di fondo';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL lasciando il fondo';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return '$minutes min rimasti';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco a $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done fatti';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Nessuna';
+
+  @override
+  String get diveLab_compare_empty => 'Ancora niente da confrontare';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Chiedi un e se';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Collega un piano';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Scollega piano';
+
+  @override
+  String get diveLab_compare_planTable => 'Piano e immersione';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programma pianificato';
+
+  @override
+  String get diveLab_compare_waiting => 'In attesa dell\'immersione';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Scollegare questo piano?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'Il piano e l\'immersione restano entrambi. Semplicemente non vengono più confrontati.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Scollega';
+
+  @override
+  String get diveLab_link_moveTitle =>
+      'Spostare il collegamento di questo piano?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Questo piano è collegato a un\'altra immersione. Collegarlo qui rimuove quel collegamento.';
+
+  @override
+  String get diveLab_link_replaceTitle =>
+      'Sostituire il piano di questa immersione?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Questa immersione è confrontata con \"$plan\". Collegare un altro piano lo scollega.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Collega';
 
   @override
   String get diveDetailSection_diveLab_name => 'Confronta';

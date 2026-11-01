@@ -144,6 +144,41 @@ void main() {
     expect(notices, isEmpty);
   });
 
+  test('capped gas mixes list their rows and count imported dives', () {
+    ImportWarning capped(int row) => ImportWarning(
+      severity: ImportWarningSeverity.warning,
+      code: ImportWarningCode.gasMixesCapped,
+      message: 'English text the summary never shows',
+      sourceRow: row,
+    );
+    final notice = groupImportNotices([capped(9), capped(4), capped(12)], 2);
+    expect(notice.single.kind, ImportNoticeKind.gasMixesCapped);
+    expect(notice.single.rowNumbers, [4, 9, 12]);
+    expect(notice.single.count, 2);
+  });
+
+  test('each row-listing kind keeps its own rows', () {
+    ImportWarning at(ImportWarningCode code, int row) => ImportWarning(
+      severity: ImportWarningSeverity.warning,
+      code: code,
+      message: 'English text the summary never shows',
+      sourceRow: row,
+    );
+    final notices = groupImportNotices([
+      at(ImportWarningCode.unreadableDate, 2),
+      at(ImportWarningCode.gasMixesCapped, 7),
+      at(ImportWarningCode.noTankPressure, 9),
+    ], 3);
+    expect(
+      {for (final n in notices) n.kind: n.rowNumbers},
+      {
+        ImportNoticeKind.unreadableDates: [2],
+        ImportNoticeKind.gasMixesCapped: [7],
+        ImportNoticeKind.noTankPressure: <int>[],
+      },
+    );
+  });
+
   test('every shown code maps to its own notice kind', () {
     const expected = {
       ImportWarningCode.noTankPressure: ImportNoticeKind.noTankPressure,
@@ -156,6 +191,7 @@ void main() {
           ImportNoticeKind.profileUndecodableOnPlatform,
       ImportWarningCode.columnsNotImported: ImportNoticeKind.columnsNotImported,
       ImportWarningCode.valuesNotConverted: ImportNoticeKind.valuesNotConverted,
+      ImportWarningCode.gasMixesCapped: ImportNoticeKind.gasMixesCapped,
       ImportWarningCode.photosSkipped: ImportNoticeKind.photosSkipped,
       ImportWarningCode.logbookImagesNotImported:
           ImportNoticeKind.logbookImagesNotImported,

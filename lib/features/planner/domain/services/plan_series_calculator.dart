@@ -58,6 +58,7 @@ DivePlanState carriedState(
     final tissues = follow.endTissues;
     return dive.state.copyWith(
       initialTissueState: tissues,
+      initialTissueEnvironment: follow.endEnvironment,
       clearInitialTissueState: tissues == null,
       initialCns: follow.endCns,
       initialOtu: _carriedOtu(dives, 0, earlier, follow),
@@ -89,6 +90,7 @@ DivePlanState carriedState(
 
   return dive.state.copyWith(
     initialTissueState: previous.outcome.surfacedTissue.compartments,
+    initialTissueEnvironment: environmentForPlan(previous.state),
     initialCns: previous.outcome.cnsEnd,
     initialOtu: _carriedOtu(dives, index, earlier, follow),
     tanks: tanks,

@@ -835,13 +835,20 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       parseCurrent: 0,
     );
 
+    // A run the wizard has since dropped stops at its next file and writes
+    // nothing: see _parseAndInstall.
+    final files = state.files;
+    bool isCurrent() => identical(state.files, files);
+
     final result = await _batchParseService.parseAll(
-      state.files,
+      files,
       onProgress: (current, total) {
+        if (!isCurrent()) return;
         state = state.copyWith(parseCurrent: current, parseTotal: total);
       },
-      isCancelled: () => _batchParseCancelled,
+      isCancelled: () => _batchParseCancelled || !isCurrent(),
     );
+    if (!isCurrent()) return;
 
     if (result.cancelled) {
       // Stay on triage; reset parse bookkeeping so a re-run starts clean.
@@ -908,6 +915,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       throw _fail(_l10n.universalImport_error_fileUnreadable);
     }
 
+    // A large file parses on a worker, so the app stays responsive and the
+    // diver can close the wizard and start again before this returns. The
+    // result then belongs to an import they have left, and writing it here
+    // would put one file's dives under another's name (#3865).
+    bool isCurrent() => identical(state.fileBytes, bytes);
+
     state = state.copyWith(isLoading: true, clearError: true);
 
     final ImportPayload payload;
@@ -934,8 +947,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         error: e,
         stackTrace: stackTrace,
       );
+      if (!isCurrent()) return;
       throw _fail(_l10n.universalImport_error_parseFailed('$e'));
     }
+    if (!isCurrent()) return;
 
     // The per-row warnings are English transformer strings, so a CSV whose
     // every row was skipped is summarised rather than shown its first one.

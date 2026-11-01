@@ -1,4 +1,20 @@
+import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
+
+/// The cylinder [stop]'s air break is breathed from, or null on a stop with no
+/// air break: whichever [tankForGas] finds for the break gas [plan] offers at
+/// the stop's depth, or [stopTankId] when it offers none.
+String? airBreakTankIdFor(
+  DecoStop stop, {
+  required AscentGasPlan plan,
+  required String? stopTankId,
+  required String? Function(double fO2, double fHe) tankForGas,
+}) {
+  if (stop.airBreakSeconds == 0) return null;
+  final breakGas = plan.breakGasForDepth(stop.depthMeters);
+  return breakGas != null ? tankForGas(breakGas.fO2, breakGas.fHe) : stopTankId;
+}
 
 /// The runs of a stop of [stopSeconds] with air breaks: alternating spells
 /// on the stop gas and on the break gas, in order.

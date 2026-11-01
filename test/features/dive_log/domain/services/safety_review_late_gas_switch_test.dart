@@ -31,8 +31,8 @@ void main() {
           .where((f) => f.ruleId == SafetyRuleId.lateGasSwitch)
           .toList();
 
-  test('engine version is 9', () {
-    expect(SafetyReviewService.engineVersion, 9);
+  test('engine version is 10', () {
+    expect(SafetyReviewService.engineVersion, 10);
   });
 
   test('one finding per window, severity by extra deco', () {

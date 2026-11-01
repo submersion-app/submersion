@@ -1123,6 +1123,25 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Takes on a link the repository already holds for [planId], written from
+  /// outside the planner (issue #4003). Not an edit, so it leaves the plan
+  /// clean, but a later save writes the whole row and must not put the old
+  /// link back. Ignored unless [planId] is the plan being edited.
+  void adoptLink(String planId, String? diveId) {
+    if (state.id != planId) return;
+    final persisted = _persisted;
+    if (persisted != null) {
+      _loaded = persisted.copyWith(
+        linkedDiveId: diveId,
+        clearLinkedDiveId: diveId == null,
+      );
+    }
+    state = state.copyWith(
+      linkedDiveId: diveId,
+      clearLinkedDiveId: diveId == null,
+    );
+  }
+
   /// Clear repetitive dive settings.
   void clearRepetitiveDiveSettings() {
     state = state.copyWith(

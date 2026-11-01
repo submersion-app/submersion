@@ -20621,6 +20621,28 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva';
 
   @override
+  String get plannerCanvas_link_action => 'Összekapcsolás naplózott merüléssel';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Kapcsolt merülés módosítása';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Merülés leválasztása';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Merülve: #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Merülve: $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Először mentsd a tervet';
+
+  @override
   String plannerSeries_dive(String letter) {
     return '$letter merülés';
   }
@@ -34288,6 +34310,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_summary_noticeValuesNotConvertedTitle =>
       'Néhány érték üresen maradt';
+
+  @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Néhány gázkeverék javítva lett';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'Az oxigén és a hélium együtt több mint 100% volt ezekben a sorokban: $rows. A héliumot csökkentettük, így az összeg 100%. Ellenőrizze ezeknek a merüléseknek a gázát.';
+  }
 
   @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
@@ -52616,11 +52647,92 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Új forgatókönyv';
+  String get diveLab_compare_line_planned => 'Tervezett';
 
   @override
-  String get diveLab_section_hint =>
-      'Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.';
+  String get diveLab_compare_line_asDived => 'Ahogy merültél';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'Mi lenne, ha';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Max. mélység';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Fenékidő';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL a fenék elhagyásakor';
+
+  @override
+  String get diveLab_compare_row_deco => 'Dekó';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'még $minutes perc';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Dekó ekkortól: $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done elvégezve';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Nincs';
+
+  @override
+  String get diveLab_compare_empty => 'Még nincs mit összehasonlítani';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Mi lenne, ha kérdés';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Terv kapcsolása';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Terv leválasztása';
+
+  @override
+  String get diveLab_compare_planTable => 'Terv és merülés';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Tervezett menetrend';
+
+  @override
+  String get diveLab_compare_waiting => 'Várakozás a merülésre';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Leválasztod ezt a tervet?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'A terv és a merülés is megmarad, csak már nem hasonlítjuk össze őket.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Leválasztás';
+
+  @override
+  String get diveLab_link_moveTitle => 'Áthelyezed a terv kapcsolatát?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Ez a terv egy másik merüléshez kapcsolódik. Az itteni összekapcsolás megszünteti azt.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'Lecseréled a merülés tervét?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Ez a merülés a(z) \"$plan\" tervvel van összehasonlítva. Másik terv kapcsolása leválasztja azt.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Összekapcsolás';
 
   @override
   String get diveDetailSection_diveLab_name => 'Összehasonlítás';

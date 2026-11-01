@@ -16,6 +16,7 @@ import 'package:submersion/features/universal_import/data/models/import_warning.
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/site_location_text.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_csv_table.dart';
+import 'package:submersion/features/universal_import/data/services/gas_mix_cap.dart';
 
 /// Where a site is, as a row of the dives CSV says. [location] is the Location
 /// cell of a file without the place columns, which tells two sites apart by a
@@ -197,7 +198,24 @@ class SubmersionDivesCsvParser implements ImportParser {
       if (typeIds.isNotEmpty) dive['diveTypeIds'] = typeIds;
 
       final tank = _tank(table, row);
-      if (tank != null) dive['tanks'] = <Map<String, dynamic>>[tank];
+      if (tank != null) {
+        final read = tank['gasMix'] as GasMix;
+        final keptHe = cappedHelium(read.o2, read.he);
+        if (keptHe != null) {
+          tank['gasMix'] = GasMix(o2: read.o2, he: keptHe);
+          warnings.add(
+            gasMixCappedWarning(
+              o2: read.o2,
+              he: read.he,
+              keptHe: keptHe,
+              sourceRow: table.sourceRowOf(i),
+              itemIndex: i,
+              field: DiveCsvColumns.hePercent,
+            ),
+          );
+        }
+        dive['tanks'] = <Map<String, dynamic>>[tank];
+      }
 
       final custom = _customFields(table, row);
       if (custom.isNotEmpty) dive['customFields'] = custom;
