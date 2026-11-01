@@ -6084,8 +6084,8 @@ class DiveRepository {
   /// link meant for the real dive) whose effective start (entryTime,
   /// falling back to the legacy diveDateTime) is at or after [notBefore].
   /// Mirrors [getPreviousDive]'s predicate and ordering in reverse, with an
-  /// explicit diver filter -- unlike [getPreviousDive], which is used for
-  /// the surface-interval lookback and does not need one.
+  /// explicit diver filter: [getPreviousDive] has none, because the surface
+  /// interval a shared logbook shows spans every diver.
   ///
   /// Returns only the id, not a hydrated [domain.Dive]: the sole caller,
   /// [ChecklistDiveLinker], only compares identity, and that linker runs
@@ -6223,7 +6223,7 @@ class DiveRepository {
     }
   }
 
-  /// Times-only equivalent of [getDivesInRange] (identical WHERE and
+  /// Times-only equivalent of [getDivesInRange] (identical window and
   /// ordering), for same-day and weekly exposure aggregation.
   ///
   /// [diverId] is required because exposure is one person's (#3923), and unlike
