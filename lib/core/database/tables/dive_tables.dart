@@ -127,6 +127,11 @@ class Dives extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get excludedFromGasStats =>
       boolean().withDefault(const Constant(false))();
+  // v333: set once the diver saves a change to the dive's gas switches
+  // (issue #32). From then on a re-parse and a file resync leave the switch
+  // list alone, the way they already keep an edited profile.
+  BoolColumn get gasSwitchesEdited =>
+      boolean().withDefault(const Constant(false))();
   // Dive mode for CCR/SCR (v1.5)
   TextColumn get diveMode =>
       text().withDefault(const Constant('oc'))(); // oc, ccr, scr

@@ -8015,6 +8015,53 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Wann du die Flasche gewechselt hast. Deko, Gewebesättigung und AMV je Flasche folgen diesen Wechseln.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Beginnt mit $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Wechsel hinzufügen';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Zeit';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Wechsel zu';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Tiefe';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Wechsel entfernen';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'Minuten:Sekunden verwenden';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Muss innerhalb des Tauchgangs liegen';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Ein anderer Wechsel liegt auf dieser Zeit';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gaswechsel mit ihrer Flasche entfernt',
+      one: '$count Gaswechsel mit seiner Flasche entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Standort wird ermittelt...';
 
   @override
@@ -8148,6 +8195,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_edit_notesHint =>
       'Notizen zu diesem Tauchgang hinzufügen...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Gaswechsel';
 
   @override
   String get diveLog_edit_overline_tanks => 'Flaschen';
@@ -24488,6 +24538,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_evidenceFingerprint =>
       'Fingerabdruck des Nachweises';
+
+  @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gaswechsel von Hand bearbeitet';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
