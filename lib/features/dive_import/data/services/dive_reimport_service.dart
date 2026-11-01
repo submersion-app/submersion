@@ -671,6 +671,9 @@ class DiveReimportService {
 
     final identities = await _profileSeries.getIdentitiesForDive(diveId);
     final editIds = await _profileSeries.liveEditIds(diveId);
+    // No samples to land beneath the edit, so the generation there stays: it
+    // is what the edit undoes to, and what tells the next resync it is one.
+    if (profileData.isEmpty && editIds.isNotEmpty) return;
 
     await _profileSeries.deleteByIds([
       for (final s in identities)

@@ -393,6 +393,50 @@ void main() {
       expectDepths(await diveRow(), 20, 10);
     });
 
+    test(
+      'keeps an edit through a file that comes back with no samples',
+      () async {
+        // Each resync of this file must still recognise the edit, and undoing
+        // it must still have the recording to go back to.
+        await seedSource('src-file');
+        await saveEdit();
+        final emptyProfile = {...parsedFile(), 'profile': const <Object>[]};
+
+        await resync(emptyProfile);
+        await resync(emptyProfile);
+
+        expect(await liveDepths(), [0, 20, 20, 0]);
+        expectDepths(await diveRow(), 20, 10);
+
+        await repository.restoreOriginalProfile(diveId);
+        expect(await liveDepths(), [0, 30, 30, 0]);
+      },
+    );
+
+    test(
+      'stores what the dive shows with a stale series beside the edit',
+      () async {
+        await seedSource('src-file');
+        await saveEdit();
+        await ProfileSeriesRepository().insertSeries(
+          diveId: diveId,
+          sourceId: 'src-file',
+          samples: [
+            for (final (timestamp, depth) in recorded)
+              ProfileSample(timestamp: timestamp, depth: depth),
+          ],
+          now: now,
+        );
+
+        await resync(parsedFile());
+
+        final shown = await liveDepths();
+        final dive = await diveRow();
+        expect(dive.maxDepth, shown.reduce((a, b) => a > b ? a : b));
+        expect(dive.avgDepth, shown.reduce((a, b) => a + b) / shown.length);
+      },
+    );
+
     test('keeps an edit that lost its source', () async {
       // Replace Source clears the source of the edit it leaves behind, which
       // can then sit over a demoted series that does name its source.
