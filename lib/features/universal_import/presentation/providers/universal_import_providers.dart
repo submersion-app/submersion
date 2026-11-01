@@ -727,10 +727,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       selections: const {},
     );
 
-    final effectiveOverride = overrideApp ?? state.pendingSourceOverride;
+    final pendingSource = state.pendingSourceOverride;
+    final pendingFormat = state.pendingFormatOverride;
+    final effectiveOverride = overrideApp ?? pendingSource;
 
-    final format =
-        overrideFormat ?? state.pendingFormatOverride ?? detection.format;
+    final format = overrideFormat ?? pendingFormat ?? detection.format;
     final sourceApp =
         effectiveOverride ?? detection.sourceApp ?? SourceApp.generic;
 
@@ -777,7 +778,20 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     // For non-CSV formats, parse immediately and await so payload is ready
     // before the wizard advances past the Map Fields step.
     if (format != ImportFormat.csv) {
-      await _parseAndCheckDuplicates();
+      try {
+        await _parseAndCheckDuplicates();
+      } on ImportStepCancelled {
+        // Stopping a parse is not a new answer to what this file is, so the
+        // diver's choice comes back. Different options mean a reset or a new
+        // file took over, and the choice went with the old file.
+        if (identical(state.options, options)) {
+          state = state.copyWith(
+            pendingSourceOverride: pendingSource,
+            pendingFormatOverride: pendingFormat,
+          );
+        }
+        rethrow;
+      }
     }
   }
 
@@ -851,20 +865,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// unseen and its result is dropped.
   void cancelParse() => _parseToken?.cancel();
 
-  ImportCancellationToken _startParse() {
-    _parseToken?.cancel();
-    return _parseToken = ImportCancellationToken();
-  }
-
   /// Whether [token] still speaks for this notifier. Once a reset or a new
   /// file has replaced it, the state belongs to whatever came next, and a
   /// parse finishing late must leave it alone.
   bool _ownsState(ImportCancellationToken token) =>
       identical(token, _parseToken);
-
-  void _endParse(ImportCancellationToken token) {
-    if (_ownsState(token)) _parseToken = null;
-  }
 
   /// Drops the parse in flight for something that replaces the file it reads.
   void _abandonParse() {
@@ -872,16 +877,22 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     _parseToken = null;
   }
 
-  // -- Batch Parsing (multi-file imports) --
-
-  Future<void> _parseBatch() async {
-    final token = _startParse();
+  /// Runs [parse] as the parse in flight, under a token of its own.
+  Future<void> _underNewParse(
+    Future<void> Function(ImportCancellationToken token) parse,
+  ) async {
+    _parseToken?.cancel();
+    final token = _parseToken = ImportCancellationToken();
     try {
-      await _parseBatchUnder(token);
+      await parse(token);
     } finally {
-      _endParse(token);
+      if (_ownsState(token)) _parseToken = null;
     }
   }
+
+  // -- Batch Parsing (multi-file imports) --
+
+  Future<void> _parseBatch() => _underNewParse(_parseBatchUnder);
 
   Future<void> _parseBatchUnder(ImportCancellationToken token) async {
     state = state.copyWith(
@@ -915,7 +926,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     }
 
     final payload = await token.untilCancelled(
-      _applySurfacingPressureRule(const PayloadMerger().merge(result.parsed)),
+      _applySurfacingPressureRule(
+        const PayloadMerger().merge(result.parsed),
+        cancelToken: token,
+      ),
     );
     final dupResult = payload == null
         ? null
@@ -981,12 +995,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       throw _fail(_l10n.universalImport_error_fileUnreadable);
     }
 
-    final token = _startParse();
-    try {
-      await _parseUnder(token, bytes, opts);
-    } finally {
-      _endParse(token);
-    }
+    await _underNewParse((token) => _parseUnder(token, bytes, opts));
   }
 
   Future<void> _parseUnder(
@@ -1021,7 +1030,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       );
       payload = parsed == null
           ? null
-          : await token.untilCancelled(_applySurfacingPressureRule(parsed));
+          : await token.untilCancelled(
+              _applySurfacingPressureRule(parsed, cancelToken: token),
+            );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to parse import file',
@@ -1202,12 +1213,15 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   ///
   /// Walks every sample of every dive on this isolate, so it gives way as it
   /// goes rather than stalling the wizard on a large logbook (#3854).
-  Future<ImportPayload> _applySurfacingPressureRule(ImportPayload payload) {
+  Future<ImportPayload> _applySurfacingPressureRule(
+    ImportPayload payload, {
+    ImportCancellationToken? cancelToken,
+  }) {
     final trim = _ref.read(settingsProvider).trimTankPressureAtSurfacing;
     return rewriteDivesInSlices(payload, (dive) {
       final deglitched = deglitchDiveTankPressures(dive);
       return trim ? trimDiveTankPressuresAtSurfacing(deglitched) : deglitched;
-    });
+    }, cancelToken: cancelToken);
   }
 
   Future<ImportDuplicateResult> _checkDuplicates(ImportPayload payload) async {

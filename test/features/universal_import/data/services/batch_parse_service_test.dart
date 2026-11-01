@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -191,6 +192,31 @@ void main() {
     final result = await BatchParseService(parserFor: (_) => parser).parseAll([
       wrappedDualCylinder(),
     ], cancelToken: ImportCancellationToken()..cancel());
+
+    expect(result.cancelled, isTrue);
+    expect(parser.calls, 0);
+  });
+
+  test('a cancel while reading a file starts no parse', () async {
+    final dir = await Directory.systemTemp.createTemp('batch_cancel');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File(p.join(dir.path, 'log.ssrf'))..writeAsStringSync('<x/>');
+    final token = ImportCancellationToken();
+    final parser = _ScriptedParser();
+
+    final result = await BatchParseService(parserFor: (_) => parser).parseAll(
+      [
+        PickedImportFile(
+          name: 'log.ssrf',
+          path: file.path,
+          detection: wrappedDualCylinder().detection,
+          status: ImportFileStatus.pending,
+        ),
+      ],
+      // Progress is reported just before the read, so this lands during it.
+      onProgress: (_, _) => token.cancel(),
+      cancelToken: token,
+    );
 
     expect(result.cancelled, isTrue);
     expect(parser.calls, 0);

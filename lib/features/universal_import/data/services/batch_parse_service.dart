@@ -54,13 +54,11 @@ class BatchParseService {
     ImportCancellationToken? cancelToken,
   }) async {
     final token = cancelToken ?? ImportCancellationToken();
-    BatchParseResult cancelled(
-      List<FilePayload> parsed,
-      List<PickedImportFile> updated,
-    ) => BatchParseResult(parsed: parsed, files: updated, cancelled: true);
-
     final updated = List<PickedImportFile>.of(files);
     final parsed = <FilePayload>[];
+    BatchParseResult cancelled() =>
+        BatchParseResult(parsed: parsed, files: updated, cancelled: true);
+
     final pendingTotal = files
         .where((f) => f.status == ImportFileStatus.pending)
         .length;
@@ -70,13 +68,15 @@ class BatchParseService {
       final file = updated[i];
       if (file.status != ImportFileStatus.pending) continue;
 
-      if (token.isCancelled) return cancelled(parsed, updated);
+      if (token.isCancelled) return cancelled();
 
       current++;
       onProgress?.call(current, pendingTotal);
 
       try {
         final bytes = file.bytes ?? await File(file.path!).readAsBytes();
+        // Reading can take a while, and a parse may start a worker.
+        if (token.isCancelled) return cancelled();
         final parser = _parserFor(file.detection.format);
         final options = ImportOptions(
           sourceApp: file.detection.sourceApp ?? SourceApp.generic,
@@ -88,7 +88,7 @@ class BatchParseService {
         final payload = await token.untilCancelled(
           parser.parse(bytes, options: options),
         );
-        if (payload == null) return cancelled(parsed, updated);
+        if (payload == null) return cancelled();
 
         if (payload.isEmpty) {
           final message =

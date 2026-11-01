@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
@@ -122,6 +123,25 @@ void main() {
       );
 
       expect(eventLoopRan, isFalse);
+    });
+
+    test('stops at the next slice once cancelled', () async {
+      final token = ImportCancellationToken();
+      var rewrites = 0;
+      final payload = _payload([for (var i = 0; i < 10; i++) _dive(i)]);
+
+      final result = await rewriteDivesInSlices(
+        payload,
+        (dive) {
+          if (++rewrites == 2) token.cancel();
+          return _renumbered(dive);
+        },
+        sliceSamples: 2,
+        cancelToken: token,
+      );
+
+      expect(rewrites, 2);
+      expect(identical(result, payload), isTrue);
     });
 
     test('returns a payload with no dives as it is', () async {

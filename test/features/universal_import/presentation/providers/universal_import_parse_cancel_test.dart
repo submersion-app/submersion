@@ -162,6 +162,33 @@ void main() {
       expect(notifier.state.detectionResult, isNotNull);
     });
 
+    test('cancelling keeps the override the diver chose', () async {
+      notifier.setPendingSourceOverride(
+        SourceApp.macdive,
+        format: ImportFormat.uddf,
+      );
+      final confirming = notifier.confirmSource();
+      await parser.reached(1);
+      expect(notifier.state.pendingSourceOverride, isNull);
+
+      notifier.cancelParse();
+
+      await expectLater(confirming, _cancelled);
+      expect(notifier.state.pendingSourceOverride, SourceApp.macdive);
+      expect(notifier.state.pendingFormatOverride, ImportFormat.uddf);
+    });
+
+    test('a reset does not bring the old file\'s override back', () async {
+      notifier.setPendingSourceOverride(SourceApp.macdive);
+      final confirming = notifier.confirmSource();
+      await parser.reached(1);
+
+      notifier.reset();
+
+      await expectLater(confirming, _cancelled);
+      expect(notifier.state.pendingSourceOverride, isNull);
+    });
+
     test('a cancelled parse that finishes late changes nothing', () async {
       final confirming = notifier.confirmSource();
       await parser.reached(1);

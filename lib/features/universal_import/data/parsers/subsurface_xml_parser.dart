@@ -42,8 +42,8 @@ class SubsurfaceXmlParser implements ImportParser {
       _parseOffIsolate(fileBytes, _runner);
 
   /// Minimal-scope hop to the worker isolate, kept static so the closure
-  /// carries the bytes alone and never this instance. A date the file cannot
-  /// back up is an answer about the data, so it comes back as the
+  /// carries the bytes alone and never this instance. A trip date that cannot
+  /// be read is an answer about the data, so it comes back as the
   /// [FormatException] it would be here, without a second parse.
   static Future<ImportPayload> _parseOffIsolate(
     Uint8List fileBytes,
