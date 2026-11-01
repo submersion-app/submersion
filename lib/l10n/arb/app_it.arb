@@ -5871,6 +5871,7 @@
   "plannerSeries_site": "Sito",
   "plannerSeries_site_none": "Nessun sito",
   "plannerSeries_site_clear": "Cancella il sito",
+  "plannerSeries_saved_diveCount": "{count} immersioni",
   "plannerSeries_scope_series": "Serie",
   "plannerSeries_scope_seriesHint": "Le immersioni successive usano queste impostazioni salvo che abbiano le proprie",
   "plannerSeries_scope_fromSeries": "Dalla serie",

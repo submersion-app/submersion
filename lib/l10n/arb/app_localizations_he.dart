@@ -20349,6 +20349,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_site_clear => 'ניקוי האתר';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count צלילות';
+  }
+
+  @override
   String get plannerSeries_scope_series => 'סדרה';
 
   @override

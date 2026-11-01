@@ -12960,6 +12960,15 @@
   "plannerSeries_site": "Site",
   "plannerSeries_site_none": "No site",
   "plannerSeries_site_clear": "Clear the site",
+  "plannerSeries_saved_diveCount": "{count} dives",
+  "@plannerSeries_saved_diveCount": {
+    "description": "How many dives a saved series has, in the saved plans list",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerSeries_scope_series": "Series",
   "plannerSeries_scope_seriesHint": "Dives after this one take these settings unless they set their own",
   "plannerSeries_scope_fromSeries": "From the series",

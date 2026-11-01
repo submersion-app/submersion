@@ -529,6 +529,12 @@ class DivePlanRepository {
             runtimeSeconds: r.summaryRuntimeSeconds,
             ttsSeconds: r.summaryTtsSeconds,
             mode: domain.PlanMode.values.byName(r.mode),
+            seriesId: r.seriesId,
+            seriesIndex: r.seriesIndex,
+            diveName: r.diveName,
+            startDateTime: r.startDateTime == null
+                ? null
+                : wallClockUtcFromMillis(r.startDateTime! * 1000),
           ),
         )
         .toList();

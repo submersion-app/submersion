@@ -660,6 +660,15 @@ class DivePlanSummary extends Equatable {
   final int? ttsSeconds;
   final PlanMode mode;
 
+  /// The saved series this dive is in, its place there and its own name;
+  /// null for an ordinary plan.
+  final String? seriesId;
+  final int? seriesIndex;
+  final String? diveName;
+
+  /// When the dive starts, as clock digits stamped UTC; null when not set.
+  final DateTime? startDateTime;
+
   const DivePlanSummary({
     required this.id,
     required this.name,
@@ -668,6 +677,10 @@ class DivePlanSummary extends Equatable {
     this.runtimeSeconds,
     this.ttsSeconds,
     this.mode = PlanMode.oc,
+    this.seriesId,
+    this.seriesIndex,
+    this.diveName,
+    this.startDateTime,
   });
 
   @override
@@ -679,5 +692,9 @@ class DivePlanSummary extends Equatable {
     runtimeSeconds,
     ttsSeconds,
     mode,
+    seriesId,
+    seriesIndex,
+    diveName,
+    startDateTime,
   ];
 }

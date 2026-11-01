@@ -5972,6 +5972,7 @@
   "plannerSeries_site": "Local",
   "plannerSeries_site_none": "Sem local",
   "plannerSeries_site_clear": "Limpar o local",
+  "plannerSeries_saved_diveCount": "{count} mergulhos",
   "plannerSeries_scope_series": "Série",
   "plannerSeries_scope_seriesHint": "Os mergulhos seguintes usam estas definições, salvo se tiverem as suas",
   "plannerSeries_scope_fromSeries": "Da série",

@@ -6099,6 +6099,7 @@
   "plannerSeries_site": "Tauchplatz",
   "plannerSeries_site_none": "Kein Tauchplatz",
   "plannerSeries_site_clear": "Tauchplatz löschen",
+  "plannerSeries_saved_diveCount": "{count} Tauchgänge",
   "plannerSeries_scope_series": "Serie",
   "plannerSeries_scope_seriesHint": "Spätere Tauchgänge übernehmen diese Einstellungen, sofern sie keine eigenen haben",
   "plannerSeries_scope_fromSeries": "Aus der Serie",

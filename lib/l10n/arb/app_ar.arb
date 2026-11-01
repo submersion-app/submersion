@@ -5972,6 +5972,7 @@
   "plannerSeries_site": "الموقع",
   "plannerSeries_site_none": "بلا موقع",
   "plannerSeries_site_clear": "مسح الموقع",
+  "plannerSeries_saved_diveCount": "{count} غطسات",
   "plannerSeries_scope_series": "السلسلة",
   "plannerSeries_scope_seriesHint": "تستخدم الغطسات التالية هذه الإعدادات ما لم تكن لها إعداداتها الخاصة",
   "plannerSeries_scope_fromSeries": "من السلسلة",

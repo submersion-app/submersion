@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -44,8 +45,9 @@ class PlanningListContent extends ConsumerWidget {
     // narrow-window-only entry point (issue #3551).
     final showPlannedDivesRow = onToolSelected == null;
     final recentPlans = showPlannedDivesRow
-        ? ref.watch(divePlanSummariesProvider).valueOrNull?.take(3).toList() ??
-              const []
+        ? collapseSeries(
+            ref.watch(divePlanSummariesProvider).valueOrNull ?? const [],
+          ).take(3).map((row) => row.plan).toList()
         : const <DivePlanSummary>[];
 
     final list = KeyboardListNavigator(

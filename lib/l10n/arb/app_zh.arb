@@ -6123,6 +6123,7 @@
   "plannerSeries_site": "潜点",
   "plannerSeries_site_none": "无潜点",
   "plannerSeries_site_clear": "清除潜点",
+  "plannerSeries_saved_diveCount": "{count} 次潜水",
   "plannerSeries_scope_series": "系列",
   "plannerSeries_scope_seriesHint": "后续潜水使用这些设置，除非有自己的设置",
   "plannerSeries_scope_fromSeries": "来自系列",

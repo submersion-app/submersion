@@ -20870,6 +20870,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_site_clear => 'Effacer le site';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count plongées';
+  }
+
+  @override
   String get plannerSeries_scope_series => 'Série';
 
   @override

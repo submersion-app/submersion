@@ -5871,6 +5871,7 @@
   "plannerSeries_site": "Merülőhely",
   "plannerSeries_site_none": "Nincs merülőhely",
   "plannerSeries_site_clear": "Merülőhely törlése",
+  "plannerSeries_saved_diveCount": "{count} merülés",
   "plannerSeries_scope_series": "Sorozat",
   "plannerSeries_scope_seriesHint": "A későbbi merülések ezeket a beállításokat használják, hacsak nincs sajátjuk",
   "plannerSeries_scope_fromSeries": "A sorozatból",

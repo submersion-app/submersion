@@ -33120,6 +33120,12 @@ abstract class AppLocalizations {
   /// **'Clear the site'**
   String get plannerSeries_site_clear;
 
+  /// How many dives a saved series has, in the saved plans list
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives'**
+  String plannerSeries_saved_diveCount(int count);
+
   /// No description provided for @plannerSeries_scope_series.
   ///
   /// In en, this message translates to:

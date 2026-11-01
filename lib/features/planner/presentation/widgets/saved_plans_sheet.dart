@@ -4,6 +4,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
+import 'package:submersion/features/planner/presentation/widgets/saved_series_dive_lines.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
@@ -52,14 +55,24 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
     final units = ref.watch(unitFormatterProvider);
 
     // Render stale data during a reload rather than flashing a spinner.
-    final plans = summaries.valueOrNull;
+    final rows = summaries.valueOrNull == null
+        ? null
+        : collapseSeries(summaries.valueOrNull!);
+    // Comparing works on single plans: a series' later dives depend on the
+    // dives before them, which a side-by-side of plans would not carry in.
+    final plans = _selecting
+        ? rows?.where((row) => !row.isSeries).toList()
+        : rows;
 
     // The compare-mode toggle only renders with >=2 plans. If the count drops
     // below that while the sheet is open, actually leave compare mode (not
     // merely hide it) so the sheet can't silently re-enter it when the count
     // later climbs back to >=2 (e.g. via Import while the sheet is open).
     ref.listen(divePlanSummariesProvider, (_, next) {
-      if (_selecting && (next.valueOrNull?.length ?? 0) < 2) {
+      final comparable = collapseSeries(
+        next.valueOrNull ?? const [],
+      ).where((row) => !row.isSeries).length;
+      if (_selecting && comparable < 2) {
         setState(() {
           _selecting = false;
           _selected.clear();
@@ -82,7 +95,7 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                     style: theme.textTheme.titleMedium,
                   ),
                 ),
-                if ((plans?.length ?? 0) >= 2)
+                if ((rows?.where((row) => !row.isSeries).length ?? 0) >= 2)
                   TextButton.icon(
                     icon: Icon(
                       _selecting ? Icons.close : Icons.compare_arrows,
@@ -130,15 +143,15 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                       ? CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
                           controlAffinity: ListTileControlAffinity.leading,
-                          title: Text(plans[i].name),
-                          value: _selected.contains(plans[i].id),
+                          title: Text(plans[i].plan.name),
+                          value: _selected.contains(plans[i].plan.id),
                           onChanged: (checked) => setState(() {
                             if (checked ?? false) {
                               if (_selected.length < 3) {
-                                _selected.add(plans[i].id);
+                                _selected.add(plans[i].plan.id);
                               }
                             } else {
-                              _selected.remove(plans[i].id);
+                              _selected.remove(plans[i].plan.id);
                             }
                           }),
                           // No per-row trash while selecting: a destructive
@@ -146,7 +159,21 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                           // whose whole purpose is to gather rows for a
                           // different action. Delete stays on the normal row.
                         )
-                      : _PlanTile(summary: plans[i], units: units),
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _PlanTile(row: plans[i], units: units),
+                            if (plans[i].showsDives)
+                              SavedSeriesDiveLines(
+                                row: plans[i],
+                                units: units,
+                                onOpen: (id) {
+                                  context.pop();
+                                  context.push('/planning/dive-planner/$id');
+                                },
+                              ),
+                          ],
+                        ),
                 ),
               ),
             if (_selecting)
@@ -220,25 +247,21 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
 }
 
 class _PlanTile extends ConsumerWidget {
-  const _PlanTile({required this.summary, required this.units});
+  const _PlanTile({required this.row, required this.units});
 
-  final DivePlanSummary summary;
+  final SavedPlanRow row;
   final UnitFormatter units;
+
+  DivePlanSummary get summary => row.plan;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final date = units.formatDate(summary.updatedAt);
-    final subtitleParts = <String>[
-      date,
-      if (summary.maxDepth != null) units.formatDepth(summary.maxDepth!),
-      if (summary.runtimeSeconds != null)
-        '${(summary.runtimeSeconds! / 60).ceil()}′',
-    ];
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(summary.name),
-      subtitle: Text(subtitleParts.join(' · ')),
+      subtitle: Text('$date · ${savedPlanRowSubtitle(context, row, units)}'),
       onTap: () {
         context.pop();
         context.push('/planning/dive-planner/${summary.id}');
@@ -250,8 +273,13 @@ class _PlanTile extends ConsumerWidget {
             icon: const Icon(Icons.delete_outline),
             color: Theme.of(context).colorScheme.error,
             tooltip: context.l10n.common_action_delete,
-            onPressed: () =>
-                _confirmAndDeletePlan(context, ref, summary.id, summary.name),
+            onPressed: () => _confirmAndDeletePlan(
+              context,
+              ref,
+              summary.id,
+              summary.name,
+              seriesId: summary.seriesId,
+            ),
           ),
           // A Builder so the share anchor resolves to the overflow button
           // rather than the whole row: it contributes no render object, so
@@ -260,7 +288,17 @@ class _PlanTile extends ConsumerWidget {
             builder: (menuContext) => PopupMenuButton<String>(
               onSelected: (value) async {
                 final repository = ref.read(divePlanRepositoryProvider);
-                if (value == 'rename') {
+                if (value == 'rename' && summary.seriesId != null) {
+                  final entered = await showPlanNameDialog(
+                    context,
+                    initialName: summary.name,
+                    title: context.l10n.divePlanner_action_renamePlan,
+                  );
+                  if (entered == null) return;
+                  await ref
+                      .read(divePlanSeriesRepositoryProvider)
+                      .renameSeries(summary.seriesId!, entered);
+                } else if (value == 'rename') {
                   final plan = await repository.getPlan(summary.id);
                   if (plan == null || !context.mounted) return;
                   final entered = await showPlanNameDialog(
@@ -303,14 +341,18 @@ class _PlanTile extends ConsumerWidget {
                   value: 'rename',
                   child: Text(context.l10n.divePlanner_action_renamePlan),
                 ),
-                PopupMenuItem(
-                  value: 'duplicate',
-                  child: Text(context.l10n.plannerCanvas_saved_duplicate),
-                ),
-                PopupMenuItem(
-                  value: 'share',
-                  child: Text(context.l10n.plannerCanvas_share_menu),
-                ),
+                // Copying or sharing one dive would lose what the dives
+                // before it carry in, so a series offers neither yet.
+                if (summary.seriesId == null) ...[
+                  PopupMenuItem(
+                    value: 'duplicate',
+                    child: Text(context.l10n.plannerCanvas_saved_duplicate),
+                  ),
+                  PopupMenuItem(
+                    value: 'share',
+                    child: Text(context.l10n.plannerCanvas_share_menu),
+                  ),
+                ],
               ],
             ),
           ),
@@ -330,9 +372,11 @@ Future<void> _confirmAndDeletePlan(
   BuildContext context,
   WidgetRef ref,
   String id,
-  String name,
-) async {
+  String name, {
+  String? seriesId,
+}) async {
   final repository = ref.read(divePlanRepositoryProvider);
+  final seriesRepository = ref.read(divePlanSeriesRepositoryProvider);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -350,5 +394,10 @@ Future<void> _confirmAndDeletePlan(
       ],
     ),
   );
-  if (confirmed ?? false) await repository.deletePlan(id);
+  if (!(confirmed ?? false)) return;
+  if (seriesId != null) {
+    await seriesRepository.deleteSeries(seriesId);
+  } else {
+    await repository.deletePlan(id);
+  }
 }

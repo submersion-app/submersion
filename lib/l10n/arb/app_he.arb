@@ -5871,6 +5871,7 @@
   "plannerSeries_site": "אתר",
   "plannerSeries_site_none": "ללא אתר",
   "plannerSeries_site_clear": "ניקוי האתר",
+  "plannerSeries_saved_diveCount": "{count} צלילות",
   "plannerSeries_scope_series": "סדרה",
   "plannerSeries_scope_seriesHint": "הצלילות הבאות משתמשות בהגדרות אלה אלא אם יש להן הגדרות משלהן",
   "plannerSeries_scope_fromSeries": "מהסדרה",

@@ -198,6 +198,40 @@ class DivePlanSeriesRepository {
     );
   }
 
+  /// Names the series [id]. Every dive holds the name too, which is what
+  /// anything reading a dive as a plan shows.
+  Future<void> renameSeries(String id, String name) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.divePlanSeries,
+      )..where((s) => s.id.equals(id))).write(
+        db.DivePlanSeriesCompanion(name: Value(name), updatedAt: Value(now)),
+      );
+      await (_db.update(
+        _db.divePlans,
+      )..where((p) => p.seriesId.equals(id))).write(
+        db.DivePlansCompanion(name: Value(name), updatedAt: Value(now)),
+      );
+    });
+    await _syncRepository.markRecordPending(
+      entityType: 'divePlanSeries',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    final rows = await (_db.select(
+      _db.divePlans,
+    )..where((p) => p.seriesId.equals(id))).get();
+    for (final row in rows) {
+      await _syncRepository.markRecordPending(
+        entityType: 'divePlans',
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Deletes the series [id] and every dive in it, with their tombstones.
   Future<void> deleteSeries(String id) async {
     try {

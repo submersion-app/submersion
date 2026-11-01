@@ -20734,6 +20734,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_site_clear => 'Merülőhely törlése';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count merülés';
+  }
+
+  @override
   String get plannerSeries_scope_series => 'Sorozat';
 
   @override

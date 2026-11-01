@@ -5871,6 +5871,7 @@
   "plannerSeries_site": "Site",
   "plannerSeries_site_none": "Aucun site",
   "plannerSeries_site_clear": "Effacer le site",
+  "plannerSeries_saved_diveCount": "{count} plongées",
   "plannerSeries_scope_series": "Série",
   "plannerSeries_scope_seriesHint": "Les plongées suivantes prennent ces réglages sauf si elles ont les leurs",
   "plannerSeries_scope_fromSeries": "De la série",

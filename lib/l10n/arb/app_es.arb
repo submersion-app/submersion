@@ -5972,6 +5972,7 @@
   "plannerSeries_site": "Sitio",
   "plannerSeries_site_none": "Sin sitio",
   "plannerSeries_site_clear": "Borrar el sitio",
+  "plannerSeries_saved_diveCount": "{count} inmersiones",
   "plannerSeries_scope_series": "Serie",
   "plannerSeries_scope_seriesHint": "Las inmersiones siguientes usan estos ajustes salvo que tengan los suyos",
   "plannerSeries_scope_fromSeries": "De la serie",

@@ -20678,6 +20678,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_site_clear => 'Duikstek wissen';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count duiken';
+  }
+
+  @override
   String get plannerSeries_scope_series => 'Reeks';
 
   @override

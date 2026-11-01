@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
+import 'package:submersion/features/planner/presentation/widgets/saved_series_dive_lines.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -64,27 +66,33 @@ class SavedPlansList extends ConsumerWidget {
     }
 
     final sort = ref.watch(divePlanSortProvider);
-    final groups = groupPlansByMode(sortPlanSummaries(plans, sort));
+    final rows = {
+      for (final row in collapseSeries(sortPlanSummaries(plans, sort)))
+        row.plan.id: row,
+    };
+    final groups = groupPlansByMode([for (final row in rows.values) row.plan]);
 
     return Card(
       child: Column(
         children: [
           for (final group in groups) ...[
             _ModeHeader(group.mode),
-            for (final plan in group.plans)
+            for (final plan in group.plans) ...[
               ListTile(
                 leading: const Icon(Icons.route),
                 title: Text(plan.name),
                 subtitle: Text(
-                  [
-                    if (plan.maxDepth != null)
-                      units.formatDepth(plan.maxDepth!),
-                    if (plan.runtimeSeconds != null)
-                      '${(plan.runtimeSeconds! / 60).ceil()}′',
-                  ].join(' · '),
+                  savedPlanRowSubtitle(context, rows[plan.id]!, units),
                 ),
                 onTap: () => context.push('/planning/dive-planner/${plan.id}'),
               ),
+              if (rows[plan.id]!.showsDives)
+                SavedSeriesDiveLines(
+                  row: rows[plan.id]!,
+                  units: units,
+                  onOpen: (id) => context.push('/planning/dive-planner/$id'),
+                ),
+            ],
           ],
         ],
       ),

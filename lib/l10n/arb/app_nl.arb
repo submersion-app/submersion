@@ -5972,6 +5972,7 @@
   "plannerSeries_site": "Duikstek",
   "plannerSeries_site_none": "Geen duikstek",
   "plannerSeries_site_clear": "Duikstek wissen",
+  "plannerSeries_saved_diveCount": "{count} duiken",
   "plannerSeries_scope_series": "Reeks",
   "plannerSeries_scope_seriesHint": "Latere duiken nemen deze instellingen over, tenzij ze eigen instellingen hebben",
   "plannerSeries_scope_fromSeries": "Uit de reeks",

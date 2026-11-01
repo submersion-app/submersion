@@ -20501,6 +20501,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_site_clear => 'Clear the site';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count dives';
+  }
+
+  @override
   String get plannerSeries_scope_series => 'Series';
 
   @override

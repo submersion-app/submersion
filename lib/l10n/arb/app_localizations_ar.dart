@@ -21106,6 +21106,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_site_clear => 'مسح الموقع';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count غطسات';
+  }
+
+  @override
   String get plannerSeries_scope_series => 'السلسلة';
 
   @override

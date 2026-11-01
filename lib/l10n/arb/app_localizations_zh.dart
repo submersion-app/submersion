@@ -19796,6 +19796,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_site_clear => '清除潜点';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count 次潜水';
+  }
+
+  @override
   String get plannerSeries_scope_series => '系列';
 
   @override
