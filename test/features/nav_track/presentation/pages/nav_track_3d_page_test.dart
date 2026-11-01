@@ -78,6 +78,29 @@ void main() {
     expect(find.byIcon(Icons.pause), findsNothing);
   });
 
+  testWidgets('scrubbing while playing stops playback', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.drag(find.byType(Slider), const Offset(20, 0));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+  });
+
+  testWidgets('the play icon returns when the timeline ends', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 46));
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+  });
+
   testWidgets(
     'Z menu lists None plus Z-capable metrics, temperature is the default',
     (tester) async {

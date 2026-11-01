@@ -74,6 +74,28 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
   }
 
+  Future<void> pumpMultiSourcePage(WidgetTester tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => readoutSceneData()),
+          isMultiDataSourceDiveProvider('d1').overrideWith((ref) async => true),
+          computerComparisonProfilesProvider(
+            'd1',
+          ).overrideWith((ref) async => compareProfiles()),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+
   testWidgets('shows scene chrome once providers resolve', (tester) async {
     await pumpPage(tester);
     expect(find.byType(TimeScrubBar), findsOneWidget);
@@ -91,6 +113,29 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     await tester.tap(find.byIcon(Icons.pause));
     await tester.pump();
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+  });
+
+  testWidgets('scrubbing while playing stops playback', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.drag(find.byType(Slider), const Offset(20, 0));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+  });
+
+  testWidgets('the play icon returns when the timeline ends', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 46));
+
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
   });
 
@@ -280,31 +325,33 @@ void main() {
   testWidgets('Computers segment opens the compare view for multi-source', (
     tester,
   ) async {
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          ...overrides,
-          dive3dSceneDataProvider(
-            'd1',
-          ).overrideWith((ref) async => readoutSceneData()),
-          isMultiDataSourceDiveProvider('d1').overrideWith((ref) async => true),
-          computerComparisonProfilesProvider(
-            'd1',
-          ).overrideWith((ref) async => compareProfiles()),
-        ],
-        child: const Dive3dPage(diveId: 'd1'),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.pump(const Duration(milliseconds: 50));
+    await pumpMultiSourcePage(tester);
 
     expect(find.text('Computers'), findsOneWidget);
     await tester.tap(find.text('Computers'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.byType(CompareProfile3dView), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('leaving the dive scene stops its playback', (tester) async {
+    await pumpMultiSourcePage(tester);
+
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.tap(find.text('Computers'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text('Dive'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));

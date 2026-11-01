@@ -26,6 +26,26 @@ ReckonedPath reckoned() {
 }
 
 void main() {
+  Future<void> pumpStandalone(WidgetTester tester) async {
+    final overrides = await getBaseOverrides();
+    final path = reckoned();
+    final scene = const SpatialGeometryService().build(path, siteMaxDepth: 30);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          spatialReckonedPathProvider('d1').overrideWith((ref) async => path),
+          spatialGeometryProvider(
+            'd1',
+          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
+        ],
+        child: const SpatialSitePage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+
   testWidgets('renders the seascape and the honesty captions', (tester) async {
     final overrides = await getBaseOverrides();
     final path = reckoned();
@@ -113,6 +133,52 @@ void main() {
       find.byKey(const ValueKey('seascapeAppearanceButton')),
       findsOneWidget,
     );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('play toggles to pause and back', (tester) async {
+    await pumpStandalone(tester);
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+    await tester.tap(find.byIcon(Icons.pause));
+    await tester.pump();
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('scrubbing while playing stops playback', (tester) async {
+    await pumpStandalone(tester);
+
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.drag(find.byType(Slider), const Offset(20, 0));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('the play icon returns when the timeline ends', (tester) async {
+    await pumpStandalone(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 46));
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));

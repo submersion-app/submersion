@@ -5,8 +5,9 @@ import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/nav_track/application/nav_track_scene_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
@@ -94,15 +95,16 @@ class _NavTrackSeascapeStandaloneState
     extends ConsumerState<_NavTrackSeascapeStandalone>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
-  late final AnimationController _player;
+  late final ScenePlayer _player;
 
   @override
   void initState() {
     super.initState();
-    _player = AnimationController(
+    _player = ScenePlayer(
       vsync: this,
       duration: const Duration(seconds: 30),
-    )..addListener(() => _position.value = _player.value);
+      position: _position,
+    );
   }
 
   @override
@@ -110,17 +112,6 @@ class _NavTrackSeascapeStandaloneState
     _player.dispose();
     _position.dispose();
     super.dispose();
-  }
-
-  void _togglePlay() {
-    setState(() {
-      if (_player.isAnimating) {
-        _player.stop();
-      } else {
-        if (_position.value >= 1.0) _player.value = 0;
-        _player.forward(from: _position.value);
-      }
-    });
   }
 
   @override
@@ -151,17 +142,7 @@ class _NavTrackSeascapeStandaloneState
                   contourLabels: result!.contourLabels,
                 ),
               ),
-              SafeArea(
-                top: false,
-                child: TimeScrubBar(
-                  position: _position,
-                  playing: _player.isAnimating,
-                  onPlayPause: _togglePlay,
-                  onScrubStart: () {
-                    if (_player.isAnimating) setState(() => _player.stop());
-                  },
-                ),
-              ),
+              SafeArea(top: false, child: ScenePlayerBar(player: _player)),
             ],
           );
         },

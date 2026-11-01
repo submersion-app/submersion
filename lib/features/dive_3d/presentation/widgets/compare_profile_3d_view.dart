@@ -5,10 +5,11 @@ import 'package:submersion/features/dive_3d/domain/compare/compare_geometry_serv
 import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
 import 'package:submersion/features/dive_3d/domain/compare/divergence_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/compare_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/compare_readout_panel.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shared body for both comparison entry points (the standalone dives page and
@@ -44,7 +45,7 @@ class CompareProfile3dView extends ConsumerStatefulWidget {
 class _CompareProfile3dViewState extends ConsumerState<CompareProfile3dView>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
-  late final AnimationController _player;
+  late final ScenePlayer _player;
   late CompareLayout _layout;
   int _referenceIndex = 0;
   int? _focusedIndex;
@@ -53,10 +54,11 @@ class _CompareProfile3dViewState extends ConsumerState<CompareProfile3dView>
   void initState() {
     super.initState();
     _layout = widget.initialLayout;
-    _player = AnimationController(
+    _player = ScenePlayer(
       vsync: this,
       duration: const Duration(seconds: 45),
-    )..addListener(() => _position.value = _player.value);
+      position: _position,
+    );
   }
 
   @override
@@ -64,17 +66,6 @@ class _CompareProfile3dViewState extends ConsumerState<CompareProfile3dView>
     _player.dispose();
     _position.dispose();
     super.dispose();
-  }
-
-  void _togglePlay() {
-    setState(() {
-      if (_player.isAnimating) {
-        _player.stop();
-      } else {
-        if (_position.value >= 1.0) _player.value = 0;
-        _player.forward(from: _position.value);
-      }
-    });
   }
 
   @override
@@ -169,17 +160,7 @@ class _CompareProfile3dViewState extends ConsumerState<CompareProfile3dView>
             ],
           ),
         ),
-        SafeArea(
-          top: false,
-          child: TimeScrubBar(
-            position: _position,
-            playing: _player.isAnimating,
-            onPlayPause: _togglePlay,
-            onScrubStart: () {
-              if (_player.isAnimating) setState(() => _player.stop());
-            },
-          ),
-        ),
+        SafeArea(top: false, child: ScenePlayerBar(player: _player)),
       ],
     );
   }
