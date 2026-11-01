@@ -61,6 +61,17 @@ void main() {
 
   List<String> siteIds(int n) => [for (var i = 0; i < n; i++) 's$i'];
 
+  const request = RuleRunRequest(
+    diverId: 'me',
+    trigger: RuleRunTrigger.onDemandAll,
+    targets: {RuleSubject.sites: null},
+  );
+
+  RuleEngine newEngine() => RuleEngine(
+    names: (_) async => NameIndex(const []),
+    deviceLabel: () async => 'Test device',
+  );
+
   setUp(() async {
     db = AppDatabase(
       NativeDatabase.memory(
@@ -164,6 +175,77 @@ void main() {
     }
   });
 
+  group('a whole pass stays governed by chunks', () {
+    for (final n in const [100, 500, 1000]) {
+      test('Preview and Apply on $n sites', () async {
+        await seedSites(n);
+        await statementsOf(
+          () => RuleRepository().create(
+            diverId: 'me',
+            subject: RuleSubject.sites,
+            name: 'Add',
+            triggers: const {RuleTrigger.afterImport},
+            condition: null,
+            actions: const [
+              SiteMembershipAction(SiteCollection.tags, MembershipMode.add, [
+                'site',
+              ]),
+            ],
+          ),
+        );
+        final engine = newEngine();
+
+        final previewed = await statementsOf(() => engine.preview(request));
+        final applied = await statementsOf(() => engine.run(request));
+
+        final chunks = (n / kRuleIdChunk).ceil();
+        printOnFailure('preview ${previewed.length}, apply ${applied.length}');
+        expect(previewed.length, lessThanOrEqualTo(15 + 5 * chunks));
+        expect(applied.length, lessThanOrEqualTo(30 + 6 * chunks));
+        expect(
+          await count(
+            "SELECT COUNT(*) AS n FROM sync_records "
+            "WHERE entity_type = 'ruleRunChanges'",
+          ),
+          n,
+        );
+      });
+    }
+  });
+
+  test('field and description writes reach every site past a chunk', () async {
+    const sites = kRuleIdChunk + 1;
+    await seedSites(sites);
+    const setCountry = SetSiteFieldAction(SiteRuleField.country, 'Egypt');
+    const append = AppendSiteDescriptionAction('Strong currents');
+
+    await statementsOf(() async {
+      final applier = SiteRuleApplier();
+      for (final action in const <RuleAction>[setCountry, append]) {
+        await applier.apply(
+          ruleOf(RuleSubject.sites, action),
+          action,
+          siteIds(sites),
+        );
+      }
+    });
+
+    expect(
+      await count(
+        "SELECT COUNT(*) AS n FROM dive_sites WHERE country = 'Egypt' "
+        "AND description = 'Strong currents' AND hlc IS NOT NULL",
+      ),
+      sites,
+    );
+    expect(
+      await count(
+        "SELECT COUNT(*) AS n FROM sync_records "
+        "WHERE entity_type = 'diveSites' AND sync_status = 'pending'",
+      ),
+      sites,
+    );
+  });
+
   test('links past one chunk keep each site\'s order and go pending', () async {
     await seedSites(300);
     const action = SiteMembershipAction(
@@ -241,11 +323,6 @@ void main() {
       MembershipMode.remove,
       ['held'],
     );
-    const request = RuleRunRequest(
-      diverId: 'me',
-      trigger: RuleRunTrigger.onDemandAll,
-      targets: {RuleSubject.sites: null},
-    );
 
     Future<void> ruleOver(String name, RuleAction action) => rules.create(
       diverId: 'me',
@@ -257,10 +334,7 @@ void main() {
     );
 
     setUp(() async {
-      engine = RuleEngine(
-        names: (_) async => NameIndex(const []),
-        deviceLabel: () async => 'Test device',
-      );
+      engine = newEngine();
       await seedSites(3);
       await statementsOf(() async {
         await db.customStatement(
