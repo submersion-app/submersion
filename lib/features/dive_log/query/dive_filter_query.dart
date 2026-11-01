@@ -128,7 +128,11 @@ extension DiveFilterQuery on DiveFilterState {
     if (tagIds.isNotEmpty) parts.add(c('tags', QueryOp.inList, refs(tagIds)));
     if (equipmentIds.isNotEmpty) {
       parts.add(c('gear', QueryOp.inList, refs(equipmentIds)));
+      if (equipmentUsedOnly) {
+        parts.add(c('planned', QueryOp.eq, const BoolValue(false)));
+      }
     }
+    // diveIdsLabel only names this axis on its chip, so it lowers to nothing.
     if (diveIds.isNotEmpty) {
       parts.add(
         c(

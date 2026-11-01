@@ -66,6 +66,8 @@ void main() {
   late LocalCacheDatabase cacheDb;
 
   final now = DateTime.utc(2026, 6, 1).millisecondsSinceEpoch;
+  // The revision of a seeded dive: its own stamp plus its one profile series.
+  final seededRevision = now * 2;
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -145,6 +147,25 @@ void main() {
     expect(stats.decoCount, 0);
     expect(stats.noDecoCount, 1);
     expect(stats.unknownCount, 0);
+  });
+
+  test('the deco ids are the dives the counts came from (#3805)', () async {
+    await insertDive('deep');
+    await insertBareProfile('deep', 40, 25);
+    await insertDive('shallow');
+    await insertBareProfile('shallow', 18, 30);
+    await insertDive('no-profile');
+
+    final container = await makeContainer();
+    final ids = await container.read(decoDiveIdsProvider.future);
+    final stats = await container.read(decoObligationStatsProvider.future);
+
+    expect(ids.deco, ['deep']);
+    expect(ids.noDeco, ['shallow']);
+    expect(ids.unknown, ['no-profile']);
+    expect(stats.decoCount, ids.deco.length);
+    expect(stats.noDecoCount, ids.noDeco.length);
+    expect(stats.unknownCount, ids.unknown.length);
   });
 
   test('reports a mixed library with a real rate', () async {
@@ -233,7 +254,7 @@ void main() {
         settingsFingerprint: container
             .read(diverAnalysisSettingsProvider)
             .fingerprint,
-        diveUpdatedAt: now,
+        diveRevision: seededRevision,
       ),
     );
 
@@ -262,7 +283,7 @@ void main() {
       inputsHash: decoInputsHash(
         engineVersion: analysisEngineVersion,
         settingsFingerprint: other.fingerprint,
-        diveUpdatedAt: now,
+        diveRevision: seededRevision,
       ),
     );
 
@@ -275,7 +296,7 @@ void main() {
       decoInputsHash(
         engineVersion: analysisEngineVersion,
         settingsFingerprint: active.fingerprint,
-        diveUpdatedAt: now,
+        diveRevision: seededRevision,
       ),
       reason: 'the recomputed entry records the settings it ran on',
     );
@@ -394,7 +415,7 @@ void main() {
           settingsFingerprint: container
               .read(diverAnalysisSettingsProvider)
               .fingerprint,
-          diveUpdatedAt: now,
+          diveRevision: seededRevision,
         ),
       );
 

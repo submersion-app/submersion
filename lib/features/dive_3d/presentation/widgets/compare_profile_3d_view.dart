@@ -18,6 +18,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// scrub notifier and playback controller.
 class CompareProfile3dView extends ConsumerStatefulWidget {
   final AsyncValue<List<ComparisonProfile>> profiles;
+
+  /// How many profiles could be compared, for a caller that loads only the
+  /// ones it shows. Without it the "showing N of M" note counts [profiles].
+  final int? comparableCount;
   final CompareLayout initialLayout;
 
   /// Optional control placed before the layout toggle (e.g. the Dive3dPage
@@ -27,6 +31,7 @@ class CompareProfile3dView extends ConsumerStatefulWidget {
   const CompareProfile3dView({
     super.key,
     required this.profiles,
+    this.comparableCount,
     this.initialLayout = CompareLayout.sideBySide,
     this.leading,
   });
@@ -82,7 +87,7 @@ class _CompareProfile3dViewState extends ConsumerState<CompareProfile3dView>
         final shown = all.length > kMaxComparisonProfiles
             ? all.sublist(0, kMaxComparisonProfiles)
             : all;
-        return _scene(context, shown, all.length);
+        return _scene(context, shown, widget.comparableCount ?? all.length);
       },
     );
   }

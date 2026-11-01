@@ -9,6 +9,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/utils/plan_mode_grouping.dart';
 import 'package:submersion/features/planner/domain/utils/plan_summary_sort.dart';
+import 'package:submersion/features/planner/presentation/plan_link_actions.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -81,6 +82,7 @@ class SavedPlansList extends ConsumerWidget {
                       units.formatDepth(plan.maxDepth!),
                     if (plan.runtimeSeconds != null)
                       '${(plan.runtimeSeconds! / 60).ceil()}′',
+                    ?planLinkBadge(context.l10n, plan, units),
                   ].join(' · '),
                 ),
                 onTap: () => context.push('/planning/dive-planner/${plan.id}'),

@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
-import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
@@ -824,6 +823,28 @@ void main() {
       expect(ttsForSalinity(40), greaterThan(ttsForSalinity(0)));
     });
 
+    test('plan gas follows the plan altitude (#4010)', () {
+      double remainingAt(double? altitude) {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.addSimplePlan(maxDepth: 30.0, bottomTimeMinutes: 20);
+        notifier.updateAltitude(altitude);
+        return container
+            .read(planResultsProvider)
+            .gasConsumptions
+            .first
+            .remainingPressure!;
+      }
+
+      expect(remainingAt(3000), greaterThan(remainingAt(null)));
+    });
+
     test('the quick plan descends at the Settings rate when unset', () {
       // An unset plan descent rate follows the diver's Settings (#3552),
       // not the 18 m/min spec constant.
@@ -1038,39 +1059,17 @@ void main() {
       },
     );
 
-    test('setFollowedDive seeds context and clearFollowedDive drops it', () {
+    test('clearing the repetitive dive settings drops carried exposure', () {
       final notifier = DivePlanNotifier(PlanCalculatorService());
       addTearDown(notifier.dispose);
-
-      final compartments = [
-        const TissueCompartment(
-          compartmentNumber: 1,
-          halfTimeN2: 5.0,
-          halfTimeHe: 1.88,
-          mValueAN2: 1.1696,
-          mValueBN2: 0.5578,
-          mValueAHe: 1.6189,
-          mValueBHe: 0.4770,
-          currentPN2: 1.2,
-        ),
-      ];
-      notifier.setFollowedDive(
-        diveId: 'dive-9',
-        compartments: compartments,
-        surfaceInterval: const Duration(hours: 2),
+      notifier.loadPlan(
+        notifier.state.copyWith(initialCns: 30, initialOtu: 120),
       );
 
-      var state = notifier.state;
-      expect(state.sourceDiveId, 'dive-9');
-      expect(state.initialTissueState, compartments);
-      expect(state.surfaceInterval, const Duration(hours: 2));
-      expect(state.isDirty, isTrue);
+      notifier.clearRepetitiveDiveSettings();
 
-      notifier.clearFollowedDive();
-      state = notifier.state;
-      expect(state.sourceDiveId, isNull);
-      expect(state.initialTissueState, isNull);
-      expect(state.surfaceInterval, isNull);
+      expect(notifier.state.initialCns, isNull);
+      expect(notifier.state.initialOtu, isNull);
     });
 
     test('setLinkedDive records and clears the converted dive', () {

@@ -287,12 +287,33 @@ final networkCredentialsRepositoryProvider =
 
 /// Singleton [NetworkCredentialsService] composing the credentials
 /// repository and the platform secure-storage handle.
-final networkCredentialsServiceProvider = Provider<NetworkCredentialsService>(
-  (ref) => NetworkCredentialsService(
-    repository: ref.watch(networkCredentialsRepositoryProvider),
-    storage: ref.watch(flutterSecureStorageProvider),
-  ),
-);
+final Provider<NetworkCredentialsService> networkCredentialsServiceProvider =
+    Provider<NetworkCredentialsService>(
+      (ref) => NetworkCredentialsService(
+        repository: ref.watch(networkCredentialsRepositoryProvider),
+        storage: ref.watch(flutterSecureStorageProvider),
+        onCredentialsChanged: () {
+          // Through the container: this provider's own ref cannot invalidate
+          // something that depends on it.
+          if (!ref.mounted) return;
+          ref.container.invalidate(networkThumbnailHeadersProvider);
+        },
+      ),
+    );
+
+/// Headers for painting [url]: `null` when its host has no saved credentials.
+///
+/// Holding the lookup here keeps it across rebuilds of the thumbnail, and
+/// keeps the last answer on screen while a credential change refreshes it.
+/// Headers are optional for a thumbnail, so a failed lookup paints without
+/// them rather than holding the placeholder through a retry backoff.
+final networkThumbnailHeadersProvider = FutureProvider.autoDispose
+    .family<Map<String, String>?, String>(
+      (ref, url) => ref
+          .watch(networkCredentialsServiceProvider)
+          .headersFor(Uri.parse(url)),
+      retry: (_, _) => null,
+    );
 
 /// Singleton [NetworkUrlResolver] composing the shared HTTP client and
 /// the credentials service (for `Authorization` headers).

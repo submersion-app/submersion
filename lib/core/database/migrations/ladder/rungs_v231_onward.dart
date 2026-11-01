@@ -4,6 +4,10 @@ part of '../app_database_migrations.dart';
 ///
 /// New rungs are appended here. When this file nears 800 lines, give
 /// it a closed range like its neighbours and start the next one.
+///
+/// A rung that rewrites stored values in place (not one that only adds
+/// columns or copies them) lists the column in `changeLogRewrittenColumns`,
+/// so a revert will not put back a value from before the rewrite.
 extension RungsFromV231 on AppDatabase {
   Future<void> _rungsFromV231(
     Migrator m,
@@ -42,6 +46,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertConnectionMapsSchema();
     }
     if (from < 235) await reportProgress();
+    // v236: dive_scenarios (Dive Lab saved scenarios). A new synced
+    // table, so onUpgrade need only create it; idempotent and re-asserted
+    // in the beforeOpen backstop, which is what reaches a database
+    // already past 236.
+    if (from < 236) {
+      await _assertDiveScenariosSchema();
+    }
+    if (from < 236) await reportProgress();
     // v237: diver_settings.show_dive_figure (issue #2326). Column-only
     // rung, no backfill; v329 turned the figure on for stored divers.
     if (from < 237) {
@@ -720,5 +732,10 @@ extension RungsFromV231 on AppDatabase {
     // re-asserted in beforeOpen.
     if (from < 331) await _assertEquipmentLocationCenterColumn();
     if (from < 331) await reportProgress();
+
+    // v332: the per-device change log tables (issue #3922). Table-only rung,
+    // no backfill; the log starts empty. Re-asserted in beforeOpen.
+    if (from < 332) await _assertChangeLogSchema();
+    if (from < 332) await reportProgress();
   }
 }

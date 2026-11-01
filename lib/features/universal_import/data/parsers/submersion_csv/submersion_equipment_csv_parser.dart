@@ -178,6 +178,8 @@ class SubmersionEquipmentCsvParser implements ImportParser {
           'serialNumber': table.text(row, 'Serial Number'),
           'size': table.text(row, 'Size'),
           'purchaseDate': _local(table.date(row, 'Purchase Date')),
+          'purchasePrice': table.number(row, 'Purchase Price'),
+          'purchaseCurrency': table.text(row, 'Purchase Currency'),
           'lastServiceDate': _local(lastService),
           'serviceIntervalDays': interval != null && interval > 0
               ? interval

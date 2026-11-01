@@ -14,8 +14,9 @@ class CnsOtuSnapshot {
   /// its hero header.
   final String lastDiveId;
 
-  /// End of the most recent dive, wall-clock-as-UTC (the dive-time frame;
-  /// see [NoFlyService.wallClockNowUtc]).
+  /// End of the most recent dive as a true instant, not the wall-clock-as-UTC
+  /// dive-time frame: recovery runs on elapsed time, and two sets of clock
+  /// digits are an hour away from that across a DST change (issue #3960).
   final DateTime lastDiveEnd;
 
   /// That dive's own O2 exposure. [O2Exposure.cnsEnd] is the CNS% at the
@@ -40,10 +41,11 @@ class CnsOtuSnapshot {
   /// The last dive's end-of-dive tissue compartments, for projecting live
   /// tissue loading the same way [exposure] projects live CNS%.
   ///
-  /// Independent of [exposure]: a gauge-mode dive has a (zero) [exposure] but
-  /// no compartments (gas is unknown, see `ProfileAnalysisService`'s gauge
-  /// branch), and a rebreather dive with no recorded gas segments has a real
-  /// [exposure] (from its loop ppO2 curve) but withheld tissue loading --
+  /// Independent of [exposure]: a gauge-mode dive has an [exposure] (the CNS it
+  /// carried in, as a minimum) but no compartments (gas is unknown, see
+  /// `ProfileAnalysisService`'s gauge branch), and a rebreather dive with no
+  /// recorded gas segments has a real [exposure] (from its loop ppO2 curve)
+  /// but withheld tissue loading --
   /// the same "withheld" case the dive detail screen shows elsewhere. Null
   /// whenever the last dive's analysis computed no deco statuses at all.
   final List<TissueCompartment>? endOfDiveCompartments;

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_issue_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What a background plan result is doing, in words. Always text, so it
@@ -67,8 +69,9 @@ class PlanResultSection<T extends Object> extends StatelessWidget {
   }
 }
 
-/// Says on the chart itself when its bailout picture is not current. It is
-/// here, not on the mode toggle, because the fullscreen chart has no toggle
+/// Says on the chart itself when its bailout picture is not current, or when
+/// there is none to draw because no carried gas reaches the plan (#3961). It
+/// is here, not on the mode toggle, because the fullscreen chart has no toggle
 /// and a phone can scroll the toggle out of its strip.
 class PlanChartBailoutStatus extends ConsumerWidget {
   const PlanChartBailoutStatus({super.key});
@@ -76,15 +79,29 @@ class PlanChartBailoutStatus extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final status = ref.watch(planChartBailoutProvider.select((c) => c.status));
-    if (status == null) return const SizedBox.shrink();
+    final gap = ref.watch(planChartBailoutProvider.select((c) => c.gasGap));
+    if (status == null && gap == null) return const SizedBox.shrink();
+    final theme = Theme.of(context);
     return IgnorePointer(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: PlanResultStatusText(status),
+        child: status != null
+            ? PlanResultStatusText(status)
+            : Text(
+                bailoutGasGapMessage(
+                  context.l10n,
+                  ref.watch(unitFormatterProvider),
+                  depthMeters: gap!.depthMeters,
+                  deepestModMeters: gap.deepestModMeters,
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
       ),
     );
   }

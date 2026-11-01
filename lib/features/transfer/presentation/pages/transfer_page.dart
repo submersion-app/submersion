@@ -20,7 +20,9 @@ import 'package:submersion/features/documents/presentation/helpers/document_expo
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
+import 'package:submersion/features/transfer/presentation/widgets/inventory_report_sheet.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
+import 'package:submersion/features/transfer/presentation/widgets/service_report_sheet.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
@@ -403,6 +405,26 @@ class _ExportSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.inventory_2_outlined),
+                  title: Text(context.l10n.transfer_export_inventoryTitle),
+                  subtitle: Text(
+                    context.l10n.transfer_export_inventorySubtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => unawaited(_exportInventory(context, ref)),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.fact_check_outlined),
+                  title: Text(context.l10n.transfer_export_serviceReportTitle),
+                  subtitle: Text(
+                    context.l10n.transfer_export_serviceReportSubtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => unawaited(_exportServiceReport(context, ref)),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.build_circle_outlined),
                   title: Text(context.l10n.transfer_export_maintenanceTitle),
                   subtitle: Text(
@@ -594,6 +616,35 @@ class _ExportSectionContent extends ConsumerWidget {
         });
       }
     }
+  }
+
+  /// The inventory's options, then the usual Share or Save choice.
+  Future<void> _exportInventory(BuildContext context, WidgetRef ref) async {
+    final options = await InventoryReportSheet.show(context);
+    if (options == null || !context.mounted) return;
+    final notifier = ref.read(exportNotifierProvider.notifier);
+    await _showExportOptions(
+      context,
+      ref,
+      title: context.l10n.transfer_export_inventoryTitle,
+      shareAction: (_) =>
+          notifier.exportEquipmentInventory(options, save: false),
+      saveAction: (_) => notifier.exportEquipmentInventory(options, save: true),
+    );
+  }
+
+  /// The service report's options, then the usual Share or Save choice.
+  Future<void> _exportServiceReport(BuildContext context, WidgetRef ref) async {
+    final options = await ServiceReportSheet.show(context);
+    if (options == null || !context.mounted) return;
+    final notifier = ref.read(exportNotifierProvider.notifier);
+    await _showExportOptions(
+      context,
+      ref,
+      title: context.l10n.transfer_export_serviceReportTitle,
+      shareAction: (_) => notifier.exportServiceReport(options, save: false),
+      saveAction: (_) => notifier.exportServiceReport(options, save: true),
+    );
   }
 
   /// Show export options dialog (Share vs Save to File).

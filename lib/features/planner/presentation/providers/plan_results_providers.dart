@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -72,18 +73,25 @@ const _log = LoggerService('PlanResults');
 typedef _PlanResultInputs = ({
   domain.DivePlan plan,
   List<TissueCompartment>? seed,
+  DiveEnvironment? seedEnvironment,
   PlanEngineConfig config,
 });
 
 /// Selected here once, rather than by each result, because the select rebuilds
 /// and compares the plan on every edit.
 final _planResultInputsProvider = Provider<_PlanResultInputs>((ref) {
-  final (plan, seed) = ref.watch(
+  final (plan, seed, seedEnvironment) = ref.watch(
     divePlanNotifierProvider.select(
-      (s) => (planForEngine(s), s.initialTissueState),
+      (s) =>
+          (planForEngine(s), s.initialTissueState, s.initialTissueEnvironment),
     ),
   );
-  return (plan: plan, seed: seed, config: ref.watch(planEngineConfigProvider));
+  return (
+    plan: plan,
+    seed: seed,
+    seedEnvironment: seedEnvironment,
+    config: ref.watch(planEngineConfigProvider),
+  );
 });
 
 /// Completes once [delay] has passed with this computation still wanted. A
@@ -185,16 +193,24 @@ final planLostGasProvider =
     }, retry: (_, _) => null);
 
 /// What the chart does about the bailout picture: [picture] to draw in place
-/// of the live plan, if any, and [status] to say on the chart, if any. Both
-/// are null outside [ChartDisplayMode.bailout].
+/// of the live plan, if any, and [status] and [gasGap] to say on the chart, if
+/// any. All are null outside [ChartDisplayMode.bailout].
 ///
 /// A pending result keeps the last picture, because it clears in moments. A
 /// failed one does not: nothing replaces it until the next edit, and a full
-/// bailout curve reads as current in a way dimmed text does not. The gate is
-/// read first, so removing the last bailout tank drops the picture that frame.
+/// bailout curve reads as current in a way dimmed text does not. A gas gap
+/// has no picture either, since the curve would be an ascent no carried gas
+/// can make (#3961). The gate is read first, so removing the last bailout
+/// tank drops the picture that frame.
 final planChartBailoutProvider =
-    Provider<({BailoutOutcome? picture, PlanResultStatus? status})>((ref) {
-      const nothing = (picture: null, status: null);
+    Provider<
+      ({
+        BailoutOutcome? picture,
+        PlanResultStatus? status,
+        BailoutGasGap? gasGap,
+      })
+    >((ref) {
+      const nothing = (picture: null, status: null, gasGap: null);
       if (ref.watch(chartDisplayModeProvider) != ChartDisplayMode.bailout) {
         return nothing;
       }
@@ -203,9 +219,13 @@ final planChartBailoutProvider =
         ref.watch(planBailoutProvider),
         ref.watch(divePlanNotifierProvider.select((s) => s.id)),
       );
+      final outcome = view.status == PlanResultStatus.failed
+          ? null
+          : view.value;
       return (
-        picture: view.status == PlanResultStatus.failed ? null : view.value,
+        picture: outcome?.gasGap == null ? outcome : null,
         status: view.isMarked ? view.status : null,
+        gasGap: outcome?.gasGap,
       );
     });
 

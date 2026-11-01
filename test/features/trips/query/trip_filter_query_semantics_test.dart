@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/query/trip_filter_query.dart';
@@ -91,17 +90,12 @@ void main() {
 
   test('equipment selects the trips whose dives used it', () async {
     expect(await ids('reg'), {'a'});
-    expect(
-      (await EquipmentRepository().getTripIdsForEquipment('reg')).toSet(),
-      {'a'},
-    );
   });
 
   test('a transmitter-matched cylinder counts, as it does for dives', () async {
-    // Ruling: the dive gear union counts it; getTripIdsForEquipment, which
-    // reads only dive_equipment, missed this trip.
+    // Ruling: the dive gear union counts it, and the item page's Trips row
+    // reads this same filter.
     expect(await ids('tank'), {'b'});
-    expect(await EquipmentRepository().getTripIdsForEquipment('tank'), isEmpty);
   });
 
   test('no filter selects every trip', () async {

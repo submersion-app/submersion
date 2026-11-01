@@ -110,7 +110,13 @@ void main() {
     await tester.pumpWidget(harness());
     await seedAndSave(tester);
 
-    await tester.enterText(find.byType(TextField), 'Zenobia');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'Zenobia',
+    );
     await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
@@ -133,7 +139,13 @@ void main() {
     notifierOf(tester).addSimplePlan(maxDepth: 45, bottomTimeMinutes: 10);
     await tester.pump();
 
-    await tester.enterText(find.byType(TextField), 'Zenobia');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'Zenobia',
+    );
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
@@ -218,7 +230,13 @@ void main() {
     await tester.pumpWidget(harness());
     await seedAndSave(tester);
 
-    await tester.enterText(find.byType(TextField), 'Zenobia');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'Zenobia',
+    );
     await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();

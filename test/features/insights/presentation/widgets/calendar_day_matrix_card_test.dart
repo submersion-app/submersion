@@ -17,9 +17,14 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/semantics_finders.dart';
 import '../../../../helpers/test_app.dart';
+import '../recording_insights_repository.dart';
 
 /// Issue #3127: the Time patterns calendar days card.
 void main() {
+  late RecordingInsightsRepository repository;
+
+  setUp(() => repository = RecordingInsightsRepository());
+
   CalendarDayMatrix matrix(List<(int, int, int)> cells) =>
       CalendarDayMatrix.fromCounts([
         for (final (month, day, count) in cells)
@@ -63,6 +68,7 @@ void main() {
           ...base,
           insightsFilterProvider.overrideWith((ref) => insightsFilter),
           divesByCalendarDayProvider.overrideWith((ref) => data()),
+          insightsRepositoryProvider.overrideWithValue(repository),
         ],
       ),
     );
@@ -235,9 +241,11 @@ void main() {
 
     expect(find.text('dive list'), findsOneWidget);
     final filter = container.read(diveFilterProvider);
-    expect(filter.minDepth, 18);
+    expect(filter.diveIds, ['d1']);
+    expect(filter.diveIdsLabel, 'Calendar Days: May 6');
+    expect(repository.lastFilter?.minDepth, 18);
     expect(
-      filter.query,
+      repository.lastFilter?.query,
       AndNode([
         ConditionNode(
           FieldPath(const ['month']),

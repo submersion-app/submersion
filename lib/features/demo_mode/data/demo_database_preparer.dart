@@ -65,6 +65,10 @@ class DemoDatabasePreparer {
       if (units != null) await _applyUnits(db, units);
       step();
       await db.customStatement('DELETE FROM scheduled_notifications');
+      // The shift above is setup, not something the diver did.
+      await db.customStatement('DELETE FROM change_log_fields');
+      await db.customStatement('DELETE FROM change_log_events');
+      await db.customStatement('DELETE FROM change_log_operations');
       step();
     });
   }

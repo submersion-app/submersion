@@ -86,14 +86,11 @@ void main() {
     expect(row.usageDuration, 7 * 60);
   });
 
-  test('an undo restore puts it back; a template does not carry it', () async {
+  test('a template does not carry it', () async {
     final created = await diveWithRecordedTank();
     final tank = (await repository.getDiveById(created.id))!.tanks.single;
 
     await repository.bulkReplaceTanks([created.id], [tank]);
     expect(await storedUsageSeconds(), isNull);
-
-    await repository.bulkReplaceTanks([created.id], [tank], restoreLinks: true);
-    expect(await storedUsageSeconds(), 25 * 60);
   });
 }

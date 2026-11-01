@@ -32,6 +32,8 @@ import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dar
 import 'package:submersion/features/buddies/presentation/services/buddy_card_link_dispatcher.dart';
 import 'package:submersion/features/buddies/presentation/services/recent_buddy_card_links.dart';
 import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
+import 'package:submersion/features/change_log/data/services/change_log_settle_scheduler.dart';
+import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
@@ -198,11 +200,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       // changed since. Single-flight, oldest first, no-op when current.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
       DerivedMetricsScheduler.instance.scheduleStaleSweep();
+      ChangeLogSettleScheduler.instance.start();
+      _pruneChangeLog();
     });
   }
 
   @override
   void dispose() {
+    ChangeLogSettleScheduler.instance.stop();
     _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
     _shares.release();
     unawaited(_passportLinks.dispose());
@@ -312,6 +317,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// provider contains its own failures, so it is safe to leave unawaited.
   void _republishOwnedMedia() {
     unawaited(ref.read(mediaOriginRepublishProvider)());
+  }
+
+  /// Removes change log entries past their retention, at most daily. Same
+  /// database timing argument as [_resumeMediaTransfers], and it contains its
+  /// own failures, so it is safe to leave unawaited.
+  void _pruneChangeLog() {
+    unawaited(ref.read(changeLogMaintenanceProvider).pruneIfDue());
   }
 
   /// Moves files linked to gear by the older attachment card into Documents

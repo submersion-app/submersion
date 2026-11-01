@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
@@ -145,6 +147,45 @@ void main() {
       expect(container.read(allDiveCentersProvider), isA<AsyncError>());
       // Initial read is loading before the throw propagates.
       expect(result, isA<AsyncLoading>());
+    });
+  });
+
+  group('applyDiveCenterSorting', () {
+    // Handed over out of name order, so a sort that left ties alone would
+    // keep this order and fail the tie-break below.
+    final centers = [
+      _makeCenter(id: 'm', name: 'Manta'),
+      _makeCenter(id: 'a', name: 'Atoll'),
+      _makeCenter(id: 'z', name: 'Zenobia'),
+      _makeCenter(id: 'c', name: 'Coral'),
+    ];
+    const counts = {'m': 3, 'a': 3, 'z': 12};
+
+    List<String> sortedIds(SortDirection direction) => applyDiveCenterSorting(
+      centers,
+      SortState(field: DiveCenterSortField.diveCount, direction: direction),
+      counts,
+    ).map((c) => c.id).toList();
+
+    test('descending puts the most dives first, ties by name', () {
+      expect(sortedIds(SortDirection.descending), ['z', 'a', 'm', 'c']);
+    });
+
+    test('ascending puts the fewest dives first, ties by name', () {
+      expect(sortedIds(SortDirection.ascending), ['c', 'a', 'm', 'z']);
+    });
+
+    test('a name sort ignores the counts', () {
+      final sorted = applyDiveCenterSorting(
+        centers,
+        const SortState(
+          field: DiveCenterSortField.name,
+          direction: SortDirection.descending,
+        ),
+        counts,
+      );
+
+      expect(sorted.map((c) => c.id), ['a', 'c', 'm', 'z']);
     });
   });
 

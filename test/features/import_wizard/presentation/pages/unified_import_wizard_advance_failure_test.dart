@@ -3,6 +3,8 @@
 // nowhere, so from the outside the button simply did nothing, however many
 // times it was tapped (reported on ScubaBoard against v1.7.6).
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -22,10 +24,15 @@ final _canAdvance = Provider<bool>((_) => true);
 
 /// One acquisition step whose onBeforeAdvance fails the way a bad parse does.
 class _FailingStepAdapter implements ImportSourceAdapter {
-  _FailingStepAdapter({required this.onAdvance, this.duplicateCheck});
+  _FailingStepAdapter({
+    required this.onAdvance,
+    this.duplicateCheck,
+    this.onCancelAdvance,
+  });
 
   final Future<void> Function() onAdvance;
   final Future<ImportBundle> Function(ImportBundle)? duplicateCheck;
+  final VoidCallback? onCancelAdvance;
 
   int buildBundleCalls = 0;
   ImportBundle? bundleGivenToWizard;
@@ -49,6 +56,7 @@ class _FailingStepAdapter implements ImportSourceAdapter {
       builder: (_) => const Center(child: Text('Step 1')),
       canAdvance: _canAdvance,
       onBeforeAdvance: onAdvance,
+      onCancelAdvance: onCancelAdvance,
     ),
   ];
 
@@ -123,6 +131,64 @@ void main() {
     // Still on the acquisition step: a failed step must not advance.
     expect(find.text('Step 1'), findsOneWidget);
     expect(adapter.buildBundleCalls, 0);
+  });
+
+  testWidgets('a step the diver stopped stays put with nothing to report', (
+    tester,
+  ) async {
+    final adapter = _FailingStepAdapter(
+      onAdvance: () async => throw const ImportStepCancelled(),
+    );
+    await tester.pumpWidget(_wizard(adapter));
+    await tester.pumpAndSettle();
+
+    await _tapNext(tester);
+
+    expect(find.text('Step 1'), findsOneWidget);
+    expect(adapter.buildBundleCalls, 0);
+    // No banner of any kind: nothing went wrong.
+    expect(find.byIcon(Icons.error_outline), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Next works again after a step was stopped', (tester) async {
+    var attempts = 0;
+    final adapter = _FailingStepAdapter(
+      onAdvance: () async {
+        if (++attempts == 1) throw const ImportStepCancelled();
+      },
+    );
+    await tester.pumpWidget(_wizard(adapter));
+    await tester.pumpAndSettle();
+
+    await _tapNext(tester);
+    await _tapNext(tester);
+
+    expect(adapter.buildBundleCalls, 1);
+  });
+
+  testWidgets('leaving the wizard stops a step that is still running', (
+    tester,
+  ) async {
+    final running = Completer<void>();
+    var cancels = 0;
+    final adapter = _FailingStepAdapter(
+      onAdvance: () => running.future,
+      onCancelAdvance: () {
+        cancels++;
+        running.completeError(const ImportStepCancelled());
+      },
+    );
+    await tester.pumpWidget(_wizard(adapter));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Next'));
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    expect(cancels, 1);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('shows a message when a step throws something unexpected', (

@@ -20,6 +20,16 @@ enum PlanIssueType {
   gasOut,
   ndlExceededNoDecoGas,
   noBailoutCarried,
+
+  /// A loop plan goes deeper than the MOD of every bailout gas it carries
+  /// (#3961). [PlanIssue.value] is the plan's deepest point and
+  /// [PlanIssue.threshold] the deepest MOD carried, both in meters.
+  noEligibleBailoutGas,
+
+  /// A loop plan's bailout gases stop being breathable on the way up (#4008).
+  /// [PlanIssue.atDepth] is where, and [PlanIssue.value] the inspired ppO2
+  /// there, in bar.
+  bailoutGasHypoxic,
   minGasViolation,
 
   /// A back gas whose rock-bottom minimum is at or above its fill, so no
@@ -41,9 +51,21 @@ class PlanIssue extends Equatable {
   final PlanIssueType type;
   final PlanIssueSeverity severity;
   final String message;
+
+  /// Elapsed dive time, in seconds, at which the issue first starts: where
+  /// a limit is first passed, a running total first reaches its threshold or
+  /// a cylinder first drops below its limit. The chart marks the issue here
+  /// (#3738). 0 when the dive starts with it, as a repetitive dive can; null
+  /// for an issue with no single moment, such as a missing deco gas.
   final int? atRuntime;
+
+  /// The depth the issue's message names, such as the deepest point of the
+  /// leg a limit is passed on. Not necessarily the depth at [atRuntime].
   final double? atDepth;
   final String? segmentId;
+
+  /// The cylinder a gas issue is about.
+  final String? tankId;
   final double? value;
   final double? threshold;
 
@@ -54,6 +76,7 @@ class PlanIssue extends Equatable {
     this.atRuntime,
     this.atDepth,
     this.segmentId,
+    this.tankId,
     this.value,
     this.threshold,
   });
@@ -66,6 +89,7 @@ class PlanIssue extends Equatable {
     atRuntime,
     atDepth,
     segmentId,
+    tankId,
     value,
     threshold,
   ];
@@ -85,6 +109,10 @@ class PlanStop extends Equatable {
   /// supply gas, not what the diver inspires.
   final double gasFHe;
   final String? tankId;
+
+  /// The cylinder [airBreakSeconds] are breathed from, or null on a stop with
+  /// no air break.
+  final String? airBreakTankId;
   final int arrivalRuntimeSeconds;
 
   const PlanStop({
@@ -94,6 +122,7 @@ class PlanStop extends Equatable {
     required this.gasFO2,
     required this.gasFHe,
     this.tankId,
+    this.airBreakTankId,
     required this.arrivalRuntimeSeconds,
   });
 
@@ -105,6 +134,7 @@ class PlanStop extends Equatable {
     gasFO2,
     gasFHe,
     tankId,
+    airBreakTankId,
     arrivalRuntimeSeconds,
   ];
 }
@@ -252,18 +282,46 @@ enum PlanScheduleRowKind {
   /// Holding depth while the dive is still working: the bottom.
   level,
 
-  /// Going shallower: an authored ascent, a computed travel leg between
-  /// stops, or the final leg to the surface.
+  /// Going shallower: an authored ascent, the computed leg to the first stop,
+  /// or the final leg to the surface. Travel between two computed stops has
+  /// no line of its own (see [PlanScheduleRow.foldedTravel]).
   ascent,
 
   /// Holding depth on the way up: an authored or computed stop.
   stop,
 }
 
-/// One line of the dive plan table, the way a slate reads it: every travel
-/// leg is a line and every stop is a line, so a diver can follow the plan
-/// against a watch - leave the bottom, reach 21 m by minute 38, hold until
-/// 39, and so on. Authored legs come first, then the computed ascent.
+/// A stretch of ascent travel with no line of its own in the plan table: the
+/// time is still breathed, so whatever charges gas per row reads it from here
+/// (see [PlanScheduleRow.foldedTravel]).
+class PlanFoldedTravel extends Equatable {
+  final double fromDepthMeters;
+  final double toDepthMeters;
+  final int seconds;
+
+  /// The cylinder breathed across this stretch, which is not always the one
+  /// on the row: a leg into a switch stop is still on the gas it left.
+  final String? tankId;
+
+  const PlanFoldedTravel({
+    required this.fromDepthMeters,
+    required this.toDepthMeters,
+    required this.seconds,
+    required this.tankId,
+  });
+
+  @override
+  List<Object?> get props => [fromDepthMeters, toDepthMeters, seconds, tankId];
+}
+
+/// One line of the dive plan table, the way a slate reads it, so a diver can
+/// follow the plan against a watch: leave the bottom, reach 21 m by minute
+/// 38, hold until 39, and so on. Authored legs come first, then the computed
+/// ascent: the leg to the first stop, every stop, and the leg to the surface.
+///
+/// The lines are what a diver reads, not the whole dive: travel between stops
+/// folds into the stop it leads to, so anything measuring the dive from them
+/// has to read [foldedTravel] too (#3927).
 class PlanScheduleRow extends Equatable {
   final PlanScheduleRowKind kind;
 
@@ -284,6 +342,10 @@ class PlanScheduleRow extends Equatable {
   final bool gasSwitch;
   final int airBreakSeconds;
 
+  /// The cylinder [airBreakSeconds] are breathed from, or null on a line with
+  /// no air break. The rest of the line's time is on [tankId].
+  final String? airBreakTankId;
+
   /// Partial pressure of O2 actually inspired on this line, bar. For a loop
   /// mode (CCR/SCR/PSCR) this is the loop's real inspired ppO2 -- the
   /// setpoint for CCR -- not ambient x the carried gas's own O2 fraction,
@@ -295,6 +357,16 @@ class PlanScheduleRow extends Equatable {
   /// endExceeded plan issue already uses.
   final double endMeters;
 
+  /// The travel between stops leading into this line, deepest stretch first
+  /// and split wherever the gas changes. The table folds it into this line's
+  /// runtime rather than printing it (#3138), so [durationSeconds] leaves it
+  /// out: [durationSeconds] alone does not add up to the dive's runtime.
+  ///
+  /// Filled on the plan engine's schedule. A bailout table folds its travel
+  /// the same way but charges it as it builds the table, so its rows leave
+  /// this empty.
+  final List<PlanFoldedTravel> foldedTravel;
+
   const PlanScheduleRow({
     required this.kind,
     required this.depthMeters,
@@ -305,8 +377,10 @@ class PlanScheduleRow extends Equatable {
     this.tankId,
     this.gasSwitch = false,
     this.airBreakSeconds = 0,
+    this.airBreakTankId,
     this.ppO2 = 0.0,
     this.endMeters = 0.0,
+    this.foldedTravel = const [],
   });
 
   /// Elapsed dive time when this line BEGINS, in seconds.
@@ -323,8 +397,10 @@ class PlanScheduleRow extends Equatable {
     tankId,
     gasSwitch,
     airBreakSeconds,
+    airBreakTankId,
     ppO2,
     endMeters,
+    foldedTravel,
   ];
 }
 
@@ -362,6 +438,11 @@ class PlanOutcome {
   final BuhlmannState endTissue;
   final List<(int runtimeSeconds, BuhlmannState state)> tissueTimeline;
 
+  /// Tissue state on reaching the surface: [endTissue] carried through the
+  /// computed ascent, its stops and their air breaks. What a later dive of a
+  /// series starts from.
+  final BuhlmannState surfacedTissue;
+
   /// The deco ceiling sampled at a fixed 30-second interval (see
   /// `PlanEngine.ceilingSampleSeconds`) across the whole dive (user segments
   /// plus the computed ascent and stops), so the chart can draw it as the
@@ -387,6 +468,7 @@ class PlanOutcome {
     required this.issues,
     required this.endTissue,
     required this.tissueTimeline,
+    required this.surfacedTissue,
     required this.ceilingTrace,
     this.authoredDecoSeconds = 0,
   });

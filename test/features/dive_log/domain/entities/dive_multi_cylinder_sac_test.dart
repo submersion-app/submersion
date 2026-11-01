@@ -152,10 +152,52 @@ void main() {
       });
     }
 
-    test('stays null when the reference cylinder has no drop', () {
+    test('a reference with no drop adds zero to the rest (#3974)', () {
       final dive = _dive([
-        _tank('l', TankRole.sidemountLeft, start: 200, end: 200),
+        _tank('bg', TankRole.backGas, volume: 12, end: 200),
+        _tank('st', TankRole.stage, volume: 6),
+      ]);
+      // 120 bar of 6 L is 60 bar of 12 L, over 60 min at 2 bar ambient.
+      expect(dive.sac, closeTo(0.5, 1e-9));
+      expect(dive.rmvFor(GasModel.ideal), closeTo(6, 1e-9));
+    });
+
+    test('a reference with no drop still pairs its partner (#3974)', () {
+      final dive = _dive([
+        _tank('l', TankRole.sidemountLeft, end: 200),
         _tank('r', TankRole.sidemountRight),
+      ]);
+      expect(dive.sac, closeTo(1.0, 1e-9));
+    });
+
+    test('a reference that gained pressure adds zero (#3974)', () {
+      final dive = _dive([
+        _tank('bg', TankRole.backGas, volume: 12, end: 205),
+        _tank('st', TankRole.stage, volume: 6),
+      ]);
+      expect(dive.sac, closeTo(0.5, 1e-9));
+    });
+
+    test('stays null when no cylinder dropped', () {
+      final dive = _dive([
+        _tank('bg', TankRole.backGas, volume: 12, end: 200),
+        _tank('st', TankRole.stage, volume: 6, end: 200),
+      ]);
+      expect(dive.sac, isNull);
+    });
+
+    test('stays null when the rest cannot be related to the reference', () {
+      final dive = _dive([
+        _tank('bg', TankRole.backGas, volume: 12, end: 200),
+        _tank('st', TankRole.stage),
+      ]);
+      expect(dive.sac, isNull);
+    });
+
+    test('stays null when the reference has no pressures logged', () {
+      final dive = _dive([
+        const DiveTank(id: 'bg', role: TankRole.backGas, volume: 12),
+        _tank('st', TankRole.stage, volume: 6),
       ]);
       expect(dive.sac, isNull);
     });

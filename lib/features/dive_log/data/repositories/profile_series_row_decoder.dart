@@ -1,4 +1,5 @@
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
@@ -11,7 +12,15 @@ const ProfileSeriesCodec _codec = ProfileSeriesCodec();
 /// caller decides what an unreadable row means for it. Pure and free of
 /// database or logger state, so it runs on a background isolate as readily
 /// as on the UI one (#3506).
-ProfileSeries decodeProfileSeriesRow(DiveProfileSeriesRow row) {
+ProfileSeries decodeProfileSeriesRow(DiveProfileSeriesRow row) =>
+    _seriesOf(row, _codec.decode(row.samples));
+
+/// One stored series row as a [ProfileSeries] with no samples, its blob left
+/// undecoded, for a reader that needs only its identity and summary columns.
+ProfileSeries undecodedProfileSeriesRow(DiveProfileSeriesRow row) =>
+    _seriesOf(row, const []);
+
+ProfileSeries _seriesOf(DiveProfileSeriesRow row, List<ProfileSample> samples) {
   return ProfileSeries(
     id: row.id,
     diveId: row.diveId,
@@ -29,7 +38,7 @@ ProfileSeries decodeProfileSeriesRow(DiveProfileSeriesRow row) {
       hasDecoStop: row.hasDecoStop,
       hasPositiveCeiling: row.hasPositiveCeiling,
     ),
-    samples: _codec.decode(row.samples),
+    samples: samples,
     codecVersion: row.codecVersion,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

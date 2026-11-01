@@ -127,9 +127,7 @@ void main() {
       final dir = await Directory.systemTemp.createTemp('legacy_tissue');
       addTearDown(() => dir.delete(recursive: true));
       final file = File(p.join(dir.path, 'base.json'));
-      await file.writeAsBytes(
-        utf8.encode(serializer.serializePayload(payload)),
-      );
+      await file.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
 
       await buildService().debugApplyBaseFile(file.path);
 

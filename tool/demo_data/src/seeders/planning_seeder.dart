@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -73,6 +74,8 @@ class PlanningSeeder implements DemoSeeder {
         siteId: ctx.siteId(wreck.siteId),
         gfLow: 30,
         gfHigh: 75,
+        // Compare's plan against the dive it became.
+        linkedDiveId: ctx.diveId(wreck.number),
         tanks: const [back, deco],
         segments: [
           PlanSegment(
@@ -105,6 +108,17 @@ class PlanningSeeder implements DemoSeeder {
       gasMix: GasMix(o2: 21, he: 35),
       role: TankRole.diluent,
     );
+    // Converted and not dived yet, so Compare has a planned dive to wait on.
+    final plannedDive = await DiveRepository().createDive(
+      Dive(
+        id: '',
+        diverId: DemoSeedContext.diverId,
+        name: 'Rebreather reef wall, 45 m',
+        dateTime: DateTime.utc(now.year, now.month, now.day + 3, 9),
+        diveMode: DiveMode.ccr,
+        isPlanned: true,
+      ),
+    );
     await plans.savePlan(
       DivePlan(
         id: 'demo-plan-ccr',
@@ -112,6 +126,7 @@ class PlanningSeeder implements DemoSeeder {
         mode: PlanMode.ccr,
         gfLow: 40,
         gfHigh: 80,
+        linkedDiveId: plannedDive.id,
         tanks: const [dil],
         segments: [
           PlanSegment(

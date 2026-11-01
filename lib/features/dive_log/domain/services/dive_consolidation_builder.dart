@@ -148,11 +148,16 @@ class DiveConsolidationBuilder {
     }
     final sorted = [...dives]
       ..sort((a, b) => a.effectiveEntryTime.compareTo(b.effectiveEntryTime));
+    // The primary's timeline is the one that survives, so the default is the
+    // earliest dive that happened: a plan is a guess at those times, and the
+    // no-fly clock runs from the end they give (issue #3924).
+    final fallback =
+        sorted.where((d) => !d.isPlanned).firstOrNull ?? sorted.first;
     final primary = primaryDiveId == null
-        ? sorted.first
+        ? fallback
         : sorted.firstWhere(
             (d) => d.id == primaryDiveId,
-            orElse: () => sorted.first,
+            orElse: () => fallback,
           );
     final secondaries = [
       for (final d in sorted)

@@ -6,6 +6,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -324,7 +325,14 @@ class TripRepository {
   /// method's own notify is deferred until after the transaction commits so
   /// listeners never observe a rolled-back delete as "changed".
   // stats-scope-exempt: deletion cascade
-  Future<bool> deleteTrip(String id, {String? actingDiverId}) async {
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.deletedRecord,
+        body: () => _deleteTripInner(id, actingDiverId: actingDiverId),
+      );
+
+  Future<bool> _deleteTripInner(String id, {String? actingDiverId}) async {
     try {
       final row = await (_db.select(
         _db.trips,

@@ -268,6 +268,30 @@ void main() {
     expect(await DiverRepository().getAllDivers(), isEmpty);
   });
 
+  test('wiping the app clears the log', () async {
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(dbPath),
+    );
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      domain.Diver(id: '', name: 'Old Profile', createdAt: now, updatedAt: now),
+    );
+    Future<int> events() async {
+      final row = await DatabaseService.instance.database
+          .customSelect('SELECT COUNT(*) AS c FROM change_log_events')
+          .getSingle();
+      return row.read<int>('c');
+    }
+
+    expect(await events(), greaterThan(0));
+
+    await DatabaseService.instance.resetDatabase(
+      backupPath: p.join(tempDir.path, 'reset-backup.db'),
+    );
+
+    expect(await events(), 0);
+  });
+
   test('a failing migration ladder closes the migrator and rethrows', () async {
     // Seed a current-schema file, then rewind user_version far back so the
     // upgrade ladder replays historical steps. An early unguarded addColumn

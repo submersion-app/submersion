@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/reef/data/services/reef_request_timeout.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/services/species_catalog_matcher.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/reef/domain/services/species_catalog_matcher
 class NearbySpeciesService {
   final http.Client _client;
   final SpeciesCatalogMatcher? _matcher;
+  final Duration _timeout;
 
   static const String _host = 'api.gbif.org';
   static const String _searchPath = '/v1/occurrence/search';
@@ -43,9 +45,13 @@ class NearbySpeciesService {
   /// on the surface and is not something a diver logs.
   static const Set<String> _terrestrialFamilies = {'Araceae'};
 
-  NearbySpeciesService({http.Client? client, SpeciesCatalogMatcher? matcher})
-    : _client = client ?? http.Client(),
-      _matcher = matcher;
+  NearbySpeciesService({
+    http.Client? client,
+    SpeciesCatalogMatcher? matcher,
+    Duration timeout = reefRequestTimeout,
+  }) : _client = client ?? http.Client(),
+       _matcher = matcher,
+       _timeout = timeout;
 
   Future<ReefPart<NearbySpecies>> fetch(GeoPoint point) async {
     try {
@@ -64,7 +70,9 @@ class NearbySpeciesService {
         'limit': '0',
       });
 
-      final response = await _client.get(uri, headers: _headers);
+      final response = await _client
+          .get(uri, headers: _headers)
+          .timeout(_timeout);
       if (response.statusCode != 200) {
         developer.log(
           'Nearby species HTTP ${response.statusCode}',
@@ -96,13 +104,21 @@ class NearbySpeciesService {
       // roughly 0.4s each, which would stall the site view for ten seconds.
       // The cap keeps the burst small enough to stay polite.
       final resolved = await Future.wait(unmatchedKeys.map(_scientificName));
-      final unmatchedNames = resolved.whereType<String>().toList();
 
       final result = NearbySpecies(
         matched: matched,
-        unmatchedNames: unmatchedNames,
+        unmatchedNames: resolved
+            .map((r) => r.name)
+            .whereType<String>()
+            .toList(),
+        namesIncomplete: resolved.any((r) => r.failed),
       );
-      if (result.isEmpty) return const ReefPart.empty();
+      if (result.isEmpty) {
+        // Nothing to show because the lookups failed is not "nothing nearby".
+        return result.namesIncomplete
+            ? const ReefPart.unavailable()
+            : const ReefPart.empty();
+      }
       return ReefPart.ok(result);
     } catch (e) {
       developer.log(
@@ -137,27 +153,38 @@ class NearbySpeciesService {
         .toList(growable: false);
   }
 
-  /// Resolves a taxon key to its scientific name, or null when the record is
-  /// unusable or belongs to a [_terrestrialFamilies] family.
-  Future<String?> _scientificName(int key) async {
+  /// Resolves a taxon key to its scientific name. The name is null when the
+  /// record is unusable or belongs to a [_terrestrialFamilies] family, which
+  /// is a finished answer, as is a permanent client error such as 404: asking
+  /// again would get the same reply. `failed` means a later try could succeed.
+  Future<({String? name, bool failed})> _scientificName(int key) async {
+    const lookupFailed = (name: null, failed: true);
+    const noName = (name: null, failed: false);
     try {
-      final response = await _client.get(
-        Uri.https(_host, '$_speciesPath/$key'),
-        headers: _headers,
-      );
-      if (response.statusCode != 200) return null;
+      final response = await _client
+          .get(Uri.https(_host, '$_speciesPath/$key'), headers: _headers)
+          .timeout(_timeout);
+      if (_isTransient(response.statusCode)) return lookupFailed;
+      if (response.statusCode != 200) return noName;
       final decoded = jsonDecode(response.body);
-      if (decoded is! Map<String, dynamic>) return null;
+      if (decoded is! Map<String, dynamic>) return noName;
       // An absent family is kept: GBIF omits it for higher-rank records, and
       // dropping those would lose aquatic life to a missing field.
-      if (_terrestrialFamilies.contains(decoded['family'])) return null;
+      if (_terrestrialFamilies.contains(decoded['family'])) return noName;
       final name = decoded['scientificName'];
-      return name is String && name.isNotEmpty ? name : null;
+      return name is String && name.isNotEmpty
+          ? (name: name, failed: false)
+          : noName;
     } catch (_) {
-      return null;
+      return lookupFailed;
     }
   }
 }
+
+/// Timeout, too early, rate limited, or a server fault. Any other non-200
+/// reply is the server's final word on that record.
+bool _isTransient(int statusCode) =>
+    const {408, 425, 429}.contains(statusCode) || statusCode >= 500;
 
 class _FacetCount {
   final int key;

@@ -148,6 +148,7 @@ device to the next:
 | The cloud provider and its sign-in, sync behaviour, and the encryption passphrase | Credentials never leave the device |
 | Backup settings and location, update channel, debug mode, database location, App Security | Device housekeeping |
 | Photo and video files | Only their links sync; the files themselves travel through [Media Sync](media-sync.md) |
+| The [change log](change-log.md) | Each device keeps its own record of what changed. A change from another device appears there as a synced change, and a revert syncs like any other edit |
 
 ## Sync Behavior
 

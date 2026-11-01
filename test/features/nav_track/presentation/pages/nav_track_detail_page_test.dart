@@ -1311,7 +1311,7 @@ void main() {
         ),
         findsOneWidget,
         reason:
-            'should match the icon dive_detail_page.dart uses for its '
+            'should match the icon the dive profile card uses for its '
             '"3D-Unterwasserwelt" button, not the AR-cube icon',
       );
 

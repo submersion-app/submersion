@@ -164,12 +164,9 @@ void main() {
     expect(await linkOf('t1'), isNull);
   });
 
-  test('a bulk replace stamps the link only when restoring', () async {
+  test('a bulk replace never stamps the link', () async {
     await repo.createDive(
       createTestDiveWithBottomTime(id: 'd1').copyWith(tripId: tripA),
-    );
-    await repo.createDive(
-      createTestDiveWithBottomTime(id: 'd2').copyWith(tripId: tripA),
     );
     const template = DiveTank(id: 'tpl', tripCylinderId: 'slot-a');
 
@@ -178,11 +175,6 @@ void main() {
     await repo.bulkReplaceTanks(['d1'], const [template]);
     final d1 = (await repo.getDiveById('d1'))!;
     expect(d1.tanks.single.tripCylinderId, isNull);
-
-    // An undo restoring captured rows writes what it captured.
-    await repo.bulkReplaceTanks(['d2'], const [template], restoreLinks: true);
-    final d2 = (await repo.getDiveById('d2'))!;
-    expect(d2.tanks.single.tripCylinderId, 'slot-a');
   });
 
   test('a new dive with no id drops a link into another trip', () async {
@@ -275,19 +267,6 @@ void main() {
       await linkedDive();
       await repo.bulkUpdateTrip(['d1'], tripA);
       expect(await linkOf('t1'), 'slot-a');
-    });
-
-    test('an undo of a tank replace survives a deleted slot', () async {
-      await repo.createDive(
-        createTestDiveWithBottomTime(id: 'd1').copyWith(tripId: tripA),
-      );
-      await repo.bulkReplaceTanks(
-        ['d1'],
-        const [DiveTank(id: 'tpl', tripCylinderId: 'slot-gone')],
-        restoreLinks: true,
-      );
-      final d1 = (await repo.getDiveById('d1'))!;
-      expect(d1.tanks.single.tripCylinderId, isNull);
     });
 
     test('an undo of a tank spec edit survives a deleted slot', () async {

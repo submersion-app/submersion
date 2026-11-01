@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_section.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -458,6 +459,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     required bool canTransfer,
   }) {
     return [
+      changeLogHistoryMenuItem(
+        context,
+        rootTable: 'equipment',
+        rootId: equipmentId,
+      ),
       openInConnectionsMenuItem(context),
       PopupMenuItem(
         value: 'clone',
@@ -601,7 +607,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   onTap: () => openDiveList(
                     context,
                     ref,
-                    DiveFilterState(equipmentIds: [equipmentId]),
+                    DiveFilterState.itemUse(equipmentId),
                   ),
                 ),
                 loading: () => _buildDetailRow(
@@ -612,7 +618,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 error: (e, s) => const SizedBox.shrink(),
               ),
               EquipmentDiveTimeRow(equipmentId: equipmentId),
+              // A reload, since the count follows the trip filter: every dive
+              // write runs one, and the row keeps its figure meanwhile.
               tripCountAsync.when(
+                skipLoadingOnReload: true,
                 data: (count) => _buildCountLinkRow(
                   context,
                   label: context.l10n.equipment_detail_tripsLabel,

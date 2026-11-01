@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/reef/data/repositories/reef_cache_dao.dart';
@@ -11,14 +12,13 @@ import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
 import 'package:submersion/features/reef/domain/entities/reef_protection.dart';
-import 'package:submersion/features/reef/domain/entities/reef_snapshot.dart';
 import 'package:submersion/features/reef/domain/services/reef_coordinate_key.dart';
 
 /// Cache-aside orchestration across the four reef-data providers.
 ///
-/// Providers run concurrently with individually captured failures, so one
-/// outage never blocks the others. Concurrent callers for the same provider
-/// and coordinate share a single in-flight request.
+/// Each part resolves on its own with its failure captured, so a slow or
+/// failed provider never holds up another. Concurrent callers for the same
+/// provider and coordinate share a single in-flight request.
 class ReefRepository {
   final ReefCacheDao _cache;
   final ReefHabitatService _habitat;
@@ -26,12 +26,14 @@ class ReefRepository {
   final ReefProtectionService _protection;
   final NearbySpeciesService _species;
 
-  final Map<String, Future<void>> _inFlight = {};
+  /// Each entry completes with the leader's answer, or null if it threw.
+  final Map<String, Future<ReefPart<Object?>?>> _inFlight = {};
 
   /// Cache generation for nearby species. Bump this whenever the taxon
-  /// whitelist changes so previously cached results are refetched rather
-  /// than served for the rest of their 30-day lifetime.
-  static const String _speciesWhitelistVariant = 'v2';
+  /// whitelist or what a cached result can contain changes, so previously
+  /// cached results are refetched rather than served for the rest of their
+  /// 30-day lifetime. v3 drops lists cached with failed name lookups.
+  static const String _speciesWhitelistVariant = 'v3';
 
   ReefRepository({
     required ReefCacheDao cache,
@@ -45,87 +47,18 @@ class ReefRepository {
        _protection = protection,
        _species = species;
 
-  /// Fetches all four parts for [point], using cache where fresh.
-  ///
-  /// [includeHealth] is false for freshwater sites: NOAA's grid covers only
-  /// oceans, and skipping the fetch also skips the nearest-water-pixel
-  /// fallback that would otherwise hand a coastal quarry the adjacent ocean's
-  /// temperature. The health slot comes back [ReefDataStatus.empty] with no
-  /// network request and no cache write.
-  Future<ReefSnapshot> snapshotFor(
-    GeoPoint point, {
-    DateTime? date,
-    bool includeHealth = true,
-  }) async {
-    final quantized = ReefCoordinateKey.quantize(point);
-    final key = ReefCoordinateKey.format(point);
-
-    final results = await Future.wait([
-      _resolve<ReefHabitat>(
-        provider: ReefProviderId.habitat,
-        coordKey: key,
-        fetch: () => _habitat.fetch(quantized),
-        encode: (v) => jsonEncode(v.toJson()),
-        decode: (j) => ReefHabitat.fromJson(j as Map<String, dynamic>),
-      ),
-      includeHealth
-          ? _resolve<ReefHealth>(
-              provider: ReefProviderId.health,
-              coordKey: key,
-              variant: date == null ? '' : _dateVariant(date),
-              fetch: () => _health.fetch(quantized, date: date),
-              encode: (v) => jsonEncode(v.toJson()),
-              decode: (j) => ReefHealth.fromJson(j as Map<String, dynamic>),
-            )
-          : Future.value(const ReefPart<ReefHealth>.empty()),
-      _resolve<List<ReefProtection>>(
-        provider: ReefProviderId.protection,
-        coordKey: key,
-        fetch: () => _protection.fetch(quantized),
-        encode: (v) => jsonEncode(v.map((p) => p.toJson()).toList()),
-        decode: (j) => (j as List)
-            .cast<Map<String, dynamic>>()
-            .map(ReefProtection.fromJson)
-            .toList(),
-      ),
-      _resolve<NearbySpecies>(
-        provider: ReefProviderId.species,
-        coordKey: key,
-        // Bumped when the taxon whitelist narrowed (issue #1036). Entries
-        // cached under the old whitelist hold terrestrial mammals and would
-        // otherwise survive their 30-day lifetime after the update.
-        variant: _speciesWhitelistVariant,
-        fetch: () => _species.fetch(quantized),
-        encode: (v) => jsonEncode(v.toJson()),
-        decode: (j) => NearbySpecies.fromJson(j as Map<String, dynamic>),
-      ),
-    ]);
-
-    return ReefSnapshot(
-      habitat: results[0] as ReefPart<ReefHabitat>,
-      health: results[1] as ReefPart<ReefHealth>,
-      protection: results[2] as ReefPart<List<ReefProtection>>,
-      species: results[3] as ReefPart<NearbySpecies>,
-    );
-  }
+  /// Fetches current reef health at [point]. Freshwater sites must not call
+  /// this: NOAA's grid covers only oceans, and the nearest-water-pixel fallback
+  /// would hand a coastal quarry the adjacent ocean's temperature.
+  Future<ReefPart<ReefHealth>> currentHealthFor(GeoPoint point) =>
+      _healthPart(point);
 
   /// Fetches reef health as it was on [date]. Historical readings are
   /// immutable and cached permanently.
-  Future<ReefPart<ReefHealth>> healthFor(GeoPoint point, DateTime date) {
-    final quantized = ReefCoordinateKey.quantize(point);
-    return _resolve<ReefHealth>(
-      provider: ReefProviderId.health,
-      coordKey: ReefCoordinateKey.format(point),
-      variant: _dateVariant(date),
-      fetch: () => _health.fetch(quantized, date: date),
-      encode: (v) => jsonEncode(v.toJson()),
-      decode: (j) => ReefHealth.fromJson(j as Map<String, dynamic>),
-    );
-  }
+  Future<ReefPart<ReefHealth>> healthFor(GeoPoint point, DateTime date) =>
+      _healthPart(point, date: date);
 
-  /// Fetches reef habitat alone, for surfaces that already have health data
-  /// from another lookup (the dive detail page). Shares cache entries and
-  /// in-flight dedupe with [snapshotFor].
+  /// Fetches reef presence and threat level at [point].
   Future<ReefPart<ReefHabitat>> habitatFor(GeoPoint point) {
     final quantized = ReefCoordinateKey.quantize(point);
     return _resolve<ReefHabitat>(
@@ -134,6 +67,63 @@ class ReefRepository {
       fetch: () => _habitat.fetch(quantized),
       encode: (v) => jsonEncode(v.toJson()),
       decode: (j) => ReefHabitat.fromJson(j as Map<String, dynamic>),
+    );
+  }
+
+  /// Fetches the marine protected areas containing [point].
+  Future<ReefPart<List<ReefProtection>>> protectionFor(GeoPoint point) {
+    final quantized = ReefCoordinateKey.quantize(point);
+    return _resolve<List<ReefProtection>>(
+      provider: ReefProviderId.protection,
+      coordKey: ReefCoordinateKey.format(point),
+      fetch: () => _protection.fetch(quantized),
+      encode: (v) => jsonEncode(v.map((p) => p.toJson()).toList()),
+      decode: (j) => (j as List)
+          .cast<Map<String, dynamic>>()
+          .map(ReefProtection.fromJson)
+          .toList(),
+    );
+  }
+
+  /// Fetches species recorded near [point]. A result with lookup gaps is
+  /// returned but not cached, so the gap is not kept for 30 days.
+  Future<ReefPart<NearbySpecies>> speciesFor(GeoPoint point) {
+    final quantized = ReefCoordinateKey.quantize(point);
+    return _resolve<NearbySpecies>(
+      provider: ReefProviderId.species,
+      coordKey: ReefCoordinateKey.format(point),
+      // Bumped when the taxon whitelist narrowed (issue #1036). Entries
+      // cached under the old whitelist hold terrestrial mammals and would
+      // otherwise survive their 30-day lifetime after the update.
+      variant: _speciesWhitelistVariant,
+      fetch: () => _species.fetch(quantized),
+      encode: (v) => jsonEncode(v.toJson()),
+      decode: (j) => NearbySpecies.fromJson(j as Map<String, dynamic>),
+      skipStore: (v) => v.namesIncomplete,
+    );
+  }
+
+  /// Forgets the cached failure of [provider]'s current data at [point], so a
+  /// diver's retry reaches the network instead of reading the failure back.
+  /// Other parts and any good result are untouched.
+  Future<void> forgetFailure(ReefProviderId provider, GeoPoint point) =>
+      _cache.deleteFailure(
+        provider,
+        ReefCoordinateKey.format(point),
+        variant: provider == ReefProviderId.species
+            ? _speciesWhitelistVariant
+            : '',
+      );
+
+  Future<ReefPart<ReefHealth>> _healthPart(GeoPoint point, {DateTime? date}) {
+    final quantized = ReefCoordinateKey.quantize(point);
+    return _resolve<ReefHealth>(
+      provider: ReefProviderId.health,
+      coordKey: ReefCoordinateKey.format(point),
+      variant: date == null ? '' : _dateVariant(date),
+      fetch: () => _health.fetch(quantized, date: date),
+      encode: (v) => jsonEncode(v.toJson()),
+      decode: (j) => ReefHealth.fromJson(j as Map<String, dynamic>),
     );
   }
 
@@ -147,15 +137,17 @@ class ReefRepository {
     required String Function(T) encode,
     required T Function(Object?) decode,
     String variant = '',
+    bool Function(T)? skipStore,
   }) {
     final lock = '${provider.name}|$coordKey|$variant';
 
-    // Someone else is already resolving this key. Wait for them, then read
-    // what they stored rather than issuing a second request.
+    // Someone else is already resolving this key. Share their answer rather
+    // than issuing a second request. It is taken from them, not the cache,
+    // because a partial species result is never stored.
     final pending = _inFlight[lock];
     if (pending != null) {
       return pending.then(
-        (_) => _readStored<T>(provider, coordKey, variant, decode),
+        (shared) => shared is ReefPart<T> ? shared : ReefPart<T>.unavailable(),
       );
     }
 
@@ -166,12 +158,16 @@ class ReefRepository {
       fetch: fetch,
       encode: encode,
       decode: decode,
+      skipStore: skipStore,
     );
 
     // Registered before any suspension point, so later callers in this same
     // microtask see it. Errors are swallowed on the tracking future only;
     // `work` still surfaces them to this caller.
-    _inFlight[lock] = work.then((_) {}, onError: (_) {});
+    _inFlight[lock] = work.then<ReefPart<Object?>?>(
+      (part) => part,
+      onError: (_) => null,
+    );
 
     return work.whenComplete(() => _inFlight.remove(lock));
   }
@@ -183,30 +179,34 @@ class ReefRepository {
     required Future<ReefPart<T>> Function() fetch,
     required String Function(T) encode,
     required T Function(Object?) decode,
+    bool Function(T)? skipStore,
   }) async {
-    final cached = await _cache.read(provider, coordKey, variant: variant);
-    if (cached != null) return _decodeEntry<T>(cached, decode);
+    // The cache only saves a request, so when it cannot answer the network
+    // still gets asked. That includes a row this build cannot read: habitat
+    // never expires, so nothing else would ever replace it.
+    try {
+      final cached = await _cache.read(provider, coordKey, variant: variant);
+      if (cached != null) return _decodeEntry<T>(cached, decode);
+    } catch (e) {
+      developer.log('Unreadable reef cache: $e', name: 'ReefRepository');
+    }
 
     final part = await fetch();
-    await _cache.write(
-      provider: provider,
-      coordKey: coordKey,
-      variant: variant,
-      status: part.status,
-      payloadJson: part.hasValue ? encode(part.value as T) : '{}',
-    );
+    if (part.hasValue && (skipStore?.call(part.value as T) ?? false)) {
+      return part;
+    }
+    try {
+      await _cache.write(
+        provider: provider,
+        coordKey: coordKey,
+        variant: variant,
+        status: part.status,
+        payloadJson: part.hasValue ? encode(part.value as T) : '{}',
+      );
+    } catch (e) {
+      developer.log('Reef cache write failed: $e', name: 'ReefRepository');
+    }
     return part;
-  }
-
-  Future<ReefPart<T>> _readStored<T>(
-    ReefProviderId provider,
-    String coordKey,
-    String variant,
-    T Function(Object?) decode,
-  ) async {
-    final entry = await _cache.read(provider, coordKey, variant: variant);
-    if (entry == null) return ReefPart<T>.unavailable();
-    return _decodeEntry<T>(entry, decode);
   }
 
   ReefPart<T> _decodeEntry<T>(

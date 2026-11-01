@@ -4,11 +4,13 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -577,6 +579,26 @@ class DiverRepository {
   ///
   /// Returns a [DeleteDiverResult] describing what was reassigned.
   Future<DeleteDiverResult> deleteDiverWithReassignment(String id) async {
+    final result = await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.deletedRecord,
+      body: () => _deleteDiverWithReassignment(id),
+    );
+    // The delete is done by now, so a failure here must not report it as
+    // failed. What survivors inherited stays in the log under their own name.
+    try {
+      await ChangeLogRepository().clearForDiver(id);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not clear the change log of diver $id',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+    return result;
+  }
+
+  Future<DeleteDiverResult> _deleteDiverWithReassignment(String id) async {
     try {
       _log.info('Deleting diver with reassignment: $id');
 

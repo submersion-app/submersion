@@ -1,7 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -11,11 +12,16 @@ import 'package:submersion/features/divers/presentation/providers/diver_weight_e
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
-/// Interior-sample spacing (seconds) for constant-depth plan segments so the
-/// anchor detector has a sustained run to find at a stop.
+/// Interior-sample spacing (seconds) for constant-depth plan segments, so the
+/// anchor detector has a sustained run to find at a stop, and for the computed
+/// ascent, where it also sets how near the surface the last in-water sample is.
 const int _kInteriorSampleSeconds = 30;
 
 const _log = LoggerService('PlanBuoyancyTwinProvider');
@@ -23,7 +29,16 @@ const _log = LoggerService('PlanBuoyancyTwinProvider');
 /// Builds a square-ish profile from plan segments: one sample per boundary
 /// plus an interior sample every [_kInteriorSampleSeconds] on constant-depth
 /// segments (bottom, stops). Timestamps are cumulative and monotonic.
-List<TwinProfileSample> synthesizePlanProfile(List<PlanSegment> segments) {
+///
+/// [computedAscent] continues the profile from the last authored depth as
+/// `(depth, seconds)` waypoints, so it covers the same dive as the engine's end
+/// pressures. They are sampled at that spacing throughout: the ascent then
+/// reads as the diver getting shallower, and a computed stop as a run the
+/// anchor detector can find.
+List<TwinProfileSample> synthesizePlanProfile(
+  List<PlanSegment> segments, {
+  List<(double, int)> computedAscent = const [],
+}) {
   final samples = <TwinProfileSample>[];
   if (segments.isEmpty) return samples;
   final legs = const SegmentChain().resolve(segments);
@@ -48,7 +63,49 @@ List<TwinProfileSample> synthesizePlanProfile(List<PlanSegment> segments) {
     }
     samples.add(TwinProfileSample(timestamp: t, depthM: leg.endDepth));
   }
+  var depth = legs.last.endDepth;
+  for (final (toDepth, seconds) in computedAscent) {
+    if (seconds <= 0) continue;
+    for (
+      var s = _kInteriorSampleSeconds;
+      s < seconds;
+      s += _kInteriorSampleSeconds
+    ) {
+      samples.add(
+        TwinProfileSample(
+          timestamp: t + s,
+          depthM: depth + (toDepth - depth) * s / seconds,
+        ),
+      );
+    }
+    t += seconds;
+    depth = toDepth;
+    samples.add(TwinProfileSample(timestamp: t, depthM: depth));
+  }
   return samples;
+}
+
+/// [outcome]'s computed ascent as `(depth, seconds)` waypoints, timed off its
+/// stop arrivals: a stop's schedule line leaves out the travel into it.
+List<(double, int)> _computedAscent(PlanOutcome outcome) {
+  if (outcome.segmentOutcomes.isEmpty) return const [];
+  final waypoints = <(double, int)>[];
+  var end = outcome.segmentOutcomes.last.endRuntime;
+  for (final stop in outcome.stops) {
+    waypoints.add((stop.depthMeters, stop.arrivalRuntimeSeconds - end));
+    waypoints.add((stop.depthMeters, stop.durationSeconds));
+    end = stop.arrivalRuntimeSeconds + stop.durationSeconds;
+  }
+  waypoints.add((0, outcome.runtimeSeconds - end));
+  return waypoints;
+}
+
+/// The pressure left in a cylinder, for the twin to weigh. The engine prices a
+/// shortfall as a negative pressure (#3190), but an empty cylinder holds no gas
+/// rather than less than none.
+double? _endPressureBar(PlanTankUsage? usage) {
+  final remaining = usage?.remainingPressure;
+  return remaining == null ? null : math.max(remaining, 0.0);
 }
 
 /// Forward buoyancy twin for the plan being edited. Recomputes synchronously
@@ -72,7 +129,7 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
   final model = ref.watch(weightCalibrationProvider).valueOrNull;
   final equipment = ref.watch(allEquipmentProvider).valueOrNull;
   final latestWeight = ref.watch(latestDiverWeightProvider).valueOrNull;
-  final planResult = ref.watch(planResultsProvider);
+  final planOutcome = ref.watch(planOutcomeProvider);
   final prediction = ref.watch(planWeightPredictionProvider);
 
   if (model == null || equipment == null || state.tanks.isEmpty) return null;
@@ -91,8 +148,12 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
     for (final id in state.equipmentIds) ?itemsById[id],
   ];
 
-  final consumptionByTank = {
-    for (final g in planResult.gasConsumptions) g.tankId: g,
+  // The figures the plan canvas shows, computed ascent and loop draw included
+  // (issue #4010). With nothing planned yet there is no end pressure to give,
+  // and the twin falls back on its reserve convention rather than a full tank.
+  final usageByTank = {
+    if (state.segments.isNotEmpty)
+      for (final usage in planOutcome.tankUsages) usage.tankId: usage,
   };
   final tanks = <TwinTankInput>[
     for (final t in state.tanks)
@@ -109,8 +170,8 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
         material: t.material,
         o2Percent: t.gasMix.o2,
         hePercent: t.gasMix.he,
-        startPressureBar: consumptionByTank[t.id]?.startPressure,
-        endPressureBar: consumptionByTank[t.id]?.remainingPressure,
+        startPressureBar: usageByTank[t.id]?.startPressure,
+        endPressureBar: _endPressureBar(usageByTank[t.id]),
       ),
   ];
 
@@ -142,17 +203,16 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
       : BuoyancyTwinAssembler.droppableLeadFromPlacement(placement);
 
   final input = TwinInput(
-    profile: synthesizePlanProfile(state.segments),
+    profile: synthesizePlanProfile(
+      state.segments,
+      computedAscent: _computedAscent(planOutcome),
+    ),
     tanks: tanks,
     suit: rig.suit,
     staticTerms: rig.staticTerms,
     leadKg: lead,
     droppableLeadKg: droppableLead,
-    environment: DiveEnvironment.forConditions(
-      altitudeMeters: state.altitude,
-      waterType: state.waterType ?? WaterType.salt,
-      salinityPpt: state.salinityPpt,
-    ),
+    environment: PlanEngine.environmentFor(divePlanFromState(state)),
     totalMassKg: rig.totalMassKg,
   );
 

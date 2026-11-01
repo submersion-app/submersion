@@ -157,4 +157,32 @@ void main() {
       expect(find.textContaining('Time above'), findsNothing);
     });
   });
+
+  group('CompactO2ToxicityPanel CNS minimum note', () {
+    const note = 'An earlier dive has no oxygen data, so this may be higher.';
+
+    testWidgets('shows the note when the starting CNS is a minimum', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildPanel(
+          exp: exposure.copyWith(
+            cnsUnknownDiveAge: const Duration(minutes: 20),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(note), findsOneWidget);
+    });
+
+    testWidgets('omits the note when the CNS history is complete', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildPanel());
+      await tester.pumpAndSettle();
+
+      expect(find.text(note), findsNothing);
+    });
+  });
 }
