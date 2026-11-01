@@ -278,6 +278,13 @@ class _EntityTableViewState<T, F extends EntityField>
   // Sorting
   // ---------------------------------------------------------------------------
 
+  /// What [_sorted] was sorted from, so a rebuild that changes none of it
+  /// (hover, a live column width) keeps the order (#3850). The rows, adapter
+  /// and units compare by identity: an edit arrives as a new list, and
+  /// anything an adapter reads, such as labels or a catalog, as a new adapter.
+  (List<T>, EntityFieldAdapter<T, F>, UnitFormatter, F, bool)? _sortInputs;
+  List<T> _sorted = const [];
+
   List<T> _sortedEntities() {
     final config = widget.config;
     if (config.sortField == null) return widget.entities;
@@ -285,11 +292,25 @@ class _EntityTableViewState<T, F extends EntityField>
     final field = config.sortField!;
     final ascending = config.sortAscending;
 
-    final sorted = List<T>.from(widget.entities);
+    final inputs = (
+      widget.entities,
+      widget.adapter,
+      widget.units,
+      field,
+      ascending,
+    );
+    if (inputs == _sortInputs) return _sorted;
+
+    // Each row's value is read and formatted once, not once per comparison.
+    final rows = <(T, Object?)>[
+      for (final entity in widget.entities)
+        (entity, widget.adapter.extractValue(field, entity)),
+    ];
     final collator = TextCollator();
-    sorted.sort((a, b) {
-      final va = widget.adapter.extractValue(field, a);
-      final vb = widget.adapter.extractValue(field, b);
+    final formattedValues = <Object, String>{};
+    rows.sort((a, b) {
+      final va = a.$2;
+      final vb = b.$2;
 
       if (va == null && vb == null) return 0;
       if (va == null) return 1;
@@ -299,14 +320,17 @@ class _EntityTableViewState<T, F extends EntityField>
         va,
         vb,
         collator: collator,
-        formatted: (value) =>
-            widget.adapter.formatValue(field, value, widget.units),
+        formatted: (value) => formattedValues.putIfAbsent(
+          value,
+          () => widget.adapter.formatValue(field, value, widget.units),
+        ),
       );
 
       return ascending ? cmp : -cmp;
     });
 
-    return sorted;
+    _sortInputs = inputs;
+    return _sorted = [for (final row in rows) row.$1];
   }
 
   // ---------------------------------------------------------------------------
