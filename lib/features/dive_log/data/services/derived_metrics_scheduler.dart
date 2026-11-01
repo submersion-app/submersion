@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/core/utils/root_zone_future.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 
 /// Keeps the phase 2 derived metrics current without blocking a write.
@@ -31,7 +32,7 @@ class DerivedMetricsScheduler {
   @visibleForTesting
   void Function(Set<String> diveIds, bool force)? requestListener;
 
-  Future<void> _tail = Future.value();
+  Future<void> _tail = rootZoneFuture();
   final Set<String> _pending = {};
 
   /// The subset of [_pending] to rebuild even when the stored row looks

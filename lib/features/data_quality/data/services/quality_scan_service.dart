@@ -5,6 +5,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/utils/root_zone_future.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
@@ -252,7 +253,7 @@ class QualityScanScheduler {
 
   static const _log = LoggerService('QualityScanScheduler');
 
-  Future<void> _tail = Future.value();
+  Future<void> _tail = rootZoneFuture();
   final Set<String> _pending = {};
 
   @visibleForTesting
