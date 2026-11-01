@@ -31,9 +31,9 @@ CareerQuery careerRangeQuery(DateTime from, DateTime to, {int cap = 60}) =>
 /// matching dives as id and start, then every kept dive's primary-source
 /// profile in one batch, decoded and reduced to [kCareerPointsPerDive]
 /// points off the UI isolate (inline only when the whole set is a few
-/// hundred samples). The rest of the logbook is never read or hydrated, so
-/// a large logbook outside the site or date range costs this terrain
-/// nothing.
+/// hundred samples). Dives outside the site or date range are never
+/// hydrated and their profiles never read: a site read seeks the site
+/// index, and a date-range read scans the `dives` rows once in SQL.
 ///
 /// Follows the analysis-input tick: it covers the dives table, the profile
 /// series and the data sources, which are exactly what this reads.

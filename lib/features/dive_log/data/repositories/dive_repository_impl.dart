@@ -1593,8 +1593,9 @@ class DiveRepository {
   /// samples, read for every dive at once rather than one dive per round
   /// trip (issue #3857).
   ///
-  /// Two statements for up to [kSeriesIdChunkSize] dives, however many that
-  /// is, and the decoding, grouping and [reduce] all run off the UI isolate
+  /// Two statements per chunk of [kSeriesIdChunkSize] dives (so two in all
+  /// for any set the terrain draws), and the decoding, grouping and
+  /// [reduce] all run off the UI isolate
   /// once the blobs are worth the hand-off ([reduceSeriesRowsInBackground]
   /// keeps a read under [kInlineSeriesSampleLimit] samples inline), so
   /// [reduce] must be a top-level function (see [SeriesReduce]): a closure
