@@ -1,6 +1,7 @@
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart';
@@ -29,6 +30,12 @@ import 'package:submersion/features/marine_life/data/repositories/species_reposi
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
+import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
+import 'package:submersion/features/trips/data/repositories/side_trip_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 /// The repositories the record catalogue reads through.
 ///
@@ -57,16 +64,23 @@ class RecordRepositories {
   late final equipmentShares = EquipmentShareRepository();
   late final equipmentTags = EquipmentTagRepository();
   late final itemShares = ItemSharesRepository();
+  late final itineraryDays = ItineraryDayRepository();
+  late final liveaboard = LiveaboardDetailsRepository();
   late final media = MediaRepository();
   late final serviceKinds = ServiceKindRepository();
   late final serviceRecords = ServiceRecordRepository();
   late final serviceSchedules = ServiceScheduleRepository();
+  late final sideTrips = SideTripRepository();
   late final siteClassification = SiteClassificationRepository();
   late final siteFeatures = SiteFeatureRepository();
   late final siteTypes = SiteTypeRepository();
   late final sites = SiteRepository();
   late final species = SpeciesRepository();
   late final transmitters = TransmitterRepository();
+  late final tripChecklists = TripChecklistRepository();
+  late final tripCylinders = TripCylinderRepository();
+  late final tripEquipment = TripEquipmentRepository();
+  late final trips = TripRepository();
 
   DiveCustomFieldRepository get customFields => DiveCustomFieldRepository(db);
 }
