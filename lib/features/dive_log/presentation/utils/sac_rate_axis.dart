@@ -1,10 +1,11 @@
 import 'dart:math' as math;
 
+import 'package:submersion/features/dive_3d/domain/geometry/nice_step.dart';
+
 /// The rate scale of the Gas consumption by segment chart, in the units the
 /// diver reads, so its lines land on round numbers in psi/min as in L/min.
 class SacRateAxis {
   static const int _maxIntervals = 3;
-  static const List<double> _steps = [1, 2, 2.5, 5, 10];
 
   /// Allows for rounding in a peak that sits exactly on a line.
   static const double _tolerance = 1e-9;
@@ -20,11 +21,7 @@ class SacRateAxis {
   factory SacRateAxis.forPeak(double peak) {
     if (!peak.isFinite || peak <= 0) return const SacRateAxis._([], 0);
 
-    final exponent = (math.log(peak / _maxIntervals) / math.ln10).floor();
-    final magnitude = math.pow(10.0, exponent).toDouble();
-    final step = _steps
-        .map((s) => s * magnitude)
-        .firstWhere((s) => _intervals(peak, s) <= _maxIntervals);
+    final step = niceStep(peak / _maxIntervals);
     return SacRateAxis._([
       for (var i = 0; i <= _intervals(peak, step); i++) i * step,
     ], _decimalsOf(step));

@@ -181,7 +181,10 @@ class SacTimeColumns extends StatelessWidget {
                   color: colorScheme.outlineVariant,
                 ),
                 const SizedBox(height: 2),
-                _axis(context),
+                _TimeAxis(
+                  totalSeconds: columns.last.endSeconds,
+                  endLabel: endLabel,
+                ),
               ],
             ),
           ),
@@ -266,45 +269,86 @@ class SacTimeColumns extends StatelessWidget {
     final hue = columns[index].color ?? theme.colorScheme.primary;
     return index == activeIndex ? hue : SacSegmentColors.idle(hue, theme);
   }
+}
 
-  Widget _axis(BuildContext context) {
+/// The time labels. Measuring them is the costly part of the chart, and the
+/// profile cursor rebuilds the chart as it moves, so the marks are kept until
+/// something that changes them does.
+class _TimeAxis extends StatefulWidget {
+  final int totalSeconds;
+  final String Function(int minutes) endLabel;
+
+  const _TimeAxis({required this.totalSeconds, required this.endLabel});
+
+  @override
+  State<_TimeAxis> createState() => _TimeAxisState();
+}
+
+class _TimeAxisState extends State<_TimeAxis> {
+  Object? _measuredFor;
+  List<int> _marks = const [];
+
+  String _label(int tick, {required bool isLast}) =>
+      isLast && tick > 0 ? widget.endLabel(tick) : '$tick';
+
+  double _labelWidth(
+    int tick,
+    TextStyle? style,
+    TextScaler textScaler, {
+    required bool isLast,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: _label(tick, isLast: isLast),
+        style: style,
+      ),
+      textDirection: TextDirection.ltr,
+      textScaler: textScaler,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    return width;
+  }
+
+  List<int> _marksFor(double width, TextStyle? style, TextScaler textScaler) {
+    // The sample end label stands in for the locale.
+    final inputs = (
+      widget.totalSeconds,
+      width,
+      style,
+      textScaler,
+      widget.endLabel(0),
+    );
+    if (inputs != _measuredFor) {
+      _measuredFor = inputs;
+      _marks = sacTimeAxisMarks(
+        totalSeconds: widget.totalSeconds,
+        width: width,
+        labelWidth: (tick, {required isLast}) =>
+            _labelWidth(tick, style, textScaler, isLast: isLast),
+      );
+    }
+    return _marks;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final style = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
-    final totalSeconds = columns.last.endSeconds;
+    final totalSeconds = widget.totalSeconds;
     final textScaler = MediaQuery.textScalerOf(context);
-
-    String label(int tick, {required bool isLast}) =>
-        isLast && tick > 0 ? endLabel(tick) : '$tick';
-
-    double labelWidth(int tick, {required bool isLast}) {
-      final painter = TextPainter(
-        text: TextSpan(
-          text: label(tick, isLast: isLast),
-          style: style,
-        ),
-        textDirection: TextDirection.ltr,
-        textScaler: textScaler,
-      )..layout();
-      final width = painter.width;
-      painter.dispose();
-      return width;
-    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final ticks = sacTimeAxisMarks(
-          totalSeconds: totalSeconds,
-          width: constraints.maxWidth,
-          labelWidth: labelWidth,
-        );
+        final marks = _marksFor(constraints.maxWidth, style, textScaler);
         return ExcludeSemantics(
           child: Stack(
             children: [
               // An empty line gives the axis its height at any text scale.
               Text('', style: style),
-              for (final tick in ticks)
+              for (final tick in marks)
                 Positioned.fill(
                   child: Align(
                     // Alignment rather than a pixel offset keeps the first and
@@ -314,7 +358,7 @@ class SacTimeColumns extends StatelessWidget {
                       0,
                     ),
                     child: Text(
-                      label(tick, isLast: tick == ticks.last),
+                      _label(tick, isLast: tick == marks.last),
                       style: style,
                     ),
                   ),
@@ -328,11 +372,23 @@ class SacTimeColumns extends StatelessWidget {
 }
 
 /// The rate labels, each level with its gridline. The widest sets the width.
+/// Larger text can outgrow the fixed height, so labels then skip lines, always
+/// keeping the top one, which carries the unit.
 class _RateAxis extends StatelessWidget {
   final List<SacRateTick> ticks;
   final double height;
 
   const _RateAxis({required this.ticks, required this.height});
+
+  List<SacRateTick> _labelled(double lineHeight) {
+    final intervals = ticks.length - 1;
+    final room = height - lineHeight;
+    var stride = 1;
+    while (stride < intervals && room * stride / intervals < lineHeight) {
+      stride++;
+    }
+    return [for (var i = intervals; i >= 0; i -= stride) ticks[i]];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -340,6 +396,9 @@ class _RateAxis extends StatelessWidget {
     final style = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
+    final lineHeight =
+        MediaQuery.textScalerOf(context).scale(style?.fontSize ?? 11) *
+        (style?.height ?? 1.2);
 
     // Each column's own label already gives its rate to a screen reader.
     return ExcludeSemantics(
@@ -348,7 +407,7 @@ class _RateAxis extends StatelessWidget {
         child: Stack(
           alignment: Alignment.topRight,
           children: [
-            for (final tick in ticks)
+            for (final tick in _labelled(lineHeight))
               Align(
                 // Alignment rather than a pixel offset keeps the top and
                 // bottom labels inside the chart.

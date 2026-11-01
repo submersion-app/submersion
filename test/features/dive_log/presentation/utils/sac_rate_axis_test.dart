@@ -26,11 +26,11 @@ void main() {
       expect(axis.decimals, 1);
     });
 
-    test('keeps the second decimal of a quarter step', () {
+    test('uses a half step under one', () {
       final axis = SacRateAxis.forPeak(0.7);
 
-      expect(axis.ticks, [0, 0.25, 0.5, 0.75]);
-      expect(axis.decimals, 2);
+      expect(axis.ticks, [0, 0.5, 1]);
+      expect(axis.decimals, 1);
     });
 
     test('never puts the peak above the top line', () {

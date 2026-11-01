@@ -121,6 +121,9 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
       ),
   ];
 
+  Color _phaseColor(DivePhase phase) =>
+      SacSegmentColors.forPhase(phase, Theme.of(context).brightness);
+
   /// A cylinder's row wears its gas, in the colors it has across the app.
   static Color? _gasColor(SacSegmentGroup group) {
     final mix = group.segments.first.gasMix;
@@ -151,9 +154,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
         segment.endTimestamp,
         widget.phaseSegments,
       );
-      return phase == null
-          ? null
-          : SacSegmentColors.forPhase(phase, theme.colorScheme.brightness);
+      return phase == null ? null : _phaseColor(phase);
     }
 
     final active = activeIndex == null ? null : segments[activeIndex];
@@ -276,10 +277,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
             rows: rows(
               phases,
               label: (g) => _phaseLabel(g.phase!),
-              color: (g) => SacSegmentColors.forPhase(
-                g.phase!,
-                Theme.of(context).colorScheme.brightness,
-              ),
+              color: (g) => _phaseColor(g.phase!),
               icon: (g) => _phaseIcon(g.phase!),
             ),
           ),
