@@ -249,6 +249,64 @@ void main() {
     });
   });
 
+  group('PlanCalculatorService gas in the plan water (issue #4010)', () {
+    final calculator = PlanCalculatorService();
+    const tank = DiveTank(
+      id: 'back',
+      volume: 24,
+      startPressure: 230,
+      gasMix: GasMix(),
+    );
+
+    PlanResult resultIn(DiveEnvironment environment) =>
+        calculator.calculatePlan(
+          segments: calculator.createSimplePlan(
+            maxDepth: 30,
+            bottomTimeMinutes: 20,
+            tank: tank,
+          ),
+          tanks: const [tank],
+          sacRate: 15,
+          environment: environment,
+        );
+
+    test('gas is breathed at the plan water pressure', () {
+      final environment = DiveEnvironment.forConditions(
+        altitudeMeters: 3000,
+        waterType: WaterType.fresh,
+      );
+
+      final result = resultIn(environment);
+
+      expect(result.segmentResults, isNotEmpty);
+      for (final segment in result.segmentResults.values) {
+        final minutes = (segment.endRuntime - segment.startRuntime) / 60.0;
+        expect(
+          segment.gasConsumedLiters,
+          closeTo(
+            15 * minutes * environment.pressureAtDepth(segment.avgDepth),
+            1e-9,
+          ),
+        );
+      }
+    });
+
+    test('a thinner water leaves more in the cylinder', () {
+      final thin = DiveEnvironment.forConditions(
+        altitudeMeters: 3000,
+        waterType: WaterType.fresh,
+      );
+
+      double remainingIn(DiveEnvironment environment) =>
+          resultIn(environment).gasConsumptions.first.remainingPressure!;
+
+      expect(
+        remainingIn(thin),
+        greaterThan(remainingIn(DiveEnvironment.standard)),
+      );
+    });
+  });
+
   group('PlanCalculatorService ideal ascent gas', () {
     final calculator = PlanCalculatorService();
 

@@ -39,6 +39,61 @@ void main() {
     expect(entry.payloadJson, '{"onReef":true}');
   });
 
+  test('deleteFailure removes a cached failure', () async {
+    await dao.write(
+      provider: ReefProviderId.species,
+      coordKey: 'k',
+      variant: 'v2',
+      status: ReefDataStatus.unavailable,
+      payloadJson: '{}',
+    );
+
+    await dao.deleteFailure(ReefProviderId.species, 'k', variant: 'v2');
+
+    expect(await dao.read(ReefProviderId.species, 'k', variant: 'v2'), isNull);
+  });
+
+  test('deleteFailure leaves a good result alone', () async {
+    await dao.write(
+      provider: ReefProviderId.protection,
+      coordKey: 'k',
+      status: ReefDataStatus.empty,
+      payloadJson: '{}',
+    );
+    await dao.write(
+      provider: ReefProviderId.habitat,
+      coordKey: 'k',
+      status: ReefDataStatus.ok,
+      payloadJson: '{"onReef":true}',
+    );
+
+    await dao.deleteFailure(ReefProviderId.protection, 'k');
+    await dao.deleteFailure(ReefProviderId.habitat, 'k');
+
+    final protection = await dao.read(ReefProviderId.protection, 'k');
+    final habitat = await dao.read(ReefProviderId.habitat, 'k');
+    expect(protection?.status, ReefDataStatus.empty);
+    expect(habitat?.status, ReefDataStatus.ok);
+  });
+
+  test('deleteFailure removes a status read treats as a failure', () async {
+    await db
+        .into(db.reefDataCache)
+        .insert(
+          ReefDataCacheCompanion.insert(
+            provider: ReefProviderId.habitat.name,
+            coordKey: 'k',
+            payloadJson: '{}',
+            status: 'retiredStatus',
+            fetchedAt: clock.millisecondsSinceEpoch,
+          ),
+        );
+
+    await dao.deleteFailure(ReefProviderId.habitat, 'k');
+
+    expect(await dao.read(ReefProviderId.habitat, 'k'), isNull);
+  });
+
   test('habitat never expires', () async {
     await dao.write(
       provider: ReefProviderId.habitat,

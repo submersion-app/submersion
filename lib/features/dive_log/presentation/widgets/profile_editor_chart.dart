@@ -186,8 +186,10 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
     ColorScheme colorScheme,
     UnitFormatter units,
   ) {
-    // Read once here: fl_chart calls getDotPainter during paint, per frame.
-    final ring = backdropColorOf(context);
+    // Read once here: fl_chart calls these dot callbacks during paint, per
+    // sample, per frame.
+    final markedTimes = _markedTimestamps();
+    final markerPainter = _buildMarkerPainter(colorScheme);
     return LineChartBarData(
       spots: widget.editedProfile
           .map(
@@ -198,42 +200,12 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
       color: colorScheme.primary,
       barWidth: 2.5,
       isStrokeCapRound: true,
+      // Off when nothing is marked, so paint skips its walk over every sample.
+      // Draw mode stays on: fl_chart sizes its touch indicator from this flag.
       dotData: FlDotData(
-        show: true,
-        getDotPainter: (spot, percent, barData, index) {
-          if (widget.mode == EditorMode.outlier && widget.outliers != null) {
-            final isOutlier = widget.outliers!.any(
-              (o) => o.timestamp == spot.x.toInt(),
-            );
-            if (isOutlier) {
-              return FlDotCirclePainter(
-                radius: 5,
-                color: colorScheme.error,
-                strokeWidth: 1.5,
-                strokeColor: colorScheme.onError,
-              );
-            }
-          }
-          if (widget.mode == EditorMode.draw && widget.waypoints != null) {
-            final isWaypoint = widget.waypoints!.any(
-              (w) => w.timestamp == spot.x.toInt(),
-            );
-            if (isWaypoint) {
-              return FlDotCirclePainter(
-                radius: 6,
-                color: Colors.blue,
-                strokeWidth: 2,
-                strokeColor: ring,
-              );
-            }
-          }
-          return FlDotCirclePainter(
-            radius: 0,
-            color: Colors.transparent,
-            strokeWidth: 0,
-            strokeColor: Colors.transparent,
-          );
-        },
+        show: widget.mode == EditorMode.draw || markedTimes.isNotEmpty,
+        checkToShowDot: (spot, _) => markedTimes.contains(spot.x.toInt()),
+        getDotPainter: (_, _, _, _) => markerPainter,
       ),
       belowBarData: BarAreaData(
         show: true,
@@ -241,6 +213,34 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
       ),
     );
   }
+
+  /// The sample times this mode marks. Only Outlier and Draw mode mark any.
+  Set<int> _markedTimestamps() => switch (widget.mode) {
+    EditorMode.outlier => {...?widget.outliers?.map((o) => o.timestamp)},
+    EditorMode.draw => {...?widget.waypoints?.map((w) => w.timestamp)},
+    EditorMode.select || EditorMode.smooth || EditorMode.trim => const {},
+  };
+
+  /// One painter serves every marked sample: it keeps nothing between draws.
+  /// Modes that mark nothing never reach it.
+  FlDotPainter _buildMarkerPainter(ColorScheme colorScheme) =>
+      switch (widget.mode) {
+        EditorMode.draw => FlDotCirclePainter(
+          radius: 6,
+          color: Colors.blue,
+          strokeWidth: 2,
+          strokeColor: backdropColorOf(context),
+        ),
+        EditorMode.outlier ||
+        EditorMode.select ||
+        EditorMode.smooth ||
+        EditorMode.trim => FlDotCirclePainter(
+          radius: 5,
+          color: colorScheme.error,
+          strokeWidth: 1.5,
+          strokeColor: colorScheme.onError,
+        ),
+      };
 
   FlTitlesData _buildTitles(UnitFormatter units) {
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;

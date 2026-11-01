@@ -179,7 +179,9 @@ void main() {
         matcher: _matcher(),
       ).fetch(const GeoPoint(1, 2));
 
-      expect(result.status, ReefDataStatus.empty);
+      // The site has records this lookup could not name, so "nothing nearby"
+      // would state something untrue.
+      expect(result.status, ReefDataStatus.unavailable);
     });
 
     test('returns empty when no species are recorded nearby', () async {

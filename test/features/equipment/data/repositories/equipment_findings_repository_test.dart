@@ -5,6 +5,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 
+import '../../../../helpers/bound_variables.dart';
+import '../../../../helpers/drift_statement_log.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -617,55 +619,52 @@ void main() {
     });
   });
 
-  test(
-    'getFindings lists undismissed first, getAllUndismissed spans items',
-    () async {
-      await db
-          .into(db.equipment)
-          .insert(
-            EquipmentCompanion.insert(
-              id: 'bcd',
-              name: 'BCD',
-              type: 'bcd',
-              createdAt: 1,
-              updatedAt: 1,
-            ),
-          );
-      await repo.saveReview(
-        equipmentId: 'reg',
-        inputFingerprint: 'fp1',
-        findings: [
-          recurring(['d1', 'd2', 'd3']),
-          incident(),
-        ],
-        engineVersion: 1,
-        now: t0,
-      );
-      await repo.saveReview(
-        equipmentId: 'bcd',
-        inputFingerprint: 'fp1',
-        findings: [
-          incident().copyWith(id: 'cf_bcd_incidentLinked', equipmentId: 'bcd'),
-        ],
-        engineVersion: 1,
-        now: t0,
-      );
-      await repo.setDismissed(
-        findingId: conditionFindingId(
-          'reg',
-          ConditionRuleId.issueRecurring,
-          tag: 'freeFlow',
-        ),
-        dismissed: true,
-        now: t0,
-      );
-      final reg = await repo.getFindings('reg');
-      expect(reg.first.ruleId, ConditionRuleId.incidentLinked);
-      expect(reg.last.isDismissed, isTrue);
-      final all = await repo.getAllUndismissed();
-      expect(all.map((f) => f.equipmentId), unorderedEquals(['reg', 'bcd']));
-    },
-  );
+  test('getFindings lists undismissed first, summaries span items', () async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'bcd',
+            name: 'BCD',
+            type: 'bcd',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp1',
+      findings: [
+        recurring(['d1', 'd2', 'd3']),
+        incident(),
+      ],
+      engineVersion: 1,
+      now: t0,
+    );
+    await repo.saveReview(
+      equipmentId: 'bcd',
+      inputFingerprint: 'fp1',
+      findings: [
+        incident().copyWith(id: 'cf_bcd_incidentLinked', equipmentId: 'bcd'),
+      ],
+      engineVersion: 1,
+      now: t0,
+    );
+    await repo.setDismissed(
+      findingId: conditionFindingId(
+        'reg',
+        ConditionRuleId.issueRecurring,
+        tag: 'freeFlow',
+      ),
+      dismissed: true,
+      now: t0,
+    );
+    final reg = await repo.getFindings('reg');
+    expect(reg.first.ruleId, ConditionRuleId.incidentLinked);
+    expect(reg.last.isDismissed, isTrue);
+    final all = await repo.getUndismissedSummaries();
+    expect(all.map((f) => f.equipmentId), unorderedEquals(['reg', 'bcd']));
+  });
 
   test(
     'a row whose rule this build does not know is dropped on read',
@@ -695,6 +694,146 @@ void main() {
       ]);
     },
   );
+
+  group('getUndismissedSummaries', () {
+    Future<void> insertRow(
+      String id, {
+      String ruleId = 'cellOutputLow',
+      String severity = 'significant',
+      String? evidence,
+    }) => db
+        .into(db.equipmentFindings)
+        .insert(
+          EquipmentFindingsCompanion.insert(
+            id: id,
+            equipmentId: 'reg',
+            ruleId: ruleId,
+            severity: severity,
+            evidence: evidence == null ? const Value.absent() : Value(evidence),
+            evidenceFingerprint: 'x',
+            engineVersion: 1,
+            createdAt: 1,
+          ),
+        );
+
+    test('carries the item, rule and severity of each row', () async {
+      await repo.saveReview(
+        equipmentId: 'reg',
+        inputFingerprint: 'fp1',
+        findings: [incident()],
+        engineVersion: 1,
+        now: t0,
+      );
+      expect(await repo.getUndismissedSummaries(), [
+        (
+          equipmentId: 'reg',
+          ruleId: ConditionRuleId.incidentLinked,
+          severity: ConditionSeverity.info,
+        ),
+      ]);
+    });
+
+    test('comes back in rule order, not row order', () async {
+      // The badge keeps the first of two equal severities and the ranking
+      // breaks a tied count by first appearance, so both read this order.
+      await insertRow('a', ruleId: 'incidentLinked', severity: 'info');
+      await insertRow('b', ruleId: 'cellOutputDeclining', severity: 'caution');
+      await insertRow('c', ruleId: 'issueRecurring', severity: 'caution');
+      expect((await repo.getUndismissedSummaries()).map((f) => f.ruleId), [
+        ConditionRuleId.cellOutputDeclining,
+        ConditionRuleId.issueRecurring,
+        ConditionRuleId.incidentLinked,
+      ]);
+    });
+
+    test('drops a rule this build does not know', () async {
+      await insertRow('a', ruleId: 'futureRule');
+      expect(await repo.getUndismissedSummaries(), isEmpty);
+    });
+
+    test('reads an unknown severity as info, like the full mapper', () async {
+      await insertRow('a', severity: 'futureSeverity');
+      expect(
+        (await repo.getUndismissedSummaries()).single.severity,
+        ConditionSeverity.info,
+      );
+    });
+
+    test('never decodes the evidence', () async {
+      await insertRow('a', evidence: 'not json');
+      expect(await repo.getUndismissedSummaries(), hasLength(1));
+    });
+
+    test('never fetches the evidence', () async {
+      await tearDownTestDatabase();
+      db = setUpLoggingTestDatabase();
+      repo = EquipmentFindingsRepository(
+        db: db,
+        syncRepository: SyncRepository(database: db),
+      );
+      // Opened outside the capture: creating the schema names this table too.
+      await quietly(() => db.customSelect('SELECT 1').get());
+      final statements = await statementsOf(repo.getUndismissedSummaries);
+      final read = statements.singleWhere(
+        (s) => s.contains('equipment_findings'),
+      );
+      expect(read, isNot(contains('evidence')));
+      expect(read, isNot(contains('SELECT *')));
+    });
+  });
+
+  group('watchChanges', () {
+    /// The ticks [write] produces.
+    Future<int> ticksFrom(Future<void> Function() write) async {
+      var ticks = 0;
+      final sub = repo.watchChanges().listen((_) => ticks++);
+      await write();
+      await pumpEventQueue();
+      await sub.cancel();
+      return ticks;
+    }
+
+    Future<void> review(String fingerprint, List<EquipmentFinding> findings) =>
+        repo.saveReview(
+          equipmentId: 'reg',
+          inputFingerprint: fingerprint,
+          findings: findings,
+          engineVersion: 1,
+          now: t0,
+        );
+
+    test('stays quiet when only the review marker moved', () async {
+      await review('fp1', [incident()]);
+      expect(await ticksFrom(() => review('fp2', [incident()])), 0);
+      expect((await repo.getReview('reg'))?.inputFingerprint, 'fp2');
+    });
+
+    test('ticks when a finding is written', () async {
+      expect(
+        await ticksFrom(() => review('fp1', [incident()])),
+        greaterThan(0),
+      );
+    });
+
+    test('ticks when a finding stops firing', () async {
+      await review('fp1', [incident()]);
+      expect(await ticksFrom(() => review('fp2', const [])), greaterThan(0));
+    });
+
+    test('ticks when a finding is dismissed', () async {
+      await review('fp1', [incident()]);
+      expect(
+        await ticksFrom(
+          () => repo.setDismissed(
+            findingId: incident().id,
+            dismissed: true,
+            now: t0,
+          ),
+        ),
+        greaterThan(0),
+      );
+    });
+  });
 
   test('deleting the item cascades findings and the marker', () async {
     await repo.saveReview(

@@ -7038,6 +7038,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Dives restored';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Dives restored, but some recorded data could not be recovered';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20378,11 +20382,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'No logged dives yet';
 
   @override
@@ -20424,6 +20423,41 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Logged dive $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Open in dive log';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Stop following';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Carried into $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS at the end';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive ended $time ago.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Follow';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Surface interval';
 
   @override
@@ -20461,8 +20495,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'A series of dives can\'t be planned as a DPV mission';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Only the first dive of a series can follow a logged dive';
+  String get plannerSeries_followUnavailableInReplan =>
+      'A replan can\'t follow another dive';
 
   @override
   String get plannerCanvas_follow_title => 'Follow a dive';
@@ -41190,8 +41224,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Data sources';
 
   @override
-  String get reef_section_loadError =>
-      'Could not load ecosystem data right now';
+  String get reef_section_checking => 'Checking…';
 
   @override
   String get reef_habitat_title => 'Reef habitat';
@@ -54159,6 +54192,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Compare…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Plan repetitive dive';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

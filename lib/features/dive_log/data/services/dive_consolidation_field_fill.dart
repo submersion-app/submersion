@@ -126,6 +126,9 @@ const List<_FillGroup> _groups = [
     'scrubber_duration_minutes',
     'scrubber_remaining_minutes',
   ]),
+  // A dive mirrored from a secondary is real only through a logged dive on its
+  // outing (issue #3924), and the secondary is about to go.
+  _FillGroup(['outing_id']),
   // Statistics exclusions: one on any source survives, since silently
   // re-admitting a dive the diver took out of their statistics is the
   // harder error to notice (the sequential merge's rule).
@@ -156,9 +159,10 @@ const Map<String, String> consolidationUnfilledColumns = {
   'otu': "the target computer's own O2 exposure calculation",
   'dive_number':
       "the logbook sequence; an import numbers a secondary for "
-      'where it was appended, not where the dive falls',
+      'where it was appended, not where the dive falls. A plan has none, so '
+      'one that takes in a logged dive adopts its number',
   'is_favorite': 'a secondary does not make the dive a favorite',
-  'is_planned': 'a consolidated dive was logged, whatever its sources say',
+  'is_planned': 'stands unless a plan takes in a logged dive, which logs it',
   'gradient_factor_low': 'how the target computer computed its deco',
   'gradient_factor_high': 'how the target computer computed its deco',
   'deco_algorithm': 'how the target computer computed its deco',
@@ -171,7 +175,6 @@ const Map<String, String> consolidationUnfilledColumns = {
   'import_source': 'import provenance of the target row',
   'import_id': 'import provenance of the target row',
   'import_version': 'import provenance of the target row',
-  'outing_id': "the target's own mirror group",
   'site_suggestion_dismissed_at':
       "the diver's answer to the target's own "
       'site suggestion',
@@ -207,6 +210,17 @@ Map<String, Expression> consolidationFieldFill(
         fill[column] = values[column]!;
       }
       break;
+    }
+  }
+  // A plan that takes in a logged dive was dived, so it stops being a plan:
+  // still flagged, the real dive would drop out of no-fly and residual
+  // exposure (issue #3924). It takes that dive's place in the logbook too.
+  final logged = secondaries.where((s) => !s.isPlanned);
+  if (target.isPlanned && logged.isNotEmpty) {
+    fill['is_planned'] = const Variable<bool>(false);
+    final number = logged.map((s) => s.diveNumber).nonNulls.firstOrNull;
+    if (target.diveNumber == null && number != null) {
+      fill['dive_number'] = Variable<int>(number);
     }
   }
   return fill;

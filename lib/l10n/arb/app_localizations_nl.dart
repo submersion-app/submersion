@@ -7104,6 +7104,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Duiken hersteld';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Duiken hersteld, maar sommige opgenomen gegevens konden niet worden teruggehaald';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20554,11 +20558,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Volgt $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Nog geen gelogde duiken';
 
   @override
@@ -20600,6 +20599,41 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Gelogde duik $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Openen in logboek';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Niet meer volgen';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Overgedragen naar $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS aan het einde';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive eindigde $time geleden.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Duik #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Volgen';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Oppervlakte-interval';
 
   @override
@@ -20638,8 +20672,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een reeks duiken kan niet als DPV-missie worden gepland';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Alleen de eerste duik van een reeks kan een gelogde duik volgen';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Een herplanning kan geen andere duik volgen';
 
   @override
   String get plannerCanvas_follow_title => 'Volg een duik';
@@ -41612,8 +41646,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Gegevensbronnen';
 
   @override
-  String get reef_section_loadError =>
-      'Ecosysteemgegevens konden nu niet worden geladen';
+  String get reef_section_checking => 'Bezig met controleren…';
 
   @override
   String get reef_habitat_title => 'Rifhabitat';
@@ -54679,6 +54712,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Vergelijken…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Herhalingsduik plannen';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. oorspronkelijke duik';

@@ -5,7 +5,6 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
-import 'package:submersion/features/reef/domain/entities/reef_snapshot.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
@@ -14,13 +13,6 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/reef/presentation/widgets/nearby_species_tier.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
-
-ReefSnapshot _snapshot(ReefPart<NearbySpecies> species) => ReefSnapshot(
-  habitat: const ReefPart.empty(),
-  health: const ReefPart.empty(),
-  protection: const ReefPart.empty(),
-  species: species,
-);
 
 const _catalogSpecies = Species(
   id: 'sp_whale_shark',
@@ -61,15 +53,13 @@ class _RecordingSpeciesRepository extends Fake implements SpeciesRepository {
 
 Widget _harness(
   GeoPoint location,
-  ReefSnapshot snapshot, {
+  ReefPart<NearbySpecies> species, {
   List<Species> catalog = const [_catalogSpecies],
   SpeciesRepository? repository,
 }) => ProviderScope(
   overrides: [
     validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-    reefSnapshotProvider(
-      ReefSnapshotRequest(location: location),
-    ).overrideWith((ref) async => snapshot),
+    reefNearbySpeciesProvider(location).overrideWith((ref) async => species),
     allSpeciesProvider.overrideWith((ref) async => catalog),
     if (repository != null)
       speciesRepositoryProvider.overrideWithValue(repository),
@@ -87,21 +77,19 @@ void main() {
     tester,
   ) async {
     const location = GeoPoint(12.16, -68.28);
-    final snapshot = _snapshot(
-      const ReefPart.ok(
-        NearbySpecies(
-          matched: [
-            MatchedNearbySpecies(
-              speciesId: 'sp_whale_shark',
-              occurrenceCount: 42,
-            ),
-          ],
-          unmatchedNames: ['Aplysina archeri'],
-        ),
+    const species = ReefPart<NearbySpecies>.ok(
+      NearbySpecies(
+        matched: [
+          MatchedNearbySpecies(
+            speciesId: 'sp_whale_shark',
+            occurrenceCount: 42,
+          ),
+        ],
+        unmatchedNames: ['Aplysina archeri'],
       ),
     );
 
-    await tester.pumpWidget(_harness(location, snapshot));
+    await tester.pumpWidget(_harness(location, species));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Recorded nearby'), findsOneWidget);
@@ -112,21 +100,19 @@ void main() {
 
   testWidgets('renders as chips rather than full-width rows', (tester) async {
     const location = GeoPoint(12.16, -68.28);
-    final snapshot = _snapshot(
-      const ReefPart.ok(
-        NearbySpecies(
-          matched: [
-            MatchedNearbySpecies(
-              speciesId: 'sp_whale_shark',
-              occurrenceCount: 42,
-            ),
-          ],
-          unmatchedNames: ['Aplysina archeri'],
-        ),
+    const species = ReefPart<NearbySpecies>.ok(
+      NearbySpecies(
+        matched: [
+          MatchedNearbySpecies(
+            speciesId: 'sp_whale_shark',
+            occurrenceCount: 42,
+          ),
+        ],
+        unmatchedNames: ['Aplysina archeri'],
       ),
     );
 
-    await tester.pumpWidget(_harness(location, snapshot));
+    await tester.pumpWidget(_harness(location, species));
     await tester.pumpAndSettle();
 
     expect(find.byType(RawChip), findsNWidgets(2));
@@ -137,21 +123,19 @@ void main() {
   // them all pushed every section below this one off the page.
   testWidgets('caps the list and reveals the rest on demand', (tester) async {
     const location = GeoPoint(12.16, -68.28);
-    final snapshot = _snapshot(
-      ReefPart.ok(
-        NearbySpecies(
-          matched: const [
-            MatchedNearbySpecies(
-              speciesId: 'sp_whale_shark',
-              occurrenceCount: 99,
-            ),
-          ],
-          unmatchedNames: [for (var i = 0; i < 30; i++) 'Genus species$i'],
-        ),
+    final species = ReefPart.ok(
+      NearbySpecies(
+        matched: const [
+          MatchedNearbySpecies(
+            speciesId: 'sp_whale_shark',
+            occurrenceCount: 99,
+          ),
+        ],
+        unmatchedNames: [for (var i = 0; i < 30; i++) 'Genus species$i'],
       ),
     );
 
-    await tester.pumpWidget(_harness(location, snapshot));
+    await tester.pumpWidget(_harness(location, species));
     await tester.pumpAndSettle();
 
     // The total is surfaced so the count is knowable without expanding.
@@ -173,11 +157,11 @@ void main() {
 
   testWidgets('does not offer a toggle when nothing is hidden', (tester) async {
     const location = GeoPoint(12.16, -68.28);
-    final snapshot = _snapshot(
-      const ReefPart.ok(NearbySpecies(unmatchedNames: ['Aplysina archeri'])),
+    const species = ReefPart<NearbySpecies>.ok(
+      NearbySpecies(unmatchedNames: ['Aplysina archeri']),
     );
 
-    await tester.pumpWidget(_harness(location, snapshot));
+    await tester.pumpWidget(_harness(location, species));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Show all'), findsNothing);
@@ -186,21 +170,19 @@ void main() {
 
   testWidgets('matched chips carry the add-to-expected action', (tester) async {
     const location = GeoPoint(12.16, -68.28);
-    final snapshot = _snapshot(
-      const ReefPart.ok(
-        NearbySpecies(
-          matched: [
-            MatchedNearbySpecies(
-              speciesId: 'sp_whale_shark',
-              occurrenceCount: 42,
-            ),
-          ],
-          unmatchedNames: ['Aplysina archeri'],
-        ),
+    const species = ReefPart<NearbySpecies>.ok(
+      NearbySpecies(
+        matched: [
+          MatchedNearbySpecies(
+            speciesId: 'sp_whale_shark',
+            occurrenceCount: 42,
+          ),
+        ],
+        unmatchedNames: ['Aplysina archeri'],
       ),
     );
 
-    await tester.pumpWidget(_harness(location, snapshot));
+    await tester.pumpWidget(_harness(location, species));
     await tester.pumpAndSettle();
 
     // Only the catalog match is actionable; the long tail has no local id to
@@ -213,22 +195,20 @@ void main() {
   ) async {
     const location = GeoPoint(12.16, -68.28);
     final repository = _RecordingSpeciesRepository();
-    final snapshot = _snapshot(
-      const ReefPart.ok(
-        NearbySpecies(
-          matched: [
-            MatchedNearbySpecies(
-              speciesId: 'sp_whale_shark',
-              occurrenceCount: 42,
-            ),
-          ],
-          unmatchedNames: ['Aplysina archeri'],
-        ),
+    const species = ReefPart<NearbySpecies>.ok(
+      NearbySpecies(
+        matched: [
+          MatchedNearbySpecies(
+            speciesId: 'sp_whale_shark',
+            occurrenceCount: 42,
+          ),
+        ],
+        unmatchedNames: ['Aplysina archeri'],
       ),
     );
 
     await tester.pumpWidget(
-      _harness(location, snapshot, repository: repository),
+      _harness(location, species, repository: repository),
     );
     await tester.pumpAndSettle();
 
@@ -247,20 +227,18 @@ void main() {
   ) async {
     final handle = tester.ensureSemantics();
     const location = GeoPoint(12.16, -68.28);
-    final snapshot = _snapshot(
-      const ReefPart.ok(
-        NearbySpecies(
-          matched: [
-            MatchedNearbySpecies(
-              speciesId: 'sp_whale_shark',
-              occurrenceCount: 42,
-            ),
-          ],
-        ),
+    const species = ReefPart<NearbySpecies>.ok(
+      NearbySpecies(
+        matched: [
+          MatchedNearbySpecies(
+            speciesId: 'sp_whale_shark',
+            occurrenceCount: 42,
+          ),
+        ],
       ),
     );
 
-    await tester.pumpWidget(_harness(location, snapshot));
+    await tester.pumpWidget(_harness(location, species));
     await tester.pumpAndSettle();
 
     final node = tester.getSemantics(find.byType(ActionChip).first);
@@ -281,9 +259,7 @@ void main() {
     tester,
   ) async {
     const location = GeoPoint(1, 2);
-    await tester.pumpWidget(
-      _harness(location, _snapshot(const ReefPart.empty())),
-    );
+    await tester.pumpWidget(_harness(location, const ReefPart.empty()));
     await tester.pumpAndSettle();
 
     expect(find.byType(RawChip), findsNothing);
@@ -294,9 +270,7 @@ void main() {
     tester,
   ) async {
     const location = GeoPoint(3, 4);
-    await tester.pumpWidget(
-      _harness(location, _snapshot(const ReefPart.unavailable())),
-    );
+    await tester.pumpWidget(_harness(location, const ReefPart.unavailable()));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Recorded nearby'), findsNothing);

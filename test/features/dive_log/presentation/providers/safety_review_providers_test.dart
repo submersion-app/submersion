@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
@@ -211,6 +212,124 @@ void main() {
       expect(repo.saved, isNotNull, reason: 'a computed review is persisted');
     },
   );
+
+  group('an earlier dive that changed after the review (#3924)', () {
+    Future<void> insertEarlier({required int updatedAt}) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value('earlier'),
+            diveDateTime: Value(
+              now.subtract(const Duration(hours: 6)).millisecondsSinceEpoch,
+            ),
+            createdAt: Value(now.millisecondsSinceEpoch),
+            updatedAt: Value(updatedAt),
+          ),
+        );
+
+    Future<void> rewriteEarlier({required int updatedAt}) => db.customStatement(
+      "UPDATE dives SET updated_at = $updatedAt WHERE id = 'earlier'",
+    );
+
+    Future<String> currentHash() async => safetyReviewInputsHash(
+      defaultFingerprint(),
+      await DiveRepository().getResidualHistoryRevision('d1'),
+    );
+
+    ProviderContainer containerFor(_FakeRepo repo) {
+      final profile = rapidAscentProfile();
+      final analysis = analyzeFixture(
+        depths: profile.depths,
+        timestamps: profile.timestamps,
+      ).copyWith(inputsFingerprint: defaultFingerprint());
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    _FakeRepo repoWith(String inputsHash) => _FakeRepo(
+      stored: storedReview(
+        SafetyReviewService.engineVersion,
+        inputsHash: inputsHash,
+      ),
+    );
+
+    test('keeps a review of the same history', () async {
+      await insertEarlier(updatedAt: 1000);
+      final repo = repoWith(await currentHash());
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 0);
+    });
+
+    test('reviews the dive again after a later write', () async {
+      await insertEarlier(updatedAt: 1000);
+      final repo = repoWith(await currentHash());
+      await rewriteEarlier(updatedAt: 2000);
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 1);
+    });
+
+    test('reviews the dive again after a write stamped earlier', () async {
+      // A peer's clock ran ahead, then a local edit stamped an earlier time.
+      await insertEarlier(updatedAt: 2000);
+      final repo = repoWith(await currentHash());
+      await rewriteEarlier(updatedAt: 1000);
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 1);
+    });
+
+    test('reviews a plan again once it is logged', () async {
+      await db.customStatement(
+        "UPDATE dives SET is_planned = 1 WHERE id = 'd1'",
+      );
+      final repo = repoWith(await currentHash());
+      await db.customStatement(
+        "UPDATE dives SET is_planned = 0 WHERE id = 'd1'",
+      );
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 1);
+    });
+
+    test('settles once saved, so a save cannot recompute forever', () async {
+      await insertEarlier(updatedAt: 1000);
+      final repo = repoWith('stale');
+      final container = containerFor(repo);
+
+      await container.read(safetyReviewProvider('d1').future);
+      repo.stored = repo.saved;
+      container.invalidate(safetyReviewProvider('d1'));
+      await container.read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 1);
+      expect(repo.saved!.inputsHash, await currentHash());
+    });
+
+    test('never touches a review from a newer build', () async {
+      await insertEarlier(updatedAt: 1000);
+      final repo = _FakeRepo(
+        stored: storedReview(SafetyReviewService.engineVersion + 1),
+      );
+
+      await containerFor(repo).read(safetyReviewProvider('d1').future);
+
+      expect(repo.saves, 0);
+    });
+  });
 
   // Issue #2592: a review records the settings its analysis ran on, and a
   // change to them invalidates it. A review stored from another diver's
