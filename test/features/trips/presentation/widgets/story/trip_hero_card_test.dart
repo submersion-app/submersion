@@ -163,11 +163,29 @@ void main() {
     );
     final decoration = box.decoration as BoxDecoration;
     expect(decoration.gradient, TripHeroCard.heroGradient(Brightness.light));
-    // White text over the gradient.
-    final context = tester.element(find.byKey(const Key('trip-hero-card')));
-    final onPrimary = Theme.of(context).colorScheme.onPrimary;
-    expect(tester.widget<Text>(find.text('Bonaire')).style?.color, onPrimary);
-    expect(tester.widget<Text>(find.text('2')).style?.color, onPrimary);
+    // White text over the gradient, whatever the theme's onPrimary is.
+    expect(
+      tester.widget<Text>(find.text('Bonaire')).style?.color,
+      Colors.white,
+    );
+    expect(tester.widget<Text>(find.text('2')).style?.color, Colors.white);
+  });
+
+  testWidgets('a pale-primary theme still reads white over the gradient', (
+    tester,
+  ) async {
+    final story = _story(
+      _trip(start: DateTime(2026, 3, 7), end: DateTime(2026, 3, 9)),
+      today: DateTime(2026, 6, 1),
+    );
+    final pale = ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE0F7FA)),
+    );
+    await pumpHeroCard(tester, story, theme: pale);
+    expect(
+      tester.widget<Text>(find.text('Bonaire')).style?.color,
+      Colors.white,
+    );
   });
 
   testWidgets('the dark theme gets the deeper gradient', (tester) async {

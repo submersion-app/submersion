@@ -49,10 +49,12 @@ class TripHeroCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final hasMap = story.mapGeometry.hasPoints;
-    // Over the gradient everything reads in onPrimary; over the map fade the
-    // card's own foreground pair applies.
-    final Color? foreground = hasMap ? null : scheme.onPrimary;
-    final Color accent = hasMap ? scheme.primary : scheme.onPrimary;
+    // The gradient is painted in fixed blues whatever the theme, so its text
+    // is plain white rather than the theme's onPrimary (near black in a
+    // preset with a pale primary). Over the map fade the card's own
+    // foreground pair applies.
+    final Color? foreground = hasMap ? null : Colors.white;
+    final Color accent = hasMap ? scheme.primary : Colors.white;
     final units = ref.watch(unitFormatterProvider);
     final progress = tripProgressLine(context, story);
 
