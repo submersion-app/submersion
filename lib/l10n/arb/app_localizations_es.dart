@@ -54840,7 +54840,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get navTrack_align_scalePinnedHint =>
-      'El final está fijado, así que determina el tamaño del track. La escala solo cambia la forma del recorrido intermedio.';
+      'El final está fijado, así que determina el tamaño del track. La escala solo cambia la forma del track entre ambos puntos.';
 
   @override
   String get navTrack_align_scaleHandleLabel =>

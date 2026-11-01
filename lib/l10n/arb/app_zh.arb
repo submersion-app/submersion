@@ -16336,7 +16336,7 @@
   "navTrack_align_trustSummary": "可信度：可信至 {distance}，{minutes} 分钟",
   "navTrack_align_rotationLabel": "旋转：",
   "navTrack_align_scaleLabel": "缩放：",
-  "navTrack_align_scalePinnedHint": "终点已固定，因此它决定了轨迹的大小。缩放只会改变中间路径的形状。",
+  "navTrack_align_scalePinnedHint": "终点已固定，因此它决定了轨迹的大小。缩放只会改变中间轨迹的形状。",
   "navTrack_align_scaleHandleLabel": "拖动以调整轨迹大小",
   "navTrack_terrain_summary": "{onLand} 个点在陆地上，{below}/{total} 个点在海底以下{maxPart}，{unknown} 个未知{coarsePart}",
   "navTrack_terrain_maxPart": "（最大 {depth}）",

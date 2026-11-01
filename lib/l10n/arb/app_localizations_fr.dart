@@ -54909,7 +54909,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get navTrack_align_scalePinnedHint =>
-      'La fin est fixée et détermine donc la taille de la trace. L\'échelle ne modifie que la forme du parcours entre les deux.';
+      'La fin est fixée et détermine donc la taille de la trace. L\'échelle ne modifie que la forme de la trace entre les deux.';
 
   @override
   String get navTrack_align_scaleHandleLabel =>

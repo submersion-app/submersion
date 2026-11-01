@@ -51366,7 +51366,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navTrack_align_scalePinnedHint =>
-      '终点已固定，因此它决定了轨迹的大小。缩放只会改变中间路径的形状。';
+      '终点已固定，因此它决定了轨迹的大小。缩放只会改变中间轨迹的形状。';
 
   @override
   String get navTrack_align_scaleHandleLabel => '拖动以调整轨迹大小';

@@ -16336,7 +16336,7 @@
   "navTrack_align_trustSummary": "Confiança: confiável até {distance}, {minutes} min",
   "navTrack_align_rotationLabel": "Rotação:",
   "navTrack_align_scaleLabel": "Escala:",
-  "navTrack_align_scalePinnedHint": "O fim está fixado e, por isso, define o tamanho da trilha. A escala só altera a forma do percurso entre os pontos.",
+  "navTrack_align_scalePinnedHint": "O fim está fixado e, por isso, define o tamanho da trilha. A escala só altera a forma da trilha entre os pontos.",
   "navTrack_align_scaleHandleLabel": "Arraste para redimensionar a trilha",
   "navTrack_terrain_summary": "{onLand} pontos em terra, {below} de {total} abaixo do fundo do mar{maxPart}, {unknown} desconhecidos{coarsePart}",
   "navTrack_terrain_maxPart": " (máx. {depth})",
