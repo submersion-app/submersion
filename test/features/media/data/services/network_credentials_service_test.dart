@@ -532,9 +532,10 @@ void main() {
       final removing = service.headersFor(uri);
       await pumpEventQueue();
       stored = true;
-      await saveBearer('t');
+      final saving = saveBearer('t');
+      await pumpEventQueue();
       removal.complete();
-      await removing;
+      await Future.wait([saving, removing]);
 
       expect((await service.headersFor(uri))?['Authorization'], 'Bearer t');
     });
@@ -564,6 +565,43 @@ void main() {
       expect(reads, 2);
     });
 
+    test('a lookup during a save cannot remove the new secret', () async {
+      final write = Completer<void>();
+      var written = false;
+      when(
+        storage.read(key: key),
+      ).thenAnswer((_) async => written ? bearerSecret('t') : 'not-json');
+      when(storage.write(key: key, value: anyNamed('value'))).thenAnswer((
+        _,
+      ) async {
+        await write.future;
+        written = true;
+      });
+
+      final saving = saveBearer('t');
+      await pumpEventQueue();
+      final looking = service.headersFor(uri);
+      await pumpEventQueue();
+      write.complete();
+      await Future.wait([saving, looking]);
+
+      verifyNever(storage.delete(key: key));
+      expect((await service.headersFor(uri))?['Authorization'], 'Bearer t');
+    });
+
+    test('a failed keychain change does not block the next one', () async {
+      when(
+        storage.write(key: key, value: anyNamed('value')),
+      ).thenAnswer((_) async => throw PlatformException(code: 'denied'));
+      await expectLater(saveBearer('t'), throwsA(isA<PlatformException>()));
+
+      when(
+        storage.write(key: key, value: anyNamed('value')),
+      ).thenAnswer((_) async {});
+
+      await expectLater(saveBearer('t'), completes);
+    });
+
     test('a failed read is not remembered as absence', () async {
       var reads = 0;
       when(storage.read(key: key)).thenAnswer((_) async {
@@ -586,7 +624,8 @@ void main() {
       expect(await service.headersFor(uri), isNull);
       expect(await service.headersFor(uri), isNull);
 
-      verify(storage.read(key: key)).called(1);
+      // The lookup, then the check that the blob is still there to remove.
+      verify(storage.read(key: key)).called(2);
       verify(storage.delete(key: key)).called(1);
     });
 

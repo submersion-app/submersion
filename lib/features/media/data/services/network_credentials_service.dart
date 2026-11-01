@@ -16,6 +16,7 @@
 // `FlutterSecureStorage` (the actual secret blob) so that callers in later
 // Phase 3 tasks can ask "what Authorization header should I send for this
 // host?" without juggling persistence layers themselves.
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -54,6 +55,9 @@ class NetworkCredentialsService {
   /// before it finishes. Removing an entry disowns that lookup: see
   /// [_invalidate].
   final Map<String, Future<Map<String, String>?>> _lookups = {};
+
+  /// The last keychain change queued for each host. See [_changeKeychain].
+  final Map<String, Future<void>> _keychainChanges = {};
 
   static const _keyPrefix = 'media_network_cred_';
 
@@ -95,7 +99,10 @@ class NetworkCredentialsService {
       'password': password,
       'token': token,
     });
-    await _storage.write(key: _keyPrefix + hostname, value: secret);
+    await _changeKeychain(
+      hostname,
+      () => _storage.write(key: _keyPrefix + hostname, value: secret),
+    );
     _invalidate(hostname);
   }
 
@@ -133,14 +140,43 @@ class NetworkCredentialsService {
       final raw = await _storage.read(key: _keyPrefix + host);
       final headers = raw == null ? null : _decodeHeaders(raw);
       if (!isCurrent()) return headers;
-      if (raw != null && headers == null) {
-        await _storage.delete(key: _keyPrefix + host);
-      }
+      if (raw != null && headers == null) await _removeBlob(host, raw);
       if (isCurrent()) _headerCache[host] = headers;
       if (headers != null) await _touchLastUsed(host);
       return headers;
     } finally {
       if (isCurrent()) _lookups.remove(host);
+    }
+  }
+
+  /// Deletes [host]'s secret if it is still the malformed [raw]. A save may
+  /// have been writing a good secret since [raw] was read, and it only
+  /// disowns the running lookup once that write has finished.
+  Future<void> _removeBlob(String host, String raw) =>
+      _changeKeychain(host, () async {
+        final key = _keyPrefix + host;
+        if (await _storage.read(key: key) == raw) {
+          await _storage.delete(key: key);
+        }
+      });
+
+  /// Runs [change] after every change already queued for [host], so a check
+  /// and the delete it decides on cannot interleave with a write.
+  Future<void> _changeKeychain(
+    String host,
+    Future<void> Function() change,
+  ) async {
+    final previous = _keychainChanges[host];
+    final finished = Completer<void>();
+    _keychainChanges[host] = finished.future;
+    try {
+      await previous;
+      await change();
+    } finally {
+      finished.complete();
+      if (identical(_keychainChanges[host], finished.future)) {
+        _keychainChanges.remove(host);
+      }
     }
   }
 
@@ -194,7 +230,10 @@ class NetworkCredentialsService {
   Future<void> delete(String id) async {
     final row = await _repo.findById(id);
     if (row == null) return;
-    await _storage.delete(key: _keyPrefix + row.hostname);
+    await _changeKeychain(
+      row.hostname,
+      () => _storage.delete(key: _keyPrefix + row.hostname),
+    );
     _invalidate(row.hostname);
     await _repo.delete(id);
   }
