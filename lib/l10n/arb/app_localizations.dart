@@ -5503,12 +5503,6 @@ abstract class AppLocalizations {
   /// **'Tap \'Add\' to select dive buddies'**
   String get buddies_picker_tapToAdd;
 
-  /// No description provided for @buddies_search_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search by name, email, or phone'**
-  String get buddies_search_hint;
-
   /// No description provided for @buddies_search_noResults.
   ///
   /// In en, this message translates to:
@@ -7220,29 +7214,11 @@ abstract class AppLocalizations {
   /// **'Select Certifications'**
   String get certifications_picker_selectTitle;
 
-  /// No description provided for @certifications_search_empty_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search by name, agency, or card number'**
-  String get certifications_search_empty_hint;
-
   /// No description provided for @certifications_search_noResults.
   ///
   /// In en, this message translates to:
   /// **'No certifications found for \"{query}\"'**
   String certifications_search_noResults(Object query);
-
-  /// No description provided for @certifications_search_tooltip_back.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get certifications_search_tooltip_back;
-
-  /// No description provided for @certifications_search_tooltip_clear.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear search'**
-  String get certifications_search_tooltip_clear;
 
   /// No description provided for @certifications_share_error_card.
   ///
@@ -19552,24 +19528,6 @@ abstract class AppLocalizations {
   /// **'No site has coordinates to look up.'**
   String get diveSites_refresh_nothing;
 
-  /// No description provided for @diveSites_list_search_backTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get diveSites_list_search_backTooltip;
-
-  /// No description provided for @diveSites_list_search_clearTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear Search'**
-  String get diveSites_list_search_clearTooltip;
-
-  /// No description provided for @diveSites_list_search_emptyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search by site name, country, or region'**
-  String get diveSites_list_search_emptyHint;
-
   /// No description provided for @diveSites_list_search_error.
   ///
   /// In en, this message translates to:
@@ -26737,29 +26695,11 @@ abstract class AppLocalizations {
   /// **'Retype undone'**
   String get equipment_retypeOther_undone;
 
-  /// No description provided for @equipment_search_backTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get equipment_search_backTooltip;
-
-  /// No description provided for @equipment_search_clearTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear Search'**
-  String get equipment_search_clearTooltip;
-
   /// No description provided for @equipment_search_fieldLabel.
   ///
   /// In en, this message translates to:
   /// **'Search equipment...'**
   String get equipment_search_fieldLabel;
-
-  /// No description provided for @equipment_search_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search by name, brand, model, or serial number'**
-  String get equipment_search_hint;
 
   /// No description provided for @equipment_search_noResults.
   ///

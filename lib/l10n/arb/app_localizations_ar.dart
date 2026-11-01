@@ -3679,10 +3679,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_picker_tapToAdd => 'اضغط على \'إضافة\' لاختيار رفاق الغوص';
 
   @override
-  String get buddies_search_hint =>
-      'البحث بالاسم أو البريد الإلكتروني أو الهاتف';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'لم يتم العثور على رفاق لـ \"$query\"';
   }
@@ -4765,19 +4761,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_picker_selectTitle => 'اختيار الشهادات';
 
   @override
-  String get certifications_search_empty_hint =>
-      'البحث بالاسم أو الوكالة أو رقم البطاقة';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'لم يتم العثور على شهادات لـ \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'رجوع';
-
-  @override
-  String get certifications_search_tooltip_clear => 'مسح البحث';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12453,16 +12439,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_refresh_nothing => 'لا يوجد موقع غوص له إحداثيات للبحث.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'رجوع';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'مسح البحث';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'البحث باسم الموقع أو الدولة أو المنطقة';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'خطأ: $error';
   }
@@ -16938,17 +16914,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_retypeOther_undone => 'تم التراجع عن تغيير النوع';
 
   @override
-  String get equipment_search_backTooltip => 'رجوع';
-
-  @override
-  String get equipment_search_clearTooltip => 'مسح البحث';
-
-  @override
   String get equipment_search_fieldLabel => 'البحث في المعدات...';
-
-  @override
-  String get equipment_search_hint =>
-      'البحث بالاسم أو العلامة التجارية أو الطراز أو الرقم التسلسلي';
 
   @override
   String equipment_search_noResults(Object query) {

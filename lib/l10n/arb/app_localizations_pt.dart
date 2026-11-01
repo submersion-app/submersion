@@ -3593,9 +3593,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Toque em \'Adicionar\' para selecionar companheiros de mergulho';
 
   @override
-  String get buddies_search_hint => 'Buscar por nome, e-mail ou telefone';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'Nenhum companheiro encontrado para \"$query\"';
   }
@@ -4681,19 +4678,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_picker_selectTitle => 'Selecionar Certificações';
 
   @override
-  String get certifications_search_empty_hint =>
-      'Buscar por nome, agência ou número do cartão';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'Nenhuma certificação encontrada para \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'Voltar';
-
-  @override
-  String get certifications_search_tooltip_clear => 'Limpar busca';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12284,16 +12271,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum local tem coordenadas para consultar.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'Voltar';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'Limpar Busca';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'Buscar por nome do ponto, país ou região';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'Erro: $error';
   }
@@ -16682,17 +16659,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Alteração de tipo desfeita';
 
   @override
-  String get equipment_search_backTooltip => 'Voltar';
-
-  @override
-  String get equipment_search_clearTooltip => 'Limpar Busca';
-
-  @override
   String get equipment_search_fieldLabel => 'Buscar equipamento...';
-
-  @override
-  String get equipment_search_hint =>
-      'Buscar por nome, marca, modelo ou número de série';
 
   @override
   String equipment_search_noResults(Object query) {

@@ -3571,9 +3571,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tik op \'Toevoegen\' om duikbuddies te selecteren';
 
   @override
-  String get buddies_search_hint => 'Zoeken op naam, e-mail of telefoon';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'Geen buddies gevonden voor \"$query\"';
   }
@@ -4657,19 +4654,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_picker_selectTitle => 'Selecteer certificeringen';
 
   @override
-  String get certifications_search_empty_hint =>
-      'Zoek op naam, organisatie of kaartnummer';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'Geen certificeringen gevonden voor \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'Terug';
-
-  @override
-  String get certifications_search_tooltip_clear => 'Zoekopdracht wissen';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12198,16 +12185,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen enkele duikstek heeft coördinaten om op te zoeken.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'Terug';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'Zoekopdracht wissen';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'Zoek op steknaam, land of regio';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'Fout: $error';
   }
@@ -16579,17 +16556,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Typewijziging ongedaan gemaakt';
 
   @override
-  String get equipment_search_backTooltip => 'Terug';
-
-  @override
-  String get equipment_search_clearTooltip => 'Zoekopdracht wissen';
-
-  @override
   String get equipment_search_fieldLabel => 'Uitrusting zoeken...';
-
-  @override
-  String get equipment_search_hint =>
-      'Zoek op naam, merk, model of serienummer';
 
   @override
   String equipment_search_noResults(Object query) {

@@ -143,7 +143,6 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
 
     final visible = filterSeenSpecies(
       entries,
-      query: '',
       category: _category,
       sort: _sort,
       nameOf: (species) => species.localizedCommonName(l10n),

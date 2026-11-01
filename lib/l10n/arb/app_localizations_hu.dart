@@ -3581,9 +3581,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Koppints a \'Hozzáadás\'-ra a búvártársak kiválasztásához';
 
   @override
-  String get buddies_search_hint => 'Keresés név, e-mail vagy telefon alapján';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'Nincs találat erre: \"$query\"';
   }
@@ -4661,19 +4658,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_picker_selectTitle => 'Tanúsítványok kiválasztása';
 
   @override
-  String get certifications_search_empty_hint =>
-      'Keresés név, szervezet vagy kártyaszám alapján';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'Nem található tanúsítvány a következőre: \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'Vissza';
-
-  @override
-  String get certifications_search_tooltip_clear => 'Keresés törlése';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12248,16 +12235,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egyetlen merülőhelynek sincs lekérdezhető koordinátája.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'Vissza';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'Keresés törlése';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'Keresés helyszínnév, ország vagy régió alapján';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'Hiba: $error';
   }
@@ -16630,17 +16607,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Típusmódosítás visszavonva';
 
   @override
-  String get equipment_search_backTooltip => 'Vissza';
-
-  @override
-  String get equipment_search_clearTooltip => 'Keresés törlése';
-
-  @override
   String get equipment_search_fieldLabel => 'Felszerelés keresése...';
-
-  @override
-  String get equipment_search_hint =>
-      'Keresés név, márka, modell vagy sorozatszám alapján';
 
   @override
   String equipment_search_noResults(Object query) {

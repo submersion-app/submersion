@@ -3601,9 +3601,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Appuyez sur « Ajouter » pour sélectionner des binômes de plongée';
 
   @override
-  String get buddies_search_hint => 'Rechercher par nom, e-mail ou téléphone';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'Aucun binôme trouvé pour « $query »';
   }
@@ -4695,19 +4692,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Sélectionner des certifications';
 
   @override
-  String get certifications_search_empty_hint =>
-      'Rechercher par nom, organisme ou numéro de carte';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'Aucune certification trouvée pour \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'Retour';
-
-  @override
-  String get certifications_search_tooltip_clear => 'Effacer la recherche';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12325,16 +12312,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun site n\'a de coordonnées à consulter.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'Retour';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'Effacer la recherche';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'Rechercher par nom de site, pays ou région';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'Erreur : $error';
   }
@@ -16729,17 +16706,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Changement de type annulé';
 
   @override
-  String get equipment_search_backTooltip => 'Retour';
-
-  @override
-  String get equipment_search_clearTooltip => 'Effacer la recherche';
-
-  @override
   String get equipment_search_fieldLabel => 'Rechercher de l\'équipement...';
-
-  @override
-  String get equipment_search_hint =>
-      'Rechercher par nom, marque, modèle ou numéro de série';
 
   @override
   String equipment_search_noResults(Object query) {

@@ -3593,9 +3593,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Toca \'Agregar\' para seleccionar compañeros de buceo';
 
   @override
-  String get buddies_search_hint => 'Buscar por nombre, correo o teléfono';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'No se encontraron compañeros para \"$query\"';
   }
@@ -4685,19 +4682,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_picker_selectTitle => 'Seleccionar certificaciones';
 
   @override
-  String get certifications_search_empty_hint =>
-      'Buscar por nombre, agencia o número de tarjeta';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'No se encontraron certificaciones para \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'Atrás';
-
-  @override
-  String get certifications_search_tooltip_clear => 'Borrar búsqueda';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12283,16 +12270,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ningún punto de buceo tiene coordenadas que consultar.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'Atrás';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'Borrar búsqueda';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'Buscar por nombre del sitio, país o región';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'Error: $error';
   }
@@ -16680,17 +16657,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Cambio de tipo deshecho';
 
   @override
-  String get equipment_search_backTooltip => 'Atrás';
-
-  @override
-  String get equipment_search_clearTooltip => 'Borrar búsqueda';
-
-  @override
   String get equipment_search_fieldLabel => 'Buscar equipo...';
-
-  @override
-  String get equipment_search_hint =>
-      'Buscar por nombre, marca, modelo o número de serie';
 
   @override
   String equipment_search_noResults(Object query) {

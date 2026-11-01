@@ -195,7 +195,6 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
 
   bool _matches(
     DocumentListEntry e,
-    UnitFormatter units,
     Map<String, List<Tag>> tagsByDocument,
     Set<String> tagIds,
   ) {
@@ -244,7 +243,17 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
             for (final t in allTags)
               if (_tagIds.contains(t.id)) t.id,
           };
-    final body = all.when(
+    // Outside the list's states: a new query loads its id set, and the row
+    // must not go with the list meanwhile.
+    final header = EntitySearchHeader(
+      subject: QuerySubject.documents,
+      root: documentQueryEntity,
+      query: ref.watch(documentQueryProvider),
+      onChanged: (q) => ref.read(documentQueryProvider.notifier).state = q,
+      hintText: l10n.documents_search_hint,
+      alwaysShown: true,
+    );
+    final list = all.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text(l10n.documents_error_load('$e'))),
       data: (raw) {
@@ -255,7 +264,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
         ];
         final presentTypes = {for (final e in entries) e.document.type};
         final shown = entries
-            .where((e) => _matches(e, units, tagsByDocument, activeTagIds))
+            .where((e) => _matches(e, tagsByDocument, activeTagIds))
             .toList();
         final filterTags = _filterTags(entries, tagsByDocument, allTags);
         final listed = _expiringOnly
@@ -269,17 +278,6 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
             : shown;
         return CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
-              child: EntitySearchHeader(
-                subject: QuerySubject.documents,
-                root: documentQueryEntity,
-                query: ref.watch(documentQueryProvider),
-                onChanged: (q) =>
-                    ref.read(documentQueryProvider.notifier).state = q,
-                hintText: l10n.documents_search_hint,
-                alwaysShown: true,
-              ),
-            ),
             // Shown whenever a filter is set, so a filter from the route can
             // always be cleared, even when only one type exists.
             if (presentTypes.length > 1 || _type != null)
@@ -366,6 +364,12 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
           ],
         );
       },
+    );
+    final body = Column(
+      children: [
+        header,
+        Expanded(child: list),
+      ],
     );
     if (!widget.showAppBar) {
       return Column(

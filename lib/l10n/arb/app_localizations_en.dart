@@ -3546,9 +3546,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_picker_tapToAdd => 'Tap \'Add\' to select dive buddies';
 
   @override
-  String get buddies_search_hint => 'Search by name, email, or phone';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'No buddies found for \"$query\"';
   }
@@ -4612,19 +4609,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_picker_selectTitle => 'Select Certifications';
 
   @override
-  String get certifications_search_empty_hint =>
-      'Search by name, agency, or card number';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'No certifications found for \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'Back';
-
-  @override
-  String get certifications_search_tooltip_clear => 'Clear search';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12089,16 +12076,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_refresh_nothing => 'No site has coordinates to look up.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'Back';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'Clear Search';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'Search by site name, country, or region';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'Error: $error';
   }
@@ -16450,17 +16427,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Retype undone';
 
   @override
-  String get equipment_search_backTooltip => 'Back';
-
-  @override
-  String get equipment_search_clearTooltip => 'Clear Search';
-
-  @override
   String get equipment_search_fieldLabel => 'Search equipment...';
-
-  @override
-  String get equipment_search_hint =>
-      'Search by name, brand, model, or serial number';
 
   @override
   String equipment_search_noResults(Object query) {

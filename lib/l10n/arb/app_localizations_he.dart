@@ -3528,9 +3528,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_picker_tapToAdd => 'לחץ על \'הוסף\' כדי לבחור חברי צוללים';
 
   @override
-  String get buddies_search_hint => 'חפש לפי שם, דוא\"ל או טלפון';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'לא נמצאו חברי צוללים עבור \"$query\"';
   }
@@ -4579,19 +4576,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_picker_selectTitle => 'בחר הסמכות';
 
   @override
-  String get certifications_search_empty_hint =>
-      'חיפוש לפי שם, ארגון או מספר כרטיס';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'לא נמצאו הסמכות עבור \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'חזרה';
-
-  @override
-  String get certifications_search_tooltip_clear => 'נקה חיפוש';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12009,15 +11996,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_refresh_nothing => 'לאף אתר אין קואורדינטות לבדיקה.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'חזרה';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'נקה חיפוש';
-
-  @override
-  String get diveSites_list_search_emptyHint => 'חפש לפי שם אתר, מדינה או אזור';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'שגיאה: $error';
   }
@@ -16342,16 +16320,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_retypeOther_undone => 'שינוי הסוג בוטל';
 
   @override
-  String get equipment_search_backTooltip => 'חזרה';
-
-  @override
-  String get equipment_search_clearTooltip => 'נקה חיפוש';
-
-  @override
   String get equipment_search_fieldLabel => 'חפש ציוד...';
-
-  @override
-  String get equipment_search_hint => 'חפש לפי שם, מותג, דגם או מספר סידורי';
 
   @override
   String equipment_search_noResults(Object query) {

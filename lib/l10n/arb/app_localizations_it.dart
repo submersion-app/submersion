@@ -3593,9 +3593,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tocca \'Aggiungi\' per selezionare i compagni di immersione';
 
   @override
-  String get buddies_search_hint => 'Cerca per nome, email o telefono';
-
-  @override
   String buddies_search_noResults(Object query) {
     return 'Nessun compagno trovato per \"$query\"';
   }
@@ -4681,19 +4678,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_picker_selectTitle => 'Seleziona certificazioni';
 
   @override
-  String get certifications_search_empty_hint =>
-      'Cerca per nome, agenzia o numero tessera';
-
-  @override
   String certifications_search_noResults(Object query) {
     return 'Nessuna certificazione trovata per \"$query\"';
   }
-
-  @override
-  String get certifications_search_tooltip_back => 'Indietro';
-
-  @override
-  String get certifications_search_tooltip_clear => 'Cancella ricerca';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -12286,16 +12273,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun sito ha coordinate da cercare.';
 
   @override
-  String get diveSites_list_search_backTooltip => 'Indietro';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'Cancella ricerca';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'Cerca per nome del sito, paese o regione';
-
-  @override
   String diveSites_list_search_error(Object error) {
     return 'Errore: $error';
   }
@@ -16690,17 +16667,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Cambio di tipo annullato';
 
   @override
-  String get equipment_search_backTooltip => 'Indietro';
-
-  @override
-  String get equipment_search_clearTooltip => 'Cancella ricerca';
-
-  @override
   String get equipment_search_fieldLabel => 'Cerca attrezzatura...';
-
-  @override
-  String get equipment_search_hint =>
-      'Cerca per nome, marca, modello o numero di serie';
 
   @override
   String equipment_search_noResults(Object query) {
