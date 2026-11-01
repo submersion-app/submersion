@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -14,12 +13,15 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
-/// Interior-sample spacing (seconds) for constant-depth plan segments so the
-/// anchor detector has a sustained run to find at a stop.
+/// Interior-sample spacing (seconds) for constant-depth plan segments, so the
+/// anchor detector has a sustained run to find at a stop, and for the computed
+/// ascent, where it also sets how near the surface the last in-water sample is.
 const int _kInteriorSampleSeconds = 30;
 
 const _log = LoggerService('PlanBuoyancyTwinProvider');
@@ -210,11 +212,7 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
     staticTerms: rig.staticTerms,
     leadKg: lead,
     droppableLeadKg: droppableLead,
-    environment: DiveEnvironment.forConditions(
-      altitudeMeters: state.altitude,
-      waterType: state.waterType ?? WaterType.salt,
-      salinityPpt: state.salinityPpt,
-    ),
+    environment: PlanEngine.environmentFor(divePlanFromState(state)),
     totalMassKg: rig.totalMassKg,
   );
 

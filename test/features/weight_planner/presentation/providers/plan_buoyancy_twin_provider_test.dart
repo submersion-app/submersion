@@ -14,6 +14,8 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
@@ -303,6 +305,19 @@ void main() {
       expect(engineRemaining(container), lessThan(0));
 
       expect(twinTank(container).endPressureBar, 0);
+    });
+
+    test('an altitude of 0 is the same water the engine reads', () async {
+      final (container, notifier) = await planContainer();
+      notifier.setPlannedWeight(6.0, null);
+      notifier.updateAltitude(0);
+
+      expect(
+        container.read(planBuoyancyTwinProvider)!.result.input.environment,
+        PlanEngine.environmentFor(
+          divePlanFromState(container.read(divePlanNotifierProvider)),
+        ),
+      );
     });
 
     test('a plan with no segments has no end pressure yet', () async {
