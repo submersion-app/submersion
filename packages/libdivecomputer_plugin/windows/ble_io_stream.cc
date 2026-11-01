@@ -643,7 +643,13 @@ bool BleIoStream::DiscoverCharacteristics() {
 bool BleIoStream::GrantInitialCredits() {
     if (!credits_write_characteristic_) return true;
 
+    // Status and classification are kept apart, as on the credit CCCD path
+    // above: an AccessDenied or a timeout while granting the required Telit
+    // credits is still a pairing or link problem the diver can act on, not a
+    // generic failure.
     bool granted = false;
+    std::string refusal;
+    BleConnectFailure failure = BleConnectFailure::kOther;
     try {
         auto writer = DataWriter();
         writer.WriteByte(kTerminalIoInitialGrant);
@@ -653,20 +659,27 @@ bool BleIoStream::GrantInitialCredits() {
                                            GattWriteOption::WriteWithResponse)
                 .get();
         granted = result.Status() == GattCommunicationStatus::Success;
+        if (!granted) {
+            refusal = DescribeGattStatus(result.Status());
+            failure = ClassifyStatus(result.Status());
+        }
+    } catch (const winrt::hresult_error& e) {
+        granted = false;
+        refusal = "threw: " + DescribeHresult(e);
+        failure = ClassifyError(e);
     } catch (...) {
         granted = false;
+        refusal = "threw: unknown error";
     }
 
     if (!granted) {
+        const std::string detail =
+            "Terminal I/O initial credit grant was refused: " + refusal;
         // A Telit bridge carries nothing without credits, so the connection is
         // dead. u-blox flow control is optional and the service already works
         // with no handshake at all, so fall back to that instead.
-        if (credits_required_) {
-            return Fail(BleConnectFailure::kOther,
-                        "Terminal I/O initial credit grant was refused");
-        }
-        NativeLogger::Warn(kBleCategory,
-                           "Terminal I/O initial credit grant was refused");
+        if (credits_required_) return Fail(failure, detail);
+        NativeLogger::Warn(kBleCategory, detail);
         ReleaseCreditCharacteristics();
         return true;
     }
