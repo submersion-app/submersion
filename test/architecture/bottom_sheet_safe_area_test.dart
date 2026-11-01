@@ -68,6 +68,40 @@ Future<List<String>?> open(BuildContext context) {
     expect(scrollControlledSheetsWithoutSafeArea(source), [2]);
   });
 
+  test('reads a call with a record type argument', () {
+    // Copilot's review of #4108: the type-argument pattern of the time could
+    // not pass a parenthesis, so a record-typed sheet was never checked.
+    const source = '''
+Future<void> open(BuildContext context) async {
+  await showModalBottomSheet<(Format, Rect?)>(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => const Text('x'),
+  );
+  await showModalBottomSheet<({Duration offset, bool widen})>(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => const Text('x'),
+  );
+  await showModalBottomSheet<({Duration offset, bool widen})>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) => const Text('x'),
+  );
+}
+''';
+    expect(scrollControlledSheetsWithoutSafeArea(source), [2, 7]);
+  });
+
+  test('ignores the name used without a call', () {
+    const source = '''
+final opener = showModalBottomSheet;
+final other = showModalBottomSheetLater(isScrollControlled: true);
+''';
+    expect(scrollControlledSheetsWithoutSafeArea(source), isEmpty);
+  });
+
   test('ignores sheets that keep the height cap', () {
     const source = '''
 void open(BuildContext context) {
@@ -136,9 +170,7 @@ void open(BuildContext context) {
   });
 }
 
-/// `[^()]*` rather than `[^>]*` for the type argument, so a nested generic
-/// such as `<List<RefValue>>` is still read as one call.
-final _sheetCall = RegExp(r'\bshowModalBottomSheet\s*(?:<[^()]*>)?\s*\(');
+final _sheetName = RegExp(r'\bshowModalBottomSheet\b');
 final _scrollControlled = RegExp(r'\bisScrollControlled\s*:\s*(\w+)');
 final _safeArea = RegExp(r'\buseSafeArea\s*:');
 
@@ -148,8 +180,10 @@ List<int> scrollControlledSheetsWithoutSafeArea(String source) {
   final masked = MaskedSource(source);
   final code = masked.code;
   final lines = <int>[];
-  for (final match in _sheetCall.allMatches(code)) {
-    final arguments = _topLevelArguments(code, match.end);
+  for (final match in _sheetName.allMatches(code)) {
+    final open = _argumentsStart(code, match.end);
+    if (open == null) continue;
+    final arguments = _topLevelArguments(code, open);
     final scrollControlled = _scrollControlled.firstMatch(arguments);
     if (scrollControlled == null || scrollControlled.group(1) == 'false') {
       continue;
@@ -158,6 +192,40 @@ List<int> scrollControlledSheetsWithoutSafeArea(String source) {
     lines.add(masked.lineOf(match.start));
   }
   return lines;
+}
+
+/// The offset just past the `(` that opens the call whose name ends at
+/// [from], or null when no call follows (the name used as a tear-off).
+///
+/// A type argument is walked bracket by bracket rather than matched by a
+/// regular expression, so a nested generic (`<List<T>>`) and a record type
+/// (`<(A, B)>`, `<({A a, B b})>`) are read as one call. The first guard
+/// matched `<[^()]*>`, which skipped every record-typed sheet unchecked.
+int? _argumentsStart(String code, int from) {
+  var i = from;
+  while (i < code.length && code[i].trim().isEmpty) {
+    i++;
+  }
+  if (i < code.length && code[i] == '<') {
+    var depth = 0;
+    for (; i < code.length; i++) {
+      final char = code[i];
+      if (char == '<') {
+        depth++;
+      } else if (char == '>') {
+        depth--;
+        if (depth == 0) {
+          i++;
+          break;
+        }
+      }
+    }
+    while (i < code.length && code[i].trim().isEmpty) {
+      i++;
+    }
+  }
+  if (i < code.length && code[i] == '(') return i + 1;
+  return null;
 }
 
 /// The argument list that opens just before [from], with everything nested

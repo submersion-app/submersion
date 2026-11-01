@@ -492,6 +492,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
         await showModalBottomSheet<(BlenderInvoiceExportFormat, Rect?)>(
           context: context,
           isScrollControlled: true,
+          useSafeArea: true,
           builder: (context) => const BlenderInvoiceExportSheet(),
         );
     if (choice == null) return;
