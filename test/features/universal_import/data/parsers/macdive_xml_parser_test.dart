@@ -463,6 +463,76 @@ void main() {
       );
     });
 
+    test('same-name sites in two places stay two sites (#4015)', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <site><name>Blue Hole</name><country>Egypt</country></site>
+    <samples/>
+  </dive>
+  <dive>
+    <date>2024-01-02 09:00:00</date><identifier>d2</identifier>
+    <maxDepth>22</maxDepth><duration>1800</duration>
+    <site><name>Blue Hole</name><country>Belize</country></site>
+    <samples/>
+  </dive>
+  <dive>
+    <date>2024-01-03 09:00:00</date><identifier>d3</identifier>
+    <maxDepth>24</maxDepth><duration>1800</duration>
+    <site><name>Blue Hole</name><location>Dahab</location>
+      <country>Egypt</country></site>
+    <samples/>
+  </dive>
+  <dive>
+    <date>2024-01-04 09:00:00</date><identifier>d4</identifier>
+    <maxDepth>26</maxDepth><duration>1800</duration>
+    <site><name>Blue Hole</name><country>Belize</country></site>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+
+      final sites = payload.entitiesOf(ImportEntityType.sites);
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      expect(sites.map((s) => s['country']), ['Egypt', 'Belize', 'Egypt']);
+      expect(sites.map((s) => s['region']), [null, null, 'Dahab']);
+      expect(sites.map((s) => s['uddfId']).toSet(), hasLength(3));
+      expect(sites.map((s) => s['name']).toSet(), {'Blue Hole'});
+      expect(dives.map((d) => d['site']), [
+        {'uddfId': sites[0]['uddfId']},
+        {'uddfId': sites[1]['uddfId']},
+        {'uddfId': sites[2]['uddfId']},
+        {'uddfId': sites[1]['uddfId']},
+      ]);
+    });
+
+    test('a separator in a name cannot pass for a place', () async {
+      String dive(int day, String site) =>
+          '''
+  <dive>
+    <date>2024-01-0$day 09:00:00</date><identifier>d$day</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <site>$site</site>
+    <samples/>
+  </dive>''';
+      final xml =
+          '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+${dive(1, '<name>A|B|C</name>')}
+${dive(2, '<name>A</name><country>X</country>')}
+${dive(3, '<name>A</name><location>C</location><country>B</country>')}
+</dives>''';
+      final payload = await const MacDiveXmlParser().parse(
+        Uint8List.fromList(utf8.encode(xml)),
+      );
+
+      final sites = payload.entitiesOf(ImportEntityType.sites);
+      expect(sites.map((s) => s['uddfId']).toSet(), hasLength(3));
+    });
+
     test(
       'empty <item/> gear elements are skipped (no phantom entity)',
       () async {

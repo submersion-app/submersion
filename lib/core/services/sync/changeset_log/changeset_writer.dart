@@ -366,7 +366,7 @@ class ChangesetWriter {
       }
       return ChangesetWriteResult(ChangesetWriteKind.noop, null, now);
     }
-    final bytes = _codec.encodeChangeset(payload);
+    final bytes = await _codec.encodeChangeset(payload);
     await provider.uploadFile(
       bytes,
       ChangesetLogLayout.changesetName(deviceId, newSeq),

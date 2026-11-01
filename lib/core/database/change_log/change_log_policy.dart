@@ -20,9 +20,9 @@ enum ChangeLogClass {
   excluded,
 }
 
-/// Every table in `allTables`. A test fails on a table missing from here, so
-/// a new table cannot be left out by accident. `dive_profile_series_history`
-/// is not listed because it is raw SQL, outside `allTables`.
+/// Every table in `allTables`, plus the raw SQL tables in
+/// `changeLogRawTableSpecs`. A test fails on a table missing from here, so a
+/// new table cannot be left out by accident.
 const Map<String, ChangeLogClass> changeLogTables = {
   'buddies': ChangeLogClass.tracked,
   'certification_currency_events': ChangeLogClass.tracked,
@@ -141,6 +141,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'weight_preset_entries': ChangeLogClass.tracked,
   'weight_presets': ChangeLogClass.tracked,
   'dive_profile_series': ChangeLogClass.deleteCopyOnly,
+  'dive_profile_series_history': ChangeLogClass.deleteCopyOnly,
   'dive_safety_findings': ChangeLogClass.deleteCopyOnly,
   'dive_safety_reviews': ChangeLogClass.deleteCopyOnly,
   'media_enrichment': ChangeLogClass.deleteCopyOnly,
@@ -275,6 +276,10 @@ const Map<String, ChangeLogParent> changeLogParents = {
   ),
   'dive_profile_events': ChangeLogParent(rootTable: 'dives', column: 'dive_id'),
   'dive_profile_series': ChangeLogParent(rootTable: 'dives', column: 'dive_id'),
+  'dive_profile_series_history': ChangeLogParent(
+    rootTable: 'dives',
+    column: 'dive_id',
+  ),
   'dive_safety_findings': ChangeLogParent(
     rootTable: 'dives',
     column: 'dive_id',
@@ -469,6 +474,10 @@ const Set<String> _displaySettingsKeys = {
   'media_library_sort',
   'equipment_arrangement',
 };
+
+/// Logged tables that never sync, so a restored row has no tombstone to clear
+/// and no pending mark to take.
+const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 
 /// Machine tables whose row belongs to another row besides its root, by
 /// column and that row's table. Such a row's delete copy is kept when that

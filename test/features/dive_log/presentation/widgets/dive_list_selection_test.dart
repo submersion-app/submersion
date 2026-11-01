@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_bulk_delete_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -109,6 +110,23 @@ class _MockPaginatedNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// [_MockPaginatedNotifier] with a bulk delete whose Undo reports [complete].
+class _UndoableNotifier extends _MockPaginatedNotifier {
+  _UndoableNotifier(super.dives, {required this.complete});
+
+  final bool complete;
+
+  @override
+  Future<DeletedDives> bulkDeleteDives(List<String> ids) async => DeletedDives(
+    dives: [for (final id in ids) _makeDive(id: id)],
+    operationId: 'operation',
+    documents: const [],
+  );
+
+  @override
+  Future<bool> restoreDives(DeletedDives deleted) async => complete;
 }
 
 void main() {
@@ -291,6 +309,54 @@ void main() {
     );
     expect(container.read(highlightedDiveIdProvider), 'merged-1');
   });
+
+  for (final (complete, message) in [
+    (true, 'Dives restored'),
+    (false, 'Dives restored, but some recorded data could not be recovered'),
+  ]) {
+    testWidgets('Undo after Delete says "$message"', (tester) async {
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...base,
+            diveListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            paginatedDiveListProvider.overrideWith(
+              (ref) => _UndoableNotifier([
+                DiveSummary.fromDive(_makeDive(id: 'd1')),
+              ], complete: complete),
+            ),
+          ],
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
+      await tester.tap(
+        find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == 'd1'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Delete'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Undo'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 750));
+
+      expect(find.text(message), findsOneWidget);
+    });
+  }
 
   testWidgets('undoing a combine rebuilds the restored dives\' summaries', (
     tester,

@@ -196,6 +196,32 @@ void main() {
       expect(result.duplicates[ImportEntityType.sites], {0});
     });
 
+    test(
+      'matches the namesake in the same place, not the last one (#4015)',
+      () {
+        final result = checkWith(
+          payload: const ImportPayload(
+            entities: {
+              ImportEntityType.sites: [
+                {'name': 'Blue Hole', 'country': 'Egypt'},
+                {'name': 'Blue Hole', 'country': 'Belize'},
+                {'name': 'Blue Hole'},
+              ],
+            },
+          ),
+          sites: [
+            const DiveSite(id: 'e', name: 'Blue Hole', country: 'Egypt'),
+            const DiveSite(id: 'b', name: 'Blue Hole', country: 'Belize'),
+          ],
+        );
+
+        final matches = result.entityMatches[ImportEntityType.sites]!;
+        expect(matches[0]!.existingId, 'e');
+        expect(matches[1]!.existingId, 'b');
+        expect(matches[2]!.existingId, 'b');
+      },
+    );
+
     test('finds by lat/lon proximity within 100m', () {
       final result = checkWith(
         payload: const ImportPayload(
