@@ -277,7 +277,7 @@ void main() {
       final doc = (await h.one('rules', id))!;
       expect(doc['name'], 'Tag deep');
       expect(doc['subject'], 'dives');
-      expect(doc['actions'], isEmpty);
+      expect((doc['actions'] as Map)['actions'], isEmpty);
       expect(await h.one('rules', id, diverId: kDiverB), isNull);
     });
   });

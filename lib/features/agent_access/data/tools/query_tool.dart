@@ -1,18 +1,19 @@
 import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
-import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
-import 'package:submersion/features/agent_access/data/documents/dive_summary_document.dart';
+import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/query_roots.dart';
+import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
+import 'package:submersion/features/agent_access/data/records/record_entity.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/root_scope.dart';
+import 'package:submersion/features/agent_access/data/service_status_overlay.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/tool_args.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart'
     show serviceStatusTable;
 import 'package:submersion/features/query/app_query_registry.dart';
@@ -23,12 +24,17 @@ const kQueryMaxLimit = 5000;
 
 /// Finds records with the entity query language, scoped to one diver.
 class QueryTool implements AgentTool {
-  QueryTool({required DiverContextLoader loader, required DiveRepository dives})
-    : _loader = loader,
-      _dives = dives;
+  QueryTool({
+    required DiverContextLoader loader,
+    required RecordRepositories records,
+    required RecordCatalog catalog,
+  }) : _loader = loader,
+       _records = records,
+       _catalog = catalog;
 
   final DiverContextLoader _loader;
-  final DiveRepository _dives;
+  final RecordRepositories _records;
+  final RecordCatalog _catalog;
 
   @override
   String get name => 'query';
@@ -41,8 +47,9 @@ class QueryTool implements AgentTool {
       'numbers take the named (or active) diver\'s display units, so "depth > '
       '100" means feet for a diver who logs in feet; add a unit suffix (m, ft, '
       'c, f, bar, psi, kg, lb, min) to be explicit. An empty query matches '
-      'everything. include_summaries adds a compact row per dive (dives root '
-      'only in this version). Dates are ISO 8601 strings of the dive\'s local wall clock carried with a nominal Z suffix; they are not UTC instants, so do not shift them to another time zone.';
+      'everything. include_summaries adds a compact row per record. '
+      'serviceDue and nextServiceDue are evaluated for the named diver when '
+      'the query runs. $kDocumentDateRule';
 
   @override
   Map<String, Object?> get inputSchema => {
@@ -67,7 +74,7 @@ class QueryTool implements AgentTool {
       'include_summaries': {
         'type': 'boolean',
         'default': false,
-        'description': 'Return a compact summary per matching dive.',
+        'description': 'Return a compact summary per matching record.',
       },
       'limit': {
         'type': 'integer',
@@ -124,16 +131,21 @@ class QueryTool implements AgentTool {
       appQueryRegistry,
       diverId: ctx.diverId,
     );
-    if (compiled.tablesTouched.contains(serviceStatusTable)) {
-      throw const AgentToolException(
-        AgentToolErrorCode.invalidArgument,
-        'The serviceDue field is not available to agents in this version.',
-      );
-    }
+    // The cache `serviceDue` reads holds the active diver's verdicts only,
+    // so the named diver's come from the engine and shadow it here.
+    final cte = compiled.tablesTouched.contains(serviceStatusTable)
+        ? await serviceStatusOverlay(
+            diverId: ctx.diverId,
+            settings: ctx.settings,
+            repositories: _records,
+            now: DateTime.now(),
+          )
+        : null;
     final runner = QueryIdSetRunner(context.db);
     final all = (await runner.ids(
       compiled,
       scope: rootScopeFor(root, ctx.diverId, alias: compiled.rootAlias),
+      cte: cte,
     )).toList()..sort();
     final page = all.skip(offset).take(limit).toList();
     final result = <String, Object?>{
@@ -145,14 +157,10 @@ class QueryTool implements AgentTool {
       'limit': limit,
       'has_more': offset + page.length < all.length,
     };
-    if (includeSummaries && root.subject == QuerySubject.dives) {
-      final summaries = <Map<String, Object?>>[];
-      for (final chunk in seriesIdChunks(page)) {
-        for (final s in await _dives.getSummariesByIds(chunk)) {
-          summaries.add(diveSummaryDocument(s));
-        }
-      }
-      result['summaries'] = summaries;
+    if (includeSummaries) {
+      result['summaries'] = await _catalog
+          .named(root.subject.name)
+          .summaries(page, RecordLoad(include: const {}, diverId: ctx.diverId));
     }
     return result;
   }

@@ -9,6 +9,12 @@ import 'package:submersion/core/utils/stream_debounce.dart';
 /// diver, which a saved query must not name. Values are bound.
 typedef QueryScope = ({String sql, List<Object> params});
 
+/// A `WITH` clause the caller puts ahead of a compiled query. A common table
+/// expression named after a real table shadows it for that statement, so a
+/// query can read a table's rows from somewhere else without changing its
+/// compiled text. Values are bound.
+typedef QueryCte = ({String sql, List<Object> params});
+
 /// Runs any entity's [CompiledQuery] as an id set (#2365 PR 3). The site,
 /// equipment and trip lists narrow their hydrated rows to it, so loading,
 /// sorting and grouping stay where they are.
@@ -20,7 +26,11 @@ class QueryIdSetRunner {
   /// The same debounce the dive list's ticks use.
   static const changeTickDebounce = Duration(milliseconds: 300);
 
-  Future<Set<String>> ids(CompiledQuery compiled, {QueryScope? scope}) async {
+  Future<Set<String>> ids(
+    CompiledQuery compiled, {
+    QueryScope? scope,
+    QueryCte? cte,
+  }) async {
     final a = compiled.rootAlias;
     final clauses = [
       if (!compiled.isEmpty) compiled.where,
@@ -29,9 +39,12 @@ class QueryIdSetRunner {
     final where = clauses.isEmpty ? '' : ' WHERE ${clauses.join(' AND ')}';
     final rows = await _db
         .customSelect(
+          '${cte == null ? '' : '${cte.sql} '}'
           'SELECT $a.${compiled.idColumn} AS id FROM ${compiled.table} $a'
           '$where',
           variables: [
+            if (cte != null)
+              for (final p in cte.params) Variable<Object>(p),
             for (final p in compiled.params) Variable<Object>(p as Object),
             if (scope != null)
               for (final p in scope.params) Variable<Object>(p),
