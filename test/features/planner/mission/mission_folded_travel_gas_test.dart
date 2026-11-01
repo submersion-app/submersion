@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -45,20 +46,22 @@ const _mission = DpvMission(
   ],
 );
 
-domain.DivePlan _plan(List<DiveTank> tanks) => domain.DivePlan(
-  id: 'mission',
-  name: 'Mission budget',
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
-  gfLow: 30,
-  gfHigh: 70,
-  sacBottom: _sac,
-  sacDeco: _sac,
-  sacStressed: _sac,
-  problemSolvingMinutes: 0,
-  reservePressure: 50,
-  tanks: tanks,
-);
+domain.DivePlan _plan(List<DiveTank> tanks, {AirBreakPolicy? airBreaks}) =>
+    domain.DivePlan(
+      id: 'mission',
+      name: 'Mission budget',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+      gfLow: 30,
+      gfHigh: 70,
+      sacBottom: _sac,
+      sacDeco: _sac,
+      sacStressed: _sac,
+      problemSolvingMinutes: 0,
+      reservePressure: 50,
+      airBreaks: airBreaks,
+      tanks: tanks,
+    );
 
 void main() {
   const engine = PlanEngine(config: PlanEngineConfig(gasModel: GasModel.ideal));
@@ -122,6 +125,17 @@ void main() {
 
       final legs = outcome.schedule.map((r) => r.foldedTravel);
       expect(legs.map((leg) => leg.length), contains(greaterThan(1)));
+    });
+
+    test('keeps its match with air breaks on the same stops (#3928)', () {
+      final outcome = expectBudgetMatchesEngine(
+        _plan(const [back, ean50, oxygen], airBreaks: const AirBreakPolicy()),
+      );
+
+      expect(
+        outcome.schedule.map((r) => r.airBreakSeconds),
+        contains(isNonZero),
+      );
     });
 
     test('an exit ending below reserve is not survivable', () {
