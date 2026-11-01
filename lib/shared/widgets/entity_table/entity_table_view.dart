@@ -30,7 +30,8 @@ const double kEntityTableMutedOpacity = 0.6;
 /// Trips, Equipment, etc.). Entity-specific behavior is provided via the
 /// [adapter] and callbacks.
 class EntityTableView<T, F extends EntityField> extends StatefulWidget {
-  /// The entities to display as rows.
+  /// The entities to display as rows. Changed rows arrive as a new list: the
+  /// table keeps its sort while this one stays, so it is never edited in place.
   final List<T> entities;
 
   /// Extract a unique string ID from an entity (for selection/highlight).
