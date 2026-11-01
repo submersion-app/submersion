@@ -41,9 +41,7 @@ class _TracksMapPageState extends ConsumerState<TracksMapPage> {
         onTap: (item) => ref.read(section.notifier).select(item.selectionKey),
       ),
       mapPane: TracksMapPane(controller: _mapController),
-      infoCard: TracksInfoCard(
-        onOpen: (item) => context.push(trackLocationOf(item)),
-      ),
+      infoCard: TracksInfoCard(onOpen: (item) => openTrack(context, ref, item)),
     );
   }
 }

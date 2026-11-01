@@ -738,9 +738,13 @@ extension RungsFromV231 on AppDatabase {
     if (from < 332) await _assertChangeLogSchema();
     if (from < 332) await reportProgress();
 
+    // v333: dives.gas_switches_edited (issue #32). Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 333) await _assertDiveGasSwitchesEditedColumn();
+    if (from < 333) await reportProgress();
+
     // v334: equipment_locations.buddy_id, the buddy a Person place stands
     // for (issue #3790). Column only, no backfill; re-asserted in beforeOpen.
-    // 333 is held by PRs #4028 and #4080.
     if (from < 334) await _assertEquipmentLocationBuddyColumn();
     if (from < 334) await reportProgress();
   }

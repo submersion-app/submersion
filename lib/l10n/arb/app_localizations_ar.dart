@@ -8151,6 +8151,54 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'متى بدّلت الأسطوانة. تتبع إزالة الضغط وتحميل الأنسجة ومعدل SAC لكل أسطوانة هذه التبديلات.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'يبدأ على $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'إضافة تبديل';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'الوقت';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'التبديل إلى';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'العمق';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'إزالة التبديل';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => 'استخدم دقائق:ثوانٍ';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError => 'يجب أن يكون ضمن الغوص';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'يوجد تبديل آخر في هذا الوقت';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إزالة $count تبديل غاز مع أسطواناتها',
+      many: 'تمت إزالة $count تبديل غاز مع أسطواناتها',
+      few: 'تمت إزالة $count تبديلات غاز مع أسطواناتها',
+      two: 'تمت إزالة تبديلي غاز مع أسطوانتيهما',
+      one: 'تمت إزالة $count تبديل غاز مع أسطوانته',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'جارٍ تحديد الموقع...';
 
   @override
@@ -8281,6 +8329,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'أضف ملاحظات حول هذه الغوصة...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'تبديلات الغاز';
 
   @override
   String get diveLog_edit_overline_tanks => 'الأسطوانات';
@@ -11820,8 +11871,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_gps_lookupFromCoordinates => 'البحث من الإحداثيات';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'أضف الإحداثيات في قسم الموقع الجغرافي لاستخدام هذا الخيار.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'لم يتم العثور على تفاصيل موقع لهذه الإحداثيات';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'تفاصيل الموقع تطابق هذه الإحداثيات بالفعل';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
@@ -24869,6 +24928,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_evidenceFingerprint => 'بصمة الدليل';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'تبديلات الغاز معدّلة يدويًا';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'مستبعد من إحصاءات الغاز';
 
@@ -27235,6 +27298,84 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_data_dataTools_subtitle =>
       'تصحيح أوقات الغوص، ربط الرفقاء، إعادة تصنيف المعدات، جودة البيانات';
+
+  @override
+  String get settings_agentAccess_title => 'وصول الوكلاء';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'السماح لوكيل ذكاء اصطناعي على هذا الكمبيوتر بقراءة سجل غوصك وتعديله';
+
+  @override
+  String get settings_agentAccess_enable => 'تفعيل وصول الوكلاء';
+
+  @override
+  String get settings_agentAccess_statusListening => 'قيد الاستماع';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'متوقف';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'آخر طلب $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'المنفذ $port مستخدم بالفعل';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'المنفذ';
+
+  @override
+  String get settings_agentAccess_token => 'رمز الوصول';
+
+  @override
+  String get settings_agentAccess_reveal => 'إظهار';
+
+  @override
+  String get settings_agentAccess_hide => 'إخفاء';
+
+  @override
+  String get settings_agentAccess_copy => 'نسخ';
+
+  @override
+  String get settings_agentAccess_regenerate => 'إعادة التوليد';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'سيحتاج كل وكيل متصل إلى الرمز الجديد. هل تريد المتابعة؟';
+
+  @override
+  String get settings_agentAccess_confirmWrites => 'السؤال قبل تطبيق التغييرات';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'إظهار تأكيد في Submersion قبل أن يعدّل وكيل السجلات';
+
+  @override
+  String get settings_agentAccess_snippets => 'ربط عميل';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (عبر mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'عملاء آخرون';
+
+  @override
+  String get settings_agentAccess_copied => 'تم النسخ';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'يمكن للوكلاء رؤية كل ملفات الغواصين على هذا الكمبيوتر.';
+
+  @override
+  String get settings_agentAccess_portInvalid => 'أدخل منفذًا بين 1024 و65535';
 
   @override
   String get settings_sync_title => 'المزامنة بين الأجهزة';
@@ -55545,6 +55686,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navTrack_detail_menuRename => 'إعادة التسمية';
+
+  @override
+  String get navTrack_detail_menuChangeDive => 'تغيير الغطسة';
 
   @override
   String get navTrack_detail_menuChangeSite => 'تغيير الموقع';

@@ -12619,6 +12619,72 @@ abstract class AppLocalizations {
   /// **'Error loading dive types: {error}'**
   String diveLog_edit_errorLoadingDiveTypes(Object error);
 
+  /// No description provided for @diveLog_edit_gasSwitches_caption.
+  ///
+  /// In en, this message translates to:
+  /// **'When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.'**
+  String get diveLog_edit_gasSwitches_caption;
+
+  /// Gas switch editor: the cylinder the dive starts on
+  ///
+  /// In en, this message translates to:
+  /// **'Starts on {tank}'**
+  String diveLog_edit_gasSwitches_startsOn(String tank);
+
+  /// No description provided for @diveLog_edit_gasSwitches_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Switch'**
+  String get diveLog_edit_gasSwitches_add;
+
+  /// No description provided for @diveLog_edit_gasSwitches_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get diveLog_edit_gasSwitches_time;
+
+  /// No description provided for @diveLog_edit_gasSwitches_switchTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to'**
+  String get diveLog_edit_gasSwitches_switchTo;
+
+  /// No description provided for @diveLog_edit_gasSwitches_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get diveLog_edit_gasSwitches_depth;
+
+  /// No description provided for @diveLog_edit_gasSwitches_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove switch'**
+  String get diveLog_edit_gasSwitches_remove;
+
+  /// No description provided for @diveLog_edit_gasSwitches_timeFormatError.
+  ///
+  /// In en, this message translates to:
+  /// **'Use minutes:seconds'**
+  String get diveLog_edit_gasSwitches_timeFormatError;
+
+  /// No description provided for @diveLog_edit_gasSwitches_timeRangeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be within the dive'**
+  String get diveLog_edit_gasSwitches_timeRangeError;
+
+  /// No description provided for @diveLog_edit_gasSwitches_duplicateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Another switch is at this time'**
+  String get diveLog_edit_gasSwitches_duplicateError;
+
+  /// Gas switch editor: switches dropped because their cylinder was removed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}'**
+  String diveLog_edit_gasSwitches_removedWithTank(int count);
+
   /// No description provided for @diveLog_edit_gettingLocation.
   ///
   /// In en, this message translates to:
@@ -12876,6 +12942,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add notes about this dive...'**
   String get diveLog_edit_notesHint;
+
+  /// No description provided for @diveLog_edit_overline_gasSwitches.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switches'**
+  String get diveLog_edit_overline_gasSwitches;
 
   /// Sub-header overline above the tank rows in the Gas & Gear edit section
   ///
@@ -18656,11 +18728,23 @@ abstract class AppLocalizations {
   /// **'Look up from coordinates'**
   String get diveSites_edit_gps_lookupFromCoordinates;
 
+  /// No description provided for @diveSites_edit_gps_lookupNeedsCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Add coordinates in Location to use this.'**
+  String get diveSites_edit_gps_lookupNeedsCoordinates;
+
   /// No description provided for @diveSites_edit_snackbar_lookupNothingFound.
   ///
   /// In en, this message translates to:
   /// **'No location details found for these coordinates'**
   String get diveSites_edit_snackbar_lookupNothingFound;
+
+  /// No description provided for @diveSites_edit_snackbar_lookupNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Location details already match these coordinates'**
+  String get diveSites_edit_snackbar_lookupNoChanges;
 
   /// No description provided for @diveSites_edit_snackbar_lookupFailed.
   ///
@@ -39054,6 +39138,12 @@ abstract class AppLocalizations {
   /// **'Evidence fingerprint'**
   String get settings_conflict_field_evidenceFingerprint;
 
+  /// No description provided for @settings_conflict_field_gasSwitchesEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switches edited by hand'**
+  String get settings_conflict_field_gasSwitchesEdited;
+
   /// No description provided for @settings_conflict_field_excludedFromGasStats.
   ///
   /// In en, this message translates to:
@@ -43241,6 +43331,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fix dive times, link buddies, retype gear, data quality'**
   String get settings_data_dataTools_subtitle;
+
+  /// No description provided for @settings_agentAccess_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent access'**
+  String get settings_agentAccess_title;
+
+  /// No description provided for @settings_agentAccess_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let an AI agent on this computer read and change your logbook'**
+  String get settings_agentAccess_subtitle;
+
+  /// No description provided for @settings_agentAccess_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable agent access'**
+  String get settings_agentAccess_enable;
+
+  /// No description provided for @settings_agentAccess_statusListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening'**
+  String get settings_agentAccess_statusListening;
+
+  /// No description provided for @settings_agentAccess_statusStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get settings_agentAccess_statusStopped;
+
+  /// No description provided for @settings_agentAccess_lastRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Last request {time}'**
+  String settings_agentAccess_lastRequest(String time);
+
+  /// No description provided for @settings_agentAccess_portInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Port {port} is already in use'**
+  String settings_agentAccess_portInUse(int port);
+
+  /// No description provided for @settings_agentAccess_port.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get settings_agentAccess_port;
+
+  /// No description provided for @settings_agentAccess_token.
+  ///
+  /// In en, this message translates to:
+  /// **'Access token'**
+  String get settings_agentAccess_token;
+
+  /// No description provided for @settings_agentAccess_reveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal'**
+  String get settings_agentAccess_reveal;
+
+  /// No description provided for @settings_agentAccess_hide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get settings_agentAccess_hide;
+
+  /// No description provided for @settings_agentAccess_copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get settings_agentAccess_copy;
+
+  /// No description provided for @settings_agentAccess_regenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get settings_agentAccess_regenerate;
+
+  /// No description provided for @settings_agentAccess_regenerateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Every connected agent will need the new token. Continue?'**
+  String get settings_agentAccess_regenerateConfirm;
+
+  /// No description provided for @settings_agentAccess_confirmWrites.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask before applying changes'**
+  String get settings_agentAccess_confirmWrites;
+
+  /// No description provided for @settings_agentAccess_confirmWritesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a confirmation in Submersion before an agent changes records'**
+  String get settings_agentAccess_confirmWritesSubtitle;
+
+  /// No description provided for @settings_agentAccess_snippets.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a client'**
+  String get settings_agentAccess_snippets;
+
+  /// No description provided for @settings_agentAccess_claudeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude Code'**
+  String get settings_agentAccess_claudeCode;
+
+  /// No description provided for @settings_agentAccess_claudeDesktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude Desktop (via mcp-remote)'**
+  String get settings_agentAccess_claudeDesktop;
+
+  /// No description provided for @settings_agentAccess_generic.
+  ///
+  /// In en, this message translates to:
+  /// **'Other clients'**
+  String get settings_agentAccess_generic;
+
+  /// No description provided for @settings_agentAccess_copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get settings_agentAccess_copied;
+
+  /// No description provided for @settings_agentAccess_scopeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Agents can see every diver profile on this computer.'**
+  String get settings_agentAccess_scopeNote;
+
+  /// No description provided for @settings_agentAccess_portInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a port from 1024 to 65535'**
+  String get settings_agentAccess_portInvalid;
 
   /// No description provided for @settings_sync_title.
   ///
@@ -86744,6 +86972,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rename'**
   String get navTrack_detail_menuRename;
+
+  /// No description provided for @navTrack_detail_menuChangeDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Change dive'**
+  String get navTrack_detail_menuChangeDive;
 
   /// No description provided for @navTrack_detail_menuChangeSite.
   ///

@@ -1515,8 +1515,11 @@ class AppDatabase extends _$AppDatabase {
     // v332: the per-device change log tables (issue #3922). Local only and
     // never synced, so the floor does not move.
     332,
+    // v333: dives.gas_switches_edited (issue #32). A defaulted column an
+    // older peer omits, so the compatibility floor does not move.
+    333,
     // v334: equipment_locations.buddy_id, the buddy a Person place stands
-    // for (issue #3790). 333 is held by PRs #4028 and #4080.
+    // for (issue #3790).
     334,
   ];
 

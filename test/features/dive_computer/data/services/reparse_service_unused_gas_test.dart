@@ -257,6 +257,36 @@ void main() {
     expect(await storedIds(), {'dil', 'o2', 'gas-air'});
   });
 
+  test('a gas cylinder a stored switch names is kept', () async {
+    await storeTransmitters();
+    await storeGas();
+    // The diver's own switch onto the Air cylinder (issue #32): the list is
+    // theirs, so the re-parse leaves it, and the cylinder it names must stay
+    // or the switch would cascade away with it.
+    await (db.update(db.dives)..where((t) => t.id.equals('dive-1'))).write(
+      const DivesCompanion(gasSwitchesEdited: Value(true)),
+    );
+    await db
+        .into(db.gasSwitches)
+        .insert(
+          GasSwitchesCompanion(
+            id: const Value('gs-mine'),
+            diveId: const Value('dive-1'),
+            timestamp: const Value(900),
+            tankId: const Value('gas-air'),
+            createdAt: Value(nowMs),
+          ),
+        );
+
+    await reparse(switchedOn());
+
+    expect(await storedIds(), {'dil', 'o2', 'gas-air'});
+    final sw = await (db.select(
+      db.gasSwitches,
+    )..where((t) => t.id.equals('gs-mine'))).getSingleOrNull();
+    expect(sw?.tankId, 'gas-air');
+  });
+
   test('a pre-v1.8.1 Air row stored as back gas is deleted', () async {
     await storeTransmitters();
     await storeGas(airRole: 'backGas');

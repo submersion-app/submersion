@@ -7859,6 +7859,53 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'מתי החלפת מיכל. הדקו, העמסת הרקמות וה-SAC לכל מיכל עוקבים אחרי ההחלפות האלה.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'מתחיל על $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'הוספת החלפה';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'זמן';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'החלפה אל';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'עומק';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'הסרת החלפה';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'יש להשתמש בדקות:שניות';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'חייב להיות בתוך הצלילה';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'קיימת החלפה אחרת בזמן הזה';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count החלפות גז הוסרו עם המיכל שלהן',
+      one: 'החלפת גז $count הוסרה עם המיכל שלה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'מקבל מיקום...';
 
   @override
@@ -7989,6 +8036,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'הוסף הערות לצלילה זו...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'החלפות גז';
 
   @override
   String get diveLog_edit_overline_tanks => 'מיכלים';
@@ -11414,8 +11464,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש לפי קואורדינטות';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'הוסיפו קואורדינטות בקטע מיקום כדי להשתמש באפשרות זו.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'לא נמצאו פרטי מיקום לקואורדינטות אלה';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'פרטי המיקום כבר תואמים לקואורדינטות אלה';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
@@ -24002,6 +24060,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'טביעת אצבע של הראיה';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'החלפות גז נערכו ידנית';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'לא נכלל בסטטיסטיקת הגז';
 
@@ -26316,6 +26378,84 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_data_dataTools_subtitle =>
       'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים';
+
+  @override
+  String get settings_agentAccess_title => 'גישת סוכנים';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'אפשר לסוכן בינה מלאכותית במחשב זה לקרוא ולשנות את יומן הצלילה שלך';
+
+  @override
+  String get settings_agentAccess_enable => 'הפעלת גישת סוכנים';
+
+  @override
+  String get settings_agentAccess_statusListening => 'מאזין';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'מופסק';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'בקשה אחרונה $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'פורט $port כבר בשימוש';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'פורט';
+
+  @override
+  String get settings_agentAccess_token => 'אסימון גישה';
+
+  @override
+  String get settings_agentAccess_reveal => 'הצגה';
+
+  @override
+  String get settings_agentAccess_hide => 'הסתרה';
+
+  @override
+  String get settings_agentAccess_copy => 'העתקה';
+
+  @override
+  String get settings_agentAccess_regenerate => 'יצירה מחדש';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'כל סוכן מחובר יזדקק לאסימון החדש. להמשיך?';
+
+  @override
+  String get settings_agentAccess_confirmWrites => 'לשאול לפני החלת שינויים';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'להציג אישור ב-Submersion לפני שסוכן משנה רשומות';
+
+  @override
+  String get settings_agentAccess_snippets => 'חיבור לקוח';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (דרך mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'לקוחות אחרים';
+
+  @override
+  String get settings_agentAccess_copied => 'הועתק';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'סוכנים רואים את כל פרופילי הצוללנים במחשב זה.';
+
+  @override
+  String get settings_agentAccess_portInvalid => 'הזן פורט בין 1024 ל-65535';
 
   @override
   String get settings_sync_title => 'סנכרון בין מכשירים';
@@ -53697,6 +53837,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_detail_menuRename => 'שינוי שם';
+
+  @override
+  String get navTrack_detail_menuChangeDive => 'שינוי צלילה';
 
   @override
   String get navTrack_detail_menuChangeSite => 'שינוי אתר';

@@ -67,6 +67,7 @@ const Set<String> kUnmirroredDiveFields = {
   'isFavorite',
   'excludedFromStats',
   'excludedFromGasStats',
+  'gasSwitchesEdited',
   'diveMode',
   'setpointLow',
   'setpointHigh',

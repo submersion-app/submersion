@@ -7623,6 +7623,50 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      '您更换气瓶的时间。减压、组织负荷和各气瓶的 SAC 都依据这些切换计算。';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return '起始气瓶：$tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => '添加切换';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => '时间';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => '切换至';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => '深度';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => '移除切换';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => '请使用 分:秒 格式';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError => '必须在潜水时间内';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError => '此时间已有另一次切换';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已随气瓶移除 $count 次气体切换',
+      one: '已随气瓶移除 $count 次气体切换',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => '正在获取位置...';
 
   @override
@@ -7750,6 +7794,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => '添加关于此次潜水的备注...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => '气体切换';
 
   @override
   String get diveLog_edit_overline_tanks => '气瓶';
@@ -11101,7 +11148,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_gps_lookupFromCoordinates => '根据坐标查找';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates => '请先在“位置”中添加坐标。';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound => '未找到这些坐标的地点信息';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges => '地点信息已与这些坐标一致';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed => '地点查找失败。请检查网络连接后重试。';
@@ -23255,6 +23308,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_evidenceFingerprint => '依据指纹';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited => '气体切换已手动编辑';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats => '不计入气体统计';
 
   @override
@@ -25490,6 +25546,81 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle => '修正潜水时间、关联潜伴、重新分类装备、数据质量';
+
+  @override
+  String get settings_agentAccess_title => '代理访问';
+
+  @override
+  String get settings_agentAccess_subtitle => '允许这台电脑上的 AI 代理读取和修改你的潜水日志';
+
+  @override
+  String get settings_agentAccess_enable => '启用代理访问';
+
+  @override
+  String get settings_agentAccess_statusListening => '正在监听';
+
+  @override
+  String get settings_agentAccess_statusStopped => '已停止';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return '上次请求 $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return '端口 $port 已被占用';
+  }
+
+  @override
+  String get settings_agentAccess_port => '端口';
+
+  @override
+  String get settings_agentAccess_token => '访问令牌';
+
+  @override
+  String get settings_agentAccess_reveal => '显示';
+
+  @override
+  String get settings_agentAccess_hide => '隐藏';
+
+  @override
+  String get settings_agentAccess_copy => '复制';
+
+  @override
+  String get settings_agentAccess_regenerate => '重新生成';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm => '所有已连接的代理都需要新的令牌。要继续吗？';
+
+  @override
+  String get settings_agentAccess_confirmWrites => '应用更改前询问';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      '在代理修改记录前，在 Submersion 中显示确认';
+
+  @override
+  String get settings_agentAccess_snippets => '连接客户端';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop（通过 mcp-remote）';
+
+  @override
+  String get settings_agentAccess_generic => '其他客户端';
+
+  @override
+  String get settings_agentAccess_copied => '已复制';
+
+  @override
+  String get settings_agentAccess_scopeNote => '代理可以查看这台电脑上的所有潜水员资料。';
+
+  @override
+  String get settings_agentAccess_portInvalid => '请输入 1024 到 65535 之间的端口';
 
   @override
   String get settings_sync_title => '设备间同步';
@@ -51457,6 +51588,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navTrack_detail_menuRename => '重命名';
+
+  @override
+  String get navTrack_detail_menuChangeDive => '更改潜水记录';
 
   @override
   String get navTrack_detail_menuChangeSite => '更改潜点';

@@ -8005,6 +8005,53 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Mikor váltottál palackot. A dekó, a szöveti terhelés és a palackonkénti SAC ezeket a váltásokat követi.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Kezdés: $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Váltás hozzáadása';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Idő';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Váltás erre';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Mélység';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Váltás eltávolítása';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'Perc:másodperc formátum';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'A merülésen belül kell lennie';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Egy másik váltás is erre az időre esik';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gázváltás eltávolítva a palackjukkal',
+      one: '$count gázváltás eltávolítva a palackjával',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Helymeghatározás...';
 
   @override
@@ -8139,6 +8186,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_edit_notesHint =>
       'Jegyzetek hozzáadása ehhez a merüléshez...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Gázváltások';
 
   @override
   String get diveLog_edit_overline_tanks => 'Palackok';
@@ -11644,8 +11694,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Lekérdezés a koordinátákból';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'A használatához adjon meg koordinátákat a Helyzet részben.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'Nem található helyadat ezekhez a koordinátákhoz';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'A helyadatok már megegyeznek ezekkel a koordinátákkal';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
@@ -24497,6 +24555,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Bizonyíték ujjlenyomata';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gázváltások kézzel szerkesztve';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Kihagyva a gázstatisztikából';
 
@@ -26863,6 +26925,86 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_data_dataTools_subtitle =>
       'Merülési idők javítása, búvártársak összekapcsolása, felszerelés átsorolása, adatminőség';
+
+  @override
+  String get settings_agentAccess_title => 'Ügynökhozzáférés';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'Engedélyezd, hogy egy MI-ügynök ezen a számítógépen olvassa és módosítsa a merülési naplódat';
+
+  @override
+  String get settings_agentAccess_enable => 'Ügynökhozzáférés engedélyezése';
+
+  @override
+  String get settings_agentAccess_statusListening => 'Figyel';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'Leállítva';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'Utolsó kérés: $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'A(z) $port port már használatban van';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'Port';
+
+  @override
+  String get settings_agentAccess_token => 'Hozzáférési token';
+
+  @override
+  String get settings_agentAccess_reveal => 'Megjelenítés';
+
+  @override
+  String get settings_agentAccess_hide => 'Elrejtés';
+
+  @override
+  String get settings_agentAccess_copy => 'Másolás';
+
+  @override
+  String get settings_agentAccess_regenerate => 'Újragenerálás';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'Minden csatlakoztatott ügynöknek az új tokenre lesz szüksége. Folytatod?';
+
+  @override
+  String get settings_agentAccess_confirmWrites =>
+      'Kérdezzen rá a módosítások alkalmazása előtt';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'Megerősítés megjelenítése a Submersionben, mielőtt egy ügynök rekordokat módosít';
+
+  @override
+  String get settings_agentAccess_snippets => 'Kliens csatlakoztatása';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (mcp-remote útján)';
+
+  @override
+  String get settings_agentAccess_generic => 'Más kliensek';
+
+  @override
+  String get settings_agentAccess_copied => 'Másolva';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'Az ügynökök a számítógép összes búvárprofilját látják.';
+
+  @override
+  String get settings_agentAccess_portInvalid =>
+      'Adj meg egy portot 1024 és 65535 között';
 
   @override
   String get settings_sync_title => 'Szinkronizálás eszközök között';
@@ -54581,6 +54723,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_detail_menuRename => 'Átnevezés';
+
+  @override
+  String get navTrack_detail_menuChangeDive => 'Merülés módosítása';
 
   @override
   String get navTrack_detail_menuChangeSite => 'Merülőhely módosítása';

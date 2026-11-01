@@ -8026,6 +8026,52 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Quando você trocou de cilindro. A deco, a carga tecidual e o SAC por cilindro seguem estas trocas.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Começa em $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Adicionar troca';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Tempo';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Trocar para';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Profundidade';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Remover troca';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => 'Use minutos:segundos';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Deve estar dentro do mergulho';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Há outra troca neste tempo';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trocas de gás removidas com o seu cilindro',
+      one: '$count troca de gás removida com o seu cilindro',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Obtendo localização...';
 
   @override
@@ -8161,6 +8207,9 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_edit_notesHint =>
       'Adicione anotações sobre este mergulho...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Trocas de gás';
 
   @override
   String get diveLog_edit_overline_tanks => 'Cilindros';
@@ -11668,8 +11717,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Consultar pelas coordenadas';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'Adicione coordenadas em Localização para usar esta opção.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'Nenhum detalhe de localização encontrado para estas coordenadas';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'Os detalhes de localização já correspondem a estas coordenadas';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
@@ -24584,6 +24641,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Impressão digital da evidência';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Trocas de gás editadas manualmente';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Excluído das estatísticas de gás';
 
@@ -26986,6 +27047,86 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_data_dataTools_subtitle =>
       'Corrigir horas dos mergulhos, ligar parceiros, reclassificar equipamento, qualidade dos dados';
+
+  @override
+  String get settings_agentAccess_title => 'Acesso de agentes';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'Permitir que um agente de IA neste computador leia e altere o seu livro de mergulhos';
+
+  @override
+  String get settings_agentAccess_enable => 'Ativar o acesso de agentes';
+
+  @override
+  String get settings_agentAccess_statusListening => 'A escutar';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'Parado';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'Último pedido $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'A porta $port já está em uso';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'Porta';
+
+  @override
+  String get settings_agentAccess_token => 'Token de acesso';
+
+  @override
+  String get settings_agentAccess_reveal => 'Mostrar';
+
+  @override
+  String get settings_agentAccess_hide => 'Ocultar';
+
+  @override
+  String get settings_agentAccess_copy => 'Copiar';
+
+  @override
+  String get settings_agentAccess_regenerate => 'Gerar novamente';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'Todos os agentes ligados precisarão do novo token. Continuar?';
+
+  @override
+  String get settings_agentAccess_confirmWrites =>
+      'Perguntar antes de aplicar alterações';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'Mostrar uma confirmação no Submersion antes de um agente alterar registos';
+
+  @override
+  String get settings_agentAccess_snippets => 'Ligar um cliente';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (via mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'Outros clientes';
+
+  @override
+  String get settings_agentAccess_copied => 'Copiado';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'Os agentes veem todos os perfis de mergulhador deste computador.';
+
+  @override
+  String get settings_agentAccess_portInvalid =>
+      'Introduza uma porta entre 1024 e 65535';
 
   @override
   String get settings_sync_title => 'Sincronização entre dispositivos';
@@ -54882,6 +55023,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get navTrack_detail_menuRename => 'Renomear';
+
+  @override
+  String get navTrack_detail_menuChangeDive => 'Alterar mergulho';
 
   @override
   String get navTrack_detail_menuChangeSite => 'Alterar ponto de mergulho';

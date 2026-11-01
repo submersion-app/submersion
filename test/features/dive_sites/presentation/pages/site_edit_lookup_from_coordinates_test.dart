@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,23 +13,32 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/fake_hosts.dart';
 
 class _FakeLocationService implements LocationService {
-  _FakeLocationService(this.place);
+  _FakeLocationService(this.place, {this.gate});
 
   final PlaceLookup place;
+
+  /// Holds a lookup open until it completes, when a test needs to see the
+  /// form mid-lookup.
+  final Future<void>? gate;
 
   @override
   Future<PlaceLookup> reverseGeocode(
     double latitude,
     double longitude, {
     required String languageCode,
-  }) async => place;
+  }) async {
+    await gate;
+    return place;
+  }
 
   @override
   Future<LocationResult?> getCurrentLocation({
@@ -56,6 +67,8 @@ const _weggis = PlaceLookup(
 );
 
 const _lookupButton = 'Look up from coordinates';
+const _needsCoordinatesHint = 'Add coordinates in Location to use this.';
+const _alreadyMatches = 'Location details already match these coordinates';
 
 void main() {
   // The code under test calls Open-Meteo; it answers as offline, as it
@@ -82,6 +95,7 @@ void main() {
     WidgetTester tester, {
     PlaceLookup place = _weggis,
     DiveSite? seeded,
+    Future<void>? lookupGate,
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
@@ -96,10 +110,11 @@ void main() {
           if (seeded != null)
             siteProvider(seeded.id).overrideWith((_) async => seeded),
           locationServiceProvider.overrideWithValue(
-            _FakeLocationService(place),
+            _FakeLocationService(place, gate: lookupGate),
           ),
         ],
         child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -142,31 +157,133 @@ void main() {
     ),
   );
 
-  testWidgets('the button is disabled until coordinates are present', (
+  testWidgets('sits with the place fields while Location is collapsed', (
+    tester,
+  ) async {
+    final seeded = await seedSite();
+    await pumpEditor(tester, seeded: seeded);
+
+    expect(
+      find.descendant(
+        of: find.byType(IdentitySection),
+        matching: find.text(_lookupButton),
+      ),
+      findsOneWidget,
+    );
+
+    await expandLocation(tester);
+    expect(find.text(_lookupButton), findsOneWidget);
+  });
+
+  testWidgets('the button is disabled and says why without coordinates', (
     tester,
   ) async {
     await pumpEditor(tester);
-    await tester.tap(find.text('Add GPS position or altitude'));
-    await tester.pumpAndSettle();
 
     final button = find.widgetWithText(TextButton, _lookupButton);
     expect(tester.widget<TextButton>(button).onPressed, isNull);
+    expect(find.text(_needsCoordinatesHint), findsOneWidget);
 
+    await tester.tap(find.text('Add GPS position or altitude'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Use My Location'));
     await tester.pumpAndSettle();
+
     expect(tester.widget<TextButton>(button).onPressed, isNotNull);
+    expect(find.text(_needsCoordinatesHint), findsNothing);
+  });
+
+  testWidgets('typed coordinates enable the button on an edited form', (
+    tester,
+  ) async {
+    await pumpEditor(tester);
+    // Only the first edit rebuilds the page, so the button has to follow the
+    // coordinate fields itself once the form is dirty.
+    await tester.enterText(find.byType(EditableText).first, 'Hertenstein');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add GPS position or altitude'));
+    await tester.pumpAndSettle();
+
+    final fields = find.descendant(
+      of: find.byType(CoordinateFieldGroup),
+      matching: find.byType(TextFormField),
+    );
+    await tester.enterText(fields.first, '47.027631');
+    await tester.pump();
+    await tester.enterText(fields.last, '8.400640');
+    await tester.pump();
+
+    final button = find.widgetWithText(TextButton, _lookupButton);
+    expect(tester.widget<TextButton>(button).onPressed, isNotNull);
+    expect(find.text(_needsCoordinatesHint), findsNothing);
+  });
+
+  testWidgets('shows progress on the button while the lookup runs', (
+    tester,
+  ) async {
+    final seeded = await seedSite();
+    final gate = Completer<void>();
+    await pumpEditor(tester, seeded: seeded, lookupGate: gate.future);
+
+    await tester.tap(find.text(_lookupButton));
+    await tester.pump();
+
+    expect(
+      find.descendant(
+        of: find.byType(IdentitySection),
+        matching: find.byType(CircularProgressIndicator),
+      ),
+      findsOneWidget,
+    );
+
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Weggis'), findsOneWidget);
+  });
+
+  testWidgets('drops the answer when the coordinates changed meanwhile', (
+    tester,
+  ) async {
+    final seeded = await seedSite();
+    final gate = Completer<void>();
+    await pumpEditor(tester, seeded: seeded, lookupGate: gate.future);
+
+    await tester.tap(find.text(_lookupButton));
+    await tester.pump();
+
+    // The running spinner would keep pumpAndSettle from ever settling.
+    await tester.tap(find.text('Location'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(
+      find
+          .descendant(
+            of: find.byType(CoordinateFieldGroup),
+            matching: find.byType(TextFormField),
+          )
+          .first,
+      '10.5',
+    );
+    await tester.pump();
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Weggis'), findsNothing);
+    expect(find.text('Lake Lucerne'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('fills the empty fields and saves them', (tester) async {
     final seeded = await seedSite();
     await pumpEditor(tester, seeded: seeded);
-    await expandLocation(tester);
 
     await tester.tap(find.text(_lookupButton));
     await tester.pumpAndSettle();
 
     expect(find.text('Weggis'), findsOneWidget);
     expect(find.text('Lake Lucerne'), findsOneWidget);
+    expect(find.text(_alreadyMatches), findsNothing);
 
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
@@ -186,7 +303,6 @@ void main() {
       bodyOfWater: 'Vierwaldstättersee',
     );
     await pumpEditor(tester, seeded: seeded);
-    await expandLocation(tester);
 
     await tester.tap(find.text(_lookupButton));
     await tester.pumpAndSettle();
@@ -211,7 +327,6 @@ void main() {
       bodyOfWater: 'Vierwaldstättersee',
     );
     await pumpEditor(tester, seeded: seeded);
-    await expandLocation(tester);
 
     await tester.tap(find.text(_lookupButton));
     await tester.pumpAndSettle();
@@ -222,10 +337,62 @@ void main() {
     expect(find.text('Lake Lucerne'), findsNothing);
   });
 
+  testWidgets('one press fills blanks and offers replacements together', (
+    tester,
+  ) async {
+    final seeded = await seedSite(country: 'Schweiz');
+    await pumpEditor(tester, seeded: seeded);
+
+    await tester.tap(find.text(_lookupButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Weggis'), findsOneWidget);
+    expect(find.text('Lake Lucerne'), findsOneWidget);
+    expect(find.text('Replace location details?'), findsOneWidget);
+    expect(find.text('Country: Switzerland'), findsOneWidget);
+    // Blanks already took their value, so they are not offered as changes.
+    expect(find.textContaining('City: '), findsNothing);
+
+    await tester.tap(find.text('Replace'));
+    await tester.pumpAndSettle();
+    expect(find.text('Switzerland'), findsOneWidget);
+    expect(find.text('Schweiz'), findsNothing);
+  });
+
+  testWidgets('Keep holds the differing value but not the filled blanks', (
+    tester,
+  ) async {
+    final seeded = await seedSite(country: 'Schweiz');
+    await pumpEditor(tester, seeded: seeded);
+
+    await tester.tap(find.text(_lookupButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Keep'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Schweiz'), findsOneWidget);
+    expect(find.text('Weggis'), findsOneWidget);
+  });
+
+  testWidgets('says so when every detail already matches', (tester) async {
+    final seeded = await seedSite(
+      country: 'Switzerland',
+      region: 'Lucerne',
+      city: 'Weggis',
+      bodyOfWater: 'Lake Lucerne',
+    );
+    await pumpEditor(tester, seeded: seeded);
+
+    await tester.tap(find.text(_lookupButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text(_alreadyMatches), findsOneWidget);
+    expect(find.text('Replace location details?'), findsNothing);
+  });
+
   testWidgets('says so when nothing was found', (tester) async {
     final seeded = await seedSite();
     await pumpEditor(tester, seeded: seeded, place: const PlaceLookup.empty());
-    await expandLocation(tester);
 
     await tester.tap(find.text(_lookupButton));
     await tester.pumpAndSettle();
@@ -243,7 +410,6 @@ void main() {
       seeded: seeded,
       place: const PlaceLookup.unavailable(),
     );
-    await expandLocation(tester);
 
     await tester.tap(find.text(_lookupButton));
     await tester.pumpAndSettle();

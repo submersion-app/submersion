@@ -4680,6 +4680,33 @@
   "diveLog_edit_customFieldValue": "Value",
   "diveLog_edit_equipmentCaption": "Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.",
   "diveLog_edit_errorLoadingDiveTypes": "Error loading dive types: {error}",
+  "diveLog_edit_gasSwitches_caption": "When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.",
+  "diveLog_edit_gasSwitches_startsOn": "Starts on {tank}",
+  "@diveLog_edit_gasSwitches_startsOn": {
+    "description": "Gas switch editor: the cylinder the dive starts on",
+    "placeholders": {
+      "tank": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_edit_gasSwitches_add": "Add Switch",
+  "diveLog_edit_gasSwitches_time": "Time",
+  "diveLog_edit_gasSwitches_switchTo": "Switch to",
+  "diveLog_edit_gasSwitches_depth": "Depth",
+  "diveLog_edit_gasSwitches_remove": "Remove switch",
+  "diveLog_edit_gasSwitches_timeFormatError": "Use minutes:seconds",
+  "diveLog_edit_gasSwitches_timeRangeError": "Must be within the dive",
+  "diveLog_edit_gasSwitches_duplicateError": "Another switch is at this time",
+  "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}",
+  "@diveLog_edit_gasSwitches_removedWithTank": {
+    "description": "Gas switch editor: switches dropped because their cylinder was removed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_edit_gettingLocation": "Getting location...",
   "diveLog_edit_group_buddies": "Buddies",
   "@diveLog_edit_group_buddies": {
@@ -4764,6 +4791,7 @@
   "diveLog_edit_noMarineLife": "No species logged",
   "diveLog_edit_notSpecified": "Not specified",
   "diveLog_edit_notesHint": "Add notes about this dive...",
+  "diveLog_edit_overline_gasSwitches": "Gas switches",
   "diveLog_edit_overline_tanks": "Tanks",
   "@diveLog_edit_overline_tanks": {
     "description": "Sub-header overline above the tank rows in the Gas & Gear edit section"
@@ -6936,7 +6964,9 @@
   "diveSites_edit_gps_longitude_validation": "Invalid longitude",
   "diveSites_edit_gps_pickFromMap": "Pick from Map",
   "diveSites_edit_gps_lookupFromCoordinates": "Look up from coordinates",
+  "diveSites_edit_gps_lookupNeedsCoordinates": "Add coordinates in Location to use this.",
   "diveSites_edit_snackbar_lookupNothingFound": "No location details found for these coordinates",
+  "diveSites_edit_snackbar_lookupNoChanges": "Location details already match these coordinates",
   "diveSites_edit_snackbar_lookupFailed": "Location lookup failed. Check your connection and try again.",
   "diveSites_edit_lookupReplace_title": "Replace location details?",
   "diveSites_edit_lookupReplace_body": "The lookup found different values for these fields:",
@@ -14686,6 +14716,7 @@
   "settings_conflict_field_eventType": "Event",
   "settings_conflict_field_evidence": "Evidence",
   "settings_conflict_field_evidenceFingerprint": "Evidence fingerprint",
+  "settings_conflict_field_gasSwitchesEdited": "Gas switches edited by hand",
   "settings_conflict_field_excludedFromGasStats": "Left out of gas statistics",
   "settings_conflict_field_excludedFromStats": "Left out of statistics",
   "settings_conflict_field_exitLatitude": "Exit latitude",
@@ -15542,6 +15573,31 @@
   "settings_data_importOptions_subtitle": "Site matching, surfacing pressure, auto tags",
   "settings_data_dataTools": "Data tools",
   "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality",
+  "settings_agentAccess_title": "Agent access",
+  "settings_agentAccess_subtitle": "Let an AI agent on this computer read and change your logbook",
+  "settings_agentAccess_enable": "Enable agent access",
+  "settings_agentAccess_statusListening": "Listening",
+  "settings_agentAccess_statusStopped": "Stopped",
+  "settings_agentAccess_lastRequest": "Last request {time}",
+  "@settings_agentAccess_lastRequest": {"placeholders": {"time": {"type": "String"}}},
+  "settings_agentAccess_portInUse": "Port {port} is already in use",
+  "@settings_agentAccess_portInUse": {"placeholders": {"port": {"type": "int"}}},
+  "settings_agentAccess_port": "Port",
+  "settings_agentAccess_token": "Access token",
+  "settings_agentAccess_reveal": "Reveal",
+  "settings_agentAccess_hide": "Hide",
+  "settings_agentAccess_copy": "Copy",
+  "settings_agentAccess_regenerate": "Regenerate",
+  "settings_agentAccess_regenerateConfirm": "Every connected agent will need the new token. Continue?",
+  "settings_agentAccess_confirmWrites": "Ask before applying changes",
+  "settings_agentAccess_confirmWritesSubtitle": "Show a confirmation in Submersion before an agent changes records",
+  "settings_agentAccess_snippets": "Connect a client",
+  "settings_agentAccess_claudeCode": "Claude Code",
+  "settings_agentAccess_claudeDesktop": "Claude Desktop (via mcp-remote)",
+  "settings_agentAccess_generic": "Other clients",
+  "settings_agentAccess_copied": "Copied",
+  "settings_agentAccess_scopeNote": "Agents can see every diver profile on this computer.",
+  "settings_agentAccess_portInvalid": "Enter a port from 1024 to 65535",
   "settings_sync_title": "Sync between devices",
   "settings_backups_title": "Backups",
   "settings_photosVideos_title": "Photos & videos",
@@ -32366,6 +32422,7 @@
   "navTrack_detail_deleteMessage": "This cannot be undone.",
   "navTrack_detail_defaultTrackTitle": "Underwater track",
   "navTrack_detail_menuRename": "Rename",
+  "navTrack_detail_menuChangeDive": "Change dive",
   "navTrack_detail_menuChangeSite": "Change site",
   "navTrack_detail_menuChangeDevice": "Change device",
   "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
