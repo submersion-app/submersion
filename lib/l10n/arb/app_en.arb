@@ -4672,6 +4672,33 @@
   "diveLog_edit_customFieldValue": "Value",
   "diveLog_edit_equipmentCaption": "Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.",
   "diveLog_edit_errorLoadingDiveTypes": "Error loading dive types: {error}",
+  "diveLog_edit_gasSwitches_caption": "When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.",
+  "diveLog_edit_gasSwitches_startsOn": "Starts on {tank}",
+  "@diveLog_edit_gasSwitches_startsOn": {
+    "description": "Gas switch editor: the cylinder the dive starts on",
+    "placeholders": {
+      "tank": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_edit_gasSwitches_add": "Add Switch",
+  "diveLog_edit_gasSwitches_time": "Time",
+  "diveLog_edit_gasSwitches_switchTo": "Switch to",
+  "diveLog_edit_gasSwitches_depth": "Depth",
+  "diveLog_edit_gasSwitches_remove": "Remove switch",
+  "diveLog_edit_gasSwitches_timeFormatError": "Use minutes:seconds",
+  "diveLog_edit_gasSwitches_timeRangeError": "Must be within the dive",
+  "diveLog_edit_gasSwitches_duplicateError": "Another switch is at this time",
+  "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}",
+  "@diveLog_edit_gasSwitches_removedWithTank": {
+    "description": "Gas switch editor: switches dropped because their cylinder was removed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_edit_gettingLocation": "Getting location...",
   "diveLog_edit_group_buddies": "Buddies",
   "@diveLog_edit_group_buddies": {
@@ -4756,6 +4783,7 @@
   "diveLog_edit_noMarineLife": "No species logged",
   "diveLog_edit_notSpecified": "Not specified",
   "diveLog_edit_notesHint": "Add notes about this dive...",
+  "diveLog_edit_overline_gasSwitches": "Gas switches",
   "diveLog_edit_overline_tanks": "Tanks",
   "@diveLog_edit_overline_tanks": {
     "description": "Sub-header overline above the tank rows in the Gas & Gear edit section"
@@ -14658,6 +14686,7 @@
   "settings_conflict_field_eventType": "Event",
   "settings_conflict_field_evidence": "Evidence",
   "settings_conflict_field_evidenceFingerprint": "Evidence fingerprint",
+  "settings_conflict_field_gasSwitchesEdited": "Gas switches edited by hand",
   "settings_conflict_field_excludedFromGasStats": "Left out of gas statistics",
   "settings_conflict_field_excludedFromStats": "Left out of statistics",
   "settings_conflict_field_exitLatitude": "Exit latitude",
@@ -21119,6 +21148,9 @@
   },
   "diveComputer_download_stalePairing": "This dive computer's Bluetooth pairing is out of date. Forget the dive computer in your device's Bluetooth settings, then pair it again from the dive computer's Bluetooth menu.",
   "diveComputer_download_discoveryStalled": "Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device's Bluetooth settings, then try again.",
+  "diveComputer_download_bleDeviceNotFound": "Could not find this dive computer over Bluetooth LE. Turn on its Bluetooth mode and scan again. If it appears in your device's Bluetooth settings, remove it there first: it may be known there only as a classic Bluetooth device.",
+  "diveComputer_download_blePairingRequired": "Your device will not talk to this dive computer until they are paired. Turn on the dive computer's Bluetooth mode, pair it in your device's Bluetooth settings, then try again.",
+  "diveComputer_download_bleUnreachable": "The dive computer did not answer over Bluetooth. Check that its Bluetooth mode is still on and that it is close to your device, then try again.",
   "diveComputer_download_serialConnectFailedWithDetails": "Could not connect to dive computer.\n\nDiagnostic details (share with developers):\n{details}",
   "@diveComputer_download_serialConnectFailedWithDetails": {
     "placeholders": {

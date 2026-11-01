@@ -7609,6 +7609,50 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      '您更换气瓶的时间。减压、组织负荷和各气瓶的 SAC 都依据这些切换计算。';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return '起始气瓶：$tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => '添加切换';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => '时间';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => '切换至';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => '深度';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => '移除切换';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => '请使用 分:秒 格式';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError => '必须在潜水时间内';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError => '此时间已有另一次切换';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已随气瓶移除 $count 次气体切换',
+      one: '已随气瓶移除 $count 次气体切换',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => '正在获取位置...';
 
   @override
@@ -7736,6 +7780,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => '添加关于此次潜水的备注...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => '气体切换';
 
   @override
   String get diveLog_edit_overline_tanks => '气瓶';
@@ -23196,6 +23243,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_evidenceFingerprint => '依据指纹';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited => '气体切换已手动编辑';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats => '不计入气体统计';
 
   @override
@@ -33450,6 +33500,18 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       '已连接到潜水电脑，但在下载开始前它停止响应。这通常表示蓝牙配对已失效：请在设备的蓝牙设置中忽略该潜水电脑，然后重试。';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      '无法通过低功耗蓝牙 (Bluetooth LE) 找到此潜水电脑。请打开它的蓝牙模式后重新扫描。如果它出现在设备的蓝牙设置中，请先在那里将其移除：系统可能只把它识别为经典蓝牙设备。';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      '在完成配对之前，您的设备无法与此潜水电脑通信。请打开潜水电脑的蓝牙模式，在设备的蓝牙设置中进行配对，然后重试。';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      '潜水电脑未通过蓝牙响应。请确认它的蓝牙模式仍处于开启状态，并且靠近您的设备，然后重试。';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {

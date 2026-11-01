@@ -7845,6 +7845,53 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'מתי החלפת מיכל. הדקו, העמסת הרקמות וה-SAC לכל מיכל עוקבים אחרי ההחלפות האלה.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'מתחיל על $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'הוספת החלפה';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'זמן';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'החלפה אל';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'עומק';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'הסרת החלפה';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'יש להשתמש בדקות:שניות';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'חייב להיות בתוך הצלילה';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'קיימת החלפה אחרת בזמן הזה';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count החלפות גז הוסרו עם המיכל שלהן',
+      one: 'החלפת גז $count הוסרה עם המיכל שלה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'מקבל מיקום...';
 
   @override
@@ -7975,6 +8022,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'הוסף הערות לצלילה זו...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'החלפות גז';
 
   @override
   String get diveLog_edit_overline_tanks => 'מיכלים';
@@ -23942,6 +23992,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'טביעת אצבע של הראיה';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'החלפות גז נערכו ידנית';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'לא נכלל בסטטיסטיקת הגז';
 
@@ -34674,6 +34728,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'ההתחברות למחשב הצלילה הצליחה, אך הוא הפסיק להגיב לפני תחילת ההורדה. בדרך כלל המשמעות היא שהתאמת ה-Bluetooth אינה עדכנית: שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'מחשב הצלילה הזה לא נמצא ב-Bluetooth LE. הפעל את מצב ה-Bluetooth שלו וסרוק שוב. אם הוא מופיע בהגדרות ה-Bluetooth של המכשיר שלך, הסר אותו משם תחילה: ייתכן שהוא מוכר שם רק כמכשיר Bluetooth קלאסי.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'המכשיר שלך לא יתקשר עם מחשב הצלילה הזה עד שהם יותאמו. הפעל את מצב ה-Bluetooth של מחשב הצלילה, התאם אותו בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'מחשב הצלילה לא ענה דרך Bluetooth. ודא שמצב ה-Bluetooth שלו עדיין פעיל ושהוא קרוב למכשיר שלך, ונסה שוב.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {

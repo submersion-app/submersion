@@ -8033,6 +8033,53 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Quand vous avez changé de bloc. La déco, la charge tissulaire et la SAC par bloc suivent ces changements.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Commence sur $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Ajouter un changement';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Temps';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Passer à';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Profondeur';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Retirer le changement';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'Utilisez minutes:secondes';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Doit être dans la plongée';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Un autre changement est à ce moment';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changements de gaz retirés avec leur bloc',
+      one: '$count changement de gaz retiré avec son bloc',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Obtention de la position...';
 
   @override
@@ -8166,6 +8213,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'Ajoute des notes sur cette plongée...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Changements de gaz';
 
   @override
   String get diveLog_edit_overline_tanks => 'Blocs';
@@ -24602,6 +24652,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Empreinte de la preuve';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Changements de gaz modifiés à la main';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Exclu des statistiques de gaz';
 
@@ -35661,6 +35715,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Connexion établie avec l\'ordinateur de plongée, mais il a cessé de répondre avant le début du téléchargement. Cela signifie généralement que l\'appairage Bluetooth n\'est plus valide : oubliez l\'ordinateur de plongée dans les réglages Bluetooth de votre appareil, puis réessayez.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Cet ordinateur de plongée est introuvable en Bluetooth LE. Activez son mode Bluetooth et relancez la recherche. S\'il apparaît dans les réglages Bluetooth de votre appareil, supprimez-le d\'abord : il n\'y est peut-être connu que comme appareil Bluetooth classique.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Votre appareil ne communiquera avec cet ordinateur de plongée qu\'une fois les deux appairés. Activez le mode Bluetooth de l\'ordinateur de plongée, appairez-le dans les réglages Bluetooth de votre appareil, puis réessayez.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'L\'ordinateur de plongée n\'a pas répondu en Bluetooth. Vérifiez que son mode Bluetooth est toujours activé et qu\'il est proche de votre appareil, puis réessayez.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {

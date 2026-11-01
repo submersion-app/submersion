@@ -539,6 +539,12 @@ class DiveReimportService {
   }) async {
     final switchesRaw = diveData['gasSwitches'];
     if (switchesRaw is! List) return;
+    // A switch list the diver edited is theirs (issue #32): the resync
+    // leaves every switch row alone, as re-parse does.
+    final dive = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+    if (dive?.gasSwitchesEdited ?? false) return;
     final switchesData = switchesRaw.cast<Map<String, dynamic>>();
 
     final existing = await (db.select(

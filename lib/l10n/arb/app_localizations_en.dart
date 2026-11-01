@@ -7891,6 +7891,52 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Starts on $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Add Switch';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Time';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Switch to';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Depth';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Remove switch';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => 'Use minutes:seconds';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Must be within the dive';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Another switch is at this time';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gas switches removed with their tank',
+      one: '$count gas switch removed with its tank',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Getting location...';
 
   @override
@@ -8021,6 +8067,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'Add notes about this dive...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Gas switches';
 
   @override
   String get diveLog_edit_overline_tanks => 'Tanks';
@@ -24143,6 +24192,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Evidence fingerprint';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gas switches edited by hand';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Left out of gas statistics';
 
@@ -34960,6 +35013,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device\'s Bluetooth settings, then try again.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Could not find this dive computer over Bluetooth LE. Turn on its Bluetooth mode and scan again. If it appears in your device\'s Bluetooth settings, remove it there first: it may be known there only as a classic Bluetooth device.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Your device will not talk to this dive computer until they are paired. Turn on the dive computer\'s Bluetooth mode, pair it in your device\'s Bluetooth settings, then try again.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'The dive computer did not answer over Bluetooth. Check that its Bluetooth mode is still on and that it is close to your device, then try again.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
