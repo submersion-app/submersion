@@ -421,6 +421,22 @@ class NavTrackRepository {
     }
   }
 
+  /// Moves [routeId] from [fromDiveId] onto [toDiveId], for a diver choosing a
+  /// different dive: [link] alone never overwrites an existing link. [link]
+  /// settles the rest as for any new link.
+  ///
+  /// Returns true when the route moved. False means it was no longer on
+  /// [fromDiveId], for example a sync moved it first, and it stays where it is.
+  Future<bool> relink(
+    String routeId, {
+    required String fromDiveId,
+    required String toDiveId,
+    required domain.NavTrackLinkMode linkMode,
+  }) async {
+    await unlink(routeId, onlyFromDiveId: fromDiveId);
+    return link(routeId, toDiveId, linkMode: linkMode);
+  }
+
   /// The dive's existing site/location to write into [route] as part of
   /// linking it to [diveId], or null when there is nothing to inherit or
   /// [route] already has a site or an anchor of its own (never overwritten).
@@ -740,8 +756,12 @@ class NavTrackRepository {
       final linkMode =
           domain.NavTrackLinkMode.fromWireValue(route.linkMode) ??
           domain.NavTrackLinkMode.manual;
-      await unlink(route.id, onlyFromDiveId: route.diveId);
-      await link(route.id, toDiveId, linkMode: linkMode);
+      await relink(
+        route.id,
+        fromDiveId: route.diveId!,
+        toDiveId: toDiveId,
+        linkMode: linkMode,
+      );
     }
   }
 

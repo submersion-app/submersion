@@ -26949,6 +26949,86 @@ class AppLocalizationsIt extends AppLocalizations {
       'Correggi gli orari, collega i compagni, riclassifica l\'attrezzatura, qualità dei dati';
 
   @override
+  String get settings_agentAccess_title => 'Accesso agenti';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'Consenti a un agente IA su questo computer di leggere e modificare il tuo logbook';
+
+  @override
+  String get settings_agentAccess_enable => 'Attiva l\'accesso agenti';
+
+  @override
+  String get settings_agentAccess_statusListening => 'In ascolto';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'Fermo';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'Ultima richiesta $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'La porta $port è già in uso';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'Porta';
+
+  @override
+  String get settings_agentAccess_token => 'Token di accesso';
+
+  @override
+  String get settings_agentAccess_reveal => 'Mostra';
+
+  @override
+  String get settings_agentAccess_hide => 'Nascondi';
+
+  @override
+  String get settings_agentAccess_copy => 'Copia';
+
+  @override
+  String get settings_agentAccess_regenerate => 'Rigenera';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'Ogni agente collegato dovrà usare il nuovo token. Continuare?';
+
+  @override
+  String get settings_agentAccess_confirmWrites =>
+      'Chiedi prima di applicare le modifiche';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'Mostra una conferma in Submersion prima che un agente modifichi i record';
+
+  @override
+  String get settings_agentAccess_snippets => 'Collega un client';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (tramite mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'Altri client';
+
+  @override
+  String get settings_agentAccess_copied => 'Copiato';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'Gli agenti vedono tutti i profili subacqueo di questo computer.';
+
+  @override
+  String get settings_agentAccess_portInvalid =>
+      'Inserisci una porta tra 1024 e 65535';
+
+  @override
   String get settings_sync_title => 'Sincronizzazione tra dispositivi';
 
   @override
@@ -54837,6 +54917,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get navTrack_detail_menuRename => 'Rinomina';
+
+  @override
+  String get navTrack_detail_menuChangeDive => 'Cambia immersione';
 
   @override
   String get navTrack_detail_menuChangeSite => 'Cambia sito';

@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings > Data > Advanced > Data tools (issue #3482): the four one-off
 /// repair tools that used to sit at the bottom of the Data page. Each row
 /// still opens the same page it opened there.
-class DataToolsPage extends StatelessWidget {
+///
+/// Agent access (the in-app MCP server) is listed here too, on desktop only
+/// and, until its write surface is complete, only while debug mode is on.
+class DataToolsPage extends ConsumerWidget {
   const DataToolsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final showAgentAccess = ref.watch(agentAccessAvailableProvider);
+    final demoActive = ref.watch(demoModeActiveProvider);
 
     Widget tool(IconData icon, String title, String subtitle, String route) =>
         DataRowTile(icon: icon, title: title, subtitle: subtitle, route: route);
@@ -45,6 +53,14 @@ class DataToolsPage extends StatelessWidget {
             l10n.dataQuality_settings_subtitle,
             '/settings/data-quality',
           ),
+          if (showAgentAccess)
+            DataRowTile(
+              icon: Icons.smart_toy_outlined,
+              title: l10n.settings_agentAccess_title,
+              subtitle: l10n.settings_agentAccess_subtitle,
+              route: '/settings/agent-access',
+              enabled: !demoActive,
+            ),
         ],
       ),
     );

@@ -68,6 +68,7 @@ import 'package:submersion/features/equipment/presentation/widgets/assembly_chip
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_group_show_more.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_list_count_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
@@ -76,6 +77,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_group_cap.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
@@ -178,6 +180,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   String? _restoreTargetId;
   bool _restoreTargetRead = false;
 
+  /// Type groups the diver has expanded past the show-more cap (#3993),
+  /// keyed by [_groupKey]. Local to this widget: nothing here is persisted,
+  /// and it lives only as long as the widget does, which the app's
+  /// StatefulShellRoute keeps alive across tab switches and back navigation.
+  Set<String> _expandedGroups = const {};
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -255,11 +263,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   /// Scroll the list to bring the row at [index] into view.
   ///
-  /// Uses estimated heights (Card + ListTile ~ 80px, a type heading ~ 32px)
-  /// since ListView.builder is lazy and off-screen rows have no context.
-  /// Headings are sized separately because sizing them like items overshoots
-  /// by the difference for every heading above the target, which in a
-  /// grouped list is nearly one per item.
+  /// Uses estimated heights (Card + ListTile ~ 80px, a type heading ~ 32px, a
+  /// show-more row ~ 48px) since ListView.builder is lazy and off-screen rows
+  /// have no context. Headings are sized separately because sizing them like
+  /// items overshoots by the difference for every heading above the target,
+  /// which in a grouped list is nearly one per item.
   ///
   /// [jump] moves straight there, for a list being restored, which should not
   /// visibly travel from the top.
@@ -274,14 +282,17 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
     const estimatedItemHeight = 80.0;
     const estimatedHeadingHeight = 32.0;
+    const estimatedShowMoreHeight = 48.0;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final viewportHeight = _scrollController.position.viewportDimension;
     var rowTop = 0.0;
     for (final row in rows.take(index)) {
-      rowTop +=
-          row is _EquipmentHeadingRow || row is _EquipmentLocationHeadingRow
-          ? estimatedHeadingHeight
-          : estimatedItemHeight;
+      rowTop += switch (row) {
+        _EquipmentHeadingRow() ||
+        _EquipmentLocationHeadingRow() => estimatedHeadingHeight,
+        _EquipmentShowMoreRow() => estimatedShowMoreHeight,
+        _EquipmentItemRow() => estimatedItemHeight,
+      };
     }
     final targetOffset = rowTop - (viewportHeight / 3);
     final clampedOffset = targetOffset.clamp(0.0, maxScroll);
@@ -1173,6 +1184,50 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     );
   }
 
+  /// The key [_expandedGroups] tracks this group's expanded state under.
+  /// Grouping by location can put the same type under several places, so the
+  /// section (matching the heading's own key, see [_EquipmentHeadingRow])
+  /// is part of the key.
+  String _groupKey(EquipmentType type, String? sectionKey) =>
+      '${sectionKey ?? ''}-${type.name}';
+
+  /// This group's item rows, its [cappedGroupTail] replaced by a show-more
+  /// row unless the diver already expanded it.
+  ///
+  /// [currentIds] are the rows the page is landing on or resting on this
+  /// build. One in the tail expands the group here, before the rows are built,
+  /// and it stays expanded when the selection moves on: folding it then would
+  /// shift the rows under the diver's pointer.
+  ///
+  /// A checked row in the tail shows the whole group for as long as it stays
+  /// checked, so no bulk action reaches a row the diver cannot see or uncheck.
+  List<_EquipmentListRow> _rowsForGroup(
+    EquipmentGroup group, {
+    required String? sectionKey,
+    required Set<String> currentIds,
+  }) {
+    List<_EquipmentListRow> rowsOf(Iterable<EquipmentItem> items) => [
+      for (final item in items) _EquipmentItemRow(item),
+    ];
+
+    final tail = cappedGroupTail(group);
+    final type = group.type;
+    if (type == null || tail.isEmpty) return rowsOf(group.items);
+
+    final key = _groupKey(type, sectionKey);
+    if (tail.any((item) => currentIds.contains(item.id))) {
+      _expandedGroups = {..._expandedGroups, key};
+    }
+    if (_expandedGroups.contains(key) ||
+        tail.any((item) => _selectedIds.contains(item.id))) {
+      return rowsOf(group.items);
+    }
+    return [
+      ...rowsOf(group.items.take(equipmentGroupVisibleItems)),
+      _EquipmentShowMoreRow(groupKey: key, remainingCount: tail.length),
+    ];
+  }
+
   Widget _buildEquipmentList(
     BuildContext context,
     WidgetRef ref,
@@ -1182,6 +1237,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     required Map<String, EquipmentRowLabel> labels,
     List<EquipmentLocationSection>? locationSections,
   }) {
+    // The diver's selection (e.g. opened from dive detail or set detail) and
+    // the highlight must be resolved before the rows are built: either one
+    // landing in a group's hidden tail has to expand that group on this same
+    // pass, or the row is neither scrolled to nor marked (#3993).
+    final selectedId = widget.selectedId ?? _restoreTargetId;
+    final currentIds = {
+      ?selectedId,
+      ?ref.watch(highlightedEquipmentIdProvider),
+    };
+
     // One flat run of rows for the lazy builder: a heading before each group
     // when the arrangement groups, then that group's gear. Grouped by
     // location, each place's heading comes first, its type groups inside.
@@ -1195,13 +1260,17 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 group.type!,
                 sectionKey: section.location?.id ?? 'none',
               ),
-            for (final item in group.items) _EquipmentItemRow(item),
+            ..._rowsForGroup(
+              group,
+              sectionKey: section.location?.id ?? 'none',
+              currentIds: currentIds,
+            ),
           ],
         ]
       else
         for (final group in groups) ...[
           if (group.type != null) _EquipmentHeadingRow(group.type!),
-          for (final item in group.items) _EquipmentItemRow(item),
+          ..._rowsForGroup(group, sectionKey: null, currentIds: currentIds),
         ],
     ];
 
@@ -1210,7 +1279,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // the arrangement has moved it since (the stored arrangement landing
     // after the first frame, or the diver regrouping). The index counts
     // heading rows too, since they take space above the item.
-    final selectedId = widget.selectedId ?? _restoreTargetId;
     // Regrouping by location moves rows as much as regrouping by type, so
     // it re-scrolls to the selected item the same way.
     final typeAxis = (
@@ -1243,8 +1311,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       }
     }
     final itemsById = {
-      for (final row in rows)
-        if (row is _EquipmentItemRow) row.item.id: row.item,
+      for (final group in groups)
+        for (final item in group.items) item.id: item,
     };
     return RefreshIndicator(
       onRefresh: () async {
@@ -1252,6 +1320,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       },
       child: KeyboardListNavigator(
         // The group headings are labels, not folds, so only items are stops.
+        // That includes the rows past a group's cap: landing on one highlights
+        // it, which expands its group, so the cursor never skips a row.
         keys: itemsById.keys.toList(),
         currentKey:
             widget.selectedId ?? ref.watch(highlightedEquipmentIdProvider),
@@ -1289,6 +1359,17 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     // Level with the card edges below it.
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: EquipmentGroupHeader(type: type),
+                  ),
+                );
+              case _EquipmentShowMoreRow(
+                :final groupKey,
+                :final remainingCount,
+              ):
+                return EquipmentGroupShowMore(
+                  key: ValueKey('equipment-group-show-more-$groupKey'),
+                  remainingCount: remainingCount,
+                  onPressed: () => setState(
+                    () => _expandedGroups = {..._expandedGroups, groupKey},
                   ),
                 );
               case _EquipmentItemRow(item: final rowItem):
@@ -1805,7 +1886,8 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
   }
 }
 
-/// One row of the lazily built equipment list: a type heading or an item.
+/// One row of the lazily built equipment list: a heading, an item, or the
+/// show-more row of a capped type group.
 sealed class _EquipmentListRow {
   const _EquipmentListRow();
 }
@@ -1831,4 +1913,16 @@ class _EquipmentItemRow extends _EquipmentListRow {
   const _EquipmentItemRow(this.item);
 
   final EquipmentItem item;
+}
+
+/// Stands in for the items a type group hides past the show-more cap
+/// (#3993). Tapping it expands the group; [groupKey] names which one.
+class _EquipmentShowMoreRow extends _EquipmentListRow {
+  const _EquipmentShowMoreRow({
+    required this.groupKey,
+    required this.remainingCount,
+  });
+
+  final String groupKey;
+  final int remainingCount;
 }

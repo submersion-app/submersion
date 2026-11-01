@@ -23,6 +23,7 @@
 		B6F7A1C22F0A1234001C2D3E /* ICloudContainerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F7A1C12F0A1234001C2D3E /* ICloudContainerHandler.swift */; };
 		BB05C0DEBB05C0DE00000002 /* BackupBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB05C0DEBB05C0DE00000001 /* BackupBookmarkHandler.swift */; };
 		C7F8A2D42F0B2345001D3E4F /* MetadataWriteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F8A2D32F0B2345001D3E4F /* MetadataWriteHandler.swift */; };
+		C7F8A2D62F0B2345001D3E4F /* PhotoMetadataHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F8A2D52F0B2345001D3E4F /* PhotoMetadataHandler.swift */; };
 		D8E9F0A22F0C3456001E4F50 /* LocalMediaHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */; };
 		D8E9F0B22F0C3456001E4F60 /* DeviceNameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0B12F0C3456001E4F60 /* DeviceNameHandler.swift */; };
 /* End PBXBuildFile section */
@@ -79,6 +80,7 @@
 		B6F7A1C12F0A1234001C2D3E /* ICloudContainerHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ICloudContainerHandler.swift; sourceTree = "<group>"; };
 		BB05C0DEBB05C0DE00000001 /* BackupBookmarkHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupBookmarkHandler.swift; sourceTree = "<group>"; };
 		C7F8A2D32F0B2345001D3E4F /* MetadataWriteHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetadataWriteHandler.swift; sourceTree = "<group>"; };
+		C7F8A2D52F0B2345001D3E4F /* PhotoMetadataHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoMetadataHandler.swift; sourceTree = "<group>"; };
 		D48C3D26F3310C3983763F37 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalMediaHandler.swift; sourceTree = "<group>"; };
 		D8E9F0B12F0C3456001E4F60 /* DeviceNameHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceNameHandler.swift; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 				A1B2C3D31ED2DC5600515810 /* SecurityScopedBookmarkHandler.swift */,
 				B6F7A1C12F0A1234001C2D3E /* ICloudContainerHandler.swift */,
 				C7F8A2D32F0B2345001D3E4F /* MetadataWriteHandler.swift */,
+				C7F8A2D52F0B2345001D3E4F /* PhotoMetadataHandler.swift */,
 				D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */,
 				D8E9F0B12F0C3456001E4F60 /* DeviceNameHandler.swift */,
 				4923258F3F6F94557F8E76F2 /* MultipeerHandler.swift */,
@@ -428,6 +431,7 @@
 				A1B2C3D41ED2DC5600515810 /* SecurityScopedBookmarkHandler.swift in Sources */,
 				B6F7A1C22F0A1234001C2D3E /* ICloudContainerHandler.swift in Sources */,
 				C7F8A2D42F0B2345001D3E4F /* MetadataWriteHandler.swift in Sources */,
+				C7F8A2D62F0B2345001D3E4F /* PhotoMetadataHandler.swift in Sources */,
 				D8E9F0A22F0C3456001E4F50 /* LocalMediaHandler.swift in Sources */,
 				D8E9F0B22F0C3456001E4F60 /* DeviceNameHandler.swift in Sources */,
 				B2F5BBC8348C0C1CC80A002D /* MultipeerHandler.swift in Sources */,
