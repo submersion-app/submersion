@@ -209,7 +209,7 @@ void main() {
       expect(gasOf(dive), const GasMix(o2: 18));
     });
 
-    test('helium with no tank to belong to raises no warning', () async {
+    test('helium alone is a tank, so capping it warns', () async {
       final result = await parser.parse(
         csvBytes(
           'Date,Time,Max Depth (m),He %\n'
@@ -217,12 +217,12 @@ void main() {
         ),
       );
       final dive = result.entitiesOf(ImportEntityType.dives).single;
-      expect(dive['tanks'], isNull);
+      expect(gasOf(dive), const GasMix(o2: 21, he: 79));
       expect(
         result.warnings.where(
           (w) => w.code == ImportWarningCode.gasMixesCapped,
         ),
-        isEmpty,
+        hasLength(1),
       );
     });
 
@@ -264,32 +264,37 @@ void main() {
       );
     });
 
-    test('a numbered gas with no volume raises no warning', () async {
-      const mapping = FieldMapping(
-        name: 'Numbered',
-        sourceApp: SourceApp.generic,
-        columns: [
-          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
-          ColumnMapping(sourceColumn: 'V1', targetField: 'tankVolume_1'),
-          ColumnMapping(sourceColumn: 'O1', targetField: 'o2Percent_1'),
-          ColumnMapping(sourceColumn: 'H1', targetField: 'hePercent_1'),
-          ColumnMapping(sourceColumn: 'O2', targetField: 'o2Percent_2'),
-          ColumnMapping(sourceColumn: 'H2', targetField: 'hePercent_2'),
-        ],
-      );
-      final result = await CsvImportParser(customMapping: mapping).parse(
-        csvBytes(
-          'Date,V1,O1,H1,O2,H2\n'
-          '2025-03-15,12,18,45,11,90\n',
-        ),
-      );
-      expect(
-        result.warnings.where(
-          (w) => w.code == ImportWarningCode.gasMixesCapped,
-        ),
-        isEmpty,
-      );
-    });
+    test(
+      'a numbered gas with no volume is a tank, so capping it warns',
+      () async {
+        const mapping = FieldMapping(
+          name: 'Numbered',
+          sourceApp: SourceApp.generic,
+          columns: [
+            ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+            ColumnMapping(sourceColumn: 'V1', targetField: 'tankVolume_1'),
+            ColumnMapping(sourceColumn: 'O1', targetField: 'o2Percent_1'),
+            ColumnMapping(sourceColumn: 'H1', targetField: 'hePercent_1'),
+            ColumnMapping(sourceColumn: 'O2', targetField: 'o2Percent_2'),
+            ColumnMapping(sourceColumn: 'H2', targetField: 'hePercent_2'),
+          ],
+        );
+        final result = await CsvImportParser(customMapping: mapping).parse(
+          csvBytes(
+            'Date,V1,O1,H1,O2,H2\n'
+            '2025-03-15,12,18,45,11,90\n',
+          ),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(gasOf(dive, 1), const GasMix(o2: 11, he: 89));
+        expect(
+          result.warnings.where(
+            (w) => w.code == ImportWarningCode.gasMixesCapped,
+          ),
+          hasLength(1),
+        );
+      },
+    );
 
     test('an auto-mapped total over 100 is capped', () async {
       final result = await parser.parse(

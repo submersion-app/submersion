@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -36,6 +37,7 @@ import 'package:submersion/features/universal_import/data/services/default_diver
 import 'package:submersion/features/universal_import/data/services/payload_diver_expander.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
+import 'package:submersion/features/universal_import/data/services/payload_dive_rewrite.dart';
 import 'package:submersion/features/universal_import/data/services/surfacing_pressure_normalizer.dart';
 import 'package:submersion/features/universal_import/data/services/tank_pressure_glitch_normalizer.dart';
 import 'package:submersion/features/universal_import/data/services/zip_expansion_service.dart';
@@ -62,12 +64,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   UniversalImportNotifier(
     this._ref, {
     BatchParseService batchParseService = const BatchParseService(),
+    ImportParser Function(ImportFormat format) parserFor = parserForFormat,
     ZipExpansionService zipExpansionService = const ZipExpansionService(),
     GarminDeviceDetector garminDeviceDetector = const GarminDeviceDetector(),
     FitParserService fitParserService = const FitParserService(),
     Future<bool> Function(String path) folderWriteProbe = folderAcceptsWrites,
   }) : _folderWriteProbe = folderWriteProbe,
        _batchParseService = batchParseService,
+       _parserForFormat = parserFor,
        _zipExpansion = zipExpansionService,
        _garminDetector = garminDeviceDetector,
        _fitParser = fitParserService,
@@ -100,6 +104,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Injectable so tests can drive deterministic batch-parse outcomes
   /// (progress, cancellation) without real file timing.
   final BatchParseService _batchParseService;
+
+  /// Injectable so tests can hold a parse open at a chosen moment.
+  final ImportParser Function(ImportFormat format) _parserForFormat;
 
   /// Expands ZIP archives (DiveCloud exports) into their member files at
   /// intake so members flow through normal detection and batching.
@@ -677,6 +684,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Confirm the detected source or override with a user selection.
   ///
   /// When [overrideApp] is null the pending override from state is used.
+  ///
+  /// Throws [ImportStepFailure] when nothing could be parsed, and
+  /// [ImportStepCancelled] when the parse was stopped. Both stop the wizard.
   Future<void> confirmSource({
     SourceApp? overrideApp,
     ImportFormat? overrideFormat,
@@ -705,10 +715,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       selections: const {},
     );
 
-    final effectiveOverride = overrideApp ?? state.pendingSourceOverride;
+    final pendingSource = state.pendingSourceOverride;
+    final pendingFormat = state.pendingFormatOverride;
+    final effectiveOverride = overrideApp ?? pendingSource;
 
-    final format =
-        overrideFormat ?? state.pendingFormatOverride ?? detection.format;
+    final format = overrideFormat ?? pendingFormat ?? detection.format;
     final sourceApp =
         effectiveOverride ?? detection.sourceApp ?? SourceApp.generic;
 
@@ -755,7 +766,20 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     // For non-CSV formats, parse immediately and await so payload is ready
     // before the wizard advances past the Map Fields step.
     if (format != ImportFormat.csv) {
-      await _parseAndInstall();
+      try {
+        await _parseAndInstall();
+      } on ImportStepCancelled {
+        // Stopping a parse is not a new answer to what this file is, so the
+        // diver's choice comes back. Different options mean a reset or a new
+        // file took over, and the choice went with the old file.
+        if (identical(state.options, options)) {
+          state = state.copyWith(
+            pendingSourceOverride: pendingSource,
+            pendingFormatOverride: pendingFormat,
+          );
+        }
+        rethrow;
+      }
     }
   }
 
@@ -817,17 +841,73 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     await _parseAndInstall();
   }
 
-  // -- Batch Parsing (multi-file imports) --
+  // -- Parse Cancellation --
 
-  bool _batchParseCancelled = false;
+  /// The parse the wizard is waiting on, from the file's bytes to its review.
+  /// Null when none is running.
+  ImportCancellationToken? _parseToken;
 
-  /// Cooperative cancel; takes effect at the next file boundary.
-  void cancelBatchParse() {
-    _batchParseCancelled = true;
+  /// Stops waiting for the parse in flight, and the step that started it ends
+  /// in [ImportStepCancelled]. A parse commits nothing, so there is nothing to
+  /// undo. One already on a worker isolate cannot be stopped: it runs out
+  /// unseen and its result is dropped.
+  ///
+  /// A large file parses on a worker, so the app stays responsive and the
+  /// diver can leave the wizard and start again before it returns (#3865).
+  void cancelParse() => _parseToken?.cancel();
+
+  /// The state the parse in flight started from, which says what it is reading.
+  UniversalImportState? _parseStartedFrom;
+
+  /// Whether [token] still speaks for this notifier. Once a reset or a new
+  /// file has replaced it, the state belongs to whatever came next, and a
+  /// parse finishing late must leave it alone.
+  bool _ownsState(ImportCancellationToken token) =>
+      identical(token, _parseToken);
+
+  /// Drops the parse in flight as soon as anything replaces what it is reading,
+  /// whichever way it arrives. A parse's own last write replaces the files too,
+  /// by which point it has nothing left to do.
+  @override
+  set state(UniversalImportState value) {
+    final started = _parseStartedFrom;
+    if (started != null &&
+        !(identical(value.fileBytes, started.fileBytes) &&
+            identical(value.files, started.files))) {
+      _parseToken?.cancel();
+      _parseToken = null;
+      _parseStartedFrom = null;
+    }
+    super.state = value;
   }
 
-  Future<void> _parseBatch() async {
-    _batchParseCancelled = false;
+  /// Runs [parse] as the parse in flight, under a token of its own.
+  ///
+  /// Whatever way it ends, it does not leave the step loading: an error nothing
+  /// else caught would keep the progress row running, with a Cancel that has
+  /// nothing left to stop.
+  Future<void> _underNewParse(
+    Future<void> Function(ImportCancellationToken token) parse,
+  ) async {
+    _parseToken?.cancel();
+    final token = _parseToken = ImportCancellationToken();
+    _parseStartedFrom = state;
+    try {
+      await parse(token);
+    } finally {
+      if (_ownsState(token)) {
+        _parseToken = null;
+        _parseStartedFrom = null;
+        if (state.isLoading) state = state.copyWith(isLoading: false);
+      }
+    }
+  }
+
+  // -- Batch Parsing (multi-file imports) --
+
+  Future<void> _parseBatch() => _underNewParse(_parseBatchUnder);
+
+  Future<void> _parseBatchUnder(ImportCancellationToken token) async {
     state = state.copyWith(
       isLoading: true,
       clearError: true,
@@ -835,22 +915,56 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       parseCurrent: 0,
     );
 
-    // A run the wizard has since dropped stops at its next file and writes
-    // nothing: see _parseAndInstall.
-    final files = state.files;
-    bool isCurrent() => identical(state.files, files);
-
     final result = await _batchParseService.parseAll(
-      files,
+      state.files,
       onProgress: (current, total) {
-        if (!isCurrent()) return;
+        if (!_ownsState(token)) return;
         state = state.copyWith(parseCurrent: current, parseTotal: total);
       },
-      isCancelled: () => _batchParseCancelled || !isCurrent(),
+      cancelToken: token,
     );
-    if (!isCurrent()) return;
 
-    if (result.cancelled) {
+    if (result.cancelled || token.isCancelled) {
+      throw _batchCancelled(token, result);
+    }
+
+    if (result.parsed.isEmpty) {
+      // Clear the detection result so the Confirm Source / triage step's
+      // canAdvance gate (universalAdapterSourceReadyProvider, which only checks
+      // detectionResult.isFormatSupported) goes false -- there is no payload to
+      // review, so Next must not stay enabled.
+      state = state.copyWith(
+        isLoading: false,
+        files: result.files,
+        clearDetectionResult: true,
+      );
+      throw _fail(_l10n.universalImport_error_noDataInFiles);
+    }
+
+    final payload = await token.untilCancelled(
+      _applySurfacingPressureRule(
+        const PayloadMerger().merge(result.parsed),
+        cancelToken: token,
+      ),
+    );
+    if (payload == null) throw _batchCancelled(token, result);
+
+    state = state.copyWith(
+      isLoading: false,
+      files: result.files,
+      payload: payload,
+      clearDiverMapping: true,
+      selections: _defaultSelections(payload),
+      currentStep: ImportWizardStep.review,
+    );
+  }
+
+  /// Back to triage for a batch stopped part way, leaving the wizard on it.
+  ImportStepCancelled _batchCancelled(
+    ImportCancellationToken token,
+    BatchParseResult result,
+  ) {
+    if (_ownsState(token)) {
       // Stay on triage; reset parse bookkeeping so a re-run starts clean.
       // Files already parsed this run must be reset to pending: their
       // FilePayloads (result.parsed) are not retained in state, and
@@ -870,33 +984,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         parseTotal: 0,
         currentStep: ImportWizardStep.sourceConfirmation,
       );
-      return;
     }
-
-    if (result.parsed.isEmpty) {
-      // Clear the detection result so the Confirm Source / triage step's
-      // canAdvance gate (universalAdapterSourceReadyProvider, which only checks
-      // detectionResult.isFormatSupported) goes false -- there is no payload to
-      // review, so Next must not stay enabled.
-      state = state.copyWith(
-        isLoading: false,
-        files: result.files,
-        clearDetectionResult: true,
-      );
-      throw _fail(_l10n.universalImport_error_noDataInFiles);
-    }
-
-    final payload = _applySurfacingPressureRule(
-      const PayloadMerger().merge(result.parsed),
-    );
-    state = state.copyWith(
-      isLoading: false,
-      files: result.files,
-      payload: payload,
-      clearDiverMapping: true,
-      selections: _defaultSelections(payload),
-      currentStep: ImportWizardStep.review,
-    );
+    return const ImportStepCancelled();
   }
 
   // -- Parsing --
@@ -907,7 +996,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// gates every later step on that payload, so returning quietly here would
   /// let it advance onto a step with nothing to act on -- for a non-CSV file
   /// that is the CSV-only Map Fields step, which then reads "0 of 0 columns
-  /// mapped" with Next disabled and no explanation.
+  /// mapped" with Next disabled and no explanation. For the same reason it
+  /// throws [ImportStepCancelled] when the parse was stopped.
   Future<void> _parseAndInstall() async {
     final bytes = state.fileBytes;
     final opts = state.options;
@@ -915,42 +1005,53 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       throw _fail(_l10n.universalImport_error_fileUnreadable);
     }
 
-    // A large file parses on a worker, so the app stays responsive and the
-    // diver can close the wizard and start again before this returns. The
-    // result then belongs to an import they have left, and writing it here
-    // would put one file's dives under another's name (#3865).
-    bool isCurrent() => identical(state.fileBytes, bytes);
+    await _underNewParse((token) => _parseUnder(token, bytes, opts));
+  }
 
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<void> _parseUnder(
+    ImportCancellationToken token,
+    Uint8List bytes,
+    ImportOptions opts,
+  ) async {
+    // A batch before this leaves its counts behind, and a single file would
+    // show them.
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      parseCurrent: 0,
+      parseTotal: 0,
+    );
 
-    final ImportPayload payload;
+    final ImportPayload? payload;
     try {
       final registry = opts.format == ImportFormat.csv
           ? await _buildPresetRegistry()
           : null;
       final parser = _parserFor(opts.format, registry: registry);
-      final ImportPayload parsed;
-      if (parser is CsvImportParser) {
-        parsed = await parser.parse(
-          bytes,
-          options: opts,
-          customMappingOverride: state.fieldMapping,
-          profileFileBytes: state.additionalFileBytes,
-        );
-      } else {
-        parsed = await parser.parse(bytes, options: opts);
-      }
-      payload = _applySurfacingPressureRule(parsed);
+      final ImportPayload? parsed = await token.untilCancelled(
+        parser is CsvImportParser
+            ? parser.parse(
+                bytes,
+                options: opts,
+                customMappingOverride: state.fieldMapping,
+                profileFileBytes: state.additionalFileBytes,
+              )
+            : parser.parse(bytes, options: opts),
+      );
+      payload = parsed == null
+          ? null
+          : await token.untilCancelled(
+              _applySurfacingPressureRule(parsed, cancelToken: token),
+            );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to parse import file',
         error: e,
         stackTrace: stackTrace,
       );
-      if (!isCurrent()) return;
       throw _fail(_l10n.universalImport_error_parseFailed('$e'));
     }
-    if (!isCurrent()) return;
+    if (payload == null) throw _parseCancelled(token);
 
     // The per-row warnings are English transformer strings, so a CSV whose
     // every row was skipped is summarised rather than shown its first one.
@@ -965,6 +1066,17 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     }
 
     _installPayload(payload);
+  }
+
+  /// Back to Confirm Source for a file whose parse was stopped.
+  ImportStepCancelled _parseCancelled(ImportCancellationToken token) {
+    if (_ownsState(token)) {
+      state = state.copyWith(
+        isLoading: false,
+        currentStep: ImportWizardStep.sourceConfirmation,
+      );
+    }
+    return const ImportStepCancelled();
   }
 
   /// Makes [payload] the one the review steps act on, with every row
@@ -1003,7 +1115,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       clearBundledPhotoFolderPath: true,
     );
     _installPayload(
-      _applySurfacingPressureRule(payload),
+      await _applySurfacingPressureRule(payload),
       remotePhotoCount: remotePhotoCount,
     );
   }
@@ -1035,7 +1147,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         pipeline: registry != null ? CsvPipeline(registry: registry) : null,
       );
     }
-    return parserForFormat(format);
+    return _parserForFormat(format);
   }
 
   /// Default review selections: everything selected. Duplicates are the
@@ -1054,10 +1166,18 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// A start or end pressure taken from a transmitter dropout is replaced
   /// first, whatever the preference (issue #2441): it is wrong for every
   /// diver, and the surfacing rule should see the corrected value.
-  ImportPayload _applySurfacingPressureRule(ImportPayload payload) {
-    final deglitched = replaceGlitchedTankPressures(payload);
+  ///
+  /// Walks every sample of every dive on this isolate, so it gives way as it
+  /// goes rather than stalling the wizard on a large logbook (#3854).
+  Future<ImportPayload> _applySurfacingPressureRule(
+    ImportPayload payload, {
+    ImportCancellationToken? cancelToken,
+  }) {
     final trim = _ref.read(settingsProvider).trimTankPressureAtSurfacing;
-    return trim ? trimTankPressuresAtSurfacing(deglitched) : deglitched;
+    return rewriteDivesInSlices(payload, (dive) {
+      final deglitched = deglitchDiveTankPressures(dive);
+      return trim ? trimDiveTankPressuresAtSurfacing(deglitched) : deglitched;
+    }, cancelToken: cancelToken);
   }
 
   // -- Step 3: Review (Selection Management) --

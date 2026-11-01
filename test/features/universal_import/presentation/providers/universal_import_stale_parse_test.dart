@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -79,14 +81,18 @@ class _GatedBatchParseService extends BatchParseService {
   Future<BatchParseResult> parseAll(
     List<PickedImportFile> files, {
     void Function(int current, int total)? onProgress,
-    bool Function()? isCancelled,
+    ImportCancellationToken? cancelToken,
   }) async {
     await gate.future;
     onProgress?.call(1, files.length);
-    toldToStop = isCancelled?.call();
+    toldToStop = cancelToken?.isCancelled;
     return BatchParseResult(parsed: const [], files: files);
   }
 }
+
+/// A dropped parse ends in a cancel rather than returning quietly, which would
+/// let a wizard still on screen advance with no payload.
+final _dropped = throwsA(isA<ImportStepCancelled>());
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -98,7 +104,7 @@ void main() {
 
       final parsing = notifier.confirmSource();
       notifier.reset();
-      await parsing;
+      await expectLater(parsing, _dropped);
 
       expect(notifier.state.payload, isNull);
       expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
@@ -110,7 +116,7 @@ void main() {
 
       final parsing = notifier.confirmSource();
       _seed(notifier, [_bytes(_emptyUddf)]);
-      await parsing;
+      await expectLater(parsing, _dropped);
 
       expect(notifier.state.payload, isNull);
       expect(notifier.state.error, isNull);
@@ -122,7 +128,7 @@ void main() {
 
       final parsing = notifier.confirmSource();
       notifier.reset();
-      await parsing;
+      await expectLater(parsing, _dropped);
 
       expect(notifier.state.error, isNull);
     });
@@ -139,7 +145,7 @@ void main() {
 
       final parsing = notifier.confirmSource();
       notifier.reset();
-      await parsing;
+      await expectLater(parsing, _dropped);
 
       expect(notifier.state.error, isNull);
     });
@@ -159,7 +165,7 @@ void main() {
     final parsing = notifier.confirmSource();
     notifier.reset();
     service.gate.complete();
-    await parsing;
+    await expectLater(parsing, _dropped);
 
     expect(service.toldToStop, isTrue);
     expect(notifier.state.parseTotal, 0);

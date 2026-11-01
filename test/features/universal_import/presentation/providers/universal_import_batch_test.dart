@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -101,7 +102,7 @@ class _CancelAfterFirstParseService extends BatchParseService {
   Future<BatchParseResult> parseAll(
     List<PickedImportFile> files, {
     void Function(int current, int total)? onProgress,
-    bool Function()? isCancelled,
+    ImportCancellationToken? cancelToken,
   }) async {
     final updated = [
       files.first.copyWith(status: ImportFileStatus.parsed, diveCount: 3),
@@ -329,7 +330,12 @@ void main() {
       await cancelNotifier.loadFilesFromPaths([a, b]);
       expect(cancelNotifier.state.isBatch, isTrue);
 
-      await cancelNotifier.confirmSource();
+      // The step ends in a cancel, not quietly: returning would let the wizard
+      // advance onto the Map Fields step with no payload behind it.
+      await expectLater(
+        cancelNotifier.confirmSource(),
+        throwsA(isA<ImportStepCancelled>()),
+      );
 
       // Cancel stays on the confirm/triage step and never advances to review.
       expect(

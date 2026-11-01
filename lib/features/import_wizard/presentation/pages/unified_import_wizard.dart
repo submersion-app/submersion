@@ -148,6 +148,9 @@ class _UnifiedImportWizardBodyState
   /// bar until the next attempt. Null while nothing has failed.
   String? _advanceError;
 
+  /// The step whose `onBeforeAdvance` is running, if any.
+  WizardStepDef? _advancingStep;
+
   static const _log = LoggerService('UnifiedImportWizard');
 
   List<WizardStepDef> get _acquisitionSteps => widget.adapter.acquisitionSteps;
@@ -212,6 +215,7 @@ class _UnifiedImportWizardBodyState
 
   @override
   void dispose() {
+    _advancingStep?.onCancelAdvance?.call();
     _pageController.dispose();
     super.dispose();
   }
@@ -263,6 +267,10 @@ class _UnifiedImportWizardBodyState
     }
     try {
       await _advance();
+    } on ImportStepCancelled {
+      // The diver stopped the step, so there is nothing to report. As with a
+      // failure, the wizard has to stop arming auto-advance on this step.
+      _navigatingForward = false;
     } catch (e, stackTrace) {
       // An ImportStepFailure carries text the step wrote for the user.
       // Anything else, such as a failed database read or a parser blowing up
@@ -308,8 +316,7 @@ class _UnifiedImportWizardBodyState
       _setStepWorking(true);
 
       // Let the current step commit any pending state before we leave it.
-      final step = _acquisitionSteps[_currentPage];
-      await step.onBeforeAdvance?.call();
+      await _beforeAdvance(_acquisitionSteps[_currentPage]);
       if (!mounted) return;
 
       // Determine the next page. Skip any remaining acquisition steps whose
@@ -327,7 +334,7 @@ class _UnifiedImportWizardBodyState
 
       // Run onBeforeAdvance for each skipped step so it can finalize state.
       for (final step in skipped) {
-        await step.onBeforeAdvance?.call();
+        await _beforeAdvance(step);
         if (!mounted) return;
       }
 
@@ -371,6 +378,17 @@ class _UnifiedImportWizardBodyState
       await _animateToPage(nextPage);
     } else if (_currentPage == _reviewIndex) {
       await _startImport();
+    }
+  }
+
+  /// Runs [step]'s `onBeforeAdvance`, remembering the step so that leaving
+  /// while it runs can stop it.
+  Future<void> _beforeAdvance(WizardStepDef step) async {
+    _advancingStep = step;
+    try {
+      await step.onBeforeAdvance?.call();
+    } finally {
+      _advancingStep = null;
     }
   }
 
