@@ -3000,6 +3000,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_action_shareDives => '分享潜水';
 
   @override
+  String get buddies_action_lendGear => '借出装备';
+
+  @override
+  String buddies_gear_title(String name) {
+    return '$name 持有的装备';
+  }
+
+  @override
+  String get buddies_gear_returned => '已归还';
+
+  @override
+  String get buddies_gear_allReturned => '全部已归还';
+
+  @override
   String get buddies_action_sort => '排序';
 
   @override
@@ -15581,6 +15595,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_location_picker_newPlace => '新地点';
 
   @override
+  String get equipment_location_picker_lendToBuddy => '借给潜伴';
+
+  @override
+  String get equipment_location_pickBuddy_title => '选择潜伴';
+
+  @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -15657,6 +15677,42 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '已移动 $count 件装备',
     );
     return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '归还 $count 件装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_to(String place) {
+    return '退回到 $place';
+  }
+
+  @override
+  String get equipment_location_return_eachToOwn => '每件装备退回原处';
+
+  @override
+  String get equipment_location_return_confirm => '标记为已归还';
+
+  @override
+  String equipment_location_returned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已归还 $count 件装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_withBuddy(String name) {
+    return '在 $name 处';
   }
 
   @override
@@ -15783,6 +15839,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_locations_savedCenterNone => '无';
+
+  @override
+  String get equipment_locations_buddyLabel => '潜伴';
+
+  @override
+  String get equipment_locations_buddyNone => '无';
+
+  @override
+  String get equipment_locations_buddyClear => '移除潜伴';
 
   @override
   String get equipment_locations_savedCenterClear => '移除已保存的潜水中心';

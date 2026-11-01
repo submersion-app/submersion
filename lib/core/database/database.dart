@@ -1518,6 +1518,9 @@ class AppDatabase extends _$AppDatabase {
     // v333: dives.gas_switches_edited (issue #32). A defaulted column an
     // older peer omits, so the compatibility floor does not move.
     333,
+    // v334: equipment_locations.buddy_id, the buddy a Person place stands
+    // for (issue #3790).
+    334,
     // v335: nav_tracks.scale_factor, a track's size against the map
     // (issue #3823). A new defaulted column, so the floor does not move.
     335,

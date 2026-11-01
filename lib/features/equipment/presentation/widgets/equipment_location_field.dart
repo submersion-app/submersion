@@ -30,6 +30,7 @@ class EquipmentLocationField extends ConsumerWidget {
         onChanged(switch (picked) {
           PlacePick(:final location) => location,
           NoLocationPick() => null,
+          BuddyPick() => value,
         });
       },
       child: InputDecorator(

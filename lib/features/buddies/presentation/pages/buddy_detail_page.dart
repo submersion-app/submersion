@@ -20,6 +20,7 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_section.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_photos_section.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_shared_dives_section.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_card_details_section.dart';
@@ -31,6 +32,7 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
@@ -173,6 +175,10 @@ class _BuddyDetailContent extends ConsumerWidget {
           _buildStatsSection(context, statsAsync, units),
           const SizedBox(height: 24),
 
+          // Gear they have (issue #3790), with its own spacing: most buddies
+          // have none and show no gap.
+          BuddyGearSection(buddy: buddy),
+
           // Notes
           if (buddy.notes.isNotEmpty) ...[
             _buildNotesSection(context),
@@ -218,6 +224,8 @@ class _BuddyDetailContent extends ConsumerWidget {
                   context,
                   NodeRef(ConnectionKind.buddy, buddy.id),
                 );
+              } else if (value == 'lend') {
+                await showLendGearFlow(context, ref, buddy);
               } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
@@ -231,6 +239,16 @@ class _BuddyDetailContent extends ConsumerWidget {
                 rootId: buddy.id,
               ),
               openInConnectionsMenuItem(context),
+              PopupMenuItem(
+                value: 'lend',
+                child: Row(
+                  children: [
+                    const Icon(Icons.volunteer_activism_outlined),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.buddies_action_lendGear),
+                  ],
+                ),
+              ),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
@@ -339,6 +357,8 @@ class _BuddyDetailContent extends ConsumerWidget {
                   context,
                   NodeRef(ConnectionKind.buddy, buddy.id),
                 );
+              } else if (value == 'lend') {
+                await showLendGearFlow(context, ref, buddy);
               } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
@@ -352,6 +372,16 @@ class _BuddyDetailContent extends ConsumerWidget {
                 rootId: buddy.id,
               ),
               openInConnectionsMenuItem(context),
+              PopupMenuItem(
+                value: 'lend',
+                child: Row(
+                  children: [
+                    const Icon(Icons.volunteer_activism_outlined, size: 20),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.buddies_action_lendGear),
+                  ],
+                ),
+              ),
               PopupMenuItem(
                 value: 'share',
                 child: Row(

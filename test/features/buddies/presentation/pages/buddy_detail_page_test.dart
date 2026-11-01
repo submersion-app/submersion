@@ -9,6 +9,11 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
@@ -698,5 +703,63 @@ void main() {
         lessThanOrEqualTo(tester.getTopRight(card).dx),
       );
     });
+  });
+
+  group('Lend gear (issue #3790)', () {
+    final buddy = Buddy(
+      id: 'buddy-lend',
+      name: 'Jane Doe',
+      notes: '',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    Future<void> pump(WidgetTester tester, {required bool embedded}) async {
+      final overrides = await tester.runAsync(getBaseOverrides);
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(900, 1400);
+      addTearDown(tester.view.reset);
+      _ignoreOverflowErrors();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides!,
+            buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+            buddyStatsProvider(
+              buddy.id,
+            ).overrideWith((ref) async => const BuddyStats(totalDives: 0)),
+            diveIdsForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+            divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+            currentEquipmentLocationsProvider.overrideWith(
+              (ref) async => const <String, EquipmentLocation>{},
+            ),
+            activeEquipmentProvider.overrideWith((ref) async => const []),
+            allDiversProvider.overrideWith((ref) async => const []),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id, embedded: embedded),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    for (final embedded in [true, false]) {
+      testWidgets('reachable from the menu with no gear, '
+          '${embedded ? 'embedded' : 'full page'}', (tester) async {
+        await pump(tester, embedded: embedded);
+        expect(find.text('Gear with Jane Doe'), findsNothing);
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Lend gear'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(EquipmentPickerSheet), findsOneWidget);
+      });
+    }
   });
 }

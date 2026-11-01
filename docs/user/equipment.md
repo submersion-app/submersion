@@ -222,13 +222,36 @@ shop, or with a person you lent it to. Add places in **Settings > Manage >
 Locations**, then tap **Move** on an item's **Location** card. A move can take
 the item's parts with it, and offers to update its status: **In Service** at a
 shop, **Loaned Out** with a person, and back to **Active** when it returns to
-storage or a dive center. Every move is kept, so **Show all** lists where the
-item has been.
+storage or a dive center. Loaned Out gear moved to **No location** or an Other
+place is offered **Active** too. Every move is kept, so **Show all** lists where
+the item has been.
 
 A dive center place can link to one of your saved dive centers. Choose it under
 **Saved dive center** when you add or edit the place, or leave it empty and just
 type a name. That center's page then lists your gear left there under **Your
 gear here**. Deleting a saved dive center keeps the place and its history; only
+the link goes.
+
+### Lending gear to a buddy
+
+To lend an item, tap **Move** on its **Location** card, choose **Lend to a
+buddy**, and pick the buddy or add a new one. To lend several items at once, open
+the buddy's page and choose **Lend gear** from its menu. Either way, Submersion
+uses that buddy's Person place, or creates one the first time.
+
+The item's **Location** card then reads **With** and the buddy's name, and tapping
+it opens the buddy. The buddy's page lists everything they have under **Gear
+with** their name. When gear comes back, tap **Returned** there, or **All
+returned** for a whole kit. Each item goes back to where it was before the loan,
+and Loaned Out gear is offered **Active**. To send it somewhere else, use **Move**
+instead.
+
+Gear a family member always uses works the same way: lend it to them and answer
+**Keep status** when asked about **Loaned Out**. It stays Active and still shows
+on their page.
+
+An existing Person place can be linked by hand: choose the buddy under **Buddy**
+when you edit the place. Deleting a buddy keeps the place and its history; only
 the link goes.
 
 ## Equipment sets

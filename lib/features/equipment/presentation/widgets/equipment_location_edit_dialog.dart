@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_pick_sheet.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
@@ -54,6 +57,9 @@ class _EquipmentLocationEditDialogState
   /// Held while the kind changes, so a mistaken change loses nothing; only
   /// a Dive center place saves it.
   String? _centerId;
+
+  /// Likewise for a Person place's buddy.
+  String? _buddyId;
   bool _saving = false;
 
   @override
@@ -65,6 +71,7 @@ class _EquipmentLocationEditDialogState
     _notes = TextEditingController(text: widget.existing?.notes ?? '');
     _kind = widget.existing?.kind ?? EquipmentLocationKind.storage;
     _centerId = widget.existing?.diveCenterId;
+    _buddyId = widget.existing?.buddyId;
   }
 
   @override
@@ -131,7 +138,52 @@ class _EquipmentLocationEditDialogState
                   onPressed: () => setState(() => _centerId = null),
                 ),
         ),
-        child: Text(center?.name ?? l10n.equipment_locations_savedCenterNone),
+        // As for a buddy: a link to a center not on this device yet is not
+        // None.
+        child: Text(
+          id == null
+              ? l10n.equipment_locations_savedCenterNone
+              : center?.name ?? '',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickBuddy(Buddy? current) async {
+    final buddy = await showBuddyPickSheet(context, ref);
+    if (buddy == null || !mounted) return;
+    setState(() {
+      _buddyId = buddy.id;
+      // As for a center: a name the last pick filled in follows the new
+      // pick; one the diver typed stays.
+      final name = _name.text.trim();
+      if (name.isEmpty || name == current?.name) _name.text = buddy.name;
+    });
+  }
+
+  Widget _buddyField(AppLocalizations l10n) {
+    final id = _buddyId;
+    final buddy = id == null ? null : ref.watch(buddyByIdProvider(id)).value;
+    return InkWell(
+      key: const ValueKey('equipment_location_buddy'),
+      onTap: () => _pickBuddy(buddy),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: l10n.equipment_locations_buddyLabel,
+          suffixIcon: id == null
+              ? const Icon(Icons.arrow_drop_down)
+              : IconButton(
+                  key: const ValueKey('equipment_location_buddy_clear'),
+                  icon: const Icon(Icons.clear),
+                  tooltip: l10n.equipment_locations_buddyClear,
+                  onPressed: () => setState(() => _buddyId = null),
+                ),
+        ),
+        // None means no link. A link to a buddy not on this device yet is
+        // still a link, so it reads blank and can still be cleared.
+        child: Text(
+          id == null ? l10n.equipment_locations_buddyNone : buddy?.name ?? '',
+        ),
       ),
     );
   }
@@ -153,6 +205,12 @@ class _EquipmentLocationEditDialogState
           : _kind == existing?.kind
           ? existing?.diveCenterId
           : null;
+      // The same rule for a Person place's buddy.
+      final buddyId = _kind == EquipmentLocationKind.person
+          ? _buddyId
+          : _kind == existing?.kind
+          ? existing?.buddyId
+          : null;
       final EquipmentLocation saved;
       if (existing == null) {
         saved = await repo.createLocation(
@@ -160,6 +218,7 @@ class _EquipmentLocationEditDialogState
           name: _name.text,
           kind: _kind,
           diveCenterId: centerId,
+          buddyId: buddyId,
           notes: _notes.text,
         );
       } else {
@@ -168,6 +227,8 @@ class _EquipmentLocationEditDialogState
           kind: _kind,
           diveCenterId: centerId,
           clearDiveCenterId: centerId == null,
+          buddyId: buddyId,
+          clearBuddyId: buddyId == null,
           notes: _notes.text.trim(),
         );
         await repo.updateLocation(saved);
@@ -241,6 +302,10 @@ class _EquipmentLocationEditDialogState
               if (_kind == EquipmentLocationKind.diveCenter) ...[
                 const SizedBox(height: 16),
                 _centerField(l10n),
+              ],
+              if (_kind == EquipmentLocationKind.person) ...[
+                const SizedBox(height: 16),
+                _buddyField(l10n),
               ],
               const SizedBox(height: 16),
               MarkdownNotesField(
