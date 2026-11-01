@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart'
+    as domain_buddy;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
@@ -16,6 +19,24 @@ import 'package:submersion/features/trips/domain/entities/trip.dart'
     as domain_trip;
 
 import '../../../../helpers/test_database.dart';
+
+/// Adds a tank during the service's prior-state reads, the way a sync merge can
+/// land between those reads and the edit's transaction.
+class _TankArrivesDuringCapture extends BuddyRepository {
+  _TankArrivesDuringCapture(this._diveRepo);
+
+  final DiveRepository _diveRepo;
+
+  @override
+  Future<List<domain_buddy.BuddyWithRole>> getBuddiesForDive(
+    String diveId,
+  ) async {
+    await _diveRepo.bulkAddTank([
+      diveId,
+    ], const domain.DiveTank(id: '', name: 'Synced'));
+    return super.getBuddiesForDive(diveId);
+  }
+}
 
 /// Undoing a bulk tank edit, with foreign keys on: the cascades from a tank to
 /// its recorded children are the whole of issue #3929.
@@ -108,6 +129,66 @@ void main() {
     await (db.delete(db.diveTanks)..where((t) => t.id.equals(tank.id))).go();
     expect(await seriesOf('d1'), isEmpty);
     expect(await switchesOf('d1'), isEmpty);
+  });
+
+  test('a tank that lands while the edit reads prior state survives', () async {
+    await seedDive('d1');
+    final racing = BulkDiveEditService(
+      diveRepo,
+      _TankArrivesDuringCapture(diveRepo),
+      SpeciesRepository(),
+    );
+
+    // The tanks op reads first, then the buddies op lets the tank land.
+    final snap = await racing.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          TanksOp(mode: BulkCollectionMode.add, tanks: [template('Stage')]),
+          const BuddiesOp(mode: BulkCollectionMode.add, buddies: []),
+        ],
+      ),
+    );
+    expect(await tanksOf('d1'), hasLength(2));
+
+    await racing.undo(snap);
+
+    expect((await tanksOf('d1')).single.tankName, 'Synced');
+  });
+
+  test('a request with two tank ops undoes both', () async {
+    final original = await seedRecordedDive('d1');
+    final snap = await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          TanksOp(mode: BulkCollectionMode.replace, tanks: [template('A')]),
+          TanksOp(mode: BulkCollectionMode.add, tanks: [template('B')]),
+        ],
+      ),
+    );
+    expect(await tanksOf('d1'), hasLength(2));
+
+    await service.undo(snap);
+
+    expect((await tanksOf('d1')).single.id, original.id);
+    expect(await seriesOf('d1'), hasLength(1));
+    expect(await switchesOf('d1'), hasLength(1));
+  });
+
+  test('an undo notifies once, however many series it restores', () async {
+    await seedRecordedDive('d1');
+    await seedRecordedDive('d2');
+    final snap = await applyTanks(['d1', 'd2'], BulkCollectionMode.replace);
+    await pumpEventQueue();
+    var notifications = 0;
+    final subscription = SyncEventBus.changes.listen((_) => notifications++);
+    addTearDown(subscription.cancel);
+
+    await service.undo(snap);
+    await pumpEventQueue();
+
+    expect(notifications, 1);
   });
 
   group('undoing an add', () {

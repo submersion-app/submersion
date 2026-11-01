@@ -19,14 +19,17 @@ class BulkTankUndoWriter {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
-  /// What a replace of [tanks], the current tanks of [diveIds], is about to
-  /// cascade away.
-  Future<BulkTankUndo> captureReplaced(
-    List<String> diveIds,
-    List<DiveTank> tanks,
-  ) async {
+  /// What a replace of the tanks of [diveIds] is about to delete, the cascade
+  /// included.
+  Future<BulkTankUndo> captureReplaced(List<String> diveIds) async {
+    final tanks = <DiveTank>[];
     final gasSwitches = <GasSwitche>[];
     for (final chunk in seriesIdChunks(diveIds)) {
+      tanks.addAll(
+        await (_db.select(
+          _db.diveTanks,
+        )..where((t) => t.diveId.isIn(chunk))).get(),
+      );
       gasSwitches.addAll(
         await (_db.select(
           _db.gasSwitches,
@@ -40,26 +43,15 @@ class BulkTankUndoWriter {
     );
   }
 
-  /// The tanks of [diveIds] that are not among [priorTankIds]: what the edit
-  /// created, read back so several tank ops in one request need no merging.
-  Future<List<String>> tanksCreatedSince(
-    List<String> diveIds,
-    Set<String> priorTankIds,
-  ) async {
-    final tanks = _db.diveTanks;
-    final created = <String>[];
-    for (final chunk in seriesIdChunks(diveIds)) {
-      final query = _db.selectOnly(tanks)
-        ..addColumns([tanks.id])
-        ..where(tanks.diveId.isIn(chunk));
-      created.addAll(
-        (await query.get())
-            .map((r) => r.read(tanks.id)!)
-            .where((id) => !priorTankIds.contains(id)),
-      );
-    }
-    return created;
-  }
+  /// The ids of the tanks of [diveIds]. Read either side of an edit, the
+  /// difference is what it created, however many tank ops it ran.
+  Future<Set<String>> tankIdsOf(List<String> diveIds) => _LiveLinks._ids(
+    _db,
+    _db.diveTanks,
+    _db.diveTanks.id,
+    diveIds,
+    matching: _db.diveTanks.diveId,
+  );
 
   /// Reverses a tank edit. The caller owns the transaction and has already
   /// restored the dive rows, which bumps each dive and gives a restored slot
@@ -168,49 +160,40 @@ class _LiveLinks {
     final tanks = undo.replacedTanks;
     final series = undo.replacedPressureSeries;
     return _LiveLinks(
-      await _ids(db, db.equipment, db.equipment.id, db.equipment.id, [
+      await _ids(db, db.equipment, db.equipment.id, [
         for (final t in tanks) ...[
           t.equipmentId,
           t.regulatorEquipmentId,
           ...decodeExtraRegulatorIds(t.extraRegulatorIds),
         ],
       ]),
-      await _ids(
-        db,
-        db.diveComputers,
-        db.diveComputers.id,
-        db.diveComputers.id,
-        [
-          for (final t in tanks) t.computerId,
-          for (final s in series) s.computerId,
-          for (final g in undo.replacedGasSwitches) g.computerId,
-        ],
-      ),
+      await _ids(db, db.diveComputers, db.diveComputers.id, [
+        for (final t in tanks) t.computerId,
+        for (final s in series) s.computerId,
+        for (final g in undo.replacedGasSwitches) g.computerId,
+      ]),
       // The sources these dives still have, so one moved to another dive
       // stays there.
-      await _ids(
-        db,
-        db.diveDataSources,
-        db.diveDataSources.id,
-        db.diveDataSources.diveId,
-        [for (final t in tanks) t.diveId],
-      ),
+      await _ids(db, db.diveDataSources, db.diveDataSources.id, [
+        for (final t in tanks) t.diveId,
+      ], matching: db.diveDataSources.diveId),
     );
   }
 
-  /// The [idColumn] of [table]'s rows whose [matching] is one of [values].
+  /// The [idColumn] of [table]'s rows whose [matching] column, by default
+  /// [idColumn] itself, is one of [values].
   static Future<Set<String>> _ids(
     AppDatabase db,
     ResultSetImplementation<HasResultSet, dynamic> table,
     GeneratedColumn<String> idColumn,
-    GeneratedColumn<String> matching,
-    List<String?> values,
-  ) async {
+    List<String?> values, {
+    GeneratedColumn<String>? matching,
+  }) async {
     final found = <String>{};
     for (final chunk in seriesIdChunks(values.nonNulls.toSet().toList())) {
       final query = db.selectOnly(table)
         ..addColumns([idColumn])
-        ..where(matching.isIn(chunk));
+        ..where((matching ?? idColumn).isIn(chunk));
       found.addAll((await query.get()).map((r) => r.read(idColumn)!));
     }
     return found;

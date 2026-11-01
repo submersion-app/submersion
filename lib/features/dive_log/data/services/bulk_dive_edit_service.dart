@@ -61,7 +61,6 @@ class BulkDiveEditService {
     Map<String, List<GearProvenance>>? priorGear;
     Map<String, List<BuddyWithRole>>? priorBuddies;
     Map<String, List<String>>? priorDiverRoleIds;
-    Set<String>? priorTankIds;
     BulkTankUndo? tankUndo;
     List<DiveTank>? priorTankSpecRows;
     Map<String, List<DiveWeight>>? priorWeights;
@@ -111,13 +110,9 @@ class BulkDiveEditService {
         case DiverRolesOp():
           priorDiverRoleIds = await _roleLinks.diverRoleIdsForDives(ids);
         case TanksOp(:final mode):
-          final rows = await (_db.select(
-            _db.diveTanks,
-          )..where((t) => t.diveId.isIn(ids))).get();
-          priorTankIds = {for (final r in rows) r.id};
           // Only a replace deletes tanks, and with them what they recorded.
           if (mode == BulkCollectionMode.replace) {
-            tankUndo = await _tankUndo.captureReplaced(ids, rows);
+            tankUndo = await _tankUndo.captureReplaced(ids);
           }
         case TankSpecsOp():
           // Flat list, not keyed by dive: the restore matches on row id.
@@ -144,6 +139,11 @@ class BulkDiveEditService {
     }
 
     await _db.transaction(() async {
+      // Inside the transaction, unlike the reads above: a tank a sync merge
+      // lands before this point is not the edit's for undo to remove.
+      final tanksBefore = req.ops.any((op) => op is TanksOp)
+          ? await _tankUndo.tankIdsOf(ids)
+          : null;
       // The site goes first: its snap fills in water type, entry/exit and
       // dive types, and every row the diver set in this edit then lands on
       // top of it (#3657).
@@ -159,10 +159,10 @@ class BulkDiveEditService {
       for (final op in req.ops) {
         await _applyOp(ids, op);
       }
-      final before = priorTankIds;
-      if (before != null) {
+      if (tanksBefore != null) {
+        final tanksAfter = await _tankUndo.tankIdsOf(ids);
         tankUndo = (tankUndo ?? const BulkTankUndo()).copyWith(
-          createdTankIds: await _tankUndo.tanksCreatedSince(ids, before),
+          createdTankIds: tanksAfter.difference(tanksBefore).toList(),
         );
       }
     });
