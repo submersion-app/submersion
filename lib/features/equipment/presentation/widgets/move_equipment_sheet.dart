@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/move_time.dart';
@@ -22,18 +24,21 @@ class MoveDraft {
 }
 
 /// Moves [items]: the sheet, then the parts and status prompts, then a
-/// SnackBar. Returns how many items moved, or null when cancelled or when
-/// the move failed (a SnackBar says so).
+/// SnackBar. With [lendTo] the sheet opens on that buddy. Returns how many
+/// items moved, or null when cancelled or when the move failed (a SnackBar
+/// says so).
 Future<int?> showMoveEquipmentFlow(
   BuildContext context,
   WidgetRef ref, {
   required List<EquipmentItem> items,
+  Buddy? lendTo,
 }) async {
   if (items.isEmpty) return null;
   final draft = await showMoveEquipmentSheet(
     context,
     ref,
     itemCount: items.length,
+    initialPick: lendTo == null ? null : BuddyPick(lendTo),
   );
   if (draft == null || !context.mounted) return null;
   final l10n = context.l10n;
@@ -87,6 +92,14 @@ Future<int?> showMoveEquipmentFlow(
       target: switch (draft.pick) {
         PlacePick(:final location) => location,
         NoLocationPick() => null,
+        BuddyPick(:final buddy) =>
+          await ref
+              .read(equipmentLocationRepositoryProvider)
+              .findOrCreateForBuddy(
+                diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+                buddyId: buddy.id,
+                name: buddy.name,
+              ),
       },
       movedAt: draft.movedAt,
       note: draft.note,
@@ -108,17 +121,20 @@ Future<MoveDraft?> showMoveEquipmentSheet(
   BuildContext context,
   WidgetRef ref, {
   required int itemCount,
+  LocationPick? initialPick,
 }) {
   return showModalBottomSheet<MoveDraft>(
     context: context,
     isScrollControlled: true,
-    builder: (_) => _MoveEquipmentSheet(itemCount: itemCount),
+    builder: (_) =>
+        _MoveEquipmentSheet(itemCount: itemCount, initialPick: initialPick),
   );
 }
 
 class _MoveEquipmentSheet extends ConsumerStatefulWidget {
-  const _MoveEquipmentSheet({required this.itemCount});
+  const _MoveEquipmentSheet({required this.itemCount, this.initialPick});
   final int itemCount;
+  final LocationPick? initialPick;
 
   @override
   ConsumerState<_MoveEquipmentSheet> createState() =>
@@ -126,7 +142,7 @@ class _MoveEquipmentSheet extends ConsumerStatefulWidget {
 }
 
 class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
-  LocationPick? _pick;
+  late LocationPick? _pick = widget.initialPick;
   DateTime _day = DateTime.now();
 
   /// Null until the diver picks a time; see [resolveMovedAt].
@@ -179,12 +195,14 @@ class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
               leading: Icon(switch (pick) {
                 PlacePick(:final location) => location.kind.icon,
                 NoLocationPick() => Icons.location_off_outlined,
+                BuddyPick() => Icons.person_outline,
                 null => Icons.place_outlined,
               }),
               title: Text(l10n.equipment_location_move_to),
               subtitle: Text(switch (pick) {
                 PlacePick(:final location) => location.name,
                 NoLocationPick() => l10n.equipment_location_noLocation,
+                BuddyPick(:final buddy) => buddy.name,
                 null => l10n.equipment_location_move_choose,
               }),
               trailing: const Icon(Icons.chevron_right),
@@ -192,6 +210,7 @@ class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
                 final picked = await showEquipmentLocationPickerSheet(
                   context,
                   ref,
+                  offerBuddies: true,
                 );
                 if (picked != null) setState(() => _pick = picked);
               },
