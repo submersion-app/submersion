@@ -334,40 +334,10 @@ class TripChecklistBlock extends ConsumerWidget {
   }
 
   Future<void> _renameChecklist(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController(text: checklist.name);
-    final formKey = GlobalKey<FormState>();
-    final l10n = context.l10n;
     final name = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.checklists_renameChecklist_title),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: controller,
-            autofocus: true,
-            decoration: InputDecoration(labelText: l10n.checklists_nameLabel),
-            validator: (value) => (value == null || value.trim().isEmpty)
-                ? l10n.checklists_nameRequired
-                : null,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (!formKey.currentState!.validate()) return;
-              Navigator.of(context).pop(controller.text.trim());
-            },
-            child: Text(MaterialLocalizations.of(context).saveButtonLabel),
-          ),
-        ],
-      ),
+      builder: (context) => _RenameChecklistDialog(initialName: checklist.name),
     );
-    controller.dispose();
     if (name == null || !context.mounted) return;
     await ref
         .read(tripChecklistsRepositoryProvider)
@@ -488,6 +458,70 @@ class TripChecklistBlock extends ConsumerWidget {
         orderedIds: orderedIds,
       ),
       onDeleteItem: (item) => repository.deleteItem(item.id),
+    );
+  }
+}
+
+/// Owns its [TextEditingController] through its own State so disposal
+/// happens when the framework actually removes this widget from the tree
+/// (after the dialog's exit transition finishes), not right after
+/// `showDialog` returns -- disposing eagerly there raced the still-animating
+/// `TextFormField` and threw "A TextEditingController was used after being
+/// disposed."
+class _RenameChecklistDialog extends StatefulWidget {
+  final String initialName;
+
+  const _RenameChecklistDialog({required this.initialName});
+
+  @override
+  State<_RenameChecklistDialog> createState() => _RenameChecklistDialogState();
+}
+
+class _RenameChecklistDialogState extends State<_RenameChecklistDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.checklists_renameChecklist_title),
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          controller: _controller,
+          autofocus: true,
+          decoration: InputDecoration(labelText: l10n.checklists_nameLabel),
+          validator: (value) => (value == null || value.trim().isEmpty)
+              ? l10n.checklists_nameRequired
+              : null,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (!_formKey.currentState!.validate()) return;
+            Navigator.of(context).pop(_controller.text.trim());
+          },
+          child: Text(MaterialLocalizations.of(context).saveButtonLabel),
+        ),
+      ],
     );
   }
 }

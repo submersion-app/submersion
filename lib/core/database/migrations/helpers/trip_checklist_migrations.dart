@@ -30,12 +30,28 @@ extension TripChecklistMigrations on AppDatabase {
   /// can rename it like any other checklist); a trip with neither gets none,
   /// matching how a brand-new trip starts with zero checklists today.
   Future<void> _assertAndBackfillTripChecklists() async {
-    if (!await _tableExists('trips')) return;
+    // Runs the v297 step first, idempotently: a database stamped v297 or
+    // later without that rung ever truly running (old >= 297 skips it in
+    // the onUpgrade ladder; the parallel-branch-collision case the
+    // beforeOpen backstops exist for) would otherwise still have trip_id
+    // directly on trip_checklist_items/sections once this function gets
+    // there, and this function would convert that trip_id to checklist_id
+    // without ever having created trip_checklist_sections or backfilled
+    // section_id from category -- leaving both stuck permanently, since
+    // _assertAndBackfillTripChecklistSections itself only knows how to
+    // migrate FROM trip_id, which would already be gone.
+    await _assertAndBackfillTripChecklistSections();
+    // Created unconditionally, unlike ChecklistSectionMigrations' tables:
+    // trip_checklists is the parent of the checklist concept itself, so a
+    // database that has never had a trips table (or any trip-owned rows to
+    // backfill from) still ends up with the empty table, matching what a
+    // brand-new install's schema creates from scratch.
     await Migrator(this).createTable(tripChecklists);
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_trip_checklists_trip_id '
       'ON trip_checklists(trip_id)',
     );
+    if (!await _tableExists('trips')) return;
 
     final hasSections = await _tableExists('trip_checklist_sections');
     final hasItems = await _tableExists('trip_checklist_items');

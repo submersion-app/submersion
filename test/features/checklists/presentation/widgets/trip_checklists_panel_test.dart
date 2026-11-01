@@ -120,7 +120,17 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Apply template...'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Dive equipment'));
+      // Not find.text('Dive equipment') or find.widgetWithText(ListTile,
+      // ...): on the second pass, a checklist block from the first pass
+      // already renders its own ExpansionTile ListTile with that same
+      // name, so only scoping to the picker's BottomSheet disambiguates
+      // which ListTile to tap.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.widgetWithText(ListTile, 'Dive equipment'),
+        ),
+      );
       await tester.pumpAndSettle();
     }
 

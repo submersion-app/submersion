@@ -158,6 +158,13 @@ void main() {
       await tester.tap(checklistTab);
       await tester.pumpAndSettle();
 
+      // Every checklist starts collapsed (issue #3356); expand it before
+      // its "Add item" affordance is on screen. Not find.text('Checklist'):
+      // the tab itself is also labelled "Checklist", so only the
+      // ExpansionTile disambiguates which one to tap.
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pumpAndSettle();
+
       // TripChecklistSection renders its own "Add item" affordance for an
       // empty checklist.
       expect(find.text('Add item'), findsOneWidget);
@@ -224,6 +231,13 @@ void main() {
       await tester.ensureVisible(checklistTab);
       await tester.pumpAndSettle();
       await tester.tap(checklistTab);
+      await tester.pumpAndSettle();
+
+      // Every checklist starts collapsed (issue #3356); expand it before
+      // its "Add item" affordance is on screen. Not find.text('Checklist'):
+      // the tab itself is also labelled "Checklist", so only the
+      // ExpansionTile disambiguates which one to tap.
+      await tester.tap(find.byType(ExpansionTile));
       await tester.pumpAndSettle();
 
       // TripChecklistSection renders its own "Add item" affordance for an
