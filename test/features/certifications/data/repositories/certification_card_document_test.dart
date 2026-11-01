@@ -129,6 +129,29 @@ void main() {
     },
   );
 
+  test('the row tick fires for a row and not for a card page', () async {
+    final repo = CertificationRepository();
+    await repo.createCertification(cert());
+    final ticks = <void>[];
+    final sub = repo.watchCertificationRowChanges().listen(ticks.add);
+    addTearDown(sub.cancel);
+
+    await DocumentRepository().saveCardImages(
+      certificationId: 'c1',
+      diverId: 'd1',
+      front: Uint8List.fromList([1]),
+      back: null,
+    );
+    await pumpEventQueue();
+    expect(ticks, isEmpty);
+
+    await repo.updateCertification(
+      (await repo.getCertificationById('c1'))!.copyWith(name: 'Renamed'),
+    );
+    await pumpEventQueue();
+    expect(ticks, isNotEmpty);
+  });
+
   test('the certification tick fires when a card page changes', () async {
     final repo = CertificationRepository();
     await repo.createCertification(cert());

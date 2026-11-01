@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +16,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/drift_statement_log.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The home screen's certification inputs need credential metadata, never
@@ -67,20 +67,6 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<List<String>> statementsDuring(Future<void> Function() body) async {
-    final logged = <String>[];
-    await runZoned(
-      body,
-      zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) => logged.add(line),
-      ),
-    );
-    return [
-      for (final line in logged)
-        if (line.startsWith('Drift: Sent')) line,
-    ];
-  }
-
   void expectNoCardBlobs(List<String> statements) {
     // Without this a broken capture would pass every check below.
     expect(
@@ -116,7 +102,7 @@ void main() {
   test('the home attention chip reads no card images', () async {
     final container = makeContainer();
 
-    final statements = await statementsDuring(() async {
+    final statements = await statementsOf(() async {
       await container.read(currencyAttentionProvider.future);
     });
 
@@ -125,13 +111,14 @@ void main() {
 
   test('the home milestones read no card images', () async {
     final container = makeContainer();
-    final sub = container.listen(milestonesProvider, (_, _) {});
-    addTearDown(sub.close);
 
-    final statements = await statementsDuring(() async {
-      await container
-          .read(certificationListNotifierProvider.notifier)
-          .refresh();
+    final statements = await statementsOf(() async {
+      final sub = container.listen(milestonesProvider, (_, _) {});
+      addTearDown(sub.close);
+      await container.read(milestonesProvider.future);
+      while (container.read(certificationListNotifierProvider).isLoading) {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+      }
     });
 
     expectNoCardBlobs(statements);

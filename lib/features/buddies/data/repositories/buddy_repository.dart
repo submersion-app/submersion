@@ -355,7 +355,7 @@ class BuddyRepository {
         // deleteCertification() emits an event per cert, which would fire
         // observers mid-transaction. We tombstone here (the FK cascade writes
         // no deletion_log) and emit a single notify after commit instead.
-        final certs = await _certRepo.getCertificationsByBuddy(id);
+        final certs = await _certRepo.getCertificationMetadataByBuddy(id);
         // The buddy's documents and their certifications' documents go
         // with them, tombstoned (issue #2613).
         final documents = DocumentRepository();

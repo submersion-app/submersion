@@ -44,6 +44,11 @@ class CertificationRepository {
     ]),
   );
 
+  /// Emits when a `certifications` row changes: the tick for what reads only
+  /// the rows, which a document or page write leaves untouched (issue #3848).
+  Stream<void> watchCertificationRowChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.certifications));
+
   /// Get all certifications ordered by issue date (newest first)
   Future<List<domain.Certification>> getAllCertifications({
     String? diverId,
@@ -556,8 +561,12 @@ class CertificationRepository {
     domain.Certification cert, {
     required bool notify,
   }) async {
-    if (!cert.cardImagesLoaded) return;
     final hasImages = cert.photoFront != null || cert.photoBack != null;
+    assert(
+      cert.cardImagesLoaded || !hasImages,
+      'Set card images on a full read: this one would be dropped',
+    );
+    if (!cert.cardImagesLoaded) return;
     final diverId = cert.diverId ?? await _diverIdForCardOf(cert);
     if (hasImages && diverId == null) {
       _log.warning('No diver to file the card of ${cert.id} under');

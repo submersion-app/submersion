@@ -291,6 +291,10 @@ void main() {
       ),
     ),
     (
+      name: 'walletCertificationsProvider',
+      read: (c) => c.read(walletCertificationsProvider.future),
+    ),
+    (
       name: 'expiredCertificationsProvider',
       read: (c) => c.read(expiredCertificationsProvider.future),
     ),

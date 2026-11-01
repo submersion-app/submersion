@@ -45,8 +45,8 @@ final allCertificationsProvider = FutureProvider<List<Certification>>((
 });
 
 /// All certifications without their card images, so what depends on credential
-/// data never waits on or holds the scans (issue #3848). Refreshes as
-/// [allCertificationsProvider] does.
+/// data never waits on or holds the scans (issue #3848). Refreshes when a row
+/// changes, and only then: a card's pages are not part of it.
 final certificationMetadataProvider = FutureProvider<List<Certification>>((
   ref,
 ) async {
@@ -54,7 +54,7 @@ final certificationMetadataProvider = FutureProvider<List<Certification>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+  ref.invalidateSelfWhen(repository.watchCertificationRowChanges());
   return repository.getCertificationMetadata(diverId: validatedDiverId);
 });
 
@@ -63,10 +63,11 @@ final certificationMetadataProvider = FutureProvider<List<Certification>>((
 final walletCertificationsProvider =
     FutureProvider.autoDispose<List<Certification>>((ref) async {
       final repository = ref.watch(certificationRepositoryProvider);
+      // Before the await: leaving the page disposes this ref mid-build.
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
       return repository.getAllCertifications(diverId: validatedDiverId);
     });
 
@@ -76,7 +77,7 @@ final walletCertificationsProvider =
 final buddyCertificationsProvider =
     FutureProvider.family<List<Certification>, String>((ref, buddyId) async {
       final repository = ref.watch(certificationRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      ref.invalidateSelfWhen(repository.watchCertificationRowChanges());
       return repository.getCertificationMetadataByBuddy(buddyId);
     });
 
@@ -86,7 +87,7 @@ final buddyCertificationsProvider =
 final allBuddyCertificationsProvider =
     FutureProvider<Map<String, List<Certification>>>((ref) async {
       final repository = ref.watch(certificationRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      ref.invalidateSelfWhen(repository.watchCertificationRowChanges());
       final buddies = await ref.watch(allBuddiesProvider.future);
       return repository.getCertificationsForBuddies(
         buddies.map((b) => b.id).toList(),
@@ -184,7 +185,7 @@ final certificationSearchProvider =
         return ref.watch(certificationMetadataProvider).value ?? [];
       }
       final repository = ref.watch(certificationRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      ref.invalidateSelfWhen(repository.watchCertificationRowChanges());
       return repository.searchCertifications(query, diverId: validatedDiverId);
     });
 
@@ -256,7 +257,7 @@ class CertificationListNotifier
 
     // Refresh when the certifications table changes (e.g. a sync writes rows
     // directly).
-    final tableChangeSub = _repository.watchCertificationsChanges().listen(
+    final tableChangeSub = _repository.watchCertificationRowChanges().listen(
       (_) => _silentReloadCertifications(),
     );
     _ref.onDispose(tableChangeSub.cancel);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -53,6 +54,9 @@ class _ThrowingCertificationRepository extends CertificationRepository {
   Stream<void> watchCertificationsChanges() => const Stream<void>.empty();
 
   @override
+  Stream<void> watchCertificationRowChanges() => const Stream<void>.empty();
+
+  @override
   Future<List<Certification>> getAllCertifications({String? diverId}) async {
     throw StateError('boom');
   }
@@ -63,6 +67,16 @@ class _ThrowingCertificationRepository extends CertificationRepository {
   }) async {
     throw StateError('boom');
   }
+}
+
+/// Repository whose card tick the test drives.
+class _TickingCertificationRepository extends CertificationRepository {
+  final Stream<void> ticks;
+
+  _TickingCertificationRepository(this.ticks);
+
+  @override
+  Stream<void> watchCertificationsChanges() => ticks;
 }
 
 void main() {
@@ -269,6 +283,34 @@ void main() {
         if (front?.first == 3) break;
       }
       expect(front, [3]);
+    });
+
+    // The wallet can close while the diver id resolves, which disposes this
+    // provider mid-build. Stubbed a layer below it: an override of the
+    // provider itself would hide a ref used after that await.
+    test('closing it mid-load leaves no change subscription', () async {
+      final ticks = StreamController<void>.broadcast();
+      addTearDown(ticks.close);
+      final diverId = Completer<String?>();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          certificationRepositoryProvider.overrideWithValue(
+            _TickingCertificationRepository(ticks.stream),
+          ),
+          validatedCurrentDiverIdProvider.overrideWith((ref) => diverId.future),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(walletCertificationsProvider, (_, _) {});
+      await pumpEventQueue();
+      sub.close();
+      await container.pump();
+      diverId.complete(null);
+      await pumpEventQueue();
+
+      expect(ticks.hasListener, isFalse);
     });
 
     test('keeps no scans once nothing shows the wallet', () async {

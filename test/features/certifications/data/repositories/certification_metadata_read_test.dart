@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,6 +6,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 
+import '../../../../helpers/drift_statement_log.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Metadata reads leave the scanned cards behind (issue #3848): they are the
@@ -69,20 +68,6 @@ void main() {
     }
   });
 
-  Future<List<String>> statementsDuring(Future<void> Function() body) async {
-    final logged = <String>[];
-    await runZoned(
-      body,
-      zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) => logged.add(line),
-      ),
-    );
-    return [
-      for (final line in logged)
-        if (line.startsWith('Drift: Sent')) line,
-    ];
-  }
-
   void expectNoCardBlobs(List<String> statements) {
     expect(statements, isNotEmpty);
     for (final statement in statements) {
@@ -127,7 +112,7 @@ void main() {
       ]);
 
       late List<Certification> metadata;
-      final statements = await statementsDuring(() async {
+      final statements = await statementsOf(() async {
         metadata = await repo.getCertificationMetadata();
       });
 
@@ -178,7 +163,7 @@ void main() {
     ]);
 
     late List<Certification> found;
-    final statements = await statementsDuring(() async {
+    final statements = await statementsOf(() async {
       found = await repo.searchCertifications('open');
     });
 
@@ -193,7 +178,7 @@ void main() {
     ]);
 
     late Map<String, List<Certification>> found;
-    final statements = await statementsDuring(() async {
+    final statements = await statementsOf(() async {
       found = await repo.getCertificationsForBuddies(['b1', 'nobody']);
     });
 
@@ -218,7 +203,7 @@ void main() {
     ]);
 
     late List<Certification> found;
-    final statements = await statementsDuring(() async {
+    final statements = await statementsOf(() async {
       found = await repo.getCertificationMetadataByBuddy('b1');
     });
 
