@@ -51,14 +51,30 @@ String normalize(String input) {
   return buffer.toString();
 }
 
-/// Each adjacent pair of code units packed into one integer, sorted.
+/// The longest bigram list worth sorting by hand: pasted text can be far
+/// longer than any name, and insertion sort is quadratic.
+const _maxInsertionSorted = 32;
+
+/// Each adjacent pair of code units packed into one integer, sorted. Names
+/// are short and this runs once per name, so the usual case skips the
+/// comparator calls of [List.sort], which cost more than the sorting.
 Uint32List _bigrams(String s) {
   if (s.length < 2) return Uint32List(0);
   final result = Uint32List(s.length - 1);
   for (var i = 0; i < result.length; i++) {
     result[i] = s.codeUnitAt(i) << 16 | s.codeUnitAt(i + 1);
   }
-  return result..sort();
+  if (result.length > _maxInsertionSorted) return result..sort();
+  for (var i = 1; i < result.length; i++) {
+    final pair = result[i];
+    var at = i;
+    while (at > 0 && result[at - 1] > pair) {
+      result[at] = result[at - 1];
+      at--;
+    }
+    result[at] = pair;
+  }
+  return result;
 }
 
 /// A string made ready for Sørensen-Dice comparison: what

@@ -42,6 +42,12 @@ void main() {
       // Packed into too few bits, these two pairs would come out the same.
       expect(diceCoefficient('a一', 'o漀'), 0.0);
     });
+
+    test('scores text longer than the short list sort handles', () {
+      const text = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      const rotated = 'ghijklmnopqrstuvwxyz0123456789abcdef';
+      expect(diceCoefficient(text, rotated), closeTo(34 / 35, 1e-12));
+    });
   });
 
   group('DiceText', () {

@@ -98,8 +98,8 @@ class _DistanceRows {
 }
 
 /// Optimal string alignment distance: insert, delete, substitute, and the
-/// transposition of two adjacent characters each cost one. Any distance past
-/// [limit] comes back as `limit + 1`.
+/// transposition of two adjacent characters each cost one. Only a result
+/// within [limit] is exact: past it, this stops as soon as it can tell.
 int _distanceWithin(int limit, String a, String b, _DistanceRows rows) {
   if ((a.length - b.length).abs() > limit) return limit + 1;
   var twoBack = rows.twoBack;
