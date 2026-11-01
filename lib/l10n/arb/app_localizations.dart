@@ -56038,6 +56038,24 @@ abstract class AppLocalizations {
   /// **'Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device\'s Bluetooth settings, then try again.'**
   String get diveComputer_download_discoveryStalled;
 
+  /// No description provided for @diveComputer_download_bleDeviceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find this dive computer over Bluetooth LE. Turn on its Bluetooth mode and scan again. If it appears in your device\'s Bluetooth settings, remove it there first: it may be known there only as a classic Bluetooth device.'**
+  String get diveComputer_download_bleDeviceNotFound;
+
+  /// No description provided for @diveComputer_download_blePairingRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your device will not talk to this dive computer until they are paired. Turn on the dive computer\'s Bluetooth mode, pair it in your device\'s Bluetooth settings, then try again.'**
+  String get diveComputer_download_blePairingRequired;
+
+  /// No description provided for @diveComputer_download_bleUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive computer did not answer over Bluetooth. Check that its Bluetooth mode is still on and that it is close to your device, then try again.'**
+  String get diveComputer_download_bleUnreachable;
+
   /// No description provided for @diveComputer_download_serialConnectFailedWithDetails.
   ///
   /// In en, this message translates to:

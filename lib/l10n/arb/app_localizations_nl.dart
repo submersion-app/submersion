@@ -35320,6 +35320,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verbonden met de duikcomputer, maar hij reageerde niet meer voordat de download kon beginnen. Meestal betekent dit dat de Bluetooth-koppeling verouderd is: vergeet de duikcomputer in de Bluetooth-instellingen van je apparaat en probeer het opnieuw.';
 
   @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Deze duikcomputer is niet gevonden via Bluetooth LE. Zet de Bluetooth-modus aan en zoek opnieuw. Staat hij in de Bluetooth-instellingen van je apparaat, verwijder hem daar dan eerst: mogelijk is hij daar alleen bekend als klassiek Bluetooth-apparaat.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Je apparaat communiceert pas met deze duikcomputer als ze gekoppeld zijn. Zet de Bluetooth-modus van de duikcomputer aan, koppel hem in de Bluetooth-instellingen van je apparaat en probeer het opnieuw.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'De duikcomputer reageerde niet via Bluetooth. Controleer of de Bluetooth-modus nog aan staat en of hij dicht bij je apparaat is, en probeer het opnieuw.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'Kan geen verbinding maken met de duikcomputer.\n\nDiagnostische gegevens (deel met ontwikkelaars):\n$details';
   }

@@ -36005,6 +36005,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم الاتصال بكمبيوتر الغوص، لكنه توقف عن الاستجابة قبل بدء التنزيل. يعني هذا عادةً أن إقران البلوتوث لم يعد صالحًا: انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك ثم حاول مرة أخرى.';
 
   @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'تعذّر العثور على كمبيوتر الغوص هذا عبر Bluetooth LE. شغّل وضع البلوتوث فيه وأعد البحث. إذا كان ظاهرًا في إعدادات البلوتوث في جهازك، فأزله من هناك أولًا: فقد يكون معروفًا هناك كجهاز بلوتوث تقليدي فقط.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'لن يتواصل جهازك مع كمبيوتر الغوص هذا حتى يتم إقرانهما. شغّل وضع البلوتوث في كمبيوتر الغوص، وأقرنه من إعدادات البلوتوث في جهازك، ثم حاول مرة أخرى.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'لم يستجب كمبيوتر الغوص عبر البلوتوث. تأكد من أن وضع البلوتوث فيه لا يزال مفعّلًا وأنه قريب من جهازك، ثم حاول مرة أخرى.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'تعذر الاتصال بحاسوب الغوص.\n\nتفاصيل التشخيص (شاركها مع المطورين):\n$details';
   }
