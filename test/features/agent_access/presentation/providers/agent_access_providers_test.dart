@@ -224,6 +224,24 @@ void main() {
       },
     );
 
+    test('a scope disposed mid-start leaves no listener behind', () async {
+      final slow = _SlowKeychain();
+      final c = await container(platform: TargetPlatform.macOS, storage: slow);
+      startController(c);
+      await c.read(agentAccessSettingsProvider.notifier).setPort(0);
+      final enabling = c
+          .read(agentAccessSettingsProvider.notifier)
+          .setEnabled(true);
+      c.dispose();
+      await enabling;
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      final status = AgentAccessServer.instance.status;
+      expect(status.listening, isFalse);
+      // The abandoned start must not leave a "could not start" error for
+      // the next scope's settings page to show either.
+      expect(status.error, isNull);
+    });
+
     test('never starts on a non-desktop platform', () async {
       final c = await container(platform: TargetPlatform.android);
       startController(c);

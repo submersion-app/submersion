@@ -115,7 +115,10 @@ final agentAccessControllerProvider = Provider<AgentAccessController>((ref) {
     (_, _) => unawaited(controller.sync()),
   );
   unawaited(controller.sync());
-  ref.onDispose(() => unawaited(AgentAccessServer.instance.stop()));
+  ref.onDispose(() {
+    controller.dispose();
+    unawaited(AgentAccessServer.instance.stop());
+  });
   return controller;
 });
 
@@ -127,6 +130,13 @@ class AgentAccessController {
   final Ref _ref;
   Future<void> _queue = Future.value();
   String? _token;
+  bool _disposed = false;
+
+  /// Called when the owning provider is disposed (a scope rebuild). A sync
+  /// still awaiting the keychain, the settings or the package info resumes
+  /// afterwards, sees this, and stops short of starting a listener the old
+  /// scope would own or reading through a disposed Ref.
+  void dispose() => _disposed = true;
 
   /// Brings the server in line with the current settings. Calls are
   /// serialised so a burst of settings changes never interleaves starts
@@ -167,7 +177,7 @@ class AgentAccessController {
     final next = _queue.then((_) async {
       final token = await _ref.read(agentAccessTokenStoreProvider).regenerate();
       _token = token;
-      _ref.invalidate(agentAccessTokenProvider);
+      if (!_disposed) _ref.invalidate(agentAccessTokenProvider);
       return token;
     });
     _queue = next.then((_) {}, onError: (_) {});
@@ -175,6 +185,7 @@ class AgentAccessController {
   }
 
   Future<void> _syncOnce() async {
+    if (_disposed) return;
     final settings = _ref.read(agentAccessSettingsProvider);
     final server = AgentAccessServer.instance;
     if (!settings.enabled || !_ref.read(agentAccessAvailableProvider)) {
@@ -184,16 +195,21 @@ class AgentAccessController {
     // Tools read diver unit preferences; before the first load those are
     // placeholders.
     await awaitCurrentDiverSettings(_ref);
+    if (_disposed) return;
+    final String token;
     try {
-      final hadToken = _token != null;
-      _token = await _ref.read(agentAccessTokenStoreProvider).ensure();
-      if (!hadToken) _ref.invalidate(agentAccessTokenProvider);
+      token = await _ref.read(agentAccessTokenStoreProvider).ensure();
     } catch (e) {
       throw StateError('Could not read the access token: $e');
     }
+    if (_disposed) return;
+    final hadToken = _token != null;
+    _token = token;
+    if (!hadToken) _ref.invalidate(agentAccessTokenProvider);
     final status = server.status;
     if (status.listening && status.port == settings.port) return;
     final appVersion = await _appVersion();
+    if (_disposed) return;
     await server.start(
       port: settings.port,
       token: () => _token ?? '',

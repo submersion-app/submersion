@@ -45,7 +45,8 @@ Future<void> copyWithToast(BuildContext context, String text) async {
   messenger.showSnackBar(SnackBar(content: Text(copied)));
 }
 
-/// Three copy rows, one per client kind. Copying never shows the token.
+/// Three copy rows, one per client kind. Each snippet is copy-ready, so it
+/// carries the token; the page itself keeps the token masked on screen.
 class AgentAccessSnippets extends StatelessWidget {
   const AgentAccessSnippets({
     super.key,
