@@ -42,17 +42,20 @@ class TankExtractor {
         continue;
       }
 
-      tanks.add(
-        _buildTank(
-          diveId: diveId,
-          order: tanks.length,
-          volume: volume,
-          startPressure: start,
-          endPressure: end,
-          o2Percent: o2,
-          hePercent: he,
-        ),
-      );
+      final gasO2 = o2 ?? 21.0;
+      final gasHe = he ?? 0.0;
+      tanks.add({
+        'id': _uuid.v4(),
+        'diveId': diveId,
+        'volume': volume,
+        'startPressure': start,
+        'endPressure': end,
+        'o2Percent': gasO2,
+        'hePercent': gasHe,
+        // The importer builds the tank's gas from this key alone (#1814).
+        'gasMix': GasMix(o2: gasO2, he: gasHe),
+        'order': tanks.length,
+      });
     }
 
     return tanks;
@@ -61,31 +64,6 @@ class TankExtractor {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
-
-  Map<String, dynamic> _buildTank({
-    required String diveId,
-    required int order,
-    double? volume,
-    double? startPressure,
-    double? endPressure,
-    double? o2Percent,
-    double? hePercent,
-  }) {
-    final o2 = o2Percent ?? 21.0;
-    final he = hePercent ?? 0.0;
-    return {
-      'id': _uuid.v4(),
-      'diveId': diveId,
-      'volume': volume,
-      'startPressure': startPressure,
-      'endPressure': endPressure,
-      'o2Percent': o2,
-      'hePercent': he,
-      // The importer builds the tank's gas from this key alone (#1814).
-      'gasMix': GasMix(o2: o2, he: he),
-      'order': order,
-    };
-  }
 
   /// [value] as a number, or null when it records nothing. A zero is how an
   /// unused group or an unknown reading can read: no cylinder has a zero size

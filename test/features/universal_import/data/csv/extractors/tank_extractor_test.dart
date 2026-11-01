@@ -275,7 +275,7 @@ void main() {
       });
     });
 
-    group('flat fallback fields', () {
+    group('unnumbered fields', () {
       test('extracts from legacy flat fields', () {
         final row = <String, dynamic>{
           'startPressure': 200.0,
@@ -304,7 +304,7 @@ void main() {
         expect(tanks, isEmpty);
       });
 
-      test('extracts flat fallback with only startPressure', () {
+      test('extracts a tank with only startPressure', () {
         final row = <String, dynamic>{'startPressure': 200.0};
 
         final tanks = extractor.extract(row, diveId);
@@ -316,7 +316,7 @@ void main() {
         expect(tanks[0]['o2Percent'], 21.0);
       });
 
-      test('extracts flat fallback with only endPressure', () {
+      test('extracts a tank with only endPressure', () {
         final row = <String, dynamic>{'endPressure': 50.0};
 
         final tanks = extractor.extract(row, diveId);
@@ -326,7 +326,7 @@ void main() {
         expect(tanks[0]['startPressure'], isNull);
       });
 
-      test('extracts flat fallback with only o2Percent', () {
+      test('extracts a tank with only o2Percent', () {
         final row = <String, dynamic>{'o2Percent': 32.0};
 
         final tanks = extractor.extract(row, diveId);
@@ -336,7 +336,7 @@ void main() {
         expect(tanks[0]['volume'], isNull);
       });
 
-      test('extracts flat fallback with only tankVolume', () {
+      test('extracts a tank with only tankVolume', () {
         final row = <String, dynamic>{'tankVolume': 10.0};
 
         final tanks = extractor.extract(row, diveId);
