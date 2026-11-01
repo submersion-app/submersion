@@ -298,6 +298,30 @@ A series summary card, with no-fly time, was built and removed: the results
 pane has little room, and the deco schedule matters more there. The planner shows
 no no-fly time.
 
+## Dives that have been dived
+
+A dive of a series is **dived** once its log entry is no longer planned, whether
+by Mark as logged, the edit page's switch or a download. An undone download takes
+it back to the plan. What the log says is read live (`seriesActualsProvider`,
+through the same analysis as a followed dive) and never stored; the plan's own
+row stays the original plan, including through a save.
+
+- **Chain.** The dive after it carries the logged end tissues, CNS and tank
+  pressures, from the logged exit time, and every later dive recalculates. OTU
+  counts the logged dive's. A dive with a fixed start keeps it, so its interval
+  changes; any other moves with the real end. A later dive dived before an
+  earlier one still carries from whichever is dived.
+- **Tanks.** A logged dive's tanks are matched to the plan's by position when the
+  gas agrees, else by gas, since a download can log different ones. A tank with
+  no match keeps its own pressure.
+- **Chip.** The solid diver, with the logged dive's name, else its number. A dived
+  dive has no warnings of its own and can't be removed from the bar.
+- **View.** It opens on what happened: the log's chart, which draws the plan as
+  its purple overlay, a planned against actual table, and what it carries on. A
+  toggle switches to the plan, read-only, in the normal planner.
+- **Overlay.** On the dive log's chart too, a later dive's overlay starts from
+  what the dives before it were planned to leave.
+
 ## Design
 
 - **Engine**: `DivePlan` gains `startCns`/`startOtu`, engine inputs that are not

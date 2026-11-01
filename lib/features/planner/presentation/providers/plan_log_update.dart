@@ -80,6 +80,7 @@ Future<PlannedDivesUpdate> updatePlannedDives(
   final series = container.read(planSeriesNotifierProvider);
   final results = container.read(planSeriesResultsProvider);
   for (final (i, result) in results.indexed) {
+    if (result.actual != null) continue;
     if (result.state.segments.isEmpty || !result.outcome.isDiveable) {
       return PlannedDivesUpdate(
         valid: false,

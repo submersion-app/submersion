@@ -20355,6 +20355,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'ביטול שינויים';
 
   @override
+  String get plannerSeries_view_actual => 'בפועל';
+
+  @override
+  String get plannerSeries_view_plan => 'תוכנית';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'כמתוכנן. בוצעה בתור $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return 'ל-$dive יש אזהרה קריטית, ולכן הצלילות המתוכננות לא עודכנו';
   }

@@ -19802,6 +19802,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_unsaved_discard => '放弃';
 
   @override
+  String get plannerSeries_view_actual => '实际';
+
+  @override
+  String get plannerSeries_view_plan => '计划';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return '按计划。实际潜水为 $dive。';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return '$dive 有严重警告，因此未更新计划潜水';
   }

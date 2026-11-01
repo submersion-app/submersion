@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -27,52 +28,15 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
 
-    final rows = <_CompareRow>[
-      _CompareRow(
-        label: context.l10n.plannerCanvas_compare_runtime,
-        planned: '${(outcome.runtimeSeconds / 60).round()}′',
-        actual: dive.effectiveRuntime == null
-            ? '--'
-            : '${dive.effectiveRuntime!.inMinutes}′',
-      ),
-      _CompareRow(
-        label: context.l10n.plannerCanvas_compare_maxDepth,
-        planned: units.formatDepth(outcome.maxDepth),
-        actual: dive.maxDepth == null ? '--' : units.formatDepth(dive.maxDepth),
-      ),
-      _CompareRow(
-        label: context.l10n.divePlanner_label_tts,
-        planned: '${(outcome.ttsAtBottom / 60).round()}′',
-        actual: actualTtsSeconds == null
-            ? '--'
-            : '${(actualTtsSeconds / 60).round()}′',
-      ),
-      // The hanging inside that TTS. TTS also carries the ascent travel, which
-      // the diver's ascent rates set rather than the gas or depth they came
-      // here to vary, so the deco figure is the one that isolates the change.
-      _CompareRow(
-        label: context.l10n.plannerCanvas_compare_deco,
-        planned: '${(outcome.totalDecoSeconds / 60).round()}′',
-        actual: actualDecoSeconds == null
-            ? '--'
-            : '${(actualDecoSeconds / 60).round()}′',
-      ),
-      for (final tank in dive.tanks)
-        if (tank.pressureUsed != null && tank.volume != null)
-          _CompareRow(
-            label: context.l10n.plannerCanvas_compare_gas(
-              tank.name ?? tank.gasMix.name,
-            ),
-            planned: _plannedGasFor(outcome, tank.id, units),
-            actual: units.formatVolume(tank.pressureUsed! * tank.volume!),
-          ),
-      if (actualCnsEnd != null)
-        _CompareRow(
-          label: context.l10n.plannerCanvas_compare_cns,
-          planned: '${outcome.cnsEnd.round()}%',
-          actual: '${actualCnsEnd.round()}%',
-        ),
-    ];
+    final rows = planVersusActualRows(
+      context,
+      dive: dive,
+      outcome: outcome,
+      units: units,
+      actualTtsSeconds: actualTtsSeconds,
+      actualDecoSeconds: actualDecoSeconds,
+      actualCnsEnd: actualCnsEnd,
+    );
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -103,57 +67,136 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Row(
-              children: [
-                const Expanded(flex: 2, child: SizedBox.shrink()),
-                Expanded(
-                  child: Text(
-                    context.l10n.plannerCanvas_compare_planned,
-                    style: theme.textTheme.labelSmall,
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    context.l10n.plannerCanvas_compare_actual,
-                    style: theme.textTheme.labelSmall,
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ],
-            ),
-            for (final row in rows)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    Expanded(flex: 2, child: Text(row.label)),
-                    Expanded(
-                      child: Text(row.planned, textAlign: TextAlign.end),
-                    ),
-                    Expanded(child: Text(row.actual, textAlign: TextAlign.end)),
-                  ],
-                ),
-              ),
+            PlanVersusActualTable(rows: rows),
           ],
         ),
       ),
     );
   }
+}
 
-  String _plannedGasFor(
-    PlanOutcome outcome,
-    String tankId,
-    UnitFormatter units,
-  ) {
-    final usage = outcome.tankUsages.where((u) => u.tankId == tankId);
+/// The figures a plan and the dive it became are compared on.
+List<PlanCompareRow> planVersusActualRows(
+  BuildContext context, {
+  required Dive dive,
+  required PlanOutcome outcome,
+  required UnitFormatter units,
+  required int? actualTtsSeconds,
+  required int? actualDecoSeconds,
+  required double? actualCnsEnd,
+  List<DiveTank>? planTanks,
+}) {
+  /// A logged dive's tanks have their own ids, so a dive of a series matches
+  /// its plan's by position; a replan's tanks share theirs with the dive.
+  String plannedGas(int index, DiveTank tank) {
+    final id = planTanks == null
+        ? tank.id
+        : index < planTanks.length
+        ? planTanks[index].id
+        : null;
+    final usage = outcome.tankUsages.where((u) => u.tankId == id);
     if (usage.isEmpty) return '--';
     return units.formatVolume(usage.first.litersUsed);
   }
+
+  return [
+    PlanCompareRow(
+      label: context.l10n.plannerCanvas_compare_runtime,
+      planned: '${(outcome.runtimeSeconds / 60).round()}′',
+      actual: dive.effectiveRuntime == null
+          ? '--'
+          : '${dive.effectiveRuntime!.inMinutes}′',
+    ),
+    PlanCompareRow(
+      label: context.l10n.plannerCanvas_compare_maxDepth,
+      planned: units.formatDepth(outcome.maxDepth),
+      actual: dive.maxDepth == null ? '--' : units.formatDepth(dive.maxDepth),
+    ),
+    PlanCompareRow(
+      label: context.l10n.divePlanner_label_tts,
+      planned: '${(outcome.ttsAtBottom / 60).round()}′',
+      actual: actualTtsSeconds == null
+          ? '--'
+          : '${(actualTtsSeconds / 60).round()}′',
+    ),
+    // The hanging inside that TTS. TTS also carries the ascent travel, which
+    // the diver's ascent rates set rather than the gas or depth they came
+    // here to vary, so the deco figure is the one that isolates the change.
+    PlanCompareRow(
+      label: context.l10n.plannerCanvas_compare_deco,
+      planned: '${(outcome.totalDecoSeconds / 60).round()}′',
+      actual: actualDecoSeconds == null
+          ? '--'
+          : '${(actualDecoSeconds / 60).round()}′',
+    ),
+    for (final (index, tank) in dive.tanks.indexed)
+      if (tank.pressureUsed != null && tank.volume != null)
+        PlanCompareRow(
+          label: context.l10n.plannerCanvas_compare_gas(
+            tank.name ?? tank.gasMix.name,
+          ),
+          planned: plannedGas(index, tank),
+          actual: units.formatVolume(tank.pressureUsed! * tank.volume!),
+        ),
+    if (actualCnsEnd != null)
+      PlanCompareRow(
+        label: context.l10n.plannerCanvas_compare_cns,
+        planned: '${outcome.cnsEnd.round()}%',
+        actual: '${actualCnsEnd.round()}%',
+      ),
+  ];
 }
 
-class _CompareRow {
-  const _CompareRow({
+/// [rows] under Planned and Actual headings.
+class PlanVersusActualTable extends StatelessWidget {
+  const PlanVersusActualTable({super.key, required this.rows});
+
+  final List<PlanCompareRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(flex: 2, child: SizedBox.shrink()),
+            Expanded(
+              child: Text(
+                context.l10n.plannerCanvas_compare_planned,
+                style: theme.textTheme.labelSmall,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                context.l10n.plannerCanvas_compare_actual,
+                style: theme.textTheme.labelSmall,
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ],
+        ),
+        for (final row in rows)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              children: [
+                Expanded(flex: 2, child: Text(row.label)),
+                Expanded(child: Text(row.planned, textAlign: TextAlign.end)),
+                Expanded(child: Text(row.actual, textAlign: TextAlign.end)),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class PlanCompareRow {
+  const PlanCompareRow({
     required this.label,
     required this.planned,
     required this.actual,

@@ -158,6 +158,21 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
           ),
         );
       }
+      // A dive that has been dived goes by what the log calls it.
+      if (dive.actual?.followed case final logged?) {
+        items.add(
+          _LoggedDiveChip(
+            key: _keyFor(dive.state.id),
+            label: seriesLoggedDiveLabel(logged, units),
+            selected: i == selected,
+            onSelected: () {
+              viewedNotifier.state = null;
+              notifier.select(i);
+            },
+          ),
+        );
+        continue;
+      }
       final worst = _worstWarning(results[i].outcome.issues);
       items.add(
         _DiveChip(

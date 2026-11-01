@@ -21113,6 +21113,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'تجاهل';
 
   @override
+  String get plannerSeries_view_actual => 'الفعلي';
+
+  @override
+  String get plannerSeries_view_plan => 'الخطة';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'كما هو مخطط. نُفذت باسم $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return 'يوجد تحذير حرج في $dive، لذا لم يتم تحديث الغطسات المخططة';
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/planner/presentation/providers/source_dive_deco_provider.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_source_dive_compare_strip.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -91,7 +93,12 @@ class PlanLoggedDiveView extends ConsumerWidget {
     final logged = ref.watch(viewedLoggedDiveProvider);
     final series = ref.watch(planSeriesNotifierProvider);
     final follow = series.follow;
-    if (logged == null || follow == null) return const SizedBox.shrink();
+    if (logged == null) return const SizedBox.shrink();
+    // A dive of the series that has been dived, rather than one it follows.
+    final divedIndex = series.dives.indexWhere(
+      (dive) => dive.actual?.followed.id == logged.id,
+    );
+    if (divedIndex < 0 && follow == null) return const SizedBox.shrink();
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -104,16 +111,25 @@ class PlanLoggedDiveView extends ConsumerWidget {
     final analysis = ref.watch(profileAnalysisProvider(logged.id)).value;
 
     // The dive after this one: the next logged dive, else the first planned.
-    final index = follow.loggedDives.indexOf(logged);
-    final isFollowed = index == follow.loggedDives.length - 1;
-    final String nextLabel;
-    final Duration interval;
-    if (isFollowed) {
+    final index = follow?.loggedDives.indexOf(logged) ?? -1;
+    final isFollowed =
+        divedIndex < 0 && index == follow!.loggedDives.length - 1;
+    String? nextLabel;
+    var interval = Duration.zero;
+    if (divedIndex >= 0) {
+      if (divedIndex + 1 < series.dives.length) {
+        final next = series.dives[divedIndex + 1];
+        nextLabel =
+            next.name ??
+            l10n.plannerSeries_dive(seriesDiveLetter(divedIndex + 1));
+        interval = next.state.surfaceInterval ?? defaultSeriesSurfaceInterval;
+      }
+    } else if (isFollowed) {
       final first = series.dives.first;
       nextLabel = first.name ?? l10n.plannerSeries_dive(seriesDiveLetter(0));
       interval = first.state.surfaceInterval ?? defaultSeriesSurfaceInterval;
     } else {
-      final next = follow.loggedDives[index + 1];
+      final next = follow!.loggedDives[index + 1];
       nextLabel = seriesLoggedDiveLabel(next, units);
       final gap = next.start.difference(logged.end);
       interval = gap.isNegative ? Duration.zero : gap;
@@ -181,6 +197,7 @@ class PlanLoggedDiveView extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 4),
+          if (divedIndex >= 0) const PlanActualToggle(),
           Wrap(
             spacing: 8,
             children: [
@@ -202,51 +219,149 @@ class PlanLoggedDiveView extends ConsumerWidget {
             SizedBox(height: height, child: chart)
           else
             Expanded(child: chart),
-          const SizedBox(height: 8),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.plannerSeries_carriedInto(nextLabel),
-                    style: theme.textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 24,
-                    runSpacing: 8,
-                    children: [
-                      _Fact(
-                        label: l10n.plannerSeries_surfaceInterval,
-                        value: formatHoursMinutes(interval),
-                      ),
-                      if (analysis != null) ...[
+          if (divedIndex >= 0) ...[
+            const SizedBox(height: 8),
+            _DivedComparison(divedIndex: divedIndex, diveId: logged.id),
+          ],
+          if (nextLabel != null) ...[
+            const SizedBox(height: 8),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.plannerSeries_carriedInto(nextLabel),
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 24,
+                      runSpacing: 8,
+                      children: [
                         _Fact(
-                          label: l10n.plannerSeries_endCns,
-                          value:
-                              '${analysis.o2Exposure.cnsEnd.toStringAsFixed(0)}%',
+                          label: l10n.plannerSeries_surfaceInterval,
+                          value: formatHoursMinutes(interval),
                         ),
-                        _Fact(
-                          label: l10n.plannerSeries_otu,
-                          value: analysis.o2Exposure.otu.toStringAsFixed(0),
-                        ),
+                        if (analysis != null) ...[
+                          _Fact(
+                            label: l10n.plannerSeries_endCns,
+                            value:
+                                '${analysis.o2Exposure.cnsEnd.toStringAsFixed(0)}%',
+                          ),
+                          _Fact(
+                            label: l10n.plannerSeries_otu,
+                            value: analysis.o2Exposure.otu.toStringAsFixed(0),
+                          ),
+                        ],
+                        for (final tank in tanks)
+                          _Fact(
+                            label: tank.name?.isNotEmpty ?? false
+                                ? tank.name!
+                                : tank.gasMix.name,
+                            value: units.formatPressure(tank.endPressure),
+                          ),
                       ],
-                      for (final tank in tanks)
-                        _Fact(
-                          label: tank.name?.isNotEmpty ?? false
-                              ? tank.name!
-                              : tank.gasMix.name,
-                          value: units.formatPressure(tank.endPressure),
-                        ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A dive that has been dived against its plan. Limited in height, so it never
+/// squeezes the chart above it out on a short window.
+class _DivedComparison extends ConsumerWidget {
+  const _DivedComparison({required this.divedIndex, required this.diveId});
+
+  final int divedIndex;
+  final String diveId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dive = ref.watch(diveProvider(diveId)).value;
+    final results = ref.watch(planSeriesResultsProvider);
+    if (dive == null || divedIndex >= results.length) {
+      return const SizedBox.shrink();
+    }
+    final plan = results[divedIndex];
+    return Card(
+      key: const Key('divedComparison'),
+      margin: EdgeInsets.zero,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 200),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: PlanVersusActualTable(
+            rows: planVersusActualRows(
+              context,
+              dive: dive,
+              outcome: plan.outcome,
+              units: ref.watch(unitFormatterProvider),
+              actualTtsSeconds: ref.watch(diveTtsSecondsProvider(diveId)).value,
+              actualDecoSeconds: ref
+                  .watch(diveDecoSecondsProvider(diveId))
+                  .value,
+              actualCnsEnd: ref.watch(diveCnsEndProvider(diveId)).value,
+              planTanks: plan.state.tanks,
+            ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// On a dive that has been dived: whether to show what happened or the plan.
+/// Nothing on a dive that is still only a plan.
+class PlanActualToggle extends ConsumerWidget {
+  const PlanActualToggle({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final actual = ref.watch(selectedDiveActualProvider);
+    if (actual == null) return const SizedBox.shrink();
+    final l10n = context.l10n;
+    final units = ref.watch(unitFormatterProvider);
+    final showPlan = ref.watch(showPlanOfDivedProvider);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 12,
+        runSpacing: 4,
+        children: [
+          SegmentedButton<bool>(
+            key: const Key('planActualToggle'),
+            segments: [
+              ButtonSegment(
+                value: false,
+                label: Text(l10n.plannerSeries_view_actual),
+              ),
+              ButtonSegment(
+                value: true,
+                label: Text(l10n.plannerSeries_view_plan),
+              ),
+            ],
+            selected: {showPlan},
+            showSelectedIcon: false,
+            onSelectionChanged: (selection) =>
+                ref.read(showPlanOfDivedProvider.notifier).state =
+                    selection.first,
+          ),
+          if (showPlan)
+            Text(
+              l10n.plannerSeries_view_planNote(
+                seriesLoggedDiveLabel(actual.followed, units),
+              ),
+            ),
         ],
       ),
     );

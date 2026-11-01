@@ -812,6 +812,7 @@ class DivePlanRepository {
       name: row.name,
       notes: row.notes,
       siteId: row.siteId,
+      seriesId: row.seriesId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       mode: domain.PlanMode.values.byName(row.mode),

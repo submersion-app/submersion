@@ -20792,6 +20792,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerfen';
 
   @override
+  String get plannerSeries_view_actual => 'Tatsächlich';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Wie geplant. Getaucht als $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return '$dive hat eine kritische Warnung, daher wurden die geplanten Tauchgänge nicht aktualisiert';
   }

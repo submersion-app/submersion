@@ -201,6 +201,10 @@ class DivePlan extends Equatable {
   final String? sourceDiveId;
   final String? linkedDiveId;
 
+  /// The saved series this plan is a dive of; read-only here, written by the
+  /// series repository.
+  final String? seriesId;
+
   /// CNS% this dive starts with: the exposure earlier dives in a repetitive
   /// series leave behind, already decayed over [surfaceInterval] (issue
   /// #3565). An engine input only: not persisted, 0 for a fresh diver.
@@ -295,6 +299,7 @@ class DivePlan extends Equatable {
     this.surfaceInterval,
     this.sourceDiveId,
     this.linkedDiveId,
+    this.seriesId,
     this.startCns = 0,
     this.startOtu = 0,
     this.setpointLow,
@@ -547,6 +552,7 @@ class DivePlan extends Equatable {
       linkedDiveId: clearLinkedDiveId
           ? null
           : (linkedDiveId ?? this.linkedDiveId),
+      seriesId: seriesId,
       startCns: startCns ?? this.startCns,
       startOtu: startOtu ?? this.startOtu,
       setpointLow: clearSetpointLow ? null : (setpointLow ?? this.setpointLow),
@@ -630,6 +636,7 @@ class DivePlan extends Equatable {
     surfaceInterval,
     sourceDiveId,
     linkedDiveId,
+    seriesId,
     startCns,
     startOtu,
     setpointLow,

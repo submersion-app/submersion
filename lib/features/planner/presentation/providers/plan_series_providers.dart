@@ -157,9 +157,32 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   /// selected dive. Not an outside load: it is the series doing the loading.
   void loadSeries(PlanSeries series) {
     _earlier = const [];
-    state = series;
+    state = _withActuals(series);
     _loadSelected();
   }
+
+  /// What the log last said about the dives dived, by plan id.
+  Map<String, SeriesFollow> _actuals = const {};
+
+  /// Takes what the log says about the dives that have been dived, and
+  /// recalculates from them. A download undone takes its dive back to the plan.
+  void setActuals(Map<String, SeriesFollow> actuals) {
+    _actuals = actuals;
+    final next = _withActuals(state);
+    if (next == state) return;
+    state = next;
+    _loadSelected();
+  }
+
+  PlanSeries _withActuals(PlanSeries series) => series.copyWith(
+    dives: [
+      for (final dive in series.dives)
+        if (_actuals[dive.state.id] case final actual?)
+          dive.copyWith(actual: actual)
+        else
+          dive.copyWith(clearActual: true),
+    ],
+  );
 
   /// Links dives to their entries in the log, by index.
   void setLinkedDives(Map<int, String> links) {
@@ -416,6 +439,19 @@ final canAddSeriesDiveProvider = Provider<bool>(
 final missionAllowedProvider = Provider<bool>(
   (ref) => edits.canPlanMission(ref.watch(planSeriesNotifierProvider)),
 );
+
+/// The selected dive as it was actually dived; null while it is only a plan.
+final selectedDiveActualProvider = Provider<SeriesFollow?>(
+  (ref) =>
+      ref.watch(planSeriesNotifierProvider.select((s) => s.selected.actual)),
+);
+
+/// Whether a dive that has been dived shows its original plan rather than what
+/// happened. Starts over on each dive.
+final showPlanOfDivedProvider = StateProvider<bool>((ref) {
+  ref.watch(planSeriesNotifierProvider.select((s) => s.selected.state.id));
+  return false;
+});
 
 /// Whether any dive of the plan has an entry in the log yet, which decides
 /// whether the menu offers to create the planned dives or update them.

@@ -34,7 +34,7 @@ Future<void> saveCurrentSeries(ProviderContainer container) async {
   );
   if (!notifier.mounted) return;
   notifier.loadSeries(
-    _toSeries(
+    seriesFromStored(
       stored,
       // A followed dive deleted since it was followed has gone from the row.
       follow: stored.followedDiveId == null ? null : series.follow,
@@ -53,12 +53,14 @@ Future<StoredSeries> currentStoredSeries(ProviderContainer container) async {
   for (var i = 0; i < series.dives.length; i++) {
     final dive = series.dives[i];
     final result = results[i];
+    final stored = await plans.getPlan(dive.state.id);
     dives.add(
       StoredSeriesDive(
-        plan: divePlanFromState(
-          result.state,
-          existing: await plans.getPlan(dive.state.id),
-        ),
+        // A dive that has been dived keeps its original plan: its state in
+        // the chain has what happened.
+        plan: stored != null && dive.actual != null
+            ? stored
+            : divePlanFromState(result.state, existing: stored),
         name: dive.name,
         fixedStart: dive.fixedStart,
         settingOverrides: dive.settingOverrides,
@@ -105,7 +107,7 @@ Future<void> openSavedPlan(ProviderContainer container, String planId) async {
 
   final index = stored.dives.indexWhere((dive) => dive.plan.id == planId);
   notifier.loadSeries(
-    _toSeries(
+    seriesFromStored(
       stored,
       follow: follow == null ? null : _withOwnPressures(follow, stored),
       selectedIndex: index < 0 ? 0 : index,
@@ -113,7 +115,7 @@ Future<void> openSavedPlan(ProviderContainer container, String planId) async {
   );
 }
 
-PlanSeries _toSeries(
+PlanSeries seriesFromStored(
   StoredSeries stored, {
   required SeriesFollow? follow,
   required int selectedIndex,

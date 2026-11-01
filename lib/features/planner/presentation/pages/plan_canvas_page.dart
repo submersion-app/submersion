@@ -81,6 +81,17 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   @override
   void initState() {
     super.initState();
+    // What has actually been dived replaces the plan in the chain.
+    ref.listenManual(seriesActualsProvider, (_, next) {
+      final actuals = next.value;
+      if (actuals == null) return;
+      // Deferred: this can fire inside a build, where providers can't change.
+      Future.microtask(() {
+        if (mounted) {
+          ref.read(planSeriesNotifierProvider.notifier).setActuals(actuals);
+        }
+      });
+    }, fireImmediately: true);
     final planId = widget.planId;
     if (planId != null) {
       // Riverpod 3 forbids provider mutation during widget lifecycle
@@ -437,6 +448,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       );
     }
     final editorCollapsed = ref.watch(editorPaneCollapsedProvider);
+    final planDived = ref.watch(selectedDiveActualProvider) != null;
     final resultsVisible = fullWidth
         ? !ref.watch(resultsPaneCollapsedProvider)
         : ref.watch(resultsPaneNarrowExpandedProvider);
@@ -452,7 +464,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     return Row(
       children: [
         if (!editorCollapsed) ...[
-          const SizedBox(width: 320, child: PlanEditorPane()),
+          SizedBox(
+            width: 320,
+            child: _ReadOnlyWhenDived(
+              dived: planDived,
+              child: const PlanEditorPane(),
+            ),
+          ),
           const VerticalDivider(width: 1),
         ],
         Expanded(
@@ -489,6 +507,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           child: PlanSeriesNavigator(),
         ),
         const PlanFollowPrompt(),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: PlanActualToggle(),
+        ),
         Expanded(
           child: Stack(
             children: [
@@ -578,6 +600,12 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       slivers: [
         const SliverToBoxAdapter(child: PlanSeriesNavigator()),
         const SliverToBoxAdapter(child: PlanFollowPrompt()),
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: PlanActualToggle(),
+          ),
+        ),
         SliverToBoxAdapter(
           child: SizedBox(
             height: chartHeight,
@@ -651,7 +679,12 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        SliverToBoxAdapter(child: _phoneTabBody(tab)),
+        SliverToBoxAdapter(
+          child: _ReadOnlyWhenDived(
+            dived: ref.watch(selectedDiveActualProvider) != null,
+            child: _phoneTabBody(tab),
+          ),
+        ),
       ],
     );
   }
@@ -1119,4 +1152,17 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     if (entered == null) return;
     notifier.updateName(entered);
   }
+}
+
+/// Keeps the plan of a dive that has been dived from being edited: it is the
+/// record of what was planned.
+class _ReadOnlyWhenDived extends StatelessWidget {
+  const _ReadOnlyWhenDived({required this.dived, required this.child});
+
+  final bool dived;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      IgnorePointer(ignoring: dived, child: child);
 }

@@ -40,6 +40,12 @@ class PlanSeriesDive extends Equatable {
   /// series' (the first dive's). Always empty on the first dive.
   final Set<PlanSettingGroup> settingOverrides;
 
+  /// What this dive left behind once it was actually dived: its entry in the
+  /// log (through [DivePlanState.linkedDiveId]) is no longer planned. Null while
+  /// it is still only a plan. Read live from the log, never stored, and [state]
+  /// stays the original plan.
+  final SeriesFollow? actual;
+
   const PlanSeriesDive({
     required this.state,
     this.sourceTankIds = const {},
@@ -47,6 +53,7 @@ class PlanSeriesDive extends Equatable {
     this.name,
     this.fixedStart = false,
     this.settingOverrides = const {},
+    this.actual,
   });
 
   PlanSeriesDive copyWith({
@@ -57,6 +64,8 @@ class PlanSeriesDive extends Equatable {
     bool clearName = false,
     bool? fixedStart,
     Set<PlanSettingGroup>? settingOverrides,
+    SeriesFollow? actual,
+    bool clearActual = false,
   }) {
     return PlanSeriesDive(
       state: state ?? this.state,
@@ -65,6 +74,7 @@ class PlanSeriesDive extends Equatable {
       name: clearName ? null : (name ?? this.name),
       fixedStart: fixedStart ?? this.fixedStart,
       settingOverrides: settingOverrides ?? this.settingOverrides,
+      actual: clearActual ? null : (actual ?? this.actual),
     );
   }
 
@@ -76,6 +86,7 @@ class PlanSeriesDive extends Equatable {
     name,
     fixedStart,
     settingOverrides,
+    actual,
   ];
 }
 

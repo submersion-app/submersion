@@ -115,6 +115,36 @@ final followSuggestionProvider = FutureProvider.autoDispose<Dive?>((ref) async {
   return now.difference(diveEnd(latest)) < followLookback ? latest : null;
 });
 
+/// What the log says about the dives of the series that have been dived, by
+/// plan id (issue #3565): a planned entry becomes a dive by Mark as logged, the
+/// edit page's switch or a download, and an undone download reverses that, so
+/// this watches the log. Nothing is read while no dive has an entry.
+final seriesActualsProvider = FutureProvider<Map<String, SeriesFollow>>((
+  ref,
+) async {
+  final links = ref.watch(
+    planSeriesNotifierProvider.select(
+      (s) => [
+        for (final dive in s.dives)
+          if (dive.state.linkedDiveId case final id?) '${dive.state.id}|$id',
+      ].join(','),
+    ),
+  );
+  if (links.isEmpty) return const {};
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+
+  final actuals = <String, SeriesFollow>{};
+  for (final link in links.split(',')) {
+    final [planId, diveId] = link.split('|');
+    final dive = await repository.getDiveById(diveId);
+    if (dive == null || dive.isPlanned) continue;
+    final follow = await ref.watch(seriesFollowProvider(diveId).future);
+    if (follow != null) actuals[planId] = follow;
+  }
+  return actuals;
+});
+
 /// Logged dives whose Follow prompt the diver dismissed this session.
 final dismissedFollowSuggestionsProvider = StateProvider<Set<String>>(
   (ref) => const {},
@@ -133,7 +163,13 @@ final viewedLoggedDiveIdProvider = StateProvider<String?>((ref) {
 /// the series still follows it.
 final viewedLoggedDiveProvider = Provider<SeriesLoggedDive?>((ref) {
   final id = ref.watch(viewedLoggedDiveIdProvider);
-  if (id == null) return null;
+  if (id == null) {
+    // A dive of the series that has been dived shows what happened, unless the
+    // diver asked for its plan.
+    final actual = ref.watch(selectedDiveActualProvider);
+    if (actual == null || ref.watch(showPlanOfDivedProvider)) return null;
+    return actual.followed;
+  }
   final follow = ref.watch(planSeriesNotifierProvider.select((s) => s.follow));
   for (final dive in follow?.loggedDives ?? const <SeriesLoggedDive>[]) {
     if (dive.id == id) return dive;

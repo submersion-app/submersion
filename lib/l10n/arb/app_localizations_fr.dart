@@ -20877,6 +20877,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Abandonner';
 
   @override
+  String get plannerSeries_view_actual => 'Réel';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Tel que planifié. Plongée sous $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return '$dive a un avertissement critique : les plongées planifiées n\'ont pas été mises à jour';
   }

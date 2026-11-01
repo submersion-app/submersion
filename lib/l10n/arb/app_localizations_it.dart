@@ -20819,6 +20819,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Scarta';
 
   @override
+  String get plannerSeries_view_actual => 'Reale';
+
+  @override
+  String get plannerSeries_view_plan => 'Piano';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Come pianificato. Effettuata come $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return '$dive ha un avviso critico, quindi le immersioni pianificate non sono state aggiornate';
   }

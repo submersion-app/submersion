@@ -20819,6 +20819,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Descartar';
 
   @override
+  String get plannerSeries_view_actual => 'Real';
+
+  @override
+  String get plannerSeries_view_plan => 'Plano';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Conforme planeado. Realizado como $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return '$dive tem um aviso crítico, por isso os mergulhos planeados não foram atualizados';
   }

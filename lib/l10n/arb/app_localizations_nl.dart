@@ -20685,6 +20685,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerpen';
 
   @override
+  String get plannerSeries_view_actual => 'Werkelijk';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Zoals gepland. Gedoken als $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return '$dive heeft een kritieke waarschuwing, dus de geplande duiken zijn niet bijgewerkt';
   }

@@ -12962,6 +12962,16 @@
   "plannerSeries_unsaved_title": "Save this series?",
   "plannerSeries_unsaved_body": "This series has changes that haven't been saved.",
   "plannerSeries_unsaved_discard": "Discard",
+  "plannerSeries_view_actual": "Actual",
+  "plannerSeries_view_plan": "Plan",
+  "plannerSeries_view_planNote": "As planned. Dived as {dive}.",
+  "@plannerSeries_view_planNote": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
   "plannerSeries_cannotUpdate": "{dive} has a critical warning, so the planned dives weren't updated",
   "@plannerSeries_cannotUpdate": {
     "placeholders": {

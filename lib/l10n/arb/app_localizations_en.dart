@@ -20508,6 +20508,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Discard';
 
   @override
+  String get plannerSeries_view_actual => 'Actual';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'As planned. Dived as $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return '$dive has a critical warning, so the planned dives weren\'t updated';
   }

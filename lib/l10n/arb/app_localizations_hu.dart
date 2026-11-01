@@ -20741,6 +20741,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Elvetés';
 
   @override
+  String get plannerSeries_view_actual => 'Tényleges';
+
+  @override
+  String get plannerSeries_view_plan => 'Terv';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'A terv szerint. Merülve mint $dive.';
+  }
+
+  @override
   String plannerSeries_cannotUpdate(String dive) {
     return '$dive kritikus figyelmeztetést tartalmaz, ezért a tervezett merülések nem frissültek';
   }

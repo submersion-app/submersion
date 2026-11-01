@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
@@ -55,4 +56,44 @@ final sourceDiveDecoSecondsProvider = FutureProvider<int?>((ref) async {
     profile: await _analysedSamples(ref, dive),
     decoStopCurve: analysis.decoStopCurve,
   );
+});
+
+/// The same readings for any logged dive, for a dive of a series that has been
+/// dived (issue #3565).
+final diveTtsSecondsProvider = FutureProvider.family<int?, String>((
+  ref,
+  diveId,
+) async {
+  final dive = await ref.watch(diveProvider(diveId).future);
+  if (dive == null || dive.profile.isEmpty) return null;
+  final analysis = await ref.watch(profileAnalysisProvider(dive.id).future);
+  return loggedTtsSeconds(
+    profile: await _analysedSamples(ref, dive),
+    ttsCurve: analysis?.ttsCurve,
+  );
+});
+
+final diveDecoSecondsProvider = FutureProvider.family<int?, String>((
+  ref,
+  diveId,
+) async {
+  final dive = await ref.watch(diveProvider(diveId).future);
+  if (dive == null || dive.profile.isEmpty) return null;
+  final analysis = await ref.watch(profileAnalysisProvider(dive.id).future);
+  if (analysis == null) return null;
+  return loggedDecoSeconds(
+    profile: await _analysedSamples(ref, dive),
+    decoStopCurve: analysis.decoStopCurve,
+  );
+});
+
+final diveCnsEndProvider = FutureProvider.family<double?, String>((
+  ref,
+  diveId,
+) async {
+  final dive = await ref.watch(diveProvider(diveId).future);
+  if (dive == null || dive.profile.isEmpty) return null;
+  final series = await ref.watch(diveAnalysisSeriesProvider(dive.id).future);
+  if (series == null) return null;
+  return extractComputerCns(series.points)?.cnsEnd;
 });
