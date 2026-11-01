@@ -379,8 +379,14 @@ authoritative where the body above differs.
   a scrubber only with one.
 - **Save all with an open cell.** The cell closes and its text lands as a
   draft first, so it is in the summary and the save.
-- **Closing the window.** Not guarded yet: the app's exit handler always
-  answers exit, by design, and a prompt there is a change to that contract.
+- **Closing the window.** `AppExitGuard` answers the platform's exit request
+  first. With unsaved work it cancels at once and asks after, rather than
+  waiting for the diver: on macOS a second Cmd+Q while a reply is outstanding
+  terminates with no prompt. Discarding requests the exit again. The macOS
+  close button removes the window before AppKit asks to quit, so while the
+  page is open the window is kept from closing through `window_manager`,
+  which owns the window's delegate. Windows and Linux need neither: a close
+  there is already a cancellable exit request with the window still up.
 
 ## Out of scope, noted for later
 

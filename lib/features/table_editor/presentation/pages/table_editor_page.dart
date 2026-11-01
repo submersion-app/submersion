@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -56,6 +57,13 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   /// A Save all is running, from its summary to its last write.
   var _saving = false;
 
+  // Kept here, since dispose cannot read a provider.
+  late final AppExitGuard _exitGuard = ref.read(appExitGuardProvider);
+  late final AppExitBlocker _exitBlocker = AppExitBlocker(
+    hasUnsavedWork: () => _anyDrafts || _anyOpenCell,
+    confirmLeaving: _confirmQuit,
+  );
+
   TableEditorTab get _tab => TableEditorTab.values[_tabs.index];
 
   @override
@@ -64,10 +72,12 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     _tabs.addListener(() {
       if (!_tabs.indexIsChanging) setState(() => _settled = _tabs.index);
     });
+    _exitGuard.hold(_exitBlocker);
   }
 
   @override
   void dispose() {
+    _exitGuard.release(_exitBlocker);
     _tabs.dispose();
     _focus.dispose();
     super.dispose();
@@ -137,6 +147,19 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       _clearDrafts(tab);
     }
     navigator.pop();
+  }
+
+  /// The app is quitting: an open cell lands first, since an untouched one
+  /// holds nothing to ask about. True lets the quit go ahead.
+  Future<bool> _confirmQuit() async {
+    await _closeOpenCells();
+    if (!mounted || !_anyDrafts) return true;
+    if (!await _confirmDiscard()) return false;
+    if (!mounted) return true;
+    for (final tab in TableEditorTab.values) {
+      _clearDrafts(tab);
+    }
+    return true;
   }
 
   /// The tab bar has already moved to [index] when this runs, so the tab

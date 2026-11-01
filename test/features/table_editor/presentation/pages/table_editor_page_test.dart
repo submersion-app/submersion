@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -97,6 +99,7 @@ void main() {
     Size size = const Size(1200, 800),
     List<SiteWithCount> sites = const [],
     TableEditorSaveService? saveService,
+    AppExitGuard? exitGuard,
   }) async {
     // The width gate reads MediaQuery, which follows the view, not the
     // test surface.
@@ -145,6 +148,8 @@ void main() {
         overrides: [
           if (saveService != null)
             tableEditorSaveServiceProvider.overrideWithValue(saveService),
+          if (exitGuard != null)
+            appExitGuardProvider.overrideWithValue(exitGuard),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
@@ -682,6 +687,103 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    });
+  });
+
+  group('quitting the app', () {
+    late int retried;
+    late int closed;
+    late AppExitGuard guard;
+
+    setUp(() {
+      retried = 0;
+      closed = 0;
+      guard = AppExitGuard(
+        retryExit: () async => retried++,
+        preventWindowClose: (_) async {},
+      );
+    });
+
+    Future<AppExitResponse> close() async {
+      closed++;
+      return AppExitResponse.exit;
+    }
+
+    testWidgets('with drafts it is cancelled and asks, and keep editing '
+        'stays', (tester) async {
+      await pumpPage(tester, exitGuard: guard);
+      await draftVisibility(tester, '12');
+
+      expect(await guard.answer(close), AppExitResponse.cancel);
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.forms_discard_title), findsOneWidget);
+
+      await tester.tap(find.text(l10n.forms_discard_keepEditing));
+      await tester.pumpAndSettle();
+
+      expect(retried, 0);
+      expect(closed, 0);
+      expect(find.text(l10n.tableEditor_draftCount(1)), findsOneWidget);
+    });
+
+    testWidgets('discarding clears the drafts and quits', (tester) async {
+      await pumpPage(tester, exitGuard: guard);
+      await draftVisibility(tester, '12');
+
+      await guard.answer(close);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.forms_discard_discard));
+      await tester.pumpAndSettle();
+
+      expect(retried, 1);
+      expect(find.text(l10n.tableEditor_draftCount(1)), findsNothing);
+      expect(await guard.answer(close), AppExitResponse.exit);
+      expect(closed, 1);
+    });
+
+    testWidgets('a cell still being typed in counts as unsaved', (
+      tester,
+    ) async {
+      await pumpPage(tester, exitGuard: guard);
+      await tester.tap(find.text(vis(15)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byType(TextField), '12');
+
+      expect(await guard.answer(close), AppExitResponse.cancel);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.forms_discard_title), findsOneWidget);
+    });
+
+    testWidgets('an untouched open cell quits without asking', (tester) async {
+      await pumpPage(tester, exitGuard: guard);
+      await tester.tap(find.text(vis(15)));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      await guard.answer(close);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.forms_discard_title), findsNothing);
+      expect(retried, 1);
+    });
+
+    testWidgets('with no drafts nothing stands in the way', (tester) async {
+      await pumpPage(tester, exitGuard: guard);
+
+      expect(await guard.answer(close), AppExitResponse.exit);
+      expect(closed, 1);
+    });
+
+    testWidgets('the guard goes with the page', (tester) async {
+      await pumpPage(tester, exitGuard: guard);
+      await draftVisibility(tester, '12');
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.forms_discard_discard));
+      await tester.pumpAndSettle();
+
+      expect(await guard.answer(close), AppExitResponse.exit);
     });
   });
 }
