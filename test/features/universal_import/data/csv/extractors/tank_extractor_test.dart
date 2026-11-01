@@ -381,6 +381,16 @@ void main() {
         expect(tanks[0]['gasMix'], const GasMix(o2: 32));
       });
 
+      test('a flat field fills in for a numbered zero', () {
+        final tanks = extractor.extract({
+          'tankVolume_1': '0',
+          'startPressure_1': 200.0,
+          'tankVolume': 12.0,
+        }, diveId);
+
+        expect(tanks.single['volume'], 12.0);
+      });
+
       test('flat fields fill only the first numbered group', () {
         final tanks = extractor.extract({
           'startPressure_1': 200.0,
