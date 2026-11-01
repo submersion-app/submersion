@@ -1141,6 +1141,24 @@ class MediaRepository {
     return [for (final row in rows) row.read(id)!];
   }
 
+  /// Documents with a thumb in the store that this device can read: its own,
+  /// or from before origin tracking. [PdfThumbRefreshSweep] renders these
+  /// again; a row another device imported is that device's to render.
+  Future<List<domain.MediaItem>> getDocumentsWithStoredThumbOwnedBy(
+    String deviceId,
+  ) async {
+    final rows =
+        await (_db.select(_db.media)..where(
+              (t) =>
+                  t.fileType.equals('document') &
+                  t.remoteThumbUploadedAt.isNotNull() &
+                  (t.originDeviceId.isNull() |
+                      t.originDeviceId.equals(deviceId)),
+            ))
+            .get();
+    return [for (final row in rows) mediaItemFromRow(row, null)];
+  }
+
   /// Gallery rows that record no origin device, with the asset id each was
   /// linked under: the rows the gallery origin backfill checks against this
   /// device's library (media sync program spec 6.1).
