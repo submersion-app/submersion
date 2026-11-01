@@ -177,6 +177,10 @@ SynthesizedRemainder synthesizeRemainder({
   int stepSeconds = 10,
   int extraLastStopSeconds = 0,
 }) {
+  assert(
+    loop == null || loop.switchDepth == plan.effectiveSetpointSwitchDepth,
+    'legs are cut at the plan\'s switch, so the loop must change setpoint there',
+  );
   final b = _Builder(plan, loop, scr, stepSeconds);
   b.sample(startTimestamp, startDepth);
 

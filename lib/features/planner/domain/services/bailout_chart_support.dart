@@ -96,7 +96,7 @@ List<(int, double)> worstCaseCeilingTrace({
       toDepth: stop.depthMeters,
       phase: phase,
     );
-    if (legSeconds > 0) sampleTravel(depth, stop.depthMeters, legSeconds);
+    sampleTravel(depth, stop.depthMeters, legSeconds);
     if (stop.durationSeconds > 0) {
       sampleLeg(stop.depthMeters, stop.depthMeters, stop.durationSeconds);
     }
@@ -109,7 +109,7 @@ List<(int, double)> worstCaseCeilingTrace({
       toDepth: 0,
       phase: AscentPhase.surfacingAfter(phase),
     );
-    if (legSeconds > 0) sampleTravel(depth, 0, legSeconds);
+    sampleTravel(depth, 0, legSeconds);
   }
 
   return trace;

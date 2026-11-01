@@ -41,9 +41,10 @@ List<AscentLeg> splitAscentLeg(
 /// span runs along the leg's own straight line from where the last one ended,
 /// and a span rounded away to no time is left out.
 ///
-/// A switch a few millimetres above a stop leaves such a span. Its seconds and
-/// gas charge nothing, which is all the table needs, but stopping at its depth
-/// would leave the walk short of the stop.
+/// A switch just above a stop leaves such a span, as O2's MOD does 18 mm above
+/// a 6 m stop in salt water. Its seconds and gas charge nothing, which is all
+/// the table needs, but stopping at its depth would leave the walk short of the
+/// stop.
 List<AscentLeg> straightAscentSpans(
   AscentGasPlan ascentPlan, {
   required double fromDepth,
