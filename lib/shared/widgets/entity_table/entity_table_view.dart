@@ -149,8 +149,17 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
 
   /// A tap on a cell, with its entity and column. When set (and selection
   /// mode is off) a cell tap goes here instead of [onEntityTap], so an
-  /// editor can open the cell (#3422). Double taps stay the row's.
+  /// editor can open the cell (#3422). Double taps stay the row's, unless
+  /// [cellDoubleTap] is set.
   final void Function(T entity, F field)? onCellTap;
+
+  /// What a double tap on a cell does, or null for a cell that has none, so
+  /// its single tap lands at once rather than waiting to see if a second
+  /// follows (#3422). Used with [onCellTap], in place of [onEntityDoubleTap].
+  final VoidCallback? Function(T entity, F field)? cellDoubleTap;
+
+  /// Shown in brackets after a column's label, such as its unit (#3422).
+  final String? Function(F field)? headerSuffix;
 
   /// Replaces a cell's text with the widget it returns, filling the cell's
   /// box with no padding; null keeps the formatted text (#3422).
@@ -190,6 +199,8 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     this.isEntityMuted,
     this.cellTrailingBuilder,
     this.onCellTap,
+    this.cellDoubleTap,
+    this.headerSuffix,
     this.cellBuilder,
     this.cellBackground,
   });
@@ -446,6 +457,7 @@ class _EntityTableViewState<T, F extends EntityField>
       onResize: (w) => _resizeLive(col.field, w),
       onResizeEnd: () => _resizeCommit(col.field),
       isFiltered: widget.isColumnFiltered?.call(col.field) ?? false,
+      labelSuffix: widget.headerSuffix?.call(col.field),
       onOpenMenu: _hasHeaderMenu
           ? (position) => _openHeaderMenu(context, col.field, position)
           : null,
@@ -532,6 +544,7 @@ class _EntityTableViewState<T, F extends EntityField>
         : GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => onCellTap(entity, column.field),
+            onDoubleTap: widget.cellDoubleTap?.call(entity, column.field),
             child: muted,
           );
     final menu = widget.cellMenuBuilder;

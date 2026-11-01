@@ -42887,6 +42887,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tableEditor_flag_pairIncomplete => 'Necesita latitud y longitud';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType =>
+      'Necesita un tipo de scrubber';
+
+  @override
   String get tableEditor_flag_changedElsewhere =>
       'Cambiado en otro sitio desde tu edición';
 

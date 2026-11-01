@@ -13,6 +13,10 @@ enum TableDraftFlag {
   /// One half of a coordinate pair drafted on a record without the other.
   pairIncomplete,
 
+  /// A scrubber duration on a dive with no scrubber type: the dive only keeps
+  /// a duration beside a type, so saving it alone would show nothing.
+  needsScrubberType,
+
   /// The stored value moved since the draft was made (a sync or import).
   changedElsewhere,
 }
@@ -55,10 +59,12 @@ class TableDraft extends Equatable {
 
   bool get isSaveable => flag == null;
 
-  /// Whether saving replaces a value rather than filling an empty one.
+  /// Whether saving replaces a value rather than filling an empty one. A
+  /// toggle left at false is empty in that sense: nothing was set on it.
   bool get overwrites =>
       original != null &&
       original != '' &&
+      original != false &&
       !(original is List && (original! as List).isEmpty);
 
   /// Whether [value] is what is already stored.

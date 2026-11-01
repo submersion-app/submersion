@@ -154,7 +154,7 @@ void providerIntegration() {
         domain.DiveWeight(
           id: '',
           diveId: '',
-          weightType: WeightType.belt,
+          weightType: WeightType.integrated,
           amountKg: 5,
         ),
       ],
@@ -195,6 +195,10 @@ void providerIntegration() {
       () => container.read(tableEditorDiveEntityProvider).value,
     );
     expect(entity.columns, isNotEmpty);
+    expect(
+      (await container.read(tableEditorNewWeightTypeProvider.future)),
+      WeightType.integrated,
+    );
     final rows = await settle(
       () => container.read(tableEditorSitesProvider).value,
     );

@@ -104,8 +104,13 @@ class TableDraftsNotifier extends StateNotifier<TableDraftState> {
     );
   }
 
-  void setEditing(CellPosition? cell) =>
-      state = state.copyWith(editing: cell, clearEditing: cell == null);
+  /// Opens [cell], or closes the open cell when null. An opened cell is the
+  /// selected one too, so a paste follows the keyboard; closing keeps it.
+  void setEditing(CellPosition? cell) => state = state.copyWith(
+    editing: cell,
+    clearEditing: cell == null,
+    selected: cell,
+  );
 
   /// Whether [cell] is the open cell right now, for a commit that must not
   /// close an editor the sheet has already moved elsewhere.
@@ -115,6 +120,19 @@ class TableDraftsNotifier extends StateNotifier<TableDraftState> {
   /// was built from.
   TableDraft? draftAt(CellPosition cell) =>
       state.at(cell.entityId, cell.fieldName);
+
+  /// The record's drafts right now, for a deferred commit that must not put
+  /// back what it saw when it was built.
+  List<TableDraft> draftsFor(String entityId) => state.forEntity(entityId);
+
+  /// Makes [drafts] the record's whole set, dropping any left out.
+  void replaceEntity(String entityId, List<TableDraft> drafts) {
+    final kept = {for (final d in drafts) d.fieldName};
+    for (final d in state.forEntity(entityId)) {
+      if (!kept.contains(d.fieldName)) remove(entityId, d.fieldName);
+    }
+    putAll(drafts);
+  }
 
   void setSelected(CellPosition? cell) =>
       state = state.copyWith(selected: cell, clearSelected: cell == null);

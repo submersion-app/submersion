@@ -70,14 +70,14 @@ void main() {
   }
 
   Future<DiveTableEditorEntity> entity() async {
-    final dives = await diveRepo.getDivesByIdsWithoutSamples(['d1', 'd2']);
     return DiveTableEditorEntity(
       diveRepo: diveRepo,
       bulk: bulk,
       sites: const [ChoiceOption('s1', 'Site s1')],
       centers: const [],
       trips: const [],
-      defaultWeightType: DiveTableEditorEntity.latestWeightType(dives),
+      defaultWeightType:
+          await diveRepo.latestWeightType(null) ?? WeightType.belt,
     );
   }
 
@@ -216,4 +216,103 @@ void main() {
       closeTo(1.0132, 1e-3),
     );
   });
+
+  test('the latest weight type comes from the diver\'s log, newest dive '
+      'first', () async {
+    Future<void> dive(String id, int day, String diver) => diveRepo.createDive(
+      domain.Dive(
+        id: id,
+        diverId: diver,
+        dateTime: DateTime(2026, 1, day),
+        notes: '',
+      ),
+    );
+    await dive('old', 1, 'me');
+    await dive('new', 2, 'me');
+    await dive('other', 3, 'someone else');
+    await dive('bare', 4, 'me');
+    expect(await diveRepo.latestWeightType('me'), isNull);
+
+    await diveRepo.bulkAddWeights(['old'], [weight(2)]);
+    await diveRepo.bulkAddWeights(
+      ['new'],
+      [weight(2, type: WeightType.integrated)],
+    );
+    await diveRepo.bulkAddWeights(
+      ['other'],
+      [weight(2, type: WeightType.ankleWeights)],
+    );
+
+    expect(await diveRepo.latestWeightType('me'), WeightType.integrated);
+  });
+
+  test('a scrubber duration waits for a type', () async {
+    final e = await entity();
+    final bare = domain.Dive(id: 'd1', dateTime: DateTime(2026), notes: '');
+    final duration = draft('d1', DiveField.scrubberDuration, null, 180);
+    final type = draft('d1', DiveField.scrubberType, null, 'Sofnolime');
+
+    expect(
+      e.reconcile(bare, [duration]).single.flag,
+      TableDraftFlag.needsScrubberType,
+    );
+    expect(
+      e
+          .reconcile(bare, [
+            duration.copyWith(flag: TableDraftFlag.needsScrubberType),
+            type,
+          ])
+          .map((d) => d.flag),
+      everyElement(isNull),
+    );
+
+    final typed = bare.copyWith(
+      scrubber: const domain.ScrubberInfo(type: 'Sofnolime'),
+    );
+    expect(e.reconcile(typed, [duration]).single.flag, isNull);
+    expect(
+      e
+          .reconcile(typed, [
+            duration,
+            draft('d1', DiveField.scrubberType, 'Sofnolime', null),
+          ])
+          .first
+          .flag,
+      TableDraftFlag.needsScrubberType,
+    );
+  });
+
+  test('computer model is picked from the diver\'s computers', () {
+    final e = DiveTableEditorEntity(
+      diveRepo: diveRepo,
+      bulk: bulk,
+      sites: const [],
+      centers: const [],
+      trips: const [],
+      computers: const [ChoiceOption('Perdix', 'Perdix')],
+    );
+    final column = e.columnFor(DiveField.diveComputerModel)!;
+    const units = UnitFormatter(AppSettings());
+    final l10n = AppLocalizationsEn();
+
+    expect(column.kind, CellEditorKind.reference);
+    expect((column.parse('perdix', units, l10n) as CellParsed).value, 'Perdix');
+    expect(column.parse('Nope', units, l10n), isA<CellRejected>());
+  });
+
+  test(
+    'a converted number opens rounded, without its conversion tail',
+    () async {
+      await seed('d1', visibilityMeters: 15);
+      await seed('d2');
+      final e = await entity();
+      final r = await rows();
+      const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
+
+      expect(
+        e.columnFor(DiveField.visibility)!.editText(r['d1']!, imperial),
+        '49.21',
+      );
+    },
+  );
 }

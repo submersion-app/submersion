@@ -5685,6 +5685,26 @@ class DiveRepository {
     List<String> diveIds,
   ) => _weightsForDives(diveIds);
 
+  /// The type of the weight row on [diverId]'s most recent dive that has one,
+  /// or null when they have none (issue #3422). Asks the log rather than a
+  /// sheet, since a sheet filtered to weightless dives holds no answer.
+  Future<WeightType?> latestWeightType(String? diverId) async {
+    final query =
+        _db.select(_db.diveWeights).join([
+            innerJoin(
+              _db.dives,
+              _db.dives.id.equalsExp(_db.diveWeights.diveId),
+            ),
+          ])
+          ..orderBy([OrderingTerm.desc(_db.dives.diveDateTime)])
+          ..limit(1);
+    if (diverId != null) query.where(_db.dives.diverId.equals(diverId));
+    final row = await query.getSingleOrNull();
+    return row == null
+        ? null
+        : _mapWeightRow(row.readTable(_db.diveWeights)).weightType;
+  }
+
   /// Sets the amount of a dive's single weight row in place, keeping its id
   /// (issue #3422). No rows: inserts one of [newRowType]. One row: updates
   /// it, or deletes it (tombstoned) when [amountKg] is null. Two or more

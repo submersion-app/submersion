@@ -13017,6 +13017,7 @@
   "tableEditor_flag_unparsable": "Geen geldige waarde",
   "tableEditor_flag_unknownValue": "Niet in de lijst",
   "tableEditor_flag_pairIncomplete": "Breedte- en lengtegraad nodig",
+  "tableEditor_flag_scrubberNeedsType": "Vereist een scrubbertype",
   "tableEditor_flag_changedElsewhere": "Elders gewijzigd sinds je bewerking",
   "tableEditor_multiChoice_done": "Klaar",
   "tableEditor_libraryReadOnly": "Bibliotheekstek: hier zijn alleen notities en beoordeling te bewerken",

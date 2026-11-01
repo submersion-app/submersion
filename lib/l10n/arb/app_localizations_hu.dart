@@ -42616,6 +42616,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Szélesség és hosszúság is kell';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType => 'Scrubber típusa szükséges';
+
+  @override
   String get tableEditor_flag_changedElsewhere =>
       'Máshol módosult a szerkesztésed óta';
 

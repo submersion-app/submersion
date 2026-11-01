@@ -205,4 +205,47 @@ void main() {
       expect(lon.value, 2.0);
     },
   );
+
+  group('coordinate pair upkeep', () {
+    test(
+      'clearing both halves of a site with no position leaves no flags',
+      () async {
+        await seed('s1');
+        final r = await row('s1');
+
+        final out = entity().reconcile(r, [
+          draft('s1', SiteField.latitude, null, null),
+          draft(
+            's1',
+            SiteField.longitude,
+            null,
+            null,
+          ).copyWith(flag: TableDraftFlag.pairIncomplete),
+        ]);
+
+        expect(out.map((d) => d.flag), everyElement(isNull));
+      },
+    );
+
+    test('discarding one typed half flags the other', () async {
+      await seed('s1');
+      final out = entity().afterDiscard(await row('s1'), [
+        draft('s1', SiteField.latitude, null, 20.0),
+        draft('s1', SiteField.longitude, null, -87.0),
+      ], SiteField.latitude.name);
+
+      expect(out.single.fieldName, SiteField.longitude.name);
+      expect(out.single.flag, TableDraftFlag.pairIncomplete);
+    });
+
+    test('discarding a cleared half brings the whole position back', () async {
+      await seed('s1', location: const GeoPoint(20, -87));
+      final out = entity().afterDiscard(await row('s1'), [
+        draft('s1', SiteField.latitude, 20.0, null),
+        draft('s1', SiteField.longitude, -87.0, null),
+      ], SiteField.latitude.name);
+
+      expect(out, isEmpty);
+    });
+  });
 }

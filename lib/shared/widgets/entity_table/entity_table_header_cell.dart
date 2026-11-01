@@ -34,6 +34,10 @@ class EntityTableHeaderCell extends StatelessWidget {
   /// Shows a filter icon: the list has a filter on this column.
   final bool isFiltered;
 
+  /// Shown in brackets after the label, such as the unit an editable column
+  /// is typed in.
+  final String? labelSuffix;
+
   const EntityTableHeaderCell({
     super.key,
     required this.field,
@@ -47,6 +51,7 @@ class EntityTableHeaderCell extends StatelessWidget {
     this.showResizeHandle = true,
     this.onOpenMenu,
     this.isFiltered = false,
+    this.labelSuffix,
   });
 
   @override
@@ -95,7 +100,10 @@ class EntityTableHeaderCell extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          field.localizedDisplayName(context.l10n),
+                          labelSuffix == null
+                              ? field.localizedDisplayName(context.l10n)
+                              : '${field.localizedDisplayName(context.l10n)} '
+                                    '($labelSuffix)',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: theme.textTheme.labelSmall?.copyWith(

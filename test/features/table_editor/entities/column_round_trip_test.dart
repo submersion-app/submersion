@@ -58,11 +58,9 @@ void main() {
           } else {
             expect(value, stored, reason: reason);
           }
-          // Unitless numbers (a rating, a percentage) name no unit; the
-          // rest must, so the cell can show what it is in.
-          final symbol = column.unitSymbol(units);
-          if (column.kind == CellEditorKind.number && symbol != null) {
-            expect(symbol, isNotEmpty, reason: reason);
+          // A rating is the one number with no unit to name.
+          if (column.kind == CellEditorKind.number && reason != 'rating') {
+            expect(column.unitSymbol(units), isNotNull, reason: reason);
           }
           // A blank clears every column but the record's name.
           expect(
@@ -97,6 +95,7 @@ void main() {
       sites: const [ChoiceOption('s1', 'Reef')],
       centers: const [ChoiceOption('c1', 'Blue Divers')],
       trips: const [ChoiceOption('t1', 'Red Sea 2026')],
+      computers: const [ChoiceOption('Perdix', 'Perdix')],
     );
     final dive = Dive(
       id: 'd1',

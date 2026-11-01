@@ -26,6 +26,7 @@ List<DiveEditorColumn> diveEditorColumns({
   required List<ChoiceOption> sites,
   required List<ChoiceOption> centers,
   required List<ChoiceOption> trips,
+  List<ChoiceOption> computers = const [],
 }) => [
   referenceColumn(DiveField.siteName, (d) => d.site?.id, sites),
   referenceColumn(DiveField.diveCenterName, (d) => d.diveCenter?.id, centers),
@@ -109,7 +110,11 @@ List<DiveEditorColumn> diveEditorColumns({
     kDecoAlgorithmChoices,
   ),
   integerColumn(DiveField.decoConservatism, (d) => d.decoConservatism),
-  textColumn(DiveField.diveComputerModel, (d) => d.diveComputerModel),
+  referenceColumn(
+    DiveField.diveComputerModel,
+    (d) => d.diveComputerModel,
+    computers,
+  ),
   numberColumn(
     DiveField.windSpeed,
     (d) => d.windSpeed,

@@ -40380,6 +40380,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tableEditor_flag_pairIncomplete => '需要同时填写纬度和经度';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType => '需要吸收罐类型';
+
+  @override
   String get tableEditor_flag_changedElsewhere => '自您编辑后已在别处更改';
 
   @override

@@ -52,7 +52,7 @@ PasteBlock parsePasteText(String text) {
       i++;
       continue;
     }
-    if (ch == '"' && cell.isEmpty) {
+    if (ch == '"' && cell.isEmpty && _quoteCloses(text, i + 1)) {
       quoted = true;
       i++;
       continue;
@@ -80,4 +80,21 @@ PasteBlock parsePasteText(String text) {
     rows.removeLast();
   }
   return PasteBlock(rows);
+}
+
+/// Whether the quote before [from] closes on a cell boundary. A cell can start
+/// with a quote mark without being quoted (Excel only quotes a cell holding a
+/// line break), and reading one as an opening quote would swallow every cell
+/// after it.
+bool _quoteCloses(String text, int from) {
+  for (var i = from; i < text.length; i++) {
+    if (text[i] != '"') continue;
+    final next = i + 1 < text.length ? text[i + 1] : null;
+    if (next == '"') {
+      i++;
+      continue;
+    }
+    return next == null || next == '\t' || next == '\n' || next == '\r';
+  }
+  return false;
 }

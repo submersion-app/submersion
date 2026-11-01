@@ -125,4 +125,23 @@ void main() {
       expect(valueOf(parseTextCell('   ')), isNull);
     });
   });
+
+  test('a label two records share is refused, and the id still picks one', () {
+    const options = [
+      ChoiceOption('s1', 'House Reef'),
+      ChoiceOption('s2', 'House Reef'),
+    ];
+
+    expect(parseChoiceCell('House Reef', options), isA<CellRejected>());
+    expect((parseChoiceCell('s2', options) as CellParsed).value, 's2');
+  });
+
+  test('a repeated entry in a list cell counts once', () {
+    const options = [ChoiceOption('shore', 'Shore')];
+
+    expect(
+      (parseMultiChoiceCell('Shore, shore', options) as CellParsed).value,
+      ['shore'],
+    );
+  });
 }

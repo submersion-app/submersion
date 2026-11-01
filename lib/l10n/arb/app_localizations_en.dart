@@ -42152,6 +42152,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Needs both latitude and longitude';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType => 'Needs a scrubber type';
+
+  @override
   String get tableEditor_flag_changedElsewhere =>
       'Changed elsewhere since you edited it';
 

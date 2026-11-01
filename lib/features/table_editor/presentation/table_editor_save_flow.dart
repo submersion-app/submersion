@@ -29,7 +29,6 @@ class TableEditorSaveFlow {
     WidgetRef ref, {
     required TableEditorTab tab,
     required TableEditorEntity<T, F> entity,
-    required List<T> rows,
     required VoidCallback refresh,
     required VoidCallback openChangeLog,
     PastePlan<F>? lastPaste,
@@ -38,10 +37,17 @@ class TableEditorSaveFlow {
     final l10n = context.l10n;
     final notifier = ref.read(tableEditorDraftsProvider(tab).notifier);
     final drafts = ref.read(tableEditorDraftsProvider(tab));
+    if (drafts.isEmpty) return false;
+    // The page can go while the save runs and the snackbar outlives it, so
+    // nothing after the awaits below reads through ref.
+    final service = ref.read(tableEditorSaveServiceProvider);
+    final changeLog = ref.read(changeLogRepositoryProvider);
+    final revert = ref.read(changeLogRevertServiceProvider);
+    final saveable = drafts.saveable;
     final summary = SaveSummary.from(
       drafts.all,
       lastPaste: lastPaste,
-      notes: entity.summaryNotes(drafts.all, l10n),
+      notes: entity.summaryNotes(saveable, l10n),
     );
     if (confirm) {
       final go = await showSaveSummaryDialog(
@@ -52,14 +58,11 @@ class TableEditorSaveFlow {
       );
       if (!go || !context.mounted) return false;
     }
-    final saveable = drafts.saveable;
     if (saveable.isEmpty) return false;
     final messenger = ScaffoldMessenger.of(context);
     final TableEditorSaveResult result;
     try {
-      result = await ref
-          .read(tableEditorSaveServiceProvider)
-          .save(entity: entity, drafts: saveable);
+      result = await service.save(entity: entity, drafts: saveable);
     } catch (e, stackTrace) {
       _log.error('Table editor save failed', error: e, stackTrace: stackTrace);
       messenger.showSnackBar(
@@ -67,11 +70,16 @@ class TableEditorSaveFlow {
       );
       return false;
     }
+    // A cell edited again while the save ran holds a newer draft, which the
+    // save never saw: only the drafts it was given are settled here.
     final stale = {for (final s in result.changedElsewhere) s.draft.position};
     for (final d in saveable) {
-      if (!stale.contains(d.position)) notifier.remove(d.entityId, d.fieldName);
+      if (!stale.contains(d.position) && notifier.draftAt(d.position) == d) {
+        notifier.remove(d.entityId, d.fieldName);
+      }
     }
     for (final s in result.changedElsewhere) {
+      if (notifier.draftAt(s.draft.position) != s.draft) continue;
       notifier.rebase(s.draft.entityId, s.draft.fieldName, s.current);
       notifier.flag(
         s.draft.entityId,
@@ -81,9 +89,6 @@ class TableEditorSaveFlow {
     }
     refresh();
     final operationId = result.operationId;
-    // The snackbar outlives the page: capture what Undo needs now.
-    final changeLog = ref.read(changeLogRepositoryProvider);
-    final revert = ref.read(changeLogRevertServiceProvider);
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.tableEditor_saved(result.saved)),
@@ -129,6 +134,9 @@ class TableEditorSaveFlow {
       await changeLog.settleAll();
       final result = await revert.execute(
         await revert.planOperation(operationId),
+        // What changed again since the save is the diver's newer work: it
+        // stays, and the snackbar says how much was undone.
+        includeChangedSince: false,
       );
       reverted = result.reverted;
       kept = result.kept;
@@ -140,7 +148,11 @@ class TableEditorSaveFlow {
     // be looked at on its own.
     messenger.showSnackBar(
       SnackBar(
-        content: Text(kept == 0 ? undoneAll : undonePartial(reverted, total)),
+        // The revert counts changes, which a save of cells need not match:
+        // a site carries its snapped values with it.
+        content: Text(
+          kept == 0 ? undoneAll : undonePartial(reverted, reverted + kept),
+        ),
         duration: const Duration(seconds: 5),
         persist: false,
         action: kept == 0

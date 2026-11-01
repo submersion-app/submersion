@@ -81,6 +81,7 @@ PastePlan<F> planPaste<F extends EntityField>({
   required F? Function(String header) columnFromLabel,
   required bool Function(String header) isKeyHeader,
   Set<String> hiddenKeys = const {},
+  F? keyField,
 }) {
   final skipped = <PasteSkip>[];
   final cells = <PastedCell<F>>[];
@@ -97,9 +98,10 @@ PastePlan<F> planPaste<F extends EntityField>({
   }
 
   // The header row, when the first row is all column labels (or names the
-  // key column first).
+  // key column first). A lone column has nothing for a key to address, and
+  // its first value can read as one: "No" is a key word and a toggle value.
   final first = block.rows.first;
-  final keyHeader = first.isNotEmpty && isKeyHeader(first.first);
+  final keyHeader = block.columnCount >= 2 && isKeyHeader(first.first);
   final mapped = [for (final h in first) columnFromLabel(h)];
   final allLabels = first
       .asMap()
@@ -107,9 +109,10 @@ PastePlan<F> planPaste<F extends EntityField>({
       .where((e) => e.value.trim().isNotEmpty)
       .every((e) => mapped[e.key] != null || (e.key == 0 && keyHeader));
   // A row of nothing but blanks is data (a sparse column starts that way),
-  // never a header.
+  // never a header, and neither is one value, whatever it says.
   final hasLabel = first.any((h) => h.trim().isNotEmpty);
-  final hadHeader = keyHeader || (hasLabel && allLabels);
+  final hadHeader =
+      !block.isSingleValue && (keyHeader || (hasLabel && allLabels));
   final data = hadHeader ? block.rows.sublist(1) : block.rows;
 
   // Which block column carries the key, and which sheet column each data
@@ -198,6 +201,9 @@ PastePlan<F> planPaste<F extends EntityField>({
       if (sheetIndex >= visibleColumns.length) dropped++;
       while (sheetIndex < visibleColumns.length) {
         final f = visibleColumns[sheetIndex++];
+        // The block's key names the row; it is never the block's own target,
+        // or a selection in that column would rename every record.
+        if (keyed && f == keyField) continue;
         if (isEditableColumn(f)) {
           target = f;
           break;
@@ -221,6 +227,8 @@ PastePlan<F> planPaste<F extends EntityField>({
     final row = data[r];
     final SheetRow? target;
     if (keyed) {
+      // A blank line between rows addresses nothing.
+      if (row.every((c) => c.trim().isEmpty)) continue;
       final key = row.isEmpty ? '' : row.first.trim().toLowerCase();
       final raw = row.isEmpty ? '' : row.first.trim();
       if (ambiguous.contains(key)) {

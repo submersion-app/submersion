@@ -35,6 +35,7 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
     required List<ChoiceOption> sites,
     required List<ChoiceOption> centers,
     required List<ChoiceOption> trips,
+    List<ChoiceOption> computers = const [],
     this.defaultWeightType = WeightType.belt,
     GasModel gasModel = GasModel.real,
     String Function(String id)? diveTypeLabel,
@@ -48,16 +49,8 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
          sites: sites,
          centers: centers,
          trips: trips,
+         computers: computers,
        );
-
-  /// The type of the most recently dived weight row among [dives], or belt
-  /// when none of them carries a weight.
-  static WeightType latestWeightType(Iterable<Dive> dives) {
-    final withWeights = dives.where((d) => d.weights.isNotEmpty).toList()
-      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-    if (withWeights.isEmpty) return WeightType.belt;
-    return withWeights.first.weights.first.weightType;
-  }
 
   @override
   DiveField fieldFromName(String name) => adapter.fieldFromName(name);
@@ -73,6 +66,35 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
 
   @override
   String? nameOf(Dive entity) => null;
+
+  /// A dive shows a scrubber only when it has a type, so a duration without
+  /// one would save, report saved, and read back as nothing.
+  @override
+  List<TableDraft> reconcile(Dive entity, List<TableDraft> drafts) {
+    TableDraft? find(DiveField f) {
+      for (final d in drafts) {
+        if (d.fieldName == f.name) return d;
+      }
+      return null;
+    }
+
+    final duration = find(DiveField.scrubberDuration);
+    if (duration == null) return drafts;
+    final type = find(DiveField.scrubberType);
+    final hasType = type != null ? type.value != null : entity.scrubber != null;
+    final waiting = duration.value != null && !hasType;
+    return [
+      for (final d in drafts)
+        if (d != duration)
+          d
+        else if (waiting && d.flag == null)
+          d.copyWith(flag: TableDraftFlag.needsScrubberType)
+        else if (!waiting && d.flag == TableDraftFlag.needsScrubberType)
+          d.copyWith(clearFlag: true)
+        else
+          d,
+    ];
+  }
 
   @override
   Future<List<Dive>> reload(List<String> ids) =>

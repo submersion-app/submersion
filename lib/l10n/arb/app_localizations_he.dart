@@ -41805,6 +41805,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tableEditor_flag_pairIncomplete => 'נדרשים קו רוחב וקו אורך';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType => 'נדרש סוג סקרבר';
+
+  @override
   String get tableEditor_flag_changedElsewhere => 'השתנה במקום אחר מאז שערכת';
 
   @override

@@ -13,12 +13,12 @@ abstract class TableEditorEntity<T, F extends EntityField> {
 
   List<TableEditorColumn<T, F>> get columns;
 
-  TableEditorColumn<T, F>? columnFor(F field) {
-    for (final c in columns) {
-      if (c.field == field) return c;
-    }
-    return null;
-  }
+  late final Map<F, TableEditorColumn<T, F>> _columnsByField = {
+    for (final c in columns) c.field: c,
+  };
+
+  /// Read for every cell on every rebuild, so not a walk of [columns].
+  TableEditorColumn<T, F>? columnFor(F field) => _columnsByField[field];
 
   String idOf(T entity);
 
@@ -31,9 +31,28 @@ abstract class TableEditorEntity<T, F extends EntityField> {
   /// The record's name, for paste matching; null for dives.
   String? nameOf(T entity);
 
+  /// Whether a row of this entity can be locked, so the sheet reserves the
+  /// lock's column. Default: none can.
+  bool get hasRowLocks => false;
+
+  /// Why [entity]'s row is locked, for the lock's tooltip; null when it is
+  /// not.
+  String? rowLockReason(T entity, AppLocalizations l10n) => null;
+
   /// Adds or adjusts drafts that depend on each other, such as a coordinate
   /// pair. The default keeps them as they are.
   List<TableDraft> reconcile(T entity, List<TableDraft> drafts) => drafts;
+
+  /// The drafts a record keeps once the diver discards [fieldName]. The
+  /// default keeps the others as they are.
+  List<TableDraft> afterDiscard(
+    T entity,
+    List<TableDraft> drafts,
+    String fieldName,
+  ) => [
+    for (final d in drafts)
+      if (d.fieldName != fieldName) d,
+  ];
 
   /// Fresh rows for the stale check, by id.
   Future<List<T>> reload(List<String> ids);

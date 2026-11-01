@@ -18,6 +18,7 @@ void main() {
     List<SheetRow>? sheet,
     Set<String> hidden = const {},
     bool Function(TestField)? editable,
+    TestField? keyField,
   }) => planPaste<TestField>(
     block: parsePasteText(text),
     rows: sheet ?? rows,
@@ -32,6 +33,7 @@ void main() {
     },
     isKeyHeader: (h) => h.toLowerCase() == 'dive',
     hiddenKeys: hidden,
+    keyField: keyField,
   );
 
   test('single integer column is positional', () {
@@ -219,5 +221,51 @@ void main() {
 
     expect(p.matching, PasteMatching.byName);
     expect(p.skipped.single.reason, PasteSkipReason.hiddenRow);
+  });
+
+  test('one value is a value, even when it reads as a column label', () {
+    final p = plan('count');
+
+    expect(p.hadHeader, isFalse);
+    expect(p.cells.map((c) => (c.entityId, c.field, c.text)), [
+      ('d1', TestField.entityCount, 'count'),
+    ]);
+  });
+
+  test('a lone column starting with a key word is data', () {
+    // "No" is a key alias and a toggle value: a column of them must fill.
+    final p = plan('dive\nyes', selectedRow: 1);
+
+    expect(p.hadHeader, isFalse);
+    expect(p.matching, PasteMatching.byPosition);
+    expect(p.cells.map((c) => (c.entityId, c.text)), [
+      ('d2', 'dive'),
+      ('d3', 'yes'),
+    ]);
+  });
+
+  test('a keyed block never fills its own key column', () {
+    final p = plan(
+      'Reef\t7\nWreck\t9',
+      selectedColumn: 0,
+      keyField: TestField.entityName,
+      sheet: const [
+        SheetRow(id: 's1', name: 'Reef'),
+        SheetRow(id: 's2', name: 'Wreck'),
+      ],
+    );
+
+    expect(p.matching, PasteMatching.byName);
+    expect(p.cells.map((c) => (c.entityId, c.field, c.text)), [
+      ('s1', TestField.entityCount, '7'),
+      ('s2', TestField.entityCount, '9'),
+    ]);
+  });
+
+  test('a blank row in a keyed block is passed over, not an unknown row', () {
+    final p = plan('dive\tcount\n1\t6\n\t\n2\t8');
+
+    expect(p.skipped, isEmpty);
+    expect(p.cells.map((c) => c.entityId), ['d1', 'd2']);
   });
 }

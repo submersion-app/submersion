@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
-import 'package:submersion/core/constants/enums.dart' show WeightType;
+import 'package:submersion/core/constants/enums.dart'
+    show WaterType, WeightType;
+import 'package:submersion/core/constants/units.dart' show DepthUnit;
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -16,6 +18,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
+import 'package:submersion/features/table_editor/domain/table_draft_state.dart';
 import 'package:submersion/features/table_editor/entities/dive_table_editor_entity.dart';
 import 'package:submersion/features/table_editor/presentation/providers/table_editor_providers.dart';
 import 'package:submersion/features/table_editor/presentation/widgets/table_editor_sheet.dart';
@@ -85,6 +88,7 @@ void main() {
     WidgetTester tester, {
     EntityTableViewConfig<DiveField>? sheetConfig,
     List<Dive>? sheetRows,
+    AppSettings? settings,
   }) async {
     final diveRepo = DiveRepository();
     final entity = DiveTableEditorEntity(
@@ -101,7 +105,9 @@ void main() {
     await tester.pumpWidget(
       testApp(
         overrides: [
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          settingsProvider.overrideWith(
+            (ref) => MockSettingsNotifier(settings),
+          ),
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
@@ -225,18 +231,6 @@ void main() {
     );
 
     expect(find.byType(TextField), findsNothing);
-  });
-
-  testWidgets('double tap calls onOpenRecord', (tester) async {
-    await pumpSheet(tester);
-    await tester.tap(cell(vis(20)));
-    await tester.pump(kDoubleTapMinTime);
-    await tester.tap(cell(vis(20)));
-    await tester.pump();
-    // Let the double-tap recognizer's timer run out before the test ends.
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(opened, ['d2']);
   });
 
   testWidgets('Enter follows the order the sheet shows, not the list order', (
@@ -407,5 +401,278 @@ void main() {
       expect(state.editing, CellPosition('d1', DiveField.waterType.name));
       expect(find.byType(DropdownMenu<String?>), findsOneWidget);
     });
+
+    TableDraftsNotifier notifierOf(WidgetTester tester) => containerOf(
+      tester,
+    ).read(tableEditorDraftsProvider(TableEditorTab.dives).notifier);
+
+    final salty = d1.copyWith(waterType: WaterType.salt);
+    final waterCell = CellPosition('d1', DiveField.waterType.name);
+
+    Future<void> openCell(WidgetTester tester, CellPosition position) async {
+      notifierOf(tester).setEditing(position);
+      await tester.pump();
+      await tester.pump();
+    }
+
+    Future<void> closeCell(WidgetTester tester) async {
+      notifierOf(tester).setEditing(null);
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('a cleared choice stays cleared when reopened and left', (
+      tester,
+    ) async {
+      await pumpSheet(
+        tester,
+        sheetConfig: choiceConfig,
+        sheetRows: [salty, d2],
+      );
+      notifierOf(tester).put(
+        TableDraft(
+          entityId: 'd1',
+          fieldName: DiveField.waterType.name,
+          original: 'salt',
+          value: null,
+        ),
+      );
+
+      await openCell(tester, waterCell);
+      await closeCell(tester);
+
+      final draft = draftOf(tester, 'd1', DiveField.waterType);
+      expect(draft, isNotNull);
+      expect(draft!.value, isNull);
+    });
+
+    testWidgets('a flagged choice survives being opened and left', (
+      tester,
+    ) async {
+      await pumpSheet(
+        tester,
+        sheetConfig: choiceConfig,
+        sheetRows: [salty, d2],
+      );
+      notifierOf(tester).put(
+        TableDraft(
+          entityId: 'd1',
+          fieldName: DiveField.waterType.name,
+          original: 'salt',
+          value: 'salt',
+          rawText: 'Swamp',
+          flag: TableDraftFlag.unknownValue,
+        ),
+      );
+
+      await openCell(tester, waterCell);
+      await closeCell(tester);
+
+      expect(
+        draftOf(tester, 'd1', DiveField.waterType)?.flag,
+        TableDraftFlag.unknownValue,
+      );
+    });
+
+    testWidgets('Escape on a choice cell closes it without a draft', (
+      tester,
+    ) async {
+      await pumpSheet(tester, sheetConfig: choiceConfig);
+      await openCell(tester, waterCell);
+      expect(find.byType(DropdownMenu<String?>), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+
+      expect(find.byType(DropdownMenu<String?>), findsNothing);
+      expect(draftOf(tester, 'd1', DiveField.waterType), isNull);
+    });
+
+    testWidgets('Space flips a toggle reached by keyboard', (tester) async {
+      await pumpSheet(
+        tester,
+        sheetConfig: EntityTableViewConfig<DiveField>(
+          columns: [
+            EntityTableColumnConfig(field: DiveField.diveNumber),
+            EntityTableColumnConfig(field: DiveField.isFavorite),
+          ],
+        ),
+      );
+      await openCell(tester, CellPosition('d1', DiveField.isFavorite.name));
+      expect(find.byType(Checkbox), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+
+      expect(draftOf(tester, 'd1', DiveField.isFavorite)?.value, isTrue);
+    });
+
+    testWidgets('editing a multi-line value keeps its line breaks', (
+      tester,
+    ) async {
+      await pumpSheet(
+        tester,
+        sheetConfig: EntityTableViewConfig<DiveField>(
+          columns: [
+            EntityTableColumnConfig(field: DiveField.diveNumber),
+            EntityTableColumnConfig(field: DiveField.notes),
+          ],
+        ),
+        sheetRows: [
+          d1.copyWith(notes: 'one\ntwo'),
+          d2,
+        ],
+      );
+      await openCell(tester, CellPosition('d1', DiveField.notes.name));
+
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(text: 'one!\ntwo'),
+      );
+      await tester.pump();
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      expect(draftOf(tester, 'd1', DiveField.notes)?.value, 'one!\ntwo');
+    });
+
+    testWidgets('a keyboard move carries the paste target with it', (
+      tester,
+    ) async {
+      await pumpSheet(tester, sheetConfig: choiceConfig);
+      await tapCell(tester, cell(vis(15)));
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      final state = containerOf(
+        tester,
+      ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+      expect(state.selected, CellPosition('d2', DiveField.visibility.name));
+    });
+
+    testWidgets('Tab follows the columns as shown, pinned first', (
+      tester,
+    ) async {
+      await pumpSheet(
+        tester,
+        sheetConfig: EntityTableViewConfig<DiveField>(
+          columns: [
+            EntityTableColumnConfig(field: DiveField.waterType),
+            EntityTableColumnConfig(
+              field: DiveField.visibility,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: DiveField.notes),
+          ],
+        ),
+      );
+      await tapCell(tester, cell(vis(15)));
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+
+      expect(
+        containerOf(
+          tester,
+        ).read(tableEditorDraftsProvider(TableEditorTab.dives)).editing,
+        waterCell,
+      );
+    });
+
+    testWidgets('clicking a read-only cell commits and closes the open cell', (
+      tester,
+    ) async {
+      await pumpSheet(tester, sheetConfig: choiceConfig);
+      await tapCell(tester, cell(vis(15)));
+      await tester.enterText(find.byType(TextField), '12');
+
+      await tapCell(tester, find.text('#2'));
+      await tester.pump();
+
+      expect(find.byType(TextField), findsNothing);
+      expect(draftOf(tester, 'd1', DiveField.visibility)?.value, 12.0);
+    });
+
+    testWidgets('a deferred commit does not restore an older draft', (
+      tester,
+    ) async {
+      await pumpSheet(
+        tester,
+        sheetConfig: EntityTableViewConfig<DiveField>(
+          columns: [
+            EntityTableColumnConfig(field: DiveField.diveNumber),
+            EntityTableColumnConfig(field: DiveField.visibility),
+            EntityTableColumnConfig(field: DiveField.notes),
+          ],
+        ),
+      );
+      TableDraft notes(String value) => TableDraft(
+        entityId: 'd1',
+        fieldName: DiveField.notes.name,
+        original: null,
+        value: value,
+      );
+      notifierOf(tester).put(notes('old'));
+      await tester.pump();
+      await tapCell(tester, cell(vis(15)));
+      await tester.enterText(find.byType(TextField), '12');
+
+      notifierOf(tester)
+        ..put(notes('pasted'))
+        ..setEditing(null);
+      await tester.pump();
+      await tester.pump();
+
+      expect(draftOf(tester, 'd1', DiveField.notes)?.value, 'pasted');
+      expect(draftOf(tester, 'd1', DiveField.visibility)?.value, 12.0);
+    });
+  });
+
+  group('imperial diver', () {
+    const imperial = AppSettings(depthUnit: DepthUnit.feet);
+    String feet(double metres) =>
+        const UnitFormatter(imperial).formatDistance(metres);
+
+    testWidgets('Enter on an untouched cell makes no draft', (tester) async {
+      await pumpSheet(tester, settings: imperial);
+      await tapCell(tester, find.text(feet(15)));
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '49.21',
+      );
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      expect(draftOf(tester, 'd1', DiveField.visibility), isNull);
+    });
+
+    testWidgets('the column header names the unit a cell is typed in', (
+      tester,
+    ) async {
+      await pumpSheet(tester, settings: imperial);
+
+      expect(find.text('Visibility (ft)'), findsOneWidget);
+    });
+  });
+
+  testWidgets('double tap opens a record from its key column, not from an '
+      'editable cell', (tester) async {
+    await pumpSheet(tester);
+
+    // The first tap opens the cell, so the second lands on the same spot.
+    final editable = tester.getCenter(cell(vis(20)));
+    await tester.tapAt(editable);
+    await tester.pump(kDoubleTapMinTime);
+    await tester.tapAt(editable);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(opened, isEmpty);
+    expect(find.byType(TextField), findsOneWidget);
+
+    await tester.tap(find.text('#2'));
+    await tester.pump(kDoubleTapMinTime);
+    await tester.tap(find.text('#2'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(opened, ['d2']);
   });
 }

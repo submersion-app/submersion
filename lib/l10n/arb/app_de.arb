@@ -13171,6 +13171,7 @@
   "tableEditor_flag_unparsable": "Kein gültiger Wert",
   "tableEditor_flag_unknownValue": "Nicht in der Liste",
   "tableEditor_flag_pairIncomplete": "Breiten- und Längengrad nötig",
+  "tableEditor_flag_scrubberNeedsType": "Benötigt einen Scrubber-Typ",
   "tableEditor_flag_changedElsewhere": "Seit deiner Änderung anderswo geändert",
   "tableEditor_multiChoice_done": "Fertig",
   "tableEditor_libraryReadOnly": "Bibliotheksplatz: hier sind nur Notizen und Bewertung bearbeitbar",

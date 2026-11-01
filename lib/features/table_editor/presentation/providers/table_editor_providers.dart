@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/features/dive_centers/query/dive_center_query_entity.
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/providers/bulk_dive_edit_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/narrow_dives.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -236,16 +238,36 @@ final tableEditorSaveServiceProvider = Provider<TableEditorSaveService>(
   (ref) => TableEditorSaveService(),
 );
 
-/// The dive descriptor, once its pick lists and the sheet's weights are in.
+/// The type a weight row made from an empty cell takes: the diver's latest,
+/// asked of the log, since a sheet filtered to weightless dives has no answer.
+final tableEditorNewWeightTypeProvider = FutureProvider<WeightType>((
+  ref,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return await repository.latestWeightType(diverId) ?? WeightType.belt;
+});
+
+/// The dive descriptor, once its pick lists are in.
 final tableEditorDiveEntityProvider =
     Provider<AsyncValue<DiveTableEditorEntity>>((ref) {
       final sites = ref.watch(sitesProvider);
       final centers = ref.watch(allDiveCentersProvider);
       final trips = ref.watch(allTripsProvider);
-      if (!sites.hasValue || !centers.hasValue || !trips.hasValue) {
+      final computers = ref.watch(allDiveComputersProvider);
+      final weightType = ref.watch(tableEditorNewWeightTypeProvider);
+      if (!sites.hasValue ||
+          !centers.hasValue ||
+          !trips.hasValue ||
+          !computers.hasValue ||
+          !weightType.hasValue) {
         return const AsyncValue.loading();
       }
-      final dives = ref.watch(tableEditorDivesProvider).value ?? const [];
+      final models = {
+        for (final c in computers.value ?? const [])
+          if (c.model case final model? when model.isNotEmpty) model,
+      };
       return AsyncValue.data(
         DiveTableEditorEntity(
           diveRepo: ref.watch(diveRepositoryProvider),
@@ -260,7 +282,8 @@ final tableEditorDiveEntityProvider =
           trips: [
             for (final t in trips.value ?? const []) ChoiceOption(t.id, t.name),
           ],
-          defaultWeightType: DiveTableEditorEntity.latestWeightType(dives),
+          computers: [for (final m in models) ChoiceOption(m, m)],
+          defaultWeightType: weightType.value ?? WeightType.belt,
         ),
       );
     });

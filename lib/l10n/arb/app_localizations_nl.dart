@@ -42577,6 +42577,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tableEditor_flag_pairIncomplete => 'Breedte- en lengtegraad nodig';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType => 'Vereist een scrubbertype';
+
+  @override
   String get tableEditor_flag_changedElsewhere =>
       'Elders gewijzigd sinds je bewerking';
 

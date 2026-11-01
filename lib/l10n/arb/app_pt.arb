@@ -13017,6 +13017,7 @@
   "tableEditor_flag_unparsable": "Valor inválido",
   "tableEditor_flag_unknownValue": "Não consta da lista",
   "tableEditor_flag_pairIncomplete": "Precisa de latitude e longitude",
+  "tableEditor_flag_scrubberNeedsType": "Precisa de um tipo de scrubber",
   "tableEditor_flag_changedElsewhere": "Alterado noutro lado desde a tua edição",
   "tableEditor_multiChoice_done": "Concluído",
   "tableEditor_libraryReadOnly": "Local de biblioteca: aqui só se editam notas e avaliação",

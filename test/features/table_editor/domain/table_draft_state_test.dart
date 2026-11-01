@@ -111,4 +111,34 @@ void main() {
     expect(n.state.isEmpty, isTrue);
     expect(n.state.editing, isNull);
   });
+
+  test('flipping a toggle from false fills rather than overwrites', () {
+    expect(draft(original: false, value: true).overwrites, isFalse);
+    expect(draft(original: true, value: false).overwrites, isTrue);
+  });
+
+  test('opening a cell selects it, and closing keeps the selection', () {
+    final n = TableDraftsNotifier();
+    const cell = CellPosition('d1', 'visibility');
+
+    n.setEditing(cell);
+    expect(n.state.selected, cell);
+
+    n.setEditing(null);
+    expect(n.state.editing, isNull);
+    expect(n.state.selected, cell);
+  });
+
+  test('replaceEntity makes the given drafts the record\'s whole set', () {
+    final n = TableDraftsNotifier();
+    n.put(draft());
+    n.put(draft(fieldName: 'notes', original: null, value: 'x'));
+
+    n.replaceEntity('d1', [
+      draft(fieldName: 'notes', original: null, value: 'y'),
+    ]);
+
+    expect(n.state.at('d1', 'visibility'), isNull);
+    expect(n.draftsFor('d1').single.value, 'y');
+  });
 }

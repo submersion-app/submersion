@@ -365,6 +365,22 @@ authoritative where the body above differs.
   the row cannot edit is reported by its row's key.
 - **Row order.** Enter, Tab and a positional paste follow the order the
   sheet shows (its sort), not the order the list loaded.
+- **Double click.** Opens the record from a key column or a read-only cell.
+  An editable cell has none, so a click on it opens at once and a double
+  click stays on the sheet.
+- **Paste matching, single values.** One value is always a value, and a lone
+  column has no key to address, so "No" fills a yes/no column. A keyed block
+  never fills its own key column, whichever column is selected.
+- **Paste with nothing to save.** Skips wait for the save summary; a paste
+  that leaves nothing to save says why in a snackbar, since Save all is off.
+- **Reference labels.** A label two records share is flagged rather than
+  matched to the first of them; the record's id still matches.
+- **Scrubber duration.** Flagged until the dive has a type, since a dive shows
+  a scrubber only with one.
+- **Save all with an open cell.** The cell closes and its text lands as a
+  draft first, so it is in the summary and the save.
+- **Closing the window.** Not guarded yet: the app's exit handler always
+  answers exit, by design, and a prompt there is a change to that contract.
 
 ## Out of scope, noted for later
 

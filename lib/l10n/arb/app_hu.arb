@@ -13017,6 +13017,7 @@
   "tableEditor_flag_unparsable": "Érvénytelen érték",
   "tableEditor_flag_unknownValue": "Nincs a listában",
   "tableEditor_flag_pairIncomplete": "Szélesség és hosszúság is kell",
+  "tableEditor_flag_scrubberNeedsType": "Scrubber típusa szükséges",
   "tableEditor_flag_changedElsewhere": "Máshol módosult a szerkesztésed óta",
   "tableEditor_multiChoice_done": "Kész",
   "tableEditor_libraryReadOnly": "Könyvtári merülőhely: itt csak a jegyzet és az értékelés szerkeszthető",

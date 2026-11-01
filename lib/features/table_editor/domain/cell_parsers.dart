@@ -43,16 +43,19 @@ CellParseResult parseIntegerCell(String text, {int? min, int? max}) =>
 CellParseResult parseDegreesCell(String text, {required double limit}) =>
     parseNumberCell(text, toStored: (v) => v, min: -limit, max: limit);
 
-/// Matches [text] to an option's label or stored value, ignoring case.
+/// Matches [text] to an option's stored value or label, ignoring case. A
+/// label two options share (two sites named House Reef) is refused: picking
+/// one would link the wrong record with nothing to show for it.
 CellParseResult parseChoiceCell(String text, List<ChoiceOption> options) {
   final needle = text.trim().toLowerCase();
   if (needle.isEmpty) return const CellParsed(null);
   for (final o in options) {
-    if (o.label.toLowerCase() == needle || o.value.toLowerCase() == needle) {
-      return CellParsed(o.value);
-    }
+    if (o.value.toLowerCase() == needle) return CellParsed(o.value);
   }
-  return const CellRejected(TableDraftFlag.unknownValue);
+  final named = options.where((o) => o.label.toLowerCase() == needle).toList();
+  return named.length == 1
+      ? CellParsed(named.single.value)
+      : const CellRejected(TableDraftFlag.unknownValue);
 }
 
 /// Several choices separated by a comma or a semicolon; one unknown entry
@@ -66,7 +69,7 @@ CellParseResult parseMultiChoiceCell(String text, List<ChoiceOption> options) {
   for (final part in parts) {
     switch (parseChoiceCell(part, options)) {
       case CellParsed(:final value):
-        values.add(value! as String);
+        if (!values.contains(value)) values.add(value! as String);
       case CellRejected(:final flag):
         return CellRejected(flag);
     }

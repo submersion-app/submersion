@@ -6,7 +6,6 @@ import 'package:submersion/features/table_editor/domain/paste_parser.dart';
 import 'package:submersion/features/table_editor/domain/paste_planner.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
 import 'package:submersion/features/table_editor/domain/table_draft_state.dart';
-import 'package:submersion/features/table_editor/domain/table_editor_column.dart';
 import 'package:submersion/features/table_editor/domain/table_editor_entity.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
@@ -82,6 +81,7 @@ PastePlan<F> planClipboardPaste<T, F extends EntityField>({
     columnFromLabel: (h) => byLabel[_norm(h)],
     isKeyHeader: (h) => keyLabels.contains(_norm(h)),
     hiddenKeys: hiddenKeys,
+    keyField: entity.keyField,
   );
 }
 
@@ -111,27 +111,15 @@ List<PasteSkip> applyPastePlan<T, F extends EntityField>({
     }
     // A cell drafted before keeps the baseline that draft was made against,
     // so a value that moved since is still caught at save time.
-    final original =
-        existing.at(cell.entityId, cell.field.name)?.original ??
-        column.valueOf(row);
-    final draft = switch (column.parse(cell.text, units, l10n)) {
-      CellParsed(:final value) => TableDraft(
-        entityId: cell.entityId,
-        fieldName: cell.field.name,
-        original: original,
-        value: value,
-        rawText: cell.text,
-      ),
-      CellRejected(:final flag) => TableDraft(
-        entityId: cell.entityId,
-        fieldName: cell.field.name,
-        original: original,
-        value: original,
-        rawText: cell.text,
-        flag: flag,
-      ),
-    };
-    byEntity.putIfAbsent(cell.entityId, () => {})[cell.field.name] = draft;
+    final earlier = existing.at(cell.entityId, cell.field.name);
+    byEntity.putIfAbsent(cell.entityId, () => {})[cell.field.name] = column
+        .draftFor(
+          cell.entityId,
+          cell.text,
+          original: earlier != null ? earlier.original : column.valueOf(row),
+          units: units,
+          l10n: l10n,
+        );
   }
   for (final entry in byEntity.entries) {
     final row = rowsById[entry.key];

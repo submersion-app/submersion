@@ -67490,6 +67490,12 @@ abstract class AppLocalizations {
   /// **'Needs both latitude and longitude'**
   String get tableEditor_flag_pairIncomplete;
 
+  /// No description provided for @tableEditor_flag_scrubberNeedsType.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a scrubber type'**
+  String get tableEditor_flag_scrubberNeedsType;
+
   /// No description provided for @tableEditor_flag_changedElsewhere.
   ///
   /// In en, this message translates to:

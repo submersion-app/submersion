@@ -57,4 +57,17 @@ void main() {
       ]);
     },
   );
+
+  test('a leading quote that never closes is text, not a swallowed block', () {
+    expect(parsePasteText('"hello\tworld\nnext\tcell').rows, [
+      ['"hello', 'world'],
+      ['next', 'cell'],
+    ]);
+  });
+
+  test('a quote closed inside a cell is text', () {
+    expect(parsePasteText('"abc"def\tx').rows, [
+      ['"abc"def', 'x'],
+    ]);
+  });
 }

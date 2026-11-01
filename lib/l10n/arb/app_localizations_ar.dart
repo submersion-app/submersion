@@ -43404,6 +43404,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tableEditor_flag_pairIncomplete => 'يلزم خط العرض وخط الطول معًا';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType => 'يتطلب نوع الممتص';
+
+  @override
   String get tableEditor_flag_changedElsewhere =>
       'تغيّر في مكان آخر بعد تعديلك';
 

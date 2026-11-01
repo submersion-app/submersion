@@ -19,8 +19,8 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
 /// One tab's spreadsheet (#3422): the shared table with the editor's cell
 /// hooks. A tap opens an editable cell (a toggle flips at once), a commit
-/// becomes a draft painted in place, a double tap opens the record, and a
-/// drafted cell's menu can discard the draft.
+/// becomes a draft painted in place, a double tap on a key or read-only cell
+/// opens the record, and a drafted cell's menu can discard the draft.
 class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
   final TableEditorTab tab;
   final TableEditorEntity<T, F> entity;
@@ -65,7 +65,14 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
         if (drafts.at(id, field.name) != null)
           EntityTableMenuAction(
             label: l10n.tableEditor_discardDraft,
-            onSelected: () => draftsNotifier.remove(id, field.name),
+            onSelected: () => draftsNotifier.replaceEntity(
+              id,
+              entity.afterDiscard(
+                row,
+                draftsNotifier.draftsFor(id),
+                field.name,
+              ),
+            ),
           ),
       ];
     }
@@ -80,7 +87,20 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
       onResizeColumn: configNotifier.resizeColumn,
       onHideColumn: configNotifier.hideColumn,
       onEntityTap: (_) {},
-      onEntityDoubleTap: onOpenRecord,
+      // Only where a tap has no editing to do, so an editable cell opens at
+      // once and a double click on it stays on the sheet.
+      cellDoubleTap: (row, field) {
+        final column = entity.columnFor(field);
+        final opens =
+            field == entity.keyField ||
+            column == null ||
+            !column.isEditable(row);
+        return opens ? () => onOpenRecord(entity.idOf(row)) : null;
+      },
+      headerSuffix: (field) => entity.columnFor(field)?.unitSymbol(units),
+      leadingBuilder: entity.hasRowLocks
+          ? (row) => _rowLock(entity.rowLockReason(row, l10n))
+          : null,
       headerMenuBuilder: headerMenuBuilder,
       cellMenuBuilder: cellMenu,
       hasCellMenu: (row, field) => cellMenu(context, row, field).isNotEmpty,
@@ -89,15 +109,21 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
         final column = entity.columnFor(field);
         final id = entity.idOf(row);
         draftsNotifier.setSelected(CellPosition(id, field.name));
-        if (column == null || !column.isEditable(row)) return;
+        if (column == null || !column.isEditable(row)) {
+          // A click elsewhere leaves the open cell, keeping what was typed.
+          draftsNotifier.setEditing(null);
+          return;
+        }
         if (column.kind == CellEditorKind.toggle) {
+          draftsNotifier.setEditing(null);
           // A toggle flips on the tap itself; opening it would be a step
           // for nothing.
           final existing = drafts.at(id, field.name);
-          final current = existing?.value ?? column.valueOf(row);
+          final current = existing != null
+              ? existing.value
+              : column.valueOf(row);
           _commit(
             row: row,
-            drafts: drafts,
             notifier: draftsNotifier,
             next: TableDraft(
               entityId: id,
@@ -115,8 +141,14 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
         draftsNotifier.setEditing(CellPosition(id, field.name));
       },
       cellBackground: (row, field) {
-        final draft = drafts.at(entity.idOf(row), field.name);
-        if (draft == null) return null;
+        final id = entity.idOf(row);
+        final draft = drafts.at(id, field.name);
+        if (draft == null) {
+          // The selected cell is where a paste lands.
+          return drafts.selected == CellPosition(id, field.name)
+              ? colors.secondaryContainer
+              : null;
+        }
         return draft.isSaveable
             ? colors.tertiaryContainer
             : colors.errorContainer;
@@ -136,7 +168,6 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
             l10n: l10n,
             config: config,
             rowsById: rowsById,
-            drafts: drafts,
             notifier: draftsNotifier,
           );
         }
@@ -151,7 +182,7 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
             return Tooltip(
               message: reason,
               triggerMode: TooltipTriggerMode.manual,
-              child: _plain(context, formatted),
+              child: _plain(context, formatted, field),
             );
           }
         }
@@ -160,9 +191,20 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     );
   }
 
-  Widget _plain(BuildContext context, String text) => Container(
+  /// A lock for a row the profile may not edit, with [reason] on hover; an
+  /// editable row keeps the column empty.
+  Widget _rowLock(String? reason) => reason == null
+      ? const SizedBox.shrink()
+      : Tooltip(
+          message: reason,
+          child: const Icon(Icons.lock_outline, size: 16),
+        );
+
+  Widget _plain(BuildContext context, String text, F field) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8),
-    alignment: Alignment.centerLeft,
+    alignment: field.isRightAligned
+        ? Alignment.centerRight
+        : Alignment.centerLeft,
     child: Text(
       text,
       overflow: TextOverflow.ellipsis,
@@ -188,6 +230,8 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
         TableDraftFlag.unparsable => l10n.tableEditor_flag_unparsable,
         TableDraftFlag.unknownValue => l10n.tableEditor_flag_unknownValue,
         TableDraftFlag.pairIncomplete => l10n.tableEditor_flag_pairIncomplete,
+        TableDraftFlag.needsScrubberType =>
+          l10n.tableEditor_flag_scrubberNeedsType,
         TableDraftFlag.changedElsewhere =>
           l10n.tableEditor_flag_changedElsewhere,
       };
@@ -200,7 +244,7 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     return Tooltip(
       message: message,
       triggerMode: TooltipTriggerMode.manual,
-      child: _plain(context, text),
+      child: _plain(context, text, column.field),
     );
   }
 
@@ -236,10 +280,10 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     }
   }
 
-  /// Stores [next] with the row's other drafts reconciled around it.
+  /// Stores [next] with the row's other drafts reconciled around it. Reads
+  /// them now rather than at build, since a deferred commit runs after them.
   void _commit({
     required T row,
-    required TableDraftState drafts,
     required TableDraftsNotifier notifier,
     required TableDraft next,
   }) {
@@ -249,7 +293,7 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     final id = entity.idOf(row);
     notifier.putAll(
       entity.reconcile(row, [
-        ...drafts.forEntity(id).where((d) => d.fieldName != next.fieldName),
+        ...notifier.draftsFor(id).where((d) => d.fieldName != next.fieldName),
         next,
       ]),
     );
@@ -263,14 +307,21 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     required AppLocalizations l10n,
     required EntityTableViewConfig<F> config,
     required Map<String, T> rowsById,
-    required TableDraftState drafts,
     required TableDraftsNotifier notifier,
   }) {
     final id = entity.idOf(row);
     final position = CellPosition(id, column.field.name);
-    // The baseline the first edit saw, so a moved value is still caught.
+    // The baseline the first edit saw, so a moved value is still caught. A
+    // draft can hold null: it clears the field, it is not "no draft".
     final original = draft != null ? draft.original : column.valueOf(row);
-    final current = draft?.value ?? column.valueOf(row);
+    final current = draft != null ? draft.value : column.valueOf(row);
+    final initialText =
+        draft?.rawText ??
+        switch (draft) {
+          null => column.editText(row, units),
+          TableDraft(value: null) => '',
+          _ => _display(column, draft.value, units, l10n),
+        };
 
     void move(CellMove m) {
       // Movement follows the order on screen, which the table sorts itself;
@@ -281,7 +332,7 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
           from: position,
           move: m,
           rowIds: [for (final r in shown) entity.idOf(r)],
-          fieldNames: [for (final c in config.columns) c.field.name],
+          fieldNames: [for (final c in config.columnsAsShown) c.field.name],
           isEditable: (rowId, fieldName) {
             final target = rowsById[rowId];
             final col = entity.columnFor(entity.fieldFromName(fieldName));
@@ -291,11 +342,10 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
       );
     }
 
-    void commit(TableDraft next, CellMove m) {
+    /// Leaves the cell: a move goes on, and no move closes it, unless the
+    /// sheet has already moved the editor elsewhere.
+    void leave(CellMove m) {
       if (!notifier.mounted) return;
-      _commit(row: row, drafts: drafts, notifier: notifier, next: next);
-      // A commit with no move still closes the cell, unless the sheet has
-      // already moved the editor elsewhere.
       if (m != CellMove.none) {
         move(m);
       } else if (notifier.editingIs(position)) {
@@ -303,14 +353,26 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
       }
     }
 
+    void commit(TableDraft next, CellMove m) {
+      if (!notifier.mounted) return;
+      _commit(row: row, notifier: notifier, next: next);
+      leave(m);
+    }
+
+    TableDraft fromText(String text) =>
+        column.draftFor(id, text, original: original, units: units, l10n: l10n);
+
+    TableDraft fromValue(Object? value) => TableDraft(
+      entityId: id,
+      fieldName: column.field.name,
+      original: original,
+      value: value,
+    );
+
     return EditableCell(
       key: ValueKey(position),
       kind: column.kind,
-      initialText:
-          draft?.rawText ??
-          (draft != null && draft.value != null
-              ? _display(column, draft.value, units, l10n)
-              : column.editText(row, units)),
+      initialText: initialText,
       choices: column.choices(l10n),
       initialToggle: column.kind == CellEditorKind.toggle && current == true,
       initialChoice: current is String ? current : null,
@@ -321,68 +383,23 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
         // A paste or another commit may have changed this cell's draft since
         // the editor was built; what was typed then stands down.
         if (!notifier.mounted || notifier.draftAt(position) != draft) return;
-        if (column.kind == CellEditorKind.text ||
+        final typed =
+            column.kind == CellEditorKind.text ||
             column.kind == CellEditorKind.number ||
-            column.kind == CellEditorKind.integer) {
-          final result = column.parse(text, units, l10n);
-          commit(switch (result) {
-            CellParsed(:final value) => TableDraft(
-              entityId: id,
-              fieldName: column.field.name,
-              original: original,
-              value: value,
-              rawText: text,
-            ),
-            CellRejected(:final flag) => TableDraft(
-              entityId: id,
-              fieldName: column.field.name,
-              original: original,
-              value: original,
-              rawText: text,
-              flag: flag,
-            ),
-          }, CellMove.none);
-        } else {
-          commit(
-            TableDraft(
-              entityId: id,
-              fieldName: column.field.name,
-              original: original,
-              value: value,
-            ),
-            CellMove.none,
-          );
-        }
+            column.kind == CellEditorKind.integer;
+        commit(typed ? fromText(text) : fromValue(value), CellMove.none);
       },
       onCommitText: (text, m) {
-        final result = column.parse(text, units, l10n);
-        commit(switch (result) {
-          CellParsed(:final value) => TableDraft(
-            entityId: id,
-            fieldName: column.field.name,
-            original: original,
-            value: value,
-            rawText: text,
-          ),
-          CellRejected(:final flag) => TableDraft(
-            entityId: id,
-            fieldName: column.field.name,
-            original: original,
-            value: original,
-            rawText: text,
-            flag: flag,
-          ),
-        }, m);
+        // The text is a view of the stored value, rounded for a converted
+        // number: untouched, it must not be written back over it. With a
+        // draft there is something to confirm (a changed-elsewhere keep).
+        if (draft == null && text == initialText) {
+          leave(m);
+        } else {
+          commit(fromText(text), m);
+        }
       },
-      onCommitValue: (value, m) => commit(
-        TableDraft(
-          entityId: id,
-          fieldName: column.field.name,
-          original: original,
-          value: value,
-        ),
-        m,
-      ),
+      onCommitValue: (value, m) => commit(fromValue(value), m),
     );
   }
 }

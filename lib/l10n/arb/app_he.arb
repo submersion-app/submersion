@@ -13017,6 +13017,7 @@
   "tableEditor_flag_unparsable": "ערך לא תקין",
   "tableEditor_flag_unknownValue": "לא ברשימה",
   "tableEditor_flag_pairIncomplete": "נדרשים קו רוחב וקו אורך",
+  "tableEditor_flag_scrubberNeedsType": "נדרש סוג סקרבר",
   "tableEditor_flag_changedElsewhere": "השתנה במקום אחר מאז שערכת",
   "tableEditor_multiChoice_done": "סיום",
   "tableEditor_libraryReadOnly": "אתר ספרייה: כאן ניתן לערוך רק הערות ודירוג",

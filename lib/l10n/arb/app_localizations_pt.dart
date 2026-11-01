@@ -42840,6 +42840,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Precisa de latitude e longitude';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType =>
+      'Precisa de um tipo de scrubber';
+
+  @override
   String get tableEditor_flag_changedElsewhere =>
       'Alterado noutro lado desde a tua edição';
 

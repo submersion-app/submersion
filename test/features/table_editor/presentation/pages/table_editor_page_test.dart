@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +22,9 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/table_editor/data/table_editor_save_service.dart';
+import 'package:submersion/features/table_editor/domain/table_draft.dart';
+import 'package:submersion/features/table_editor/domain/table_editor_entity.dart';
 import 'package:submersion/features/table_editor/entities/dive_table_editor_entity.dart';
 import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
 import 'package:submersion/features/table_editor/presentation/providers/table_editor_providers.dart';
@@ -27,6 +32,7 @@ import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -36,6 +42,24 @@ class _Config<F extends EntityField> extends EntityTableConfigNotifier<F> {
   _Config(EntityTableViewConfig<F> config, F Function(String) fromName)
     : super(defaultConfig: config, fieldFromName: fromName) {
     state = config;
+  }
+}
+
+/// A save held open until the test lets it finish.
+class _HeldSave extends TableEditorSaveService {
+  final release = Completer<void>();
+
+  @override
+  Future<TableEditorSaveResult> save<T, F extends EntityField>({
+    required TableEditorEntity<T, F> entity,
+    required List<TableDraft> drafts,
+  }) async {
+    await release.future;
+    return TableEditorSaveResult(
+      operationId: null,
+      saved: drafts.length,
+      changedElsewhere: const [],
+    );
   }
 }
 
@@ -72,6 +96,7 @@ void main() {
     WidgetTester tester, {
     Size size = const Size(1200, 800),
     List<SiteWithCount> sites = const [],
+    TableEditorSaveService? saveService,
   }) async {
     // The width gate reads MediaQuery, which follows the view, not the
     // test surface.
@@ -118,6 +143,8 @@ void main() {
       testAppRouter(
         router: router,
         overrides: [
+          if (saveService != null)
+            tableEditorSaveServiceProvider.overrideWithValue(saveService),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
@@ -274,9 +301,9 @@ void main() {
     await pumpPage(tester);
     await draftVisibility(tester, '12');
 
-    await tester.tap(find.text(vis(20)));
+    await tester.tap(find.text('#2'));
     await tester.pump(const Duration(milliseconds: 100));
-    await tester.tap(find.text(vis(20)));
+    await tester.tap(find.text('#2'));
     await tester.pumpAndSettle();
 
     expect(find.text(l10n.tableEditor_open_saveAndOpen), findsOneWidget);
@@ -442,6 +469,219 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
       expect(find.text(l10n.tableEditor_draftCount(1)), findsOneWidget);
+    });
+
+    Finder saveAllButton() =>
+        find.widgetWithText(FilledButton, l10n.tableEditor_saveAll);
+
+    Future<void> selectCell(WidgetTester tester) async {
+      await tester.tap(find.text(vis(15)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+    }
+
+    testWidgets('the columns button opens the picker', (tester) async {
+      await pumpPage(tester);
+
+      await tester.tap(
+        find.byTooltip(l10n.columnConfig_tooltip_columnSettings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EntityTableColumnPicker<DiveField>), findsOneWidget);
+    });
+
+    testWidgets('Save all takes the cell still being typed in', (tester) async {
+      await pumpPage(tester);
+      await draftVisibility(tester, '12');
+      ProviderScope.containerOf(tester.element(find.byType(TableEditorPage)))
+          .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+          .setEditing(const CellPosition('d2', 'visibility'));
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), '9');
+
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.tableEditor_summary_changed(2)), findsOneWidget);
+      await tester.tap(saveAllButton().last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      final saved = await diveRepo.getDivesByIdsWithoutSamples(['d2']);
+      expect(saved.single.visibilityMeters, 9);
+    });
+
+    testWidgets('Save all is ready while the only edit is still open', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      await tester.tap(find.text(vis(15)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byType(TextField), '12');
+      await tester.pump();
+
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.tableEditor_summary_changed(1)), findsOneWidget);
+    });
+
+    testWidgets('back with a typed cell open asks first and leaves no draft '
+        'behind', (tester) async {
+      await pumpPage(tester);
+      await tester.tap(find.text(vis(15)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byType(TextField), '12');
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.forms_discard_title), findsOneWidget);
+      await tester.tap(find.text(l10n.forms_discard_discard));
+      await tester.pumpAndSettle();
+      expect(find.text('open editor'), findsOneWidget);
+
+      await tester.tap(find.text('open editor'));
+      await tester.pumpAndSettle();
+      expect(find.text(vis(15)), findsOneWidget);
+      expect(find.text(l10n.tableEditor_draftCount(1)), findsNothing);
+    });
+
+    testWidgets('back with an untouched cell open simply leaves', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      await tester.tap(find.text(vis(15)));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.forms_discard_title), findsNothing);
+      expect(find.text('open editor'), findsOneWidget);
+    });
+
+    testWidgets('a paste that lands nothing says why', (tester) async {
+      mockClipboard('Dive\tVisibility\n99\t12\n');
+      await pumpPage(tester);
+      await selectCell(tester);
+
+      await tester.tap(find.byTooltip(l10n.tableEditor_paste));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.tableEditor_skip_unknownRow('99')), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('a later save does not repeat the last paste', (tester) async {
+      mockClipboard('2\t12\n');
+      await pumpPage(tester);
+      await selectCell(tester);
+      await tester.tap(find.byTooltip(l10n.tableEditor_paste));
+      await tester.pumpAndSettle();
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+      await tester.tap(saveAllButton().last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(seconds: 6));
+
+      await draftVisibility(tester, '11');
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.tableEditor_summary_matching_number), findsNothing);
+    });
+
+    testWidgets('a cell edited while a save runs keeps its newer draft, and '
+        'Save all waits', (tester) async {
+      final held = _HeldSave();
+      await pumpPage(tester, saveService: held);
+      await draftVisibility(tester, '12');
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+      await tester.tap(saveAllButton().last);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<FilledButton>(saveAllButton()).onPressed, isNull);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TableEditorPage)),
+      );
+      final notifier = container.read(
+        tableEditorDraftsProvider(TableEditorTab.dives).notifier,
+      );
+      const newer = TableDraft(
+        entityId: 'd1',
+        fieldName: 'visibility',
+        original: 15.0,
+        value: 11.0,
+      );
+      notifier.put(newer);
+
+      held.release.complete();
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        container
+            .read(tableEditorDraftsProvider(TableEditorTab.dives))
+            .at('d1', 'visibility'),
+        newer,
+      );
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('Undo leaves what changed since the save and says so', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      await draftVisibility(tester, '12');
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+      await tester.tap(saveAllButton().last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      final moved = (await diveRepo.getDivesByIdsWithoutSamples(['d1'])).single;
+      await diveRepo.updateDive(moved.copyWith(visibilityMeters: 7));
+
+      await tester.tap(find.text(l10n.tableEditor_undo));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text(l10n.tableEditor_changeLog), findsOneWidget);
+      expect(
+        (await diveRepo.getDivesByIdsWithoutSamples([
+          'd1',
+        ])).single.visibilityMeters,
+        7,
+      );
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('a library site the profile may not edit shows a lock', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        sites: const [
+          SiteWithDiveCount(
+            site: DiveSite(id: 's1', name: 'Reef', sharedLibraryId: 'lib'),
+            diveCount: 0,
+          ),
+          SiteWithDiveCount(
+            site: DiveSite(id: 's2', name: 'Wreck'),
+            diveCount: 0,
+          ),
+        ],
+      );
+      await tester.tap(find.text(l10n.tableEditor_tab_sites));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.lock_outline), findsOneWidget);
     });
   });
 }

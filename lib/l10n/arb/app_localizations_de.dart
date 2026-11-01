@@ -42772,6 +42772,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tableEditor_flag_pairIncomplete => 'Breiten- und Längengrad nötig';
 
   @override
+  String get tableEditor_flag_scrubberNeedsType =>
+      'Benötigt einen Scrubber-Typ';
+
+  @override
   String get tableEditor_flag_changedElsewhere =>
       'Seit deiner Änderung anderswo geändert';
 

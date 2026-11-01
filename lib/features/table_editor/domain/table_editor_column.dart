@@ -97,4 +97,30 @@ class TableEditorColumn<T, F extends EntityField> {
        isEditable = isEditable ?? ((_) => true),
        unitSymbol = unitSymbol ?? ((_) => null),
        readOnlyReason = readOnlyReason ?? ((_, _) => null);
+
+  /// The draft [text] makes of this column's cell on [entityId]: the parsed
+  /// value, or the text flagged with [original] kept as the value.
+  TableDraft draftFor(
+    String entityId,
+    String text, {
+    required Object? original,
+    required UnitFormatter units,
+    required AppLocalizations l10n,
+  }) => switch (parse(text, units, l10n)) {
+    CellParsed(:final value) => TableDraft(
+      entityId: entityId,
+      fieldName: field.name,
+      original: original,
+      value: value,
+      rawText: text,
+    ),
+    CellRejected(:final flag) => TableDraft(
+      entityId: entityId,
+      fieldName: field.name,
+      original: original,
+      value: original,
+      rawText: text,
+      flag: flag,
+    ),
+  };
 }

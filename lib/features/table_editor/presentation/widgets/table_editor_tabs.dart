@@ -111,7 +111,10 @@ class _DiveEditorTabState extends ConsumerState<DiveEditorTab> {
 /// filter menu.
 const kSiteColumnKeys = <SiteField, String>{
   SiteField.siteName: 'name',
+  SiteField.country: 'country',
+  SiteField.region: 'region',
   SiteField.city: 'city',
+  SiteField.island: 'island',
   SiteField.notes: 'notes',
   SiteField.rating: 'rating',
   SiteField.maxDepth: 'maxDepth',

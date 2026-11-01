@@ -13017,6 +13017,7 @@
   "tableEditor_flag_unparsable": "قيمة غير صالحة",
   "tableEditor_flag_unknownValue": "ليست في القائمة",
   "tableEditor_flag_pairIncomplete": "يلزم خط العرض وخط الطول معًا",
+  "tableEditor_flag_scrubberNeedsType": "يتطلب نوع الممتص",
   "tableEditor_flag_changedElsewhere": "تغيّر في مكان آخر بعد تعديلك",
   "tableEditor_multiChoice_done": "تم",
   "tableEditor_libraryReadOnly": "موقع من المكتبة: يمكن هنا تعديل الملاحظات والتقييم فقط",

@@ -36,7 +36,9 @@ TableEditorColumn<T, F> textColumn<T, F extends EntityField>(
 );
 
 /// A number typed in the diver's unit and stored converted. [toDisplay] and
-/// [toStored] are the two directions of that conversion.
+/// [toStored] are the two directions of that conversion. The cell opens at
+/// two decimals, since a conversion leaves a long tail no one can edit; an
+/// untouched cell writes nothing, so the rounding never reaches the store.
 TableEditorColumn<T, F> numberColumn<T, F extends EntityField>(
   F field,
   double? Function(T entity) get, {
@@ -53,7 +55,7 @@ TableEditorColumn<T, F> numberColumn<T, F extends EntityField>(
   valueOf: get,
   editText: (e, u) {
     final v = get(e);
-    return v == null ? '' : formatDecimalForInput(toDisplay(u, v));
+    return v == null ? '' : formatRoundedForInput(toDisplay(u, v), 2);
   },
   parse: (text, u, _) => parseNumberCell(
     text,

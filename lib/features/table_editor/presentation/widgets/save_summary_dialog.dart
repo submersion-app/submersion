@@ -2,7 +2,31 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/table_editor/domain/paste_planner.dart';
 import 'package:submersion/features/table_editor/domain/save_summary.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// What the diver is told about one [skip] of a paste.
+String pasteSkipLine(
+  AppLocalizations l10n,
+  PasteSkip skip, {
+  required String Function(String fieldName) columnLabel,
+}) => switch (skip.reason) {
+  PasteSkipReason.readOnlyColumn => l10n.tableEditor_skip_readOnlyColumn(
+    columnLabel(skip.detail),
+  ),
+  PasteSkipReason.unknownRow => l10n.tableEditor_skip_unknownRow(skip.detail),
+  PasteSkipReason.hiddenRow => l10n.tableEditor_skip_hiddenRow(skip.detail),
+  PasteSkipReason.ambiguousRow => l10n.tableEditor_skip_ambiguousRow(
+    skip.detail,
+  ),
+  PasteSkipReason.readOnlyCell => l10n.tableEditor_skip_readOnlyCell(
+    skip.detail,
+  ),
+  PasteSkipReason.unknownColumn => l10n.tableEditor_skip_unknownColumn(
+    skip.detail,
+  ),
+  PasteSkipReason.truncated => l10n.tableEditor_skip_truncated(skip.count),
+};
 
 /// What Save all is about to do (#3422). Returns true to go ahead.
 Future<bool> showSaveSummaryDialog(
@@ -26,25 +50,7 @@ Future<bool> showSaveSummaryDialog(
       PasteMatching.byPosition => l10n.tableEditor_summary_matching_position,
     },
     for (final s in summary.skipped)
-      switch (s.reason) {
-        PasteSkipReason.readOnlyColumn => l10n.tableEditor_skip_readOnlyColumn(
-          columnLabel(s.detail),
-        ),
-        PasteSkipReason.unknownRow => l10n.tableEditor_skip_unknownRow(
-          s.detail,
-        ),
-        PasteSkipReason.hiddenRow => l10n.tableEditor_skip_hiddenRow(s.detail),
-        PasteSkipReason.ambiguousRow => l10n.tableEditor_skip_ambiguousRow(
-          s.detail,
-        ),
-        PasteSkipReason.readOnlyCell => l10n.tableEditor_skip_readOnlyCell(
-          s.detail,
-        ),
-        PasteSkipReason.unknownColumn => l10n.tableEditor_skip_unknownColumn(
-          s.detail,
-        ),
-        PasteSkipReason.truncated => l10n.tableEditor_skip_truncated(s.count),
-      },
+      pasteSkipLine(l10n, s, columnLabel: columnLabel),
     ...summary.notes,
   ].nonNulls.toList();
   final result = await showDialog<bool>(

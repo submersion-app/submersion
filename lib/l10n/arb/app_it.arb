@@ -13017,6 +13017,7 @@
   "tableEditor_flag_unparsable": "Valore non valido",
   "tableEditor_flag_unknownValue": "Non presente nell'elenco",
   "tableEditor_flag_pairIncomplete": "Servono latitudine e longitudine",
+  "tableEditor_flag_scrubberNeedsType": "Richiede un tipo di scrubber",
   "tableEditor_flag_changedElsewhere": "Modificato altrove dopo la tua modifica",
   "tableEditor_multiChoice_done": "Fatto",
   "tableEditor_libraryReadOnly": "Sito di libreria: qui si modificano solo note e valutazione",

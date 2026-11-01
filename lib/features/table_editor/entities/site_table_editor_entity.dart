@@ -60,6 +60,13 @@ class SiteTableEditorEntity
   @override
   String? nameOf(SiteWithCount entity) => entity.site.name;
 
+  @override
+  bool get hasRowLocks => true;
+
+  @override
+  String? rowLockReason(SiteWithCount entity, AppLocalizations l10n) =>
+      columns.first.readOnlyReason(entity, l10n);
+
   static bool _isCoordinate(TableDraft d) =>
       d.fieldName == SiteField.latitude.name ||
       d.fieldName == SiteField.longitude.name;
@@ -78,15 +85,17 @@ class SiteTableEditorEntity
     if (lat == null && lon == null) return drafts;
     final location = entity.site.location;
     if (location == null) {
-      // Both halves must arrive before a position exists.
+      // Both halves must arrive before a position exists. With neither
+      // there is nothing to wait for: two blanks on a blank site are no edit.
       final complete = lat?.value != null && lon?.value != null;
+      final waiting = !complete && (lat?.value != null || lon?.value != null);
       return [
         for (final d in drafts)
           if (!_isCoordinate(d))
             d
-          else if (complete && d.flag == TableDraftFlag.pairIncomplete)
+          else if (!waiting && d.flag == TableDraftFlag.pairIncomplete)
             d.copyWith(clearFlag: true)
-          else if (!complete && d.flag == null)
+          else if (waiting && d.flag == null)
             d.copyWith(flag: TableDraftFlag.pairIncomplete)
           else
             d,
@@ -125,6 +134,28 @@ class SiteTableEditorEntity
     return out;
   }
 
+  @override
+  List<TableDraft> afterDiscard(
+    SiteWithCount entity,
+    List<TableDraft> drafts,
+    String fieldName,
+  ) {
+    final rest = super.afterDiscard(entity, drafts, fieldName);
+    if (fieldName != SiteField.latitude.name &&
+        fieldName != SiteField.longitude.name) {
+      return rest;
+    }
+    // A position cleared as a pair comes back as a pair: the other half's
+    // clear would otherwise bring this one straight back.
+    final wasClear = drafts.any(
+      (d) => d.fieldName == fieldName && d.value == null,
+    );
+    return reconcile(entity, [
+      for (final d in rest)
+        if (!wasClear || !_isCoordinate(d) || d.value != null) d,
+    ]);
+  }
+
   TableDraft _clearDraft(SiteWithCount e, SiteField f, double current) =>
       TableDraft(
         entityId: e.site.id,
@@ -135,9 +166,8 @@ class SiteTableEditorEntity
 
   @override
   Future<List<SiteWithCount>> reload(List<String> ids) async => [
-    for (final id in ids)
-      if (await _repo.getSiteById(id) case final site?)
-        SiteWithDiveCount(site: site, diveCount: 0),
+    for (final site in await _repo.getSitesByIds(ids))
+      SiteWithDiveCount(site: site, diveCount: 0),
   ];
 
   @override

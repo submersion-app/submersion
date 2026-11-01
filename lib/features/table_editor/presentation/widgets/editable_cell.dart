@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -6,8 +7,9 @@ import 'package:submersion/features/table_editor/domain/table_editor_column.dart
 
 /// The open cell of the sheet (#3422): a text field for text and numbers, a
 /// pulldown for a list, a checkbox list for several values, and a checkbox
-/// for a toggle reached by keyboard. Enter commits and moves down, Tab
-/// commits and moves on, Shift+Tab back, Escape cancels. Leaving the cell
+/// for a toggle reached by keyboard, which Space flips. Enter commits and
+/// moves down, Tab commits and moves on, Shift+Tab back, Escape cancels.
+/// Leaving the cell
 /// any other way (a click elsewhere, the sheet rebuilding) commits what was
 /// typed, as a spreadsheet does; nothing typed is ever silently dropped.
 class EditableCell extends StatefulWidget {
@@ -70,6 +72,10 @@ class _EditableCellState extends State<EditableCell> {
   @override
   void initState() {
     super.initState();
+    if (widget.kind == CellEditorKind.choice ||
+        widget.kind == CellEditorKind.reference) {
+      _focus.onKeyEvent = _onPulldownKey;
+    }
     if (!_isText) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _focus.requestFocus();
@@ -89,8 +95,9 @@ class _EditableCellState extends State<EditableCell> {
       final teardown = widget.onTeardown;
       final commitText = widget.onCommitText;
       final commitValue = widget.onCommitValue;
-      // Nothing typed means nothing to keep.
-      final changed = !isText || text != widget.initialText;
+      // Nothing changed means nothing to keep: a cell opened and left must
+      // not rewrite a draft with what it opened on.
+      final changed = _changed;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!changed) return;
         if (teardown != null) {
@@ -106,6 +113,17 @@ class _EditableCellState extends State<EditableCell> {
     _focus.dispose();
     super.dispose();
   }
+
+  bool get _changed => switch (widget.kind) {
+    CellEditorKind.toggle => _toggle != widget.initialToggle,
+    CellEditorKind.choice ||
+    CellEditorKind.reference => _choice != widget.initialChoice,
+    CellEditorKind.multiChoice => !setEquals(
+      _selected,
+      widget.initialSelection.toSet(),
+    ),
+    _ => _controller.text != widget.initialText,
+  };
 
   Object? get _currentValue => switch (widget.kind) {
     CellEditorKind.toggle => _toggle,
@@ -131,6 +149,18 @@ class _EditableCellState extends State<EditableCell> {
     }
   });
 
+  /// On the pulldown's own field, so it runs first: the pulldown consumes
+  /// Escape even with its menu closed, so a handler around it never sees the
+  /// key. Enter and Tab stay with [_onKey], after the menu has had Enter.
+  KeyEventResult _onPulldownKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent ||
+        event.logicalKey != LogicalKeyboardKey.escape) {
+      return KeyEventResult.ignored;
+    }
+    _finish(widget.onCancel);
+    return KeyEventResult.handled;
+  }
+
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     if (event.logicalKey == LogicalKeyboardKey.escape) {
@@ -147,6 +177,12 @@ class _EditableCellState extends State<EditableCell> {
     }
     if (!_isText && event.logicalKey == LogicalKeyboardKey.enter) {
       _commitMove(CellMove.down);
+      return KeyEventResult.handled;
+    }
+    // Focus sits on this cell, not the checkbox inside it.
+    if (widget.kind == CellEditorKind.toggle &&
+        event.logicalKey == LogicalKeyboardKey.space) {
+      setState(() => _toggle = !_toggle);
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -172,6 +208,11 @@ class _EditableCellState extends State<EditableCell> {
             controller: _controller,
             autofocus: true,
             style: small,
+            // A single-line field strips newlines from the whole value on the
+            // first keystroke, so a multi-line note stays multi-line. Enter
+            // still commits either way.
+            maxLines: widget.initialText.contains('\n') ? null : 1,
+            textInputAction: TextInputAction.done,
             keyboardType: widget.kind == CellEditorKind.text
                 ? TextInputType.text
                 : const TextInputType.numberWithOptions(decimal: true),
