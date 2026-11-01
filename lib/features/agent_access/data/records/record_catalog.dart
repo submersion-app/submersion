@@ -2,6 +2,7 @@ import 'package:submersion/features/agent_access/data/query_roots.dart';
 import 'package:submersion/features/agent_access/data/records/families/dive_records.dart';
 import 'package:submersion/features/agent_access/data/records/families/gear_records.dart';
 import 'package:submersion/features/agent_access/data/records/families/site_records.dart';
+import 'package:submersion/features/agent_access/data/records/families/training_records.dart';
 import 'package:submersion/features/agent_access/data/records/families/trip_records.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
@@ -15,6 +16,7 @@ class RecordCatalog {
         ...siteEntries(r),
         ...gearEntries(r),
         ...tripEntries(r),
+        ...trainingEntries(r),
       ]);
 
   final List<RecordEntry> all;

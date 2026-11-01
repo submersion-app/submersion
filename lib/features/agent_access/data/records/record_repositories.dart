@@ -1,7 +1,12 @@
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/courses/data/repositories/course_repository.dart';
+import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart';
@@ -49,7 +54,12 @@ class RecordRepositories {
   late final buddies = BuddyRepository();
   late final centerGearNotes = DiveCenterGearNoteRepository();
   late final centers = DiveCenterRepository();
+  late final certifications = CertificationRepository();
   late final computers = DiveComputerRepository();
+  late final courseRequirements = CourseRequirementRepository();
+  late final courses = CourseRepository();
+  late final currency = CertificationCurrencyRepository();
+  late final customCertifications = CustomCertificationRepository();
   late final dives = DiveRepository();
   late final cylinderConfigs = CylinderConfigRepository();
   late final cylinderFills = CylinderFillRepository();
