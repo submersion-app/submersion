@@ -75,6 +75,59 @@ void main() {
     expect(find.text('TEMP'), findsOneWidget);
   });
 
+  group('active cylinder with no reading (#4006)', () {
+    PerdixFaceData faceData({
+      double? tankPressureBar,
+      bool tankPressureMissing = false,
+    }) => PerdixFaceData(
+      diveTimeSeconds: 600,
+      depthMeters: 10.0,
+      tankPressureBar: tankPressureBar,
+      tankPressureMissing: tankPressureMissing,
+      cnsPercent: 8.0,
+      ppO2Bar: 0.85,
+    );
+
+    testWidgets('keeps the TANK cell with no value in it', (tester) async {
+      await tester.pumpWidget(
+        host(
+          PerdixFace(
+            data: faceData(tankPressureMissing: true),
+            settings: settings,
+          ),
+        ),
+      );
+
+      expect(find.text('TANK'), findsOneWidget);
+      expect(find.text('--'), findsOneWidget);
+    });
+
+    testWidgets('leaves the cells beside it where they were', (tester) async {
+      await tester.pumpWidget(
+        host(
+          PerdixFace(
+            data: faceData(tankPressureBar: 150.0),
+            settings: settings,
+          ),
+        ),
+      );
+      final cnsWithReading = tester.getTopLeft(find.text('CNS'));
+      final ppO2WithReading = tester.getTopLeft(find.text('PPO2'));
+
+      await tester.pumpWidget(
+        host(
+          PerdixFace(
+            data: faceData(tankPressureMissing: true),
+            settings: settings,
+          ),
+        ),
+      );
+
+      expect(tester.getTopLeft(find.text('CNS')), cnsWithReading);
+      expect(tester.getTopLeft(find.text('PPO2')), ppO2WithReading);
+    });
+  });
+
   testWidgets('deco swap: NDL cell becomes STOP, MAX becomes TTS', (
     tester,
   ) async {

@@ -87,6 +87,7 @@ void main() {
       expect(d.ndlSeconds, isNull);
       expect(d.gasLabel, isNull);
       expect(d.tankPressureBar, isNull);
+      expect(d.tankPressureMissing, isFalse);
       expect(d.inDeco, isFalse);
     });
   });
@@ -197,10 +198,12 @@ void main() {
         final before = r.resolve(20);
         expect(before.gasLabel, 'Air');
         expect(before.tankPressureBar, 150.0);
+        expect(before.tankPressureMissing, isFalse);
 
         final after = r.resolve(35);
         expect(after.gasLabel, 'EAN50');
         expect(after.tankPressureBar, isNull);
+        expect(after.tankPressureMissing, isTrue);
       });
 
       test('stays empty through the final second of the dive', () {
@@ -292,6 +295,7 @@ void main() {
       final d = r.resolve(35);
       expect(d.gasLabel, isNull);
       expect(d.tankPressureBar, 150.0);
+      expect(d.tankPressureMissing, isFalse);
     });
 
     test('several readings show none rather than a guess', () {
@@ -300,7 +304,9 @@ void main() {
         tankPressures: const {'first': first, 'second': second},
       );
 
-      expect(r.resolve(35).tankPressureBar, isNull);
+      final d = r.resolve(35);
+      expect(d.tankPressureBar, isNull);
+      expect(d.tankPressureMissing, isTrue);
     });
 
     test('a sample before t=0 reads no cylinder on a dive with tanks', () {

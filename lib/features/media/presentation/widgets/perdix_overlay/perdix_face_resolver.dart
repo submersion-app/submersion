@@ -18,6 +18,12 @@ class PerdixFaceData {
   final double? temperatureCelsius;
   final String? gasLabel;
   final double? tankPressureBar;
+
+  /// True when [tankPressureBar] is null though the dive has readings at this
+  /// moment, so the cylinder in use is unmeasured rather than the dive having
+  /// no pressure data. The face then holds the TANK cell open with no value,
+  /// which keeps the cells beside it from moving at a gas switch.
+  final bool tankPressureMissing;
   final double? cnsPercent;
   final double? ppO2Bar;
   final bool inDeco;
@@ -32,6 +38,7 @@ class PerdixFaceData {
     this.temperatureCelsius,
     this.gasLabel,
     this.tankPressureBar,
+    this.tankPressureMissing = false,
     this.cnsPercent,
     this.ppO2Bar,
     this.inDeco = false,
@@ -104,6 +111,7 @@ class PerdixFaceResolver {
     );
     final index = indexForTimestamp(_profile, clamped)!;
     final ceiling = sample.ceilingMeters;
+    final tankPressure = _tankPressureAt(clamped, sample.tankPressuresBar);
     return PerdixFaceData(
       diveTimeSeconds: clamped,
       depthMeters: sample.depthMeters,
@@ -113,7 +121,9 @@ class PerdixFaceResolver {
       ttsSeconds: sample.ttsSeconds,
       temperatureCelsius: sample.temperatureCelsius,
       gasLabel: _gasLabelAt(clamped),
-      tankPressureBar: _tankPressureAt(clamped, sample.tankPressuresBar),
+      tankPressureBar: tankPressure,
+      tankPressureMissing:
+          tankPressure == null && sample.tankPressuresBar.isNotEmpty,
       cnsPercent: sample.cnsPercent,
       ppO2Bar: sample.ppO2Bar,
       inDeco: sample.inDeco || ((ceiling ?? 0) > 0),
