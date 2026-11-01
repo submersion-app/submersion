@@ -304,6 +304,44 @@ void main() {
       expect(findings.single.relatedDiveId, 'last');
     });
 
+    test('finds the neighbors of a dive past the first chunk', () async {
+      await seedFutureDive('late');
+      await seedFutureDive('neighbor');
+      final findings = _RecordingFindings();
+      final service = QualityScanService(
+        contextBuilder: _RecordingBuilder(),
+        findingsRepository: findings,
+        detectors: const [_UnprefilteredDetector()],
+      );
+
+      await service.scanDives({
+        for (var i = 0; i < kSeriesIdChunkSize; i++) 'dive-$i',
+        'late',
+      });
+
+      expect(findings.scopes.single, contains('neighbor'));
+    });
+
+    test('retires a finding only a later chunk of the scope matches', () async {
+      await seedFutureDive('first');
+      await seedFutureDive('last');
+      await QualityScanService(
+        contextBuilder: _RecordingBuilder(),
+        detectors: const [_OneSidedPairDetector()],
+      ).scanDives({'first', 'last'});
+
+      final result = await findingsRepo.applyScanResults(
+        scopeDiveIds: {
+          for (var i = 0; i < kSeriesIdChunkSize; i++) 'dive-$i',
+          'last',
+        },
+        ranDetectorIds: {'one_sided_pair'},
+        produced: const [],
+      );
+
+      expect(result.removed, 1);
+    });
+
     test('removes a pair once when its dives fall in different chunks of '
         'the scope', () async {
       await seedFutureDive('first');

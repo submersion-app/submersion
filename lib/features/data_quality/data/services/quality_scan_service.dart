@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter/foundation.dart';
 
@@ -117,12 +115,8 @@ class QualityScanService {
     var done = 0;
     var produced = 0;
     var errors = 0;
-    for (var i = 0; i < allDiveIds.length; i += batchSize) {
+    for (final batch in seriesIdChunks(allDiveIds, size: batchSize)) {
       if (isCancelled?.call() ?? false) break;
-      final batch = allDiveIds.sublist(
-        i,
-        math.min(i + batchSize, allDiveIds.length),
-      );
       final summary = await _scanBatch(
         batch,
         enabled: enabled,
