@@ -110,6 +110,25 @@ void main() {
       );
       expect(p, contains('idx_dives_entry_date'));
       expect(p, isNot(contains('SCAN $kSurfaceIntervalPreviousAlias')));
+      expect(p, isNot(contains('SCAN undived_sibling')));
     },
   );
+
+  test('the undived check seeks idx_dives_outing, never scans', () async {
+    final p = await plan(
+      db,
+      'SELECT d.id FROM dives d WHERE NOT ${diveUndivedSql('d')}',
+    );
+    expect(p, contains('idx_dives_outing'));
+    expect(p, isNot(contains('SCAN undived_sibling')));
+  });
+
+  test('the earlier dives revision seeks, never scans', () async {
+    final p = await plan(
+      db,
+      'SELECT d.id, ${earlierDivesRevisionSql('d')} FROM dives d',
+    );
+    expect(p, contains('idx_dives_entry_date'));
+    expect(p, isNot(contains('SCAN history_dive')));
+  });
 }

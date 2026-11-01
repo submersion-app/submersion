@@ -50,6 +50,14 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_dives_entry_date '
         'ON dives(entry_time, dive_date_time)',
   ),
+  // The sibling lookup of diveUndivedSql (#3924): whether a logged dive shares
+  // a mirrored dive's outing. Partial, because most dives have no outing.
+  (
+    name: 'idx_dives_outing',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dives_outing '
+        'ON dives(outing_id) WHERE outing_id IS NOT NULL',
+  ),
   // NOTE: an expression index on (diver_id, COALESCE(entry_time,
   // dive_date_time) DESC) matching the paginated list's sort key was
   // evaluated in the WS0 baseline and DROPPED: the planner never selected
