@@ -21183,6 +21183,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'خطة تخفيف الضغط لا تتضمن غاز إنقاذ (bailout)';
 
   @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'غاز الإنقاذ (bailout) ناقص الأكسجين عند $depth (ppO₂ $value bar). احمل غازًا صالحًا للتنفس حتى السطح.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

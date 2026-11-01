@@ -19868,6 +19868,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_issue_noBailout => '减压计划未携带逃生气体';
 
   @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return '$depth 处逃生气体为低氧气体（ppO₂ $value bar）。请携带可一直呼吸至水面的气体。';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

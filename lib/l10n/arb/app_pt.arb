@@ -5986,6 +5986,7 @@
   "plannerCanvas_issue_diluentModExceeded": "O diluente excede a MOD Dil a {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "O perfil ultrapassa o teto de descompressão de {ceiling}, saltando paragens obrigatórias",
   "plannerCanvas_issue_noBailout": "O plano de descompressão não leva gás de bailout",
+  "plannerCanvas_issue_bailoutHypoxic": "O gás de bailout é hipóxico a {depth} (ppO₂ {value} bar). Leve um gás respirável até à superfície.",
   "plannerCanvas_issue_noEligibleBailoutGas": "Nenhum gás de bailout chega a {depth}: a MOD mais profunda transportada é {deepestMod}. Leve um gás utilizável a essa profundidade; mais do mesmo gás não resolve.",
   "plannerCanvas_issue_noDecoGas": "Descompressão necessária mas sem gás de deco a bordo",
   "plannerCanvas_range_base": "Base",

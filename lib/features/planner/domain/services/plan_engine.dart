@@ -2356,13 +2356,9 @@ class PlanEngine {
     } else {
       // One or the other: a plan told it carries no bailout gas has no use
       // for the MOD of the loop's own supply, which still resolves to bailout.
-      final bailoutGasIssue = _bailoutGasIssue(
-        plan,
-        legs,
-        segmentOutcomes,
-        environment,
+      issues.addAll(
+        _bailoutGasIssues(plan, legs, segmentOutcomes, environment),
       );
-      if (bailoutGasIssue != null) issues.add(bailoutGasIssue);
     }
 
     issues.addAll(_modOverrideIssues(plan.tanks, environment, onsets.schedule));
@@ -2388,38 +2384,65 @@ class PlanEngine {
   /// [PlanIssueType.noBailoutCarried] does: a no-stop dive needs a gas to
   /// leave on too. Eligibility runs from a gas's MOD to the surface, so
   /// [legs]' deepest point answers for every other failure depth.
-  PlanIssue? _bailoutGasIssue(
+  ///
+  /// That only says a gas may be breathed from there, not that it stays
+  /// breathable up to the surface (#4008). A plan on the loop never breathes
+  /// its bailout gas, so a hypoxic one is an alert, not a critical
+  /// [PlanIssueType.hypoxicGas]: it does not stop the plan being diveable.
+  Iterable<PlanIssue> _bailoutGasIssues(
     domain.DivePlan plan,
     List<ResolvedLeg> legs,
     List<SegmentOutcome> segmentOutcomes,
     DiveEnvironment environment,
-  ) {
-    if (plan.mode == domain.PlanMode.oc) return null;
+  ) sync* {
+    if (plan.mode == domain.PlanMode.oc) return;
     final bailoutTanks = plan.tanks
         .where((t) => t.role == TankRole.bailout)
         .toList();
-    if (bailoutTanks.isEmpty) return null;
+    if (bailoutTanks.isEmpty) return;
     final gases = config.bailoutAscentGas(bailoutTanks, environment);
     final deepest = legs.fold(0.0, (d, leg) => math.max(d, leg.deeperEnd));
-    if (gases.coversDepth(deepest)) return null;
-    final firstPast = legs.indexWhere(
-      (leg) => !gases.coversDepth(leg.deeperEnd),
+    if (!gases.coversDepth(deepest)) {
+      final firstPast = legs.indexWhere(
+        (leg) => !gases.coversDepth(leg.deeperEnd),
+      );
+      yield PlanIssue(
+        type: PlanIssueType.noEligibleBailoutGas,
+        severity: PlanIssueSeverity.alert,
+        message:
+            'No bailout gas reaches ${deepest.toStringAsFixed(1)} m: the '
+            'deepest MOD carried is ${gases.deepestMod.toStringAsFixed(1)} m',
+        atRuntime: _legOnset(
+          legs[firstPast],
+          segmentOutcomes[firstPast],
+          (depth) => !gases.coversDepth(depth),
+        ),
+        atDepth: deepest,
+        value: deepest,
+        threshold: gases.deepestMod,
+      );
+    }
+    final hypoxia = _ascentHypoxia(
+      _policyFor(plan),
+      gases,
+      const [],
+      fromDepth: deepest,
+      startRuntime: 0,
+      environment: environment,
     );
-    return PlanIssue(
-      type: PlanIssueType.noEligibleBailoutGas,
-      severity: PlanIssueSeverity.alert,
-      message:
-          'No bailout gas reaches ${deepest.toStringAsFixed(1)} m: the '
-          'deepest MOD carried is ${gases.deepestMod.toStringAsFixed(1)} m',
-      atRuntime: _legOnset(
-        legs[firstPast],
-        segmentOutcomes[firstPast],
-        (depth) => !gases.coversDepth(depth),
-      ),
-      atDepth: deepest,
-      value: deepest,
-      threshold: gases.deepestMod,
-    );
+    if (hypoxia != null) {
+      yield PlanIssue(
+        type: PlanIssueType.bailoutGasHypoxic,
+        severity: PlanIssueSeverity.alert,
+        message:
+            'Bailout gas is hypoxic at '
+            '${hypoxia.atDepth!.toStringAsFixed(0)} m '
+            '(ppO2 ${hypoxia.value!.toStringAsFixed(2)} bar)',
+        atDepth: hypoxia.atDepth,
+        value: hypoxia.value,
+        threshold: hypoxia.threshold,
+      );
+    }
   }
 
   /// The runtime at which [usage]'s cylinder first drops to [pressureBar],

@@ -20813,6 +20813,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'A dekompressziós terv nem tartalmaz bailout gázt';
 
   @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'A bailout gáz hipoxiás $depth mélységben (ppO₂ $value bar). Vigyél a felszínig belélegezhető gázt.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

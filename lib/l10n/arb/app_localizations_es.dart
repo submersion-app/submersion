@@ -20881,6 +20881,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'El plan de descompresión no lleva gas de bailout';
 
   @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'El gas de bailout es hipóxico a $depth (ppO₂ $value bar). Lleva un gas respirable hasta la superficie.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,
