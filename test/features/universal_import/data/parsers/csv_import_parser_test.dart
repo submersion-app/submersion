@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
 import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
@@ -118,6 +120,136 @@ void main() {
 
       final dives = result.entitiesOf(ImportEntityType.dives);
       expect(dives.length, 1);
+    });
+  });
+
+  group('parse - gas mixes (#4007)', () {
+    GasMix gasOf(Map<String, dynamic> dive, [int tank = 0]) =>
+        (dive['tanks'] as List)[tank]['gasMix'] as GasMix;
+
+    test('a Submersion file that missed its signature is capped', () async {
+      final headers = DiveCsvColumns.fixed
+          .where((h) => h != DiveCsvColumns.notes)
+          .toList();
+      String row(Map<String, String> cells) =>
+          headers.map((h) => cells[h] ?? '').join(',');
+      final result = await parser.parse(
+        csvBytes(
+          '${headers.join(',')}\n'
+          '${row({DiveCsvColumns.date: '2025-03-16', DiveCsvColumns.time: '09:05', DiveCsvColumns.o2Percent: '11', DiveCsvColumns.hePercent: '90'})}\n',
+        ),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(gasOf(dive), const GasMix(o2: 11, he: 89));
+      expect(
+        result.warnings
+            .where((w) => w.code == ImportWarningCode.gasMixesCapped)
+            .single
+            .sourceRow,
+        2,
+      );
+    });
+
+    test('auto-mapping reads helium, and only helium', () async {
+      final result = await parser.parse(
+        csvBytes(
+          'Date,Time,Max Depth (m),Oxygen,Helium,Weather,Height\n'
+          '2025-03-15,09:05,20,18,45,Sunny,5\n',
+        ),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(gasOf(dive), const GasMix(o2: 18, he: 45));
+    });
+
+    test('a column named over 100 by auto-mapping is capped', () async {
+      final result = await parser.parse(
+        csvBytes(
+          'Dive Number,Date,Time,Max Depth (m),O2 %,He %\n'
+          '1,2025-03-15,09:05,20,21,35\n'
+          '2,2025-03-16,09:05,20,11,90\n',
+        ),
+      );
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(gasOf(dives[0]), const GasMix(o2: 21, he: 35));
+      expect(gasOf(dives[1]), const GasMix(o2: 11, he: 89));
+
+      final warning = result.warnings.singleWhere(
+        (w) => w.code == ImportWarningCode.gasMixesCapped,
+      );
+      expect(warning.severity, ImportWarningSeverity.warning);
+      expect(warning.sourceRow, 3);
+      expect(warning.itemIndex, 1);
+      expect(warning.field, 'hePercent');
+      expect(
+        warning.message,
+        'Row 3 has O2 11 % and He 90 %, over 100 % together; '
+        'He was reduced to 89 %',
+      );
+    });
+
+    test('each numbered tank is capped on its own', () async {
+      const mapping = FieldMapping(
+        name: 'Numbered',
+        sourceApp: SourceApp.generic,
+        columns: [
+          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'V1', targetField: 'tankVolume_1'),
+          ColumnMapping(sourceColumn: 'O1', targetField: 'o2Percent_1'),
+          ColumnMapping(sourceColumn: 'H1', targetField: 'hePercent_1'),
+          ColumnMapping(sourceColumn: 'V2', targetField: 'tankVolume_2'),
+          ColumnMapping(sourceColumn: 'O2', targetField: 'o2Percent_2'),
+          ColumnMapping(sourceColumn: 'H2', targetField: 'hePercent_2'),
+        ],
+      );
+      final result = await CsvImportParser(customMapping: mapping).parse(
+        csvBytes(
+          'Date,V1,O1,H1,V2,O2,H2\n'
+          '2025-03-15,12,18,45,12,11,90\n',
+        ),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(gasOf(dive), const GasMix(o2: 18, he: 45));
+      expect(gasOf(dive, 1), const GasMix(o2: 11, he: 89));
+      expect(
+        result.warnings
+            .where((w) => w.code == ImportWarningCode.gasMixesCapped)
+            .single
+            .field,
+        'hePercent_2',
+      );
+    });
+
+    test('a row dropped for its date raises no gas warning', () async {
+      final result = await parser.parse(
+        csvBytes(
+          'Dive Number,Date,Time,Max Depth (m),O2 %,He %\n'
+          '1,not a date,09:05,20,11,90\n'
+          '2,2025-03-16,09:05,20,21,35\n',
+        ),
+      );
+      expect(
+        result.warnings.where(
+          (w) => w.code == ImportWarningCode.gasMixesCapped,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a total of exactly 100 is left alone', () async {
+      final result = await parser.parse(
+        csvBytes(
+          'Dive Number,Date,Time,Max Depth (m),O2 %,He %\n'
+          '1,2025-03-15,09:05,20,10.5,89.5\n',
+        ),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(gasOf(dive), const GasMix(o2: 10.5, he: 89.5));
+      expect(
+        result.warnings.where(
+          (w) => w.code == ImportWarningCode.gasMixesCapped,
+        ),
+        isEmpty,
+      );
     });
   });
 

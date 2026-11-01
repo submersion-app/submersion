@@ -321,7 +321,11 @@ class CsvImportParser implements ImportParser {
     if (header.contains('tank') && header.contains('volume')) {
       return 'tankVolume';
     }
-    // Gas.
+    // Gas. Helium needs the whole word or a leading "He": "weather" and
+    // "height" hold the letters too.
+    if (header.contains('helium') || _heliumHeader.hasMatch(header)) {
+      return 'hePercent';
+    }
     if (header.contains('o2') || header.contains('oxygen')) return 'o2Percent';
     // Computer info. Serial and firmware first: "Computer Serial" is not a
     // model, and a model registers a dive computer on import.
@@ -370,6 +374,8 @@ class CsvImportParser implements ImportParser {
   static final _nonMetricSpeedUnit = RegExp(r'km|kph|kt|knot|mph');
 
   static final _metresUnit = RegExp(r'\(m\)|\[m\]|\bmet(er|re)s?\b');
+
+  static final _heliumHeader = RegExp(r'^he\b');
 
   bool _namesNonMetricSpeedUnit(String h) => _nonMetricSpeedUnit.hasMatch(h);
 

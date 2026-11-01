@@ -13,6 +13,7 @@ import 'package:submersion/features/universal_import/data/models/field_mapping.d
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
+import 'package:submersion/features/universal_import/data/services/gas_mix_cap.dart';
 
 /// Stage 4: Transform raw CSV rows into typed field maps.
 ///
@@ -235,6 +236,7 @@ class CsvTransformer {
           ..remove('date')
           ..remove('time')
           ..remove('_informalTime');
+        _capGasMixes(result, i, csv.sourceRowNumber(i), warnings);
         validRows.add(result);
         continue;
       }
@@ -275,6 +277,7 @@ class CsvTransformer {
         ..remove('date')
         ..remove('time')
         ..remove('_informalTime');
+      _capGasMixes(result, i, csv.sourceRowNumber(i), warnings);
       validRows.add(result);
     }
 
@@ -537,6 +540,41 @@ class CsvTransformer {
     }
     return defaultValue;
   }
+
+  /// Reduces the helium of each gas in [row] that totals more than 100 %,
+  /// here because a row's number is known here and lost by the correlator.
+  /// A blank oxygen counts as air, as [TankExtractor] reads it.
+  void _capGasMixes(
+    Map<String, dynamic> row,
+    int index,
+    int sourceRow,
+    List<ImportWarning> warnings,
+  ) {
+    for (final suffix in const ['', '_1', '_2', '_3', '_4', '_5', '_6']) {
+      final he = _gasPercent(row['hePercent$suffix']);
+      if (he == null) continue;
+      final o2 = _gasPercent(row['o2Percent$suffix']) ?? 21.0;
+      final keptHe = cappedHelium(o2, he);
+      if (keptHe == null) continue;
+      row['hePercent$suffix'] = keptHe;
+      warnings.add(
+        gasMixCappedWarning(
+          o2: o2,
+          he: he,
+          keptHe: keptHe,
+          sourceRow: sourceRow,
+          itemIndex: index,
+          field: 'hePercent$suffix',
+        ),
+      );
+    }
+  }
+
+  static double? _gasPercent(Object? value) => switch (value) {
+    final num number => number.toDouble(),
+    final String text => double.tryParse(text),
+    _ => null,
+  };
 
   /// Returns true if the target field is expected to hold a double value.
   ///
