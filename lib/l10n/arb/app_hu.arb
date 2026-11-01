@@ -7167,6 +7167,7 @@
   "settings_conflict_field_eventType": "Esemény",
   "settings_conflict_field_evidence": "Bizonyíték",
   "settings_conflict_field_evidenceFingerprint": "Bizonyíték ujjlenyomata",
+  "settings_conflict_field_gasSwitchesEdited": "Gázváltások kézzel szerkesztve",
   "settings_conflict_field_excludedFromGasStats": "Kihagyva a gázstatisztikából",
   "settings_conflict_field_excludedFromStats": "Kihagyva a statisztikából",
   "settings_conflict_field_exitLatitude": "Kiszállás szélessége",

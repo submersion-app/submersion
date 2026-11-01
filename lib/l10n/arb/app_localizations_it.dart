@@ -24580,6 +24580,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impronta delle prove';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Cambi gas modificati a mano';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Escluso dalle statistiche dei gas';
 

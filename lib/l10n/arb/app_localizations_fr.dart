@@ -24644,6 +24644,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Empreinte de la preuve';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Changements de gaz modifiés à la main';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Exclu des statistiques de gaz';
 

@@ -24422,6 +24422,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Vingerafdruk van het bewijs';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gaswissels handmatig bewerkt';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Uitgesloten van gasstatistieken';
 

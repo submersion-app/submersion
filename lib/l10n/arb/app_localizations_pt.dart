@@ -24564,6 +24564,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Impressão digital da evidência';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Trocas de gás editadas manualmente';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Excluído das estatísticas de gás';
 

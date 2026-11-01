@@ -14684,6 +14684,7 @@
   "settings_conflict_field_eventType": "Event",
   "settings_conflict_field_evidence": "Evidence",
   "settings_conflict_field_evidenceFingerprint": "Evidence fingerprint",
+  "settings_conflict_field_gasSwitchesEdited": "Gas switches edited by hand",
   "settings_conflict_field_excludedFromGasStats": "Left out of gas statistics",
   "settings_conflict_field_excludedFromStats": "Left out of statistics",
   "settings_conflict_field_exitLatitude": "Exit latitude",

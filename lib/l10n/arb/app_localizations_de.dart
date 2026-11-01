@@ -24532,6 +24532,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fingerabdruck des Nachweises';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gaswechsel von Hand bearbeitet';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Nicht in der Gasstatistik';
 

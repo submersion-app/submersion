@@ -24844,6 +24844,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_evidenceFingerprint => 'بصمة الدليل';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'تبديلات الغاز معدّلة يدويًا';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'مستبعد من إحصاءات الغاز';
 

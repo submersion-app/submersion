@@ -7401,6 +7401,7 @@
   "settings_conflict_field_eventType": "Ereignis",
   "settings_conflict_field_evidence": "Nachweis",
   "settings_conflict_field_evidenceFingerprint": "Fingerabdruck des Nachweises",
+  "settings_conflict_field_gasSwitchesEdited": "Gaswechsel von Hand bearbeitet",
   "settings_conflict_field_excludedFromGasStats": "Nicht in der Gasstatistik",
   "settings_conflict_field_excludedFromStats": "Nicht in der Statistik",
   "settings_conflict_field_exitLatitude": "Breitengrad beim Ausstieg",

@@ -7268,6 +7268,7 @@
   "settings_conflict_field_eventType": "Gebeurtenis",
   "settings_conflict_field_evidence": "Bewijs",
   "settings_conflict_field_evidenceFingerprint": "Vingerafdruk van het bewijs",
+  "settings_conflict_field_gasSwitchesEdited": "Gaswissels handmatig bewerkt",
   "settings_conflict_field_excludedFromGasStats": "Uitgesloten van gasstatistieken",
   "settings_conflict_field_excludedFromStats": "Uitgesloten van statistieken",
   "settings_conflict_field_exitLatitude": "Breedtegraad bij de uitgang",

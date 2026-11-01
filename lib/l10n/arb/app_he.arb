@@ -7272,6 +7272,7 @@
   "settings_conflict_field_eventType": "אירוע",
   "settings_conflict_field_evidence": "ראיה",
   "settings_conflict_field_evidenceFingerprint": "טביעת אצבע של הראיה",
+  "settings_conflict_field_gasSwitchesEdited": "החלפות גז נערכו ידנית",
   "settings_conflict_field_excludedFromGasStats": "לא נכלל בסטטיסטיקת הגז",
   "settings_conflict_field_excludedFromStats": "לא נכלל בסטטיסטיקה",
   "settings_conflict_field_exitLatitude": "קו רוחב ביציאה",

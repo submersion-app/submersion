@@ -24577,6 +24577,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Huella de las pruebas';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Cambios de gas editados a mano';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Excluido de las estadísticas de gas';
 

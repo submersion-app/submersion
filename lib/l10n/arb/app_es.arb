@@ -7268,6 +7268,7 @@
   "settings_conflict_field_eventType": "Evento",
   "settings_conflict_field_evidence": "Pruebas",
   "settings_conflict_field_evidenceFingerprint": "Huella de las pruebas",
+  "settings_conflict_field_gasSwitchesEdited": "Cambios de gas editados a mano",
   "settings_conflict_field_excludedFromGasStats": "Excluido de las estadísticas de gas",
   "settings_conflict_field_excludedFromStats": "Excluido de las estadísticas",
   "settings_conflict_field_exitLatitude": "Latitud de salida",

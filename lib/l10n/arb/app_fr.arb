@@ -7167,6 +7167,7 @@
   "settings_conflict_field_eventType": "Événement",
   "settings_conflict_field_evidence": "Preuve",
   "settings_conflict_field_evidenceFingerprint": "Empreinte de la preuve",
+  "settings_conflict_field_gasSwitchesEdited": "Changements de gaz modifiés à la main",
   "settings_conflict_field_excludedFromGasStats": "Exclu des statistiques de gaz",
   "settings_conflict_field_excludedFromStats": "Exclu des statistiques",
   "settings_conflict_field_exitLatitude": "Latitude de sortie",

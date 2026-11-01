@@ -39036,6 +39036,12 @@ abstract class AppLocalizations {
   /// **'Evidence fingerprint'**
   String get settings_conflict_field_evidenceFingerprint;
 
+  /// No description provided for @settings_conflict_field_gasSwitchesEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switches edited by hand'**
+  String get settings_conflict_field_gasSwitchesEdited;
+
   /// No description provided for @settings_conflict_field_excludedFromGasStats.
   ///
   /// In en, this message translates to:

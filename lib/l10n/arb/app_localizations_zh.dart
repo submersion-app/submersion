@@ -23237,6 +23237,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_evidenceFingerprint => '依据指纹';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited => '气体切换已手动编辑';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats => '不计入气体统计';
 
   @override

@@ -24184,6 +24184,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Evidence fingerprint';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gas switches edited by hand';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Left out of gas statistics';
 

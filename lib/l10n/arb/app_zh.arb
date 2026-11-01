@@ -7420,6 +7420,7 @@
   "settings_conflict_field_eventType": "事件",
   "settings_conflict_field_evidence": "依据",
   "settings_conflict_field_evidenceFingerprint": "依据指纹",
+  "settings_conflict_field_gasSwitchesEdited": "气体切换已手动编辑",
   "settings_conflict_field_excludedFromGasStats": "不计入气体统计",
   "settings_conflict_field_excludedFromStats": "不计入统计",
   "settings_conflict_field_exitLatitude": "出水点纬度",

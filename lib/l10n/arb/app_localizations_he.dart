@@ -23984,6 +23984,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'טביעת אצבע של הראיה';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'החלפות גז נערכו ידנית';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'לא נכלל בסטטיסטיקת הגז';
 

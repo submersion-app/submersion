@@ -7268,6 +7268,7 @@
   "settings_conflict_field_eventType": "الحدث",
   "settings_conflict_field_evidence": "الدليل",
   "settings_conflict_field_evidenceFingerprint": "بصمة الدليل",
+  "settings_conflict_field_gasSwitchesEdited": "تبديلات الغاز معدّلة يدويًا",
   "settings_conflict_field_excludedFromGasStats": "مستبعد من إحصاءات الغاز",
   "settings_conflict_field_excludedFromStats": "مستبعد من الإحصاءات",
   "settings_conflict_field_exitLatitude": "خط عرض الخروج",

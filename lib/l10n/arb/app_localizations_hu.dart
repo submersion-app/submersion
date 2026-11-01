@@ -24478,6 +24478,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Bizonyíték ujjlenyomata';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gázváltások kézzel szerkesztve';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Kihagyva a gázstatisztikából';
 
