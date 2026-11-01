@@ -12,11 +12,34 @@ update downloads the same installer as a new download does.
 
 from __future__ import annotations
 
+import argparse
+import json
+import os
+import sys
+import urllib.request
+from collections.abc import Callable
 from datetime import datetime, timezone
+from pathlib import Path
 
 PLATFORMS = ("macos", "android", "windows", "linux")
 RECENT_LIMIT = 4
 SCHEMA = 1
+PER_PAGE = 100
+REQUEST_TIMEOUT_SECONDS = 30
+
+README = """\
+# Download metrics
+
+Machine-written download counts for Submersion, saved once a day by
+`.github/workflows/download-metrics.yml` on `main`. This branch shares no
+history with `main`.
+
+- `downloads/YYYY/MM/YYYY-MM-DD.json`: every release file's count on that day.
+- `downloads/summary.json`: the file submersion.app reads.
+
+The counts are installer fetches, so they include app updates. App Store and
+Google Play installs are not counted.
+"""
 
 # Matched whole, so a .tar.gz counts and any other .gz does not.
 _SUFFIXES = (
@@ -127,3 +150,116 @@ def unclassified_assets(snapshot: dict) -> list[str]:
             ):
                 names.add(name)
     return sorted(names)
+
+
+def fetch_all_releases(get_page: Callable[[int], list[dict]]) -> list[dict]:
+    """Read every page of releases, stopping at the first page that is not full."""
+    releases = []
+    page = 1
+    while True:
+        batch = get_page(page)
+        releases.extend(batch)
+        if len(batch) < PER_PAGE:
+            return releases
+        page += 1
+
+
+def github_get_page(repo: str, token: str, page: int) -> list[dict]:
+    """Fetch one page of releases from the GitHub API."""
+    request = urllib.request.Request(
+        f"https://api.github.com/repos/{repo}/releases"
+        f"?per_page={PER_PAGE}&page={page}",
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
+        return json.load(response)
+
+
+def _snapshot_path(root: Path, date: str) -> Path:
+    year, month, _ = date.split("-")
+    return root / "downloads" / year / month / f"{date}.json"
+
+
+def load_snapshots(root: Path) -> list[dict]:
+    """Read every stored snapshot, oldest first."""
+    # Paths are downloads/YYYY/MM/YYYY-MM-DD.json, so their order is date order.
+    paths = sorted(root.glob("downloads/*/*/*.json"))
+    return [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+
+
+def _write_json(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
+def write_outputs(root: Path, snapshot: dict) -> list[str]:
+    """Store a snapshot and rebuild the summary, returning workflow warnings."""
+    warnings = []
+    earlier = [s for s in load_snapshots(root) if s["date"] < snapshot["date"]]
+    if earlier:
+        before = totals_for(earlier[-1])["total"]
+        after = totals_for(snapshot)["total"]
+        if after < before:
+            warnings.append(
+                f"Download total fell from {before} to {after}. "
+                "Deleting a release removes its counts."
+            )
+
+    _write_json(_snapshot_path(root, snapshot["date"]), snapshot)
+    readme = root / "README.md"
+    if not readme.exists():
+        readme.write_text(README, encoding="utf-8")
+    _write_json(root / "downloads" / "summary.json", build_summary(load_snapshots(root)))
+    return warnings
+
+
+def _collect(
+    get_page: Callable[[int], list[dict]], now: datetime
+) -> tuple[dict | None, str]:
+    """Fetch before anything is written, so a failure leaves the branch alone."""
+    try:
+        snapshot = build_snapshot(fetch_all_releases(get_page), now)
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return None, f"Could not read releases: {error!r}"
+    if totals_for(snapshot)["total"] == 0:
+        return None, "GitHub returned no counted downloads."
+    return snapshot, ""
+
+
+def main(
+    argv: list[str] | None = None,
+    get_page: Callable[[int], list[dict]] | None = None,
+    now: datetime | None = None,
+) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", required=True, help="owner/name of the repository")
+    parser.add_argument(
+        "--out", required=True, type=Path, help="checkout of the metrics branch"
+    )
+    args = parser.parse_args(argv)
+
+    token = os.environ.get("GH_TOKEN")
+    if not token:
+        print("::error::GH_TOKEN is not set.")
+        return 1
+    reader = get_page or (lambda page: github_get_page(args.repo, token, page))
+
+    snapshot, problem = _collect(reader, now or datetime.now(timezone.utc))
+    if snapshot is None:
+        print(f"::error::{problem}")
+        return 1
+
+    warnings = write_outputs(args.out, snapshot)
+    unknown = unclassified_assets(snapshot)
+    if unknown:
+        warnings.append(f"Files neither counted nor excluded: {', '.join(unknown)}")
+    for warning in warnings:
+        print(f"::warning::{warning}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
