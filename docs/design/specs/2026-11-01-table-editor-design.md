@@ -329,6 +329,28 @@ marked so they can be checked.
 | Width threshold | `ResponsiveBreakpoints.desktop`, 800 px | Author |
 | Partial Undo | Snackbar states how many changes it undid | Author |
 
+## Amendments recorded while planning
+
+Settled while writing `docs/design/plans/2026-11-01-table-editor.md`;
+authoritative where the body above differs.
+
+- **Weights op.** The in-place edit is a dedicated `WeightAmountOp` on
+  `BulkDiveEditService` (amount or null, plus the type a new row takes),
+  applied per dive through a new `DiveRepository.setSingleWeightAmount`
+  that reuses the single-dive save's weight diff. Not a new
+  `BulkCollectionMode` on `WeightsOp`.
+- **Dive tab filters.** The dive list's header and cell menus take a
+  `filterProvider` parameter, so the editor's dive tab reuses them whole
+  over its own `DiveFilterState`. Sites and centers get a smaller generic
+  menu (only empty, only with a value, reset, only this value, exclude this
+  value), since they have no menus to reuse.
+- **Centers clearing a coordinate.** `DiveCenter.copyWith` gains
+  `clearLatitude` and `clearLongitude`; its `??` pattern cannot clear today.
+- **Paste trigger.** Ctrl or Cmd+V on the page and a Paste button in the
+  toolbar. The app has no platform menu bar to add an Edit item to.
+- **Library sites.** Editability is resolved once per sheet through
+  `LibraryEditStamper.mayEdit`, so a cell's read-only state is synchronous.
+
 ## Out of scope, noted for later
 
 - Phone layout.
