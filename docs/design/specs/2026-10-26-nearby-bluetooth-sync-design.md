@@ -153,14 +153,21 @@ Submersion GATT service and accept one connection at a time) and **scan**
 device that supports both. Linux implements scan only and reports
 `canAdvertise == false`.
 
-The GATT service has one fixed Submersion service UUID and two
-characteristics: **inbox** (the central writes to it, with response) and
+The GATT service has one fixed Submersion service UUID and three
+characteristics: **inbox** (the central writes to it, with response),
 **outbox** (the central reads it; the peripheral answers each read from a
-queue of what it has to send). A notification on the outbox is only a
-one-byte doorbell saying bytes are waiting, backed by a slow poll: a
-Flutter peripheral has no flow control over notifications (Apple rejects
-them once its queue is full, Android drops them), while reads and
-acknowledged writes pace themselves on every platform. Each direction
+queue of what it has to send) and **doorbell** (a one-byte notification
+saying bytes are waiting, backed by a slow poll). The doorbell is not the
+outbox because Apple reports read answers and notifications through one
+callback: on a characteristic both read and notified, a notification is
+taken for the outstanding read's answer and every read answer rings like a
+notification (issue #4093). Bytes never travel as notifications: a Flutter
+peripheral has no flow control over them (Apple rejects them once its
+queue is full, Android drops them), while reads and acknowledged writes
+pace themselves on every platform. Apple drops every peripheral command
+sent before its manager reports power-on, and clears the hosted service
+when Bluetooth goes off, so hosting waits for the first state and adds the
+service again after Bluetooth returns. Each direction
 carries a byte stream framed by the link layer; the carrier cuts it into
 chunks that fit the negotiated MTU, never longer than the 512 bytes one
 attribute value may hold, and a peripheral's send waits while 64 KiB are
