@@ -115,7 +115,7 @@ Modify `domain/agent_tool_error.dart`, `tools/agent_tool_registry.dart`, `presen
 
 - [ ] Add `test/features/agent_access/data/sql/sql_window_fixture.dart`: a real `AppDatabase` written to a temp file, with a view over each denied table added by a writable connection.
 - [ ] Write `sql_window_test.dart`: rows, column names and elapsed time; `max_rows` and `row_cap_hit`; bound parameters and a wrong count; `size_cap_hit`; blobs as sizes; `Infinity` as text; `unicode_lower` and `dive_ambient_bar` work; a write refuses; two statements refuse; `no denied table is reachable` directly, by view, by subquery and by CTE; `media_subscriptions` reads every column but `credentials_host_id`, and `SELECT *` on it refuses by name.
-- [ ] Write `sql_window.dart`: open read-only, `applyConnectionBasics`, `PRAGMA query_only = ON`, `BEGIN`, the keyword check, prepare with `checkNoTail`, refuse a statement with no result columns, load the catalogue, inspect `EXPLAIN`, bind, step with the caps, close.
+- [ ] Write `sql_window.dart`: open read-only, `applyConnectionBasics`, `PRAGMA query_only = ON`, `BEGIN`, the keyword check, prepare with `checkNoTail`, refuse anything not read-only, load the catalogue, inspect `EXPLAIN`, bind, step with the caps, close.
 
 ### Task 5: Runner
 

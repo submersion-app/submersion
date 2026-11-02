@@ -31,8 +31,9 @@ Everything is under `lib/features/agent_access/`:
 | `data/records/` | The record catalogue: scopes, the reader, the repository bundle |
 | `data/records/families/` | One file per family of entities, each returning its catalogue entries |
 | `data/documents/` | JSON mappers per family, metric with unit-named keys, and `document_dates.dart` |
-| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, and the registry |
-| `data/resources/` | `submersion://query-language` and `submersion://units` |
+| `data/sql/` | The SQL window: the denied set, the bytecode guard, the worker and its runner |
+| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, and the registry |
+| `data/resources/` | `submersion://query-language`, `submersion://units` and `submersion://schema` |
 | `data/server/` | The loopback listener, the bearer check, and the adapter onto `mcp_dart` |
 | `presentation/providers/` | Settings notifier, token store, status stream, lifecycle controller |
 | `presentation/pages/`, `presentation/widgets/` | The settings page, status card and client snippets |
@@ -128,6 +129,50 @@ uses, and returns a CTE named after the cache. SQLite resolves that name first,
 so the compiled SQL runs unchanged, the answer is right for any profile, and a
 read tool writes nothing. It is why `awaitServiceStatusIfRead` is not used
 here: that provider can only answer for the active diver.
+
+## The SQL window
+
+`sql_query` runs one statement on a connection of its own, opened read-only
+with `PRAGMA query_only` on a worker isolate and closed when the call ends.
+Nothing holds a handle between calls, so a restore, a storage move or an
+encryption change needs no handling: the runner reads the path and key on each
+call. The runner lives on the controller rather than in the per-request
+server, because its busy flag has to outlast a request.
+
+Read-only says nothing about credentials, so a statement is inspected before
+it steps. The bundled SQLite is built with `OMIT_AUTHORIZATION` and
+`OMIT_PROGRESS_CALLBACK`, so there is no authorizer to ask. `EXPLAIN` is the
+engine's view that remains: by then views, CTEs and subqueries have been
+flattened, so every read shows up as an `OpenRead` of a root page, and
+`SqlReadCatalog` maps root pages through `sqlite_schema`. `inspectSqlProgram`
+fails closed:
+
+- An unknown root, a root in another database and any virtual table refuse.
+  That last one covers `pragma_*` and `json_each`, because `VOpen` carries only
+  a pointer and they cannot be told apart.
+- A denied column refuses at its `Column` step, and an index holding one
+  refuses when it opens, because a seek compares the value with no `Column`
+  step at all.
+- `ATTACH`, `BEGIN` and `PRAGMA` all report read-only, so `sqlLeadingKeyword`
+  allows only `SELECT`, `WITH` and `VALUES`. It is the only text check, and it
+  is an allowlist. Never add a check that looks for a table name in the text.
+
+Classifying a table: a table the change log policy excludes must go in
+`kSqlDeniedTables` or `kSqlReadableExcludedTables`, and a test fails until it
+does. A table the policy does not know is refused at runtime. A new credential
+column goes in `changeLogCredentialColumns`, which the window reads too.
+
+`submersion://schema` comes from the live schema, so it cannot drift. Its notes
+come from the comments in `lib/core/database/tables/`, because Drift keeps no
+descriptions at runtime. After changing a table, run
+`dart run tool/generate_sql_column_notes.dart`; a test fails until the
+generated file matches.
+
+A statement that stays inside one native step cannot be stopped: `Isolate.kill`
+acts only when the step returns. The call answers with `still_running`, and
+later calls answer `sql_busy` until the worker ends. `sqlite3_interrupt`
+through FFI would fix this, but it needs a test on all three desktop platforms
+and CI runs Linux only.
 
 ## Security rules and their tests
 

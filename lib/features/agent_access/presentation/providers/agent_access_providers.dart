@@ -15,6 +15,7 @@ import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
 import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -128,6 +129,16 @@ class AgentAccessController {
   String? _token;
   bool _disposed = false;
 
+  /// One for the listener's life, unlike the server built per request below.
+  /// Reads the file at call time, so a restore, a storage move or an
+  /// encryption change is seen by the next statement.
+  final _sqlRunner = SqlWindowRunner(
+    file: () async => SqlDatabaseFile(
+      path: await DatabaseService.instance.databasePath,
+      keyHex: DatabaseService.instance.databaseKeyHex,
+    ),
+  );
+
   /// Called when the owning provider is disposed (a scope rebuild). A sync
   /// still awaiting the keychain, the settings or the package info resumes
   /// afterwards, sees this, and stops short of starting a listener the old
@@ -240,6 +251,7 @@ class AgentAccessController {
         divers: divers,
         settings: settings,
         records: RecordRepositories(),
+        sql: _sqlRunner,
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),
       appVersion: appVersion,
