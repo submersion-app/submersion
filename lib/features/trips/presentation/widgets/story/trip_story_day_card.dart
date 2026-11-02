@@ -30,12 +30,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// then the dive rows, photos and sightings, all in one card (#4106). The
 /// header sits in the map's fade the way the dive detail header does; a day
 /// with no map points leads with the header on the plain card, and a surface
-/// day is nothing but that header.
+/// day is nothing but that header, on a shaded card so it reads as a pause
+/// in the trip rather than a dive day that lost its body.
 class TripStoryDayCard extends ConsumerStatefulWidget {
   /// How much of the day's map shows above the header row. The backdrop fade
   /// turns opaque under the row, so the row stays readable while the pins
-  /// above it stay tappable.
-  static const double mapPeekHeight = 120;
+  /// above it stay tappable. Tall enough that the map reads as a map of the
+  /// day, not a strip of colour over the header.
+  static const double mapPeekHeight = 220;
+
+  /// Fraction of the map stack that shows clear before the fade begins
+  /// (`HeaderMapBackdrop.fadeStart`): the pins sit on real map and the fade
+  /// has most of the peek to reach the header row, instead of washing the
+  /// map from its first pixel and turning opaque in a short band.
+  static const double mapFadeStart = 0.3;
 
   final TripStoryDay day;
   final String tripId;
@@ -152,6 +160,7 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                 child: Builder(
                   builder: (context) => HeaderMapBackdrop(
                     fadeColor: backdropColorOf(context),
+                    fadeStart: TripStoryDayCard.mapFadeStart,
                     // The pins above the header row stay tappable.
                     passesPointerThrough: true,
                     child: TripDayMap(
@@ -187,6 +196,13 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
 
     return Card(
       shape: shape,
+      // A surface day sits two tonal steps above the other cards: with no
+      // map, stats or rows, its header alone would look like a dive day
+      // that lost its body. backdropColorOf reads this colour, so a map
+      // (which a surface day never has) would still fade correctly.
+      color: day.readsAsSurface
+          ? theme.colorScheme.surfaceContainerHighest
+          : null,
       clipBehavior: Clip.antiAlias,
       child: Opacity(
         opacity: _isPlanned ? 0.85 : 1,

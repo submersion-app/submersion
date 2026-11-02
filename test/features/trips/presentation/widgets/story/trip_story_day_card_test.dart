@@ -401,11 +401,52 @@ void main() {
     expect(header.top - backdrop.top, TripStoryDayCard.mapPeekHeight);
     expect(backdrop.bottom, header.bottom);
     expect(summary.top, greaterThanOrEqualTo(backdrop.bottom));
+    final backdropWidget = tester.widget<HeaderMapBackdrop>(
+      find.byType(HeaderMapBackdrop),
+    );
     expect(
-      tester
-          .widget<HeaderMapBackdrop>(find.byType(HeaderMapBackdrop))
-          .fadeColor,
+      backdropWidget.fadeColor,
       backdropColorOf(tester.element(find.byType(HeaderMapBackdrop))),
+    );
+    // Enough map to read as a map, clear at the top rather than washed
+    // from the first pixel, with the fade reaching the header row.
+    expect(TripStoryDayCard.mapPeekHeight, greaterThanOrEqualTo(200));
+    expect(backdropWidget.fadeStart, TripStoryDayCard.mapFadeStart);
+    expect(TripStoryDayCard.mapFadeStart, greaterThan(0));
+    expect(TripStoryDayCard.mapFadeStart, lessThan(0.5));
+  });
+
+  testWidgets('a surface day card is shaded, a dive day card is not', (
+    tester,
+  ) async {
+    final surface = TripStoryDay(
+      date: DateTime(2026, 3, 9),
+      dayNumber: 3,
+      kind: TripStoryDayKind.past,
+    );
+    await pumpCard(tester, surface);
+    final scheme = Theme.of(tester.element(find.byType(Card))).colorScheme;
+    expect(
+      tester.widget<Card>(find.byType(Card)).color,
+      scheme.surfaceContainerHighest,
+    );
+
+    await pumpCard(tester, _pastDay(['d1']));
+    expect(tester.widget<Card>(find.byType(Card).first).color, isNull);
+
+    // A planned rest day (a dive-day row at 0 dives, none logged) is
+    // labelled a surface day by the header, so it is shaded like one.
+    final rest = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      itineraryDay: _itin().copyWith(plannedDives: 0),
+    );
+    await pumpCard(tester, rest);
+    expect(find.text('Surface day'), findsOneWidget);
+    expect(
+      tester.widget<Card>(find.byType(Card)).color,
+      scheme.surfaceContainerHighest,
     );
   });
 

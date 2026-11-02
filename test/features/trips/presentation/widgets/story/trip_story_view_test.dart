@@ -23,8 +23,8 @@ import 'package:submersion/features/checklists/presentation/widgets/trip_checkli
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_hero_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
@@ -150,15 +150,16 @@ void main() {
     await pumpView(tester, story);
 
     expect(find.byType(TripStoryDayCard), findsNWidgets(2));
-    expect(find.byType(TripHeroCard), findsOneWidget);
-    // The stats are the hero card's bottom row (#4106), not a band of their
-    // own under it.
+    // The header is the title block on the page surface with the stat
+    // strip under it: no card and no map behind the trip's name.
+    expect(find.byType(TripStoryHero), findsOneWidget);
+    expect(find.byType(TripStatStrip), findsOneWidget);
     expect(
-      find.descendant(
-        of: find.byType(TripHeroCard),
-        matching: find.byType(TripStatStrip),
+      find.ancestor(
+        of: find.byType(TripStoryHero),
+        matching: find.byType(Card),
       ),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.text('Today'), findsNothing);
   });
@@ -240,7 +241,7 @@ void main() {
       final chip = find.byKey(const Key('today-chip'));
       expect(chip, findsOneWidget);
       expect(tester.getTopLeft(chip).dy, lessThan(120));
-      expect(find.byType(TripHeroCard), findsNothing);
+      expect(find.byType(TripStoryHero), findsNothing);
     });
 
     testWidgets('earlier days and the hero are above, by scrolling up', (
@@ -255,7 +256,7 @@ void main() {
         await tester.drag(find.byType(CustomScrollView), const Offset(0, 800));
         await tester.pump(const Duration(milliseconds: 200));
       }
-      expect(find.byType(TripHeroCard), findsOneWidget);
+      expect(find.byType(TripStoryHero), findsOneWidget);
     });
 
     testWidgets('today on Day 1 keeps the hero just above', (tester) async {
@@ -268,7 +269,7 @@ void main() {
       expect(tester.getTopLeft(chip).dy, lessThan(120));
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 900));
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.byType(TripHeroCard), findsOneWidget);
+      expect(find.byType(TripStoryHero), findsOneWidget);
     });
 
     testWidgets('the last day fills the window with the days before it', (
@@ -325,7 +326,7 @@ void main() {
     );
     expect(story.todayIndex, isNotNull);
     await pumpView(tester, story, viewSize: const Size(800, 900));
-    expect(find.byType(TripHeroCard), findsOneWidget);
+    expect(find.byType(TripStoryHero), findsOneWidget);
   });
 
   testWidgets('a past trip still opens at the hero', (tester) async {
@@ -334,7 +335,7 @@ void main() {
       end: DateTime(2026, 3, 28),
     );
     await pumpView(tester, _story(trip, today: DateTime(2026, 5, 1)));
-    expect(find.byType(TripHeroCard), findsOneWidget);
+    expect(find.byType(TripStoryHero), findsOneWidget);
     expect(find.byKey(const Key('today-chip')), findsNothing);
   });
 
@@ -511,17 +512,10 @@ void main() {
     );
     await pumpView(tester, story, viewSize: const Size(390, 2600));
     expect(find.byType(SliverPersistentHeader), findsNothing);
-    expect(find.byType(TripHeroCard), findsOneWidget);
-    // Two maps: the hero's, behind the trip identity, and the day's, behind
-    // the header of the day with a located dive (#4106).
-    expect(find.byType(FlutterMap), findsNWidgets(2));
-    expect(
-      find.descendant(
-        of: find.byType(TripHeroCard),
-        matching: find.byType(FlutterMap),
-      ),
-      findsOneWidget,
-    );
+    expect(find.byType(TripStoryHero), findsOneWidget);
+    // One map: the day's, behind the header of the day with a located dive
+    // (#4106). The trip header has none.
+    expect(find.byType(FlutterMap), findsOneWidget);
     expect(
       find.descendant(
         of: find.byType(TripStoryDayCard),
@@ -633,7 +627,7 @@ void main() {
     expect(summary, findsOneWidget);
     expect(tester.getTopLeft(summary).dy, lessThan(40));
     expect(tester.getTopLeft(summary).dy, lessThan(tester.getTopLeft(chip).dy));
-    expect(find.byType(TripHeroCard), findsNothing);
+    expect(find.byType(TripStoryHero), findsNothing);
   });
 
   testWidgets('day cards are keyed by date so shifted days keep their state', (

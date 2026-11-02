@@ -81,3 +81,21 @@ it is.
    `storedWeather` to the card. Update view tests counting headers.
 9. `dart format .`, `flutter analyze`, trip story tests,
    `test/architecture/`, `test/shared/`.
+
+## Revision after the first build (2026-11-02)
+
+Seen in the app, the trip hero card and the short day map did not read as
+intended, and the design changed:
+
+- Trip header: no card and no map. The title block (icon, name, dates,
+  progress line) goes back on the page surface with the stat strip under it.
+  The strip keeps no tint, so the header is one block rather than the two
+  shaded blocks that started this. `TripHeroCard` and its gradient fallback
+  are removed; `TripStoryHero` opens the story again, as before the issue.
+- Day card: the map peek grows from 120 to 220 points, and
+  `HeaderMapBackdrop` gains `fadeStart`, the fraction of its height the map
+  shows clear before the fade begins. The day card passes 0.3; the dive
+  detail header passes nothing and renders as before.
+- Surface days: the card is filled with `surfaceContainerHighest`, two tonal
+  steps above the other day cards, so a day with only a header reads as a
+  pause in the trip.

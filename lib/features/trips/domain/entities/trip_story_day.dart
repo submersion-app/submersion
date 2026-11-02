@@ -139,6 +139,11 @@ class TripStoryDay extends Equatable {
         dives.isEmpty;
   }
 
+  /// A day the story presents as a surface day: a bare day ([isSurface]) or
+  /// a planned rest day ([isPlannedRest]). The header labels both "Surface
+  /// day" and the card shades both (#4106).
+  bool get readsAsSurface => isSurface || isPlannedRest;
+
   @override
   List<Object?> get props => [
     date,

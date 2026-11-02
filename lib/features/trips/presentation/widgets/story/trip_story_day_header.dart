@@ -47,7 +47,7 @@ class TripStoryDayHeader extends ConsumerWidget {
     // leads with its day type ("Dive Day", "Travel Day"). A dive day planned
     // at 0 dives reads the same way: its stored type contradicts the plan.
     // A rest day with a dive logged reads as a dive day (#2875).
-    final surfaceLabel = day.isSurface || day.isPlannedRest;
+    final surfaceLabel = day.readsAsSurface;
     final subtitleParts = <String>[
       if (surfaceLabel) context.l10n.trips_story_surfaceDay,
       if (itinerary != null && !surfaceLabel)

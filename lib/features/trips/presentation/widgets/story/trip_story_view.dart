@@ -8,11 +8,10 @@ import 'package:submersion/features/trips/presentation/pages/trip_day_map_page.d
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/today_anchored_scroll_view.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_checklist_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_hero_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
@@ -131,31 +130,18 @@ class TripStoryView extends ConsumerWidget {
     final trip = story.trip;
     final todayIndex = _opensAtToday ? story.todayIndex : null;
     final header = <Widget>[
+      // The title block on the page surface with the trip's stats under
+      // it, neither in a card nor over a map (#4106): the strip paints no
+      // band, so the two read as one header rather than two shaded blocks.
       SliverPadding(
         padding: const EdgeInsets.all(16),
         sliver: SliverToBoxAdapter(
-          child: TripHeroCard(
-            story: story,
-            stats: stats,
-            siteCount: _siteCount,
-          ),
+          child: TripStoryHero(story: story, onScanForDives: onScanForDives),
         ),
       ),
-      // The hero's companions, as ordinary content under the card: the
-      // checklist while the trip is still ahead, the prompt to find dives
-      // when the story has nothing to tell.
-      if (trip.isUpcoming && !story.checklist.isEmpty)
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          sliver: SliverToBoxAdapter(child: TripChecklistCard(story: story)),
-        ),
-      if (story.isEmpty)
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          sliver: SliverToBoxAdapter(
-            child: TripStoryEmptyState(onScanForDives: onScanForDives),
-          ),
-        ),
+      SliverToBoxAdapter(
+        child: TripStatStrip(stats: stats, siteCount: _siteCount),
+      ),
     ];
     // The cards that matter while the trip is under way: what is left in the
     // cylinders, and how long until the no-fly window before the flight home.

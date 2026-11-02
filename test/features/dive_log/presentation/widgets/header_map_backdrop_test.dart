@@ -95,6 +95,41 @@ void main() {
     expect(_fadeGradient(tester).stops, [0.0, 0.0, 0.0, 0.0, 1.0]);
   });
 
+  testWidgets('a fade start leaves the top of the map clear', (tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: 200,
+            child: HeaderMapBackdrop(
+              fadeColor: _fade,
+              fadeStart: 0.4,
+              child: SizedBox.expand(key: _mapKey),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final gradient = _fadeGradient(tester);
+    const opaqueFrom = (200 - kHeaderMapBottomInset) / 200;
+    // Transparent down to the fade start, then the same three-step fade
+    // compressed into what is left above the opaque band.
+    expect(gradient.stops, [
+      0.0,
+      0.4,
+      0.4 + 0.3 * (opaqueFrom - 0.4),
+      0.4 + 0.7 * (opaqueFrom - 0.4),
+      opaqueFrom,
+      1.0,
+    ]);
+    expect(gradient.colors.first, _fade.withValues(alpha: 0));
+    expect(gradient.colors[1], _fade.withValues(alpha: 0.3));
+    expect(gradient.colors.sublist(4), [_fade, _fade]);
+  });
+
   Future<int> tapsThroughFade(
     WidgetTester tester, {
     required bool passesPointerThrough,

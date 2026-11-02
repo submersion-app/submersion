@@ -80,8 +80,8 @@ void main() {
   });
 
   testWidgets('stat strip paints no band of its own', (tester) async {
-    // It is the bottom row of the hero card (#4106): the card's backdrop
-    // shows through, so a tint here would print a grey bar across the fade.
+    // It sits under the title block on the page surface (#4106): a tint
+    // would cut the header into two shaded blocks again.
     final stats = TripWithStats(trip: _trip(), diveCount: 14);
     await pumpStrip(tester, stats);
 
@@ -93,31 +93,6 @@ void main() {
         ),
       ),
       findsNothing,
-    );
-  });
-
-  testWidgets('a foreground colour reaches values and labels', (tester) async {
-    final stats = TripWithStats(trip: _trip(), diveCount: 14);
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: overrides.cast(),
-        child: MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: TripStatStrip(stats: stats, color: Colors.white),
-          ),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    expect(tester.widget<Text>(find.text('14')).style?.color, Colors.white);
-    expect(
-      tester.widget<Text>(find.text('Total Dives')).style?.color,
-      Colors.white.withValues(alpha: 0.85),
     );
   });
 }

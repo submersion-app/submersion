@@ -8,10 +8,10 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_progre
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The Prepare overview's header: trip identity plus mode-specific extras
-/// (countdown and checklist for planned trips, progress line for in-progress
-/// trips, empty state with CTAs for bare trips). The story itself opens with
-/// the [TripHeroCard] instead (issue #4106).
+/// Story header: trip identity plus mode-specific extras (countdown and
+/// checklist for planned trips, progress line for in-progress trips, empty
+/// state with CTAs for bare trips). It paints no card and no map: the title
+/// block sits on the page surface with the stat strip under it (#4106).
 class TripStoryHero extends ConsumerWidget {
   final TripStory story;
   final VoidCallback? onScanForDives;

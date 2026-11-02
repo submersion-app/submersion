@@ -6,10 +6,12 @@ const double kHeaderMapBottomInset = 16;
 
 /// A map that fades into [fadeColor] toward the bottom of a header card, so
 /// the header text stays readable over it: the dive detail header and the
-/// trip story's hero cards.
+/// trip story's day cards.
 ///
 /// [child] is the map. It is clipped [kHeaderMapBottomInset] short of the
-/// bottom edge, and the fade is fully opaque over that band.
+/// bottom edge, and the fade is fully opaque over that band. Above
+/// [fadeStart] the map shows through untouched; from there the fade runs in
+/// three steps down to the opaque band.
 ///
 /// The map must never reach the card's bottom edge. An opaque overlay whose
 /// edge merely coincides with the map's edge does not hide it once the card
@@ -24,7 +26,8 @@ class HeaderMapBackdrop extends StatelessWidget {
     required this.fadeColor,
     required this.child,
     this.passesPointerThrough = false,
-  });
+    this.fadeStart = 0,
+  }) : assert(fadeStart >= 0 && fadeStart < 1);
 
   /// The color the map fades into; the header card's background.
   final Color fadeColor;
@@ -39,6 +42,12 @@ class HeaderMapBackdrop extends StatelessWidget {
   /// on so the pins on its day map stay tappable under the fade (#4106).
   final bool passesPointerThrough;
 
+  /// Fraction of the height the map shows through clear before the fade
+  /// begins. Zero (the dive detail header) washes the map lightly from the
+  /// top edge; the trip story's day card leaves the top of its taller map
+  /// clear so the day's pins read against real map (#4106).
+  final double fadeStart;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -50,6 +59,10 @@ class HeaderMapBackdrop extends StatelessWidget {
         final opaqueFrom = height > kHeaderMapBottomInset
             ? (height - kHeaderMapBottomInset) / height
             : 0.0;
+        // The fade's three steps run from its start to the opaque point;
+        // a start past the opaque point collapses them onto it.
+        final start = fadeStart < opaqueFrom ? fadeStart : opaqueFrom;
+        double step(double t) => start + t * (opaqueFrom - start);
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -67,13 +80,15 @@ class HeaderMapBackdrop extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     stops: [
-                      0.0,
-                      0.3 * opaqueFrom,
-                      0.7 * opaqueFrom,
+                      if (fadeStart > 0) 0.0,
+                      start,
+                      step(0.3),
+                      step(0.7),
                       opaqueFrom,
                       1.0,
                     ],
                     colors: [
+                      if (fadeStart > 0) fadeColor.withValues(alpha: 0),
                       fadeColor.withValues(alpha: 0.3),
                       fadeColor.withValues(alpha: 0.6),
                       fadeColor.withValues(alpha: 0.85),
