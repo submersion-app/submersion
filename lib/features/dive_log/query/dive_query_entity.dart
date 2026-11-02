@@ -64,15 +64,13 @@ const _gearWordMatchSql =
 /// A word that names gear a dive used: the same set as [kDiveGearJoinSql],
 /// walked from the matching gear to its dives, because that join is correlated
 /// and would read the equipment table once per dive.
-final kDiveGearTextSearchSql =
+final _gearTextSearchSql =
     '{r}.id IN (SELECT tde.dive_id FROM dive_equipment tde '
     'WHERE tde.equipment_id IN ($_gearWordMatchSql) '
     'UNION SELECT tdt.dive_id FROM dive_tanks tdt '
     'WHERE tdt.equipment_id IN ($_gearWordMatchSql) '
-    'UNION SELECT tdr.dive_id FROM dive_tanks tdr '
-    'WHERE tdr.regulator_equipment_id IN ($_gearWordMatchSql) '
-    'UNION SELECT dive_id FROM ($tankExtraRegulatorRowsSql) '
-    'WHERE regulator_id IN ($_gearWordMatchSql))';
+    'UNION SELECT dive_id FROM ($tankRegulatorPairsSql) '
+    'WHERE equipment_id IN ($_gearWordMatchSql))';
 
 /// A dive's effective water type: its own, else its site's (issue #3196).
 /// The SQL twin of `Dive.effectiveWaterType`, matching the insights water
@@ -270,7 +268,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
     // What a dive carries, so a brand or a trip finds it (#3457). Each of
     // these reads its matches once rather than once per dive, which keeps a
     // word that matches nothing cheap on a long log.
-    kDiveGearTextSearchSql,
+    _gearTextSearchSql,
     "{r}.trip_id IN (SELECT ttrp.id FROM trips ttrp WHERE "
         "unicode_lower(ttrp.name) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(ttrp.location) LIKE ? ESCAPE '\\' "

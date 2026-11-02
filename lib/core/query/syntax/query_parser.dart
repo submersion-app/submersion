@@ -407,6 +407,13 @@ class QueryParser {
     if (_isKeyword(opTok, 'between')) {
       _requireOp(field, QueryOp.between, opTok);
       final isDate = field.type == FieldType.date;
+      if (isDate && _entity.plainWords != null && !_startsWithDay(_peek)) {
+        final phrase = readDateValue(_tokens, _pos - 1, context.now);
+        if (phrase != null) {
+          _pos += phrase.length - 1;
+          return _dateRangeNode(path, QueryOp.eq, phrase.range, opTok);
+        }
+      }
       final a = isDate ? _singleDay() : _value(field, QueryOp.between);
       if (!_isKeyword(_peek, 'and')) {
         throw _Abort(_err(QueryErrorCode.expectedAnd, _peek));
@@ -563,6 +570,12 @@ class QueryParser {
       );
     }
     return DateValue(start);
+  }
+
+  /// Whether [t] names one day, the form `date between` compares directly.
+  bool _startsWithDay(Token t) {
+    final range = parseDateText(t.text, now: context.now);
+    return range != null && range.start == range.end;
   }
 
   /// A date value is one token; a range collapses to `inList` and an

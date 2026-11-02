@@ -158,7 +158,8 @@ Rules:
 - Reading a phrase never produces an error. Anything the grammar refuses stays
   plain words.
 - A negated phrase works: `not last year`, `-2018-10`.
-- A phrase also works after a date field: `date in october 2018`.
+- A phrase also works after a date field: `date in october 2018`,
+  `date between 2018 and 2020`.
 - A comma between terms is ignored: `ressel, october 2018`.
 - A phrase's result is the same tree `date in ...` produces, so it validates,
   prints and saves with no new node type.
@@ -166,8 +167,8 @@ Rules:
 ### 5.4 Filler words (new, in the parser)
 
 On an entity that opts in, a bare filler word is dropped: `with`, `in`, `at`,
-`on`, `from`, `the`, `of`, `near`, `during`, `dive`, `dives`, plus a similar
-small list in the diver's app language. English always applies, because that is what the date
+`on`, `from`, `the`, `of`, `near`, `during`, `dive`, `dives`, `to`, `my`, `for`,
+`a`, `an`, plus a similar small list in the diver's app language. English always applies, because that is what the date
 grammar reads.
 
 - Only a bare word at the top level of a term list is dropped. A quoted word and

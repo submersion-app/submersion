@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/presentation/query_editor_context.dart';
+import 'package:submersion/core/query/presentation/query_labels.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/syntax/query_printer.dart';
@@ -148,6 +150,19 @@ void main() {
       expect(read('with mike'), word('mike'));
     });
 
+    test('short joining words drop too', () {
+      expect(read('trip to egypt'), AndNode([word('trip'), word('egypt')]));
+      expect(read('my dives at ressel'), word('ressel'));
+      expect(read('a wreck for fun'), AndNode([word('wreck'), word('fun')]));
+    });
+
+    test('to still joins two periods', () {
+      expect(
+        read('2018 to 2020'),
+        range(DateTime(2018, 1, 1), DateTime(2020, 12, 31)),
+      );
+    });
+
     test('the word dive only names what is being searched', () {
       expect(read('dives in the ressel'), word('ressel'));
       expect(read('dive'), word('dive'));
@@ -245,6 +260,49 @@ void main() {
 
     test('what the grammar refuses stays an error', () {
       expect(parse('date in sometime'), isA<ParseFailure>());
+    });
+
+    test('between reads two periods', () {
+      expect(
+        read('date between 2018 and 2020'),
+        range(DateTime(2018, 1, 1), DateTime(2020, 12, 31)),
+      );
+      expect(
+        read('date between march 2018 and june 2019'),
+        range(DateTime(2018, 3, 1), DateTime(2019, 6, 30)),
+      );
+    });
+
+    test('between two days keeps its own form', () {
+      expect(
+        read('date between 2025-03-14 and 2025-03-15'),
+        isA<ConditionNode>().having((c) => c.op, 'op', QueryOp.between),
+      );
+    });
+  });
+
+  group('the editor context', () {
+    final context = QueryEditorContext(
+      registry: fixtureRegistry,
+      root: plainDives,
+      prefs: kMetricPrefs,
+      names: names,
+      labels: const MapQueryLabels(),
+      now: () => now,
+      language: 'fr',
+    );
+
+    test('reads filler words in its language', () {
+      final node = context.parser.parse('ressel avec mike') as ParseOk;
+      expect(node.node, AndNode([word('ressel'), word('mike')]));
+    });
+
+    test('prints them so they read back', () {
+      expect(context.printer.print(word('avec')), '"avec"');
+    });
+
+    test('keeps its language through copyWith', () {
+      expect(context.copyWith(prefs: kMetricPrefs).language, 'fr');
     });
   });
 

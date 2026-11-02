@@ -152,13 +152,20 @@ Iterable<String> diveEntryTerms(String term) =>
 Iterable<String> diveWaterTerms(String term) =>
     _waters[term.trim().toLowerCase()] ?? const {};
 
-const _favouriteWords = {'favourite', 'favorite'};
+/// Both forms of the label, mapped to the stored value of `is_favorite`.
+final Map<String, Set<String>> _favourites = _settingWords(
+  {'1': (l10n) => l10n.enum_diveField_isFavorite},
+  _settingWords(
+    {'1': (l10n) => l10n.diveLog_filterChip_favorites},
+    const {
+      'favourite': {'1'},
+      'favourites': {'1'},
+    },
+  ),
+);
 
-/// The stored value of `is_favorite`, as a word that means it.
 Iterable<String> diveFavouriteTerms(String term) =>
-    _favouriteWords.contains(term.trim().toLowerCase())
-    ? const ['1']
-    : const [];
+    _favourites[term.trim().toLowerCase()] ?? const {};
 
 const _gasWords = {'air', 'nitrox', 'trimix'};
 

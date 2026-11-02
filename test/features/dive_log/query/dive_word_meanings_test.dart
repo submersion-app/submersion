@@ -97,7 +97,13 @@ void main() {
     test('favourite in either spelling', () {
       expect(diveFavouriteTerms('favourite'), ['1']);
       expect(diveFavouriteTerms('FAVORITE'), ['1']);
+      expect(diveFavouriteTerms('favorites'), ['1']);
       expect(diveFavouriteTerms('favour'), isEmpty);
+    });
+
+    test('favourite in any app language', () {
+      expect(diveFavouriteTerms('favori'), ['1']);
+      expect(diveFavouriteTerms('favorit'), ['1']);
     });
   });
 
