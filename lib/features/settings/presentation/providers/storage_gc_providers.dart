@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/gc/cloud_usage_measure.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
@@ -47,7 +48,7 @@ final storageGcCoordinatorProvider = Provider<StorageGcCoordinator>((ref) {
     deviceSweeps: [
       ({required now, required dryRun}) => StorageScratchSweep(
         temporaryDirectory: getTemporaryDirectory,
-        supportDirectory: getApplicationSupportDirectory,
+        cacheLocation: cacheLocation,
       ).run(now: now, dryRun: dryRun),
       ({required now, required dryRun}) => RestoreTempSweep(
         temporaryDirectory: getTemporaryDirectory,

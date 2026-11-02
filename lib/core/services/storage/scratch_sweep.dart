@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 
 /// When a file was last written or created, for the sweeps' age checks.
 ///
@@ -44,6 +45,8 @@ class ScratchSweepReport {
 /// - `<temp>/picked` holds full copies of SAF-picked files, including large
 ///   archives, made so an import can read a `content://` handle. Nothing has
 ///   ever deleted them.
+/// Each lives wherever [CacheLocation] says it does on this platform.
+///
 /// - `media_cache/staging` holds files whose `put()` never completed.
 /// - `media_cache/transcode` holds video renditions and `.tmp` debris that
 ///   `deleteTranscodeArtifacts` only removes for a video upload that reaches
@@ -70,14 +73,14 @@ class ScratchSweepReport {
 class StorageScratchSweep {
   StorageScratchSweep({
     required Future<Directory> Function() temporaryDirectory,
-    required Future<Directory> Function() supportDirectory,
+    required Future<CacheLocation> Function() cacheLocation,
     DateTime Function(FileStat stat) touchedAt = lastTouched,
   }) : _temporaryDirectory = temporaryDirectory,
-       _supportDirectory = supportDirectory,
+       _cacheLocation = cacheLocation,
        _touchedAt = touchedAt;
 
   final Future<Directory> Function() _temporaryDirectory;
-  final Future<Directory> Function() _supportDirectory;
+  final Future<CacheLocation> Function() _cacheLocation;
   final DateTime Function(FileStat stat) _touchedAt;
   final _log = LoggerService.forClass(StorageScratchSweep);
 
@@ -92,18 +95,13 @@ class StorageScratchSweep {
   /// so the only cost of reclaiming one early is rendering it again.
   static const Duration thumbnailMaxAge = Duration(days: 30);
 
-  static const String _appDir = 'Submersion';
-
   /// Throws on an I/O failure the caller should see; individual unreadable
   /// entries are skipped rather than aborting the pass. A [dryRun] counts
   /// what the pass would reclaim and deletes nothing.
   Future<ScratchSweepReport> run({DateTime? now, bool dryRun = false}) async {
     final at = now ?? DateTime.now();
     final temp = await _temporaryDirectory();
-    final support = await _supportDirectory();
-
-    Directory appPath(List<String> segments) =>
-        Directory(p.joinAll([support.path, _appDir, ...segments]));
+    final location = await _cacheLocation();
 
     var report = ScratchSweepReport.empty;
     report += await _sweep(
@@ -113,29 +111,24 @@ class StorageScratchSweep {
       dryRun,
     );
     report += await _sweep(
-      appPath(['media_cache', 'staging']),
+      Directory(p.join(location.mediaScratch.path, 'staging')),
       stagingMaxAge,
       at,
       dryRun,
     );
     report += await _sweep(
-      appPath(['media_cache', 'transcode']),
+      Directory(p.join(location.mediaScratch.path, 'transcode')),
       transcodeMaxAge,
       at,
       dryRun,
     );
     report += await _sweep(
-      appPath(['video_thumbnails']),
+      location.videoThumbnails,
       thumbnailMaxAge,
       at,
       dryRun,
     );
-    report += await _sweep(
-      appPath(['pdf_thumbnails']),
-      thumbnailMaxAge,
-      at,
-      dryRun,
-    );
+    report += await _sweep(location.pdfThumbnails, thumbnailMaxAge, at, dryRun);
 
     if (!report.isEmpty && !dryRun) {
       _log.info(
