@@ -8,7 +8,6 @@ import 'package:submersion/features/equipment/data/services/loaded_service_clock
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
-import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -109,44 +108,20 @@ class NotificationScheduler {
     _log.info('Notification scheduling complete');
   }
 
-  /// [items]' clocks keyed by equipment id, an item without one absent. The
-  /// reads are batched, so they grow by chunk rather than by item.
+  /// [items]' clocks keyed by equipment id, an item without one absent.
   Future<Map<String, List<ServiceClockStatus>>> _evaluateClocks({
     required List<EquipmentItem> items,
     required Map<String, ServiceKind> kindsById,
     required AppSettings settings,
-  }) async {
-    final schedulesById = await _serviceScheduleRepository
-        .getSchedulesForEquipmentIds([for (final i in items) i.id]);
-    final scheduled = [
-      for (final item in items)
-        if (schedulesById.containsKey(item.id)) item,
-    ];
-    final recordsById = await _serviceRecordRepository
-        .getRecordsForEquipmentIds([for (final i in scheduled) i.id]);
-    // The repository's one wiring, shared with the in-app clocks, so a
-    // reminder fires on exactly the usage the clock shows: fitted parts
-    // only, and a replaced part's dives stop at its successor.
-    final exposures = await _equipmentRepository.getItemExposures(scheduled);
-    final thresholds = exposureThresholdsFromSettings(settings);
-    final window = settings.serviceReminderDays.isEmpty
-        ? 30
-        : settings.serviceReminderDays.reduce((a, b) => a > b ? a : b);
-    final now = DateTime.now();
-    return {
-      for (final item in scheduled)
-        item.id: evaluateLoadedServiceClocks(
-          item,
-          schedules: schedulesById[item.id]!,
-          kindsById: kindsById,
-          records: recordsById[item.id] ?? const [],
-          exposure: exposures[item.id]!,
-          thresholds: thresholds,
-          dueSoonWindowDays: window,
-          now: now,
-        ),
-    };
-  }
+  }) => evaluateServiceClocksForItems(
+    items,
+    kindsById: kindsById,
+    settings: settings,
+    schedules: _serviceScheduleRepository,
+    records: _serviceRecordRepository,
+    equipment: _equipmentRepository,
+    now: DateTime.now(),
+  );
 
   /// Schedule per-reminder-day notifications for one clock's date trigger.
   /// Usage-only clocks get no push (there is no future date to anchor to);

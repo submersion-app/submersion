@@ -86,4 +86,17 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 400));
     expect(ticks, greaterThan(0));
   });
+
+  test('a CTE shadows the table it names', () async {
+    final all = compileQuery(null, siteQueryEntity, appQueryRegistry);
+    final shadow = await QueryIdSetRunner(db).ids(
+      all,
+      cte: (
+        sql: 'WITH dive_sites(id, diver_id) AS (SELECT ?, ?)',
+        params: const ['shadow-id', 'me'],
+      ),
+      scope: (sql: 'r0.diver_id = ?', params: const ['me']),
+    );
+    expect(shadow, {'shadow-id'});
+  });
 }

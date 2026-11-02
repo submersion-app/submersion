@@ -3,10 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
+import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/tools/query_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -88,7 +89,7 @@ void main() {
       localeTag: 'en',
       activeDiverId: () async => a,
     ),
-    dives: DiveRepository(),
+    catalog: RecordCatalog(RecordRepositories()),
   );
 
   AgentToolContext ctx() => AgentToolContext(db: db, clientName: 'test');
@@ -217,14 +218,140 @@ void main() {
       expect(out['total'], 1);
     });
 
-    test(
-      'a query touching equipment_service_status is refused in this phase',
-      () async {
-        await expectLater(
-          tool().call({'root': 'equipment', 'query': 'serviceDue:any'}, ctx()),
-          _throwsCode(AgentToolErrorCode.invalidArgument),
-        );
-      },
-    );
+    group('summaries', () {
+      test('summaries for sites are a projection of the document', () async {
+        final out = await tool().call({
+          'root': 'sites',
+          'include_summaries': true,
+        }, ctx());
+        final row = (out['summaries'] as List).cast<Map>().single;
+        expect(row['id'], 'blue-hole');
+        expect(row['name'], isNotNull);
+        expect(row.containsKey('notes'), isFalse);
+      });
+
+      test('summaries keep id order', () async {
+        for (final id in ['z-site', 'a-site']) {
+          await db
+              .into(db.diveSites)
+              .insert(
+                DiveSitesCompanion.insert(
+                  id: id,
+                  name: id,
+                  createdAt: t,
+                  updatedAt: t,
+                  diverId: const Value(a),
+                ),
+              );
+        }
+        final out = await tool().call({
+          'root': 'sites',
+          'include_summaries': true,
+        }, ctx());
+        expect((out['summaries'] as List).cast<Map>().map((r) => r['id']), [
+          ...(out['ids'] as List),
+        ]);
+      });
+
+      test('every root answers with summaries', () async {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: 'reg',
+                name: 'Reg',
+                type: 'regulator',
+                createdAt: t,
+                updatedAt: t,
+                diverId: const Value(a),
+              ),
+            );
+        await db
+            .into(db.trips)
+            .insert(
+              TripsCompanion.insert(
+                id: 'trip',
+                name: 'Trip',
+                startDate: t,
+                endDate: t,
+                createdAt: t,
+                updatedAt: t,
+                diverId: const Value(a),
+              ),
+            );
+        await db
+            .into(db.buddies)
+            .insert(
+              BuddiesCompanion.insert(
+                id: 'bud',
+                name: 'Bud',
+                createdAt: t,
+                updatedAt: t,
+                diverId: const Value(a),
+              ),
+            );
+        await db
+            .into(db.diveCenters)
+            .insert(
+              DiveCentersCompanion.insert(
+                id: 'center',
+                name: 'Center',
+                createdAt: t,
+                updatedAt: t,
+                diverId: const Value(a),
+              ),
+            );
+        await db
+            .into(db.certifications)
+            .insert(
+              CertificationsCompanion.insert(
+                id: 'cert',
+                name: 'Open Water',
+                agency: 'padi',
+                createdAt: t,
+                updatedAt: t,
+                diverId: const Value(a),
+              ),
+            );
+        await db
+            .into(db.courses)
+            .insert(
+              CoursesCompanion.insert(
+                id: 'course',
+                diverId: a,
+                name: 'Nitrox',
+                agency: 'padi',
+                startDate: t,
+                createdAt: t,
+                updatedAt: t,
+              ),
+            );
+        await db
+            .into(db.species)
+            .insert(
+              SpeciesCompanion.insert(
+                id: 'turtle',
+                commonName: 'Turtle',
+                category: 'turtle',
+              ),
+            );
+        for (final (root, id) in [
+          ('equipment', 'reg'),
+          ('trips', 'trip'),
+          ('buddies', 'bud'),
+          ('centers', 'center'),
+          ('certifications', 'cert'),
+          ('courses', 'course'),
+          ('species', 'turtle'),
+        ]) {
+          final out = await tool().call({
+            'root': root,
+            'include_summaries': true,
+          }, ctx());
+          final rows = (out['summaries'] as List).cast<Map>();
+          expect(rows.map((r) => r['id']), contains(id), reason: root);
+        }
+      });
+    });
   });
 }

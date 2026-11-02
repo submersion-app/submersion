@@ -9,15 +9,11 @@ import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
 import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../../../../helpers/global_test_defaults.dart';
@@ -69,11 +65,7 @@ void main() {
       ),
       divers: divers,
       settings: settings,
-      dives: DiveRepository(),
-      buddies: BuddyRepository(),
-      species: SpeciesRepository(),
-      media: MediaRepository(),
-      diveTypes: DiveTypeRepository(),
+      records: RecordRepositories(),
     );
     return AgentToolRegistry(
       tools: [...standard.tools, _EchoClientTool()],
@@ -150,17 +142,31 @@ void main() {
       expect(info?.version, '9.9.9-test');
     });
 
-    test('lists the three tools and two resources', () async {
+    test('lists the read tools and two resources', () async {
       final tools = await client.listTools();
       expect(
         tools.tools.map((t) => t.name),
-        containsAll(['list_divers', 'query', 'get_records']),
+        containsAll(['list_divers', 'query', 'get_records', 'list_records']),
       );
       final resources = await client.listResources();
       expect(
         resources.resources.map((r) => r.uri),
         unorderedEquals(['submersion://query-language', 'submersion://units']),
       );
+    });
+
+    test('list_records over loopback', () async {
+      await db
+          .into(db.diveTanks)
+          .insert(DiveTanksCompanion.insert(id: 'tank-1', diveId: 'dive-20'));
+      final out = await client.callTool(
+        const CallToolRequest(
+          name: 'list_records',
+          arguments: {'entity': 'dive_tanks', 'parent_id': 'dive-20'},
+        ),
+      );
+      expect(out.isError, isFalse);
+      expect(out.structuredContent!['total'], 1);
     });
 
     test('query then get_records round trip', () async {

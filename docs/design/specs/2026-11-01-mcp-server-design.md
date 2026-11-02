@@ -233,8 +233,9 @@ parser already produces, as a structured error, never an exception.
 
 Reuses the parse, validate, compile, run chain in `lib/core/query/` and
 `lib/features/query/data/query_id_set_runner.dart`, with the diver scope
-applied the way `query_id_set_providers.dart` applies it, including the
-`serviceDue` cache wait when that field is read.
+applied the way `query_id_set_providers.dart` applies it. `serviceDue` and
+`nextServiceDue` are evaluated for the named diver when the query runs, since
+the cache they compile against holds the active diver's verdicts only.
 
 ### `get_records`
 
@@ -245,12 +246,15 @@ profile samples), `diver_id`.
 
 Output: one JSON document per record, metric with unit-named keys, children
 nested. Profile samples are returned only when asked and are paged, since a
-long dive has thousands of samples.
+long dive has thousands of samples. Documents carry everything but bytes:
+contact details, card and reference numbers, medical notes and insurance are
+included.
 
 There is no domain `Dive.toJson()`. The builder writes a small mapper per
 entity over the domain entities (or `DiveSummary` plus the detail loaders),
 not over Drift rows or the sync serializer, so the shape is stable and
-device-local and credential columns can never leak by accident.
+device-local and credential columns can never leak by accident. Diver settings
+are the one exception, because that table has no domain shape of its own.
 
 ### `list_records`
 
@@ -609,3 +613,7 @@ TDD applies. Minimum coverage:
 | Time cap by stepping rows; FFI interrupt optional | design |
 | Client name shown live, not persisted in the change log | design |
 | `list_records` tool for entities that are not query roots | design |
+| `serviceDue` and `nextServiceDue` work for any diver, evaluated fresh, without touching the cache | Eric |
+| Documents carry everything but bytes, contact and ID fields included | Eric |
+| Every editable entity is readable, not only the write checklist | Eric |
+| Diver profiles and settings are readable records; `list_divers` stays a short view | Eric |

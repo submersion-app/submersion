@@ -27,8 +27,11 @@ Everything is under `lib/features/agent_access/`:
 | `data/agent_tool_gate.dart` | Demo mode, app lock and database-available checks, run before every tool |
 | `data/diver_context.dart` | Resolves the profile a call acts as: settings, unit prefs, name index |
 | `data/root_scope.dart` | The SQL fragment that limits a query root to what one diver may see |
-| `data/documents/` | JSON mappers (dive, dive summary, diver, media), metric with unit-named keys |
-| `data/tools/` | `list_divers`, `query`, `get_records`, and the registry |
+| `data/service_status_overlay.dart` | The named diver's service verdicts, as a CTE that shadows the cache table |
+| `data/records/` | The record catalogue: scopes, the reader, the repository bundle |
+| `data/records/families/` | One file per family of entities, each returning its catalogue entries |
+| `data/documents/` | JSON mappers per family, metric with unit-named keys, and `document_dates.dart` |
+| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, and the registry |
 | `data/resources/` | `submersion://query-language` and `submersion://units` |
 | `data/server/` | The loopback listener, the bearer check, and the adapter onto `mcp_dart` |
 | `presentation/providers/` | Settings notifier, token store, status stream, lifecycle controller |
@@ -44,11 +47,9 @@ Everything is under `lib/features/agent_access/`:
    or add one with a snake_case `wire` name.
 3. Register it in `AgentToolRegistry.standard`.
 4. Emit metric values with the unit in the key (`max_depth_m`,
-   `water_temp_c`, `start_pressure_bar`, `weight_kg`) and ISO 8601 dates
-   from the wall-clock UTC values without `toLocal()`. Those strings carry
-   a nominal `Z` but are the dive's local wall clock, not UTC instants; every
-   tool description and the query-language resource say so, and a new tool
-   that emits times must keep saying so.
+   `water_temp_c`, `start_pressure_bar`, `weight_kg`) and dates through
+   `document_dates.dart` (see The date rule). A tool that emits times puts
+   `kDocumentDateRule` in its description.
 5. Test it against a real in-memory database (`setUpTestDatabase()`), and
    add an end-to-end case to `agent_access_server_e2e_test.dart` when the
    tool changes what a client can observe.
@@ -59,6 +60,63 @@ and any `AgentToolException` becomes an `isError` result carrying
 `{"error": <wire code>, "message": ..., "details": ...}`. On the 2026
 protocol the SDK drops `structuredContent` from error results, so clients
 read the text block for errors.
+
+## Adding an entity
+
+Every entity an agent can read is one entry in the catalogue. To add one:
+
+1. Write its mapper in the family's file under `data/documents/`: metric,
+   unit-named keys, never bytes, no `created_at` or `updated_at`.
+2. Add a `RecordEntity<T>` to the family under `data/records/families/`: the
+   wire `name`, the `table`, a `scope`, a `load`, the `document`, and
+   `summaryKeys`. Give it a `parentColumn` when `parent_id` makes sense, and
+   `blocks` for children a caller asks for by name.
+3. Copy `scope` from the repository's own list method, so the agent sees what
+   the app shows that profile: `owned`, `ownedOrNull`, `ownedOrBuiltIn`,
+   `ownedNullOrBuiltIn`, `ownedOrShared`, `rootScope`, `viaParent`, `everyone`,
+   or a small function when the rule is its own. A family test pins the entry
+   against that list method.
+4. Add a repository to `RecordRepositories` if it needs a new one. Keep it
+   `late final`, because the bundle is built per request.
+
+`record_catalog_guard_test.dart` fails on a tracked table with no decision: a
+new table must be an entity, a link, folded into a parent, or listed as
+unexposed with a reason. Every read in a family test also runs through
+`expectCleanDocument`, which refuses a credential key, a device-local key or
+bytes anywhere in a result.
+
+`diver_settings` is the one document built from a Drift row. The table has over
+two hundred columns and no domain shape, so `settingsDocument` drops the
+device-local and bookkeeping columns and renames the dimensioned ones from
+`kSettingUnitKeys`. A new `REAL` column must join that map or
+`kUnitlessSettings`, or the guard fails.
+
+## The date rule
+
+Each key's suffix says what kind of date it holds, and `document_dates.dart`
+has the only three formatters. Pick by how the value is stored, not by how it
+reads: a repository that reads with `isUtc: true` usually holds a wall clock.
+
+| Key | Meaning | Formatter |
+| --- | --- | --- |
+| `date_time`, `*_time` | Local wall clock of the dive or event, with a nominal `Z`; do not shift it | `wallClock` |
+| `*_date` | A calendar date, `2025-03-14` | `calendarDate` |
+| `*_at` | A true instant in UTC | `instant` |
+
+`calendarDate` reads the value as held and never goes through `toUtc()`:
+most of these are stored as local midnight, so a shift would move them to the
+day before.
+
+## Service status in queries
+
+`serviceDue` and `nextServiceDue` compile against `equipment_service_status`,
+a local cache that holds the active diver's verdicts only. `query` does not
+read it. `serviceStatusOverlay` evaluates the named diver's clocks through
+`evaluateServiceClocksForItems`, the same batch the notification scheduler
+uses, and returns a CTE named after the cache. SQLite resolves that name first,
+so the compiled SQL runs unchanged, the answer is right for any profile, and a
+read tool writes nothing. It is why `awaitServiceStatusIfRead` is not used
+here: that provider can only answer for the active diver.
 
 ## Security rules and their tests
 
@@ -109,9 +167,8 @@ The server factory runs per MCP session, and per request on the stateless
 
 ## Roadmap
 
-The remaining PRs, all behind the debug-mode gate until the last one:
-reads for every entity and `list_records`; the read-only SQL window with the
-generated schema resource; the write core (`preview_changes`,
+The remaining PRs, all behind the debug-mode gate until the last one: the
+read-only SQL window with the generated schema resource; the write core (`preview_changes`,
 `apply_changes`, `revert_operation`, the confirmation dialog, change log
 source `agent`); write coverage per entity family with a guard test; then
 the gate removal, user documentation and release note.
