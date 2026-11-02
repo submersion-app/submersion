@@ -53219,6 +53219,18 @@ abstract class AppLocalizations {
   /// **'View All'**
   String get trips_photos_viewAll;
 
+  /// No description provided for @trips_dateStretch_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive saved, but the trip\'s dates couldn\'t be updated'**
+  String get trips_dateStretch_failed;
+
+  /// No description provided for @trips_dateStretch_message.
+  ///
+  /// In en, this message translates to:
+  /// **'{trip} now runs {dates}'**
+  String trips_dateStretch_message(String trip, String dates);
+
   /// No description provided for @trips_picker_alreadyPacked.
   ///
   /// In en, this message translates to:

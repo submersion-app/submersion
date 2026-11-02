@@ -33516,6 +33516,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_photos_viewAll => 'Ver Todas';
 
   @override
+  String get trips_dateStretch_failed =>
+      'Mergulho guardado, mas não foi possível atualizar as datas da viagem';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip agora abrange $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => 'Já preparado';
 
   @override

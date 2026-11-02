@@ -33864,6 +33864,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_photos_viewAll => 'عرض الكل';
 
   @override
+  String get trips_dateStretch_failed =>
+      'تم حفظ الغوصة، لكن تعذّر تحديث تواريخ الرحلة';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return 'أصبحت مدة $trip $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => 'مجهزة بالفعل';
 
   @override

@@ -33294,6 +33294,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_photos_viewAll => 'Alles bekijken';
 
   @override
+  String get trips_dateStretch_failed =>
+      'Duik opgeslagen, maar de reisdatums konden niet worden bijgewerkt';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip loopt nu $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => 'Al ingepakt';
 
   @override

@@ -10055,6 +10055,8 @@
   "trips_photos_tooltip_scan": "مسح معرض الجهاز",
   "trips_photos_viewAll": "عرض الكل",
   "trips_picker_clearTooltip": "مسح الاختيار",
+  "trips_dateStretch_failed": "تم حفظ الغوصة، لكن تعذّر تحديث تواريخ الرحلة",
+  "trips_dateStretch_message": "أصبحت مدة {trip} {dates}",
   "trips_picker_alreadyPacked": "مجهزة بالفعل",
   "trips_picker_empty_createButton": "إنشاء رحلة",
   "trips_picker_empty_title": "لا توجد رحلات بعد",

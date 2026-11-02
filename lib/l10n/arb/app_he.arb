@@ -10055,6 +10055,8 @@
   "trips_photos_tooltip_scan": "סרוק גלריית מכשיר",
   "trips_photos_viewAll": "הצג הכל",
   "trips_picker_clearTooltip": "נקה בחירה",
+  "trips_dateStretch_failed": "הצלילה נשמרה, אך לא ניתן היה לעדכן את תאריכי הטיול",
+  "trips_dateStretch_message": "{trip} נמשך כעת {dates}",
   "trips_picker_alreadyPacked": "כבר נארז",
   "trips_picker_empty_createButton": "צור טיול",
   "trips_picker_empty_title": "עדיין אין טיולים",

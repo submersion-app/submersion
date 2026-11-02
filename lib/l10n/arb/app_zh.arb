@@ -10219,6 +10219,8 @@
   "trips_photos_tooltip_scan": "扫描设备图库",
   "trips_photos_viewAll": "查看全部",
   "trips_picker_clearTooltip": "清除选择",
+  "trips_dateStretch_failed": "潜水已保存，但无法更新旅行日期",
+  "trips_dateStretch_message": "{trip} 的日期现为 {dates}",
   "trips_picker_alreadyPacked": "已打包",
   "trips_picker_empty_createButton": "创建旅行",
   "trips_picker_empty_title": "暂无旅行",

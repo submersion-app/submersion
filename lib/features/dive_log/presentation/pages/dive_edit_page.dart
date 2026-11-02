@@ -80,6 +80,7 @@ import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dar
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_date_stretch_message.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
@@ -2645,9 +2646,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       } else {
         context.go('/dives');
       }
+      final stretched = tripDateStretchMessage(
+        l10n,
+        units,
+        snapshot.tripDateStretches,
+      );
+      final applied = l10n.diveLog_bulkEdit_applied(ids.length);
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.diveLog_bulkEdit_applied(ids.length)),
+          content: Text(stretched == null ? applied : '$applied\n$stretched'),
           duration: const Duration(seconds: 5),
           // A SnackBar with an action defaults to persist: true, which makes the
           // auto-dismiss timer a no-op so the banner never hides on its own.

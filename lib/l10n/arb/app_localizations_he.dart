@@ -32682,6 +32682,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_photos_viewAll => 'הצג הכל';
 
   @override
+  String get trips_dateStretch_failed =>
+      'הצלילה נשמרה, אך לא ניתן היה לעדכן את תאריכי הטיול';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip נמשך כעת $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => 'כבר נארז';
 
   @override
