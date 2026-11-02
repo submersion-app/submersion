@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
@@ -165,12 +166,14 @@ class GasAnalysisService {
   /// Calculate SAC segments using depth-phase segmentation.
   ///
   /// Automatically detects dive phases: descent, bottom, ascent, safety stop.
+  /// A hold inside one of [decoStops] is a deco stop, not a safety stop.
   List<SacSegment>? calculatePhaseSegments({
     required List<DiveProfilePoint> profile,
     required List<DiveTank> tanks,
     Map<String, List<TankPressurePoint>>? tankPressures,
     List<GasSwitchWithTank>? gasSwitches,
     DiveEnvironment environment = DiveEnvironment.standard,
+    List<DecoStopWindow> decoStops = const [],
   }) {
     if (profile.length < 10) return null;
 
@@ -183,8 +186,13 @@ class GasAnalysisService {
     // Classify each profile point by phase
     final phasePoints = <({int timestamp, DivePhase phase})>[];
     for (int i = 0; i < profile.length; i++) {
-      final phase = _classifyPhase(profile, i, maxDepth);
-      phasePoints.add((timestamp: profile[i].timestamp, phase: phase));
+      final timestamp = profile[i].timestamp;
+      var phase = _classifyPhase(profile, i, maxDepth);
+      if (phase == DivePhase.safetyStop &&
+          decoStops.any((w) => timestamp >= w.start && timestamp <= w.end)) {
+        phase = DivePhase.deco;
+      }
+      phasePoints.add((timestamp: timestamp, phase: phase));
     }
 
     // Group consecutive points by phase

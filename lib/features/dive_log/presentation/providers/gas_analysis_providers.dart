@@ -122,11 +122,16 @@ final gasSwitchSegmentsProvider =
 /// Provider for depth-phase based SAC segments
 ///
 /// Automatically detects dive phases: descent, bottom, ascent, safety stop.
+/// The profile analysis says which holds were deco stops, so this breakdown
+/// and the chart's events agree on them.
 final phaseSegmentsProvider =
     FutureProvider.family<List<SacSegment>?, DiveSourceKey>((ref, key) async {
       final inputs = await _segmentInputs(ref, key);
       if (inputs == null || inputs.profile.isEmpty) return null;
 
+      final analysis = await ref.watch(
+        sourceProfileAnalysisProvider(key).future,
+      );
       final service = ref.watch(gasAnalysisServiceProvider);
       return service.calculatePhaseSegments(
         profile: inputs.profile,
@@ -136,6 +141,7 @@ final phaseSegmentsProvider =
             : inputs.tankPressures,
         gasSwitches: inputs.gasSwitches.isEmpty ? null : inputs.gasSwitches,
         environment: inputs.environment,
+        decoStops: analysis?.decoStopWindows ?? const [],
       );
     });
 

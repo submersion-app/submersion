@@ -4,6 +4,7 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 
 /// Phase and gas breakdowns follow the data source in view, as the time chart
 /// does. `dive.profile` interleaves every computer's samples.
@@ -101,12 +103,14 @@ void main() {
     TankPressureRepository? pressures,
     double? altitude,
     WaterType? waterType,
+    ProfileAnalysis? analysis,
+    List<DiveProfilePoint>? profile,
   }) {
     final dive = Dive(
       id: diveId,
       dateTime: now,
       tanks: const [shared, theirs],
-      profile: samples(3600),
+      profile: profile ?? samples(3600),
       altitude: altitude,
       waterType: waterType,
     );
@@ -125,6 +129,11 @@ void main() {
         gasAnalysisServiceProvider.overrideWithValue(
           const GasAnalysisService(),
         ),
+        if (analysis != null)
+          sourceProfileAnalysisProvider((
+            diveId: diveId,
+            sourceId: null,
+          )).overrideWith((ref) async => analysis),
       ],
     );
     addTearDown(result.dispose);
@@ -187,6 +196,28 @@ void main() {
     ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
 
     expect(segments!.last.endTimestamp, greaterThan(1800));
+  });
+
+  test('phases name the deco stops the analysis found (#4079)', () async {
+    // 20 minutes at 20 m, then 6 minutes held at 5 m from 1210 s.
+    final segments = await container(
+      sources: [source('a', 'primary-dc', isPrimary: true)],
+      profiles: const {},
+      switches: const [],
+      profile: [
+        for (var t = 0; t <= 1200; t += 10)
+          DiveProfilePoint(timestamp: t, depth: 20),
+        for (var t = 1210; t <= 1570; t += 10)
+          DiveProfilePoint(timestamp: t, depth: 5),
+      ],
+      analysis: ProfileAnalysis.empty().copyWith(
+        decoStopWindows: const [(start: 1210, end: 1570)],
+      ),
+    ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
+
+    final phases = segments!.map((s) => s.phase);
+    expect(phases, contains(DivePhase.deco));
+    expect(phases, isNot(contains(DivePhase.safetyStop)));
   });
 
   test('gas rows ignore another computer\'s switches', () async {
