@@ -3334,6 +3334,7 @@
   "diveLog_cylinders_figureUsed": "المستخدم {pressure}",
   "diveLog_cylinders_gasSemantics": "غاز {mix}",
   "diveLog_cylinders_gasUsed": "الغاز المستخدم {amount}",
+  "diveLog_cylinders_loopUse": "استهلاك الحلقة {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD عند ppO₂ {ppO2}",

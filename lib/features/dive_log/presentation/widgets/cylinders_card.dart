@@ -39,9 +39,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Unified card showing every cylinder on a dive: each tank drawn as a
 /// figure filled to show the gas left and the gas used, labelled with its
 /// start, end and used pressures (issue #3773), beside what the tank is, its
-/// gas, and a quiet detail block (gas used, SAC and RMV, MOD/MND, trip
-/// cylinder, transmitter, check-in). Issue #3675 had first made the stack of
-/// differently styled lines a table.
+/// gas, and a quiet detail block (gas used, loop use on a CCR dive, SAC and
+/// RMV, MOD/MND, trip cylinder, transmitter, check-in). Issue #3675 had first
+/// made the stack of differently styled lines a table.
 ///
 /// Replaces the former Tanks card and SAC by Cylinder block. Occupies the
 /// [DiveDetailSectionId.tanks] slot on the dive detail page. Per-tank SAC
@@ -349,6 +349,11 @@ class CylindersCard extends ConsumerWidget {
                   '${units.convertVolume(gasUsedLiters).round()} '
                   '${units.volumeSymbol}',
                 ),
+              ),
+            if (cylinderSac?.loopRate case final loopRate?)
+              Text(
+                key: Key('tank-loop-use-${tank.id}'),
+                l10n.diveLog_cylinders_loopUse(units.formatRmv(loopRate)),
               ),
             if (cylinderSac != null && cylinderSac.hasValidSac)
               for (final line in _consumptionLines(l10n, cylinderSac))

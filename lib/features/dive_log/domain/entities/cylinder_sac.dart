@@ -38,6 +38,11 @@ class CylinderSac extends Equatable {
   double? get rmv =>
       sacRate != null && tankVolume != null ? sacRate! * tankVolume! : null;
 
+  /// Surface liters per minute of loop time on a CCR dive, with no depth
+  /// correction: O2 and diluent use do not scale with ambient pressure the way
+  /// open-circuit breathing does (issue #4082). Null off the loop.
+  final double? loopRate;
+
   /// Start pressure in bar
   final double? startPressure;
 
@@ -73,6 +78,7 @@ class CylinderSac extends Equatable {
     required this.role,
     this.tankVolume,
     this.sacRate,
+    this.loopRate,
     this.startPressure,
     this.endPressure,
     this.usageDuration,
@@ -107,6 +113,7 @@ class CylinderSac extends Equatable {
     TankRole? role,
     double? tankVolume,
     double? sacRate,
+    double? loopRate,
     double? startPressure,
     double? endPressure,
     Duration? usageDuration,
@@ -121,6 +128,7 @@ class CylinderSac extends Equatable {
       role: role ?? this.role,
       tankVolume: tankVolume ?? this.tankVolume,
       sacRate: sacRate ?? this.sacRate,
+      loopRate: loopRate ?? this.loopRate,
       startPressure: startPressure ?? this.startPressure,
       endPressure: endPressure ?? this.endPressure,
       usageDuration: usageDuration ?? this.usageDuration,
@@ -138,6 +146,7 @@ class CylinderSac extends Equatable {
     role,
     tankVolume,
     sacRate,
+    loopRate,
     startPressure,
     endPressure,
     usageDuration,

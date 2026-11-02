@@ -5931,6 +5931,7 @@
   "diveLog_cylinders_figureUsed": "Used {pressure}",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
+  "diveLog_cylinders_loopUse": "Loop use {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
@@ -6607,6 +6608,14 @@
     "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",
     "placeholders": {
       "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_loopUse": {
+    "description": "Cylinders card detail item on a CCR dive: the rate gas left this cylinder while the diver was on the loop, with no depth correction, e.g. \"Loop use 1.8 L/min\"",
+    "placeholders": {
+      "rate": {
         "type": "String"
       }
     }

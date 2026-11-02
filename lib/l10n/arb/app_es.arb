@@ -3334,6 +3334,7 @@
   "diveLog_cylinders_figureUsed": "Usado {pressure}",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas usado {amount}",
+  "diveLog_cylinders_loopUse": "Uso en el circuito {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD a ppO₂ {ppO2}",

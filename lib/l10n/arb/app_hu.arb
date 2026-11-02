@@ -3233,6 +3233,7 @@
   "diveLog_cylinders_figureUsed": "Felhasznált {pressure}",
   "diveLog_cylinders_gasSemantics": "Gáz {mix}",
   "diveLog_cylinders_gasUsed": "Felhasznált gáz {amount}",
+  "diveLog_cylinders_loopUse": "Hurokfogyasztás {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD {ppO2} ppO₂-nél",

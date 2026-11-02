@@ -17056,6 +17056,12 @@ abstract class AppLocalizations {
   /// **'Gas used {amount}'**
   String diveLog_cylinders_gasUsed(String amount);
 
+  /// Cylinders card detail item on a CCR dive: the rate gas left this cylinder while the diver was on the loop, with no depth correction, e.g. "Loop use 1.8 L/min"
+  ///
+  /// In en, this message translates to:
+  /// **'Loop use {rate}'**
+  String diveLog_cylinders_loopUse(String rate);
+
   /// Cylinders card detail item: maximum operating depth, e.g. "MOD 33m"
   ///
   /// In en, this message translates to:

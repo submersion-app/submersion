@@ -10180,6 +10180,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return '回路用量 $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return '最大作业深度 $depth';
   }
