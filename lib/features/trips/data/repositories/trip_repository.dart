@@ -450,6 +450,7 @@ class TripRepository {
   Future<void> assignDiveToTrip(String diveId, String tripId) async {
     try {
       _log.info('Assigning dive $diveId to trip $tripId');
+      final now = DateTime.now().millisecondsSinceEpoch;
       // One transaction: a move that fails (an unknown trip id trips the
       // foreign key) must not leave the tank links cleared.
       await _db.transaction(() async {
@@ -458,18 +459,26 @@ class TripRepository {
           _syncRepository,
           diveId,
           tripId: tripId,
-          now: DateTime.now().millisecondsSinceEpoch,
+          now: now,
         );
         await _db.customUpdate(
-          'UPDATE dives SET trip_id = ? WHERE id = ?',
-          variables: [Variable.withString(tripId), Variable.withString(diveId)],
+          'UPDATE dives SET trip_id = ?, updated_at = ? WHERE id = ?',
+          variables: [
+            Variable.withString(tripId),
+            Variable.withInt(now),
+            Variable.withString(diveId),
+          ],
           updates: {_db.dives},
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
         );
         await stretchTripsToCoverDives(_db, _syncRepository, [
           diveId,
-        ], now: DateTime.now().millisecondsSinceEpoch);
+        ], now: now);
       });
-      // The cleared tank links are staged; tell auto-sync.
       SyncEventBus.notifyLocalChange();
       _log.info('Assigned dive to trip');
     } catch (e, stackTrace) {

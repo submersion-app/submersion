@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -48,6 +49,24 @@ void main() {
   test('assignDiveToTrip stretches', () async {
     await trips.assignDiveToTrip('late', 't');
     expect(await endDate(), DateTime(2026, 3, 14));
+  });
+
+  test('assignDiveToTrip stamps and stages the dive with the trip', () async {
+    await trips.assignDiveToTrip('late', 't');
+
+    final dive = await (db.select(
+      db.dives,
+    )..where((d) => d.id.equals('late'))).getSingle();
+    expect(dive.updatedAt, greaterThan(1));
+    final pending = await SyncRepository().getPendingRecords();
+    expect(
+      pending.where((r) => r.entityType == 'dives').map((r) => r.recordId),
+      contains('late'),
+    );
+    expect(
+      pending.where((r) => r.entityType == 'trips').map((r) => r.recordId),
+      contains('t'),
+    );
   });
 
   test('bulkUpdateTrip stretches', () async {
