@@ -81,6 +81,49 @@ void main() {
     });
   }
 
+  testWidgets('opens at the point inside a navigator offset from the screen, '
+      'as the shell\'s is beside the navigation rail', (tester) async {
+    tester.view.physicalSize = const Size(1000, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const at = Offset(500, 300);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Align(
+          alignment: Alignment.topRight,
+          child: SizedBox(
+            width: 800,
+            height: 800,
+            child: Navigator(
+              onGenerateRoute: (_) => MaterialPageRoute<void>(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => showAnnotationMarkerPopup(
+                    context,
+                    annotation: annotation,
+                    globalPosition: at,
+                    units: const UnitFormatter(AppSettings()),
+                    onOpenInNotes: () {},
+                    onMove: () {},
+                    onEditTime: () {},
+                    onRemove: () {},
+                  ),
+                  child: const Text('go'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+
+    final body = tester.getRect(find.byType(OverflowBar));
+    // The body sits 16 px inside the menu, whose edge is at the point.
+    expect(body.left, closeTo(at.dx + 16, 2));
+  });
+
   testWidgets('keeps the width it asks for on a normal screen', (tester) async {
     await open(tester);
     expect(tester.getSize(find.byType(OverflowBar)).width, 300 - 24);

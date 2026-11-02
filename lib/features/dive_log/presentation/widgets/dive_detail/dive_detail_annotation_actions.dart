@@ -73,15 +73,19 @@ class DiveDetailAnnotationActions {
         timestamp: seconds,
         depth: depthMeters,
       );
-      _placement.cancel();
+      if (context.mounted) _placement.cancel();
       return;
     }
     await addAt(seconds, depthMeters);
   }
 
   /// Opens the sheet prefilled with [seconds] and writes the annotation on
-  /// Add; Cancel adds nothing. Leaves placement mode either way.
+  /// Add; Cancel adds nothing. Leaves placement mode either way. The widget
+  /// behind [ref] can be rebuilt away while the sheet is open, and the words
+  /// still count, so the repository is read first. Placement is read after:
+  /// it disposes itself when nothing watches it, which also ends the mode.
   Future<void> addAt(int seconds, double? depthMeters) async {
+    final repository = _repository;
     final result = await showAnnotationTimeSheet(
       context,
       words: null,
@@ -91,9 +95,9 @@ class DiveDetailAnnotationActions {
       initialDepthMeters: depthMeters,
       units: units,
     );
-    _placement.cancel();
+    if (context.mounted) _placement.cancel();
     if (result == null) return;
-    await _repository.addAnnotation(
+    await repository.addAnnotation(
       diveId: diveId,
       timestamp: result.seconds,
       depth: result.depthMeters,
@@ -116,6 +120,7 @@ class DiveDetailAnnotationActions {
   }
 
   Future<void> _editTime(ProfileEvent annotation) async {
+    final repository = _repository;
     final result = await showAnnotationTimeSheet(
       context,
       words: annotation.description ?? '',
@@ -127,7 +132,7 @@ class DiveDetailAnnotationActions {
       units: units,
     );
     if (result == null) return;
-    await _repository.moveAnnotation(
+    await repository.moveAnnotation(
       id: annotation.id,
       timestamp: result.seconds,
       depth: result.depthMeters,
@@ -149,13 +154,9 @@ class DiveDetailAnnotationActions {
     double? depthMeters,
     Offset globalPosition,
   ) async {
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     final choice = await showMenu<bool>(
       context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromCenter(center: globalPosition, width: 1, height: 1),
-        Offset.zero & overlay.size,
-      ),
+      position: annotationMenuPosition(context, globalPosition),
       items: [
         PopupMenuItem<bool>(
           value: true,

@@ -11,6 +11,24 @@ enum _PopupChoice { openInNotes, move, editTime, remove }
 /// the three actions share a line. A phone narrower than this shrinks it.
 const _popupWidth = 300.0;
 
+/// Where a menu opens for a point on screen. The app's pages live in the
+/// shell's navigator, beside the navigation rail, so the point has to move
+/// into that overlay's coordinates first.
+RelativeRect annotationMenuPosition(
+  BuildContext context,
+  Offset globalPosition,
+) {
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+  return RelativeRect.fromRect(
+    Rect.fromCenter(
+      center: overlay.globalToLocal(globalPosition),
+      width: 1,
+      height: 1,
+    ),
+    Offset.zero & overlay.size,
+  );
+}
+
 /// The popup a tapped annotation marker opens (#4109), anchored to the dot:
 /// the linked words in full, the time and depth in the diver's units (the
 /// time opens the time editor), and Open in Notes, Move and Remove. Each
@@ -25,16 +43,9 @@ Future<void> showAnnotationMarkerPopup(
   required VoidCallback onEditTime,
   required VoidCallback onRemove,
 }) async {
-  final overlay =
-      Overlay.of(context).context.findRenderObject() as RenderBox? ??
-      context.findRenderObject() as RenderBox;
-  final position = RelativeRect.fromRect(
-    Rect.fromCenter(center: globalPosition, width: 1, height: 1),
-    Offset.zero & overlay.size,
-  );
   final choice = await showMenu<_PopupChoice>(
     context: context,
-    position: position,
+    position: annotationMenuPosition(context, globalPosition),
     constraints: const BoxConstraints(maxWidth: _popupWidth),
     items: [
       PopupMenuItem<_PopupChoice>(
@@ -44,6 +55,8 @@ Future<void> showAnnotationMarkerPopup(
       ),
     ],
   );
+  // Each action reaches the page that opened the popup, which may be gone.
+  if (!context.mounted) return;
   switch (choice) {
     case _PopupChoice.openInNotes:
       onOpenInNotes();

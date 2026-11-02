@@ -258,6 +258,38 @@ void main() {
     expect(taps.single.$2, offsetMoreOrLessEquals(_dot(tester)!));
   });
 
+  testWidgets('focusing an annotation at a visible time but an off-window '
+      'depth pans to it too', (tester) async {
+    final taps = <(ProfileEvent, Offset)>[];
+    void onTap(ProfileEvent a, Offset at) => taps.add((a, at));
+    // Shallow at the top-left of a zoom, deep a little later in the window.
+    final events = [_ann('a', 240)];
+    await tester.pumpWidget(_chart(events, onAnnotationTap: onTap));
+    await tester.pumpAndSettle();
+    final plot = tester.getRect(find.byType(LineChart).first);
+    for (var i = 0; i < 6; i++) {
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: plot.topLeft + const Offset(60, 20),
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+    }
+    final zoomed = _layer(tester);
+    expect(zoomed.visibleMaxSeconds, greaterThan(240));
+    expect(zoomed.depthAt(240), greaterThan(zoomed.visibleMaxDepth));
+
+    await tester.pumpWidget(
+      _chart(events, onAnnotationTap: onTap, focusedAnnotationId: 'a'),
+    );
+    await tester.pumpAndSettle();
+
+    final layer = _layer(tester);
+    expect(layer.depthAt(240), lessThan(layer.visibleMaxDepth));
+    expect(taps.single.$2, offsetMoreOrLessEquals(_dot(tester)!));
+  });
+
   testWidgets('the pan finds the depth in the diver\'s units', (tester) async {
     const feet = AppSettings(depthUnit: DepthUnit.feet);
     final events = [_ann('a', 800)];

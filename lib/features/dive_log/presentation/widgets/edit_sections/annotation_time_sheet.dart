@@ -95,13 +95,13 @@ class _AnnotationTimeSheetState extends State<_AnnotationTimeSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final title = switch ((widget.editing, _asksForWords)) {
-      (true, _) => l10n.diveLog_annotation_sheetTitle_editTime,
-      (_, true) => l10n.diveLog_annotation_sheetTitle_new,
-      _ => l10n.diveLog_annotation_sheetTitle_words(
-        cutAtWord(widget.words!, maxChars: 40),
-      ),
-    };
+    final title = widget.editing
+        ? l10n.diveLog_annotation_sheetTitle_editTime
+        : _asksForWords
+        ? l10n.diveLog_annotation_sheetTitle_new
+        : l10n.diveLog_annotation_sheetTitle_words(
+            cutAtWord(widget.words!, maxChars: 40),
+          );
     return Padding(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -169,11 +169,13 @@ class _AnnotationTimeSheetState extends State<_AnnotationTimeSheet> {
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: _submit,
-                  child: Text(switch ((widget.editing, _asksForWords)) {
-                    (true, _) => l10n.common_action_save,
-                    (_, true) => l10n.diveLog_annotation_action_add,
-                    _ => l10n.diveLog_annotation_action_annotate,
-                  }),
+                  child: Text(
+                    widget.editing
+                        ? l10n.common_action_save
+                        : _asksForWords
+                        ? l10n.diveLog_annotation_action_add
+                        : l10n.diveLog_annotation_action_annotate,
+                  ),
                 ),
               ],
             ),

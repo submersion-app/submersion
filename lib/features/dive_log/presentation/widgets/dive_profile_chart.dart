@@ -1903,12 +1903,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       1e-9,
       double.infinity,
     );
-    // visibleMinDepth/visibleMaxDepth are in the diver's display unit (see
-    // _totalMaxDepth), but _depthAtTimestamp reads DiveProfilePoint.depth
-    // directly, which is always meters -- converting here is what keeps an
-    // imperial-unit diver's playback cursor landing at the right height
-    // instead of a raw-meters value plotted against a feet-scaled range.
-    final depth = units.convertDepth(_depthAtTimestamp(timestamp.toDouble()));
+    final depth = _displayDepthAt(timestamp.toDouble(), units);
     final x = plotInsets.left + (timestamp - visibleMinX) / rangeX * plotWidth;
     final y = plotInsets.top + (depth - visibleMinDepth) / rangeY * plotHeight;
     return (cursorLocal: Offset(x, y), rows: rows);
@@ -1948,8 +1943,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }) {
     if (totalMaxTime <= 0 || totalMaxDepth <= 0) return false;
     final before = _viewport;
-    // The totals are in display units; the profile is in metres.
-    final depth = units.convertDepth(_depthAtTimestamp(seconds.toDouble()));
+    final depth = _displayDepthAt(seconds.toDouble(), units);
     _viewport = before.centredOn(seconds / totalMaxTime, depth / totalMaxDepth);
     return !_viewport.sameWindowAs(before);
   }
@@ -5230,7 +5224,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               visibleMaxDepth: visibleMaxDepth,
               depthAt: (seconds) => widget.profile.isEmpty
                   ? null
-                  : units.convertDepth(_depthAtTimestamp(seconds.toDouble())),
+                  : _displayDepthAt(seconds.toDouble(), units),
               onTap: widget.onAnnotationTap ?? (_, _) {},
               interactive: !widget.annotationPlacement,
               focusedId: widget.focusedAnnotationId,
@@ -7363,6 +7357,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return a.depth + (b.depth - a.depth) * f;
   }
 
+  /// [_depthAtTimestamp] in the diver's display unit, the unit of the visible
+  /// depth window and of the chart's totals. The profile itself is always in
+  /// metres: plotted raw against a feet-scaled range, a cursor or a label
+  /// lands at the wrong height.
+  double _displayDepthAt(double timestamp, UnitFormatter units) =>
+      units.convertDepth(_depthAtTimestamp(timestamp));
+
   /// Minimum pixel spacing between event lines before the less severe of the
   /// pair is dropped entirely (line and label). At phone plot widths a few
   /// seconds is sub-pixel; drawing both just paints noise.
@@ -7482,9 +7483,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // width it will actually paint with.
         textDirection: TextDirection.ltr,
       )..layout();
-      // The visible depth window is in display units; the profile is in
-      // metres.
-      final depth = units.convertDepth(_depthAtTimestamp(t));
+      final depth = _displayDepthAt(t, units);
       final anchorY = ((depth - visibleMinDepth) / rangeY * plotH).clamp(
         0.0,
         plotH,

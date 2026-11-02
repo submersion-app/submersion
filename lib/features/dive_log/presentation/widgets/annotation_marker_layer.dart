@@ -154,6 +154,14 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
     }
   }
 
+  /// The dot's depth is outside the zoomed window, so its dot is clamped to
+  /// the plot's edge rather than sitting on the curve.
+  bool _depthOffWindow(ProfileEvent annotation) {
+    final depth = widget.depthAt(annotation.timestamp);
+    return depth != null &&
+        (depth < widget.visibleMinDepth || depth > widget.visibleMaxDepth);
+  }
+
   void _reportFocused() {
     // Placement mode owns the next tap; a focus request waits like a tap
     // would (the dots are not interactive either).
@@ -165,7 +173,7 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
     if (box == null || !box.hasSize) return;
     final annotation = widget.annotations[index];
     final center = _centers(box.size)[index];
-    if (center == null &&
+    if ((center == null || _depthOffWindow(annotation)) &&
         (widget.onReveal?.call(annotation.timestamp) ?? false)) {
       _revealingId = focused;
       return;
