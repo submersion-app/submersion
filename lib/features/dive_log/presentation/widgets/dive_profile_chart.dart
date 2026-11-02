@@ -2954,6 +2954,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAscentRateLine = legendState.showAscentRateLine;
     _showEvents = legendState.showEvents;
     _showComputedEvents = legendState.showComputedEvents;
+    // A caller may force annotations off (a read-only chart); otherwise the
+    // legend's own toggle decides (#4109).
+    _showAnnotations = widget.showAnnotations && legendState.showAnnotations;
     // Issue #1523: the provider default is `true`, and for a dive that carries
     // the computer's own events the post-frame seed only flips it to `false`
     // after the first frame -- long enough to flash the computed markers. Until
@@ -3042,6 +3045,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           widget.events?.any((e) => e.source == EventSource.computed) ?? false,
       hasImportedEvents:
           widget.events?.any((e) => e.source == EventSource.imported) ?? false,
+      hasAnnotations: widget.showAnnotations && _annotations.isNotEmpty,
       hasMaxDepthMarker: widget.showMaxDepthMarker && _hasMaxDepthMarker,
       hasPressureMarkers:
           widget.showPressureThresholdMarkers && _hasPressureMarkers,

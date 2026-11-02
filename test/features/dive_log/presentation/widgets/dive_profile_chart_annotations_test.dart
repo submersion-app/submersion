@@ -156,6 +156,21 @@ void main() {
     expect(lines.single.color, ProfileMetricColors.annotation);
   });
 
+  testWidgets('the annotations toggle hides the markers and the dots', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_chart([_warning(300), _ann('a', 600)]));
+    await tester.pumpAndSettle();
+    expect(_annotationLines(tester), hasLength(1));
+    expect(find.byType(AnnotationMarkerLayer), findsOneWidget);
+
+    _containers.first.read(profileLegendProvider.notifier).toggleAnnotations();
+    await tester.pumpAndSettle();
+    expect(_annotationLines(tester), isEmpty);
+    expect(find.byType(AnnotationMarkerLayer), findsNothing);
+    expect(_lines(tester), hasLength(1), reason: 'the warning stays');
+  });
+
   testWidgets('showAnnotations false hides the lines and the layer', (
     tester,
   ) async {
