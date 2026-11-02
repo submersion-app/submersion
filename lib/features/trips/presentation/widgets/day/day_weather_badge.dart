@@ -15,14 +15,10 @@ class DayWeatherBadge extends StatelessWidget {
   final TripStoryDayWeather weather;
   final UnitFormatter units;
 
-  /// Foreground for icon and text; defaults to onSurfaceVariant.
-  final Color? color;
-
   const DayWeatherBadge({
     super.key,
     required this.weather,
     required this.units,
-    this.color,
   });
 
   /// Whether a badge for [weather] would draw anything at all: a day whose
@@ -39,7 +35,7 @@ class DayWeatherBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final foreground = color ?? theme.colorScheme.onSurfaceVariant;
+    final foreground = theme.colorScheme.onSurfaceVariant;
     final icon = weatherIconFor(
       cloudCover: weather.cloudCover,
       precipitation: weather.precipitation,

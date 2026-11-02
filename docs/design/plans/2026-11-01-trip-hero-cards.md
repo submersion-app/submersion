@@ -99,10 +99,11 @@ intended, and the design changed:
   as a line. They are fixed from the top so larger text cannot push the
   header row onto a lighter part of the fade. The day card passes 108 and
   250; the dive detail header passes neither and renders as before.
-- `TripDayMap.bottomInset` (120 on the day card) fits pins, and lifts the map
-  attribution, above the part of the map the header row and the fade cover.
+- `TripDayMap.bottomInset` fits pins, and lifts the map attribution, above the
+  part of the map the header row and the fade cover. The day card keeps them
+  in the top 150 points of the map, fixed from the top like the fade, so
+  larger text cannot carry them down into it.
   `WorldCameraFit` honours uneven padding for a lone point so a one-site day
   is lifted too.
-- Surface days: the card is filled with `surfaceContainerHighest`, two tonal
-  steps above the other day cards, so a day with only a header reads as a
-  pause in the trip.
+- Surface days: the card is filled with `surfaceContainerHighest`, the top of
+  the tonal ladder, so a day with only a header reads as a pause in the trip.

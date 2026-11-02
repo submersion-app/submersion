@@ -422,7 +422,65 @@ void main() {
     // Pins and the attribution stay above the fade's heavy end.
     expect(
       tester.widget<TripDayMap>(find.byType(TripDayMap)).bottomInset,
-      TripStoryDayCard.mapBottomInset,
+      backdrop.height - TripStoryDayCard.mapClearHeight,
+    );
+  });
+
+  testWidgets('larger text leaves the pins and attribution above the fade', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 3;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpCard(tester, _pastDay(['d1']), mapPoints: [_pin('d1', 1)]);
+
+    final height = tester.getSize(find.byType(HeaderMapBackdrop)).height;
+    final inset = tester.widget<TripDayMap>(find.byType(TripDayMap));
+    expect(height, greaterThan(280));
+    expect(height - inset.bottomInset, TripStoryDayCard.mapClearHeight);
+  });
+
+  testWidgets('a planned day dims its map and body, not its header', (
+    tester,
+  ) async {
+    final planned = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.future,
+      itineraryDay: _itin(port: 'Manta Sandy', notes: 'Bring a reef hook'),
+    );
+    await pumpCard(tester, planned, mapPoints: [_pin('d1', 1)]);
+
+    Iterable<double> opacitiesOver(Type widget) => tester
+        .widgetList<Opacity>(
+          find.ancestor(
+            of: find.byType(widget),
+            matching: find.byType(Opacity),
+          ),
+        )
+        .map((o) => o.opacity);
+
+    expect(opacitiesOver(TripStoryDayHeader), everyElement(1.0));
+    expect(opacitiesOver(TripDayMap), contains(0.85));
+    expect(opacitiesOver(TripStoryDayPlan), contains(0.85));
+  });
+
+  testWidgets('a planned rest day fades its map into the shaded card', (
+    tester,
+  ) async {
+    final rest = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      itineraryDay: _itin(port: 'Kralendijk').copyWith(plannedDives: 0),
+    );
+    await pumpCard(tester, rest, mapPoints: [_pin('d1', 1)]);
+
+    final scheme = Theme.of(tester.element(find.byType(Card))).colorScheme;
+    expect(
+      tester
+          .widget<HeaderMapBackdrop>(find.byType(HeaderMapBackdrop))
+          .fadeColor,
+      scheme.surfaceContainerHighest,
     );
   });
 

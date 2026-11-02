@@ -149,6 +149,17 @@ void main() {
     expect(tester.getCenter(info).dy, closeTo(infoY - 60, 0.5));
   });
 
+  testWidgets('a new bottom inset frames the pins again', (tester) async {
+    await _pump(tester, points: const [_dive1]);
+    final pin = find.byKey(const Key('day-map-pin-d1'));
+    final pinY = tester.getCenter(pin).dy;
+
+    await _pump(tester, points: const [_dive1], bottomInset: 60);
+    await tester.pump();
+
+    expect(tester.getCenter(pin).dy, closeTo(pinY - 30, 1));
+  });
+
   testWidgets('a story-card map forwards trackpad scrolls to the story', (
     tester,
   ) async {

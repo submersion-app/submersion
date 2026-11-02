@@ -78,9 +78,10 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
   @override
   void didUpdateWidget(TripDayMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // The initial fit runs once; a dive whose site moved, or a story whose
-    // days shifted, brings new points that must be framed again.
-    if (!listEquals(oldWidget.points, widget.points)) {
+    // The initial fit runs once; a dive whose site moved, a story whose days
+    // shifted, or a header that grew over the map must be framed again.
+    if (!listEquals(oldWidget.points, widget.points) ||
+        oldWidget.bottomInset != widget.bottomInset) {
       _controller.fitCamera(_fit(ref.read(mapTileMaxZoomProvider)));
     }
   }

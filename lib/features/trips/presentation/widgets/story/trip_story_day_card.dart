@@ -51,10 +51,11 @@ class TripStoryDayCard extends ConsumerStatefulWidget {
   /// part of it.
   static const double mapFadeEnd = mapPeekHeight + 30;
 
-  /// The bottom of the map stack the header row and the fade's heavy end
-  /// cover (`TripDayMap.bottomInset`), so a day's pins and the attribution
-  /// land in the part of the map that can be seen.
-  static const double mapBottomInset = 120;
+  /// How much of the map stack, from the top, a day's pins and the attribution
+  /// are kept in (`TripDayMap.bottomInset` covers the rest). Fixed from the top
+  /// like the fade: larger text grows the stack under it, and an inset fixed
+  /// from the bottom would ride down into the fade.
+  static const double mapClearHeight = 150;
 
   final TripStoryDay day;
   final String tripId;
@@ -143,6 +144,8 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
         day.sightings.isNotEmpty ||
         hasPlan;
 
+    final bodyOpacity = _isPlanned ? 0.85 : 1.0;
+
     // Today's card carries the header's emphasis down its edge; a day ahead
     // keeps the quiet outline that marks it as only a plan.
     final ShapeBorder? shape = switch (day.kind) {
@@ -168,25 +171,30 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
               // Resolved under the Card, so the fade ends in the colour the
               // card actually paints.
               Positioned.fill(
-                child: Builder(
-                  builder: (context) => HeaderMapBackdrop(
-                    fadeColor: backdropColorOf(context),
-                    fadeStart: TripStoryDayCard.mapFadeStart,
-                    fadeEnd: TripStoryDayCard.mapFadeEnd,
-                    // The pins above the header row stay tappable.
-                    passesPointerThrough: true,
-                    child: TripDayMap(
-                      day: day,
-                      points: widget.mapPoints,
-                      highlightedDiveId: _highlightedDiveId,
-                      onDiveTap: _onPinTap,
-                      // Panning and zooming live in the fullscreen view; in
-                      // the card a drag scrolls the story.
-                      interactive: false,
-                      bottomInset: TripStoryDayCard.mapBottomInset,
-                      onExpand: widget.onExpandMap == null
-                          ? null
-                          : () => widget.onExpandMap!(day, widget.mapPoints),
+                child: Opacity(
+                  opacity: bodyOpacity,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => HeaderMapBackdrop(
+                      fadeColor: backdropColorOf(context),
+                      fadeStart: TripStoryDayCard.mapFadeStart,
+                      fadeEnd: TripStoryDayCard.mapFadeEnd,
+                      // The pins above the header row stay tappable.
+                      passesPointerThrough: true,
+                      child: TripDayMap(
+                        day: day,
+                        points: widget.mapPoints,
+                        highlightedDiveId: _highlightedDiveId,
+                        onDiveTap: _onPinTap,
+                        // Panning and zooming live in the fullscreen view; in
+                        // the card a drag scrolls the story.
+                        interactive: false,
+                        bottomInset:
+                            constraints.maxHeight -
+                            TripStoryDayCard.mapClearHeight,
+                        onExpand: widget.onExpandMap == null
+                            ? null
+                            : () => widget.onExpandMap!(day, widget.mapPoints),
+                      ),
                     ),
                   ),
                 ),
@@ -209,26 +217,29 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
 
     return Card(
       shape: shape,
-      // A surface day sits two tonal steps above the other cards: its header
-      // alone would look like a dive day that lost its body. A planned rest
-      // day can still have an itinerary map, which backdropColorOf fades
-      // into this same colour.
+      // A surface day takes the top of the tonal ladder: its header alone on
+      // the usual card would look like a dive day that lost its body. A
+      // planned rest day can still have an itinerary map, which
+      // backdropColorOf fades into this same colour.
       color: day.readsAsSurface
           ? theme.colorScheme.surfaceContainerHighest
           : null,
       clipBehavior: Clip.antiAlias,
-      child: Opacity(
-        opacity: _isPlanned ? 0.85 : 1,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            top,
-            // Three zones with deliberate visual weight: the day summary
-            // (stats, rhythm, conditions) under the header, the dive rows as
-            // the dominant middle, and captioned photo/species clusters at
-            // the tail. Gaps follow the grouping: tight inside a zone, 16
-            // between zones.
-            Padding(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // The header stays at full strength on a planned day: the date and
+          // the Planned chip are how the diver scans for it. Only the map and
+          // the body under it go quiet.
+          top,
+          // Three zones with deliberate visual weight: the day summary
+          // (stats, rhythm, conditions) under the header, the dive rows as
+          // the dominant middle, and captioned photo/species clusters at
+          // the tail. Gaps follow the grouping: tight inside a zone, 16
+          // between zones.
+          Opacity(
+            opacity: bodyOpacity,
+            child: Padding(
               padding: EdgeInsets.fromLTRB(16, hasBody ? 12 : 0, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,8 +308,8 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

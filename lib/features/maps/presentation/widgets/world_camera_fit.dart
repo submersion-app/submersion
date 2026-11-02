@@ -23,8 +23,8 @@ import 'package:submersion/features/maps/domain/map_utils.dart';
 /// [boundsForPoints] does, then by [padding] on screen. A set of points that
 /// all sit on one spot is centred in the padded area at [singlePointZoom]
 /// instead (never past [maxZoom]), since a zero-area box has no finite zoom.
-/// Unusable points (see
-/// [isUsableMapPoint]) are skipped; with none left the camera is unchanged.
+/// Unusable points (see [isUsableMapPoint]) are skipped; with none left the
+/// camera is unchanged.
 @immutable
 class WorldCameraFit extends CameraFit {
   const WorldCameraFit({

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/day_weather_badge.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -77,6 +78,52 @@ Future<void> pumpHeader(
 }
 
 void main() {
+  for (final scale in [1.0, 1.5, 2.0, 3.0]) {
+    testWidgets('today with weather fits a small phone at ${scale}x text', (
+      tester,
+    ) async {
+      // A 320 point phone less the story's gutter, the card's margin and the
+      // card's own padding.
+      tester.view.physicalSize = const Size(248, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await pumpHeader(
+        tester,
+        TripStoryDay(
+          date: DateTime(2026, 3, 8),
+          dayNumber: 12,
+          kind: TripStoryDayKind.today,
+          itineraryDay: _itin(port: 'Kralendijk'),
+        ),
+        storedWeather: const TripStoryDayWeather(
+          airTemp: 29,
+          cloudCover: CloudCover.partlyCloudy,
+        ),
+        textScale: scale,
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('the Planned chip keeps its distance from the weather', (
+    tester,
+  ) async {
+    await pumpHeader(
+      tester,
+      TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.future,
+      ),
+      storedWeather: const TripStoryDayWeather(airTemp: 29),
+    );
+
+    final weather = tester.getTopRight(find.byType(DayWeatherBadge)).dx;
+    expect(tester.getTopLeft(find.byType(Chip)).dx - weather, 8);
+  });
+
   testWidgets('shows the day number badge and date', (tester) async {
     final day = TripStoryDay(
       date: DateTime(2026, 3, 8),

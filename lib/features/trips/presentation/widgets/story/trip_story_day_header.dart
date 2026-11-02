@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,6 +28,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// quieter form makes it read as a lesser entry and easy to miss when
 /// scanning the story.
 class TripStoryDayHeader extends ConsumerWidget {
+  /// The number badge and the gap after it.
+  static const double _leadingWidth = 46;
+
+  /// Room the date and subtitle always keep beside the weather and chips.
+  static const double _titleMinWidth = 96;
+
   final TripStoryDay day;
 
   /// Weather stored for this day, passed down by the story view from one
@@ -70,43 +78,71 @@ class TripStoryDayHeader extends ConsumerWidget {
         ? DayWeatherBadge(weather: weather!, units: units)
         : null;
 
-    return Row(
-      children: [
-        _DayNumberBadge(dayNumber: day.dayNumber, highlighted: isToday),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                units.formatWeekdayMonthDay(day.date),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (subtitleParts.isNotEmpty)
+    final trailing = <Widget>[
+      ?weatherBadge,
+      if (isToday) const TodayChip(),
+      if (day.kind == TripStoryDayKind.future)
+        Chip(
+          label: Text(context.l10n.trips_story_planned),
+          visualDensity: VisualDensity.compact,
+        ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) => Row(
+        children: [
+          _DayNumberBadge(dayNumber: day.dayNumber, highlighted: isToday),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  subtitleParts.join(' - '),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
+                  units.formatWeekdayMonthDay(day.date),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-            ],
+                if (subtitleParts.isNotEmpty)
+                  Text(
+                    subtitleParts.join(' - '),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
           ),
-        ),
-        if (weatherBadge != null) ...[const SizedBox(width: 8), weatherBadge],
-        if (isToday) ...[const SizedBox(width: 8), const TodayChip()],
-        if (day.kind == TripStoryDayKind.future)
-          Chip(
-            label: Text(context.l10n.trips_story_planned),
-            visualDensity: VisualDensity.compact,
-          ),
-      ],
+          if (trailing.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            // The weather and chips keep their size while they fit, and scale
+            // down rather than overflow once a small phone, large text or a
+            // long translation runs out of row. Plain Flexible would not do:
+            // it caps the title at half the row even when there is room.
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: math.max(
+                  0,
+                  constraints.maxWidth - _leadingWidth - _titleMinWidth,
+                ),
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 8,
+                  children: trailing,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
