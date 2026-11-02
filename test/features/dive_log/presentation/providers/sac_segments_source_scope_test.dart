@@ -284,6 +284,69 @@ void main() {
     expect(phases, isNot(contains(DivePhase.deco)));
   });
 
+  group('a safety stop recorded by a computer (#4079)', () {
+    final points = [
+      for (var t = 0; t <= 1200; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 20),
+      for (var t = 1210; t <= 1570; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 5),
+    ];
+
+    /// The phases of the primary source, on an NDL curve that reads deco
+    /// throughout, with a stop over the 5 m hold recorded by [computerId].
+    Future<Iterable<DivePhase?>> phasesWithStopFrom(String computerId) async {
+      ProfileEvent stopEvent(int timestamp, {required bool isStart}) =>
+          ProfileEvent.safetyStop(
+            id: 'stop-$timestamp',
+            diveId: diveId,
+            timestamp: timestamp,
+            depth: 5,
+            createdAt: now,
+            isStart: isStart,
+            source: EventSource.imported,
+          ).copyWith(computerId: computerId);
+
+      final segments = await container(
+        sources: twoComputers,
+        profiles: {
+          'a': SourceProfile(
+            sourceId: 'a',
+            computerId: 'primary-dc',
+            isEdited: false,
+            points: points,
+          ),
+          'b': bucket('b', 'second-dc', 1200),
+        },
+        switches: const [],
+        analysis: ProfileAnalysis.empty().copyWith(
+          ndlCurve: List.filled(points.length, -1),
+          events: [
+            stopEvent(1210, isStart: true),
+            stopEvent(1570, isStart: false),
+          ],
+        ),
+      ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
+
+      return segments!.map((s) => s.phase);
+    }
+
+    test('stays a safety stop on the computer that recorded it', () async {
+      final phases = await phasesWithStopFrom('primary-dc');
+
+      expect(phases, contains(DivePhase.safetyStop));
+      expect(phases, isNot(contains(DivePhase.deco)));
+    });
+
+    test('says nothing about the computer in view', () async {
+      // The chart hides this computer's events, so the hold in view is judged
+      // on its own NDL curve.
+      final phases = await phasesWithStopFrom('second-dc');
+
+      expect(phases, contains(DivePhase.deco));
+      expect(phases, isNot(contains(DivePhase.safetyStop)));
+    });
+  });
+
   test('gas rows ignore another computer\'s switches', () async {
     final segments = await container(
       sources: twoComputers,

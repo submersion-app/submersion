@@ -295,6 +295,76 @@ void main() {
     test('an end with no start has no window', () {
       expect(safetyStopWindows([stop(100, isStart: false)]), isEmpty);
     });
+
+    group('for one source', () {
+      ProfileEvent from(
+        String? computerId,
+        int timestamp, {
+        required bool isStart,
+      }) => stop(timestamp, isStart: isStart).copyWith(computerId: computerId);
+
+      test('leaves out another computer\'s stop', () {
+        expect(
+          safetyStopWindows(
+            [
+              from('other', 100, isStart: true),
+              from('other', 200, isStart: false),
+            ],
+            analyzedSource: (computerId: 'viewed'),
+          ),
+          isEmpty,
+        );
+      });
+
+      test('another computer\'s start cannot open its own stop', () {
+        expect(
+          safetyStopWindows(
+            [
+              from('other', 100, isStart: true),
+              from('viewed', 150, isStart: true),
+              from('viewed', 300, isStart: false),
+            ],
+            analyzedSource: (computerId: 'viewed'),
+          ),
+          [(start: 150, end: 300)],
+        );
+      });
+
+      test('keeps a stop with no computer', () {
+        expect(
+          safetyStopWindows(
+            [from(null, 100, isStart: true), from(null, 200, isStart: false)],
+            analyzedSource: (computerId: 'viewed'),
+          ),
+          [(start: 100, end: 200)],
+        );
+      });
+
+      test('a source with no computer only reads unattributed stops', () {
+        expect(
+          safetyStopWindows(
+            [
+              from('other', 100, isStart: true),
+              from('other', 200, isStart: false),
+              from(null, 300, isStart: true),
+              from(null, 400, isStart: false),
+            ],
+            analyzedSource: (computerId: null),
+          ),
+          [(start: 300, end: 400)],
+        );
+      });
+
+      test('a dive-level analysis reads every computer', () {
+        expect(
+          safetyStopWindows([
+            from('other', 100, isStart: true),
+            from('other', 200, isStart: false),
+          ]),
+          [(start: 100, end: 200)],
+        );
+      });
+    });
   });
 
   test('each stop on a dive is judged on its own', () {

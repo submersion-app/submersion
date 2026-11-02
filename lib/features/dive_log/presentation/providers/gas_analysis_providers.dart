@@ -23,6 +23,7 @@ final gasAnalysisServiceProvider = Provider<GasAnalysisService>((ref) {
 
 /// What a segment breakdown reads, for the data source in view.
 typedef _SegmentInputs = ({
+  SourceProfile? source,
   List<DiveProfilePoint> profile,
   List<DiveTank> tanks,
   List<GasSwitchWithTank> gasSwitches,
@@ -62,6 +63,7 @@ Future<_SegmentInputs?> _segmentInputs(Ref ref, DiveSourceKey key) async {
   final computerId = source?.computerId;
   if (computerId == null) {
     return (
+      source: source,
       profile: source?.points ?? dive.profile,
       tanks: dive.tanks,
       gasSwitches: gasSwitches,
@@ -80,6 +82,7 @@ Future<_SegmentInputs?> _segmentInputs(Ref ref, DiveSourceKey key) async {
         sourceId: source!.sourceId,
       );
   return (
+    source: source,
     profile: source.points,
     tanks: tanks,
     gasSwitches: [
@@ -134,6 +137,7 @@ final phaseSegmentsProvider =
         sourceProfileAnalysisProvider(key).future,
       );
       final service = ref.watch(gasAnalysisServiceProvider);
+      final source = inputs.source;
       return service.calculatePhaseSegments(
         profile: inputs.profile,
         tanks: inputs.tanks,
@@ -143,7 +147,12 @@ final phaseSegmentsProvider =
         gasSwitches: inputs.gasSwitches.isEmpty ? null : inputs.gasSwitches,
         environment: inputs.environment,
         decoStops: analysis?.decoStopWindows ?? const [],
-        safetyStops: safetyStopWindows(analysis?.events ?? const []),
+        safetyStops: safetyStopWindows(
+          analysis?.events ?? const [],
+          analyzedSource: source == null
+              ? null
+              : (computerId: source.computerId),
+        ),
         ndlCurve: analysis?.ndlCurve ?? const [],
       );
     });

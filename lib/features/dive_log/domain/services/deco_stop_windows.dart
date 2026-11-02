@@ -52,10 +52,18 @@ typedef StopWindow = ({int start, int end});
 
 /// The safety stops [events] carries, whoever recorded them. A start with no
 /// end has no window. [events] is sorted by timestamp.
-List<StopWindow> safetyStopWindows(List<ProfileEvent> events) {
+///
+/// An analysis keeps every computer's events for the chart to filter, so
+/// [analyzedSource] names the source these stops have to belong to (see
+/// [ProfileEvent.countsFor]).
+List<StopWindow> safetyStopWindows(
+  List<ProfileEvent> events, {
+  ({String? computerId})? analyzedSource,
+}) {
   final windows = <StopWindow>[];
   int? start;
   for (final event in events) {
+    if (!event.countsFor(analyzedSource)) continue;
     if (event.eventType == ProfileEventType.safetyStopStart) {
       start ??= event.timestamp;
     } else if (event.eventType == ProfileEventType.safetyStopEnd &&
