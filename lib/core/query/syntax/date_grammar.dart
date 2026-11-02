@@ -54,6 +54,7 @@ final RegExp _dayMonthYear = RegExp(
 final RegExp _monthDayYear = RegExp(
   r'^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s+(\d{4})$',
 );
+final RegExp _monthDot = RegExp(r'(?<=[a-z])\.');
 final RegExp _periodRange = RegExp(r'^(.+)\s+to\s+(.+)$');
 final RegExp _between = RegExp(r'^between\s+(.+)\s+and\s+(.+)$');
 final RegExp _lastN = RegExp(
@@ -63,7 +64,11 @@ final RegExp _since = RegExp(r'^since\s+(.+)$');
 final RegExp _before = RegExp(r'^before\s+(.+)$');
 
 DateRange? parseDateText(String text, {required DateTime now}) {
-  final t = text.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  final t = text
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .replaceAll(_monthDot, '');
   if (t.isEmpty) return null;
   final today = DateTime(now.year, now.month, now.day);
 
@@ -75,9 +80,10 @@ DateRange? parseDateText(String text, {required DateTime now}) {
       : (start: DateTime(y, m, 1), end: DateTime(y, m + 1, 0));
   DateRange? day(int y, String word, int d) {
     final mo = _months[word];
-    final whole = mo == null ? null : month(y, mo);
+    if (mo == null) return null;
+    final whole = month(y, mo);
     if (whole == null || d < 1 || d > whole.end!.day) return null;
-    final date = DateTime(y, mo!, d);
+    final date = DateTime(y, mo, d);
     return (start: date, end: date);
   }
 
@@ -98,7 +104,8 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   }
   // Before the open-ended forms: "since 2018 to 2020" would otherwise read
   // as an open bound over a closed range.
-  m = _between.firstMatch(t) ?? _periodRange.firstMatch(t);
+  final between = _between.firstMatch(t);
+  m = between ?? _periodRange.firstMatch(t);
   if (m != null) {
     // Both periods must be closed: "since 2018" has no end to span from.
     final first = parseDateText(m[1]!, now: now);
@@ -107,7 +114,11 @@ DateRange? parseDateText(String text, {required DateTime now}) {
       (start: final DateTime from, end: DateTime _),
       (start: DateTime _, end: final DateTime to),
     )) {
-      return to.isBefore(from) ? null : (start: from, end: to);
+      if (!to.isBefore(from)) return (start: from, end: to);
+      // "between" has no direction, unlike "to", which is likely a slip.
+      if (between != null) {
+        return parseDateText('between ${m[2]} and ${m[1]}', now: now);
+      }
     }
     return null;
   }
@@ -122,8 +133,10 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   m = _before.firstMatch(t);
   if (m != null) {
     final inner = parseDateText(m[1]!, now: now);
-    if (inner?.start == null) return null;
-    return (start: null, end: inner!.start!.subtract(const Duration(days: 1)));
+    final first = inner?.start;
+    if (first == null) return null;
+    // Calendar arithmetic: see the Duration note under "last N days".
+    return (start: null, end: DateTime(first.year, first.month, first.day - 1));
   }
   m = _monthYear.firstMatch(t);
   if (m != null) {

@@ -166,9 +166,45 @@ void main() {
     ));
   });
 
+  test('before ends on the calendar day before, across a clock change', () {
+    // The day after clocks go forward in the US, in Europe and in Sydney, so
+    // one of these bites in whichever zone runs the test.
+    for (final (text, day) in [
+      ('before 12 march 2018', DateTime(2018, 3, 11)),
+      ('before 26 march 2018', DateTime(2018, 3, 25)),
+      ('before 8 october 2018', DateTime(2018, 10, 7)),
+    ]) {
+      expect(parseDateText(text, now: now), (
+        start: null,
+        end: day,
+      ), reason: text);
+    }
+  });
+
+  test('an abbreviated month may end in a dot', () {
+    expect(parseDateText('Oct. 14 2018', now: now), (
+      start: DateTime(2018, 10, 14),
+      end: DateTime(2018, 10, 14),
+    ));
+    expect(parseDateText('14 oct. 2018', now: now), isNotNull);
+    expect(parseDateText('oct. 2018', now: now), isNotNull);
+  });
+
+  test('between has no direction, unlike to', () {
+    expect(parseDateText('between 2020 and 2018', now: now), (
+      start: DateTime(2018, 1, 1),
+      end: DateTime(2020, 12, 31),
+    ));
+    expect(
+      parseDateText('between 20 october 2018 and 14 october 2018', now: now),
+      (start: DateTime(2018, 10, 14), end: DateTime(2018, 10, 20)),
+    );
+  });
+
   test('reversed or open-ended periods are not a range', () {
     expect(parseDateText('2020 to 2018', now: now), isNull);
     expect(parseDateText('since 2018 to 2020', now: now), isNull);
+    expect(parseDateText('between since 2018 and 2020', now: now), isNull);
     expect(parseDateText('2018 to', now: now), isNull);
     expect(parseDateText('between 2018', now: now), isNull);
   });

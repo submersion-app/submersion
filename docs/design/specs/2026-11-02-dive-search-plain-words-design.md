@@ -161,8 +161,11 @@ Rules:
 - A negated phrase works: `not last year`, `-2018-10`.
 - A phrase also works after a date field: `date in october 2018`,
   `date between 2018 and 2020`.
-- A comma between terms is ignored: `ressel, october 2018`. A comma inside a
-  date is part of it: `october 14, 2018`.
+- A comma between terms is ignored: `ressel, october 2018`. A comma before a
+  date's year is part of it: `october 14, 2018`.
+- An abbreviated month may end in a dot: `oct. 14, 2018`.
+- `between` has no direction, so `between 2020 and 2018` reads as 2018 to 2020.
+  `2020 to 2018` is refused, since a reversed `to` is more likely a slip.
 - A full date needs its year, and spells the month in English like every other
   phrase. `14 october` stays two words, because no year can be assumed. Numeric
   forms such as `14/10/2018` stay out, because whether the day or the month

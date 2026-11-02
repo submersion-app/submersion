@@ -19,6 +19,9 @@ bool _isTerm(Token t) => t.kind == TokenKind.word || t.kind == TokenKind.number;
 
 bool _isComma(Token t) => t.kind == TokenKind.symbol && t.text == ',';
 
+bool _isYear(Token t) =>
+    t.kind == TokenKind.number && _bareYear.hasMatch(t.text);
+
 /// The date phrase starting at token [start] and how many tokens it spans, or
 /// null when none does. A lone year is not a phrase, because `2018` also finds
 /// the notes and the dive numbered 2018; after `in` or `during` it is.
@@ -52,16 +55,17 @@ bool _isComma(Token t) => t.kind == TokenKind.symbol && t.text == ',';
   DateTime now, {
   required bool yearAlone,
 }) {
-  // A comma can sit inside a date (`october 14, 2018`), so it is stepped over
-  // and counted but never read. The list ends in the end token, which is
-  // neither a term nor a comma, so the index stays in range.
+  // A comma can sit before a date's year (`october 14, 2018`), so it is
+  // stepped over and counted but never read. Any other comma separates terms.
+  // The list ends in the end token, which is neither a term nor a comma, so
+  // the index stays in range.
   final words = <String>[];
   final spans = <int>[];
   var next = start;
   while (words.length < _longestDatePhrase && _isTerm(tokens[next])) {
     words.add(tokens[next++].text);
     spans.add(next - start);
-    if (_isComma(tokens[next]) && _isTerm(tokens[next + 1])) next++;
+    if (_isComma(tokens[next]) && _isYear(tokens[next + 1])) next++;
   }
   for (var count = words.length; count > 0; count--) {
     final text = words.take(count).join(' ');

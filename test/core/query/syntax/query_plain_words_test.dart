@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
@@ -165,11 +166,17 @@ void main() {
         expect(read('31 april 2018'), AndNode([word('31'), month(2018, 4)]));
       });
 
-      test('a comma only joins a date it sits inside', () {
+      test('a comma only joins a date before its year', () {
         expect(
           read('october 2018, 14'),
           AndNode([month(2018, 10), word('14')]),
         );
+        expect(read('10, may 2018'), AndNode([word('10'), month(2018, 5)]));
+      });
+
+      test('a dotted month reads the same', () {
+        expect(read('Oct. 14, 2018'), day);
+        expect(read('14 oct. 2018'), day);
       });
 
       test('a month and day with no year stay words', () {
@@ -327,6 +334,13 @@ void main() {
       );
     });
 
+    test('between reads two full dates in either order', () {
+      expect(
+        read('date between 20 october 2018 and 14 october 2018'),
+        range(DateTime(2018, 10, 14), DateTime(2018, 10, 20)),
+      );
+    });
+
     test('between two days keeps its own form', () {
       expect(
         read('date between 2025-03-14 and 2025-03-15'),
@@ -353,7 +367,10 @@ void main() {
           DateValue(DateTime(2018, 10, 14)),
         ),
       );
-      expect(parse('date in 2018-10-14'), isA<ParseOk>());
+      expect(
+        validateQuery(read('date in 2018-10-14'), plainDives, fixtureRegistry),
+        isEmpty,
+      );
     });
 
     test('between reads full dates, alone or beside an iso day', () {

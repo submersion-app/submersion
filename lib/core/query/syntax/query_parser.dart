@@ -585,8 +585,9 @@ class QueryParser {
         isDay(_tokens[_pos + 2]);
   }
 
-  /// A date value is one token; a range collapses to `inList` and an
-  /// open-ended phrase ("since 2024") to the bound it has.
+  /// A date value is one token, or a phrase on an entity that reads plain
+  /// words; a range collapses to `inList` and an open-ended phrase
+  /// ("since 2024") to the bound it has.
   QueryNode _dateCondition(FieldPath path, QueryOp op, QueryField field) {
     if (_entity.plainWords != null) {
       final first = _peek;
