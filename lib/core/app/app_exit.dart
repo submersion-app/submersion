@@ -10,6 +10,9 @@ import 'package:clock/clock.dart';
 /// are `Future.timeout`s: they cannot interrupt work already in progress, and
 /// they cannot fire at all if the isolate is blocked, so they bound the happy
 /// path and nothing else. This is the bound that holds regardless.
+///
+/// Must stay below the macOS `QuitWatchdog.defaultAnswerTimeout`, which ends the
+/// process once the window has closed.
 const Duration kAppExitCloseBudget = Duration(seconds: 8);
 
 /// Closes both databases, then answers the platform's exit request.
@@ -24,8 +27,9 @@ const Duration kAppExitCloseBudget = Duration(seconds: 8);
 /// process: closing the window had already removed it, so the user saw the app
 /// quit while the process stayed alive. Reported against the Media section,
 /// whose local-file reads are the likeliest thing to be in flight at quit.
-/// `QuitWatchdog` is the native backstop for the case this cannot reach, a main
-/// isolate too blocked to run any of these timers.
+/// `QuitWatchdog` is the native backstop once the window is gone, for a main
+/// isolate too blocked to run any of these timers. A quit with the window still
+/// up has no such backstop, because Dart may be cancelling it on purpose.
 ///
 /// The two closes run sequentially and share one budget. Sequentially because
 /// racing two shutdown sequences is not worth the second it saves; one shared

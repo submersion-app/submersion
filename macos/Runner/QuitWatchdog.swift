@@ -1,4 +1,4 @@
-import Cocoa
+import Foundation
 
 /// Ends the process when a quit cannot finish by itself.
 ///
@@ -22,67 +22,63 @@ import Cocoa
 /// A quit with a window still up arms nothing. Dart can cancel that quit on
 /// purpose, and the diver can still see the app and quit again, which goes
 /// straight to termination because the engine remembers the unanswered request.
-/// Dart cannot usefully cancel with no window left, and after
-/// `applicationWillTerminate` it cannot cancel at all, so both armed cases are
-/// always safe to finish.
+/// That way out depends on `FLTEnableMergedPlatformUIThread` staying false in
+/// Info.plist: with merged threads a blocked isolate also blocks the main
+/// thread, and the second quit is never delivered. Dart cannot usefully cancel
+/// with no window left, and after `applicationWillTerminate` it cannot cancel
+/// at all, so both armed cases are always safe to finish.
 ///
-/// Deadlines run on a background queue rather than a `Timer` on the main run
-/// loop, because a stopped main thread is one of the cases they guard. By the
-/// time either fires, Dart has had its own close budget and drift runs in WAL
-/// mode, so an abrupt exit is recoverable.
+/// When Dart stops answering, the deadline exits directly rather than asking
+/// AppKit first. `closeDatabasesForExit` always answers, so silence means a
+/// blocked isolate, and an orderly terminate would hang in engine shutdown.
+/// With Drift's worker still open it could instead abort in FFI teardown.
+///
+/// An abrupt exit is recoverable: the databases run in WAL mode.
 final class QuitWatchdog {
   /// How long Dart has to answer after the last window closes.
   ///
-  /// Generous next to the 8s `closeDatabasesForExit` holds itself to, so a
-  /// healthy quit never comes near it.
+  /// Must stay above `kAppExitCloseBudget` in lib/core/app/app_exit.dart, so a
+  /// healthy close is never cut short. A test there reads this line.
   static let defaultAnswerTimeout: TimeInterval = 20
 
-  /// How long AppKit and the engine have to tear down before the process ends
-  /// regardless. Dart has closed the databases before any orderly teardown.
+  /// How long AppKit and the engine have to tear down once termination begins.
   static let defaultTeardownTimeout: TimeInterval = 5
 
   private let answerTimeout: TimeInterval
   private let teardownTimeout: TimeInterval
-  private let terminate: () -> Void
   private let forceExit: () -> Void
-  /// Serial, so two deadlines landing together cannot both reach `exit`, which
-  /// is undefined when called twice. The first one never returns.
+
+  /// A private queue rather than a global one, and never a `Timer` on the main
+  /// run loop. Blocked work can fill the shared pool and a stopped main thread
+  /// runs nothing, and a deadline has to fire in both cases.
   private let queue = DispatchQueue(label: "app.submersion.quit-watchdog", qos: .utility)
 
+  /// [forceExit] defaults to `_exit`, not `exit`. A stuck process still has
+  /// live threads, and `exit` would run atexit handlers and static destructors
+  /// alongside them, which can crash or hang the one call that must not.
   init(
     answerTimeout: TimeInterval = QuitWatchdog.defaultAnswerTimeout,
     teardownTimeout: TimeInterval = QuitWatchdog.defaultTeardownTimeout,
-    terminate: @escaping () -> Void = { NSApplication.shared.terminate(nil) },
-    forceExit: @escaping () -> Void = { exit(0) }
+    forceExit: @escaping () -> Void = { _exit(0) }
   ) {
     self.answerTimeout = answerTimeout
     self.teardownTimeout = teardownTimeout
-    self.terminate = terminate
     self.forceExit = forceExit
   }
 
   /// Call when AppKit reports the last window closed.
-  ///
-  /// Asks AppKit first, for the orderly teardown, then forces the exit. The
-  /// force is unconditional: `terminate` is a no-op if the main thread has
-  /// stopped, and it returns having changed nothing if Dart cancelled.
   func lastWindowClosed() {
-    let timeout = answerTimeout
-    queue.asyncAfter(deadline: .now() + timeout) { [terminate] in
-      NSLog("[QuitWatchdog] No exit answer after \(timeout)s; terminating")
-      DispatchQueue.main.async(execute: terminate)
-    }
-    forceExit(after: answerTimeout + teardownTimeout)
+    scheduleForceExit(after: answerTimeout)
   }
 
   /// Call when termination has begun and can no longer be cancelled.
   func willTerminate() {
-    forceExit(after: teardownTimeout)
+    scheduleForceExit(after: teardownTimeout)
   }
 
-  private func forceExit(after delay: TimeInterval) {
+  private func scheduleForceExit(after delay: TimeInterval) {
     queue.asyncAfter(deadline: .now() + delay) { [forceExit] in
-      NSLog("[QuitWatchdog] Process still alive; forcing exit")
+      NSLog("[QuitWatchdog] Process still alive after \(delay)s; forcing exit")
       forceExit()
     }
   }

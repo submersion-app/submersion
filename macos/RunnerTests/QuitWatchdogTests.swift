@@ -1,3 +1,4 @@
+import Cocoa
 import XCTest
 
 @testable import Submersion
@@ -5,56 +6,32 @@ import XCTest
 /// What ends the process when a quit cannot finish by itself.
 final class QuitWatchdogTests: XCTestCase {
 
-  func testAsksAppKitToQuitOnTheMainThreadWhenDartNeverAnswers() {
-    let asked = expectation(description: "terminate")
-    let watchdog = QuitWatchdog(
-      answerTimeout: 0.01,
-      teardownTimeout: 60,
-      terminate: {
-        XCTAssertTrue(Thread.isMainThread)
-        asked.fulfill()
-      },
-      forceExit: {}
-    )
-
-    watchdog.lastWindowClosed()
-
-    wait(for: [asked], timeout: 5)
-  }
-
-  /// `terminate` can return having changed nothing: Dart cancelled, so the
-  /// engine refused it. With no window left there is nothing to go back to.
-  func testForcesExitWhenAskingAppKitDidNotEndTheProcess() {
-    let asked = expectation(description: "terminate")
+  func testForcesExitWhenDartNeverAnswersAfterTheLastWindowCloses() {
     let exited = expectation(description: "forceExit")
     let watchdog = QuitWatchdog(
       answerTimeout: 0.01,
-      teardownTimeout: 0.01,
-      terminate: { asked.fulfill() },
+      teardownTimeout: 60,
       forceExit: { exited.fulfill() }
     )
 
     watchdog.lastWindowClosed()
 
-    wait(for: [asked, exited], timeout: 5, enforceOrder: true)
+    wait(for: [exited], timeout: 5)
   }
 
   /// The test thread is the main thread, so holding it here stands in for a
-  /// main thread that has stopped turning. Nothing on the main queue can run.
-  func testForcesExitWhileTheMainThreadIsBlocked() {
+  /// main thread that has stopped turning.
+  func testAnswerDeadlineFiresWhileTheMainThreadIsBlocked() {
     let exited = DispatchSemaphore(value: 0)
-    var asked = false
     let watchdog = QuitWatchdog(
       answerTimeout: 0.01,
-      teardownTimeout: 0.01,
-      terminate: { asked = true },
+      teardownTimeout: 60,
       forceExit: { exited.signal() }
     )
 
     watchdog.lastWindowClosed()
 
     XCTAssertEqual(exited.wait(timeout: .now() + 5), .success)
-    XCTAssertFalse(asked)
   }
 
   /// Engine shutdown waits for the isolate, so a blocked isolate strands the
@@ -64,7 +41,6 @@ final class QuitWatchdogTests: XCTestCase {
     let watchdog = QuitWatchdog(
       answerTimeout: 60,
       teardownTimeout: 0.01,
-      terminate: {},
       forceExit: { exited.signal() }
     )
 
@@ -73,57 +49,77 @@ final class QuitWatchdogTests: XCTestCase {
     XCTAssertEqual(exited.wait(timeout: .now() + 5), .success)
   }
 
-  func testATerminationAlreadyUnderWayIsNotAskedToStartAgain() {
-    let exited = expectation(description: "forceExit")
-    let asked = expectation(description: "terminate")
-    asked.isInverted = true
+  /// Native handlers run blocking file work on the shared queues, and a stalled
+  /// read is the likeliest thing in flight at quit. A deadline must not need a
+  /// free worker from that pool.
+  func testDeadlinesStillFireWhenTheSharedQueuesAreFull() {
+    let release = DispatchSemaphore(value: 0)
+    let blockers = 512
+    addTeardownBlock {
+      for _ in 0..<blockers * 2 { release.signal() }
+    }
+    for _ in 0..<blockers {
+      DispatchQueue.global(qos: .utility).async { release.wait() }
+      DispatchQueue.global(qos: .userInitiated).async { release.wait() }
+    }
+    let exited = DispatchSemaphore(value: 0)
     let watchdog = QuitWatchdog(
       answerTimeout: 0.01,
-      teardownTimeout: 0.01,
-      terminate: { asked.fulfill() },
-      forceExit: { exited.fulfill() }
-    )
-
-    watchdog.willTerminate()
-
-    wait(for: [exited, asked], timeout: 0.2)
-  }
-
-  /// A blocked isolate trips both deadlines at nearly the same moment, and
-  /// calling `exit` from two threads at once is undefined behaviour.
-  func testTwoDeadlinesNeverForceExitAtTheSameTime() {
-    let lock = NSLock()
-    var running = 0
-    var overlapped = false
-    let finished = DispatchSemaphore(value: 0)
-    let watchdog = QuitWatchdog(
-      answerTimeout: 0,
-      teardownTimeout: 0.01,
-      terminate: {},
-      forceExit: {
-        lock.lock()
-        running += 1
-        overlapped = overlapped || running > 1
-        lock.unlock()
-        Thread.sleep(forTimeInterval: 0.1)
-        lock.lock()
-        running -= 1
-        lock.unlock()
-        finished.signal()
-      }
+      teardownTimeout: 60,
+      forceExit: { exited.signal() }
     )
 
     watchdog.lastWindowClosed()
-    watchdog.willTerminate()
 
-    XCTAssertEqual(finished.wait(timeout: .now() + 5), .success)
-    XCTAssertEqual(finished.wait(timeout: .now() + 5), .success)
-    XCTAssertFalse(overlapped)
+    XCTAssertEqual(exited.wait(timeout: .now() + 5), .success)
   }
 
-  /// Dart spends up to `kAppExitCloseBudget` (8s, lib/core/app/app_exit.dart)
-  /// closing the databases. The watchdog must never cut that short.
-  func testDefaultsLeaveDartItsWholeCloseBudget() {
-    XCTAssertGreaterThan(QuitWatchdog.defaultAnswerTimeout, 8)
+  // The watchdog once armed on a reply the engine had stopped returning, so it
+  // never ran and nothing noticed. These pin what arms it.
+
+  func testClosingTheLastWindowArmsTheWatchdogAndStillQuits() {
+    let exited = expectation(description: "forceExit")
+    let delegate = AppDelegate(
+      quitWatchdog: QuitWatchdog(
+        answerTimeout: 0.01,
+        teardownTimeout: 60,
+        forceExit: { exited.fulfill() }
+      ))
+
+    XCTAssertTrue(delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared))
+
+    wait(for: [exited], timeout: 5)
+  }
+
+  func testTerminationArmsTheTeardownDeadline() {
+    let exited = expectation(description: "forceExit")
+    let delegate = AppDelegate(
+      quitWatchdog: QuitWatchdog(
+        answerTimeout: 60,
+        teardownTimeout: 0.01,
+        forceExit: { exited.fulfill() }
+      ))
+
+    delegate.applicationWillTerminate(
+      Notification(name: NSApplication.willTerminateNotification))
+
+    wait(for: [exited], timeout: 5)
+  }
+
+  /// A quit with the window up can be cancelled by Dart on purpose. Nothing may
+  /// be counting down against it.
+  func testAQuitRequestAloneArmsNothing() {
+    let exited = expectation(description: "forceExit")
+    exited.isInverted = true
+    let delegate = AppDelegate(
+      quitWatchdog: QuitWatchdog(
+        answerTimeout: 0.01,
+        teardownTimeout: 0.01,
+        forceExit: { exited.fulfill() }
+      ))
+
+    _ = delegate.applicationShouldTerminate(NSApplication.shared)
+
+    wait(for: [exited], timeout: 0.2)
   }
 }

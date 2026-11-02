@@ -16,14 +16,27 @@ class AppDelegate: FlutterAppDelegate {
   private var updateChannel: FlutterMethodChannel?
   private var displayChannel: FlutterMethodChannel?
 
-  /// Internal so tests can supply their own deadlines and actions.
-  var quitWatchdog = QuitWatchdog()
+  private let quitWatchdog: QuitWatchdog
 
   /// Mac App Store and TestFlight builds contain a receipt file;
   /// direct-distribution (DMG / GitHub) builds do not.
   private var isAppStoreBuild: Bool {
     guard let receiptURL = Bundle.main.appStoreReceiptURL else { return false }
     return FileManager.default.fileExists(atPath: receiptURL.path)
+  }
+
+  /// Designated, not a convenience init calling the one below. The nib creates
+  /// this class and aborts the launch if `init` hands back a different object,
+  /// which a convenience init delegating to a Swift-only init does.
+  override init() {
+    quitWatchdog = QuitWatchdog()
+    super.init()
+  }
+
+  /// Tests supply their own deadlines and exit action.
+  init(quitWatchdog: QuitWatchdog) {
+    self.quitWatchdog = quitWatchdog
+    super.init()
   }
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
@@ -100,6 +113,9 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationWillTerminate(_ notification: Notification) {
+    // Stays first. The delegate hears this before the engine's own observer,
+    // whose shutdown never returns on a blocked isolate, so anything armed
+    // after that point would never be armed at all.
     quitWatchdog.willTerminate()
     bookmarkHandler?.cleanup()
     backupBookmarkHandler?.releaseAll()
