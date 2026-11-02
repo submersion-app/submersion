@@ -30118,7 +30118,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Les bi-bouteilles enregistrés comme un seul bloc sont comptés quand le nom l\'indique (twin, double, D12, 2x12) ou que le bloc dépasse tout mono-bouteille courant. Indiquez Sidemount gauche et Sidemount droit sur les blocs d\'une plongée pour qu\'elle compte comme sidemount.';
+      'Une plongée compte comme bi-bouteille quand un bloc a le rôle Bi-bouteille, et comme sidemount quand ses blocs sont Sidemount gauche et Sidemount droit.';
 
   @override
   String get insights_gas_tankConfig_empty => 'Aucune plongée à afficher';

@@ -29878,7 +29878,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Az egy palackként rögzített ikerpalackok akkor számítanak, ha a név ezt jelzi (twin, double, D12, 2x12), vagy a palack nagyobb bármely szokásos egyes palacknál. Állítsa be a Sidemount bal és Sidemount jobb szerepet egy merülés palackjain, hogy sidemountként számítson.';
+      'Egy merülés ikerpalackosnak számít, ha egy palack szerepe Ikerpalack, és sidemountnak, ha palackjai Sidemount bal és Sidemount jobb.';
 
   @override
   String get insights_gas_tankConfig_empty => 'Nincs megjeleníthető merülés';

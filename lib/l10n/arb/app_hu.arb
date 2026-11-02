@@ -8539,7 +8539,7 @@
   "insights_gas_tankConfig_decoGas": "Dekó gáz",
   "insights_gas_tankConfig_multiGas": "Több gáz",
   "insights_gas_tankConfig_countAndPercent": "{count} · {percent}",
-  "insights_gas_tankConfig_note": "Az egy palackként rögzített ikerpalackok akkor számítanak, ha a név ezt jelzi (twin, double, D12, 2x12), vagy a palack nagyobb bármely szokásos egyes palacknál. Állítsa be a Sidemount bal és Sidemount jobb szerepet egy merülés palackjain, hogy sidemountként számítson.",
+  "insights_gas_tankConfig_note": "Egy merülés ikerpalackosnak számít, ha egy palack szerepe Ikerpalack, és sidemountnak, ha palackjai Sidemount bal és Sidemount jobb.",
   "insights_gas_tankConfig_empty": "Nincs megjeleníthető merülés",
   "insights_gas_tankConfig_error": "Nem sikerült a palackkonfiguráció betöltése",
   "insights_focus_title": "Merülésfókusz",

@@ -30038,7 +30038,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'I bibombola registrati come una sola bombola vengono contati quando il nome lo indica (twin, double, D12, 2x12) o la bombola è più grande di qualsiasi monobombola comune. Imposta Sidemount sinistra e Sidemount destra sulle bombole di un\'immersione perché conti come sidemount.';
+      'Un\'immersione conta come bibombola quando una bombola ha il ruolo Bibombola, e come sidemount quando le sue bombole sono Sidemount sinistra e Sidemount destra.';
 
   @override
   String get insights_gas_tankConfig_empty => 'Nessuna immersione da mostrare';

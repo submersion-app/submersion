@@ -29962,7 +29962,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Als eine Flasche erfasste Doppelgeräte werden erkannt, wenn der Name es sagt (Doppel, twin, D12, 2x12) oder die Flasche größer als jede übliche Einzelflasche ist. Setzen Sie Sidemount Links und Sidemount Rechts bei den Flaschen eines Tauchgangs, damit er als Sidemount zählt.';
+      'Ein Tauchgang zählt als Doppelgerät, wenn eine Flasche die Rolle Doppelgerät hat, und als Sidemount, wenn seine Flaschen Sidemount Links und Sidemount Rechts sind.';
 
   @override
   String get insights_gas_tankConfig_empty => 'Keine Tauchgänge vorhanden';

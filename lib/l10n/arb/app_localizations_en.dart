@@ -29518,7 +29518,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+      'A dive counts as twin backmount when a cylinder\'s role is Twin Set, and as sidemount when its cylinders are Sidemount Left and Right.';
 
   @override
   String get insights_gas_tankConfig_empty => 'No dives to show';

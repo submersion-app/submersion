@@ -8640,7 +8640,7 @@
   "insights_gas_tankConfig_decoGas": "Decogas",
   "insights_gas_tankConfig_multiGas": "Meerdere gassen",
   "insights_gas_tankConfig_countAndPercent": "{count} · {percent}",
-  "insights_gas_tankConfig_note": "Dubbelsets die als één fles zijn vastgelegd tellen mee als de naam het zegt (twin, double, D12, 2x12) of de fles groter is dan elke gangbare enkele fles. Stel Sidemount links en Sidemount rechts in op de flessen van een duik om hem als sidemount te laten tellen.",
+  "insights_gas_tankConfig_note": "Een duik telt als dubbelset wanneer een fles de rol Dubbelset heeft, en als sidemount wanneer zijn flessen Sidemount links en Sidemount rechts zijn.",
   "insights_gas_tankConfig_empty": "Geen duiken om te tonen",
   "insights_gas_tankConfig_error": "Kan flesconfiguratie niet laden",
   "insights_focus_title": "Duikfocus",

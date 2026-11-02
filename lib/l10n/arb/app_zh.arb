@@ -8814,7 +8814,7 @@
   "insights_gas_tankConfig_decoGas": "减压气",
   "insights_gas_tankConfig_multiGas": "多种气体",
   "insights_gas_tankConfig_countAndPercent": "{count} · {percent}",
-  "insights_gas_tankConfig_note": "记录为单个气瓶的双瓶，在名称表明时（twin、double、D12、2x12）或气瓶大于任何常见单瓶时会被计入。为潜水的气瓶设置左侧挂和右侧挂，使其计为侧挂。",
+  "insights_gas_tankConfig_note": "当某个气瓶的角色为双瓶时，潜水计为背挂双瓶；当其气瓶为左侧挂和右侧挂时，计为侧挂。",
   "insights_gas_tankConfig_empty": "没有可显示的潜水",
   "insights_gas_tankConfig_error": "加载气瓶配置失败",
   "insights_focus_title": "潜水聚焦",

@@ -30016,7 +30016,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Bicilindros registrados como um único cilindro são contados quando o nome indica (twin, double, D12, 2x12) ou o cilindro é maior que qualquer monocilindro comum. Defina Sidemount Esquerdo e Sidemount Direito nos cilindros de um mergulho para que ele conte como sidemount.';
+      'Um mergulho conta como bicilindro quando um cilindro tem o papel Bi-cilindro, e como sidemount quando seus cilindros são Sidemount Esquerdo e Sidemount Direito.';
 
   @override
   String get insights_gas_tankConfig_empty => 'Nenhum mergulho para mostrar';

@@ -8640,7 +8640,7 @@
   "insights_gas_tankConfig_decoGas": "גז דקו",
   "insights_gas_tankConfig_multiGas": "ריבוי גזים",
   "insights_gas_tankConfig_countAndPercent": "{count} · {percent}",
-  "insights_gas_tankConfig_note": "בלונים תאומים שנרשמו כבלון אחד נספרים כשהשם מציין זאת (twin, double, D12, 2x12) או כשהבלון גדול מכל בלון יחיד נפוץ. הגדר סיידמאונט שמאל וסיידמאונט ימין לבלוני הצלילה כדי שתיספר כסיידמאונט.",
+  "insights_gas_tankConfig_note": "צלילה נספרת כצמד בלונים על הגב כשתפקיד של בלון הוא צמד בלונים, וכסיידמאונט כשהבלונים שלה הם סיידמאונט שמאל וסיידמאונט ימין.",
   "insights_gas_tankConfig_empty": "אין צלילות להצגה",
   "insights_gas_tankConfig_error": "שגיאה בטעינת תצורת הבלונים",
   "insights_focus_title": "מיקוד צלילות",

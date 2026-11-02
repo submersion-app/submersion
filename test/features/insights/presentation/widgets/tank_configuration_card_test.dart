@@ -117,7 +117,7 @@ void main() {
   testWidgets('shows the note', (tester) async {
     await pumpCard(tester, tenDives);
 
-    expect(find.textContaining('Sidemount Left and Right'), findsOneWidget);
+    expect(find.textContaining('Twin Set'), findsOneWidget);
   });
 
   Future<void> pumpWith(

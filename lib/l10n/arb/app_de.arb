@@ -8774,7 +8774,7 @@
   "insights_gas_tankConfig_decoGas": "Dekogas",
   "insights_gas_tankConfig_multiGas": "Mehrere Gase",
   "insights_gas_tankConfig_countAndPercent": "{count} · {percent}",
-  "insights_gas_tankConfig_note": "Als eine Flasche erfasste Doppelgeräte werden erkannt, wenn der Name es sagt (Doppel, twin, D12, 2x12) oder die Flasche größer als jede übliche Einzelflasche ist. Setzen Sie Sidemount Links und Sidemount Rechts bei den Flaschen eines Tauchgangs, damit er als Sidemount zählt.",
+  "insights_gas_tankConfig_note": "Ein Tauchgang zählt als Doppelgerät, wenn eine Flasche die Rolle Doppelgerät hat, und als Sidemount, wenn seine Flaschen Sidemount Links und Sidemount Rechts sind.",
   "insights_gas_tankConfig_empty": "Keine Tauchgänge vorhanden",
   "insights_gas_tankConfig_error": "Flaschenkonfiguration konnte nicht geladen werden",
   "insights_focus_title": "Tauchgangsfokus",

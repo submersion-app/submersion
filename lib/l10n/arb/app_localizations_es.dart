@@ -30045,7 +30045,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Los bibotellas registrados como una sola botella se cuentan cuando el nombre lo indica (twin, double, D12, 2x12) o la botella es mayor que cualquier monobotella habitual. Indica Sidemount izquierdo y Sidemount derecho en las botellas de una inmersión para que cuente como sidemount.';
+      'Una inmersión cuenta como bibotella cuando una botella tiene el rol Bibotella, y como sidemount cuando sus botellas son Sidemount izquierdo y Sidemount derecho.';
 
   @override
   String get insights_gas_tankConfig_empty => 'No hay inmersiones que mostrar';

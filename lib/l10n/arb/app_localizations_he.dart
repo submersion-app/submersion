@@ -29254,7 +29254,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'בלונים תאומים שנרשמו כבלון אחד נספרים כשהשם מציין זאת (twin, double, D12, 2x12) או כשהבלון גדול מכל בלון יחיד נפוץ. הגדר סיידמאונט שמאל וסיידמאונט ימין לבלוני הצלילה כדי שתיספר כסיידמאונט.';
+      'צלילה נספרת כצמד בלונים על הגב כשתפקיד של בלון הוא צמד בלונים, וכסיידמאונט כשהבלונים שלה הם סיידמאונט שמאל וסיידמאונט ימין.';
 
   @override
   String get insights_gas_tankConfig_empty => 'אין צלילות להצגה';
