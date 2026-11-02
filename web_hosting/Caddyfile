@@ -1,0 +1,16 @@
+# Caddy site for the Submersion web bundle. Replace the address with your
+# own host name; Caddy obtains the certificate itself. See HOSTING.md.
+#
+# The two headers make the page cross-origin isolated, which lets the app
+# use the fastest browser storage; without them it still runs, on a slower
+# storage path shown in Settings.
+dive.example.com {
+	root * /srv/submersion-web
+	encode gzip
+	header {
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Embedder-Policy "credentialless"
+	}
+	try_files {path} /index.html
+	file_server
+}

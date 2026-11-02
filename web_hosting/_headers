@@ -1,0 +1,8 @@
+# Cloudflare Pages and Netlify read this file from the site root.
+#
+# The two headers make the page cross-origin isolated, which lets the app
+# use the fastest browser storage. Without them it still runs, on a slower
+# storage path shown in Settings. See HOSTING.md.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
