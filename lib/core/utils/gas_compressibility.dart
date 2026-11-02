@@ -58,6 +58,27 @@ double gasVolume({
   return tankSizeLiters * pressureBar / z;
 }
 
+/// The gas that left a cylinder falling from [startBar] to [endBar], in liters
+/// at 1 bar, under [model]: the figure gas used, gas consumed and loop use must
+/// all share. Negative when the pressure rose.
+double gasVolumeBetween({
+  required double tankSizeLiters,
+  required double startBar,
+  required double endBar,
+  required double o2Percent,
+  double hePercent = 0,
+  required GasModel model,
+}) {
+  double at(double bar) => gasVolume(
+    tankSizeLiters: tankSizeLiters,
+    pressureBar: bar,
+    o2Percent: o2Percent,
+    hePercent: hePercent,
+    model: model,
+  );
+  return at(startBar) - at(endBar);
+}
+
 /// Cylinder pressure remaining after consuming [litersConsumed] liters at
 /// 1 bar, under [model].
 ///

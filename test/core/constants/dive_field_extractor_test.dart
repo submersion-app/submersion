@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -552,10 +554,55 @@ void main() {
     });
 
     test('gasConsumed computes correctly with valid tank data', () {
-      final result = DiveField.gasConsumed.extractFromDive(testDive);
+      final result = DiveField.gasConsumed.extractFromDive(
+        testDive,
+        gasModel: GasModel.ideal,
+      );
       expect(result, isA<double>());
       // Calculation: 12.0 * (200.0 - 50.0) = 1800.0
       expect(result, 1800.0);
+    });
+
+    test('gasConsumed follows the gas model, as the Cylinders card does', () {
+      double litersAt(double bar) => gasVolume(
+        tankSizeLiters: 12,
+        pressureBar: bar,
+        o2Percent: testDive.tanks.single.gasMix.o2,
+        hePercent: testDive.tanks.single.gasMix.he,
+        model: GasModel.real,
+      );
+      final result = DiveField.gasConsumed.extractFromDive(
+        testDive,
+        gasModel: GasModel.real,
+      );
+      expect(result, closeTo(litersAt(200) - litersAt(50), 1e-9));
+      expect(result, isNot(closeTo(1800.0, 1)));
+    });
+
+    test('gasConsumed sizes a sidemount cylinder from its partner', () {
+      final dive = Dive(
+        id: 'dive-pair',
+        dateTime: now,
+        tanks: const [
+          DiveTank(
+            id: 'left',
+            role: TankRole.sidemountLeft,
+            startPressure: 200,
+            endPressure: 150,
+          ),
+          DiveTank(
+            id: 'right',
+            role: TankRole.sidemountRight,
+            volume: 7,
+            startPressure: 200,
+            endPressure: 150,
+          ),
+        ],
+      );
+      expect(
+        DiveField.gasConsumed.extractFromDive(dive, gasModel: GasModel.ideal),
+        closeTo(50 * 7 * 2, 1e-9),
+      );
     });
 
     test('sac and rmv return null for a dive with no tanks', () {
@@ -700,7 +747,10 @@ void main() {
         dateTime: now,
         tanks: [tank1, tank2],
       );
-      final result = DiveField.gasConsumed.extractFromDive(dive);
+      final result = DiveField.gasConsumed.extractFromDive(
+        dive,
+        gasModel: GasModel.ideal,
+      );
       expect(result, isA<double>());
       // Tank 1: 12.0 * (200 - 100) = 1200L
       // Tank 2: 7.0  * (200 - 150) = 350L

@@ -10693,6 +10693,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Hurokfogyasztás $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -29063,7 +29068,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Hogyan váltja át az alkalmazás a palacknyomást gáztérfogattá. Ez érinti az RMV-értéket, a gázstatisztikákat, a tervezőt és a gázkalkulátorokat. Az ideális gáz a képzőszervezetek által tanított számítást követi; a valós gáz fizikailag pontos, és az RMV nála kb. 5%-kal alacsonyabb.';
+      'Hogyan váltja át az alkalmazás a palacknyomást gáztérfogattá. Ez érinti az RMV-értéket, a felhasznált gázt, a gázstatisztikákat, a tervezőt és a gázkalkulátorokat. Az ideális gáz a képzőszervezetek által tanított számítást követi; a valós gáz fizikailag pontos, és az RMV nála kb. 5%-kal alacsonyabb.';
 
   @override
   String get settings_units_dialog_gasModel => 'Gázszámítások';
@@ -29907,6 +29912,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_filterBar_clear => 'Szűrő törlése';
 
   @override
+  String get insights_filterBar_allDives => 'Összes merülés';
+
+  @override
+  String get insights_filterBar_customFilter => 'Egyéni szűrő';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Merüléscsoport kiválasztása';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Jelenlegi szűrő mentése...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'Mentett lekérdezések kezelése';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29944,6 +29964,22 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get insights_gas_sacByRole_title =>
       'Gázfogyasztás palack szerep szerint';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Rebreather gázfogyasztás';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Percenként a hurkon, a bailout idő nélkül';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Átlagos O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Átlagos diluens';
 
   @override
   String get insights_gas_sacRecords_empty =>

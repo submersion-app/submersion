@@ -965,25 +965,32 @@ void main() {
       expect(find.text('No Records Yet'), findsNothing);
     });
 
-    testWidgets('hosts the filter bar, collapsed while no filter is active', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: getOverrides(),
-          child: const MaterialApp(
-            locale: Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: RecordsPage(),
+    testWidgets(
+      'hosts the filter bar, on All dives while no filter is active',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: getOverrides(),
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: RecordsPage(),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.byType(InsightsFilterBar), findsOneWidget);
-      expect(find.byIcon(Icons.filter_list), findsNothing);
-    });
+        expect(find.byType(InsightsFilterBar), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(InsightsFilterBar),
+            matching: find.text('All dives'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('shows the filter bar summary while a filter is active', (
       tester,
@@ -1003,7 +1010,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.filter_list), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(InsightsFilterBar),
+          matching: find.text('Custom filter'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('should display refresh button in app bar', (tester) async {

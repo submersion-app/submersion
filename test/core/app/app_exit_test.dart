@@ -1,13 +1,29 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui' show AppExitResponse;
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/app/app_exit.dart';
 
 /// The platform's only reply path on macOS, so its whole contract is that it
 /// always answers, whatever the databases do.
 void main() {
+  // Read from the Swift source because the native deadline is the other half
+  // of this budget. If it were the shorter one, every long close would be cut.
+  test('the close budget ends before the macOS quit watchdog does', () {
+    final source = File(
+      p.join('macos', 'Runner', 'QuitWatchdog.swift'),
+    ).readAsStringSync();
+    final deadline = RegExp(
+      r'defaultAnswerTimeout: TimeInterval = (\d+)',
+    ).firstMatch(source);
+
+    expect(deadline, isNotNull);
+    expect(kAppExitCloseBudget.inSeconds, lessThan(int.parse(deadline![1]!)));
+  });
+
   test('closes both databases in order and replies exit', () async {
     final calls = <String>[];
     final response = await closeDatabasesForExit(

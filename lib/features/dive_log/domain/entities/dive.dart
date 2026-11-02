@@ -34,8 +34,8 @@ class Dive extends Equatable {
   final DateTime dateTime; // Legacy field, kept for compatibility
   final DateTime? entryTime; // When diver entered water
   final DateTime? exitTime; // When diver exited water
-  final Duration? bottomTime; // Bottom time
-  final Duration? runtime; // Total runtime (includes descent/ascent)
+  final Duration? bottomTime; // Surface departure to start of final ascent
+  final Duration? runtime; // Total runtime, entry to exit
   final double? maxDepth; // meters
   final double? avgDepth; // meters
   // GPS entry/exit fixes from the dive computer (Shearwater Swift)

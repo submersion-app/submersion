@@ -132,6 +132,14 @@ typedef ConditionsCandidate = ({
   double longitude,
 });
 
+/// `dives.weather_fetched_at` holds Unix seconds, where most columns here hold
+/// milliseconds (issue #4119), so every read and write goes through this pair.
+int? _weatherStamp(DateTime? fetchedAt) =>
+    fetchedAt == null ? null : fetchedAt.millisecondsSinceEpoch ~/ 1000;
+
+DateTime? _weatherStampTime(int? stamp) =>
+    stamp == null ? null : DateTime.fromMillisecondsSinceEpoch(stamp * 1000);
+
 class DiveRepository {
   /// The media dependencies drive the dive-deletion cascade
   /// (orphan-prevention spec 4.2); injectable for tests, self-constructed
@@ -1287,7 +1295,7 @@ class DiveRepository {
                 ? Value(source.name)
                 : const Value.absent(),
             weatherFetchedAt: stampProvenance
-                ? Value(fetchedAt.millisecondsSinceEpoch)
+                ? Value(_weatherStamp(fetchedAt))
                 : const Value.absent(),
             updatedAt: Value(now),
           ),
@@ -2144,11 +2152,7 @@ class DiveRepository {
                 weatherDescription: Value(dive.weatherDescription),
                 weatherCode: Value(dive.weatherCode),
                 weatherSource: Value(dive.weatherSource?.name),
-                weatherFetchedAt: Value(
-                  dive.weatherFetchedAt != null
-                      ? dive.weatherFetchedAt!.millisecondsSinceEpoch ~/ 1000
-                      : null,
-                ),
+                weatherFetchedAt: Value(_weatherStamp(dive.weatherFetchedAt)),
                 // Surface interval and deco settings
                 surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
                 gradientFactorLow: Value(dive.gradientFactorLow),
@@ -2483,11 +2487,7 @@ class DiveRepository {
             weatherDescription: Value(dive.weatherDescription),
             weatherCode: Value(dive.weatherCode),
             weatherSource: Value(dive.weatherSource?.name),
-            weatherFetchedAt: Value(
-              dive.weatherFetchedAt != null
-                  ? dive.weatherFetchedAt!.millisecondsSinceEpoch ~/ 1000
-                  : null,
-            ),
+            weatherFetchedAt: Value(_weatherStamp(dive.weatherFetchedAt)),
             // Surface interval and deco settings
             surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
             gradientFactorLow: Value(dive.gradientFactorLow),
@@ -4907,9 +4907,7 @@ class DiveRepository {
               orElse: () => WeatherSource.manual,
             )
           : null,
-      weatherFetchedAt: row.weatherFetchedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.weatherFetchedAt! * 1000)
-          : null,
+      weatherFetchedAt: _weatherStampTime(row.weatherFetchedAt),
       tanks: tanks
           .map(
             (t) => domain.DiveTank(
@@ -5372,9 +5370,7 @@ class DiveRepository {
               orElse: () => WeatherSource.manual,
             )
           : null,
-      weatherFetchedAt: row.weatherFetchedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.weatherFetchedAt! * 1000)
-          : null,
+      weatherFetchedAt: _weatherStampTime(row.weatherFetchedAt),
       tanks: tankRows.map((t) {
         return domain.DiveTank(
           id: t.id,
@@ -8752,8 +8748,9 @@ class DiveRepository {
               entryLongitude: row.entryLongitude,
               exitLatitude: row.exitLatitude,
               exitLongitude: row.exitLongitude,
-              entryTime: row.entryTime,
-              exitTime: row.exitTime,
+              // See _mapRowToDataSource.
+              entryTime: row.entryTime?.toUtc(),
+              exitTime: row.exitTime?.toUtc(),
               maxAscentRate: row.maxAscentRate,
               maxDescentRate: row.maxDescentRate,
               surfaceInterval: row.surfaceInterval,
@@ -9724,8 +9721,11 @@ class DiveRepository {
       entryLongitude: row.entryLongitude,
       exitLatitude: row.exitLatitude,
       exitLongitude: row.exitLongitude,
-      entryTime: row.entryTime,
-      exitTime: row.exitTime,
+      // Written from a wall clock flagged UTC, as the dive's own times are, but
+      // a Drift dateTime() column reads back flagged local. toUtc restores the
+      // stored digits; passed on as is, they show shifted by the device's zone.
+      entryTime: row.entryTime?.toUtc(),
+      exitTime: row.exitTime?.toUtc(),
       maxAscentRate: row.maxAscentRate,
       maxDescentRate: row.maxDescentRate,
       surfaceInterval: row.surfaceInterval,

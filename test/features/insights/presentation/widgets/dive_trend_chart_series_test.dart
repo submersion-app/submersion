@@ -125,6 +125,47 @@ void main() {
     expect(text, contains('Cell 2'));
   });
 
+  testWidgets('pointLabel names the primary series in the tooltip', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        DiveTrendChart(
+          points: series(6),
+          pointLabel: 'Cell 1',
+          secondarySeries: [
+            TrendSeries(
+              label: 'Cell 2',
+              points: series(6, base: 20),
+              color: Colors.red,
+            ),
+          ],
+        ),
+      ),
+    );
+    final data = readData(tester);
+    final bars = data.lineBarsData;
+    final items = data.lineTouchData.touchTooltipData.getTooltipItems([
+      LineBarSpot(bars[0], 0, bars[0].spots.first),
+    ]);
+    final text = items.first!.children!.map((s) => s.toPlainText()).join();
+    expect(text, contains('Cell 1'));
+    expect(text, isNot(contains('Every dive')));
+  });
+
+  testWidgets('without pointLabel the primary is named by its mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(DiveTrendChart(points: series(6))));
+    final data = readData(tester);
+    final bars = data.lineBarsData;
+    final items = data.lineTouchData.touchTooltipData.getTooltipItems([
+      LineBarSpot(bars[0], 0, bars[0].spots.first),
+    ]);
+    final text = items.first!.children!.map((s) => s.toPlainText()).join();
+    expect(text, contains('Every dive'));
+  });
+
   testWidgets('a tap on a secondary point opens its dive', (tester) async {
     String? opened;
     await tester.pumpWidget(

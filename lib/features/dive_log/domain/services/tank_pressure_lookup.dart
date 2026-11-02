@@ -61,6 +61,26 @@ Map<String, List<TankPressurePoint>> resolveTankPressureSeries(
   return resolved;
 }
 
+/// [tank]'s start and end pressures in bar: the stored value, else the first
+/// or last reading of [points]. A negative reading is a sensor or entry error,
+/// never a pressure, so it counts as missing.
+(double?, double?) resolvedTankPressures(
+  DiveTank tank,
+  List<TankPressurePoint>? points,
+) {
+  double? valid(double? pressure) =>
+      pressure != null && pressure >= 0 ? pressure : null;
+  final start = valid(tank.startPressure);
+  final end = valid(tank.endPressure);
+  if (points != null && points.isNotEmpty) {
+    return (
+      start ?? valid(points.first.pressure),
+      end ?? valid(points.last.pressure),
+    );
+  }
+  return (start, end);
+}
+
 /// The pressure in bar at [timestamp], interpolated linearly between the
 /// samples either side of it. Before the first sample or after the last,
 /// the nearest sample's pressure. Null when [pressurePoints] is empty.

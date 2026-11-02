@@ -19,9 +19,11 @@ import 'package:submersion/features/dive_log/data/repositories/depth_bucket_sql.
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
@@ -34,6 +36,7 @@ import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
 import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
+import 'package:submersion/features/insights/domain/ccr_gas_use_trend.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
@@ -49,6 +52,7 @@ export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
 
 part 'insights_repository_calendar_days.dart';
+part 'insights_repository_ccr_gas_use.dart';
 part 'insights_repository_chart_dives.dart';
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
@@ -180,6 +184,7 @@ class InsightsRepository with InsightsChartDives {
   /// Late because the constructor builds a large graph of repositories, which
   /// only a filtered [watchInsightsChanges] needs.
   late final _diveRepository = DiveRepository();
+  late final _tankPressureRepository = TankPressureRepository();
 
   /// How many dives' packed series the profile aggregates read at once.
   ///
@@ -756,11 +761,14 @@ class InsightsRepository with InsightsChartDives {
   /// Returns a map of tank role to average SAC in L/min.
   /// Requires tank volume data.
   ///
-  /// Each cylinder stands for its own role, so rebreather dives keep their
-  /// diluent and oxygen rows here (issue #3673). [roleKey] maps a stored
-  /// role name to the key its cylinders average under, so a caller can fold
-  /// roles into one group (back gas and twin set as one backmount rate,
-  /// issue #3374) and still get an average over cylinders, not over
+  /// Each cylinder stands for its own role, so an SCR dive keeps its rows
+  /// here (issue #3673). A CCR dive does not: this divides by depth over the
+  /// whole dive, which means nothing for a loop, and its rates are in
+  /// [getCcrGasUsePerDive] (issue #4082). The planner's default SAC reads the
+  /// backmount rows, which a CCR dive's cylinders must not feed. [roleKey] maps
+  /// a stored role name to the key its cylinders average under, so a caller
+  /// can fold roles into one group (back gas and twin set as one backmount
+  /// rate, issue #3374) and still get an average over cylinders, not over
   /// averages. The identity by default.
   Future<Map<String, double>> getSacVolumeByTankRole({
     String? diverId,
@@ -789,7 +797,7 @@ class InsightsRepository with InsightsChartDives {
           AND t.start_pressure > t.end_pressure
           AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
-         
+          AND d.dive_mode <> 'ccr'
           $diverFilter ${df.clause}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -848,8 +856,11 @@ class InsightsRepository with InsightsChartDives {
   /// Returns a map of tank role to average SAC in bar/min.
   /// Does not require tank volume.
   ///
-  /// Each cylinder stands for its own role, so rebreather dives keep their
-  /// diluent and oxygen rows here (issue #3673).
+  /// Each cylinder stands for its own role, so an SCR dive keeps its rows
+  /// here (issue #3673). A CCR dive does not: this divides by depth over the
+  /// whole dive, which means nothing for a loop, and its rates are in
+  /// [getCcrGasUsePerDive] (issue #4082). The planner's default SAC reads the
+  /// backmount rows, which a CCR dive's cylinders must not feed.
   Future<Map<String, double>> getSacPressureByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -875,7 +886,7 @@ class InsightsRepository with InsightsChartDives {
           AND t.end_pressure IS NOT NULL
           AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
-         
+          AND d.dive_mode <> 'ccr'
           $diverFilter ${df.clause}
         GROUP BY t.tank_role
         HAVING avg_sac IS NOT NULL

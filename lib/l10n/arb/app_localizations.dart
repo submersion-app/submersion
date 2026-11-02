@@ -17056,6 +17056,12 @@ abstract class AppLocalizations {
   /// **'Gas used {amount}'**
   String diveLog_cylinders_gasUsed(String amount);
 
+  /// Cylinders card detail item on a CCR dive: the rate gas left this cylinder while the diver was on the loop, with no depth correction, e.g. "Loop use 1.8 L/min"
+  ///
+  /// In en, this message translates to:
+  /// **'Loop use {rate}'**
+  String diveLog_cylinders_loopUse(String rate);
+
   /// Cylinders card detail item: maximum operating depth, e.g. "MOD 33m"
   ///
   /// In en, this message translates to:
@@ -46800,7 +46806,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_units_gasModel_explanation.
   ///
   /// In en, this message translates to:
-  /// **'How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.'**
+  /// **'How cylinder pressure is converted to gas volume. This affects RMV, gas used, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.'**
   String get settings_units_gasModel_explanation;
 
   /// No description provided for @settings_units_dialog_gasModel.
@@ -48168,6 +48174,36 @@ abstract class AppLocalizations {
   /// **'Clear filter'**
   String get insights_filterBar_clear;
 
+  /// Insights group selector: every dive, no group chosen
+  ///
+  /// In en, this message translates to:
+  /// **'All dives'**
+  String get insights_filterBar_allDives;
+
+  /// Insights group selector: a filter that is not one of the saved groups
+  ///
+  /// In en, this message translates to:
+  /// **'Custom filter'**
+  String get insights_filterBar_customFilter;
+
+  /// Tooltip of the Insights group selector
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a dive group'**
+  String get insights_filterBar_chooseGroup;
+
+  /// Insights group menu: saves the active filter as a named group
+  ///
+  /// In en, this message translates to:
+  /// **'Save current filter...'**
+  String get insights_filterBar_saveCurrent;
+
+  /// Insights group menu: opens the saved queries page
+  ///
+  /// In en, this message translates to:
+  /// **'Manage saved queries'**
+  String get insights_filterBar_manageSaved;
+
   /// No description provided for @insights_filterBar_diveCount.
   ///
   /// In en, this message translates to:
@@ -48221,6 +48257,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas consumption by tank role'**
   String get insights_gas_sacByRole_title;
+
+  /// No description provided for @insights_gas_ccrUse_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather gas use'**
+  String get insights_gas_ccrUse_title;
+
+  /// No description provided for @insights_gas_ccrUse_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Per minute on the loop, leaving out bailout time'**
+  String get insights_gas_ccrUse_subtitle;
+
+  /// No description provided for @insights_gas_ccrUse_o2Average.
+  ///
+  /// In en, this message translates to:
+  /// **'O₂ average'**
+  String get insights_gas_ccrUse_o2Average;
+
+  /// No description provided for @insights_gas_ccrUse_o2Series.
+  ///
+  /// In en, this message translates to:
+  /// **'O₂'**
+  String get insights_gas_ccrUse_o2Series;
+
+  /// No description provided for @insights_gas_ccrUse_diluentAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent average'**
+  String get insights_gas_ccrUse_diluentAverage;
 
   /// No description provided for @insights_gas_sacRecords_empty.
   ///

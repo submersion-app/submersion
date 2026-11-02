@@ -10480,6 +10480,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'צריכה בלולאה $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -28470,7 +28475,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
+      'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, הגז שנוצל, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'חישובי גז';
@@ -29288,6 +29293,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_filterBar_clear => 'ניקוי מסנן';
 
   @override
+  String get insights_filterBar_allDives => 'כל הצלילות';
+
+  @override
+  String get insights_filterBar_customFilter => 'מסנן מותאם אישית';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'בחירת קבוצת צלילות';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'שמירת המסנן הנוכחי...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'ניהול שאילתות שמורות';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29321,6 +29341,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+
+  @override
+  String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'לדקה בלולאה, ללא זמן מעבר למעגל פתוח';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'ממוצע O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'ממוצע מדלל';
 
   @override
   String get insights_gas_sacRecords_empty => 'אין עדיין נתוני צריכה';

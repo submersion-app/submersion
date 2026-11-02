@@ -10649,6 +10649,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Loopverbruik $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -29009,7 +29014,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Hoe flesdruk wordt omgerekend naar gasvolume. Dit beïnvloedt het RMV, de gasstatistieken, de planner en de gasrekenmachines. Ideaal gas komt overeen met de berekening die opleidingen leren; reëel gas is fysisch nauwkeurig en geeft een ongeveer 5% lager RMV.';
+      'Hoe flesdruk wordt omgerekend naar gasvolume. Dit beïnvloedt het RMV, het gebruikte gas, de gasstatistieken, de planner en de gasrekenmachines. Ideaal gas komt overeen met de berekening die opleidingen leren; reëel gas is fysisch nauwkeurig en geeft een ongeveer 5% lager RMV.';
 
   @override
   String get settings_units_dialog_gasModel => 'Gasberekeningen';
@@ -29852,6 +29857,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_filterBar_clear => 'Filter wissen';
 
   @override
+  String get insights_filterBar_allDives => 'Alle duiken';
+
+  @override
+  String get insights_filterBar_customFilter => 'Aangepast filter';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Duikgroep kiezen';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Huidig filter opslaan...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'Opgeslagen query\'s beheren';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29887,6 +29907,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'Gasverbruik per flesrol';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Gasverbruik rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Per minuut op de loop, zonder bailouttijd';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Gemiddelde O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Gemiddelde diluent';
 
   @override
   String get insights_gas_sacRecords_empty => 'Nog geen verbruiksgegevens';

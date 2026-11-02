@@ -10758,6 +10758,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Consommation sur boucle $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'PMU $depth';
   }
@@ -29290,7 +29295,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Comment la pression du bloc est convertie en volume de gaz. Cela concerne la consommation (RMV), les statistiques de gaz, le planificateur et les calculatrices. Le gaz parfait correspond au calcul enseigné par les fédérations ; le gaz réel est physiquement exact et donne un RMV environ 5 % plus bas.';
+      'Comment la pression du bloc est convertie en volume de gaz. Cela concerne la consommation (RMV), le gaz utilisé, les statistiques de gaz, le planificateur et les calculatrices. Le gaz parfait correspond au calcul enseigné par les fédérations ; le gaz réel est physiquement exact et donne un RMV environ 5 % plus bas.';
 
   @override
   String get settings_units_dialog_gasModel => 'Calculs de gaz';
@@ -30146,6 +30151,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_filterBar_clear => 'Effacer le filtre';
 
   @override
+  String get insights_filterBar_allDives => 'Toutes les plongées';
+
+  @override
+  String get insights_filterBar_customFilter => 'Filtre personnalisé';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Choisir un groupe de plongées';
+
+  @override
+  String get insights_filterBar_saveCurrent =>
+      'Enregistrer le filtre actuel...';
+
+  @override
+  String get insights_filterBar_manageSaved =>
+      'Gérer les requêtes enregistrées';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30184,6 +30206,22 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get insights_gas_sacByRole_title =>
       'Consommation de gaz par rôle du bloc';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Consommation de gaz du recycleur';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Par minute sur la boucle, hors temps de bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Moyenne O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Moyenne diluant';
 
   @override
   String get insights_gas_sacRecords_empty => 'Aucune donnée de consommation';
