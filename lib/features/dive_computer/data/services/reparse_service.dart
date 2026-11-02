@@ -466,9 +466,10 @@ class ReparseService {
       );
     }
     if (entityType == 'diveProfileEvents') {
-      // The ids are every event on the dive (_idsOf), which is exactly what
-      // the dive scope covers on a peer. The re-inserted events are staged
-      // after this, so their clocks are newer and the scope keeps them.
+      // The ids are every event on the dive but the diver's own, which is
+      // exactly what the dive scope covers on a peer. The re-inserted events
+      // are staged after this, so their clocks are newer and the scope keeps
+      // them.
       await _sync.logScopedDeletion(EventScopeTombstone(diveId: diveId));
       // The user events kept above must outlive that scope on peers too.
       await restampUserEvents(

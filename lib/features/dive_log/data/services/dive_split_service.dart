@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
@@ -583,6 +584,18 @@ class DiveSplitService {
         await _sync.logScopedDeletion(
           EventScopeTombstone(diveId: diveId, computerId: source.computerId!),
         );
+        // A scope never reaches the diver's own events (#4109), and one an
+        // older consolidation stamped with this computer moved with the rest.
+        final movedUserEvents = [
+          for (final r in eventRows)
+            if (r.source == EventSource.user.name) r.id,
+        ];
+        if (movedUserEvents.isNotEmpty) {
+          await _sync.logDeletions(
+            entityType: 'diveProfileEvents',
+            recordIds: movedUserEvents,
+          );
+        }
       }
       if (movedTankIds.isNotEmpty) {
         await _sync.logDeletions(
