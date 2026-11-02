@@ -160,6 +160,54 @@ void main() {
     expect(result.changedElsewhere.single.current, 11);
   });
 
+  group('a scrubber pair', () {
+    TableDraft duration(int minutes) => TableDraft(
+      entityId: 'd1',
+      fieldName: DiveField.scrubberDuration.name,
+      original: null,
+      value: minutes,
+    );
+
+    Future<int?> storedDuration() async => (await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals('d1'))).getSingle()).scrubberDurationMinutes;
+
+    test('a duration is left out when the type went since', () async {
+      // The dive has no type now, so the minutes would be stored unseen.
+      final result = await TableEditorSaveService().save(
+        entity: entity,
+        drafts: [duration(180)],
+      );
+
+      expect(result.saved, 0);
+      expect(result.changedElsewhere.single.draft, duration(180));
+      expect(await storedDuration(), isNull);
+    });
+
+    test('a stale type takes its duration with it', () async {
+      await db.customStatement(
+        "UPDATE dives SET scrubber_type = 'Divesorb' WHERE id = 'd1'",
+      );
+
+      final result = await TableEditorSaveService().save(
+        entity: entity,
+        drafts: [
+          TableDraft(
+            entityId: 'd1',
+            fieldName: DiveField.scrubberType.name,
+            original: null,
+            value: 'Sofnolime',
+          ),
+          duration(180),
+        ],
+      );
+
+      expect(result.saved, 0);
+      expect(result.changedElsewhere, hasLength(2));
+      expect(await storedDuration(), isNull);
+    });
+  });
+
   test('a draft on a cell that became read-only is skipped as changed '
       'elsewhere', () async {
     // Two weight rows arrive from a sync after the weight was drafted.

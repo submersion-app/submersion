@@ -961,6 +961,88 @@ void main() {
       await tester.pump(const Duration(seconds: 6));
     });
 
+    group('while a save writes', () {
+      Future<_HeldSave> startSave(WidgetTester tester) async {
+        final held = _HeldSave();
+        await pumpPage(tester, saveService: held);
+        await draftVisibility(tester, '12');
+        await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        await tester.pump();
+        await tester.tap(saveAllButton());
+        await tester.pumpAndSettle();
+        await tester.tap(saveAllButton().last);
+        await tester.pumpAndSettle();
+        return held;
+      }
+
+      testWidgets('leaving waits for it and has nothing to ask', (
+        tester,
+      ) async {
+        final held = await startSave(tester);
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(TableEditorPage)),
+        );
+
+        bool? left;
+        final leaving = container.read(appExitGuardProvider).mayLeave();
+        unawaited(leaving.then((v) => left = v));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10n.forms_discard_discard), findsNothing);
+        expect(left, isNull);
+
+        held.release.complete();
+        await tester.pump();
+        await tester.pump();
+
+        expect(left, isTrue);
+        expect(find.text(l10n.forms_discard_discard), findsNothing);
+        await tester.pump(const Duration(seconds: 6));
+      });
+
+      testWidgets('switching tabs waits for it and has nothing to ask', (
+        tester,
+      ) async {
+        final held = await startSave(tester);
+
+        await tester.tap(find.text(l10n.tableEditor_tab_sites));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10n.forms_discard_discard), findsNothing);
+
+        held.release.complete();
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 6));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10n.forms_discard_discard), findsNothing);
+        expect(find.text(vis(12)), findsNothing);
+        expect(find.text(vis(15)), findsNothing);
+      });
+
+      testWidgets('a double tap waits for it and then just opens', (
+        tester,
+      ) async {
+        final held = await startSave(tester);
+
+        await tester.tap(find.text('#2'));
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.tap(find.text('#2'));
+        await tester.pumpAndSettle();
+
+        expect(find.text(l10n.tableEditor_open_discardAndOpen), findsNothing);
+        expect(pushed, isEmpty);
+
+        held.release.complete();
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 6));
+
+        expect(pushed, ['/dives/d2']);
+      });
+    });
+
     testWidgets('Undo leaves what changed since the save and says so', (
       tester,
     ) async {

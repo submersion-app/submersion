@@ -295,6 +295,31 @@ void main() {
     expect(left.single.flag, TableDraftFlag.needsScrubberType);
   });
 
+  test('clearing a scrubber type clears its duration too', () async {
+    final e = await entity();
+    await diveRepo.createDive(
+      domain.Dive(
+        id: 'd1',
+        dateTime: DateTime(2026),
+        notes: '',
+        scrubber: const domain.ScrubberInfo(
+          type: 'Sofnolime',
+          ratedMinutes: 180,
+        ),
+      ),
+    );
+
+    await e.save({
+      'd1': [draft('d1', DiveField.scrubberType, 'Sofnolime', null)],
+    }, const {});
+
+    final row = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals('d1'))).getSingle();
+    expect(row.scrubberType, isNull);
+    expect(row.scrubberDurationMinutes, isNull);
+  });
+
   test('a dive always has a mode, so a blank one is refused', () async {
     final e = await entity();
     const units = UnitFormatter(AppSettings());

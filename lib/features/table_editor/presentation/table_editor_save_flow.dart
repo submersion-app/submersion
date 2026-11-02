@@ -23,7 +23,8 @@ class TableEditorSaveFlow {
   const TableEditorSaveFlow._();
 
   /// Shows the summary, saves on confirmation, and returns whether anything
-  /// was written. [refresh] reloads the tab's rows after a save.
+  /// was written. [refresh] reloads the tab's rows after a save, and
+  /// [onWriting] runs as the write starts, past the point of calling it off.
   static Future<bool> saveAll<T, F extends EntityField>(
     BuildContext context,
     WidgetRef ref, {
@@ -31,6 +32,7 @@ class TableEditorSaveFlow {
     required TableEditorEntity<T, F> entity,
     required VoidCallback refresh,
     required VoidCallback openChangeLog,
+    VoidCallback? onWriting,
     PastePlan<F>? lastPaste,
     bool confirm = true,
   }) async {
@@ -61,6 +63,7 @@ class TableEditorSaveFlow {
     if (saveable.isEmpty) return false;
     final messenger = ScaffoldMessenger.of(context);
     final TableEditorSaveResult result;
+    onWriting?.call();
     try {
       result = await service.save(entity: entity, drafts: saveable);
     } catch (e, stackTrace) {

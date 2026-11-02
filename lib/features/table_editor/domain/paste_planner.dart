@@ -65,8 +65,9 @@ class PastePlan<F extends EntityField> {
 /// least two columns, and every filled row's first value is a key of a row on
 /// the sheet. A headerless single column is always positional, since a column
 /// of weights would otherwise read as dive numbers. Keys are matched against
-/// the rows on the sheet only: a key in [hiddenKeys] is reported as hidden, any
-/// other miss as unknown, so a draft never lands on a row the diver cannot see.
+/// the rows on the sheet only: a key in [hiddenKeys] is reported as hidden, or
+/// as ambiguous when a row on the sheet shares it, and any other miss as
+/// unknown, so a draft never lands on a row the diver cannot see.
 ///
 /// Columns map through a header's labels, or fill rightward from the
 /// selected column, skipping read-only ones. Positional rows fill downward
@@ -97,10 +98,11 @@ PastePlan<F> planPaste<F extends EntityField>({
     );
   }
 
-  // The header row, when the first row is all column labels or names the key
-  // column beside at least one of them. A key word alone is not enough: "No"
-  // is a key word and a toggle value, and a lone column has nothing for a key
-  // to address.
+  // The header row, when the first row is all column labels, holds at least
+  // two among columns the sheet does not know, or names the key column beside
+  // at least one of them. One label in a row of unknowns is not enough: "Boat"
+  // is a label and an entry method. Nor is a key word alone: "No" is a key word
+  // and a toggle value, and a lone column has nothing for a key to address.
   final first = block.rows.first;
   final mapped = [for (final h in first) columnFromLabel(h)];
   final keyWord = block.columnCount >= 2 ? first.indexWhere(isKeyHeader) : -1;
@@ -116,8 +118,10 @@ PastePlan<F> planPaste<F extends EntityField>({
   // A row of nothing but blanks is data (a sparse column starts that way),
   // never a header, and neither is one value, whatever it says.
   final hasLabel = first.any((h) => h.trim().isNotEmpty);
+  final severalLabels = mapped.nonNulls.length >= 2;
   final hadHeader =
-      !block.isSingleValue && (keyHeader || (hasLabel && allLabels));
+      !block.isSingleValue &&
+      (keyHeader || severalLabels || (hasLabel && allLabels));
   final data = hadHeader ? block.rows.sublist(1) : block.rows;
 
   // Which block column carries the key, and which sheet column each data
@@ -141,6 +145,8 @@ PastePlan<F> planPaste<F extends EntityField>({
   // A hidden row's key still reads as a key, so the row is reported as
   // hidden rather than the whole block sliding into position.
   final hidden = {for (final k in hiddenKeys) k.toLowerCase()};
+  // A key a hidden row shares could mean either record, so it means neither.
+  ambiguous.addAll(rowByKey.keys.where(hidden.contains));
   final knownKeys = {...rowByKey.keys, ...hidden, ...ambiguous};
   // A blank line between rows addresses nothing, here as in the rows below.
   bool everyFirstIsKey() {

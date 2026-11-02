@@ -54,6 +54,12 @@ abstract class TableEditorEntity<T, F extends EntityField> {
       if (d.fieldName != fieldName) d,
   ]);
 
+  /// Whether [draft] can still be written to the stored [entity] beside the
+  /// [drafts] saving with it, for what a stale check of its own cell cannot
+  /// see. Default: yes.
+  bool stillApplies(T entity, TableDraft draft, List<TableDraft> drafts) =>
+      true;
+
   /// Fresh rows for the stale check, by id.
   Future<List<T>> reload(List<String> ids);
 

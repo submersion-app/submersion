@@ -400,7 +400,14 @@ authoritative where the body above differs.
 - **Paste, as built.** A header can name the key in any column, not only the
   first, and a blank line leaves a keyed block keyed. A key word needs a real
   column label beside it to count as a header, since "No" is also a toggle
-  value.
+  value. Two labels make a header among columns the sheet does not know, which
+  are reported, but one does not: "Boat" is a label and an entry method. A key
+  a hidden row shares with one on the sheet is ambiguous, not a match.
+- **Scrubber pair.** Clearing a type clears its duration, and a duration whose
+  type went since it was drafted is left out as changed elsewhere. Type and
+  duration are linked in the stale check.
+- **Saving.** Once a save is writing it cannot be called off, so leaving,
+  changing tab and opening a record wait for it before asking anything.
 
 ## Out of scope, noted for later
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -71,6 +73,10 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   /// A Save all is running, from its summary to its last write.
   var _saving = false;
 
+  /// Set from the moment a save writes until its drafts are settled. Discarding
+  /// then would call nothing off, so what would ask waits for this first.
+  Completer<void>? _writing;
+
   // Kept here, since dispose cannot read a provider.
   late final AppExitGuard _exitGuard = ref.read(appExitGuardProvider);
   late final AppExitBlocker _exitBlocker = AppExitBlocker(
@@ -139,6 +145,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   /// since an untouched one holds nothing to ask about. True lets it go ahead.
   Future<bool> _confirmLeaving() async {
     await _closeOpenCells();
+    await _writing?.future;
     if (!mounted) return true;
     if (_anyDrafts && !await showDiscardDialog(context)) return false;
     if (!mounted) return true;
@@ -159,6 +166,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     if (index == _settled || (!open && !_hasDrafts(from))) return;
     _tabs.index = _settled;
     await _closeOpenCells();
+    await _writing?.future;
     if (!mounted) return;
     if (_hasDrafts(from) && !await showDiscardDialog(context)) return;
     if (!mounted) return;
@@ -282,12 +290,15 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
             entity: entity,
             refresh: refresh,
             openChangeLog: _openChangeLog,
+            onWriting: () => _writing = Completer<void>(),
             lastPaste: _lastPaste[tab] as PastePlan<F>?,
             confirm: confirm,
           );
           if (saved) _lastPaste.remove(tab);
           return saved;
         } finally {
+          _writing?.complete();
+          _writing = null;
           if (mounted) setState(() => _saving = false);
         }
       },
@@ -365,6 +376,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     // A double tap never reaches the cell's single tap, so what is being typed
     // has to land here to count as a draft.
     await _closeOpenCells();
+    await _writing?.future;
     if (!mounted) return;
     if (_hasDrafts(_tab)) {
       final l10n = context.l10n;

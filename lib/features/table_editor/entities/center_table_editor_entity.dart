@@ -75,9 +75,8 @@ class CenterTableEditorEntity
 
   @override
   Future<List<DiveCenterRow>> reload(List<String> ids) async => [
-    for (final id in ids)
-      if (await _repo.getDiveCenterById(id) case final center?)
-        (center: center, diveCount: 0),
+    for (final center in await _repo.getDiveCentersByIds(ids))
+      (center: center, diveCount: 0),
   ];
 
   @override

@@ -196,6 +196,32 @@ void main() {
     },
   );
 
+  test('two labels make a header, whatever else the row holds', () {
+    final p = plan('Count\tLegacy\tName\n9\tz\tx', selectedRow: 4);
+
+    expect(p.hadHeader, isTrue);
+    expect(p.cells.map((c) => (c.entityId, c.field, c.text)), [
+      ('d5', TestField.entityCount, '9'),
+      ('d5', TestField.entityName, 'x'),
+    ]);
+    expect(p.skipped.map((s) => (s.reason, s.detail)), [
+      (PasteSkipReason.unknownColumn, 'Legacy'),
+    ]);
+  });
+
+  test('one label beside an unknown value is data', () {
+    // "Boat" is a column label and an entry method: a row of values must fill.
+    final p = plan('Name\tGiant stride\nShore\tBackroll', selectedColumn: 0);
+
+    expect(p.hadHeader, isFalse);
+    expect(p.cells.map((c) => (c.entityId, c.text)), [
+      ('d1', 'Name'),
+      ('d1', 'Giant stride'),
+      ('d2', 'Shore'),
+      ('d2', 'Backroll'),
+    ]);
+  });
+
   test('names match case-insensitively', () {
     final sheet = [
       const SheetRow(id: 's1', name: 'Blue Hole'),
@@ -258,6 +284,20 @@ void main() {
 
     expect(p.matching, PasteMatching.byName);
     expect(p.skipped.single.reason, PasteSkipReason.hiddenRow);
+  });
+
+  test('a key a hidden row shares could mean either, so it means neither', () {
+    final sheet = [
+      const SheetRow(id: 's1', name: 'Reef'),
+      const SheetRow(id: 's2', name: 'Wall'),
+    ];
+    final p = plan('reef\t1\nwall\t2', sheet: sheet, hidden: {'Reef'});
+
+    expect(p.matching, PasteMatching.byName);
+    expect(p.cells.map((c) => c.entityId), ['s2']);
+    expect(p.skipped.map((s) => (s.reason, s.detail)), [
+      (PasteSkipReason.ambiguousRow, 'reef'),
+    ]);
   });
 
   test('one value is a value, even when it reads as a column label', () {

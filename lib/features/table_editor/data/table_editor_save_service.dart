@@ -89,6 +89,7 @@ class TableEditorSaveService {
   ) async {
     final ids = drafts.map((d) => d.entityId).toSet().toList();
     final fresh = {for (final r in await entity.reload(ids)) entity.idOf(r): r};
+    final byEntity = groupBy(drafts, (TableDraft d) => d.entityId);
     const eq = DeepCollectionEquality();
     final stale = <StaleDraft>[];
     final staleKeys = <CellPosition>{};
@@ -103,10 +104,12 @@ class TableEditorSaveService {
       final column = entity.columnFor(entity.fieldFromName(d.fieldName));
       final current = column?.valueOf(row);
       // A cell that can no longer be edited (a second weight row arrived, a
-      // site joined a library) is as stale as a changed value.
+      // site joined a library) is as stale as a changed value, and so is one
+      // whose partner has gone.
       if (!eq.equals(current, d.original) ||
           column == null ||
-          !column.isEditable(row)) {
+          !column.isEditable(row) ||
+          !entity.stillApplies(row, d, byEntity[d.entityId]!)) {
         stale.add(StaleDraft(d, current));
         staleKeys.add(d.position);
         continue;

@@ -7,6 +7,13 @@ import 'package:submersion/features/table_editor/entities/center_table_editor_en
 
 import '../../../helpers/test_database.dart';
 
+/// Refuses the one-at-a-time read a batch of centers must not make.
+class _NoSingleReads extends DiveCenterRepository {
+  @override
+  Future<DiveCenter?> getDiveCenterById(String id) =>
+      throw StateError('read $id on its own');
+}
+
 /// The centers tab (#3422): plain columns, coordinates stored as two
 /// independent values.
 void main() {
@@ -83,5 +90,16 @@ void main() {
     final fresh = await CenterTableEditorEntity(repo: repo).reload(['c1']);
 
     expect(fresh.single.center.id, 'c1');
+  });
+
+  test('reload reads a batch together, passing over a missing one', () async {
+    await seed('c1');
+    await seed('c2');
+
+    final fresh = await CenterTableEditorEntity(
+      repo: _NoSingleReads(),
+    ).reload(['c1', 'c2', 'gone']);
+
+    expect(fresh.map((r) => r.center.id), unorderedEquals(['c1', 'c2']));
   });
 }

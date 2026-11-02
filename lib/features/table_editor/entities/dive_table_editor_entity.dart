@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -67,22 +69,28 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
   @override
   String? nameOf(Dive entity) => null;
 
+  @override
+  List<Set<String>> get linkedFields => [
+    {DiveField.scrubberType.name, DiveField.scrubberDuration.name},
+  ];
+
+  /// Whether [entity] has a scrubber type once [drafts] are saved.
+  static bool _hasScrubberType(Dive entity, List<TableDraft> drafts) {
+    for (final d in drafts) {
+      if (d.fieldName == DiveField.scrubberType.name) return d.value != null;
+    }
+    return entity.scrubber != null;
+  }
+
   /// A dive shows a scrubber only when it has a type, so a duration without
   /// one would save, report saved, and read back as nothing.
   @override
   List<TableDraft> reconcile(Dive entity, List<TableDraft> drafts) {
-    TableDraft? find(DiveField f) {
-      for (final d in drafts) {
-        if (d.fieldName == f.name) return d;
-      }
-      return null;
-    }
-
-    final duration = find(DiveField.scrubberDuration);
+    final duration = drafts.firstWhereOrNull(
+      (d) => d.fieldName == DiveField.scrubberDuration.name,
+    );
     if (duration == null) return drafts;
-    final type = find(DiveField.scrubberType);
-    final hasType = type != null ? type.value != null : entity.scrubber != null;
-    final waiting = duration.value != null && !hasType;
+    final waiting = duration.value != null && !_hasScrubberType(entity, drafts);
     return [
       for (final d in drafts)
         if (d != duration)
@@ -95,6 +103,13 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
           d,
     ];
   }
+
+  /// The type a duration stood on may have gone since it was drafted.
+  @override
+  bool stillApplies(Dive entity, TableDraft draft, List<TableDraft> drafts) =>
+      draft.fieldName != DiveField.scrubberDuration.name ||
+      draft.value == null ||
+      _hasScrubberType(entity, drafts);
 
   @override
   Future<List<Dive>> reload(List<String> ids) =>
@@ -121,7 +136,14 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
   ];
 
   BulkEditRequest? _requestFor(String diveId, Map<DiveField, Object?> v) {
-    final enabled = <BulkField>{for (final f in v.keys) ?_bulkFieldOf[f]};
+    final enabled = <BulkField>{
+      for (final f in v.keys) ?_bulkFieldOf[f],
+      // A scrubber is its type: a duration left behind reads back as nothing,
+      // then returns under whatever type comes next.
+      if (v.containsKey(DiveField.scrubberType) &&
+          v[DiveField.scrubberType] == null)
+        BulkField.scrubberDuration,
+    };
     final ops = <BulkCollectionOp>[
       if (v.containsKey(DiveField.siteName))
         SiteOp(siteId: v[DiveField.siteName] as String?),
