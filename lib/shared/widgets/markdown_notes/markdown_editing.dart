@@ -93,8 +93,11 @@ TextEditingValue wrapSelectionAsAnnotation(
     );
   }
   final caret = sel.start;
+  // Nothing selected and nothing to say: an empty link would draw a marker
+  // with no words, so the text is left alone.
+  if (words == null || words.trim().isEmpty) return value;
   final atLineStart = caret == 0 || text[caret - 1] == '\n';
-  final link = annotationLinkMarkdown(words ?? '', id);
+  final link = annotationLinkMarkdown(words.trim(), id);
   final insert = atLineStart ? link : '\n$link';
   return TextEditingValue(
     text: text.replaceRange(caret, caret, insert),

@@ -7449,11 +7449,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ? annotationMarkerLabel(event)
       : event.markerLabel(context.l10n);
 
-  /// The annotations among the dive's events (#4109).
-  List<ProfileEvent> get _annotations => [
-    for (final e in widget.events ?? const <ProfileEvent>[])
-      if (e.isAnnotation) e,
-  ];
+  /// The annotations among the dive's events (#4109), filtered once per
+  /// events list: the chart reads this several times per build.
+  List<ProfileEvent> get _annotations {
+    final events = widget.events;
+    if (!identical(events, _annotationsSource)) {
+      _annotationsSource = events;
+      _annotationsCache = [
+        for (final e in events ?? const <ProfileEvent>[])
+          if (e.isAnnotation) e,
+      ];
+    }
+    return _annotationsCache;
+  }
+
+  List<ProfileEvent>? _annotationsSource;
+  List<ProfileEvent> _annotationsCache = const [];
 
   /// Returns the color for an event based on its severity level.
   Color _eventSeverityColor(EventSeverity severity, ColorScheme colorScheme) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_label.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mini_profile_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -88,7 +89,9 @@ class _AnnotationTimeSheetState extends State<_AnnotationTimeSheet> {
     final theme = Theme.of(context);
     final title = _asksForWords
         ? l10n.diveLog_annotation_sheetTitle_new
-        : l10n.diveLog_annotation_sheetTitle_words(_shorten(widget.words!));
+        : l10n.diveLog_annotation_sheetTitle_words(
+            cutAtWord(widget.words!, maxChars: 40),
+          );
     return Padding(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -159,13 +162,5 @@ class _AnnotationTimeSheetState extends State<_AnnotationTimeSheet> {
         ),
       ),
     );
-  }
-
-  /// The first few words of a long selection, so the title stays one line.
-  static String _shorten(String words, {int maxChars = 40}) {
-    final trimmed = words.trim();
-    if (trimmed.length <= maxChars) return trimmed;
-    final cut = trimmed.lastIndexOf(' ', maxChars);
-    return '${trimmed.substring(0, cut > 0 ? cut : maxChars)}…';
   }
 }

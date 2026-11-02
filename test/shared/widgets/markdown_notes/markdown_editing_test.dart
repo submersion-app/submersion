@@ -94,6 +94,12 @@ void main() {
       expect(out.text, 'First.\n[Octo](annotation:a1)');
     });
 
+    test('a caret with no words to insert leaves the text alone', () {
+      final v0 = v('First.|');
+      expect(wrapSelectionAsAnnotation(v0, id: 'a1'), v0);
+      expect(wrapSelectionAsAnnotation(v0, id: 'a1', words: '  '), v0);
+    });
+
     test('a whitespace-only selection counts as a caret', () {
       final out = wrapSelectionAsAnnotation(v('a[ ]b'), id: 'a1', words: 'w');
       expect(out.text, 'a\n[w](annotation:a1) b');

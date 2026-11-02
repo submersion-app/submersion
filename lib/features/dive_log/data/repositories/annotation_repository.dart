@@ -253,10 +253,14 @@ class AnnotationRepository {
     );
   }
 
+  /// Deletes the row and tombstones it, only when it was still there: a
+  /// stale popup or a repeated Remove must not publish tombstones for a row
+  /// no peer has.
   Future<void> _deleteRow(String id) async {
-    await (_db.delete(
+    final deleted = await (_db.delete(
       _db.diveProfileEvents,
     )..where((t) => t.id.equals(id))).go();
+    if (deleted == 0) return;
     await _sync.logDeletion(entityType: 'diveProfileEvents', recordId: id);
   }
 }

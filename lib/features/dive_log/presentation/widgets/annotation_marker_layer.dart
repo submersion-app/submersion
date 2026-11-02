@@ -141,7 +141,9 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
   }
 
   void _reportFocused() {
-    if (!mounted) return;
+    // Placement mode owns the next tap; a focus request waits like a tap
+    // would (the dots are not interactive either).
+    if (!mounted || !widget.interactive) return;
     final focused = widget.focusedId;
     final index = widget.annotations.indexWhere((a) => a.id == focused);
     if (index < 0) return;

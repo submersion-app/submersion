@@ -115,6 +115,20 @@ void main() {
     expect(await tombstones(), contains(('diveProfileEvents', id)));
   });
 
+  test('removing an annotation twice logs one tombstone', () async {
+    final id = await repo.addAnnotation(
+      diveId: diveId,
+      timestamp: 1,
+      words: 'w',
+    );
+    await repo.removeAnnotation(diveId: diveId, id: id);
+    await repo.removeAnnotation(diveId: diveId, id: id);
+    expect(
+      (await tombstones()).where((t) => t == ('diveProfileEvents', id)),
+      hasLength(1),
+    );
+  });
+
   test(
     'removeAnnotation leaves the dive alone when no link names it',
     () async {
