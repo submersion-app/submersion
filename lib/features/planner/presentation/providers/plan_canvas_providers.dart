@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -142,17 +143,19 @@ final planIsValidProvider = Provider<bool>((ref) {
 /// The key [loggedAverageSacProvider] averages backmount cylinders under.
 const String _backmountSacKey = 'backmount';
 
-/// The diver's logged average backmount SAC in L/min ("from your log"):
-/// back gas and twin set cylinders as one group (issue #3374), so marking
-/// a logbook's twin sets does not move its history out of the planner's
-/// default. Null when no logged backmount cylinder carries enough tank
-/// data to compute one; a stage or deco rate is not a bottom-gas rate.
+/// The current diver's logged average backmount SAC in L/min ("from your
+/// log"): back gas and twin set cylinders as one group (issue #3374), so
+/// marking a logbook's twin sets does not move its history out of the
+/// planner's default. Null when no logged backmount cylinder carries enough
+/// tank data to compute one; a stage or deco rate is not a bottom-gas rate.
 final loggedAverageSacProvider = FutureProvider<double?>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
+  final diverId = ref.watch(currentDiverIdProvider);
   // Not autoDispose, so without this the logged SAC was computed once and
   // cached for the whole process lifetime (issue #974).
   ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final sacByRole = await repository.getSacVolumeByTankRole(
+    diverId: diverId,
     roleKey: (role) =>
         backmountRoles.any((r) => r.name == role) ? _backmountSacKey : role,
   );
