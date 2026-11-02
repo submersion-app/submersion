@@ -9,6 +9,7 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/query/presentation/app_query_labels.dart';
+import 'package:submersion/features/query/presentation/providers/query_language_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/query/presentation/query_error_text.dart';
@@ -107,6 +108,7 @@ QueryEditorContext watchQueryEditorContext(
   names: ref.watch(queryNameIndexProvider).value ?? NameIndex.empty,
   labels: AppQueryLabels(context),
   now: DateTime.now,
+  language: ref.watch(queryLanguageProvider),
 );
 
 /// The editor context for [root], read once (for an action) rather than
@@ -122,4 +124,5 @@ QueryEditorContext readQueryEditorContext(
   names: ref.read(queryNameIndexProvider).value ?? NameIndex.empty,
   labels: AppQueryLabels(context),
   now: DateTime.now,
+  language: ref.read(queryLanguageProvider),
 );

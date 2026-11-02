@@ -27,6 +27,7 @@ class GlobalSearchTextReader implements QueryTextReader {
       prefs: _context.prefs,
       now: _context.now(),
       names: _context.names,
+      language: _context.language,
     ),
     sources: _sources,
   );
