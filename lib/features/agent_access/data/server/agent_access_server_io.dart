@@ -6,7 +6,7 @@ import 'package:mcp_dart/mcp_dart.dart';
 
 import 'package:submersion/features/agent_access/data/server/agent_access_status.dart';
 import 'package:submersion/features/agent_access/data/server/agent_server_spec.dart';
-import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
+import 'package:submersion/features/agent_access/data/server/mcp_server_builder_io.dart';
 import 'package:submersion/features/agent_access/data/server/request_authenticator.dart';
 
 /// The one MCP listener in the process.
