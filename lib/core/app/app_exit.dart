@@ -10,6 +10,9 @@ import 'package:clock/clock.dart';
 /// are `Future.timeout`s: they cannot interrupt work already in progress, and
 /// they cannot fire at all if the isolate is blocked, so they bound the happy
 /// path and nothing else. This is the bound that holds regardless.
+///
+/// Must stay below the macOS `QuitWatchdog.defaultAnswerTimeout`, which ends the
+/// process once the window has closed.
 const Duration kAppExitCloseBudget = Duration(seconds: 8);
 
 /// Closes both databases, then answers the platform's exit request.
@@ -18,15 +21,15 @@ const Duration kAppExitCloseBudget = Duration(seconds: 8);
 /// takes longer than [budget].
 ///
 /// That totality is the whole point of the function existing. On macOS the
-/// inherited `FlutterAppDelegate.applicationShouldTerminate` returns
-/// `NSTerminateLater` and hands the decision to Dart; this handler is the only
-/// thing that can send the reply, and nothing on the native side re-checks. An
-/// unguarded throw, or a close that never returns, therefore left AppKit
-/// deferring forever: the window had already been dismissed, so the user saw
-/// the app quit while the process stayed alive. Reported against the Media
-/// section, whose local-file reads are the likeliest thing to be in flight at
-/// quit. `AppDelegate`'s watchdog is the backstop for the case this cannot
-/// reach, a main isolate too blocked to run any of these timers.
+/// inherited `FlutterAppDelegate.applicationShouldTerminate` answers
+/// `NSTerminateCancel`, hands the decision to Dart, and terminates only when
+/// this handler replies. A close that never returns therefore stranded the
+/// process: closing the window had already removed it, so the user saw the app
+/// quit while the process stayed alive. Reported against the Media section,
+/// whose local-file reads are the likeliest thing to be in flight at quit.
+/// `QuitWatchdog` is the native backstop once the window is gone, for a main
+/// isolate too blocked to run any of these timers. A quit with the window still
+/// up has no such backstop, because Dart may be cancelling it on purpose.
 ///
 /// The two closes run sequentially and share one budget. Sequentially because
 /// racing two shutdown sequences is not worth the second it saves; one shared
