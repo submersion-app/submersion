@@ -13397,6 +13397,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_tankRole_stage => '阶段';
 
   @override
+  String get enum_tankRole_twinSet => '双瓶';
+
+  @override
   String get enum_tideState_rising => '涨潮';
 
   @override
@@ -28459,7 +28462,80 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      '记录为单个气瓶的双瓶，在名称表明时（twin、double、D12、2x12）或气瓶大于任何常见单瓶时会被计入。为潜水的气瓶设置左侧挂和右侧挂，使其计为侧挂。';
+      '当某个气瓶的角色为双瓶时，潜水计为背挂双瓶；当其气瓶为左侧挂和右侧挂时，计为侧挂。';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水有看起来像双瓶的气瓶。',
+      one: '$count 次潜水有一个看起来像双瓶的气瓶。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return '它们的名称或容量表明是 twin、double、D12、2x12 或 $size 及以上，但角色是背部气体，因此计为单瓶。';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => '标记为双瓶';
+
+  @override
+  String get insights_gas_twinSetReview_review => '查看潜水';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => '忽略';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle => '将角色设为双瓶？';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other: '将 $dives 中 $tanks 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。',
+      one: '将 $dives 中 $tanks 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => '设置角色';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => '取消';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 个气瓶设为双瓶',
+      one: '已将 $count 个气瓶设为双瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed => '无法设置角色';
+
+  @override
+  String get insights_gas_twinSetReview_chart => '看起来像双瓶';
 
   @override
   String get insights_gas_tankConfig_empty => '没有可显示的潜水';
@@ -28895,6 +28971,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => '阶段瓶';
+
+  @override
+  String get insights_gas_tankRole_twinSet => '双瓶';
 
   @override
   String get insights_geographic_appBar_title => '地理';

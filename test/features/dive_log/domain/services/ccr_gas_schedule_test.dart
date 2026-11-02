@@ -182,6 +182,15 @@ void main() {
         CcrGasChangeKind.diluent,
       ]);
     });
+
+    test('a twin set on a CCR dive is explicit open-circuit gas', () {
+      const tank = DiveTank(
+        id: 't',
+        role: TankRole.twinSet,
+        gasMix: GasMix(o2: 21),
+      );
+      expect(ccrCylinderRole(tank), TankRole.twinSet);
+    });
   });
 
   group('buildCcrProfileGasSegments with gas changes', () {

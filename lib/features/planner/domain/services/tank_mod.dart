@@ -67,6 +67,7 @@ bool usesDecoLimit(TankRole role, GasMix gas) => switch (role) {
   TankRole.deco || TankRole.oxygenSupply => true,
   TankRole.bailout => gas.o2 > _airO2Percent,
   TankRole.backGas ||
+  TankRole.twinSet ||
   TankRole.stage ||
   TankRole.sidemountLeft ||
   TankRole.sidemountRight ||

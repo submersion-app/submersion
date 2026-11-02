@@ -184,6 +184,7 @@ class InsightsGasPage extends ConsumerWidget {
     String getRoleDisplayName(String role) {
       return switch (role) {
         'backGas' => context.l10n.insights_gas_tankRole_backGas,
+        'twinSet' => context.l10n.insights_gas_tankRole_twinSet,
         'stage' => context.l10n.insights_gas_tankRole_stage,
         'deco' => context.l10n.insights_gas_tankRole_deco,
         'bailout' => context.l10n.insights_gas_tankRole_bailout,

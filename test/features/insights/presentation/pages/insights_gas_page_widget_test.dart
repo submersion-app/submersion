@@ -145,6 +145,31 @@ void main() {
     );
   });
 
+  testWidgets('consumption by role labels a twin set (#3374)', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          sacByTankRoleProvider.overrideWith(
+            (ref) async => const {'twinSet': 15.0, 'backGas': 14.0},
+          ),
+        ].cast(),
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: InsightsGasPage(embedded: true)),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Twin Set'), findsOneWidget);
+    expect(find.text('twinSet'), findsNothing);
+  });
+
   // Issue #4082: the rebreather card follows the role breakdown.
   testWidgets('rebreather gas use sits between the role and records cards', (
     tester,

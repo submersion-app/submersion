@@ -219,6 +219,14 @@ void main() {
       );
     });
 
+    test('a twin set with no switches spans the dive (issue #3374)', () {
+      const twin = DiveTank(id: 'twin', role: TankRole.twinSet);
+
+      expect(windowsOf(twin, const [], tanks: const [twin, stage]), [
+        (start: 0, end: 2400),
+      ]);
+    });
+
     test('a stage no switch names has no windows', () {
       expect(windowsOf(stage, const [], tanks: const [back, stage]), isEmpty);
     });

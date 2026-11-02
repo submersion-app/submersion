@@ -82,12 +82,23 @@ void main() {
       expect(r.extras, {TankConfigurationExtra.stages});
     });
 
-    test('two backGas at 21 and 21.3 are twin backmount', () {
+    test('one twin set cylinder is twin backmount', () {
+      final r = classify([tank(TankRole.twinSet)]);
+      expect(r.base, TankBaseConfiguration.twinBackmount);
+    });
+
+    test('a twin set plus a deco bottle is twin backmount with deco gas', () {
+      final r = classify([tank(TankRole.twinSet), tank(TankRole.deco, o2: 50)]);
+      expect(r.base, TankBaseConfiguration.twinBackmount);
+      expect(r.extras, contains(TankConfigurationExtra.decoGas));
+    });
+
+    test('two backGas on one gas are single backmount', () {
       final r = classify([
         tank(TankRole.backGas),
         tank(TankRole.backGas, o2: 21.3),
       ]);
-      expect(r.base, TankBaseConfiguration.twinBackmount);
+      expect(r.base, TankBaseConfiguration.singleBackmount);
     });
 
     test('two backGas on air and EAN32 are single backmount', () {
@@ -98,9 +109,19 @@ void main() {
       expect(r.base, TankBaseConfiguration.singleBackmount);
     });
 
-    test('one backGas of 24 L is twin backmount', () {
+    test('one backGas of 24 L is single backmount', () {
       final r = classify([tank(TankRole.backGas, volume: 24)]);
-      expect(r.base, TankBaseConfiguration.twinBackmount);
+      expect(r.base, TankBaseConfiguration.singleBackmount);
+    });
+
+    test('a backGas named D12 is single backmount', () {
+      final r = classify([tank(TankRole.backGas, name: 'D12')]);
+      expect(r.base, TankBaseConfiguration.singleBackmount);
+    });
+
+    test('a twin set in ccr mode is a rebreather', () {
+      final r = classify([tank(TankRole.twinSet)], mode: DiveMode.ccr);
+      expect(r.base, TankBaseConfiguration.rebreather);
     });
 
     test('one backGas of 18 L is single backmount', () {
@@ -123,56 +144,6 @@ void main() {
       final r = classify([tank(TankRole.pony)]);
       expect(r.base, TankBaseConfiguration.other);
       expect(r.extras, isEmpty);
-    });
-  });
-
-  group('looksLikeTwinSet', () {
-    for (final name in [
-      'Twin 12',
-      'D12',
-      'd7',
-      'Doppel 10',
-      'Doubles 12',
-      '2x12',
-      '2 x 7',
-      '2×8.5',
-      'Manifold 12',
-    ]) {
-      test('name "$name" is a twin set', () {
-        expect(looksLikeTwinSet(tank(TankRole.backGas, name: name)), isTrue);
-      });
-    }
-
-    for (final preset in ['twin_12', 'd12']) {
-      test('preset "$preset" with no name is a twin set', () {
-        expect(
-          looksLikeTwinSet(tank(TankRole.backGas, presetName: preset)),
-          isTrue,
-        );
-      });
-    }
-
-    for (final name in [
-      'AL80',
-      'HP100',
-      'Steel 12',
-      'Dive 12',
-      'D',
-      'D123',
-      'ED12',
-      // Volume by pressure, the usual European single label.
-      'Steel 12x232',
-      'Faber 12x300',
-      '12 x 300',
-      '232x12',
-    ]) {
-      test('name "$name" is not a twin set', () {
-        expect(looksLikeTwinSet(tank(TankRole.backGas, name: name)), isFalse);
-      });
-    }
-
-    test('no name and no preset is not a twin set', () {
-      expect(looksLikeTwinSet(tank(TankRole.backGas)), isFalse);
     });
   });
 

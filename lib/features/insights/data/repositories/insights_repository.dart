@@ -59,6 +59,7 @@ part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
 part 'insights_repository_tank_configuration.dart';
 part 'insights_repository_time_of_day.dart';
+part 'insights_repository_twin_set_candidates.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
@@ -764,10 +765,15 @@ class InsightsRepository with InsightsChartDives {
   /// here (issue #3673). A CCR dive does not: this divides by depth over the
   /// whole dive, which means nothing for a loop, and its rates are in
   /// [getCcrGasUsePerDive] (issue #4082). The planner's default SAC reads the
-  /// back gas row, which a CCR dive's cylinders must not feed.
+  /// back gas row, which a CCR dive's cylinders must not feed. [roleKey] maps
+  /// a stored role name to the key its cylinders average under, so a caller
+  /// can fold roles into one group (back gas and twin set as one backmount
+  /// rate, issue #3374) and still get an average over cylinders, not over
+  /// averages. The identity by default.
   Future<Map<String, double>> getSacVolumeByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
+    String Function(String role)? roleKey,
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
@@ -824,7 +830,8 @@ class InsightsRepository with InsightsChartDives {
         final ambientBar = row.read<double>('ambient_bar');
         final sac = used / durationMin / ambientBar;
         if (sac > 0) {
-          sacsByRole.putIfAbsent(role, () => []).add(sac);
+          final key = roleKey == null ? role : roleKey(role);
+          sacsByRole.putIfAbsent(key, () => []).add(sac);
         }
       }
 
