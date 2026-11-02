@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/platform/web/browser_device_name.dart';
 
 /// What the host platform knows about this device's identity. Every field is
 /// nullable: platforms answer with whatever they have, and the composition in
@@ -48,8 +49,12 @@ class DeviceDisplayNameService {
   const DeviceDisplayNameService({
     NativeDeviceIdentityReader? readNativeIdentity,
     String Function()? readHostname,
+    bool? isWeb,
+    String Function()? readUserAgent,
   }) : _readNativeIdentity = readNativeIdentity,
-       _readHostname = readHostname;
+       _readHostname = readHostname,
+       _isWeb = isWeb,
+       _readUserAgent = readUserAgent;
 
   static const _channel = MethodChannel('app.submersion/device_name');
 
@@ -61,6 +66,8 @@ class DeviceDisplayNameService {
 
   final NativeDeviceIdentityReader? _readNativeIdentity;
   final String Function()? _readHostname;
+  final bool? _isWeb;
+  final String Function()? _readUserAgent;
 
   /// Normalises a raw name, returning null when it identifies nothing.
   static String? sanitizeDeviceName(String? raw) {
@@ -75,6 +82,15 @@ class DeviceDisplayNameService {
   ///
   /// Never throws: a device without a name still has to sync.
   Future<String?> resolve() async {
+    // A browser has neither a native identity nor a hostname: its name is
+    // read off the user agent, "Chrome on macOS" (issue #4121).
+    if (_isWeb ?? HostPlatform.isWeb) {
+      try {
+        return browserDeviceName((_readUserAgent ?? _userAgent)());
+      } catch (_) {
+        return 'Browser';
+      }
+    }
     final native = await _resolveNative();
     if (native != null) return native;
     try {
@@ -135,7 +151,8 @@ class DeviceDisplayNameService {
     return map == null ? null : NativeDeviceIdentity.fromChannel(map);
   }
 
-  // A browser has no hostname; the browser device name arrives with the
-  // connect-and-capabilities work.
   static String _hostname() => HostPlatform.localHostname ?? '';
+
+  /// The web host platform reports the user agent as its OS version.
+  static String _userAgent() => HostPlatform.operatingSystemVersion;
 }
