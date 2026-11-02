@@ -45,8 +45,6 @@ class ScratchSweepReport {
 /// - `<temp>/picked` holds full copies of SAF-picked files, including large
 ///   archives, made so an import can read a `content://` handle. Nothing has
 ///   ever deleted them.
-/// Each lives wherever [CacheLocation] says it does on this platform.
-///
 /// - `media_cache/staging` holds files whose `put()` never completed.
 /// - `media_cache/transcode` holds video renditions and `.tmp` debris that
 ///   `deleteTranscodeArtifacts` only removes for a video upload that reaches
@@ -54,6 +52,9 @@ class ScratchSweepReport {
 /// - The video and PDF thumbnail directories are keyed by content hash, so a
 ///   file that is edited or moved orphans its old thumbnail permanently and
 ///   there is no way to map a thumbnail back to a source to detect it.
+///
+/// The media cache and thumbnail directories are wherever [CacheLocation] puts
+/// them on this platform.
 ///
 /// What it does NOT touch, and why:
 ///

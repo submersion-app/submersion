@@ -206,6 +206,32 @@ void main() {
       expect(await cache.totalBytes(MediaCacheKind.original), 2);
     });
 
+    test('spares a row written after the pass began', () async {
+      // A put can land between this pass finding a key dead and deleting it,
+      // which at launch after a purge is exactly when the same keys are being
+      // made again. Its row must survive, or an original would be left on disk
+      // with nothing able to serve it, evict it or clear it.
+      final key = hash('ab');
+      final later = DateTime.now()
+          .add(const Duration(hours: 1))
+          .millisecondsSinceEpoch;
+      await db
+          .into(db.mediaCacheEntries)
+          .insert(
+            MediaCacheEntriesCompanion.insert(
+              contentHash: key,
+              kind: 'original',
+              relativePath: p.join('originals', 'ab', key),
+              sizeBytes: 1,
+              lastAccessedAt: later,
+              createdAt: later,
+            ),
+          );
+
+      expect(await cache.dropMissingEntries(), 0);
+      expect(await db.select(db.mediaCacheEntries).get(), hasLength(1));
+    });
+
     test('leaves everything alone when no file is missing', () async {
       await put(hash('ab'), MediaCacheKind.thumb, 1);
 

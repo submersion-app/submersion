@@ -391,8 +391,13 @@ class MediaCacheStore {
   /// One stat per row, so this is for a background pass. It pages by key
   /// rather than by offset because it deletes as it goes, and a row removed
   /// from an earlier page would shift the offset past one not yet checked.
+  ///
+  /// Rows written since the pass began are spared: a [put] can land between
+  /// a key being found dead and its row being deleted, and losing that row
+  /// would leave an original on disk that nothing can serve or evict.
   Future<int> dropMissingEntries({int pageSize = 500}) async {
     final entries = _db.mediaCacheEntries;
+    final startedAt = DateTime.now().millisecondsSinceEpoch;
     var dropped = 0;
     for (final kind in MediaCacheKind.values) {
       final kindName = _kindName(kind);
@@ -416,11 +421,14 @@ class MediaCacheStore {
           if (!await file.exists()) dead.add(row.read(entries.contentHash)!);
         }
         if (dead.isNotEmpty) {
-          await (_db.delete(entries)..where(
-                (t) => t.kind.equals(kindName) & t.contentHash.isIn(dead),
-              ))
-              .go();
-          dropped += dead.length;
+          dropped +=
+              await (_db.delete(entries)..where(
+                    (t) =>
+                        t.kind.equals(kindName) &
+                        t.contentHash.isIn(dead) &
+                        t.createdAt.isSmallerThanValue(startedAt),
+                  ))
+                  .go();
         }
         after = rows.last.read(entries.contentHash)!;
       }
