@@ -22531,6 +22531,12 @@ abstract class AppLocalizations {
   /// **'Stage'**
   String get enum_tankRole_stage;
 
+  /// No description provided for @enum_tankRole_twinSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin Set'**
+  String get enum_tankRole_twinSet;
+
   /// No description provided for @enum_tideState_rising.
   ///
   /// In en, this message translates to:

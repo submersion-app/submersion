@@ -4260,6 +4260,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount Esquerdo",
   "enum_tankRole_sidemountRight": "Sidemount Direito",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_twinSet": "Bi-cilindro",
   "enum_tideState_rising": "Enchente",
   "enum_tideState_falling": "Vazante",
   "enum_tideState_slackHigh": "Preia-mar (estofo)",

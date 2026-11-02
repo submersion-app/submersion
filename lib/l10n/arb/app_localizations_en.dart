@@ -13743,6 +13743,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_twinSet => 'Twin Set';
+
+  @override
   String get enum_tideState_rising => 'Rising';
 
   @override

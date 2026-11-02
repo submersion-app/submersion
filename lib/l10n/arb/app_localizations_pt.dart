@@ -13953,6 +13953,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_twinSet => 'Bi-cilindro';
+
+  @override
   String get enum_tideState_rising => 'Enchente';
 
   @override

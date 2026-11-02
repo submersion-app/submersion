@@ -125,6 +125,7 @@ List<FigureZone> _zonesForTankRole(FigureItemInput item) {
     TankRole.bailout ||
     TankRole.pony => const [FigureZone.stageLeft, FigureZone.stageRight],
     TankRole.backGas ||
+    TankRole.twinSet ||
     TankRole.diluent ||
     TankRole.oxygenSupply => const [FigureZone.backTank],
     null => const [],

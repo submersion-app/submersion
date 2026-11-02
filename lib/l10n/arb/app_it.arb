@@ -4159,6 +4159,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount sinistra",
   "enum_tankRole_sidemountRight": "Sidemount destra",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_twinSet": "Bibombola",
   "enum_tideState_rising": "Montante",
   "enum_tideState_falling": "Discendente",
   "enum_tideState_slackHigh": "Alta marea (stanca)",

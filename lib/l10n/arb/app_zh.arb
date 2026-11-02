@@ -4387,6 +4387,7 @@
   "enum_tankRole_sidemountLeft": "左侧挂",
   "enum_tankRole_sidemountRight": "右侧挂",
   "enum_tankRole_stage": "阶段",
+  "enum_tankRole_twinSet": "双瓶",
   "enum_tideState_rising": "涨潮",
   "enum_tideState_falling": "落潮",
   "enum_tideState_slackHigh": "高潮平潮",

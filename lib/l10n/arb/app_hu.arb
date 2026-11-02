@@ -4159,6 +4159,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount bal",
   "enum_tankRole_sidemountRight": "Sidemount jobb",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_twinSet": "Ikerpalack",
   "enum_tideState_rising": "Emelkedő",
   "enum_tideState_falling": "Apadó",
   "enum_tideState_slackHigh": "Dagály (állóvíz)",

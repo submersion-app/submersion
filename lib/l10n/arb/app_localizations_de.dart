@@ -13948,6 +13948,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_tankRole_stage => 'Stageflasche';
 
   @override
+  String get enum_tankRole_twinSet => 'Doppelgerät';
+
+  @override
   String get enum_tideState_rising => 'Auflaufend';
 
   @override

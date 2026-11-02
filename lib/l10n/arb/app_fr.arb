@@ -4159,6 +4159,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount gauche",
   "enum_tankRole_sidemountRight": "Sidemount droit",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_twinSet": "Bi-bouteille",
   "enum_tideState_rising": "Montante",
   "enum_tideState_falling": "Descendante",
   "enum_tideState_slackHigh": "Étale de pleine mer",

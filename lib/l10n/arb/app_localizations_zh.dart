@@ -13288,6 +13288,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_tankRole_stage => '阶段';
 
   @override
+  String get enum_tankRole_twinSet => '双瓶';
+
+  @override
   String get enum_tideState_rising => '涨潮';
 
   @override

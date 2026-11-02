@@ -4260,6 +4260,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount links",
   "enum_tankRole_sidemountRight": "Sidemount rechts",
   "enum_tankRole_stage": "Stagefles",
+  "enum_tankRole_twinSet": "Dubbelset",
   "enum_tideState_rising": "Opkomend",
   "enum_tideState_falling": "Afgaand",
   "enum_tideState_slackHigh": "Hoogwater (kentering)",
