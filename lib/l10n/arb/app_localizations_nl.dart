@@ -58978,6 +58978,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_source_system => 'Systeem';
 
   @override
+  String get changeLog_source_agent => 'Agent';
+
+  @override
   String get changeLog_thisDevice => 'Dit apparaat';
 
   @override

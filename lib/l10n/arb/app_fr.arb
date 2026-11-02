@@ -17563,6 +17563,7 @@
   "changeLog_source_automatic": "Automatique",
   "changeLog_source_revert": "Rétablir",
   "changeLog_source_system": "Système",
+  "changeLog_source_agent": "Agent",
   "changeLog_thisDevice": "Cet appareil",
   "changeLog_anotherDevice": "un autre appareil",
   "changeLog_syncedFrom": "Synchronisé depuis {device}",

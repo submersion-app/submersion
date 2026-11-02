@@ -59017,6 +59017,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_source_system => 'Rendszer';
 
   @override
+  String get changeLog_source_agent => 'Ügynök';
+
+  @override
   String get changeLog_thisDevice => 'Ez az eszköz';
 
   @override

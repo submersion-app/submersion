@@ -17688,6 +17688,7 @@
   "changeLog_source_automatic": "Automatisch",
   "changeLog_source_revert": "Zurücksetzen",
   "changeLog_source_system": "System",
+  "changeLog_source_agent": "Agent",
   "changeLog_thisDevice": "Dieses Gerät",
   "changeLog_anotherDevice": "einem anderen Gerät",
   "changeLog_syncedFrom": "Synchronisiert von {device}",

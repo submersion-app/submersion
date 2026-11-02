@@ -17563,6 +17563,7 @@
   "changeLog_source_automatic": "Automatisch",
   "changeLog_source_revert": "Terugzetten",
   "changeLog_source_system": "Systeem",
+  "changeLog_source_agent": "Agent",
   "changeLog_thisDevice": "Dit apparaat",
   "changeLog_anotherDevice": "een ander apparaat",
   "changeLog_syncedFrom": "Gesynchroniseerd vanaf {device}",

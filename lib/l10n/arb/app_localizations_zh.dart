@@ -55714,6 +55714,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_source_system => '系统';
 
   @override
+  String get changeLog_source_agent => '智能体';
+
+  @override
   String get changeLog_thisDevice => '此设备';
 
   @override

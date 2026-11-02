@@ -17563,6 +17563,7 @@
   "changeLog_source_automatic": "אוטומטי",
   "changeLog_source_revert": "החזרה",
   "changeLog_source_system": "מערכת",
+  "changeLog_source_agent": "סוכן",
   "changeLog_thisDevice": "המכשיר הזה",
   "changeLog_anotherDevice": "מכשיר אחר",
   "changeLog_syncedFrom": "סונכרן מ-{device}",

@@ -17563,6 +17563,7 @@
   "changeLog_source_automatic": "自动",
   "changeLog_source_revert": "还原",
   "changeLog_source_system": "系统",
+  "changeLog_source_agent": "智能体",
   "changeLog_thisDevice": "此设备",
   "changeLog_anotherDevice": "其他设备",
   "changeLog_syncedFrom": "已从{device}同步",

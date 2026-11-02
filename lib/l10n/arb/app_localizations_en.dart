@@ -58414,6 +58414,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeLog_source_system => 'System';
 
   @override
+  String get changeLog_source_agent => 'Agent';
+
+  @override
   String get changeLog_thisDevice => 'This device';
 
   @override

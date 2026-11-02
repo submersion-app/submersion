@@ -34676,6 +34676,7 @@
   "changeLog_source_automatic": "Automatic",
   "changeLog_source_revert": "Revert",
   "changeLog_source_system": "System",
+  "changeLog_source_agent": "Agent",
   "changeLog_thisDevice": "This device",
   "changeLog_anotherDevice": "another device",
   "changeLog_syncedFrom": "Synced from {device}",

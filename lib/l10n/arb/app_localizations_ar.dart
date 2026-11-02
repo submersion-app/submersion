@@ -60146,6 +60146,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeLog_source_system => 'النظام';
 
   @override
+  String get changeLog_source_agent => 'وكيل';
+
+  @override
   String get changeLog_thisDevice => 'هذا الجهاز';
 
   @override

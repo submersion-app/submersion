@@ -59481,6 +59481,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changeLog_source_system => 'Système';
 
   @override
+  String get changeLog_source_agent => 'Agent';
+
+  @override
   String get changeLog_thisDevice => 'Cet appareil';
 
   @override

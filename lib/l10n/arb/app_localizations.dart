@@ -93625,6 +93625,12 @@ abstract class AppLocalizations {
   /// **'System'**
   String get changeLog_source_system;
 
+  /// No description provided for @changeLog_source_agent.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent'**
+  String get changeLog_source_agent;
+
   /// No description provided for @changeLog_thisDevice.
   ///
   /// In en, this message translates to:

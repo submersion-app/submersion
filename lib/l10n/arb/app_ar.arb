@@ -17563,6 +17563,7 @@
   "changeLog_source_automatic": "تلقائي",
   "changeLog_source_revert": "إرجاع",
   "changeLog_source_system": "النظام",
+  "changeLog_source_agent": "وكيل",
   "changeLog_thisDevice": "هذا الجهاز",
   "changeLog_anotherDevice": "جهاز آخر",
   "changeLog_syncedFrom": "تمت المزامنة من {device}",

@@ -17563,6 +17563,7 @@
   "changeLog_source_automatic": "Automatikus",
   "changeLog_source_revert": "Visszaállítás",
   "changeLog_source_system": "Rendszer",
+  "changeLog_source_agent": "Ügynök",
   "changeLog_thisDevice": "Ez az eszköz",
   "changeLog_anotherDevice": "másik eszköz",
   "changeLog_syncedFrom": "Szinkronizálva innen: {device}",
