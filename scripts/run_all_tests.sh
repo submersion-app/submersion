@@ -13,6 +13,19 @@
 #   scripts/run_all_tests.sh [flutter test options...]
 #   scripts/run_all_tests.sh --coverage
 #   TEST_CONCURRENCY=8 scripts/run_all_tests.sh
+#   TEST_FILES_FROM=selection.txt scripts/run_all_tests.sh
+#
+# TEST_FILES_FROM names a file listing test paths, one per line: only those
+# run, bundled, with the same failure report. The pre-push hook hands a large
+# selection over like this (issue #4117). A bundle runs its files one after
+# another, so a selection's bundles are sized to give every worker one: at most
+# files / concurrency each, and never over the 40 used for the suite. Measured
+# at -j 16, 86 files took 62-67s as 19 bundles but about 180s as 4 bundles of
+# 40, which left 12 workers idle. The hook's header has the comparison with
+# separate files. The list must name existing test files, by paths relative to the
+# repository root; an empty list is refused rather than silently running the
+# whole suite. Give the list file itself as an absolute path, since the script
+# changes to the repository root first.
 #
 # Runs from the repository root wherever it is started, in one flutter test
 # call, so an option such as --coverage covers the whole suite. Performance
@@ -54,10 +67,46 @@ for arg in "$@"; do
     exit 2
 done
 
+# The explicit selection, when TEST_FILES_FROM is set; empty for the suite.
+SELECTED=()
+if [ -n "${TEST_FILES_FROM:-}" ]; then
+    if [ ! -f "$TEST_FILES_FROM" ]; then
+        echo "TEST_FILES_FROM: no such file: $TEST_FILES_FROM" >&2
+        exit 2
+    fi
+    missing=""
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%$'\r'}"
+        [ -n "$line" ] || continue
+        if [ -f "$line" ]; then
+            SELECTED+=("$line")
+        else
+            missing="${missing}  ${line}
+"
+        fi
+    done < "$TEST_FILES_FROM"
+    if [ -n "$missing" ]; then
+        echo "TEST_FILES_FROM names test files that do not exist:" >&2
+        printf '%s' "$missing" >&2
+        exit 2
+    fi
+    if [ "${#SELECTED[@]}" -eq 0 ]; then
+        echo "TEST_FILES_FROM lists no test files: $TEST_FILES_FROM" >&2
+        exit 2
+    fi
+fi
+
 BUNDLE_ROOT="test/.bundles"
 BUNDLE_DIR="$BUNDLE_ROOT/run_all_tests.$$"
 FIRST_MAX_FILES=40
 LAST_MAX_FILES=640
+# A selection gets one bundle per worker at least; see TEST_FILES_FROM above.
+if [ "${#SELECTED[@]}" -gt 0 ]; then
+    per_worker=$(( (${#SELECTED[@]} + CONCURRENCY - 1) / CONCURRENCY ))
+    if [ "$per_worker" -lt "$FIRST_MAX_FILES" ]; then
+        FIRST_MAX_FILES="$per_worker"
+    fi
+fi
 
 LOG="$(mktemp)"
 # Removes only this run's bundles, then test/.bundles if nothing else is in it.
@@ -82,8 +131,12 @@ bundle_suite() {
     local list line
     ENTRYPOINTS=()
     rm -rf "$BUNDLE_DIR"
+    local -a subset=()
+    if [ "${#SELECTED[@]}" -gt 0 ]; then
+        subset=(--subset "$TEST_FILES_FROM")
+    fi
     list="$(python3 scripts/bundle_tests.py --total-shards 1 \
-        --max-files "$1" --out "$BUNDLE_DIR" 2>/dev/null || true)"
+        --max-files "$1" --out "$BUNDLE_DIR" ${subset[@]+"${subset[@]}"} 2>/dev/null || true)"
     [ -n "$list" ] || return 0
     # A native Windows python3 under Git Bash ends each line with CRLF.
     while IFS= read -r line; do
@@ -115,7 +168,27 @@ while [ "${#ENTRYPOINTS[@]}" -gt 0 ] && [ "$LIMIT" -gt 0 ] \
     bundle_suite "$max_files"
 done
 
+# What flutter test is given: the bundles, else the selected files, else
+# nothing (the whole suite).
+TARGETS=()
 if [ "${#ENTRYPOINTS[@]}" -gt 0 ]; then
+    TARGETS=("${ENTRYPOINTS[@]}")
+elif [ "${#SELECTED[@]}" -gt 0 ]; then
+    TARGETS=("${SELECTED[@]}")
+fi
+
+if [ "${#SELECTED[@]}" -gt 0 ]; then
+    if [ "${#SELECTED[@]}" -eq 1 ]; then
+        what="1 selected test file"
+    else
+        what="${#SELECTED[@]} selected test files"
+    fi
+    if [ "${#ENTRYPOINTS[@]}" -gt 0 ]; then
+        echo "Running $what as ${#ENTRYPOINTS[@]} bundled entrypoint(s) of up to $max_files files (concurrency $CONCURRENCY)."
+    else
+        echo "Running $what one by one (concurrency $CONCURRENCY); python3 could not bundle them within the limits."
+    fi
+elif [ "${#ENTRYPOINTS[@]}" -gt 0 ]; then
     echo "Running the suite as ${#ENTRYPOINTS[@]} bundled entrypoints of up to $max_files files (concurrency $CONCURRENCY)."
 else
     echo "Running the test files one by one (concurrency $CONCURRENCY); python3 could not bundle them within the limits."
@@ -201,7 +274,7 @@ report_failures() {
 }
 
 flutter test --exclude-tags performance --concurrency="$CONCURRENCY" \
-    "$@" ${ENTRYPOINTS[@]+"${ENTRYPOINTS[@]}"} 2>&1 | tee "$LOG"
+    "$@" ${TARGETS[@]+"${TARGETS[@]}"} 2>&1 | tee "$LOG"
 status=${PIPESTATUS[0]}
 
 if [ "$status" -ne 0 ]; then

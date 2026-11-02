@@ -12,6 +12,7 @@ Usage:
     python3 scripts/bundle_tests.py --shard 0 --total-shards 6
     python3 scripts/bundle_tests.py --containing test/core/utils/foo_test.dart
     python3 scripts/bundle_tests.py --files test/a_test.dart test/b_test.dart
+    python3 scripts/bundle_tests.py --subset selection.txt
 
 Writes the bundles it selects into --out and prints, one per line, the paths
 to hand to `flutter test`: bundles first, then the test files that have to run
@@ -259,8 +260,34 @@ def write_bundles(units, out_dir):
             handle.write(render(unit["files"], out_dir))
 
 
+def read_subset(path):
+    """The test paths listed in the file at path, one per line.
+
+    Blank lines are skipped and a CR before the newline is dropped, so a list
+    written by a shell on Windows reads the same as one written on a Mac.
+    """
+    with open(path, encoding="utf-8") as handle:
+        lines = [line.rstrip("\r\n").strip() for line in handle]
+    return [to_posix(line) for line in lines if line]
+
+
 def select(args, parser):
     """The units this invocation runs."""
+    if args.subset:
+        files = sorted(set(read_subset(args.subset)))
+        missing = [path for path in files if not os.path.isfile(path)]
+        if missing:
+            parser.error("no such test file: %s" % ", ".join(missing))
+        outside = [
+            path for path in files if not path.startswith(TEST_ROOT + "/")
+        ]
+        if outside:
+            parser.error(
+                "not under %s/: %s" % (TEST_ROOT, ", ".join(outside))
+            )
+        if not files:
+            parser.error("%s lists no test files" % args.subset)
+        return build_units(files, read_text, args.max_files)
     if args.files:
         files = [to_posix(path) for path in args.files]
         missing = [path for path in files if not os.path.isfile(path)]
@@ -305,6 +332,12 @@ def main(argv=None):
         metavar="TEST_FILE",
         help="bundle exactly these files, in this order",
     )
+    parser.add_argument(
+        "--subset",
+        metavar="LIST_FILE",
+        help="bundle only the test files listed in this file, one per "
+        "line, with the usual run-alone rules and --max-files packing",
+    )
     args = parser.parse_args(argv)
     if args.total_shards < 1:
         parser.error("--total-shards must be at least 1")
@@ -314,6 +347,8 @@ def main(argv=None):
         parser.error("--max-files must be at least 1")
     if args.files and args.containing:
         parser.error("--files and --containing cannot be combined")
+    if args.subset and (args.files or args.containing):
+        parser.error("--subset cannot be combined with --files or --containing")
 
     chosen = select(args, parser)
     write_bundles(chosen, args.out)

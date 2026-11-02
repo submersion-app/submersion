@@ -366,6 +366,101 @@ else
     fail 'falls back to separate test files' "exit $run_status; flutter test args: '$flutter_args'"
 fi
 
+# --- Test 10: TEST_FILES_FROM runs only the listed files, bundled -----------
+#
+# The pre-push hook hands its scoped selection to this script so that the
+# selection runs bundled, with the same command-line-limit handling, failure
+# report and cleanup as the whole suite (issue #4117). The list has one test
+# path per line; blank lines and CRLF endings are tolerated.
+
+rm -f "$tmp/bin/python3"   # test 9 left its unusable stub on PATH
+printf 'test/a_test.dart\r\n\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -eq 0 ] && [ "$flutter_calls" -eq 1 ]; then
+    assert_contains has "$flutter_args" 'test/.bundles/' \
+        'TEST_FILES_FROM runs the listed files as bundles in one call'
+else
+    fail 'TEST_FILES_FROM runs the listed files as bundles in one call' \
+        "exit $run_status, $flutter_calls calls: $flutter_args"
+fi
+assert_contains has "$run_output" '1 selected test file' \
+    'announces how many files were selected'
+if [ ! -e "$root/test/.bundles" ]; then
+    pass 'the selection bundles are removed afterwards'
+else
+    fail 'the selection bundles are removed afterwards' "left behind: $(ls -R "$root/test/.bundles" 2>&1)"
+fi
+
+printf 'test/nope_test.dart\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -ne 0 ] && [ "$flutter_calls" -eq 0 ]; then
+    assert_contains has "$run_output" 'test/nope_test.dart' \
+        'a list naming a missing test file is refused before anything runs'
+else
+    fail 'a list naming a missing test file is refused before anything runs' \
+        "exit $run_status, $flutter_calls calls: $run_output"
+fi
+
+cat > "$tmp/bin/python3" <<'STUB'
+#!/bin/bash
+echo 'python3: not usable here' >&2
+exit 127
+STUB
+chmod +x "$tmp/bin/python3"
+printf 'test/a_test.dart\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -eq 0 ] && [ "$flutter_calls" -eq 1 ]; then
+    case "$flutter_args" in
+        *bundle_*) fail 'without python3 the listed files run unbundled' "$flutter_args" ;;
+        *'test/a_test.dart'*) assert_contains lacks "$flutter_args" 'test/b_test.dart' \
+            'without python3 the listed files run unbundled' ;;
+        *) fail 'without python3 the listed files run unbundled' "$flutter_args" ;;
+    esac
+else
+    fail 'without python3 the listed files run unbundled' \
+        "exit $run_status, $flutter_calls calls: $flutter_args"
+fi
+rm "$tmp/bin/python3"
+
+# --- Test 11: a selection's bundles are sized to the workers ------------------
+#
+# A bundle runs its files one after another, so 86 files in 4 bundles of 40 took
+# about 180s at -j 16, three times as long as separate files, with 12 workers
+# idle. Sized to the workers (86 / 16, so 6 files each) they took the same as
+# separate files, and 522 files took a third of the time (issue #4117).
+
+cat > "$tmp/bin/python3" <<STUB
+#!/bin/bash
+printf '%s\n' "\$*" >> "$tmp/python_args"
+exec "$REAL_PYTHON" "\$@"
+STUB
+chmod +x "$tmp/bin/python3"
+
+mkdir -p "$root/test/many"
+: > "$tmp/many.txt"
+for i in $(seq 1 41); do
+    printf "import 'package:flutter_test/flutter_test.dart';\n\nvoid main() {\n  test('m', () {});\n}\n" \
+        > "$root/test/many/m${i}_test.dart"
+    printf 'test/many/m%s_test.dart\n' "$i" >> "$tmp/many.txt"
+done
+
+: > "$tmp/python_args"
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" TEST_CONCURRENCY=8
+assert_contains has "$(cat "$tmp/python_args")" '--max-files 6 ' \
+    'sizes bundles to files over concurrency, rounded up'
+
+: > "$tmp/python_args"
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" TEST_CONCURRENCY=1
+assert_contains has "$(cat "$tmp/python_args")" '--max-files 40 ' \
+    'never makes a bundle larger than the 40 files used for the suite'
+
+: > "$tmp/python_args"
+run_script "$tmp" TEST_CONCURRENCY=8
+assert_contains has "$(cat "$tmp/python_args")" '--max-files 40 ' \
+    'the whole suite keeps bundles of 40'
+
+rm -rf "$root/test/many" "$tmp/bin/python3"
+
 rm -rf "$tmp"
 
 # --- Summary ---------------------------------------------------------------
