@@ -81,6 +81,14 @@ void main() {
     expect(model.byId('t3')!.pieceIds, ['tank_stage_front']);
   });
 
+  test('one twin set tank draws the doubles piece on its own (#3374)', () {
+    final model = composeFigure([
+      item('t1', EquipmentType.tank, tankRole: TankRole.twinSet),
+    ]);
+    expect(model.byId('t1')!.zone, FigureZone.backTank);
+    expect(model.byId('t1')!.pieceIds, ['tank_doubles_back']);
+  });
+
   test('a sidemount harness sends tanks to the sides', () {
     final model = composeFigure([
       item('t1', EquipmentType.tank),

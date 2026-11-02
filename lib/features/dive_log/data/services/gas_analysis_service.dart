@@ -8,10 +8,13 @@ import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
+
+part 'gas_analysis_service_ccr.dart';
 
 /// Service for calculating SAC (Surface Air Consumption) metrics
 /// per segment and per cylinder.
@@ -320,6 +323,9 @@ class GasAnalysisService {
   ///
   /// Works with basic tank data (start/end pressures) and provides
   /// enhanced accuracy when time-series pressure data is available.
+  ///
+  /// On a CCR dive every cylinder gets a row, since nothing else says when an
+  /// O2 supply was used: see [_ccrCylinderSac].
   List<CylinderSac> calculateCylinderSac({
     required Dive dive,
     required List<DiveProfilePoint> profile,
@@ -338,6 +344,17 @@ class GasAnalysisService {
 
     final diveEnd =
         dive.effectiveRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
+
+    if (dive.isCCR) {
+      return _ccrCylinderSac(
+        dive: dive,
+        profile: profile,
+        gasSwitches: gasSwitches,
+        resolvedPressures: resolvedPressures,
+        diveEnd: diveEnd,
+      );
+    }
+
     // Only a switch that says when a cylinder was breathed overrides a
     // recorded duration: not a stale id (#110), nor one after the dive.
     final hasGasSwitches = knownGasSwitches(
@@ -455,6 +472,7 @@ class GasAnalysisService {
           sacRate: sacRate,
           startPressure: tank.startPressure,
           endPressure: tank.endPressure,
+          gasModel: gasModel,
           usageDuration: Duration(seconds: usageSeconds),
           avgDepthDuringUse: avgDepthDuringUse,
           hasTimeSeriesData: hasTsData,

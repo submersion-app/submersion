@@ -10480,6 +10480,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'צריכה בלולאה $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -13757,6 +13762,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'סטייג\'';
+
+  @override
+  String get enum_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get enum_tideState_rising => 'עולה';
@@ -28467,7 +28475,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
+      'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, הגז שנוצל, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'חישובי גז';
@@ -29285,6 +29293,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_filterBar_clear => 'ניקוי מסנן';
 
   @override
+  String get insights_filterBar_allDives => 'כל הצלילות';
+
+  @override
+  String get insights_filterBar_customFilter => 'מסנן מותאם אישית';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'בחירת קבוצת צלילות';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'שמירת המסנן הנוכחי...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'ניהול שאילתות שמורות';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29318,6 +29341,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+
+  @override
+  String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'לדקה בלולאה, ללא זמן מעבר למעגל פתוח';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'ממוצע O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'ממוצע מדלל';
 
   @override
   String get insights_gas_sacRecords_empty => 'אין עדיין נתוני צריכה';
@@ -29403,7 +29442,89 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'בלונים תאומים שנרשמו כבלון אחד נספרים כשהשם מציין זאת (twin, double, D12, 2x12) או כשהבלון גדול מכל בלון יחיד נפוץ. הגדר סיידמאונט שמאל וסיידמאונט ימין לבלוני הצלילה כדי שתיספר כסיידמאונט.';
+      'צלילה נספרת כצמד בלונים על הגב כשתפקיד של בלון הוא צמד בלונים, וכסיידמאונט כשהבלונים שלה הם סיידמאונט שמאל וסיידמאונט ימין.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב־$count צלילות יש בלונים שנראים כמו צמד בלונים.',
+      two: 'בשתי צלילות יש בלונים שנראים כמו צמד בלונים.',
+      one: 'בצלילה אחת יש בלון שנראה כמו צמד בלונים.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'השם או הגודל שלהם מציינים twin, double, D12, 2x12 או $size ומעלה, אבל התפקיד שלהם הוא גז ראשי, ולכן הם נספרים כבלון יחיד.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'סמן כצמדי בלונים';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'סקור צלילות';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'התעלם';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'להגדיר את התפקיד לצמד בלונים?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'להגדיר את התפקיד של $tanks בלונים $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+      two:
+          'להגדיר את התפקיד של שני בלונים $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+      one:
+          'להגדיר את התפקיד של בלון אחד $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב־$count צלילות',
+      two: 'בשתי צלילות',
+      one: 'בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'הגדר תפקיד';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'ביטול';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בלונים הוגדרו כצמד בלונים',
+      two: 'שני בלונים הוגדרו כצמד בלונים',
+      one: 'בלון אחד הוגדר כצמד בלונים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'לא ניתן היה להגדיר את התפקיד';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'נראה כמו צמד בלונים';
 
   @override
   String get insights_gas_tankConfig_empty => 'אין צלילות להצגה';
@@ -29859,6 +29980,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'סטייג\'';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get insights_geographic_appBar_title => 'גיאוגרפיה';

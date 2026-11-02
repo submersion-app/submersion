@@ -3,6 +3,42 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 
 void main() {
+  group('gasVolumeBetween', () {
+    test('is bar times litres under the ideal model', () {
+      expect(
+        gasVolumeBetween(
+          tankSizeLiters: 12,
+          startBar: 200,
+          endBar: 50,
+          o2Percent: 21,
+          model: GasModel.ideal,
+        ),
+        closeTo(1800, 1e-9),
+      );
+    });
+
+    test('is the difference of the two volumes under the real model', () {
+      double at(double bar) => gasVolume(
+        tankSizeLiters: 7,
+        pressureBar: bar,
+        o2Percent: 32,
+        hePercent: 10,
+        model: GasModel.real,
+      );
+      expect(
+        gasVolumeBetween(
+          tankSizeLiters: 7,
+          startBar: 230,
+          endBar: 120,
+          o2Percent: 32,
+          hePercent: 10,
+          model: GasModel.real,
+        ),
+        closeTo(at(230) - at(120), 1e-9),
+      );
+    });
+  });
+
   group('gasCompressibilityFactor', () {
     test('Z ≈ 1.0 at surface pressure for air', () {
       final z = gasCompressibilityFactor(o2Percent: 21, bar: 1.0);

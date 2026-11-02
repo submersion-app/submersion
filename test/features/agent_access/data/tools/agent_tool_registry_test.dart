@@ -3,15 +3,11 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -48,19 +44,20 @@ void main() {
       ),
       divers: divers,
       settings: settings,
-      dives: DiveRepository(),
-      buddies: BuddyRepository(),
-      species: SpeciesRepository(),
-      media: MediaRepository(),
-      diveTypes: DiveTypeRepository(),
+      records: RecordRepositories(),
     );
   }
 
   group('AgentToolRegistry', () {
-    test('standard registry exposes list_divers, query and get_records', () {
+    test('standard registry exposes the four read tools', () {
       expect(
         registry().tools.map((t) => t.name),
-        unorderedEquals(['list_divers', 'query', 'get_records']),
+        unorderedEquals([
+          'list_divers',
+          'query',
+          'get_records',
+          'list_records',
+        ]),
       );
     });
 

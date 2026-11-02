@@ -1,11 +1,11 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// Nitrogen fraction the deco engine breathes for [mix]: air is the exact
 /// atmospheric fraction, everything else the remainder after O2 and He
@@ -43,7 +43,7 @@ class TankSchedule extends Equatable {
     final primary = tanks.isEmpty
         ? null
         : tanks.firstWhere(
-            (t) => t.role == TankRole.backGas,
+            (t) => backmountRoles.contains(t.role),
             orElse: () => tanks.first,
           );
     final intervals = <TankInterval>[
@@ -176,7 +176,7 @@ DiveTank? bestTankForDepth(
   }
   if (best != null) return best;
   return tanks.firstWhere(
-    (t) => t.role == TankRole.backGas,
+    (t) => backmountRoles.contains(t.role),
     orElse: () => tanks.first,
   );
 }

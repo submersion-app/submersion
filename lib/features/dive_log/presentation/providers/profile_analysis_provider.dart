@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
@@ -191,7 +192,7 @@ final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 DiveTank? _selectOcPrimaryTank(List<DiveTank> tanks) {
   if (tanks.isEmpty) return null;
   return tanks.firstWhere(
-    (t) => t.role == TankRole.backGas,
+    (t) => backmountRoles.contains(t.role),
     orElse: () => tanks.first,
   );
 }
@@ -396,7 +397,7 @@ List<AvailableGas> buildAvailableGases(
       if (role == TankRole.oxygenSupply) return true;
     }
     if (gasSet == AscentGasSet.allCarried) return true;
-    return role == TankRole.backGas ||
+    return backmountRoles.contains(role) ||
         role == TankRole.deco ||
         role == TankRole.stage ||
         role == TankRole.bailout;

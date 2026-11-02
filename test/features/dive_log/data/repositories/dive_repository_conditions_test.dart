@@ -289,7 +289,22 @@ void main() {
       expect(row.airTemp, 29.5);
       expect(row.surfacePressure, 1.011);
       expect(row.weatherSource, WeatherSource.openMeteo.name);
-      expect(row.weatherFetchedAt, fetchedAt.millisecondsSinceEpoch);
+      expect(row.weatherFetchedAt, fetchedAt.millisecondsSinceEpoch ~/ 1000);
+    });
+
+    test('the fetch time reads back as the moment it was fetched', () async {
+      await insertSite('s1', latitude: 12.5, longitude: -68.25);
+      await insertDive('d1', siteId: 's1');
+
+      await repository.fillDiveConditions(
+        'd1',
+        humidity: 55.0,
+        source: WeatherSource.openMeteo,
+        fetchedAt: fetchedAt,
+      );
+
+      final dive = await repository.getDiveById('d1');
+      expect(dive!.weatherFetchedAt!.toUtc(), fetchedAt);
     });
 
     test('never overwrites a column that already has a value', () async {
@@ -334,7 +349,8 @@ void main() {
 
     test('leaves an existing weatherSource stamp alone', () async {
       await insertSite('s1', latitude: 12.5, longitude: -68.25);
-      final manualStamp = DateTime.utc(2020, 1, 1).millisecondsSinceEpoch;
+      final manualStamp =
+          DateTime.utc(2020, 1, 1).millisecondsSinceEpoch ~/ 1000;
       await insertDive(
         'd1',
         siteId: 's1',

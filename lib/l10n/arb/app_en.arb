@@ -5931,6 +5931,7 @@
   "diveLog_cylinders_figureUsed": "Used {pressure}",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
+  "diveLog_cylinders_loopUse": "Loop use {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
@@ -6607,6 +6608,14 @@
     "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",
     "placeholders": {
       "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_loopUse": {
+    "description": "Cylinders card detail item on a CCR dive: the rate gas left this cylinder while the diver was on the loop, with no depth correction, e.g. \"Loop use 1.8 L/min\"",
+    "placeholders": {
+      "rate": {
         "type": "String"
       }
     }
@@ -8244,6 +8253,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount Left",
   "enum_tankRole_sidemountRight": "Sidemount Right",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_twinSet": "Twin Set",
   "enum_tideState_rising": "Rising",
   "enum_tideState_falling": "Falling",
   "enum_tideState_slackHigh": "High Tide (Slack)",
@@ -16479,7 +16489,7 @@
   "settings_units_gasModel_real_subtitle": "Accounts for compressibility. A 12 L cylinder at 200 bar holds about 2317 L.",
   "settings_units_gasModel_ideal": "Ideal gas",
   "settings_units_gasModel_ideal_subtitle": "Matches hand calculation and dive tables. A 12 L cylinder at 200 bar holds 2400 L.",
-  "settings_units_gasModel_explanation": "How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.",
+  "settings_units_gasModel_explanation": "How cylinder pressure is converted to gas volume. This affects RMV, gas used, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.",
   "settings_units_dialog_gasModel": "Gas calculations",
   "settings_units_dialog_waterType": "Default water type",
   "settings_units_dialog_temperatureUnit": "Temperature Unit",
@@ -17179,6 +17189,16 @@
   "insights_equipment_exposureUnit_cycles": "Battery cycles",
   "insights_error_loadingInsights": "Error loading insights",
   "insights_filterBar_clear": "Clear filter",
+  "insights_filterBar_allDives": "All dives",
+  "@insights_filterBar_allDives": {"description": "Insights group selector: every dive, no group chosen"},
+  "insights_filterBar_customFilter": "Custom filter",
+  "@insights_filterBar_customFilter": {"description": "Insights group selector: a filter that is not one of the saved groups"},
+  "insights_filterBar_chooseGroup": "Choose a dive group",
+  "@insights_filterBar_chooseGroup": {"description": "Tooltip of the Insights group selector"},
+  "insights_filterBar_saveCurrent": "Save current filter...",
+  "@insights_filterBar_saveCurrent": {"description": "Insights group menu: saves the active filter as a named group"},
+  "insights_filterBar_manageSaved": "Manage saved queries",
+  "@insights_filterBar_manageSaved": {"description": "Insights group menu: opens the saved queries page"},
   "insights_filterBar_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "insights_gas_appBar_title": "Air Consumption",
   "insights_gas_gasMix_error": "Failed to load gas mix data",
@@ -17188,6 +17208,11 @@
   "insights_gas_sacByRole_error": "Failed to load consumption by role",
   "insights_gas_sacByRole_subtitle": "Average consumption by tank type",
   "insights_gas_sacByRole_title": "Gas consumption by tank role",
+  "insights_gas_ccrUse_title": "Rebreather gas use",
+  "insights_gas_ccrUse_subtitle": "Per minute on the loop, leaving out bailout time",
+  "insights_gas_ccrUse_o2Average": "O₂ average",
+  "insights_gas_ccrUse_o2Series": "O₂",
+  "insights_gas_ccrUse_diluentAverage": "Diluent average",
   "insights_gas_sacRecords_empty": "No consumption data yet",
   "insights_gas_sacRecords_error": "Failed to load consumption records",
   "insights_gas_sacRecords_highestRmv": "Highest RMV",
@@ -17221,7 +17246,49 @@
       "percent": {"type": "String"}
     }
   },
-  "insights_gas_tankConfig_note": "Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive's tanks for it to count as sidemount.",
+  "insights_gas_tankConfig_note": "A dive counts as twin backmount when a cylinder's role is Twin Set, and as sidemount when its cylinders are Sidemount Left and Right.",
+  "insights_gas_twinSetReview_title": "{count, plural, =1{{count} dive has a cylinder that looks like a twin set.} other{{count} dives have cylinders that look like a twin set.}}",
+  "@insights_gas_twinSetReview_title": {
+    "description": "How many dives carry a Back Gas cylinder the retired twin set guess would have counted",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "insights_gas_twinSetReview_body": "Their names or sizes say twin, double, D12, 2x12, or {size} and up, but their role is Back Gas, so they count as single backmount.",
+  "@insights_gas_twinSetReview_body": {
+    "description": "Why those cylinders count as single backmount; size is the formatted minimum twin set volume, e.g. 20 L",
+    "placeholders": {
+      "size": {"type": "String"}
+    }
+  },
+  "insights_gas_twinSetReview_mark": "Mark as twin sets",
+  "insights_gas_twinSetReview_review": "Review dives",
+  "insights_gas_twinSetReview_dismiss": "Dismiss",
+  "insights_gas_twinSetReview_confirmTitle": "Set role to Twin Set?",
+  "insights_gas_twinSetReview_confirmBody": "{tanks, plural, =1{Set the role of {tanks} cylinder on {dives} to Twin Set? Other cylinders on those dives are left alone.} other{Set the role of {tanks} cylinders on {dives} to Twin Set? Other cylinders on those dives are left alone.}}",
+  "@insights_gas_twinSetReview_confirmBody": {
+    "description": "dives is the rendered insights_gas_twinSetReview_diveCount",
+    "placeholders": {
+      "tanks": {"type": "int"},
+      "dives": {"type": "String"}
+    }
+  },
+  "insights_gas_twinSetReview_diveCount": "{count, plural, =1{{count} dive} other{{count} dives}}",
+  "@insights_gas_twinSetReview_diveCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "insights_gas_twinSetReview_confirm": "Set role",
+  "insights_gas_twinSetReview_cancel": "Cancel",
+  "insights_gas_twinSetReview_done": "{count, plural, =1{{count} cylinder set to Twin Set} other{{count} cylinders set to Twin Set}}",
+  "@insights_gas_twinSetReview_done": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "insights_gas_twinSetReview_failed": "Could not set the role",
+  "insights_gas_twinSetReview_chart": "Looks like a twin set",
   "insights_gas_tankConfig_empty": "No dives to show",
   "insights_gas_tankConfig_error": "Unable to load tank configuration",
   "insights_focus_title": "Dive focus",
@@ -17451,6 +17518,7 @@
   "insights_gas_tankRole_sidemountLeft": "Sidemount L",
   "insights_gas_tankRole_sidemountRight": "Sidemount R",
   "insights_gas_tankRole_stage": "Stage",
+  "insights_gas_tankRole_twinSet": "Twin Set",
   "insights_geographic_appBar_title": "Geographic",
   "insights_geographic_countries_empty": "No countries visited",
   "insights_geographic_countries_error": "Failed to load country data",

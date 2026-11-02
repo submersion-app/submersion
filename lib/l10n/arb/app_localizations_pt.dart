@@ -10716,6 +10716,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Uso no circuito $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -14059,6 +14064,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_twinSet => 'Bi-cilindro';
 
   @override
   String get enum_tideState_rising => 'Enchente';
@@ -29190,7 +29198,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Como a pressão do cilindro é convertida em volume de gás. Afeta o RMV, as estatísticas de gás, o planeador e as calculadoras. O gás ideal corresponde ao cálculo ensinado pelas agências; o gás real é fisicamente exato e apresenta um RMV cerca de 5% mais baixo.';
+      'Como a pressão do cilindro é convertida em volume de gás. Afeta o RMV, o gás usado, as estatísticas de gás, o planeador e as calculadoras. O gás ideal corresponde ao cálculo ensinado pelas agências; o gás real é fisicamente exato e apresenta um RMV cerca de 5% mais baixo.';
 
   @override
   String get settings_units_dialog_gasModel => 'Cálculos de gás';
@@ -30041,6 +30049,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_filterBar_clear => 'Limpar filtro';
 
   @override
+  String get insights_filterBar_allDives => 'Todos os mergulhos';
+
+  @override
+  String get insights_filterBar_customFilter => 'Filtro personalizado';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Escolher grupo de mergulhos';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Salvar filtro atual...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'Gerenciar consultas salvas';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30079,6 +30102,22 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get insights_gas_sacByRole_title =>
       'Consumo de gás por função do cilindro';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Uso de gás do rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Por minuto no circuito, sem o tempo de bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Média de O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Média de diluente';
 
   @override
   String get insights_gas_sacRecords_empty => 'Nenhum dado de consumo ainda';
@@ -30165,7 +30204,84 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Bicilindros registrados como um único cilindro são contados quando o nome indica (twin, double, D12, 2x12) ou o cilindro é maior que qualquer monocilindro comum. Defina Sidemount Esquerdo e Sidemount Direito nos cilindros de um mergulho para que ele conte como sidemount.';
+      'Um mergulho conta como bicilindro quando um cilindro tem o papel Bi-cilindro, e como sidemount quando seus cilindros são Sidemount Esquerdo e Sidemount Direito.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos têm cilindros que parecem um bicilindro.',
+      one: '$count mergulho tem um cilindro que parece um bicilindro.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'O nome ou o tamanho indica twin, double, D12, 2x12 ou $size ou mais, mas o papel é Gás Principal, então contam como monocilindro.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Marcar como bicilindros';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Rever mergulhos';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Dispensar';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'Definir o papel como Bi-cilindro?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'Definir o papel de $tanks cilindros em $dives como Bi-cilindro? Os outros cilindros desses mergulhos não mudam.',
+      one:
+          'Definir o papel de $tanks cilindro em $dives como Bi-cilindro? Os outros cilindros desses mergulhos não mudam.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Definir papel';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Cancelar';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cilindros definidos como Bi-cilindro',
+      one: '$count cilindro definido como Bi-cilindro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'Não foi possível definir o papel';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'Parece um bicilindro';
 
   @override
   String get insights_gas_tankConfig_empty => 'Nenhum mergulho para mostrar';
@@ -30621,6 +30737,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'Stage';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'Bi-cilindro';
 
   @override
   String get insights_geographic_appBar_title => 'Geográfico';

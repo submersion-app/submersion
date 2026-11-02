@@ -17056,6 +17056,12 @@ abstract class AppLocalizations {
   /// **'Gas used {amount}'**
   String diveLog_cylinders_gasUsed(String amount);
 
+  /// Cylinders card detail item on a CCR dive: the rate gas left this cylinder while the diver was on the loop, with no depth correction, e.g. "Loop use 1.8 L/min"
+  ///
+  /// In en, this message translates to:
+  /// **'Loop use {rate}'**
+  String diveLog_cylinders_loopUse(String rate);
+
   /// Cylinders card detail item: maximum operating depth, e.g. "MOD 33m"
   ///
   /// In en, this message translates to:
@@ -22731,6 +22737,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stage'**
   String get enum_tankRole_stage;
+
+  /// No description provided for @enum_tankRole_twinSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin Set'**
+  String get enum_tankRole_twinSet;
 
   /// No description provided for @enum_tideState_rising.
   ///
@@ -46794,7 +46806,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_units_gasModel_explanation.
   ///
   /// In en, this message translates to:
-  /// **'How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.'**
+  /// **'How cylinder pressure is converted to gas volume. This affects RMV, gas used, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.'**
   String get settings_units_gasModel_explanation;
 
   /// No description provided for @settings_units_dialog_gasModel.
@@ -48162,6 +48174,36 @@ abstract class AppLocalizations {
   /// **'Clear filter'**
   String get insights_filterBar_clear;
 
+  /// Insights group selector: every dive, no group chosen
+  ///
+  /// In en, this message translates to:
+  /// **'All dives'**
+  String get insights_filterBar_allDives;
+
+  /// Insights group selector: a filter that is not one of the saved groups
+  ///
+  /// In en, this message translates to:
+  /// **'Custom filter'**
+  String get insights_filterBar_customFilter;
+
+  /// Tooltip of the Insights group selector
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a dive group'**
+  String get insights_filterBar_chooseGroup;
+
+  /// Insights group menu: saves the active filter as a named group
+  ///
+  /// In en, this message translates to:
+  /// **'Save current filter...'**
+  String get insights_filterBar_saveCurrent;
+
+  /// Insights group menu: opens the saved queries page
+  ///
+  /// In en, this message translates to:
+  /// **'Manage saved queries'**
+  String get insights_filterBar_manageSaved;
+
   /// No description provided for @insights_filterBar_diveCount.
   ///
   /// In en, this message translates to:
@@ -48215,6 +48257,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas consumption by tank role'**
   String get insights_gas_sacByRole_title;
+
+  /// No description provided for @insights_gas_ccrUse_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather gas use'**
+  String get insights_gas_ccrUse_title;
+
+  /// No description provided for @insights_gas_ccrUse_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Per minute on the loop, leaving out bailout time'**
+  String get insights_gas_ccrUse_subtitle;
+
+  /// No description provided for @insights_gas_ccrUse_o2Average.
+  ///
+  /// In en, this message translates to:
+  /// **'O₂ average'**
+  String get insights_gas_ccrUse_o2Average;
+
+  /// No description provided for @insights_gas_ccrUse_o2Series.
+  ///
+  /// In en, this message translates to:
+  /// **'O₂'**
+  String get insights_gas_ccrUse_o2Series;
+
+  /// No description provided for @insights_gas_ccrUse_diluentAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent average'**
+  String get insights_gas_ccrUse_diluentAverage;
 
   /// No description provided for @insights_gas_sacRecords_empty.
   ///
@@ -48375,8 +48447,86 @@ abstract class AppLocalizations {
   /// No description provided for @insights_gas_tankConfig_note.
   ///
   /// In en, this message translates to:
-  /// **'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.'**
+  /// **'A dive counts as twin backmount when a cylinder\'s role is Twin Set, and as sidemount when its cylinders are Sidemount Left and Right.'**
   String get insights_gas_tankConfig_note;
+
+  /// How many dives carry a Back Gas cylinder the retired twin set guess would have counted
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive has a cylinder that looks like a twin set.} other{{count} dives have cylinders that look like a twin set.}}'**
+  String insights_gas_twinSetReview_title(int count);
+
+  /// Why those cylinders count as single backmount; size is the formatted minimum twin set volume, e.g. 20 L
+  ///
+  /// In en, this message translates to:
+  /// **'Their names or sizes say twin, double, D12, 2x12, or {size} and up, but their role is Back Gas, so they count as single backmount.'**
+  String insights_gas_twinSetReview_body(String size);
+
+  /// No description provided for @insights_gas_twinSetReview_mark.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as twin sets'**
+  String get insights_gas_twinSetReview_mark;
+
+  /// No description provided for @insights_gas_twinSetReview_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review dives'**
+  String get insights_gas_twinSetReview_review;
+
+  /// No description provided for @insights_gas_twinSetReview_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get insights_gas_twinSetReview_dismiss;
+
+  /// No description provided for @insights_gas_twinSetReview_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set role to Twin Set?'**
+  String get insights_gas_twinSetReview_confirmTitle;
+
+  /// dives is the rendered insights_gas_twinSetReview_diveCount
+  ///
+  /// In en, this message translates to:
+  /// **'{tanks, plural, =1{Set the role of {tanks} cylinder on {dives} to Twin Set? Other cylinders on those dives are left alone.} other{Set the role of {tanks} cylinders on {dives} to Twin Set? Other cylinders on those dives are left alone.}}'**
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives);
+
+  /// No description provided for @insights_gas_twinSetReview_diveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive} other{{count} dives}}'**
+  String insights_gas_twinSetReview_diveCount(int count);
+
+  /// No description provided for @insights_gas_twinSetReview_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Set role'**
+  String get insights_gas_twinSetReview_confirm;
+
+  /// No description provided for @insights_gas_twinSetReview_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get insights_gas_twinSetReview_cancel;
+
+  /// No description provided for @insights_gas_twinSetReview_done.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} cylinder set to Twin Set} other{{count} cylinders set to Twin Set}}'**
+  String insights_gas_twinSetReview_done(int count);
+
+  /// No description provided for @insights_gas_twinSetReview_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not set the role'**
+  String get insights_gas_twinSetReview_failed;
+
+  /// No description provided for @insights_gas_twinSetReview_chart.
+  ///
+  /// In en, this message translates to:
+  /// **'Looks like a twin set'**
+  String get insights_gas_twinSetReview_chart;
 
   /// No description provided for @insights_gas_tankConfig_empty.
   ///
@@ -49082,6 +49232,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stage'**
   String get insights_gas_tankRole_stage;
+
+  /// No description provided for @insights_gas_tankRole_twinSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin Set'**
+  String get insights_gas_tankRole_twinSet;
 
   /// No description provided for @insights_geographic_appBar_title.
   ///

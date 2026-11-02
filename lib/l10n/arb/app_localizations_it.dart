@@ -10720,6 +10720,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Uso sul loop $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -14063,6 +14068,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_twinSet => 'Bibombola';
 
   @override
   String get enum_tideState_rising => 'Montante';
@@ -29214,7 +29222,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Come la pressione della bombola viene convertita in volume di gas. Riguarda l\'RMV, le statistiche del gas, il pianificatore e i calcolatori. Il gas ideale corrisponde al calcolo insegnato dalle didattiche; il gas reale è fisicamente accurato e restituisce un RMV inferiore di circa il 5%.';
+      'Come la pressione della bombola viene convertita in volume di gas. Riguarda l\'RMV, il gas usato, le statistiche del gas, il pianificatore e i calcolatori. Il gas ideale corrisponde al calcolo insegnato dalle didattiche; il gas reale è fisicamente accurato e restituisce un RMV inferiore di circa il 5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'Calcoli del gas';
@@ -30062,6 +30070,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_filterBar_clear => 'Cancella filtro';
 
   @override
+  String get insights_filterBar_allDives => 'Tutte le immersioni';
+
+  @override
+  String get insights_filterBar_customFilter => 'Filtro personalizzato';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Scegli un gruppo di immersioni';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Salva filtro corrente...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'Gestisci query salvate';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30099,6 +30122,22 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'Consumo di gas per ruolo bombola';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Uso di gas del rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Al minuto sul loop, escluso il tempo di bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Media O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Media diluente';
 
   @override
   String get insights_gas_sacRecords_empty =>
@@ -30187,7 +30226,84 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'I bibombola registrati come una sola bombola vengono contati quando il nome lo indica (twin, double, D12, 2x12) o la bombola è più grande di qualsiasi monobombola comune. Imposta Sidemount sinistra e Sidemount destra sulle bombole di un\'immersione perché conti come sidemount.';
+      'Un\'immersione conta come bibombola quando una bombola ha il ruolo Bibombola, e come sidemount quando le sue bombole sono Sidemount sinistra e Sidemount destra.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni hanno bombole che sembrano un bibombola.',
+      one: '$count immersione ha una bombola che sembra un bibombola.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'Il nome o la dimensione indica twin, double, D12, 2x12 o $size e oltre, ma il ruolo è Gas principale, quindi contano come monobombola.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Segna come bibombola';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Rivedi immersioni';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Ignora';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'Impostare il ruolo su Bibombola?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'Impostare il ruolo di $tanks bombole in $dives su Bibombola? Le altre bombole di quelle immersioni non cambiano.',
+      one:
+          'Impostare il ruolo di $tanks bombola in $dives su Bibombola? Le altre bombole di quelle immersioni non cambiano.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Imposta ruolo';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Annulla';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bombole impostate su Bibombola',
+      one: '$count bombola impostata su Bibombola',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'Impossibile impostare il ruolo';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'Sembra un bibombola';
 
   @override
   String get insights_gas_tankConfig_empty => 'Nessuna immersione da mostrare';
@@ -30644,6 +30760,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'Stage';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'Bibombola';
 
   @override
   String get insights_geographic_appBar_title => 'Geografiche';

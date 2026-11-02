@@ -10180,6 +10180,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return '回路用量 $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return '最大作业深度 $depth';
   }
@@ -13390,6 +13395,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => '阶段';
+
+  @override
+  String get enum_tankRole_twinSet => '双瓶';
 
   @override
   String get enum_tideState_rising => '涨潮';
@@ -27532,7 +27540,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
+      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、已用气体、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
 
   @override
   String get settings_units_dialog_gasModel => '气体计算';
@@ -28323,6 +28331,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_filterBar_clear => '清除筛选';
 
   @override
+  String get insights_filterBar_allDives => '全部潜水';
+
+  @override
+  String get insights_filterBar_customFilter => '自定义筛选';
+
+  @override
+  String get insights_filterBar_chooseGroup => '选择潜水分组';
+
+  @override
+  String get insights_filterBar_saveCurrent => '保存当前筛选...';
+
+  @override
+  String get insights_filterBar_manageSaved => '管理已保存的查询';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -28356,6 +28379,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => '按气瓶用途的气体消耗';
+
+  @override
+  String get insights_gas_ccrUse_title => '循环呼吸器气体用量';
+
+  @override
+  String get insights_gas_ccrUse_subtitle => '回路上每分钟用量，不含应急脱出时间';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'O₂ 平均';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => '稀释气平均';
 
   @override
   String get insights_gas_sacRecords_empty => '暂无消耗数据';
@@ -28439,7 +28477,80 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      '记录为单个气瓶的双瓶，在名称表明时（twin、double、D12、2x12）或气瓶大于任何常见单瓶时会被计入。为潜水的气瓶设置左侧挂和右侧挂，使其计为侧挂。';
+      '当某个气瓶的角色为双瓶时，潜水计为背挂双瓶；当其气瓶为左侧挂和右侧挂时，计为侧挂。';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水有看起来像双瓶的气瓶。',
+      one: '$count 次潜水有一个看起来像双瓶的气瓶。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return '它们的名称或容量表明是 twin、double、D12、2x12 或 $size 及以上，但角色是背部气体，因此计为单瓶。';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => '标记为双瓶';
+
+  @override
+  String get insights_gas_twinSetReview_review => '查看潜水';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => '忽略';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle => '将角色设为双瓶？';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other: '将 $dives 中 $tanks 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。',
+      one: '将 $dives 中 $tanks 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => '设置角色';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => '取消';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 个气瓶设为双瓶',
+      one: '已将 $count 个气瓶设为双瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed => '无法设置角色';
+
+  @override
+  String get insights_gas_twinSetReview_chart => '看起来像双瓶';
 
   @override
   String get insights_gas_tankConfig_empty => '没有可显示的潜水';
@@ -28875,6 +28986,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => '阶段瓶';
+
+  @override
+  String get insights_gas_tankRole_twinSet => '双瓶';
 
   @override
   String get insights_geographic_appBar_title => '地理';

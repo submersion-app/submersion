@@ -140,6 +140,24 @@ void main() {
     expect(await container.read(sacByTankRoleProvider.future), isEmpty);
   });
 
+  test('the rebreather gas use provider is empty with no dives', () async {
+    final container = await makeContainer();
+    expect(
+      (await container.read(ccrGasUseTrendProvider.future)).isEmpty,
+      isTrue,
+    );
+  });
+
+  test('the rebreather gas use provider honours an active filter', () async {
+    final container = await makeContainer(
+      filter: const DiveFilterState(favoritesOnly: true, minDepth: 5),
+    );
+    expect(
+      (await container.read(ccrGasUseTrendProvider.future)).isEmpty,
+      isTrue,
+    );
+  });
+
   test('an active filter still resolves every aggregate', () async {
     // Drives the filter-threading path (non-empty DiveFilterState) through the
     // same providers so the filtered SQL branch is exercised too.

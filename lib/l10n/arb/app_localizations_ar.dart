@@ -10853,6 +10853,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'استهلاك الحلقة $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -14233,6 +14238,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'أسطوانة مرحلية';
+
+  @override
+  String get enum_tankRole_twinSet => 'طقم مزدوج';
 
   @override
   String get enum_tideState_rising => 'مد';
@@ -29436,7 +29444,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'كيفية تحويل ضغط الأسطوانة إلى حجم غاز. يؤثر ذلك على معدل استهلاك الهواء والإحصاءات ومخطط الغوص وحاسبات الغاز. الغاز المثالي يطابق الحساب الذي تُعلّمه هيئات التدريب، أما الغاز الحقيقي فدقيق فيزيائيًا ويعطي معدل استهلاك أقل بنحو 5%.';
+      'كيفية تحويل ضغط الأسطوانة إلى حجم غاز. يؤثر ذلك على معدل استهلاك الهواء والغاز المستخدم والإحصاءات ومخطط الغوص وحاسبات الغاز. الغاز المثالي يطابق الحساب الذي تُعلّمه هيئات التدريب، أما الغاز الحقيقي فدقيق فيزيائيًا ويعطي معدل استهلاك أقل بنحو 5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'حسابات الغاز';
@@ -30287,6 +30295,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_filterBar_clear => 'مسح التصفية';
 
   @override
+  String get insights_filterBar_allDives => 'كل الغوصات';
+
+  @override
+  String get insights_filterBar_customFilter => 'تصفية مخصصة';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'اختر مجموعة غوصات';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'حفظ التصفية الحالية...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'إدارة الاستعلامات المحفوظة';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30325,6 +30348,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'استهلاك الغاز حسب دور الأسطوانة';
+
+  @override
+  String get insights_gas_ccrUse_title => 'استهلاك الغاز لجهاز إعادة التنفس';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'لكل دقيقة على الحلقة، باستثناء وقت الانتقال إلى الدائرة المفتوحة';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'متوسط O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'متوسط المخفف';
 
   @override
   String get insights_gas_sacRecords_empty => 'لا توجد بيانات استهلاك بعد';
@@ -30410,7 +30449,98 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'تُحتسب الأسطوانات المزدوجة المسجلة كأسطوانة واحدة عندما يدل الاسم على ذلك (twin، double، D12، 2x12) أو عندما تكون الأسطوانة أكبر من أي أسطوانة مفردة شائعة. عيّن تعليق جانبي أيسر وتعليق جانبي أيمن لأسطوانات الغوصة لتُحتسب كتعليق جانبي.';
+      'تُحتسب الغوصة كطقم مزدوج على الظهر عندما يكون دور إحدى الأسطوانات طقم مزدوج، وكتعليق جانبي عندما تكون أسطواناتها تعليق جانبي أيسر وتعليق جانبي أيمن.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة فيها أسطوانات تبدو كطقم مزدوج.',
+      many: '$count غوصة فيها أسطوانات تبدو كطقم مزدوج.',
+      few: '$count غوصات فيها أسطوانات تبدو كطقم مزدوج.',
+      two: 'غوصتان فيهما أسطوانات تبدو كطقم مزدوج.',
+      one: 'غوصة واحدة فيها أسطوانة تبدو كطقم مزدوج.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'تشير أسماؤها أو أحجامها إلى twin أو double أو D12 أو 2x12 أو $size فأكثر، لكن دورها غاز خلفي، لذا تُحتسب كأسطوانة مفردة.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'تعليم كطقم مزدوج';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'مراجعة الغوصات';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'تجاهل';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'تعيين الدور إلى طقم مزدوج؟';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'تعيين دور $tanks أسطوانة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      many:
+          'تعيين دور $tanks أسطوانة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      few:
+          'تعيين دور $tanks أسطوانات في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      two:
+          'تعيين دور أسطوانتين في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      one:
+          'تعيين دور أسطوانة واحدة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة',
+      many: '$count غوصة',
+      few: '$count غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'تعيين الدور';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'إلغاء';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تعيين $count أسطوانة كطقم مزدوج',
+      many: 'تم تعيين $count أسطوانة كطقم مزدوج',
+      few: 'تم تعيين $count أسطوانات كطقم مزدوج',
+      two: 'تم تعيين أسطوانتين كطقم مزدوج',
+      one: 'تم تعيين أسطوانة واحدة كطقم مزدوج',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed => 'تعذر تعيين الدور';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'يبدو كطقم مزدوج';
 
   @override
   String get insights_gas_tankConfig_empty => 'لا توجد غوصات لعرضها';
@@ -30878,6 +31008,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'أسطوانة مرحلية';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'طقم مزدوج';
 
   @override
   String get insights_geographic_appBar_title => 'جغرافي';

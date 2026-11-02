@@ -104,6 +104,22 @@ void main() {
       expect(find.text('Back Gas'), findsNothing);
     });
 
+    testWidgets('a lone twin set still shows its role and glyph (#3374)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_card([_tank('t', TankRole.twinSet)]));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(SubmersionIcons.tankTwinSet), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('tank-role-t')),
+          matching: find.text('Twin Set'),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('back gas is labelled once a second tank joins it', (
       tester,
     ) async {

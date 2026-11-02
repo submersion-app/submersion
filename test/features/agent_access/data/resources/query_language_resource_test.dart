@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/resources/query_language_resource.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 
@@ -38,6 +39,10 @@ void main() {
       expect(text, contains(':none'));
       expect(text, contains('list_divers'));
       expect(text, contains('local wall clock'));
+    });
+
+    test('states the same date rule the tools do', () async {
+      expect(kQueryGrammarText, contains(kDocumentDateRule));
     });
 
     test('does not list child-only subjects as roots', () async {

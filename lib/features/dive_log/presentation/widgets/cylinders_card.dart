@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
-import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
@@ -14,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
@@ -38,9 +38,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Unified card showing every cylinder on a dive: each tank drawn as a
 /// figure filled to show the gas left and the gas used, labelled with its
 /// start, end and used pressures (issue #3773), beside what the tank is, its
-/// gas, and a quiet detail block (gas used, SAC and RMV, MOD/MND, trip
-/// cylinder, transmitter, check-in). Issue #3675 had first made the stack of
-/// differently styled lines a table.
+/// gas, and a quiet detail block (gas used, loop use on a CCR dive, SAC and
+/// RMV, MOD/MND, trip cylinder, transmitter, check-in). Issue #3675 had first
+/// made the stack of differently styled lines a table.
 ///
 /// Replaces the former Tanks card and SAC by Cylinder block. Occupies the
 /// [DiveDetailSectionId.tanks] slot on the dive detail page. Per-tank SAC
@@ -62,13 +62,14 @@ class CylindersCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tankPressures = ref.watch(tankPressuresProvider(dive.id)).valueOrNull;
+    // `.value`, not `valueOrNull`, here and below: a reload keeps what is
+    // already shown rather than dropping it from every row.
+    final tankPressures = ref.watch(tankPressuresProvider(dive.id)).value;
     final cylinderSacs =
-        ref.watch(cylinderSacProvider(dive.id)).valueOrNull ??
-        const <CylinderSac>[];
+        ref.watch(cylinderSacProvider(dive.id)).value ?? const <CylinderSac>[];
     final sacByTankId = {for (final c in cylinderSacs) c.tankId: c};
     final dataSources =
-        ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ??
+        ref.watch(diveDataSourcesProvider(dive.id)).value ??
         const <DiveDataSource>[];
     // Only badge tanks once there's more than one source to disambiguate —
     // a single-source dive never needs attribution.
@@ -249,10 +250,7 @@ class CylindersCard extends ConsumerWidget {
     final serialKnown = serial != null && knownSerials.contains(serial);
     final nameDerivedRole = tank.roleSource == TankRoleSource.transmitterName;
 
-    final pressures = _resolveTankPressures(
-      tank: tank,
-      tankPressures: tankPressures,
-    );
+    final pressures = resolvedTankPressures(tank, tankPressures?[tank.id]);
     final pressureUsed = pressures.$1 != null && pressures.$2 != null
         ? pressures.$1! - pressures.$2!
         : null;
@@ -352,6 +350,11 @@ class CylindersCard extends ConsumerWidget {
                   '${units.volumeSymbol}',
                 ),
               ),
+            if (cylinderSac?.loopRate case final loopRate?)
+              Text(
+                key: Key('tank-loop-use-${tank.id}'),
+                l10n.diveLog_cylinders_loopUse(units.formatRmv(loopRate)),
+              ),
             if (cylinderSac != null && cylinderSac.hasValidSac)
               for (final line in _consumptionLines(l10n, cylinderSac))
                 Text(line),
@@ -447,28 +450,6 @@ class CylindersCard extends ConsumerWidget {
       if (display.showsRmv && rmv != null)
         '${l10n.gasConsumption_rmv} ${units.formatRmv(rmv)}',
     ];
-  }
-
-  /// Resolves start/end pressure: stored tank metadata wins, per-tank
-  /// time-series fills any nulls. A negative reading is a sensor or entry
-  /// error, never a pressure, so it counts as missing: no figure level and
-  /// no used amount is drawn from it.
-  (double?, double?) _resolveTankPressures({
-    required DiveTank tank,
-    required Map<String, List<TankPressurePoint>>? tankPressures,
-  }) {
-    double? valid(double? pressure) =>
-        pressure != null && pressure >= 0 ? pressure : null;
-    final start = valid(tank.startPressure);
-    final end = valid(tank.endPressure);
-    final points = tankPressures?[tank.id];
-    if (points != null && points.isNotEmpty) {
-      return (
-        start ?? valid(points.first.pressure),
-        end ?? valid(points.last.pressure),
-      );
-    }
-    return (start, end);
   }
 
   /// computerId -> display name via the shared source-name resolver.

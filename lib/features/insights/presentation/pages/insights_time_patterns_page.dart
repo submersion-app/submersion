@@ -11,6 +11,7 @@ import 'package:submersion/features/insights/presentation/insights_dive_filters.
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/calendar_day_matrix_card.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -54,10 +55,8 @@ class InsightsTimePatternsPage extends ConsumerWidget {
       return content;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.insights_timePatterns_appBar_title),
-      ),
+    return InsightsFilteredScaffold(
+      title: context.l10n.insights_timePatterns_appBar_title,
       body: content,
     );
   }
