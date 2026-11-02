@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_date_chip_label.dart';
@@ -10,15 +10,12 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 void main() {
   const units = UnitFormatter(AppSettings());
 
-  setUpAll(() async {
-    await initializeDateFormatting();
-  });
-
-  String? label(QueryNode node, {String language = 'en'}) => diveDateChipLabel(
-    node,
-    l10n: lookupAppLocalizations(Locale(language)),
-    units: units,
-  );
+  String? label(QueryNode node, {UnitFormatter units = units}) =>
+      diveDateChipLabel(
+        node,
+        l10n: lookupAppLocalizations(const Locale('en')),
+        units: units,
+      );
 
   ConditionNode range(DateTime start, DateTime end) => ConditionNode(
     FieldPath(['date']),
@@ -35,21 +32,21 @@ void main() {
   test('a whole month', () {
     expect(
       label(range(DateTime(2018, 10, 1), DateTime(2018, 10, 31))),
-      'October 2018',
+      'Oct 2018',
     );
     expect(
       label(range(DateTime(2024, 2, 1), DateTime(2024, 2, 29))),
-      'February 2024',
+      'Feb 2024',
     );
   });
 
-  test('a month in the diver language', () {
+  test('a month follows the diver date format', () {
+    const iso = UnitFormatter(
+      AppSettings(dateFormat: DateFormatPreference.yyyymmdd),
+    );
     expect(
-      label(
-        range(DateTime(2018, 10, 1), DateTime(2018, 10, 31)),
-        language: 'fr',
-      ),
-      'octobre 2018',
+      label(range(DateTime(2018, 10, 1), DateTime(2018, 10, 31)), units: iso),
+      '2018-10',
     );
   });
 

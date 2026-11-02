@@ -239,7 +239,7 @@ holds in light and dark. Word chips keep today's look:
 | Condition | Chip |
 | --- | --- |
 | A whole year | `2018` |
-| A whole month | `October 2018` |
+| A whole month | `UnitFormatter.formatMonthYear`, such as `Oct 2018` |
 | A single day | The day, in the diver's date format |
 | Any other range | The existing `diveLog_filterChip_dateRange` wording |
 | `>=` | The existing `diveLog_filterChip_from` wording |

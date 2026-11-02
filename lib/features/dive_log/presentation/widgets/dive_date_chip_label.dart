@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -21,7 +19,7 @@ String? diveDateChipLabel(
     (QueryOp.inList, final DateRangeValue range) => _rangeLabel(
       range,
       l10n: l10n,
-      day: day,
+      units: units,
     ),
     (QueryOp.eq, DateValue(day: final date)) => day(date),
     (QueryOp.gte, DateValue(day: final date)) => l10n.diveLog_filterChip_from(
@@ -37,16 +35,17 @@ String? diveDateChipLabel(
 String _rangeLabel(
   DateRangeValue range, {
   required AppLocalizations l10n,
-  required String Function(DateTime date) day,
+  required UnitFormatter units,
 }) {
   final DateRangeValue(:start, :end) = range;
   final wholeMonths =
       start.day == 1 && DateTime(end.year, end.month + 1, 0).day == end.day;
   if (wholeMonths && start.year == end.year) {
     if (start.month == 1 && end.month == 12) return '${start.year}';
-    if (start.month == end.month) {
-      return DateFormat.yMMMM(l10n.localeName).format(start);
-    }
+    if (start.month == end.month) return units.formatMonthYear(start);
   }
-  return l10n.diveLog_filterChip_dateRange(day(start), day(end));
+  return l10n.diveLog_filterChip_dateRange(
+    units.formatMonthDayWithYear(start),
+    units.formatMonthDayWithYear(end),
+  );
 }

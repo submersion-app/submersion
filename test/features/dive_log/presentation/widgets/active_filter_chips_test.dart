@@ -396,7 +396,7 @@ void main() {
         ]),
       );
 
-      expect(find.text('October 2018'), findsOneWidget);
+      expect(find.text('Oct 2018'), findsOneWidget);
       expect(find.text('date in 2018-10'), findsNothing);
       expect(find.byIcon(Icons.calendar_today), findsOneWidget);
     });
@@ -436,7 +436,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.close).last);
       await tester.pump();
 
-      expect(find.text('October 2018'), findsNothing);
+      expect(find.text('Oct 2018'), findsNothing);
       expect(find.text('ressel'), findsOneWidget);
     });
   });
