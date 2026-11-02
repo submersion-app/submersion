@@ -48479,7 +48479,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => '修剪模式';
 
   @override
-  String get diveLog_profileEditor_trimHint => '修剪轮廓端点';
+  String get diveLog_profileEditor_deletionHeader => '删除';
+
+  @override
+  String get diveLog_profileEditor_trimHint => '删除整个轮廓或其中一部分。';
 
   @override
   String get diveLog_profileEditor_trimEnd => '修剪末端';

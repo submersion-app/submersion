@@ -51383,8 +51383,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'Vágás mód';
 
   @override
+  String get diveLog_profileEditor_deletionHeader => 'Törlés';
+
+  @override
   String get diveLog_profileEditor_trimHint =>
-      'A profil végpontjainak levágása';
+      'Töröld a profilt vagy annak egyes részeit.';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Vég levágása';

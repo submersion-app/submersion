@@ -81756,10 +81756,16 @@ abstract class AppLocalizations {
   /// **'Trim Mode'**
   String get diveLog_profileEditor_trimMode;
 
+  /// Section header for profile editor actions that delete the entire profile or parts of it
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion'**
+  String get diveLog_profileEditor_deletionHeader;
+
   /// No description provided for @diveLog_profileEditor_trimHint.
   ///
   /// In en, this message translates to:
-  /// **'Trim profile endpoints'**
+  /// **'Delete the profile or parts of it.'**
   String get diveLog_profileEditor_trimHint;
 
   /// No description provided for @diveLog_profileEditor_trimEnd.
@@ -81897,7 +81903,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_profileEditor_deleteProfile_confirmNow.
   ///
   /// In en, this message translates to:
-  /// **'Delete permanently now'**
+  /// **'Delete Permanently Now'**
   String get diveLog_profileEditor_deleteProfile_confirmNow;
 
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.

@@ -51679,8 +51679,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'Modalità ritaglio';
 
   @override
+  String get diveLog_profileEditor_deletionHeader => 'Eliminazione';
+
+  @override
   String get diveLog_profileEditor_trimHint =>
-      'Ritaglia le estremità del profilo';
+      'Elimina il profilo o parti di esso.';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Ritaglia la fine';

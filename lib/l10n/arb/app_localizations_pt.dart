@@ -51668,8 +51668,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'Modo de corte';
 
   @override
+  String get diveLog_profileEditor_deletionHeader => 'Exclusão';
+
+  @override
   String get diveLog_profileEditor_trimHint =>
-      'Cortar as extremidades do perfil';
+      'Exclua o perfil ou partes dele.';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Cortar o fim';

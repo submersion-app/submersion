@@ -306,7 +306,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          context.l10n.common_action_delete,
+          context.l10n.diveLog_profileEditor_deletionHeader,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         Padding(
@@ -336,7 +336,9 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
                 foregroundColor: Theme.of(context).colorScheme.onError,
               ),
               icon: const Icon(Icons.delete_outline, size: 18),
-              label: const Text('Profil löschen'),
+              label: Text(
+                context.l10n.diveLog_profileEditor_deleteProfile_title,
+              ),
             ),
           ],
         ),

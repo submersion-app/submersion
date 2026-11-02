@@ -50591,7 +50591,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'מצב חיתוך';
 
   @override
-  String get diveLog_profileEditor_trimHint => 'חיתוך קצות הפרופיל';
+  String get diveLog_profileEditor_deletionHeader => 'מחיקה';
+
+  @override
+  String get diveLog_profileEditor_trimHint => 'מחק את הפרופיל או חלקים ממנו.';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'חיתוך הסוף';
