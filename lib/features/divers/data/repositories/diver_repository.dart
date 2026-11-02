@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_buddy_links.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
     show AppSettings;
@@ -974,6 +975,12 @@ class DiverRepository {
           _db,
           _syncRepository,
           centerIds,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        await clearEquipmentLocationBuddyLinks(
+          _db,
+          _syncRepository,
+          await _idsOf('SELECT id FROM buddies WHERE diver_id = ?', [id]),
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverLibrarySteps);

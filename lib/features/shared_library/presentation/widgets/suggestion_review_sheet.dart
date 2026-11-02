@@ -20,6 +20,7 @@ Future<void> showSuggestionReviewSheet(
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   builder: (_) =>
       SuggestionReviewSheet(suggestion: suggestion, siteGone: siteGone),
 );

@@ -86,6 +86,7 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,

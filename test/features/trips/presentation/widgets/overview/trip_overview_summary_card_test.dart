@@ -44,7 +44,7 @@ Trip _trip({int? perDay = 3, int sharing = 2}) => Trip(
 TripChecklistItem _todo(String id, {bool done = false, DateTime? due}) =>
     TripChecklistItem(
       id: id,
-      tripId: 't1',
+      checklistId: 'c1',
       title: id,
       isDone: done,
       dueDate: due,
@@ -148,7 +148,7 @@ Future<({List<TripDetailTab> opened, List<String> pushed})> _pump(
     ProviderScope(
       overrides: [
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-        tripChecklistProvider('t1').overrideWith(
+        tripChecklistAllItemsProvider('t1').overrideWith(
           (ref) => loading ? never : Future.value(checklist ?? []),
         ),
         tripGearProvider('t1').overrideWith((ref) async => gear ?? const []),

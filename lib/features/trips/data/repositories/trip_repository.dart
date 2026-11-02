@@ -10,7 +10,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
-import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
@@ -352,7 +352,7 @@ class TripRepository {
         // Delete child records with non-nullable FKs first
         await LiveaboardDetailsRepository().deleteByTripId(id);
         await _itineraryDays.deleteByTripId(id);
-        await TripChecklistRepository().deleteByTripId(id);
+        await TripChecklistsRepository().deleteAllForTrip(id);
         await TripDayWeatherRepository().deleteByTripId(id);
         // Slots, their ledger and the links on the tanks that used them.
         await TripCylinderRepository().deleteByTripId(id);

@@ -197,11 +197,22 @@ void main() {
             ),
           );
       await db
+          .into(db.tripChecklists)
+          .insert(
+            TripChecklistsCompanion.insert(
+              id: 'tc-a',
+              tripId: 'trip-a',
+              name: 'Checklist',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
           .into(db.tripChecklistItems)
           .insert(
             TripChecklistItemsCompanion.insert(
               id: 'check-a',
-              tripId: 'trip-a',
+              checklistId: 'tc-a',
               title: 'Passport',
               createdAt: stale,
               updatedAt: stale,
@@ -259,6 +270,7 @@ void main() {
         ('trips', 'trips', 'trip-a'),
         ('liveaboard_detail_records', 'liveaboardDetails', 'lb-a'),
         ('trip_itinerary_days', 'itineraryDays', 'day-a'),
+        ('trip_checklists', 'tripChecklists', 'tc-a'),
         ('trip_checklist_items', 'tripChecklistItems', 'check-a'),
         ('trip_day_weather', 'tripDayWeather', 'wx-a'),
         ('trip_cylinders', 'tripCylinders', 'slot-a'),

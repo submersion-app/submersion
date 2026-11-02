@@ -225,6 +225,7 @@ void showTagPickerSheet(
   showModalBottomSheet<void>(
     context: host ?? context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (sheetContext) => DraggableScrollableSheet(
       initialChildSize: 0.7,
       minChildSize: 0.5,

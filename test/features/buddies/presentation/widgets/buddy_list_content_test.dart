@@ -986,7 +986,7 @@ void main() {
       await pumpWithQuery(tester, ids: {'b1'});
       expect(find.text('Alice'), findsOneWidget);
       expect(find.text('Bob'), findsNothing);
-      expect(find.text('favorite = true'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'favorite = true'), findsOneWidget);
     });
 
     testWidgets('a query that keeps nothing shows the no-match state', (

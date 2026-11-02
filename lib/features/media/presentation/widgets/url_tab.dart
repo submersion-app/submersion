@@ -136,6 +136,7 @@ class _UrlTabState extends ConsumerState<UrlTab> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => NetworkSignInSheet(hostname: hostname),
     );
   }

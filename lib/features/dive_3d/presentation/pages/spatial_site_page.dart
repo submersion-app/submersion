@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
@@ -22,7 +23,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -123,15 +124,16 @@ class _DiveSeascapeStandaloneState
     SceneOverlay.markers,
     SceneOverlay.contours,
   };
-  late final AnimationController _player;
+  late final ScenePlayer _player;
 
   @override
   void initState() {
     super.initState();
-    _player = AnimationController(
+    _player = ScenePlayer(
       vsync: this,
       duration: const Duration(seconds: 45),
-    )..addListener(() => _position.value = _player.value);
+      position: _position,
+    );
   }
 
   @override
@@ -140,17 +142,6 @@ class _DiveSeascapeStandaloneState
     _position.dispose();
     _hoverPick.dispose();
     super.dispose();
-  }
-
-  void _togglePlay() {
-    setState(() {
-      if (_player.isAnimating) {
-        _player.stop();
-      } else {
-        if (_position.value >= 1.0) _player.value = 0;
-        _player.forward(from: _position.value);
-      }
-    });
   }
 
   @override
@@ -338,14 +329,7 @@ class _DiveSeascapeStandaloneState
                           ],
                         ),
                       ),
-                    TimeScrubBar(
-                      position: _position,
-                      playing: _player.isAnimating,
-                      onPlayPause: _togglePlay,
-                      onScrubStart: () {
-                        if (_player.isAnimating) setState(() => _player.stop());
-                      },
-                    ),
+                    ScenePlayerBar(player: _player),
                   ],
                 ),
               ),

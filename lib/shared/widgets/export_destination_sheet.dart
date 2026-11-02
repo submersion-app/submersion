@@ -78,6 +78,7 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
     // cap of 9/16 of the screen height on a phone, so the sheet sizes to its
     // content and scrolls when even that does not fit.
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (sheetContext) => StatefulBuilder(
       builder: (builderContext, setSheetState) => SafeArea(
         child: SingleChildScrollView(

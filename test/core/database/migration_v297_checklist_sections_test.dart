@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -13,6 +14,13 @@ import 'package:sqlite3/sqlite3.dart' show Database;
 /// separate "stage B"; see docs/design/plans/2026-10-18-checklist-sections-
 /// plan.md's migration-safety section for why a historical two-release
 /// split does not apply to a migration written from scratch).
+///
+/// A full `AppDatabase` always migrates to `currentSchemaVersion`, so by
+/// the time these tests inspect the schema, v336 (issue #3356) has already
+/// run too and replaced both tables' `trip_id` with `checklist_id`. Tests
+/// that need "this trip's sections/items" go through
+/// [defaultChecklistId] to resolve the backfilled default checklist
+/// instead of filtering on a `trip_id` column that no longer exists.
 void main() {
   /// Base schema (trips + pre-migration trip_checklist_items with
   /// `category`) shared by every fixture below.
@@ -72,6 +80,23 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
+  /// A full `AppDatabase` always migrates all the way to
+  /// `currentSchemaVersion`, so by the time these assertions run, v336
+  /// (issue #3356) has already replaced `trip_id` with `checklist_id` on
+  /// both tables and backfilled one default checklist per trip with
+  /// existing rows. This resolves that default checklist so a test can
+  /// still select "this trip's sections/items" the way it could when
+  /// `trip_id` was still a column on them directly.
+  Future<String> defaultChecklistId(AppDatabase db, String tripId) async {
+    final row = await db
+        .customSelect(
+          'SELECT id FROM trip_checklists WHERE trip_id = ?',
+          variables: [Variable.withString(tripId)],
+        )
+        .getSingle();
+    return row.read<String>('id');
+  }
+
   test('v297 is at or below the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(297));
     expect(AppDatabase.migrationVersions, contains(297));
@@ -94,7 +119,7 @@ void main() {
 
       expect(
         await columnsOf(db, 'trip_checklist_sections'),
-        containsAll(['id', 'trip_id', 'title', 'sort_order', 'hlc']),
+        containsAll(['id', 'checklist_id', 'title', 'sort_order', 'hlc']),
       );
       final itemCols = await columnsOf(db, 'trip_checklist_items');
       expect(itemCols, contains('section_id'));
@@ -128,9 +153,11 @@ void main() {
       );
       addTearDown(db.close);
 
+      final checklistId = await defaultChecklistId(db, 'trip1');
       final sections = await db
           .customSelect(
-            "SELECT * FROM trip_checklist_sections WHERE trip_id = 'trip1'",
+            'SELECT * FROM trip_checklist_sections WHERE checklist_id = ?',
+            variables: [Variable.withString(checklistId)],
           )
           .get();
       expect(sections, hasLength(1));
@@ -138,8 +165,9 @@ void main() {
 
       final items = await db
           .customSelect(
-            "SELECT section_id FROM trip_checklist_items "
-            "WHERE trip_id = 'trip1'",
+            'SELECT section_id FROM trip_checklist_items '
+            'WHERE checklist_id = ?',
+            variables: [Variable.withString(checklistId)],
           )
           .get();
       expect(items.map((r) => r.data['section_id']).toSet(), {
@@ -165,10 +193,12 @@ void main() {
     );
     addTearDown(db.close);
 
+    final checklistId = await defaultChecklistId(db, 'trip1');
     final items = await db
         .customSelect(
-          "SELECT section_id FROM trip_checklist_items "
-          "WHERE trip_id = 'trip1'",
+          'SELECT section_id FROM trip_checklist_items '
+          'WHERE checklist_id = ?',
+          variables: [Variable.withString(checklistId)],
         )
         .get();
     expect(items.every((r) => r.data['section_id'] == null), isTrue);
@@ -202,7 +232,10 @@ void main() {
     addTearDown(db.close);
 
     final sections = await db
-        .customSelect('SELECT * FROM trip_checklist_sections')
+        .customSelect(
+          'SELECT s.*, c.trip_id AS trip_id FROM trip_checklist_sections s '
+          'JOIN trip_checklists c ON c.id = s.checklist_id',
+        )
         .get();
     expect(sections, hasLength(2));
     expect(sections.map((r) => r.data['trip_id']).toSet(), {'trip1', 'trip2'});
@@ -278,7 +311,10 @@ void main() {
     );
     addTearDown(db.close);
 
-    expect(await columnsOf(db, 'trip_checklist_sections'), contains('trip_id'));
+    expect(
+      await columnsOf(db, 'trip_checklist_sections'),
+      contains('checklist_id'),
+    );
     final itemCols = await columnsOf(db, 'trip_checklist_items');
     expect(itemCols, contains('section_id'));
     expect(itemCols, isNot(contains('category')));

@@ -22,6 +22,7 @@ Future<void> showConditionEvidenceSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (sheetContext) => SafeArea(
       child: _EvidenceSheet(equipment: equipment, finding: finding),
     ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -32,12 +33,12 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_attention_filter_bar.dart';
-import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/certifications/query/certification_query_entity.dart';
-import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
@@ -191,7 +192,8 @@ class _CertificationListContentState
   /// The list body with the query's chips above it (#2365) and, while the
   /// home chip's needs-attention scope is on, its indicator (issue #2267).
   Widget _withQueryChips(Widget child) {
-    final framed = QueryChipsFrame(
+    final framed = EntitySearchFrame(
+      subject: QuerySubject.certifications,
       root: certificationQueryEntity,
       query: ref.watch(certificationQueryProvider),
       onChanged: _setQuery,
@@ -296,16 +298,11 @@ class _CertificationListContentState
                             context.l10n.certifications_list_tooltip_walletView,
                         onPressed: () => context.push('/certifications/wallet'),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.search),
+                      EntitySearchAction(
+                        subject: QuerySubject.certifications,
+                        active: ref.watch(certificationQueryProvider) != null,
                         tooltip:
                             context.l10n.certifications_list_tooltip_search,
-                        onPressed: () {
-                          showSearch(
-                            context: context,
-                            delegate: CertificationSearchDelegate(),
-                          );
-                        },
                       ),
                       IconButton(
                         icon: const Icon(Icons.sort),
@@ -587,15 +584,11 @@ class _CertificationListContentState
             tooltip: context.l10n.certifications_list_tooltip_walletView,
             onPressed: () => context.push('/certifications/wallet'),
           ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
+          EntitySearchAction(
+            subject: QuerySubject.certifications,
+            active: ref.watch(certificationQueryProvider) != null,
             tooltip: context.l10n.certifications_list_tooltip_search,
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: CertificationSearchDelegate(),
-              );
-            },
+            compact: true,
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),

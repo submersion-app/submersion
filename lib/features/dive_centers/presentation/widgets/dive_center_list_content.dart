@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -34,12 +35,12 @@ import 'package:submersion/features/dive_centers/presentation/widgets/compact_di
 import 'package:submersion/features/dive_centers/presentation/widgets/dense_dive_center_list_tile.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
-import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_search_delegate.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
-import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
@@ -217,7 +218,8 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       ref.read(diveCenterQueryProvider.notifier).state = query;
 
   /// The list body with the query's chips above it (#2365).
-  Widget _withQueryChips(Widget child) => QueryChipsFrame(
+  Widget _withQueryChips(Widget child) => EntitySearchFrame(
+    subject: QuerySubject.centers,
     root: diveCenterQueryEntity,
     query: ref.watch(diveCenterQueryProvider),
     onChanged: _setQuery,
@@ -301,15 +303,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                       tooltip: context.l10n.diveCenters_tooltip_mapView,
                       onPressed: () => context.push('/dive-centers/map'),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.search),
+                    EntitySearchAction(
+                      subject: QuerySubject.centers,
+                      active: ref.watch(diveCenterQueryProvider) != null,
                       tooltip: context.l10n.diveCenters_tooltip_search,
-                      onPressed: () {
-                        showSearch(
-                          context: context,
-                          delegate: DiveCenterSearchDelegate(ref),
-                        );
-                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.sort),
@@ -627,15 +624,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
               tooltip: context.l10n.diveCenters_tooltip_mapView,
               onPressed: () => context.push('/dive-centers/map'),
             ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
+          EntitySearchAction(
+            subject: QuerySubject.centers,
+            active: ref.watch(diveCenterQueryProvider) != null,
             tooltip: context.l10n.diveCenters_tooltip_search,
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: DiveCenterSearchDelegate(ref),
-              );
-            },
+            compact: true,
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),

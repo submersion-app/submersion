@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/site_scape/presentation/patch_aware_hover_picker.dart';
 import 'package:submersion/features/site_scape/presentation/seascape_source_chip.dart';
@@ -29,7 +30,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interac
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/terrain_appearance_sheet.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_tooltip_layout.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -75,18 +76,39 @@ class SiteTerrainPane extends ConsumerStatefulWidget {
 const double _minOverlayColumnWidth = 160;
 
 class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   /// A playbackContext means this pane is showing one dive's or route's own
   /// path on top of the site scene; the site scene itself then has no
   /// reason to carry every OTHER dive's path too (issue #3571), so every
   /// siteSeascapeProvider-derived watch below is keyed on this.
   bool get _isolatePaths => widget.playbackContext != null;
 
+  /// The one dive's or route's path being played back on top of the site
+  /// scene (see [SiteTerrainPane.playbackContext]); null for the plain site
+  /// view, where there is nothing to play.
+  SiteActivePathOverlayRequest? get _activePathRequest {
+    final playbackContext = widget.playbackContext;
+    if (playbackContext == null) return null;
+    return (
+      siteId: widget.siteId,
+      pathId: switch (playbackContext) {
+        DivePlaybackContext(diveId: final id) => id,
+        NavTrackPlaybackContext(trackId: final id) => id,
+      },
+      source: switch (playbackContext) {
+        DivePlaybackContext() => PathOverlaySource.dive,
+        NavTrackPlaybackContext() => PathOverlaySource.navTrack,
+      },
+      isolatePaths: _isolatePaths,
+    );
+  }
+
   // Parked at 0 for the plain site view (no timeline there); driven by
   // [_player] once [SiteTerrainPane.playbackContext] is set. The mixin is
   // unconditional (Dart mixins can't be added only for some instances), but
   // [_player] itself is only ever created below when there is a context to
-  // play back, so the site-only path pays nothing for it.
+  // play back, so the site-only path pays nothing for it. Not the
+  // single-ticker mixin: [_syncPlayer] can create a player more than once.
   final ValueNotifier<double> _scrub = ValueNotifier(0);
 
   /// The docked control card's laid-out size, and whether it held the
@@ -129,7 +151,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   /// The playback timeline's driver, created only when
   /// [SiteTerrainPane.playbackContext] is set (see [_syncPlayer]); null for
   /// the plain site view, which has no timeline to drive.
-  AnimationController? _player;
+  ScenePlayer? _player;
 
   @override
   void initState() {
@@ -154,7 +176,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
 
   /// Creates or disposes [_player] to match whether
   /// [SiteTerrainPane.playbackContext] is currently set. An existing
-  /// controller is kept, so a dive-to-dive or route-to-route switch keeps
+  /// player is kept, so a dive-to-dive or route-to-route switch keeps
   /// the timeline position instead of restarting playback from 0.
   void _syncPlayer() {
     if (widget.playbackContext == null) {
@@ -163,35 +185,11 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
       _scrub.value = 0;
       return;
     }
-    if (_player != null) return;
-    _player =
-        AnimationController(vsync: this, duration: const Duration(seconds: 45))
-          ..addListener(() => _scrub.value = _player!.value)
-          // Playback reaching the end stops the controller on its own, with no
-          // call to _togglePlay -- without this, the pane never rebuilds for
-          // that, so _timeline()'s cached `player.isAnimating` read (captured
-          // at the last build) keeps reading true and the pause icon stays up
-          // forever after the timeline finishes (code review).
-          ..addStatusListener((status) {
-            if ((status == AnimationStatus.completed ||
-                    status == AnimationStatus.dismissed) &&
-                mounted) {
-              setState(() {});
-            }
-          });
-  }
-
-  void _togglePlay() {
-    final player = _player;
-    if (player == null) return;
-    setState(() {
-      if (player.isAnimating) {
-        player.stop();
-      } else {
-        if (_scrub.value >= 1.0) player.value = 0;
-        player.forward(from: _scrub.value);
-      }
-    });
+    _player ??= ScenePlayer(
+      vsync: this,
+      duration: const Duration(seconds: 45),
+      position: _scrub,
+    );
   }
 
   @override
@@ -206,6 +204,14 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
 
   @override
   Widget build(BuildContext context) {
+    final activePathRequest = _activePathRequest;
+    if (activePathRequest != null) {
+      // No path means no timeline, and with it the only control that could
+      // stop the player.
+      ref.listen(siteActivePathOverlayProvider(activePathRequest), (_, next) {
+        if (next.hasSettled && next.value == null) _player?.stop();
+      });
+    }
     final stateAsync = ref.watch(
       siteSeascapeProvider((
         siteId: widget.siteId,
@@ -330,27 +336,11 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                     )),
                   )
                   .value;
-              // The one dive's or route's path being played back on top of
-              // the site scene (see SiteTerrainPane.playbackContext); null
-              // for the plain site view, where there is nothing to play.
               final playbackContext = widget.playbackContext;
-              final activePathAsync = playbackContext == null
+              final activePathRequest = _activePathRequest;
+              final activePathAsync = activePathRequest == null
                   ? null
-                  : ref.watch(
-                      siteActivePathOverlayProvider((
-                        siteId: widget.siteId,
-                        pathId: switch (playbackContext) {
-                          DivePlaybackContext(diveId: final id) => id,
-                          NavTrackPlaybackContext(trackId: final id) => id,
-                        },
-                        source: switch (playbackContext) {
-                          DivePlaybackContext() => PathOverlaySource.dive,
-                          NavTrackPlaybackContext() =>
-                            PathOverlaySource.navTrack,
-                        },
-                        isolatePaths: _isolatePaths,
-                      )),
-                    );
+                  : ref.watch(siteActivePathOverlayProvider(activePathRequest));
               final activePath = activePathAsync?.value;
               // scene.layers can legitimately be empty (e.g. right after a
               // source switch, before the terrain layer has been added);
@@ -603,14 +593,14 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                           playbackContext,
                           activePath?.hasLinkedRoute ?? false,
                         ),
-                        // Gated on activePath, not just playbackContext: a
+                        // Gated on activePath, not just the player: a
                         // dive/route whose path has fewer than two usable
                         // points (siteActivePathOverlayProvider then
                         // returns null) would otherwise show a playable
                         // timeline with no path for it to actually move
                         // along (code review).
-                        if (playbackContext != null && activePath != null)
-                          _timeline(),
+                        if (_player case final player? when activePath != null)
+                          ScenePlayerBar(player: player),
                       ],
                     ),
                   ),
@@ -618,22 +608,6 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
               );
             },
           ),
-      },
-    );
-  }
-
-  /// The playback timeline: present only when
-  /// [SiteTerrainPane.playbackContext] is set (see [_syncPlayer], which
-  /// creates [_player] exactly then).
-  Widget _timeline() {
-    final player = _player;
-    if (player == null) return const SizedBox.shrink();
-    return TimeScrubBar(
-      position: _scrub,
-      playing: player.isAnimating,
-      onPlayPause: _togglePlay,
-      onScrubStart: () {
-        if (player.isAnimating) setState(() => player.stop());
       },
     );
   }

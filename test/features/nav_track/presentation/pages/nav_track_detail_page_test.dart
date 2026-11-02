@@ -554,6 +554,95 @@ void main() {
     },
   );
 
+  group('track scale (#3823)', () {
+    const line = ValueKey('nav-track-detail-scale');
+
+    testWidgets('shows the scale away from 100%', (tester) async {
+      await _pump(tester, route: _route().copyWith(scaleFactor: 1.38));
+      expect(find.text('Track scale: 138%'), findsOneWidget);
+    });
+
+    testWidgets('shows a decimal scale', (tester) async {
+      await _pump(tester, route: _route().copyWith(scaleFactor: 1.035));
+      expect(find.text('Track scale: 103.5%'), findsOneWidget);
+    });
+
+    testWidgets('a scaled track does not also say nothing was corrected', (
+      tester,
+    ) async {
+      await _pump(tester, route: _route().copyWith(scaleFactor: 1.38));
+      expect(find.text('No correction applied yet.'), findsNothing);
+      expect(find.text('Track scale: 138%'), findsOneWidget);
+    });
+
+    testWidgets('an end correction still shows beside a scale', (tester) async {
+      await _pump(
+        tester,
+        route: _route(
+          endMode: NavTrackEndMode.sameAsStart,
+        ).copyWith(scaleFactor: 1.38),
+      );
+      expect(find.text('End set to same as start.'), findsOneWidget);
+      expect(find.text('Track scale: 138%'), findsOneWidget);
+    });
+
+    testWidgets('no scale line at 100%', (tester) async {
+      await _pump(tester, route: _route());
+      expect(find.byKey(line), findsNothing);
+    });
+
+    testWidgets('a scale change reframes the map', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      NavTrack track(double scale) =>
+          _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
+            scaleFactor: scale,
+            points: [
+              for (var i = 0; i < 10; i++)
+                NavTrackPoint(
+                  timestamp: 1755856800 + i,
+                  north: i * 200.0,
+                  east: 0,
+                  depth: 5,
+                ),
+            ],
+          );
+
+      var current = track(1);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            navTrackByIdProvider('r1').overrideWith((ref) async => current),
+            navTrackRepositoryProvider.overrideWithValue(
+              _RecordingNavTrackRepository(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavTrackDetailPage(trackId: 'r1'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final controller = tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .mapController!;
+      final before = controller.camera.center.latitude;
+
+      current = track(3);
+      ProviderScope.containerOf(
+        tester.element(find.byType(NavTrackDetailPage)),
+      ).invalidate(navTrackByIdProvider('r1'));
+      await tester.pumpAndSettle();
+
+      expect(controller.camera.center.latitude, greaterThan(before + 0.005));
+    });
+  });
+
   testWidgets(
     'the inline map can rotate, so it carries a compass that resets it to '
     'north (#3386)',

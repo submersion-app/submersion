@@ -142,6 +142,7 @@ class ConflictReferenceResolver {
     'linkedDiverId': 'divers',
     'sessionId': 'preDiveSessions',
     'templateId': 'checklistTemplates',
+    'checklistId': 'tripChecklists',
   };
 
   /// Columns holding a JSON list of row ids rather than one id (#3375),

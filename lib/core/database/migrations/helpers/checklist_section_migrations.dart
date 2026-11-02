@@ -13,11 +13,34 @@ extension ChecklistSectionMigrations on AppDatabase {
   /// backfilled from category, which is then dropped.
   Future<void> _assertAndBackfillTripChecklistSections() async {
     if (!await _tableExists('trips')) return;
-    await Migrator(this).createTable(tripChecklistSections);
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_trip_checklist_sections_trip_id '
-      'ON trip_checklist_sections(trip_id)',
-    );
+    // Built from raw SQL, not Migrator(this).createTable(tripChecklistSections):
+    // that Dart class now describes the CURRENT (v336+, issue #3356) shape
+    // with checklist_id, but this rung must still produce the v297 shape it
+    // has always produced, with a direct trip_id column. It is
+    // _assertAndBackfillTripChecklists (the v336 rung) that turns this
+    // trip_id-shaped table into the checklist_id-shaped one the live class
+    // describes, on every database that passes through here first.
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS trip_checklist_sections (
+        id TEXT NOT NULL PRIMARY KEY,
+        trip_id TEXT NOT NULL REFERENCES trips (id),
+        title TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        hlc TEXT
+      )
+    ''');
+    // v336 (issue #3356) replaces this column with checklist_id and drops
+    // this index along with it (see TripChecklistMigrations), so recreating
+    // it here must not assume trip_id still exists: it would crash every
+    // open on a database that already ran that migration.
+    if (await _columnExists('trip_checklist_sections', 'trip_id')) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_trip_checklist_sections_trip_id '
+        'ON trip_checklist_sections(trip_id)',
+      );
+    }
     if (!await _tableExists('trip_checklist_items')) return;
     await _addColumnIfMissing(
       'trip_checklist_items',
