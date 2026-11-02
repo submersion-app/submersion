@@ -51,7 +51,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class FullscreenProfilePage extends ConsumerStatefulWidget {
   final String diveId;
 
-  const FullscreenProfilePage({super.key, required this.diveId});
+  /// Takes the diver to an annotation's passage, after this page has popped.
+  /// Null where no Notes card sits underneath (the dashboard's recent dive),
+  /// which leaves Open in Notes out of the marker popup.
+  final ValueChanged<String>? onOpenInNotes;
+
+  const FullscreenProfilePage({
+    super.key,
+    required this.diveId,
+    this.onOpenInNotes,
+  });
 
   @override
   ConsumerState<FullscreenProfilePage> createState() =>
@@ -291,21 +300,17 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
 
     final notifier = ref.read(playbackProvider(widget.diveId).notifier);
     // Annotations (#4109): the same actions as the detail page's chart host.
-    // "Open in Notes" hands the request to the detail page underneath, then
-    // pops.
+    final openInNotes = widget.onOpenInNotes;
     final annotationActions = DiveDetailAnnotationActions(
       ref: ref,
       context: context,
       dive: dive,
-      onOpenInNotes: (id) {
-        ref
-                .read(
-                  annotationOpenInNotesRequestProvider(widget.diveId).notifier,
-                )
-                .state =
-            id;
-        Navigator.of(context).pop();
-      },
+      onOpenInNotes: openInNotes == null
+          ? null
+          : (id) {
+              Navigator.of(context).pop();
+              openInNotes(id);
+            },
     );
     final annotationPlacement = ref.watch(
       annotationPlacementProvider(widget.diveId),

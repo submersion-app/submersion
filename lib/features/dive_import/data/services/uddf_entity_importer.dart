@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -2894,8 +2895,6 @@ class UddfEntityImporter {
                 ),
       ];
 
-      final notes = diveData['notes'] as String? ?? '';
-
       // Parse sightings
       final sightings = _buildSightings(diveData);
 
@@ -2973,6 +2972,17 @@ class UddfEntityImporter {
       final eventMaps =
           ((diveData['events'] ?? diveData['profileEvents']) as List?)
               ?.cast<Map<String, dynamic>>();
+      // A backup carries each event's own id (#4109). This dive is new, so an
+      // id the log already holds is another dive's (the backup restored
+      // twice): this copy takes a fresh one, and its Notes links follow.
+      final freshEventIds = await _freshIdsForTakenEvents(
+        eventMaps,
+        repos.diveRepository,
+      );
+      final notes = renameAnnotationLinks(
+        diveData['notes'] as String? ?? '',
+        freshEventIds,
+      );
       final diveTypeIds = _resolveDiveTypeIds(
         (diveData['diveTypeIds'] as List?)?.cast<String>() ??
             [diveData['diveType'] as String? ?? 'recreational'],
@@ -3279,20 +3289,18 @@ class UddfEntityImporter {
       if (eventMaps != null && eventMaps.isNotEmpty) {
         final events = profileEventsFromParsed(
           diveId: diveId,
-          eventMaps: eventMaps,
+          eventMaps: [
+            for (final map in eventMaps)
+              {...map, 'id': ?freshEventIds[map['id']]},
+          ],
           now: now,
           onSkipped: _log.warning,
         );
-        // A backup carries each event's own id (#4109); the repository skips
-        // the ones this log already holds (the original device, a peer, a
-        // second restore). A failure here must not leave the dive half
-        // imported: the events are a detail of it, not the dive.
+        // A failure here must not leave the dive half imported: the events
+        // are a detail of it, not the dive.
         try {
           if (events.isNotEmpty) {
-            await repos.diveRepository.insertProfileEvents(
-              events,
-              skipExisting: true,
-            );
+            await repos.diveRepository.insertProfileEvents(events);
           }
         } catch (e, stackTrace) {
           _log.error(
@@ -3832,6 +3840,20 @@ class UddfEntityImporter {
       }
     }
     return result;
+  }
+
+  /// A fresh id for each event in [eventMaps] whose id the log already holds.
+  Future<Map<String, String>> _freshIdsForTakenEvents(
+    List<Map<String, dynamic>>? eventMaps,
+    DiveRepository diveRepository,
+  ) async {
+    final ids = <String>[
+      for (final map in eventMaps ?? const <Map<String, dynamic>>[])
+        if (map['id'] case final String id when id.isNotEmpty) id,
+    ];
+    if (ids.isEmpty) return const {};
+    final taken = await diveRepository.existingProfileEventIds(ids);
+    return {for (final id in taken) id: _uuid.v4()};
   }
 
   Future<void> _storeTankPressures(

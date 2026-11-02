@@ -66,13 +66,27 @@ Map<String, String> annotationWordsInNotes(String notes) {
 Set<String> annotationIdsInNotes(String notes) =>
     annotationWordsInNotes(notes).keys.toSet();
 
-/// Any annotation link as written in Notes, whatever its id.
+/// Any annotation link as written in Notes, whatever its id, which is the
+/// first group.
 final annotationLinkPattern = RegExp(
   r'\[(?:\\.|[^\]])*\]\('
   '$annotationLinkScheme:'
-  r'[^)\s]*\)',
+  r'([^)\s]*)\)',
   caseSensitive: false,
 );
+
+/// [notes] with each annotation link's id replaced by its entry in [ids]. A
+/// link to any other id is left as it is.
+String renameAnnotationLinks(String notes, Map<String, String> ids) {
+  if (ids.isEmpty) return notes;
+  return notes.replaceAllMapped(annotationLinkPattern, (m) {
+    final link = m[0]!;
+    final id = m[1]!;
+    final renamed = ids[id];
+    if (renamed == null) return link;
+    return '${link.substring(0, link.length - id.length - 1)}$renamed)';
+  });
+}
 
 /// [notes] with every `[words](annotation:id)` turned back into `words`.
 /// Other text is untouched; an absent [id] returns the input unchanged.

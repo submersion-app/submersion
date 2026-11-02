@@ -33,7 +33,8 @@ class DiveDetailAnnotationActions {
   /// builds this must not rebuild its chart on an unrelated settings write.
   UnitFormatter get units => ref.read(unitFormatterProvider);
 
-  /// Scrolls the page to the Notes card and highlights the passage.
+  /// Scrolls the page to the Notes card and highlights the passage. Null
+  /// where no Notes card is at hand, which leaves the action out of the popup.
   final ValueChanged<String>? onOpenInNotes;
 
   String get diveId => dive.id;
@@ -107,12 +108,15 @@ class DiveDetailAnnotationActions {
 
   /// A tap on an annotation's dot: the popup, anchored to it.
   Future<void> onMarkerTap(ProfileEvent annotation, Offset globalCenter) {
+    final openInNotes = onOpenInNotes;
     return showAnnotationMarkerPopup(
       context,
       annotation: annotation,
       globalPosition: globalCenter,
       units: units,
-      onOpenInNotes: () => onOpenInNotes?.call(annotation.id),
+      onOpenInNotes: openInNotes == null
+          ? null
+          : () => openInNotes(annotation.id),
       onMove: () => _placement.startMove(annotation.id),
       onEditTime: () => editTime(annotation),
       onRemove: () => _remove(annotation),

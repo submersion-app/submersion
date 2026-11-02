@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_import/data/services/parsed_profile_eve
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:xml/xml.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -102,8 +103,8 @@ void main() {
     },
   );
 
-  test('restoring the same backup twice keeps one row per annotation id and '
-      'does not abort', () async {
+  test('restoring the same backup twice gives each copy of the dive its own '
+      'annotation under the id its Notes name', () async {
     final xml = await seedAndExport();
     await tearDownTestDatabase();
     final db = await setUpTestDatabase();
@@ -121,8 +122,14 @@ void main() {
     await restore();
     await restore();
 
-    expect(await DiveRepository().getAllDives(), hasLength(2));
+    final copies = await DiveRepository().getAllDives();
+    expect(copies, hasLength(2));
     final rows = await db.select(db.diveProfileEvents).get();
-    expect(rows.map((r) => r.id), ['ann-1']);
+    expect(rows.map((r) => r.id), contains('ann-1'));
+    expect(rows, hasLength(2));
+    for (final copy in copies) {
+      final row = rows.singleWhere((r) => r.diveId == copy.id);
+      expect(annotationIdsInNotes(copy.notes), {row.id});
+    }
   });
 }

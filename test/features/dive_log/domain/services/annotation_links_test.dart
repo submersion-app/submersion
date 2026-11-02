@@ -90,6 +90,43 @@ void main() {
     },
   );
 
+  group('renameAnnotationLinks', () {
+    test('points each named link at its new id', () {
+      expect(
+        renameAnnotationLinks(
+          'I [felt sick](annotation:a) then [recovered](annotation:b).',
+          {'a': 'fresh'},
+        ),
+        'I [felt sick](annotation:fresh) then [recovered](annotation:b).',
+      );
+    });
+
+    test('renames every link to an id, and a hand-edited scheme', () {
+      expect(
+        renameAnnotationLinks('[one](annotation:a) [two](Annotation:a)', {
+          'a': 'fresh',
+        }),
+        '[one](annotation:fresh) [two](Annotation:fresh)',
+      );
+    });
+
+    test('keeps escaped brackets in the words', () {
+      expect(
+        renameAnnotationLinks(r'[the \[left\] leg](annotation:a)', {'a': 'b'}),
+        r'[the \[left\] leg](annotation:b)',
+      );
+    });
+
+    test('leaves other text alone, and an empty map changes nothing', () {
+      const notes = 'See [site](https://example.com/annotation:a).';
+      expect(renameAnnotationLinks(notes, {'a': 'b'}), notes);
+      expect(
+        renameAnnotationLinks('[x](annotation:a)', const {}),
+        '[x](annotation:a)',
+      );
+    });
+  });
+
   test('annotationTimesOf formats m:ss per id', () {
     expect(annotationTimesOf([_ann('a', 1290), _ann('b', 65)]), {
       'a': '21:30',

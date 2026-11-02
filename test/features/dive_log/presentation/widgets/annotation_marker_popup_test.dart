@@ -26,6 +26,7 @@ void main() {
     DepthUnit unit = DepthUnit.feet,
     Offset at = const Offset(200, 200),
     Locale locale = const Locale('en'),
+    bool canOpenInNotes = true,
   }) async {
     final calls = <String>[];
     await tester.pumpWidget(
@@ -38,7 +39,7 @@ void main() {
               annotation: event ?? annotation,
               globalPosition: at,
               units: UnitFormatter(AppSettings(depthUnit: unit)),
-              onOpenInNotes: () => calls.add('open'),
+              onOpenInNotes: canOpenInNotes ? () => calls.add('open') : null,
               onMove: () => calls.add('move'),
               onEditTime: () => calls.add('time'),
               onRemove: () => calls.add('remove'),
@@ -157,6 +158,15 @@ void main() {
       expect(calls, [call], reason: label);
       expect(find.text('Remove'), findsNothing, reason: 'popup closed');
     }
+  });
+
+  testWidgets('with nowhere to open Notes the popup leaves that action out', (
+    tester,
+  ) async {
+    await open(tester, canOpenInNotes: false);
+    expect(find.text('Open in Notes'), findsNothing);
+    expect(find.text('Move'), findsOneWidget);
+    expect(find.text('Remove'), findsOneWidget);
   });
 
   testWidgets('tapping the time opens the time editor', (tester) async {

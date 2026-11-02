@@ -32,13 +32,14 @@ RelativeRect annotationMenuPosition(
 /// The popup a tapped annotation marker opens (#4109), anchored to the dot:
 /// the linked words in full, the time and depth in the diver's units (the
 /// time opens the time editor), and Open in Notes, Move and Remove. Each
-/// action closes the popup before it runs.
+/// action closes the popup before it runs. With no [onOpenInNotes], where no
+/// Notes card is at hand, that action is left out.
 Future<void> showAnnotationMarkerPopup(
   BuildContext context, {
   required ProfileEvent annotation,
   required Offset globalPosition,
   required UnitFormatter units,
-  required VoidCallback onOpenInNotes,
+  VoidCallback? onOpenInNotes,
   required VoidCallback onMove,
   required VoidCallback onEditTime,
   required VoidCallback onRemove,
@@ -51,7 +52,11 @@ Future<void> showAnnotationMarkerPopup(
       PopupMenuItem<_PopupChoice>(
         enabled: false,
         padding: EdgeInsets.zero,
-        child: _PopupBody(annotation: annotation, units: units),
+        child: _PopupBody(
+          annotation: annotation,
+          units: units,
+          canOpenInNotes: onOpenInNotes != null,
+        ),
       ),
     ],
   );
@@ -59,7 +64,7 @@ Future<void> showAnnotationMarkerPopup(
   if (!context.mounted) return;
   switch (choice) {
     case _PopupChoice.openInNotes:
-      onOpenInNotes();
+      onOpenInNotes?.call();
     case _PopupChoice.move:
       onMove();
     case _PopupChoice.editTime:
@@ -72,10 +77,15 @@ Future<void> showAnnotationMarkerPopup(
 }
 
 class _PopupBody extends StatelessWidget {
-  const _PopupBody({required this.annotation, required this.units});
+  const _PopupBody({
+    required this.annotation,
+    required this.units,
+    required this.canOpenInNotes,
+  });
 
   final ProfileEvent annotation;
   final UnitFormatter units;
+  final bool canOpenInNotes;
 
   @override
   Widget build(BuildContext context) {
@@ -126,10 +136,11 @@ class _PopupBody extends StatelessWidget {
                 alignment: MainAxisAlignment.end,
                 overflowAlignment: OverflowBarAlignment.end,
                 children: [
-                  TextButton(
-                    onPressed: () => choose(_PopupChoice.openInNotes),
-                    child: Text(l10n.diveLog_annotation_popup_openInNotes),
-                  ),
+                  if (canOpenInNotes)
+                    TextButton(
+                      onPressed: () => choose(_PopupChoice.openInNotes),
+                      child: Text(l10n.diveLog_annotation_popup_openInNotes),
+                    ),
                   TextButton(
                     onPressed: () => choose(_PopupChoice.move),
                     child: Text(l10n.diveLog_annotation_popup_move),

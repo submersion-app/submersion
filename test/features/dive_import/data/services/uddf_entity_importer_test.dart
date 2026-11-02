@@ -4194,12 +4194,7 @@ void main() {
       when(mockDiveRepo.createDive(any)).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Dive,
       );
-      when(
-        mockDiveRepo.insertProfileEvents(
-          any,
-          skipExisting: anyNamed('skipExisting'),
-        ),
-      ).thenAnswer((_) async {});
+      when(mockDiveRepo.insertProfileEvents(any)).thenAnswer((_) async {});
     });
 
     test('persists setpointChange event with correct fields', () async {
@@ -4223,10 +4218,7 @@ void main() {
       );
 
       final captured = verify(
-        mockDiveRepo.insertProfileEvents(
-          captureAny,
-          skipExisting: anyNamed('skipExisting'),
-        ),
+        mockDiveRepo.insertProfileEvents(captureAny),
       ).captured;
       final events = captured.first as List<ProfileEvent>;
       expect(events, hasLength(1));
@@ -4234,6 +4226,79 @@ void main() {
       expect(events[0].timestamp, 300);
       expect(events[0].value, 1.2);
       expect(events[0].source, EventSource.imported);
+    });
+
+    test('an event id the log already holds takes a fresh one, and the Notes '
+        'links follow it', () async {
+      when(
+        mockDiveRepo.existingProfileEventIds(any),
+      ).thenAnswer((_) async => {'taken'});
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'notes': '[felt sick](annotation:taken), [ok](annotation:free)',
+            'profileEvents': [
+              {
+                'id': 'taken',
+                'eventType': 'annotation',
+                'timestamp': 300,
+                'description': 'felt sick',
+              },
+              {
+                'id': 'free',
+                'eventType': 'annotation',
+                'timestamp': 400,
+                'description': 'ok',
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final events =
+          verify(mockDiveRepo.insertProfileEvents(captureAny)).captured.first
+              as List<ProfileEvent>;
+      final fresh = events[0].id;
+      expect(fresh, isNot('taken'));
+      expect(events[1].id, 'free');
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.first as Dive;
+      expect(
+        dive.notes,
+        '[felt sick](annotation:$fresh), [ok](annotation:free)',
+      );
+    });
+
+    test('events without an id ask nothing of the log', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'events': [
+              {'eventType': 'setpointChange', 'timestamp': 300, 'value': 1.2},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      verifyNever(mockDiveRepo.existingProfileEventIds(any));
     });
 
     test('does not call insertProfileEvents for unknown event type', () async {
@@ -4256,12 +4321,7 @@ void main() {
         diverId: diverId,
       );
 
-      verifyNever(
-        mockDiveRepo.insertProfileEvents(
-          any,
-          skipExisting: anyNamed('skipExisting'),
-        ),
-      );
+      verifyNever(mockDiveRepo.insertProfileEvents(any));
     });
 
     test(
@@ -4302,10 +4362,7 @@ void main() {
         );
 
         final captured = verify(
-          mockDiveRepo.insertProfileEvents(
-            captureAny,
-            skipExisting: anyNamed('skipExisting'),
-          ),
+          mockDiveRepo.insertProfileEvents(captureAny),
         ).captured;
         final events = captured.first as List<ProfileEvent>;
         expect(events, hasLength(8));
@@ -4363,10 +4420,7 @@ void main() {
       );
 
       final captured = verify(
-        mockDiveRepo.insertProfileEvents(
-          captureAny,
-          skipExisting: anyNamed('skipExisting'),
-        ),
+        mockDiveRepo.insertProfileEvents(captureAny),
       ).captured;
       final events = captured.first as List<ProfileEvent>;
       expect(events, hasLength(1));
@@ -4398,12 +4452,7 @@ void main() {
           diverId: diverId,
         );
 
-        verifyNever(
-          mockDiveRepo.insertProfileEvents(
-            any,
-            skipExisting: anyNamed('skipExisting'),
-          ),
-        );
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
       },
     );
 
@@ -4430,12 +4479,7 @@ void main() {
           diverId: diverId,
         );
 
-        verifyNever(
-          mockDiveRepo.insertProfileEvents(
-            any,
-            skipExisting: anyNamed('skipExisting'),
-          ),
-        );
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
       },
     );
 
@@ -4462,12 +4506,7 @@ void main() {
           diverId: diverId,
         );
 
-        verifyNever(
-          mockDiveRepo.insertProfileEvents(
-            any,
-            skipExisting: anyNamed('skipExisting'),
-          ),
-        );
+        verifyNever(mockDiveRepo.insertProfileEvents(any));
       },
     );
   });

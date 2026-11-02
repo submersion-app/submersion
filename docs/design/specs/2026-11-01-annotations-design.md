@@ -78,7 +78,8 @@ Tapping the time in the popup opens the time box so a new mm:ss can be
 typed instead of pointed at.
 
 The fullscreen profile page shows the same markers, popup and placement
-mode.
+mode. Opened from the dashboard's recent dive it has no Notes card behind
+it, so the popup leaves Open in Notes out.
 
 ### In the Notes card
 
@@ -216,8 +217,10 @@ the marker label and the popup too.
   resync readers keep an annotation's id and `user` source, and skip an
   incoming event whose id already exists on the dive, so a resync from a
   file that carries annotations alongside the preserved rows cannot
-  duplicate them. Readers of other files, and older readers of ours,
-  ignore the extensions as today. (Diver's choice.)
+  duplicate them. A restore always makes a new dive, so an id another dive
+  already holds (the backup restored twice) takes a fresh one and that
+  copy's Notes links follow it. Readers of other files, and older readers
+  of ours, ignore the extensions as today. (Diver's choice.)
 - **Legend.** The profile legend gains its own "Annotations" toggle, on by
   default and independent of the Events toggle, so hiding the computer's
   events keeps the diver's own. (Diver's choice.)

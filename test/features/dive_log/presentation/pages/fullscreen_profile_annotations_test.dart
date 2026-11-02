@@ -74,8 +74,11 @@ void main() {
             ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
           .get();
 
-  testWidgets('draws annotations and can place one', (tester) async {
-    await seed();
+  /// Pushes the page over a plain route, the way a caller opens it.
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    ValueChanged<String>? onOpenInNotes,
+  }) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -88,15 +91,76 @@ void main() {
           ...overrides.cast<Override>(),
           diveRepositoryProvider.overrideWithValue(repository),
         ],
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: FullscreenProfilePage(diveId: diveId),
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => FullscreenProfilePage(
+                    diveId: diveId,
+                    onOpenInNotes: onOpenInNotes,
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
         ),
       ),
     );
+    await tester.tap(find.text('open'));
     await settle(tester);
+  }
+
+  Future<void> tapDot(WidgetTester tester) async {
+    final layerFinder = find.byType(AnnotationMarkerLayer);
+    final layer = tester.widget<AnnotationMarkerLayer>(layerFinder);
+    final center = annotationDotCenters(
+      annotations: layer.annotations,
+      size: tester.getSize(layerFinder),
+      insets: layer.insets,
+      visibleMinSeconds: layer.visibleMinSeconds,
+      visibleMaxSeconds: layer.visibleMaxSeconds,
+      visibleMinDepth: layer.visibleMinDepth,
+      visibleMaxDepth: layer.visibleMaxDepth,
+      depthAt: layer.depthAt,
+    ).single!;
+    await tester.tapAt(tester.getTopLeft(layerFinder) + center);
+    await settle(tester, frames: 4);
+  }
+
+  testWidgets('Open in Notes pops and hands the annotation to the caller', (
+    tester,
+  ) async {
+    await seed();
+    final opened = <String>[];
+    await pumpPage(tester, onOpenInNotes: opened.add);
+
+    await tapDot(tester);
+    await tester.tap(find.text('Open in Notes'));
+    await settle(tester);
+
+    expect(opened, ['a1']);
+    expect(find.byType(FullscreenProfilePage), findsNothing);
+  });
+
+  testWidgets('opened with no Notes card behind it, as the dashboard does, '
+      'the popup offers no Open in Notes', (tester) async {
+    await seed();
+    await pumpPage(tester);
+
+    await tapDot(tester);
+
+    expect(find.text('Remove'), findsOneWidget);
+    expect(find.text('Open in Notes'), findsNothing);
+  });
+
+  testWidgets('draws annotations and can place one', (tester) async {
+    await seed();
+    await pumpPage(tester);
     expect(find.byType(AnnotationMarkerLayer), findsOneWidget);
 
     await tester.tap(find.byTooltip('Add annotation'));

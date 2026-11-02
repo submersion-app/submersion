@@ -3132,7 +3132,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasDecoStopCurve:
           widget.decoStopCurve != null && widget.decoStopCurve!.isNotEmpty,
       hasAscentRates: widget.ascentRates != null,
-      hasEvents: widget.events != null && widget.events!.isNotEmpty,
+      hasEvents: widget.events?.any((e) => !e.isAnnotation) ?? false,
       hasComputedEvents:
           widget.events?.any((e) => e.source == EventSource.computed) ?? false,
       hasImportedEvents:
@@ -5169,6 +5169,36 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               );
             },
           ),
+        // Annotation dots (#4109): on the depth curve at each annotation's
+        // time, tappable for the popup. A Listener layer that lets every
+        // pointer through, so it never contests the chart below it. Below
+        // the safety lane, photo chips and range handles too, so a tap on
+        // one of those is that layer's alone and a dot never pokes through
+        // an open card.
+        if (_showAnnotations && _annotations.isNotEmpty)
+          Positioned.fill(
+            key: const ValueKey('annotationMarkerLayer'),
+            child: AnnotationMarkerLayer(
+              annotations: _annotations,
+              insets: plotInsets,
+              visibleMinSeconds: visibleMinX,
+              visibleMaxSeconds: visibleMaxX,
+              visibleMinDepth: visibleMinDepth,
+              visibleMaxDepth: visibleMaxDepth,
+              depthAt: (seconds) => widget.profile.isEmpty
+                  ? null
+                  : _displayDepthAt(seconds.toDouble(), units),
+              onTap: widget.onAnnotationTap ?? (_, _) {},
+              interactive: !widget.annotationPlacement,
+              focusedId: widget.focusedAnnotationId,
+              onReveal: (seconds) => _revealSeconds(
+                seconds,
+                totalMaxTime: totalMaxTime,
+                totalMaxDepth: totalMaxDepth,
+                units: units,
+              ),
+            ),
+          ),
         // Safety findings lane: a widget layer like the photo markers,
         // occupying the extra bottom reservation added by _hasSafetyLane,
         // directly between the gas strip (or plot) and the tick labels.
@@ -5208,33 +5238,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           Positioned.fill(
             key: const ValueKey('safetyCalloutLayer'),
             child: safetyLayer(lane: false),
-          ),
-        // Annotation dots (#4109): on the depth curve at each annotation's
-        // time, tappable for the popup. A Listener layer, so it never
-        // contests the chart's own gestures or the range handles above it.
-        if (_showAnnotations && _annotations.isNotEmpty)
-          Positioned.fill(
-            key: const ValueKey('annotationMarkerLayer'),
-            child: AnnotationMarkerLayer(
-              annotations: _annotations,
-              insets: plotInsets,
-              visibleMinSeconds: visibleMinX,
-              visibleMaxSeconds: visibleMaxX,
-              visibleMinDepth: visibleMinDepth,
-              visibleMaxDepth: visibleMaxDepth,
-              depthAt: (seconds) => widget.profile.isEmpty
-                  ? null
-                  : _displayDepthAt(seconds.toDouble(), units),
-              onTap: widget.onAnnotationTap ?? (_, _) {},
-              interactive: !widget.annotationPlacement,
-              focusedId: widget.focusedAnnotationId,
-              onReveal: (seconds) => _revealSeconds(
-                seconds,
-                totalMaxTime: totalMaxTime,
-                totalMaxDepth: totalMaxDepth,
-                units: units,
-              ),
-            ),
           ),
         // Range-statistics handles. Topmost so a handle wins the pointer
         // over the layers below it, and inside the chart so it shares the

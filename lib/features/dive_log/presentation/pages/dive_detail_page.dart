@@ -130,6 +130,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// card when the list layout folds it, scrolls there and highlights the
   /// passage for a moment.
   Future<void> _scrollToNotes(String annotationId) async {
+    // The fullscreen profile calls back as it pops, and a resize or a route
+    // change while it was up can have replaced this page.
+    if (!mounted) return;
     final layout = ref.read(settingsProvider.select((s) => s.diveDetailLayout));
     if (layout.foldsSections) {
       await ref
@@ -301,21 +304,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    // The fullscreen profile's "Open in Notes" (#4109): it pops, then asks
-    // this page to scroll to the Notes card.
-    ref.listen<String?>(annotationOpenInNotesRequestProvider(widget.diveId), (
-      _,
-      id,
-    ) {
-      if (id == null) return;
-      ref
-              .read(
-                annotationOpenInNotesRequestProvider(widget.diveId).notifier,
-              )
-              .state =
-          null;
-      _scrollToNotes(id);
-    });
     final embeddedSiteId = widget.embeddedSiteId;
     if (embeddedSiteId != null && embeddedSiteId.isNotEmpty) {
       return SiteDetailPage(

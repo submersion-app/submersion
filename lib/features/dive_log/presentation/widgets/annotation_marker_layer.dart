@@ -75,8 +75,9 @@ int? nearestAnnotationIndex(
 /// The annotation dots on the dive profile (#4109): one filled dot on the
 /// depth curve per annotation, a halo on the focused one, and a tap within
 /// 20 px of a dot reports that annotation with the dot's global centre, for
-/// the popup to anchor to. A plain [Listener], so the chart's own gestures
-/// (pan, zoom, scrub) are never contested.
+/// the popup to anchor to. A translucent [Listener] over a painting that
+/// ignores the pointer, so every pointer also reaches the layers below: the
+/// chart's own gestures (pan, zoom, scrub) are never contested.
 class AnnotationMarkerLayer extends StatefulWidget {
   const AnnotationMarkerLayer({
     super.key,
@@ -222,15 +223,19 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
             }
           },
           onPointerUp: (e) => _onPointerUp(e, size),
-          child: CustomPaint(
-            size: size,
-            painter: _AnnotationDotsPainter(
-              centers: _centers(size),
-              focusedIndex: widget.annotations.indexWhere(
-                (a) => a.id == widget.focusedId,
+          // A CustomPaint counts as hit everywhere, which would stop the
+          // pointer here however translucent the Listener is.
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: size,
+              painter: _AnnotationDotsPainter(
+                centers: _centers(size),
+                focusedIndex: widget.annotations.indexWhere(
+                  (a) => a.id == widget.focusedId,
+                ),
+                color: ProfileMetricColors.annotation,
+                outline: Theme.of(context).colorScheme.surface,
               ),
-              color: ProfileMetricColors.annotation,
-              outline: Theme.of(context).colorScheme.surface,
             ),
           ),
         );

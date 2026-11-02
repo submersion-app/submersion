@@ -11,7 +11,11 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -72,6 +76,8 @@ Widget _chart(
   void Function(ProfileEvent, Offset)? onAnnotationTap,
   String? focusedAnnotationId,
   AppSettings settings = const AppSettings(),
+  void Function(int?)? onPointSelected,
+  List<PhotoChartMarker>? photoMarkers,
 }) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
@@ -93,6 +99,8 @@ Widget _chart(
               showAnnotations: showAnnotations,
               onAnnotationTap: onAnnotationTap,
               focusedAnnotationId: focusedAnnotationId,
+              onPointSelected: onPointSelected,
+              photoMarkers: photoMarkers,
             );
           },
         ),
@@ -365,6 +373,84 @@ void main() {
     );
     await tester.pump();
     expect(taps, hasLength(1));
+  });
+
+  testWidgets('a touch far from a dot still reaches the chart below', (
+    tester,
+  ) async {
+    final points = <int?>[];
+    await tester.pumpWidget(
+      _chart([_ann('a', 600)], onPointSelected: points.add),
+    );
+    await tester.pumpAndSettle();
+    final plot = tester.getRect(find.byType(LineChart).first);
+
+    // Only fl_chart answers a touch; the hover fallback on the Listener
+    // around the stack is for a mouse, so it cannot hide a blocked pointer.
+    await tester.tapAt(Offset(plot.left + 60, plot.center.dy));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(points, isNotEmpty);
+  });
+
+  testWidgets('a photo chip over a dot takes the tap', (tester) async {
+    final taps = <ProfileEvent>[];
+    final at = DateTime.utc(2026);
+    await tester.pumpWidget(
+      _chart(
+        [_ann('a', 600)],
+        onAnnotationTap: (a, _) => taps.add(a),
+        photoMarkers: [
+          PhotoChartMarker(
+            item: MediaItem(
+              id: 'p1',
+              diveId: 'd1',
+              mediaType: MediaType.photo,
+              takenAt: at,
+              createdAt: at,
+              updatedAt: at,
+            ),
+            elapsedSeconds: 600,
+            depthMeters: 30,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tapAt(
+      tester.getCenter(
+        find.descendant(
+          of: find.byType(PhotoMarkerOverlay),
+          matching: find.byType(Icon),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+    expect(taps, isEmpty);
+  });
+
+  testWidgets('annotations alone offer no Events toggle', (tester) async {
+    await tester.pumpWidget(_chart([_ann('a', 600)]));
+    await tester.pumpAndSettle();
+    final config = tester
+        .widget<DiveProfileLegend>(find.byType(DiveProfileLegend))
+        .config;
+    expect(config.hasEvents, isFalse);
+    expect(config.hasAnnotations, isTrue);
+  });
+
+  testWidgets('a computer event beside an annotation keeps the Events toggle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_chart([_ann('a', 600), _warning(300)]));
+    await tester.pumpAndSettle();
+    final config = tester
+        .widget<DiveProfileLegend>(find.byType(DiveProfileLegend))
+        .config;
+    expect(config.hasEvents, isTrue);
   });
 
   test('nearestAnnotationIndex picks the closest dot inside the radius', () {

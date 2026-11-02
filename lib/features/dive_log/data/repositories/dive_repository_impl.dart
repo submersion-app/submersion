@@ -5994,8 +5994,8 @@ class DiveRepository {
   // ============================================================================
 
   /// Which of [ids] already name a profile event row, on any dive. A backup
-  /// restore carries each event's own id (#4109), so a restore onto a log
-  /// that already holds them skips those rather than failing the insert.
+  /// restore carries each event's own id (#4109), and gives its new dive a
+  /// fresh one in place of any of these.
   Future<Set<String>> existingProfileEventIds(Iterable<String> ids) async {
     final list = ids.toSet().toList();
     if (list.isEmpty) return const {};
@@ -6015,30 +6015,18 @@ class DiveRepository {
 
   /// Bulk insert profile events (for dive computer imports and analysis
   /// results). Duplicate ids throw, so a write that must be all or nothing
-  /// fails loudly; with [skipExisting] an event whose id is already in the
-  /// table is skipped instead, for a backup restore that carries each
-  /// event's own id (#4109) onto a log that already holds some of them.
-  Future<void> insertProfileEvents(
-    List<ProfileEvent> events, {
-    bool skipExisting = false,
-  }) async {
+  /// fails loudly.
+  Future<void> insertProfileEvents(List<ProfileEvent> events) async {
     if (events.isEmpty) return;
 
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       final diveIds = <String>{};
-      final existing = skipExisting
-          ? await existingProfileEventIds([
-              for (final event in events)
-                if (event.id.isNotEmpty) event.id,
-            ])
-          : const <String>{};
       for (final event in events) {
         final id = event.id.isEmpty ? _uuid.v4() : event.id;
-        if (existing.contains(id)) continue;
         diveIds.add(event.diveId);
         // Drift's default conflict mode is `insertOrFail`: callers pass unique
-        // ids (fresh, or a domain entity's own), or ask to skip the taken ones.
+        // ids (fresh, or a domain entity's own).
         await _db
             .into(_db.diveProfileEvents)
             .insert(

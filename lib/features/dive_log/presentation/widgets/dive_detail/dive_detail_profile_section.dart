@@ -199,7 +199,8 @@ class DiveDetailProfileSection extends ConsumerWidget {
     // bar painted under a supposedly fullscreen chart (#811).
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) => FullscreenProfilePage(diveId: diveId),
+        builder: (context) =>
+            FullscreenProfilePage(diveId: diveId, onOpenInNotes: onOpenInNotes),
       ),
     );
   }

@@ -10,6 +10,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
@@ -310,6 +311,48 @@ void main() {
     await settle(tester, frames: 6);
     expect(find.text('Remove'), findsOneWidget);
     expect(container.read(annotationFocusProvider(diveId)), isNull);
+  });
+
+  testWidgets('Open in Notes from the fullscreen profile lands on the passage '
+      'in the page underneath', (tester) async {
+    await seedDive();
+    await seedAnnotation();
+    await pumpDetail(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+
+    await tester.tap(find.byIcon(Icons.fullscreen));
+    await settle(tester);
+    expect(find.byType(FullscreenProfilePage), findsOneWidget);
+    await tester.tapAt(await dotCenter(tester, 'a1'));
+    await settle(tester, frames: 4);
+    await tester.tap(find.text('Open in Notes'));
+    await settle(tester, frames: 6);
+
+    expect(find.byType(FullscreenProfilePage), findsNothing);
+    expect(container.read(annotationNotesHighlightProvider(diveId)), 'a1');
+    await tester.pump(const Duration(milliseconds: 1600));
+    await settle(tester, frames: 2);
+  });
+
+  testWidgets('Open in Notes reaching a page that has gone does nothing', (
+    tester,
+  ) async {
+    await seedDive();
+    await seedAnnotation();
+    await pumpDetail(tester);
+    await tester.tap(find.byIcon(Icons.fullscreen));
+    await settle(tester);
+    final open = tester
+        .widget<FullscreenProfilePage>(find.byType(FullscreenProfilePage))
+        .onOpenInNotes!;
+
+    await tester.pumpWidget(const SizedBox());
+    open('a1');
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('the Notes link turns hidden annotations back on and opens the '
