@@ -309,7 +309,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 332;
+  static const int currentSchemaVersion = 335;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1515,6 +1515,12 @@ class AppDatabase extends _$AppDatabase {
     // v332: the per-device change log tables (issue #3922). Local only and
     // never synced, so the floor does not move.
     332,
+    // v333: dives.gas_switches_edited (issue #32). A defaulted column an
+    // older peer omits, so the compatibility floor does not move.
+    333,
+    // v335: nav_tracks.scale_factor, a track's size against the map
+    // (issue #3823). A new defaulted column, so the floor does not move.
+    335,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

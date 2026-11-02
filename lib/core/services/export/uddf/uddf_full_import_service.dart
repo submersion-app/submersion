@@ -1665,6 +1665,13 @@ class UddfFullImportService {
       if (excludedFromGasStats?.toLowerCase() == 'true') {
         diveData['excludedFromGasStats'] = true;
       }
+      final gasSwitchesEdited = UddfImportParsers.getElementText(
+        afterElement,
+        'gasswitchesedited',
+      );
+      if (gasSwitchesEdited?.toLowerCase() == 'true') {
+        diveData['gasSwitchesEdited'] = true;
+      }
 
       // Parse additional weights (app-specific, beyond single weight)
       final weightsElement = afterElement.findElements('weights').firstOrNull;

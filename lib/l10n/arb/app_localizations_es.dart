@@ -2491,6 +2491,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'Buscar inmersiones';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'Buscar en todo';
+
+  @override
   String get accessibility_shortcut_askQuestion =>
       'Preguntar sobre tus inmersiones';
 
@@ -3590,14 +3593,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Toca \'Agregar\' para seleccionar compañeros de buceo';
 
   @override
-  String get buddies_search_hint => 'Buscar por nombre, correo o teléfono';
-
-  @override
-  String buddies_search_noResults(Object query) {
-    return 'No se encontraron compañeros para \"$query\"';
-  }
-
-  @override
   String get buddies_section_certifications => 'Certificaciones';
 
   @override
@@ -4680,21 +4675,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => 'Seleccionar certificaciones';
-
-  @override
-  String get certifications_search_empty_hint =>
-      'Buscar por nombre, agencia o número de tarjeta';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return 'No se encontraron certificaciones para \"$query\"';
-  }
-
-  @override
-  String get certifications_search_tooltip_back => 'Atrás';
-
-  @override
-  String get certifications_search_tooltip_clear => 'Borrar búsqueda';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -6934,14 +6914,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_picker_nearYourLocation => 'Cerca de tu ubicación';
 
   @override
-  String diveCenters_search_noResults(Object query) {
-    return 'Sin resultados para \"$query\"';
-  }
-
-  @override
-  String get diveCenters_search_prompt => 'Buscar centros de buceo';
-
-  @override
   String get diveCenters_tag_closed => 'Cerrado';
 
   @override
@@ -8016,6 +7988,52 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Cuándo cambiaste de botella. La deco, la carga tisular y el SAC por botella siguen estos cambios.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Empieza con $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Añadir cambio';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Tiempo';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Cambiar a';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Profundidad';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Quitar cambio';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => 'Usa minutos:segundos';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Debe estar dentro de la inmersión';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Hay otro cambio a esta hora';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cambios de gas quitados con su botella',
+      one: '$count cambio de gas quitado con su botella',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Obteniendo ubicación...';
 
   @override
@@ -8149,6 +8167,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'Agrega notas sobre esta inmersión...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Cambios de gas';
 
   @override
   String get diveLog_edit_overline_tanks => 'Botellas';
@@ -9941,6 +9962,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'Busca en todo o prueba depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'Borrar búsqueda';
+
+  @override
+  String get globalSearch_prompt =>
+      'Encuentra inmersiones, sitios, viajes, equipo, compañeros, documentos y más';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'Sin resultados para \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed =>
+      'La búsqueda ha fallado. Inténtalo de nuevo.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'Ver los $count';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'Rutas GPS';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'Rutas submarinas';
 
   @override
   String diveLog_ask_row(String text) {
@@ -12256,21 +12307,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveSites_refresh_nothing =>
       'Ningún punto de buceo tiene coordenadas que consultar.';
-
-  @override
-  String get diveSites_list_search_backTooltip => 'Atrás';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'Borrar búsqueda';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'Buscar por nombre del sitio, país o región';
-
-  @override
-  String diveSites_list_search_error(Object error) {
-    return 'Error: $error';
-  }
 
   @override
   String diveSites_list_search_noResults(Object query) {
@@ -16658,24 +16694,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Cambio de tipo deshecho';
 
   @override
-  String get equipment_search_backTooltip => 'Atrás';
-
-  @override
-  String get equipment_search_clearTooltip => 'Borrar búsqueda';
-
-  @override
-  String get equipment_search_fieldLabel => 'Buscar equipo...';
-
-  @override
-  String get equipment_search_hint =>
-      'Buscar por nombre, marca, modelo o número de serie';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return 'No se encontró equipo para \"$query\"';
-  }
-
-  @override
   String get equipment_serviceDialog_addButton => 'Agregar';
 
   @override
@@ -18711,9 +18729,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'Cancelar';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip => 'Borrar búsqueda';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return 'Especies personalizadas ($count)';
   }
@@ -18926,9 +18941,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get marineLife_speciesPage_searchHint =>
       'Buscar especies que has visto';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => 'Borrar búsqueda';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip =>
@@ -20569,6 +20581,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get nav_trips => 'Viajes';
+
+  @override
+  String get nav_search => 'Buscar';
 
   @override
   String plannerCanvas_bailout_available(String liters) {
@@ -24539,6 +24554,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Huella de las pruebas';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Cambios de gas editados a mano';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Excluido de las estadísticas de gas';
 
@@ -24656,6 +24675,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_headingOffsetDeg =>
       'Corrección de rumbo en grados';
+
+  @override
+  String get settings_conflict_field_scaleFactor =>
+      'Factor de escala del track';
 
   @override
   String get settings_conflict_field_height => 'Alto en píxeles';
@@ -33519,26 +33542,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_picker_suggestedUse => 'Usar';
 
   @override
-  String get trips_search_empty_hint => 'Buscar por nombre, ubicación o resort';
-
-  @override
-  String get trips_search_fieldLabel => 'Buscar viajes...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return 'No se encontraron viajes para \"$query\"';
-  }
-
-  @override
-  String get trips_search_error => 'No se pudieron buscar tus viajes.';
-
-  @override
-  String get trips_search_tooltip_back => 'Atrás';
-
-  @override
-  String get trips_search_tooltip_clear => 'Borrar búsqueda';
-
-  @override
   String get trips_summary_header_subtitle =>
       'Selecciona un viaje de la lista para ver detalles';
 
@@ -35667,6 +35670,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Se conectó al ordenador de buceo, pero dejó de responder antes de que comenzara la descarga. Normalmente esto significa que el emparejamiento Bluetooth está obsoleto: olvida el ordenador de buceo en los ajustes de Bluetooth de tu dispositivo y vuelve a intentarlo.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'No se encontró este ordenador de buceo por Bluetooth LE. Activa su modo Bluetooth y vuelve a buscar. Si aparece en los ajustes de Bluetooth de tu dispositivo, elimínalo primero de ahí: puede que solo figure como dispositivo Bluetooth clásico.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Tu dispositivo no se comunicará con este ordenador de buceo hasta que estén emparejados. Activa el modo Bluetooth del ordenador de buceo, emparéjalo en los ajustes de Bluetooth de tu dispositivo y vuelve a intentarlo.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'El ordenador de buceo no respondió por Bluetooth. Comprueba que su modo Bluetooth sigue activo y que está cerca de tu dispositivo, y vuelve a intentarlo.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -55002,6 +55017,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotación:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Escala:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'El final está fijado, así que determina el tamaño del track. La escala solo cambia la forma del track entre ambos puntos.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Arrastra para cambiar el tamaño del track';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55053,6 +55079,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Aún no se ha aplicado ninguna corrección.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Escala del track: $percent %';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>
@@ -55765,6 +55796,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_customFields_value => 'Valor';
 
   @override
+  String get query_divePlans_date => 'Fecha';
+
+  @override
+  String get query_divePlans_depth => 'Profundidad máxima';
+
+  @override
+  String get query_divePlans_mode => 'Modo';
+
+  @override
+  String get query_divePlans_name => 'Nombre';
+
+  @override
+  String get query_divePlans_notes => 'Notas';
+
+  @override
+  String get query_divePlans_runtime => 'Duración total';
+
+  @override
+  String get query_divePlans_site => 'Punto de buceo';
+
+  @override
   String get query_diveTypes_builtIn => 'Predefinido';
 
   @override
@@ -55999,10 +56051,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_entity_customFields => 'Campos personalizados';
 
   @override
+  String get query_entity_divePlans => 'Planes guardados';
+
+  @override
   String get query_entity_diveTypes => 'Tipos de inmersión';
 
   @override
   String get query_entity_dives => 'Inmersiones';
+
+  @override
+  String get query_entity_documents => 'Documentos';
 
   @override
   String get query_entity_equipment => 'Equipo';
@@ -56011,13 +56069,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_entity_equipmentAttributes => 'Atributos del equipo';
 
   @override
+  String get query_entity_equipmentSets => 'Conjuntos de equipo';
+
+  @override
   String get query_entity_findings => 'Hallazgos de seguridad';
 
   @override
   String get query_findings_rule => 'Regla';
 
   @override
+  String get query_entity_gpsTracks => 'Rutas GPS';
+
+  @override
   String get query_entity_media => 'Multimedia';
+
+  @override
+  String get query_entity_navTracks => 'Rutas submarinas';
 
   @override
   String get query_entity_sightings => 'Avistamientos';
@@ -56054,6 +56121,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => 'Valor de texto';
+
+  @override
+  String get query_equipmentSets_default => 'Predeterminado';
+
+  @override
+  String get query_equipmentSets_description => 'Descripción';
+
+  @override
+  String get query_equipmentSets_itemCount => 'Número de elementos';
+
+  @override
+  String get query_equipmentSets_items => 'Elementos';
+
+  @override
+  String get query_equipmentSets_name => 'Nombre';
 
   @override
   String get query_equipment_active => 'Activo';
@@ -56114,6 +56196,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => 'Filtro';
+
+  @override
+  String get query_gpsTracks_date => 'Fecha';
+
+  @override
+  String get query_gpsTracks_deviceName => 'Dispositivo';
+
+  @override
+  String get query_gpsTracks_duration => 'Duración';
+
+  @override
+  String get query_gpsTracks_file => 'Archivo';
+
+  @override
+  String get query_gpsTracks_name => 'Nombre';
+
+  @override
+  String get query_gpsTracks_source => 'Origen';
 
   @override
   String get query_list_noMatch => 'Nada coincide con esta consulta';
@@ -56355,6 +56455,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_op_inList => 'es uno de';
 
   @override
+  String get query_navTracks_date => 'Fecha';
+
+  @override
+  String get query_navTracks_depth => 'Profundidad máxima';
+
+  @override
+  String get query_navTracks_deviceName => 'Dispositivo';
+
+  @override
+  String get query_navTracks_distance => 'Distancia';
+
+  @override
+  String get query_navTracks_dive => 'Inmersión';
+
+  @override
+  String get query_navTracks_duration => 'Duración';
+
+  @override
+  String get query_navTracks_equipment => 'Equipo';
+
+  @override
+  String get query_navTracks_file => 'Archivo';
+
+  @override
+  String get query_navTracks_name => 'Nombre';
+
+  @override
+  String get query_navTracks_site => 'Punto de buceo';
+
+  @override
+  String get query_navTracks_source => 'Origen';
+
+  @override
   String get query_op_between => 'entre';
 
   @override
@@ -56380,6 +56513,57 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => 'Cualquiera';
+
+  @override
+  String get query_documents_buddy => 'Compañero';
+
+  @override
+  String get query_documents_center => 'Centro de buceo';
+
+  @override
+  String get query_documents_certification => 'Certificación';
+
+  @override
+  String get query_documents_course => 'Curso';
+
+  @override
+  String get query_documents_dive => 'Inmersión';
+
+  @override
+  String get query_documents_equipment => 'Equipo';
+
+  @override
+  String get query_documents_expiryDate => 'Fecha de caducidad';
+
+  @override
+  String get query_documents_issueDate => 'Fecha de emisión';
+
+  @override
+  String get query_documents_issuer => 'Emisor';
+
+  @override
+  String get query_documents_notes => 'Notas';
+
+  @override
+  String get query_documents_primary => 'Principal';
+
+  @override
+  String get query_documents_referenceNumber => 'Número de referencia';
+
+  @override
+  String get query_documents_site => 'Punto de buceo';
+
+  @override
+  String get query_documents_tags => 'Etiquetas';
+
+  @override
+  String get query_documents_title => 'Título';
+
+  @override
+  String get query_documents_trip => 'Viaje';
+
+  @override
+  String get query_documents_type => 'Tipo';
 
   @override
   String get query_editor_addCondition => 'Agregar condición';
@@ -59028,4 +59212,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'Registro de cambios';
+
+  @override
+  String search_everywhere(String text) {
+    return 'Buscar \"$text\" en todo';
+  }
+
+  @override
+  String get search_fieldHint => 'Buscar o escribir una consulta';
+
+  @override
+  String get search_closeTooltip => 'Cerrar búsqueda';
+
+  @override
+  String get search_openTooltip => 'Buscar';
 }

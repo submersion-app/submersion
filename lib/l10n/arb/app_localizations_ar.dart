@@ -2551,6 +2551,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'البحث في الغوصات';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'البحث في كل شيء';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'اسأل عن غطساتك';
 
   @override
@@ -3676,15 +3679,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_picker_tapToAdd => 'اضغط على \'إضافة\' لاختيار رفاق الغوص';
 
   @override
-  String get buddies_search_hint =>
-      'البحث بالاسم أو البريد الإلكتروني أو الهاتف';
-
-  @override
-  String buddies_search_noResults(Object query) {
-    return 'لم يتم العثور على رفاق لـ \"$query\"';
-  }
-
-  @override
   String get buddies_section_certifications => 'الاعتمادات';
 
   @override
@@ -4760,21 +4754,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => 'اختيار الشهادات';
-
-  @override
-  String get certifications_search_empty_hint =>
-      'البحث بالاسم أو الوكالة أو رقم البطاقة';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return 'لم يتم العثور على شهادات لـ \"$query\"';
-  }
-
-  @override
-  String get certifications_search_tooltip_back => 'رجوع';
-
-  @override
-  String get certifications_search_tooltip_clear => 'مسح البحث';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -7035,14 +7014,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_picker_nearYourLocation => 'بالقرب من موقعك';
 
   @override
-  String diveCenters_search_noResults(Object query) {
-    return 'لا توجد نتائج لـ \"$query\"';
-  }
-
-  @override
-  String get diveCenters_search_prompt => 'البحث عن مراكز الغوص';
-
-  @override
   String get diveCenters_tag_closed => 'مغلق';
 
   @override
@@ -8137,6 +8108,54 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'متى بدّلت الأسطوانة. تتبع إزالة الضغط وتحميل الأنسجة ومعدل SAC لكل أسطوانة هذه التبديلات.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'يبدأ على $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'إضافة تبديل';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'الوقت';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'التبديل إلى';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'العمق';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'إزالة التبديل';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => 'استخدم دقائق:ثوانٍ';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError => 'يجب أن يكون ضمن الغوص';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'يوجد تبديل آخر في هذا الوقت';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إزالة $count تبديل غاز مع أسطواناتها',
+      many: 'تمت إزالة $count تبديل غاز مع أسطواناتها',
+      few: 'تمت إزالة $count تبديلات غاز مع أسطواناتها',
+      two: 'تمت إزالة تبديلي غاز مع أسطوانتيهما',
+      one: 'تمت إزالة $count تبديل غاز مع أسطوانته',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'جارٍ تحديد الموقع...';
 
   @override
@@ -8267,6 +8286,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'أضف ملاحظات حول هذه الغوصة...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'تبديلات الغاز';
 
   @override
   String get diveLog_edit_overline_tanks => 'الأسطوانات';
@@ -10086,6 +10108,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'ابحث في كل شيء، أو جرّب depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'مسح البحث';
+
+  @override
+  String get globalSearch_prompt =>
+      'ابحث عن الغطسات والمواقع والرحلات والمعدات والرفاق والمستندات وغيرها';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'لا توجد نتائج لـ \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed => 'فشل البحث. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'مسارات GPS';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'المسارات تحت الماء';
 
   @override
   String diveLog_ask_row(String text) {
@@ -12427,21 +12478,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_refresh_nothing => 'لا يوجد موقع غوص له إحداثيات للبحث.';
-
-  @override
-  String get diveSites_list_search_backTooltip => 'رجوع';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'مسح البحث';
-
-  @override
-  String get diveSites_list_search_emptyHint =>
-      'البحث باسم الموقع أو الدولة أو المنطقة';
-
-  @override
-  String diveSites_list_search_error(Object error) {
-    return 'خطأ: $error';
-  }
 
   @override
   String diveSites_list_search_noResults(Object query) {
@@ -16917,24 +16953,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_retypeOther_undone => 'تم التراجع عن تغيير النوع';
 
   @override
-  String get equipment_search_backTooltip => 'رجوع';
-
-  @override
-  String get equipment_search_clearTooltip => 'مسح البحث';
-
-  @override
-  String get equipment_search_fieldLabel => 'البحث في المعدات...';
-
-  @override
-  String get equipment_search_hint =>
-      'البحث بالاسم أو العلامة التجارية أو الطراز أو الرقم التسلسلي';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return 'لم يتم العثور على معدات لـ \"$query\"';
-  }
-
-  @override
   String get equipment_serviceDialog_addButton => 'إضافة';
 
   @override
@@ -18941,9 +18959,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'إلغاء';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip => 'مسح البحث';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return 'الأنواع المخصصة ($count)';
   }
@@ -19172,9 +19187,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_searchHint => 'ابحث في الأنواع التي رأيتها';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => 'مسح البحث';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip => 'إدارة الفهرس';
@@ -20875,6 +20887,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_trips => 'الرحلات';
+
+  @override
+  String get nav_search => 'بحث';
 
   @override
   String plannerCanvas_bailout_available(String liters) {
@@ -24804,6 +24819,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_evidenceFingerprint => 'بصمة الدليل';
 
   @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'تبديلات الغاز معدّلة يدويًا';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'مستبعد من إحصاءات الغاز';
 
@@ -24912,6 +24931,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_headingOffsetDeg =>
       'تصحيح الاتجاه بالدرجات';
+
+  @override
+  String get settings_conflict_field_scaleFactor => 'معامل مقياس المسار';
 
   @override
   String get settings_conflict_field_height => 'الارتفاع بالبكسل';
@@ -33829,26 +33851,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_picker_suggestedUse => 'استخدام';
 
   @override
-  String get trips_search_empty_hint => 'البحث بالاسم أو الموقع أو المنتجع';
-
-  @override
-  String get trips_search_fieldLabel => 'البحث في الرحلات...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return 'لم يتم العثور على رحلات لـ \"$query\"';
-  }
-
-  @override
-  String get trips_search_error => 'تعذّر البحث في رحلاتك.';
-
-  @override
-  String get trips_search_tooltip_back => 'رجوع';
-
-  @override
-  String get trips_search_tooltip_clear => 'مسح البحث';
-
-  @override
   String get trips_summary_header_subtitle =>
       'اختر رحلة من القائمة لعرض التفاصيل';
 
@@ -36085,6 +36087,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'تم الاتصال بكمبيوتر الغوص، لكنه توقف عن الاستجابة قبل بدء التنزيل. يعني هذا عادةً أن إقران البلوتوث لم يعد صالحًا: انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك ثم حاول مرة أخرى.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'تعذّر العثور على كمبيوتر الغوص هذا عبر Bluetooth LE. شغّل وضع البلوتوث فيه وأعد البحث. إذا كان ظاهرًا في إعدادات البلوتوث في جهازك، فأزله من هناك أولًا: فقد يكون معروفًا هناك كجهاز بلوتوث تقليدي فقط.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'لن يتواصل جهازك مع كمبيوتر الغوص هذا حتى يتم إقرانهما. شغّل وضع البلوتوث في كمبيوتر الغوص، وأقرنه من إعدادات البلوتوث في جهازك، ثم حاول مرة أخرى.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'لم يستجب كمبيوتر الغوص عبر البلوتوث. تأكد من أن وضع البلوتوث فيه لا يزال مفعّلًا وأنه قريب من جهازك، ثم حاول مرة أخرى.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -55603,6 +55617,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'الدوران:';
 
   @override
+  String get navTrack_align_scaleLabel => 'المقياس:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'النهاية مثبتة، لذا فهي تحدد حجم المسار. يغيّر المقياس شكل المسار بينهما فقط.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel => 'اسحب لتغيير حجم المسار';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55654,6 +55678,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'لم يُطبَّق أي تصحيح بعد.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'مقياس المسار: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>
@@ -56372,6 +56401,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_customFields_value => 'القيمة';
 
   @override
+  String get query_divePlans_date => 'التاريخ';
+
+  @override
+  String get query_divePlans_depth => 'أقصى عمق';
+
+  @override
+  String get query_divePlans_mode => 'الوضع';
+
+  @override
+  String get query_divePlans_name => 'الاسم';
+
+  @override
+  String get query_divePlans_notes => 'ملاحظات';
+
+  @override
+  String get query_divePlans_runtime => 'المدة الكلية';
+
+  @override
+  String get query_divePlans_site => 'الموقع';
+
+  @override
   String get query_diveTypes_builtIn => 'مدمج';
 
   @override
@@ -56606,10 +56656,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_entity_customFields => 'الحقول المخصصة';
 
   @override
+  String get query_entity_divePlans => 'الخطط المحفوظة';
+
+  @override
   String get query_entity_diveTypes => 'أنواع الغوص';
 
   @override
   String get query_entity_dives => 'الغطسات';
+
+  @override
+  String get query_entity_documents => 'المستندات';
 
   @override
   String get query_entity_equipment => 'المعدات';
@@ -56618,13 +56674,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_entity_equipmentAttributes => 'خصائص المعدات';
 
   @override
+  String get query_entity_equipmentSets => 'مجموعات المعدات';
+
+  @override
   String get query_entity_findings => 'نتائج السلامة';
 
   @override
   String get query_findings_rule => 'القاعدة';
 
   @override
+  String get query_entity_gpsTracks => 'مسارات GPS';
+
+  @override
   String get query_entity_media => 'الوسائط';
+
+  @override
+  String get query_entity_navTracks => 'المسارات تحت الماء';
 
   @override
   String get query_entity_sightings => 'المشاهدات';
@@ -56661,6 +56726,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => 'قيمة نصية';
+
+  @override
+  String get query_equipmentSets_default => 'افتراضي';
+
+  @override
+  String get query_equipmentSets_description => 'الوصف';
+
+  @override
+  String get query_equipmentSets_itemCount => 'عدد العناصر';
+
+  @override
+  String get query_equipmentSets_items => 'العناصر';
+
+  @override
+  String get query_equipmentSets_name => 'الاسم';
 
   @override
   String get query_equipment_active => 'نشط';
@@ -56721,6 +56801,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => 'التصفية';
+
+  @override
+  String get query_gpsTracks_date => 'التاريخ';
+
+  @override
+  String get query_gpsTracks_deviceName => 'الجهاز';
+
+  @override
+  String get query_gpsTracks_duration => 'المدة';
+
+  @override
+  String get query_gpsTracks_file => 'الملف';
+
+  @override
+  String get query_gpsTracks_name => 'الاسم';
+
+  @override
+  String get query_gpsTracks_source => 'المصدر';
 
   @override
   String get query_list_noMatch => 'لا شيء يطابق هذا الاستعلام';
@@ -56961,6 +57059,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_op_inList => 'أحد';
 
   @override
+  String get query_navTracks_date => 'التاريخ';
+
+  @override
+  String get query_navTracks_depth => 'أقصى عمق';
+
+  @override
+  String get query_navTracks_deviceName => 'الجهاز';
+
+  @override
+  String get query_navTracks_distance => 'المسافة';
+
+  @override
+  String get query_navTracks_dive => 'الغطسة';
+
+  @override
+  String get query_navTracks_duration => 'المدة';
+
+  @override
+  String get query_navTracks_equipment => 'المعدات';
+
+  @override
+  String get query_navTracks_file => 'الملف';
+
+  @override
+  String get query_navTracks_name => 'الاسم';
+
+  @override
+  String get query_navTracks_site => 'الموقع';
+
+  @override
+  String get query_navTracks_source => 'المصدر';
+
+  @override
   String get query_op_between => 'بين';
 
   @override
@@ -56986,6 +57117,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => 'أي من الشروط';
+
+  @override
+  String get query_documents_buddy => 'زميل الغوص';
+
+  @override
+  String get query_documents_center => 'مركز الغوص';
+
+  @override
+  String get query_documents_certification => 'الشهادة';
+
+  @override
+  String get query_documents_course => 'الدورة';
+
+  @override
+  String get query_documents_dive => 'الغطسة';
+
+  @override
+  String get query_documents_equipment => 'المعدات';
+
+  @override
+  String get query_documents_expiryDate => 'تاريخ الانتهاء';
+
+  @override
+  String get query_documents_issueDate => 'تاريخ الإصدار';
+
+  @override
+  String get query_documents_issuer => 'جهة الإصدار';
+
+  @override
+  String get query_documents_notes => 'ملاحظات';
+
+  @override
+  String get query_documents_primary => 'أساسي';
+
+  @override
+  String get query_documents_referenceNumber => 'الرقم المرجعي';
+
+  @override
+  String get query_documents_site => 'الموقع';
+
+  @override
+  String get query_documents_tags => 'الوسوم';
+
+  @override
+  String get query_documents_title => 'العنوان';
+
+  @override
+  String get query_documents_trip => 'الرحلة';
+
+  @override
+  String get query_documents_type => 'النوع';
 
   @override
   String get query_editor_addCondition => 'إضافة شرط';
@@ -59769,4 +59951,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'سجل التغييرات';
+
+  @override
+  String search_everywhere(String text) {
+    return 'البحث عن \"$text\" في كل شيء';
+  }
+
+  @override
+  String get search_fieldHint => 'ابحث، أو اكتب استعلامًا';
+
+  @override
+  String get search_closeTooltip => 'إغلاق البحث';
+
+  @override
+  String get search_openTooltip => 'بحث';
 }

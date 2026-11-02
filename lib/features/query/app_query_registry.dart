@@ -9,8 +9,13 @@ import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
 import 'package:submersion/features/dive_sites/query/site_type_query_entity.dart';
 import 'package:submersion/features/dive_types/query/dive_type_query_entity.dart';
+import 'package:submersion/features/documents/query/document_query_entity.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
+import 'package:submersion/features/equipment/query/equipment_set_query_entity.dart';
+import 'package:submersion/features/gps_log/query/gps_track_query_entity.dart';
 import 'package:submersion/features/marine_life/query/species_query_entity.dart';
+import 'package:submersion/features/nav_track/query/nav_track_query_entity.dart';
+import 'package:submersion/features/planner/query/dive_plan_query_entity.dart';
 import 'package:submersion/features/tags/query/tag_query_entity.dart';
 import 'package:submersion/features/trips/query/trip_query_entity.dart';
 
@@ -37,4 +42,9 @@ final QueryRegistry appQueryRegistry = QueryRegistry([
   diveComputerQueryEntity,
   courseQueryEntity,
   speciesQueryEntity,
+  equipmentSetQueryEntity,
+  documentQueryEntity,
+  divePlanQueryEntity,
+  gpsTrackQueryEntity,
+  navTrackQueryEntity,
 ]);

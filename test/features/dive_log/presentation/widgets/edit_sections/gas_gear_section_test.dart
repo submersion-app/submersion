@@ -9,7 +9,10 @@ Widget _host(Widget child) => MaterialApp(
   home: Scaffold(body: SingleChildScrollView(child: child)),
 );
 
-GasGearSection _section({required bool showTankControls}) => GasGearSection(
+GasGearSection _section({
+  required bool showTankControls,
+  Widget? gasSwitchesChild,
+}) => GasGearSection(
   expanded: true,
   onToggle: () {},
   summary: 'summary',
@@ -20,9 +23,45 @@ GasGearSection _section({required bool showTankControls}) => GasGearSection(
   equipmentChild: const Text('EQUIP'),
   weightChild: const Text('WEIGHTS'),
   showTankControls: showTankControls,
+  gasSwitchesChild: gasSwitchesChild,
 );
 
 void main() {
+  testWidgets('renders the gas switches child under the tank controls', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        _section(
+          showTankControls: true,
+          gasSwitchesChild: const Text('SWITCHES'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('SWITCHES'), findsOneWidget);
+    // Below the add-tank row: the append row stays with the list it appends to.
+    expect(
+      tester.getTopLeft(find.text('SWITCHES')).dy,
+      greaterThan(tester.getTopLeft(find.text('Add tank')).dy),
+    );
+  });
+
+  testWidgets('hides the gas switches child for a gauge dive', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        _section(
+          showTankControls: false,
+          gasSwitchesChild: const Text('SWITCHES'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('SWITCHES'), findsNothing);
+  });
+
   testWidgets(
     'hides tank rows and add-tank row when showTankControls is false',
     (tester) async {

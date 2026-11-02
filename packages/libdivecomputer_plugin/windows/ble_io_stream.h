@@ -19,6 +19,7 @@
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Streams.h>
 
+#include "ble_connect_failure.h"
 #include "ble_read_poll.h"
 
 extern "C" {
@@ -59,7 +60,18 @@ class BleIoStream {
   // Set callback for PIN code requests.
   void SetOnPinCodeRequired(std::function<void(const std::string&)> callback);
 
+  // Why the last ConnectAndDiscover returned false, and the log line that
+  // explains it (issue #4094). kNone until a connect has failed.
+  BleConnectFailure connect_failure() const { return connect_failure_; }
+  const std::string& connect_failure_detail() const {
+    return connect_failure_detail_;
+  }
+
  private:
+  // Logs `detail` as the connect failure, records why, and returns false so
+  // a failure path can end in `return Fail(...)`.
+  bool Fail(BleConnectFailure failure, const std::string& detail);
+
   // Discover GATT services and find the best write/notify characteristic
   // pair.
   bool DiscoverCharacteristics();
@@ -190,6 +202,8 @@ class BleIoStream {
 
   int timeout_ms_ = 10000;
   std::string device_name_;
+  BleConnectFailure connect_failure_ = BleConnectFailure::kNone;
+  std::string connect_failure_detail_;
 
   // PIN code authentication support.
   std::mutex pin_mutex_;
