@@ -3116,6 +3116,7 @@ class SyncDataSerializer {
   Future<void> repairDanglingForeignKeys() async {
     await _repairDanglingReferences();
     await alignLinkedRouteOwners();
+    await unlinkIncidentsFromOkCheckIns();
     await seedRepresentativeCourseLinks();
     await anchorTankInspectionClocks();
   }
@@ -3130,6 +3131,27 @@ class SyncDataSerializer {
     if (await _db.backfillTankInspectionBaselines() > 0) {
       _db.notifyUpdates({
         TableUpdate.onTable(_db.serviceSchedules, kind: UpdateKind.update),
+      });
+    }
+  }
+
+  /// Only an issue can stand behind a near-miss. The device that saves a
+  /// check-in as OK clears the link itself, but a peer below v338 never heard
+  /// of the link, and one device can link a check-in while another resolves it
+  /// (#3062). Marks nothing pending: every device derives the same result from
+  /// the same synced rows. Raw SQL that Drift cannot see, so it announces a
+  /// changed report itself, and only when one changed.
+  Future<void> unlinkIncidentsFromOkCheckIns() async {
+    final unlinked = await _db.customUpdate('''
+      UPDATE incidents
+      SET observation_id = NULL
+      WHERE observation_id IN (
+        SELECT id FROM equipment_observations WHERE status <> 'issue'
+      )
+    ''');
+    if (unlinked > 0) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.incidents, kind: UpdateKind.update),
       });
     }
   }

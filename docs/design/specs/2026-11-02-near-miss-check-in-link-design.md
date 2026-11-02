@@ -81,6 +81,11 @@ runs with deferred foreign keys, so a near-miss may apply before its check-in in
 one payload, and `repairDanglingForeignKeys` clears a link whose check-in was
 deleted on a peer. The check-in row itself does not change.
 
+The same repair clears a link whose check-in has become OK. The saving device
+normally clears it, but a peer below v338 does not know the link and two devices
+can link and resolve at once. Every device derives the same result from the same
+rows, so the repair stages nothing.
+
 ## Reaching the link
 
 ### From a check-in

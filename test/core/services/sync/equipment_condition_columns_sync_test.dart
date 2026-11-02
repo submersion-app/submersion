@@ -140,7 +140,7 @@ void main() {
       'hlc': null,
     };
 
-    Future<void> seedCheckIn() async {
+    Future<void> seedCheckIn({String status = 'issue'}) async {
       await serializer.upsertRecord('equipment', equipment('reg'));
       await serializer.upsertRecord('equipmentObservations', {
         'id': 'o1',
@@ -148,7 +148,7 @@ void main() {
         'equipmentId': 'reg',
         'diveId': null,
         'observedAt': 1000,
-        'status': 'issue',
+        'status': status,
         'issueTags': '["freeFlow"]',
         'note': '',
         'createdAt': 1000,
@@ -169,6 +169,44 @@ void main() {
       // what keeps the local link when that row is an edit of this one.
       await serializer.upsertRecord('incidents', incident());
       expect(await serializer.fetchRecord('incidents', 'i1'), isNotNull);
+    });
+
+    group('a check-in that arrives as OK', () {
+      // The device that saves a check-in as OK unlinks its near-misses, but a
+      // peer below v338 has never heard of the link, and two devices can link
+      // and resolve at once. Every apply ends in this repair, so each device
+      // reaches the same answer from the same rows.
+      test('loses its near-miss link, and the report stays', () async {
+        await seedCheckIn();
+        await serializer.upsertRecord(
+          'incidents',
+          incident(observationId: 'o1'),
+        );
+
+        await seedCheckIn(status: 'ok');
+        await serializer.repairDanglingForeignKeys();
+
+        final back = await serializer.fetchRecord('incidents', 'i1');
+        expect(back, isNotNull);
+        expect(back!['observationId'], isNull);
+        expect(back['equipmentId'], 'reg');
+        expect(back['updatedAt'], 1000);
+      });
+
+      test('an issue keeps its link', () async {
+        await seedCheckIn();
+        await serializer.upsertRecord(
+          'incidents',
+          incident(observationId: 'o1'),
+        );
+
+        await serializer.repairDanglingForeignKeys();
+
+        expect(
+          (await serializer.fetchRecord('incidents', 'i1'))!['observationId'],
+          'o1',
+        );
+      });
     });
 
     test('the merge guards the link as a nullable parent', () {
