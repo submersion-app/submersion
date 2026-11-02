@@ -1401,6 +1401,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'incidentNew',
                 builder: (context, state) => IncidentEditPage(
                   diveId: state.uri.queryParameters['diveId'],
+                  observationId: state.uri.queryParameters['observationId'],
                 ),
               ),
               GoRoute(

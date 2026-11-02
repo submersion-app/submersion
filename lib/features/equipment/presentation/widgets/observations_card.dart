@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_observation_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observation_near_miss_action.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The item page's check-in list: every observation on the item, newest
@@ -124,17 +125,18 @@ class _ObservationRow extends ConsumerWidget {
         color: observation.isIssue ? scheme.error : scheme.tertiary,
       ),
       title: Text(title),
-      subtitle: note.isEmpty
-          ? Text(detail)
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(detail),
-              ],
-            ),
-      isThreeLine: note.isNotEmpty,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (note.isNotEmpty)
+            Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(detail),
+          if (observation.isIssue)
+            ObservationNearMissAction(observation: observation),
+        ],
+      ),
+      isThreeLine: note.isNotEmpty || observation.isIssue,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

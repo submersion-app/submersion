@@ -25918,6 +25918,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => 'מיקום ציוד';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'בדיקת ציוד';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'סט ציוד';
 
   @override
@@ -39527,6 +39530,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get incidents_linkedDive => 'מקושר לצלילה';
 
   @override
+  String get incidents_linkedCheckIn => 'מקושר לבדיקה';
+
+  @override
   String get incidents_delete_confirm => 'למחוק דוח כמעט-תאונה זה?';
 
   @override
@@ -39590,6 +39596,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'כל הציוד';
+
+  @override
+  String get incidentEdit_checkIn => 'בדיקת ציוד';
+
+  @override
+  String get incidentEdit_checkIn_others => 'בדיקות אחרות';
 
   @override
   String get incidentCategory_buoyancy => 'ציפה';
@@ -40384,6 +40396,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'הוספת בדיקה';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count כמעט-תאונות מקושרות',
+      one: 'כמעט-תאונה מקושרת',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {

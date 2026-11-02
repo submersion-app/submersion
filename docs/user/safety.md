@@ -224,6 +224,7 @@ Open it from **Settings > Diver Profile > Near-miss log**, or choose
 | **Category** | Buoyancy, gas supply, equipment, buddy separation, marine life, boat or surface, medical, planning, or other |
 | **Severity** | Minor, moderate or serious: your own judgment |
 | **Equipment involved** | Optional: an item of gear, from the dive's gear or from all your gear |
+| **Gear check-in** | Optional, once an item is named: the check-in that recorded the fault |
 | **What happened** | The narrative: just the facts, in your own words |
 | **What contributed (optional)** | Conditions, fatigue, time pressure, an unfamiliar rig |
 | **What would help next time (optional)** | The part that actually changes behaviour |
@@ -232,6 +233,22 @@ Reports linked to a dive show as a quiet chip on that dive's details. If you
 later delete the dive, the report survives and only loses the link: deleting a
 dive should never destroy the lesson. A report that names an item of gear also
 feeds that item's condition findings (see [Equipment](equipment.md)).
+
+### Linking a report to a gear check-in
+
+When gear fails, the check-in and the near-miss are two records of one event.
+Link them from whichever you wrote first:
+
+- **From the check-in:** an issue shows **Log near-miss**, which opens a report
+  already filled in with the item, the dive, the day and your note. Once linked,
+  the row shows **Near-miss linked** and opens the report.
+- **From the report:** name the item, then choose **Gear check-in**. If that item
+  has exactly one issue on the dive, it is selected for you. **Add check-in**
+  records a new one without leaving the report.
+
+Deleting the check-in, saving it as OK, or naming a different item on the report
+removes the link and keeps both records. The check-in stays exportable and the
+report stays private: an exported check-in never mentions the near-miss.
 
 > [!TIP]
 > **Privacy is the point.** Near-miss reports sync between your own devices and

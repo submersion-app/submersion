@@ -3399,6 +3399,9 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: true),
       // v202: the item an equipment incident attributes to; nullable.
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+      // v338: the check-in behind a near-miss; nullable, so a deleted
+      // check-in only clears the link.
+      (field: 'observationId', parent: 'equipmentObservations', nullable: true),
     ],
     // v202: a gear check-in; the item is required, the dive optional.
     'equipmentObservations': [

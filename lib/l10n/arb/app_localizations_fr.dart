@@ -26664,6 +26664,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Emplacement d\'équipement';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'Bilan d\'équipement';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Ensemble d\'équipement';
 
   @override
@@ -40641,6 +40644,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get incidents_linkedDive => 'Lié à une plongée';
 
   @override
+  String get incidents_linkedCheckIn => 'Lié à un bilan';
+
+  @override
   String get incidents_delete_confirm =>
       'Supprimer ce rapport de presque-accident ?';
 
@@ -40707,6 +40713,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'Tout l\'équipement';
+
+  @override
+  String get incidentEdit_checkIn => 'Bilan d\'équipement';
+
+  @override
+  String get incidentEdit_checkIn_others => 'Autres bilans';
 
   @override
   String get incidentCategory_buoyancy => 'Flottabilité';
@@ -41518,6 +41530,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'Ajouter un bilan';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count presque-accidents liés',
+      one: 'Presque-accident lié',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {

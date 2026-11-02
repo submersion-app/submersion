@@ -7116,6 +7116,7 @@
   "settings_conflict_ref_diver": "Taucher",
   "settings_conflict_ref_equipment": "Ausrüstung",
   "settings_conflict_ref_equipmentLocation": "Ausrüstungsstandort",
+  "settings_conflict_ref_gearCheckIn": "Ausrüstungs-Check-in",
   "settings_conflict_ref_equipmentSet": "Ausrüstungsset",
   "settings_conflict_ref_finding": "Befund",
   "settings_conflict_ref_importedFile": "Importierte Datei",
@@ -12203,6 +12204,7 @@
   "incidents_empty": "Keine Beinahe-Unfälle erfasst. Festzuhalten, was beinahe schiefging - ohne Wertung - macht Muster sichtbar, bevor daraus Unfälle werden.",
   "incidents_add": "Beinahe-Unfall erfassen",
   "incidents_linkedDive": "Mit einem Tauchgang verknüpft",
+  "incidents_linkedCheckIn": "Mit einem Check-in verknüpft",
   "incidents_delete_confirm": "Diesen Beinahe-Unfall-Bericht löschen?",
   "incidents_notFound": "Beinahe-Unfall-Bericht nicht gefunden",
   "incidentEdit_title_new": "Beinahe-Unfall erfassen",
@@ -12224,6 +12226,8 @@
   "incidentEdit_equipment_none": "Keine",
   "incidentEdit_equipment_onThisDive": "Bei diesem Tauchgang",
   "incidentEdit_equipment_allGear": "Gesamte Ausrüstung",
+  "incidentEdit_checkIn": "Ausrüstungs-Check-in",
+  "incidentEdit_checkIn_others": "Weitere Check-ins",
   "incidentCategory_buoyancy": "Tarierung",
   "incidentCategory_gasSupply": "Gasversorgung",
   "incidentCategory_equipment": "Ausrüstung",
@@ -12750,6 +12754,7 @@
   "equipmentObservation_card_title": "Check-ins",
   "equipmentObservation_card_empty": "Keine Check-ins zu diesem Teil erfasst.",
   "equipmentObservation_card_add": "Check-in hinzufügen",
+  "equipmentObservation_card_nearMissLinked": "{count, plural, =1{Beinahe-Unfall verknüpft} other{{count} Beinahe-Unfälle verknüpft}}",
   "equipmentObservation_card_onDive": "Tauchgang Nr. {number}",
   "@equipmentObservation_card_onDive": {
     "placeholders": {

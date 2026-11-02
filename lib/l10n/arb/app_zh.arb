@@ -7135,6 +7135,7 @@
   "settings_conflict_ref_diver": "潜水员",
   "settings_conflict_ref_equipment": "装备",
   "settings_conflict_ref_equipmentLocation": "装备位置",
+  "settings_conflict_ref_gearCheckIn": "装备检查记录",
   "settings_conflict_ref_equipmentSet": "装备套装",
   "settings_conflict_ref_finding": "发现项",
   "settings_conflict_ref_importedFile": "导入的文件",
@@ -12049,6 +12050,7 @@
   "incidents_empty": "尚无未遂事件记录。不加评判地记下差点出错的事,能在它们变成事故之前让规律显现。",
   "incidents_add": "记录未遂事件",
   "incidents_linkedDive": "已关联潜水",
+  "incidents_linkedCheckIn": "已关联检查记录",
   "incidents_delete_confirm": "删除此未遂事件报告?",
   "incidents_notFound": "未找到未遂事件记录",
   "incidentEdit_title_new": "记录未遂事件",
@@ -12070,6 +12072,8 @@
   "incidentEdit_equipment_none": "无",
   "incidentEdit_equipment_onThisDive": "本次潜水",
   "incidentEdit_equipment_allGear": "全部装备",
+  "incidentEdit_checkIn": "装备检查记录",
+  "incidentEdit_checkIn_others": "其他检查记录",
   "incidentCategory_buoyancy": "浮力",
   "incidentCategory_gasSupply": "气源",
   "incidentCategory_equipment": "装备",
@@ -12596,6 +12600,7 @@
   "equipmentObservation_card_title": "检查记录",
   "equipmentObservation_card_empty": "该装备没有检查记录。",
   "equipmentObservation_card_add": "添加检查",
+  "equipmentObservation_card_nearMissLinked": "{count, plural, =1{已关联未遂事件} other{已关联 {count} 起未遂事件}}",
   "equipmentObservation_card_onDive": "第 {number} 次潜水",
   "@equipmentObservation_card_onDive": {
     "placeholders": {

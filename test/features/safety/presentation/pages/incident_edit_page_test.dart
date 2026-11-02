@@ -7,9 +7,12 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
@@ -50,12 +53,14 @@ class _FakeIncidentRepository extends IncidentRepository {
     String? diveId,
     String? diverId,
     String? equipmentId,
+    String? observationId,
   }) async {
     final incident = Incident(
       id: 'created-id',
       diverId: diverId,
       diveId: diveId,
       equipmentId: equipmentId,
+      observationId: observationId,
       occurredAt: occurredAt,
       category: category,
       severity: severity,
@@ -78,6 +83,16 @@ class _FakeIncidentRepository extends IncidentRepository {
   Future<void> deleteIncident(String id) async {
     deletedId = id;
   }
+}
+
+/// This file's forms run without a database; naming an item looks for a
+/// check-in to match, and there are none.
+class _NoCheckIns extends EquipmentObservationRepository {
+  @override
+  Future<List<EquipmentObservation>> getForEquipmentOnDive(
+    String equipmentId,
+    String diveId,
+  ) async => const [];
 }
 
 void main() {
@@ -401,6 +416,9 @@ void main() {
             validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             diveProvider('d1').overrideWith((ref) async => dive),
             activeEquipmentProvider.overrideWith((ref) async => [reg, fins]),
+            equipmentObservationRepositoryProvider.overrideWith(
+              (ref) => _NoCheckIns(),
+            ),
             equipmentItemProvider('reg').overrideWith((ref) async => reg),
           ],
           router: routerFor(const IncidentEditPage(diveId: 'd1')),
@@ -482,6 +500,9 @@ void main() {
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
           diveProvider('d1').overrideWith((ref) async => dive),
           activeEquipmentProvider.overrideWith((ref) async => [reg]),
+          equipmentObservationRepositoryProvider.overrideWith(
+            (ref) => _NoCheckIns(),
+          ),
           equipmentItemProvider('cyl').overrideWith((ref) async => cylinder),
           equipmentItemProvider('reg').overrideWith((ref) async => reg),
         ],

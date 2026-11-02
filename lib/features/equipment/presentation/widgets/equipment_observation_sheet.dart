@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observation_near_miss_action.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -28,19 +29,26 @@ DateTime defaultObservedAt(Dive dive) {
 /// Opens the check-in sheet for [equipment]. With [dive], the sheet lists
 /// and adds observations on that dive; without it (the item page) each new
 /// observation may pick a dive or stay a bench note. With [editing], the
-/// sheet opens straight into the editor for that observation.
+/// sheet opens straight into the editor for that observation. With
+/// [offerNearMiss] off, rows show no near-miss action: the near-miss form opens
+/// the sheet that way, since it is the report such an action would start.
 Future<void> showEquipmentObservationSheet(
   BuildContext context, {
   required EquipmentItem equipment,
   Dive? dive,
   EquipmentObservation? editing,
+  bool offerNearMiss = true,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) =>
-        _ObservationSheet(equipment: equipment, dive: dive, editing: editing),
+    builder: (_) => _ObservationSheet(
+      equipment: equipment,
+      dive: dive,
+      editing: editing,
+      offerNearMiss: offerNearMiss,
+    ),
   );
 }
 
@@ -77,8 +85,14 @@ class _ObservationSheet extends ConsumerStatefulWidget {
   final EquipmentItem equipment;
   final Dive? dive;
   final EquipmentObservation? editing;
+  final bool offerNearMiss;
 
-  const _ObservationSheet({required this.equipment, this.dive, this.editing});
+  const _ObservationSheet({
+    required this.equipment,
+    this.dive,
+    this.editing,
+    required this.offerNearMiss,
+  });
 
   @override
   ConsumerState<_ObservationSheet> createState() => _ObservationSheetState();
@@ -175,6 +189,7 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
                     for (final o in observations)
                       _ObservationTile(
                         observation: o,
+                        offerNearMiss: widget.offerNearMiss,
                         onEdit: () => _openEditor(_Draft.fromExisting(o)),
                         onDelete: () => _delete(o),
                       ),
@@ -475,11 +490,13 @@ class _DiveLabel extends ConsumerWidget {
 
 class _ObservationTile extends ConsumerWidget {
   final EquipmentObservation observation;
+  final bool offerNearMiss;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _ObservationTile({
     required this.observation,
+    required this.offerNearMiss,
     required this.onEdit,
     required this.onDelete,
   });
@@ -492,6 +509,7 @@ class _ObservationTile extends ConsumerWidget {
     final title = observation.displayTitle(l10n);
     final note = observation.noteSummary;
     final when = units.formatDateTime(observation.observedAt, l10n: l10n);
+    final showNearMiss = offerNearMiss && observation.isIssue;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(
@@ -499,17 +517,17 @@ class _ObservationTile extends ConsumerWidget {
         color: observation.isIssue ? scheme.error : scheme.tertiary,
       ),
       title: Text(title),
-      subtitle: note.isEmpty
-          ? Text(when)
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(when),
-              ],
-            ),
-      isThreeLine: note.isNotEmpty,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (note.isNotEmpty)
+            Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(when),
+          if (showNearMiss) ObservationNearMissAction(observation: observation),
+        ],
+      ),
+      isThreeLine: note.isNotEmpty || showNearMiss,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

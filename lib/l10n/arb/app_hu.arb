@@ -6882,6 +6882,7 @@
   "settings_conflict_ref_diver": "Merülő",
   "settings_conflict_ref_equipment": "Felszerelés",
   "settings_conflict_ref_equipmentLocation": "Felszerelés helye",
+  "settings_conflict_ref_gearCheckIn": "Felszerelés-ellenőrzés",
   "settings_conflict_ref_equipmentSet": "Felszereléskészlet",
   "settings_conflict_ref_finding": "Észrevétel",
   "settings_conflict_ref_importedFile": "Importált fájl",
@@ -12049,6 +12050,7 @@
   "incidents_empty": "Nincs rögzített kvázibaleset. Annak feljegyzése, ami majdnem balul sült el - ítélkezés nélkül - láthatóvá teszi a mintázatokat, mielőtt balesetté válnának.",
   "incidents_add": "Kvázibaleset rögzítése",
   "incidents_linkedDive": "Merüléshez kapcsolva",
+  "incidents_linkedCheckIn": "Ellenőrzéshez kapcsolva",
   "incidents_delete_confirm": "Törlöd ezt a kvázibaleset-jelentést?",
   "incidents_notFound": "Kvázibaleset-jelentés nem található",
   "incidentEdit_title_new": "Kvázibaleset rögzítése",
@@ -12070,6 +12072,8 @@
   "incidentEdit_equipment_none": "Nincs",
   "incidentEdit_equipment_onThisDive": "Ezen a merülésen",
   "incidentEdit_equipment_allGear": "Minden felszerelés",
+  "incidentEdit_checkIn": "Felszerelés-ellenőrzés",
+  "incidentEdit_checkIn_others": "További ellenőrzések",
   "incidentCategory_buoyancy": "Lebegés",
   "incidentCategory_gasSupply": "Gázellátás",
   "incidentCategory_equipment": "Felszerelés",
@@ -12596,6 +12600,7 @@
   "equipmentObservation_card_title": "Ellenőrzések",
   "equipmentObservation_card_empty": "Ehhez az eszközhöz nincs rögzített ellenőrzés.",
   "equipmentObservation_card_add": "Ellenőrzés hozzáadása",
+  "equipmentObservation_card_nearMissLinked": "{count, plural, =1{Kvázibaleset kapcsolva} other{{count} kvázibaleset kapcsolva}}",
   "equipmentObservation_card_onDive": "{number}. merülés",
   "@equipmentObservation_card_onDive": {
     "placeholders": {

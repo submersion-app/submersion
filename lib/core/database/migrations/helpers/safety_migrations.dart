@@ -64,4 +64,19 @@ extension SafetyMigrations on AppDatabase {
   Future<void> _assertIncidentsSchema() async {
     await Migrator(this).createTable(incidents);
   }
+
+  /// `incidents.observation_id` (v338, issue #3062). Safe from both the v338
+  /// rung and the beforeOpen backstop. A partial-schema migration fixture may
+  /// lack the parent table, and with foreign keys on SQLite then refuses
+  /// every later insert, so such a fixture gets a plain column.
+  Future<void> _assertIncidentObservationColumn() async {
+    final parentExists = await _tableExists('equipment_observations');
+    await _addColumnIfMissing(
+      'incidents',
+      'observation_id',
+      parentExists
+          ? 'TEXT REFERENCES equipment_observations(id) ON DELETE SET NULL'
+          : 'TEXT',
+    );
+  }
 }

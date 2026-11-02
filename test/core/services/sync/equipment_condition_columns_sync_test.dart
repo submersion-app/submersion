@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -119,5 +120,66 @@ void main() {
     });
     final back = await serializer.fetchRecord('incidents', 'i1');
     expect(back!['equipmentId'], 'reg');
+  });
+
+  group('incidents.observationId (v338)', () {
+    Map<String, dynamic> incident({String? observationId}) => {
+      'id': 'i1',
+      'diverId': null,
+      'diveId': null,
+      'equipmentId': 'reg',
+      'observationId': ?observationId,
+      'occurredAt': 1000,
+      'category': 'equipment',
+      'severity': 'minor',
+      'narrative': 'n',
+      'contributingFactors': null,
+      'lessonsLearned': null,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+      'hlc': null,
+    };
+
+    Future<void> seedCheckIn() async {
+      await serializer.upsertRecord('equipment', equipment('reg'));
+      await serializer.upsertRecord('equipmentObservations', {
+        'id': 'o1',
+        'diverId': null,
+        'equipmentId': 'reg',
+        'diveId': null,
+        'observedAt': 1000,
+        'status': 'issue',
+        'issueTags': '["freeFlow"]',
+        'note': '',
+        'createdAt': 1000,
+        'updatedAt': 1000,
+        'hlc': null,
+      });
+    }
+
+    test('round-trips and tolerates an older peer omitting it', () async {
+      await seedCheckIn();
+      await serializer.upsertRecord('incidents', incident(observationId: 'o1'));
+      expect(
+        (await serializer.fetchRecord('incidents', 'i1'))!['observationId'],
+        'o1',
+      );
+
+      // An older peer's row without the key applies; the merge overlay is
+      // what keeps the local link when that row is an edit of this one.
+      await serializer.upsertRecord('incidents', incident());
+      expect(await serializer.fetchRecord('incidents', 'i1'), isNotNull);
+    });
+
+    test('the merge guards the link as a nullable parent', () {
+      expect(
+        SyncService.parentRefs['incidents'],
+        contains((
+          field: 'observationId',
+          parent: 'equipmentObservations',
+          nullable: true,
+        )),
+      );
+    });
   });
 }

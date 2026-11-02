@@ -53,6 +53,7 @@ class IncidentRepository {
     String? diveId,
     String? diverId,
     String? equipmentId,
+    String? observationId,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
@@ -61,6 +62,7 @@ class IncidentRepository {
       diverId: diverId,
       diveId: diveId,
       equipmentId: equipmentId,
+      observationId: observationId,
       occurredAt: occurredAt,
       category: category,
       severity: severity,
@@ -107,6 +109,8 @@ class IncidentRepository {
   /// each. Call it before the item is deleted: ON DELETE SET NULL would clear
   /// the link too, but moves no clock and stages nothing, so a peer would keep
   /// the incident linked to gear that no longer exists. The incident stays.
+  /// Its check-in link goes in the same write, since the item's check-ins go
+  /// with the item.
   Future<void> unlinkFromDeletedEquipment(
     String equipmentId, {
     DateTime? now,
@@ -122,6 +126,7 @@ class IncidentRepository {
       )..where((t) => t.equipmentId.equals(equipmentId))).write(
         db.IncidentsCompanion(
           equipmentId: const Value(null),
+          observationId: const Value(null),
           updatedAt: Value(stamp),
         ),
       );
@@ -147,6 +152,7 @@ class IncidentRepository {
       diverId: Value(incident.diverId),
       diveId: Value(incident.diveId),
       equipmentId: Value(incident.equipmentId),
+      observationId: Value(incident.observationId),
       occurredAt: incident.occurredAt.millisecondsSinceEpoch,
       category: incident.category.dbValue,
       severity: incident.severity.dbValue,
@@ -164,6 +170,7 @@ class IncidentRepository {
       diverId: row.diverId,
       diveId: row.diveId,
       equipmentId: row.equipmentId,
+      observationId: row.observationId,
       // occurredAt is a timezone-stable wall-clock date (stored as UTC), so it
       // shows the same calendar day on every synced device. Mirror the dive
       // log, which reads its wall-clock timestamps with isUtc: true.

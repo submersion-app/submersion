@@ -6882,6 +6882,7 @@
   "settings_conflict_ref_diver": "Plongeur",
   "settings_conflict_ref_equipment": "Équipement",
   "settings_conflict_ref_equipmentLocation": "Emplacement d'équipement",
+  "settings_conflict_ref_gearCheckIn": "Bilan d'équipement",
   "settings_conflict_ref_equipmentSet": "Ensemble d'équipement",
   "settings_conflict_ref_finding": "Anomalie",
   "settings_conflict_ref_importedFile": "Fichier importé",
@@ -12049,6 +12050,7 @@
   "incidents_empty": "Aucun presque-accident enregistré. Noter ce qui a failli mal tourner - sans jugement - rend les schémas visibles avant qu'ils ne deviennent des accidents.",
   "incidents_add": "Consigner un presque-accident",
   "incidents_linkedDive": "Lié à une plongée",
+  "incidents_linkedCheckIn": "Lié à un bilan",
   "incidents_delete_confirm": "Supprimer ce rapport de presque-accident ?",
   "incidents_notFound": "Rapport de presque-accident introuvable",
   "incidentEdit_title_new": "Consigner un presque-accident",
@@ -12070,6 +12072,8 @@
   "incidentEdit_equipment_none": "Aucun",
   "incidentEdit_equipment_onThisDive": "Sur cette plongée",
   "incidentEdit_equipment_allGear": "Tout l'équipement",
+  "incidentEdit_checkIn": "Bilan d'équipement",
+  "incidentEdit_checkIn_others": "Autres bilans",
   "incidentCategory_buoyancy": "Flottabilité",
   "incidentCategory_gasSupply": "Alimentation en gaz",
   "incidentCategory_equipment": "Équipement",
@@ -12596,6 +12600,7 @@
   "equipmentObservation_card_title": "Bilans",
   "equipmentObservation_card_empty": "Aucun bilan enregistré pour cet élément.",
   "equipmentObservation_card_add": "Ajouter un bilan",
+  "equipmentObservation_card_nearMissLinked": "{count, plural, =1{Presque-accident lié} other{{count} presque-accidents liés}}",
   "equipmentObservation_card_onDive": "Plongée n° {number}",
   "@equipmentObservation_card_onDive": {
     "placeholders": {

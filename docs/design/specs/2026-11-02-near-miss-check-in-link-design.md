@@ -137,8 +137,8 @@ finding's wording or severity.
 
 ## Exports
 
-None change. The test suite pins that a check-in export carries no near-miss
-data.
+None change. The check-in row and entity gain no field, so no exporter has
+anything new to write.
 
 ## Build order
 

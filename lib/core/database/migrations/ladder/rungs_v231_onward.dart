@@ -769,5 +769,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertAndBackfillTripChecklists();
     }
     if (from < 336) await reportProgress();
+
+    // v338: incidents.observation_id, the gear check-in behind a near-miss
+    // (issue #3062). Column only, no backfill: nothing says which existing
+    // report goes with which check-in. Re-asserted in beforeOpen.
+    if (from < 338) await _assertIncidentObservationColumn();
+    if (from < 338) await reportProgress();
   }
 }
