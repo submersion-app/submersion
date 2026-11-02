@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:mcp_dart/mcp_dart.dart' show McpServer;
 
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -13,7 +12,6 @@ import 'package:submersion/features/agent_access/data/agent_access_token_store.d
 import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
-import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -213,7 +211,7 @@ class AgentAccessController {
     await server.start(
       port: settings.port,
       token: () => _token ?? '',
-      serverFactory: () => _buildServer(appVersion),
+      serverSpec: () => _buildServer(appVersion),
     );
   }
 
@@ -228,7 +226,7 @@ class AgentAccessController {
   /// Runs once per MCP session (or per request on the stateless protocol),
   /// so everything here is cheap and nothing touches the database until a
   /// tool runs.
-  McpServer _buildServer(String appVersion) {
+  AgentServerSpec _buildServer(String appVersion) {
     final divers = _ref.read(diverRepositoryProvider);
     final settings = _ref.read(diverSettingsRepositoryProvider);
     final loader = DiverContextLoader(
@@ -238,7 +236,7 @@ class AgentAccessController {
       localeTag: _ref.read(localeProvider),
       activeDiverId: () => _ref.read(validatedCurrentDiverIdProvider.future),
     );
-    return buildMcpServer(
+    return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,
         divers: divers,

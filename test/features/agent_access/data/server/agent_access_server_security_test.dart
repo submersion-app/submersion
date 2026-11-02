@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
-import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -80,7 +79,7 @@ void main() {
     await AgentAccessServer.instance.start(
       port: 0,
       token: () => _token,
-      serverFactory: () => buildMcpServer(
+      serverSpec: () => AgentServerSpec(
         registry: AgentToolRegistry(tools: const [], resources: const []),
         gate: AgentToolGate(isLocked: () => false),
         appVersion: 'test',

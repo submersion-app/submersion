@@ -8,7 +8,6 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
-import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -111,7 +110,7 @@ void main() {
     await AgentAccessServer.instance.start(
       port: 0,
       token: () => _token,
-      serverFactory: () => buildMcpServer(
+      serverSpec: () => AgentServerSpec(
         registry: registry(),
         gate: AgentToolGate(isLocked: () => false),
         appVersion: '9.9.9-test',

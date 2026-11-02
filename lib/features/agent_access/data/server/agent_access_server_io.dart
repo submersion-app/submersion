@@ -4,46 +4,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:mcp_dart/mcp_dart.dart';
 
+import 'package:submersion/features/agent_access/data/server/agent_access_status.dart';
+import 'package:submersion/features/agent_access/data/server/agent_server_spec.dart';
+import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
 import 'package:submersion/features/agent_access/data/server/request_authenticator.dart';
-
-/// What the settings page shows about the server.
-class AgentAccessStatus {
-  const AgentAccessStatus({
-    required this.listening,
-    required this.port,
-    this.error,
-    this.portInUse = false,
-    this.lastRequestAt,
-  });
-
-  final bool listening;
-  final int port;
-
-  /// Why the server is not listening, in English, for logs and as a last
-  /// resort on the settings page.
-  final String? error;
-
-  /// True when [error] is a bind failure on [port], which the settings page
-  /// can say in the diver's language.
-  final bool portInUse;
-  final DateTime? lastRequestAt;
-
-  String get url => 'http://127.0.0.1:$port/mcp';
-
-  AgentAccessStatus copyWith({
-    bool? listening,
-    int? port,
-    String? error,
-    bool? portInUse,
-    DateTime? lastRequestAt,
-  }) => AgentAccessStatus(
-    listening: listening ?? this.listening,
-    port: port ?? this.port,
-    error: error ?? this.error,
-    portInUse: portInUse ?? this.portInUse,
-    lastRequestAt: lastRequestAt ?? this.lastRequestAt,
-  );
-}
 
 /// The one MCP listener in the process.
 ///
@@ -81,10 +45,13 @@ class AgentAccessServer {
   /// Binds [port] on loopback. Port 0 picks a free port (tests). A bind
   /// failure leaves the server stopped with [AgentAccessStatus.error] set
   /// and does not throw.
+  ///
+  /// [serverSpec] runs once per MCP session (or per request on the stateless
+  /// protocol) and describes the server that session talks to.
   Future<void> start({
     required int port,
     required String Function() token,
-    required McpServer Function() serverFactory,
+    required AgentServerSpec Function() serverSpec,
   }) async {
     var stopsSeen = _stops;
     final pending = _pendingStop;
@@ -97,7 +64,7 @@ class AgentAccessServer {
     final effectivePort = port == 0 ? await _freePort() : port;
     final authenticator = RequestAuthenticator(token);
     final server = StreamableMcpServer(
-      serverFactory: (_) => serverFactory(),
+      serverFactory: (_) => _serverFrom(serverSpec()),
       host: host,
       port: effectivePort,
       path: path,
@@ -205,6 +172,12 @@ class AgentAccessServer {
     _status = next;
     if (!_statusController.isClosed) _statusController.add(next);
   }
+
+  static McpServer _serverFrom(AgentServerSpec spec) => buildMcpServer(
+    registry: spec.registry,
+    gate: spec.gate,
+    appVersion: spec.appVersion,
+  );
 
   static Future<int> _freePort() async {
     final probe = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
