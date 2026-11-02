@@ -8674,8 +8674,9 @@ class DiveRepository {
               entryLongitude: row.entryLongitude,
               exitLatitude: row.exitLatitude,
               exitLongitude: row.exitLongitude,
-              entryTime: row.entryTime,
-              exitTime: row.exitTime,
+              // See _mapRowToDataSource.
+              entryTime: row.entryTime?.toUtc(),
+              exitTime: row.exitTime?.toUtc(),
               maxAscentRate: row.maxAscentRate,
               maxDescentRate: row.maxDescentRate,
               surfaceInterval: row.surfaceInterval,
@@ -9646,8 +9647,11 @@ class DiveRepository {
       entryLongitude: row.entryLongitude,
       exitLatitude: row.exitLatitude,
       exitLongitude: row.exitLongitude,
-      entryTime: row.entryTime,
-      exitTime: row.exitTime,
+      // Written from a wall clock flagged UTC, as the dive's own times are, but
+      // a Drift dateTime() column reads back flagged local. toUtc restores the
+      // stored digits; passed on as is, they show shifted by the device's zone.
+      entryTime: row.entryTime?.toUtc(),
+      exitTime: row.exitTime?.toUtc(),
       maxAscentRate: row.maxAscentRate,
       maxDescentRate: row.maxDescentRate,
       surfaceInterval: row.surfaceInterval,
