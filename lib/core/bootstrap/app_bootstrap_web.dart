@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,11 @@ import 'package:submersion/core/services/logger_service.dart';
 /// bootstrap, in the same order.
 Future<void> bootstrapApp() => bootstrapWeb();
 
+/// The semantics handle `?a11y=1` asks for, held for the page's life so the
+/// tree stays on; a test disposes it.
+@visibleForTesting
+SemanticsHandle? bootstrapSemanticsHandle;
+
 /// The browser bootstrap with its side effects injectable, so a VM test can
 /// run it to the point of handing `runApp` its widget.
 @visibleForTesting
@@ -25,6 +31,7 @@ Future<void> bootstrapWeb({
       SharedPreferences.getInstance,
   Future<String> Function() supportDirectory = AppDirectories.support,
   Future<void> Function() logEnvironment = logSessionEnvironment,
+  Map<String, String>? queryParameters,
 }) async {
   // Hold log lines in memory until the log file is attached below, so a
   // failure in the startup steps before it is not lost (#1826).
@@ -56,4 +63,10 @@ Future<void> bootstrapWeb({
       demoPaths: null,
     ),
   );
+  // The smoke runner reads Flutter's semantics tree, which a page only
+  // builds once a screen reader asks; `?a11y=1` asks from the first frame
+  // (issue #4121).
+  if ((queryParameters ?? Uri.base.queryParameters)['a11y'] == '1') {
+    bootstrapSemanticsHandle ??= SemanticsBinding.instance.ensureSemantics();
+  }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -60,5 +61,45 @@ void main() {
     expect(Directory(p.join(dir.path, 'logs')).existsSync(), isTrue);
     expect(wrapper.demoPaths, isNull, reason: 'demo mode is native only');
     expect(environmentLogged, 1);
+    expect(bootstrapSemanticsHandle, isNull, reason: 'not asked for');
+  });
+
+  testWidgets('a11y=1 in the address keeps the semantics tree on', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final dir = Directory.systemTemp.createTempSync('bootstrap_web_a11y');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final originalFlutterOnError = FlutterError.onError;
+    final originalPlatformOnError = PlatformDispatcher.instance.onError;
+    final imageCache = PaintingBinding.instance.imageCache;
+    final originalCacheBytes = imageCache.maximumSizeBytes;
+    final originalFileLevel = LoggerService.minimumFileLevel;
+    final originalDisabledDetectors = QualityDetectorToggles.disabled;
+    addTearDown(() {
+      FlutterError.onError = originalFlutterOnError;
+      PlatformDispatcher.instance.onError = originalPlatformOnError;
+      imageCache.maximumSizeBytes = originalCacheBytes;
+      LoggerService.setFileService(null);
+      LoggerService.setMinimumFileLevel(originalFileLevel);
+      QualityDetectorToggles.disabled = originalDisabledDetectors;
+      bootstrapSemanticsHandle = null;
+    });
+
+    await tester.runAsync(() async {
+      await bootstrapWeb(
+        run: (_) {},
+        supportDirectory: () async => dir.path,
+        logEnvironment: () async {},
+        queryParameters: const {'a11y': '1'},
+      );
+      await LoggerService.flushPendingWrites();
+    });
+
+    expect(bootstrapSemanticsHandle, isA<SemanticsHandle>());
+    expect(SemanticsBinding.instance.semanticsEnabled, isTrue);
+    // The handle outlives the page by design; the test framework wants it
+    // back before the test ends.
+    bootstrapSemanticsHandle!.dispose();
   });
 }
