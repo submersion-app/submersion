@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
@@ -108,9 +107,10 @@ List<TankUsageWindow> tankUsageWindows({
 
   if (knownSwitches.isEmpty) {
     // Without switches only the primary gas is known to span the dive: the
-    // back gas, or either cylinder of a sidemount pair. A stage's window
-    // is unknown, and the whole dive would understate its rate.
-    if (tank.role != TankRole.backGas && !sidemountRoles.contains(tank.role)) {
+    // backmount gas, or either cylinder of a sidemount pair. A stage's
+    // window is unknown, and the whole dive would understate its rate.
+    if (!backmountRoles.contains(tank.role) &&
+        !sidemountRoles.contains(tank.role)) {
       return const [];
     }
     return [(start: diveStart, end: diveEnd)];

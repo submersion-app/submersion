@@ -76,4 +76,37 @@ void main() {
     expect(gases.any((g) => (g.fO2 - 0.50).abs() < 1e-9), isTrue);
     expect(gases.any((g) => (g.fO2 - 1.0).abs() < 1e-9), isTrue);
   });
+
+  group('a twin set (issue #3374)', () {
+    const twinAir = DiveTank(
+      id: 't1',
+      gasMix: GasMix(o2: 21),
+      role: TankRole.twinSet,
+    );
+
+    test('decoStageOnly keeps a twin set as the floor', () {
+      final gases = buildAvailableGases(
+        _diveWith([twinAir, ean50]),
+        maxPpO2: 1.6,
+        gasSet: AscentGasSet.decoStageOnly,
+      );
+      expect(gases.any((g) => (g.fO2 - 0.21).abs() < 1e-9), isTrue);
+    });
+
+    test('a twin set stays in a CCR bailout gas set', () {
+      const diluent = DiveTank(
+        id: 'dil',
+        gasMix: GasMix(o2: 10, he: 50),
+        role: TankRole.diluent,
+      );
+      final gases = buildAvailableGases(
+        _diveWith([twinAir, diluent]),
+        maxPpO2: 1.6,
+        gasSet: AscentGasSet.decoStageOnly,
+        forCcrBailout: true,
+      );
+      expect(gases.any((g) => (g.fO2 - 0.21).abs() < 1e-9), isTrue);
+      expect(gases.any((g) => (g.fO2 - 0.10).abs() < 1e-9), isFalse);
+    });
+  });
 }
