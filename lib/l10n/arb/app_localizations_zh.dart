@@ -54902,6 +54902,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get web_unavailable_offer_git => 'Git 托管服务不接受来自网页的请求。';
 
   @override
+  String get web_googleClientId_title => 'Google 客户端 ID';
+
+  @override
+  String get web_googleClientId_body =>
+      '网页使用您自己的 Google Cloud 项目中的客户端 ID 登录 Google：类型为 Web 应用，并将本站地址设为已获授权的 JavaScript 来源。请粘贴到此处。它会与您的其他登录信息一起保存。';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      '这看起来不像 Google 客户端 ID。它应以 .apps.googleusercontent.com 结尾。';
+
+  @override
+  String get web_googleClientId_help => '如何创建';
+
+  @override
   String get demo_row_unavailable => '演示模式下不可用';
 
   @override

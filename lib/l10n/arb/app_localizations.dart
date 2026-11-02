@@ -92314,6 +92314,36 @@ abstract class AppLocalizations {
   /// **'Git hosts do not accept requests from a web page.'**
   String get web_unavailable_offer_git;
 
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Google client id'**
+  String get web_googleClientId_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'A web page signs in to Google with a client id from your own Google Cloud project: type Web application, with this site\'s address as an authorised JavaScript origin. Paste it here. It is kept with your other sign-in details.'**
+  String get web_googleClientId_body;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'123456789-abc123.apps.googleusercontent.com'**
+  String get web_googleClientId_hint;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'That does not look like a Google client id. It ends in .apps.googleusercontent.com.'**
+  String get web_googleClientId_invalid;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'How to create one'**
+  String get web_googleClientId_help;
+
   /// Demo mode (issue #3708)
   ///
   /// In en, this message translates to:

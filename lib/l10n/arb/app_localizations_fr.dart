@@ -58633,6 +58633,24 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les hébergeurs Git n\'acceptent pas les requêtes d\'une page web.';
 
   @override
+  String get web_googleClientId_title => 'Identifiant client Google';
+
+  @override
+  String get web_googleClientId_body =>
+      'Une page web se connecte à Google avec un identifiant client de votre propre projet Google Cloud : de type Application Web, avec l\'adresse de ce site comme origine JavaScript autorisée. Collez-le ici. Il est conservé avec vos autres identifiants.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Cela ne ressemble pas à un identifiant client Google. Il se termine par .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'Comment en créer un';
+
+  @override
   String get demo_row_unavailable => 'Indisponible en mode démo';
 
   @override

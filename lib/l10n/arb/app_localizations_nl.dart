@@ -58138,6 +58138,24 @@ class AppLocalizationsNl extends AppLocalizations {
       'Git-hosts accepteren geen verzoeken van een webpagina.';
 
   @override
+  String get web_googleClientId_title => 'Google-client-id';
+
+  @override
+  String get web_googleClientId_body =>
+      'Een webpagina meldt zich bij Google aan met een client-id uit je eigen Google Cloud-project: van het type Webtoepassing, met het adres van deze site als geautoriseerde JavaScript-oorsprong. Plak die hier. Hij wordt bij je andere aanmeldgegevens bewaard.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Dat ziet er niet uit als een Google-client-id. Die eindigt op .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'Zo maak je er een';
+
+  @override
   String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
 
   @override

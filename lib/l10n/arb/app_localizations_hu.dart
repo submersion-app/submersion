@@ -58173,6 +58173,24 @@ class AppLocalizationsHu extends AppLocalizations {
       'A Git-kiszolgálók nem fogadnak kéréseket weboldalról.';
 
   @override
+  String get web_googleClientId_title => 'Google-ügyfélazonosító';
+
+  @override
+  String get web_googleClientId_body =>
+      'Egy weboldal a saját Google Cloud-projekted ügyfélazonosítójával jelentkezik be a Google-ba: Webalkalmazás típusú, ennek az oldalnak a címével engedélyezett JavaScript-forrásként. Illeszd be ide. A többi bejelentkezési adatoddal együtt tároljuk.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Ez nem tűnik Google-ügyfélazonosítónak. A vége .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'Így hozhatsz létre egyet';
+
+  @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';
 
   @override

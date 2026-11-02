@@ -58550,6 +58550,24 @@ class AppLocalizationsEs extends AppLocalizations {
       'Los servidores Git no aceptan solicitudes desde una página web.';
 
   @override
+  String get web_googleClientId_title => 'ID de cliente de Google';
+
+  @override
+  String get web_googleClientId_body =>
+      'Una página web inicia sesión en Google con un ID de cliente de tu propio proyecto de Google Cloud: de tipo Aplicación web, con la dirección de este sitio como origen de JavaScript autorizado. Pégalo aquí. Se guarda con tus otros datos de acceso.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Eso no parece un ID de cliente de Google. Termina en .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'Cómo crear uno';
+
+  @override
   String get demo_row_unavailable => 'No disponible en el modo demo';
 
   @override

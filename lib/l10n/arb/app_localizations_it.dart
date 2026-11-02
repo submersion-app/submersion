@@ -58508,6 +58508,24 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gli host Git non accettano richieste da una pagina web.';
 
   @override
+  String get web_googleClientId_title => 'ID client Google';
+
+  @override
+  String get web_googleClientId_body =>
+      'Una pagina web accede a Google con un ID client del tuo progetto Google Cloud: di tipo Applicazione web, con l\'indirizzo di questo sito come origine JavaScript autorizzata. Incollalo qui. Viene conservato con gli altri dati di accesso.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Non sembra un ID client Google. Termina con .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'Come crearne uno';
+
+  @override
   String get demo_row_unavailable => 'Non disponibile in modalità demo';
 
   @override

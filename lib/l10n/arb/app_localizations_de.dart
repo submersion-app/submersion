@@ -58375,6 +58375,24 @@ class AppLocalizationsDe extends AppLocalizations {
       'Git-Hosts nehmen keine Anfragen von einer Webseite an.';
 
   @override
+  String get web_googleClientId_title => 'Google-Client-ID';
+
+  @override
+  String get web_googleClientId_body =>
+      'Eine Webseite meldet sich bei Google mit einer Client-ID aus deinem eigenen Google-Cloud-Projekt an: Typ Webanwendung, mit der Adresse dieser Seite als autorisiertem JavaScript-Ursprung. Füge sie hier ein. Sie wird mit deinen anderen Anmeldedaten aufbewahrt.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Das sieht nicht nach einer Google-Client-ID aus. Sie endet auf .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'So erstellst du eine';
+
+  @override
   String get demo_row_unavailable => 'Im Demomodus nicht verfügbar';
 
   @override

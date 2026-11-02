@@ -57267,6 +57267,24 @@ class AppLocalizationsHe extends AppLocalizations {
       'שרתי Git אינם מקבלים בקשות מדף אינטרנט.';
 
   @override
+  String get web_googleClientId_title => 'מזהה לקוח של Google';
+
+  @override
+  String get web_googleClientId_body =>
+      'דף אינטרנט נכנס ל-Google עם מזהה לקוח מפרויקט Google Cloud שלך: מסוג אפליקציית אינטרנט, עם כתובת האתר הזה כמקור JavaScript מורשה. הדבק אותו כאן. הוא נשמר עם פרטי הכניסה האחרים שלך.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'זה לא נראה כמו מזהה לקוח של Google. הוא מסתיים ב-.apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'איך ליצור אחד';
+
+  @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';
 
   @override

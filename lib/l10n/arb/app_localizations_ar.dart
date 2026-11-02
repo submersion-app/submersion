@@ -59269,6 +59269,24 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا تقبل مستضيفات Git الطلبات من صفحة ويب.';
 
   @override
+  String get web_googleClientId_title => 'معرّف عميل Google';
+
+  @override
+  String get web_googleClientId_body =>
+      'تسجّل صفحة الويب الدخول إلى Google بمعرّف عميل من مشروع Google Cloud الخاص بك: من نوع تطبيق ويب، مع عنوان هذا الموقع كأصل JavaScript مصرّح به. ألصقه هنا. يُحفظ مع بيانات تسجيل الدخول الأخرى.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'لا يبدو هذا معرّف عميل Google. ينتهي بـ .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'كيفية إنشاء واحد';
+
+  @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';
 
   @override
