@@ -2204,6 +2204,9 @@ class DiveRepository {
                 isFavorite: Value(dive.isFavorite),
                 excludedFromStats: Value(dive.excludedFromStats),
                 excludedFromGasStats: Value(dive.excludedFromGasStats),
+                // A restored backup brings the diver-owned switch list
+                // flag with it (issue #32); an edit never rewrites it.
+                gasSwitchesEdited: Value(dive.gasSwitchesEdited),
                 // CCR/SCR rebreather fields (v1.5)
                 diveMode: Value(dive.diveMode.code),
                 setpointLow: Value(dive.setpointLow),
@@ -2701,12 +2704,22 @@ class DiveRepository {
         // This will cascade to both tank_pressure_series and gas_switches for removed tanks
         final tanksToDelete = existingTankIds.difference(updatedTankIds);
         for (final tankId in tanksToDelete) {
+          // SQLite cascades the cylinder's gas switches without Drift seeing
+          // a write, so their tombstones are logged here, whichever computer
+          // they belong to (issue #32); without them a peer keeps the rows.
+          final cascadedSwitches = await (_db.select(
+            _db.gasSwitches,
+          )..where((t) => t.tankId.equals(tankId))).get();
           await (_db.delete(
             _db.diveTanks,
           )..where((t) => t.id.equals(tankId))).go();
           await _syncRepository.logDeletion(
             entityType: 'diveTanks',
             recordId: tankId,
+          );
+          await _syncRepository.logDeletions(
+            entityType: 'gasSwitches',
+            recordIds: cascadedSwitches.map((s) => s.id),
           );
         }
 
@@ -4970,6 +4983,7 @@ class DiveRepository {
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
+      gasSwitchesEdited: row.gasSwitchesEdited,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
       diveMode: DiveMode.fromCode(row.diveMode),
@@ -5432,6 +5446,7 @@ class DiveRepository {
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
+      gasSwitchesEdited: row.gasSwitchesEdited,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
       diveMode: DiveMode.fromCode(row.diveMode),
@@ -8245,6 +8260,54 @@ class DiveRepository {
     }
     await _bumpDives(changed.toList(), now);
     return changed.length;
+  }
+
+  /// Set the role of exactly the cylinders in [tankIds] to [role], as the
+  /// Gas page's twin set re-role offer does (issue #3374). Writes the role
+  /// and clears `role_source` through [_tankSpecsCompanion], so nothing
+  /// else on the row moves; marks each row and its dive pending for sync.
+  /// With [onlyFrom], a row whose role is no longer that one (a sync pull
+  /// since the caller chose it, say) is left alone. Owns its transaction,
+  /// Drift's table updates notify the dive streams, and the sync bus hears
+  /// of a change so auto-sync schedules it. Returns the number of rows
+  /// changed.
+  Future<int> setTankRoles(
+    List<String> tankIds,
+    TankRole role, {
+    TankRole? onlyFrom,
+  }) async {
+    if (tankIds.isEmpty) return 0;
+    final companion = _tankSpecsCompanion(
+      domain.DiveTank(id: '', role: role),
+      const {domain.TankSpecField.role},
+    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final changed = await _db.transaction(() async {
+      final rows =
+          await (_db.select(_db.diveTanks)..where(
+                (t) => onlyFrom == null
+                    ? t.id.isIn(tankIds)
+                    : t.id.isIn(tankIds) & t.tankRole.equals(onlyFrom.name),
+              ))
+              .get();
+      if (rows.isEmpty) return 0;
+      // One write per row, each marked pending in the same block: the row
+      // keeps a fresh clock, so a peer's older copy cannot undo the role.
+      for (final row in rows) {
+        await (_db.update(
+          _db.diveTanks,
+        )..where((t) => t.id.equals(row.id))).write(companion);
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+      await _bumpDives(rows.map((r) => r.diveId).toSet().toList(), now);
+      return rows.length;
+    });
+    if (changed > 0) SyncEventBus.notifyLocalChange();
+    return changed;
   }
 
   /// Write [rows] back over the tanks with the same ids, restoring prior NULLs.

@@ -17,28 +17,38 @@ import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 /// turns each central that subscribes or writes into an incoming endpoint.
 ///
 /// Both directions are flow-controlled by the link itself: writes with
-/// response one way, reads the other. A one-byte outbox notification only
-/// rings the central's doorbell when bytes are waiting; a slow poll covers
-/// a doorbell the platform dropped.
+/// response one way, reads the other. A one-byte notification on the
+/// doorbell only says bytes are waiting; a slow poll covers one the
+/// platform dropped.
 ///
 /// Tested on real devices only (see the spec's manual checklist); every
 /// layer above it runs against the in-memory carrier in CI.
 class BleNearbyCarrier implements NearbyCarrier {
   BleNearbyCarrier({
     this.writeWithoutResponse = false,
+    this.peripheralPoll = const Duration(milliseconds: 50),
+    this.peripheralPatience = const Duration(seconds: 5),
+    bool? canAdvertise,
     bool? needsPermission,
     Future<AvailabilityState> Function()? readAvailability,
     Stream<AvailabilityState> Function()? availabilityUpdates,
-  }) : _needsPermission =
+  }) : _canAdvertise = canAdvertise ?? BleCapabilities.supportsPeripheralApi,
+       _needsPermission =
            needsPermission ?? BleCapabilities.requiresRuntimePermission,
        _readAvailability =
            readAvailability ?? UniversalBle.getBluetoothAvailabilityState,
        _availabilityUpdates =
            availabilityUpdates ?? (() => UniversalBle.availabilityStream);
 
+  final bool _canAdvertise;
   final bool _needsPermission;
   final Future<AvailabilityState> Function() _readAvailability;
   final Stream<AvailabilityState> Function() _availabilityUpdates;
+
+  /// How often, and how long, hosting asks whether the peripheral manager
+  /// has reached its first state.
+  final Duration peripheralPoll;
+  final Duration peripheralPatience;
 
   /// Central writes without an acknowledgement are faster but can be
   /// dropped when a platform's buffer is full; a lost chunk ends the
@@ -74,8 +84,12 @@ class BleNearbyCarrier implements NearbyCarrier {
   /// This carrier's request handlers and peripheral listeners are set up.
   bool _peripheralWired = false;
 
+  /// This carrier has hosted the nearby service, and Bluetooth has not gone
+  /// off since.
+  bool _serviceInPlace = false;
+
   @override
-  bool get canAdvertise => BleCapabilities.supportsPeripheralApi;
+  bool get canAdvertise => _canAdvertise;
 
   @override
   Stream<NearbyPeerSighting> get sightings => _sightings.stream;
@@ -135,6 +149,7 @@ class BleNearbyCarrier implements NearbyCarrier {
   void _followAvailability() {
     if (_availabilitySub != null) return;
     _availabilitySub = _availabilityUpdates().listen((state) {
+      if (state != AvailabilityState.poweredOn) _serviceInPlace = false;
       if (!_availability.isClosed) _availability.add(_map(state));
     }, onError: (Object e) => _log.info('Bluetooth availability error: $e'));
   }
@@ -194,7 +209,7 @@ class BleNearbyCarrier implements NearbyCarrier {
       await UniversalBle.subscribeNotifications(
         transportId,
         nearbyServiceUuid,
-        nearbyOutboxUuid,
+        nearbyDoorbellUuid,
       );
       return end;
     } on NearbyConnectFailed {
@@ -219,35 +234,10 @@ class BleNearbyCarrier implements NearbyCarrier {
     if (!canAdvertise) {
       throw UnsupportedError('This platform cannot host the nearby service');
     }
+    await _hostService();
+    // Disposed meanwhile: the next carrier owns the request handlers now.
+    if (_incoming.isClosed) return;
     if (!_peripheralWired) {
-      // The GATT server outlives this carrier: after a restart of the
-      // provider scope (a restore, demo mode) the service is still hosted,
-      // and adding it again would give centrals two of it.
-      if (!await _serviceHosted()) {
-        await UniversalBlePeripheral.addService(
-          BlePeripheralService(
-            uuid: nearbyServiceUuid,
-            characteristics: [
-              BlePeripheralCharacteristic(
-                uuid: nearbyInboxUuid,
-                properties: const [
-                  CharacteristicProperty.write,
-                  CharacteristicProperty.writeWithoutResponse,
-                ],
-                permissions: const [PeripheralAttributePermission.writeable],
-              ),
-              BlePeripheralCharacteristic(
-                uuid: nearbyOutboxUuid,
-                properties: const [
-                  CharacteristicProperty.read,
-                  CharacteristicProperty.notify,
-                ],
-                permissions: const [PeripheralAttributePermission.readable],
-              ),
-            ],
-          ),
-        );
-      }
       UniversalBlePeripheral.setWriteRequestHandlers((
         deviceId,
         characteristicId,
@@ -280,7 +270,7 @@ class BleNearbyCarrier implements NearbyCarrier {
       });
       _peripheralSubs.addAll([
         UniversalBlePeripheral.characteristicSubscriptionStream.listen((e) {
-          if (e.characteristicId.toLowerCase() != nearbyOutboxUuid) return;
+          if (e.characteristicId.toLowerCase() != nearbyDoorbellUuid) return;
           if (e.isSubscribed) {
             _endedCentrals.remove(e.deviceId);
             _peripheralEnd(e.deviceId);
@@ -301,6 +291,10 @@ class BleNearbyCarrier implements NearbyCarrier {
           _mtuByCentral[e.deviceId] = e.mtu;
           _peripheralEnds[e.deviceId]?.readLength = _readLengthFor(e.mtu);
         }),
+        // Starting only asks: whether advertising began is reported here.
+        UniversalBlePeripheral.advertisingStateStream.listen((e) {
+          if (e.error != null) _log.info('Nearby advertising: ${e.error}');
+        }),
       ]);
       _peripheralWired = true;
     }
@@ -319,17 +313,68 @@ class BleNearbyCarrier implements NearbyCarrier {
     }
   }
 
-  static Future<bool> _serviceHosted() async {
+  Future<void> _hostService() async {
+    if (_serviceInPlace) return;
+    await _awaitPeripheralManager();
+    // Set first: Bluetooth going off during an await below clears it.
+    _serviceInPlace = true;
     try {
-      final hosted = await UniversalBlePeripheral.getServices();
-      return hosted.any((uuid) => uuid.toLowerCase() == nearbyServiceUuid);
+      // Never added to what is there. The GATT server outlives a carrier, so
+      // adding alone could give centrals two of the service, and the plugin's
+      // list cannot say what is hosted: it names a service from the moment
+      // it is asked to add it, and keeps it when Apple empties its GATT
+      // database as Bluetooth goes off.
+      await UniversalBlePeripheral.clearServices();
+      await UniversalBlePeripheral.addService(_nearbyService());
     } on Object {
-      return false;
+      _serviceInPlace = false;
+      rethrow;
     }
   }
 
-  /// Stops listening to Bluetooth. The service stays hosted for the next
-  /// carrier, which takes the request handlers over.
+  static BlePeripheralService _nearbyService() => BlePeripheralService(
+    uuid: nearbyServiceUuid,
+    characteristics: [
+      BlePeripheralCharacteristic(
+        uuid: nearbyInboxUuid,
+        properties: const [
+          CharacteristicProperty.write,
+          CharacteristicProperty.writeWithoutResponse,
+        ],
+        permissions: const [PeripheralAttributePermission.writeable],
+      ),
+      BlePeripheralCharacteristic(
+        uuid: nearbyOutboxUuid,
+        properties: const [CharacteristicProperty.read],
+        permissions: const [PeripheralAttributePermission.readable],
+      ),
+      BlePeripheralCharacteristic(
+        uuid: nearbyDoorbellUuid,
+        properties: const [CharacteristicProperty.notify],
+        permissions: const [PeripheralAttributePermission.readable],
+      ),
+    ],
+  );
+
+  /// Waits for the peripheral manager's first state. The plugin creates the
+  /// manager on first use, and Apple silently drops every command sent
+  /// before it reports power-on: the service would never be hosted, though
+  /// the plugin would go on listing it. Only [PeripheralReadinessState.unknown]
+  /// is waited out: on Android the advertise permission reads as
+  /// unauthorized until advertising asks for it.
+  Future<void> _awaitPeripheralManager() async {
+    final watch = Stopwatch()..start();
+    while (await UniversalBlePeripheral.getAvailabilityState() ==
+        PeripheralReadinessState.unknown) {
+      if (watch.elapsed >= peripheralPatience) {
+        throw StateError('The Bluetooth peripheral manager did not start');
+      }
+      await Future<void>.delayed(peripheralPoll);
+    }
+  }
+
+  /// Stops listening to Bluetooth. The service stays hosted until the next
+  /// carrier replaces it and takes the request handlers over.
   Future<void> dispose() async {
     await _scanSub?.cancel();
     _scanSub = null;
@@ -389,7 +434,7 @@ class _CentralEnd implements NearbyEndpoint {
   }) {
     _doorbellSub = UniversalBle.characteristicValueStream(
       transportId,
-      nearbyOutboxUuid,
+      nearbyDoorbellUuid,
     ).listen((_) => _pump());
     _connectionSub = UniversalBle.connectionStream(transportId).listen((up) {
       if (!up) _drop();
@@ -535,7 +580,7 @@ class _PeripheralEnd implements NearbyEndpoint {
   Future<void> _ringDoorbell() async {
     try {
       await UniversalBlePeripheral.updateCharacteristicValue(
-        characteristicId: nearbyOutboxUuid,
+        characteristicId: nearbyDoorbellUuid,
         value: Uint8List.fromList(const [1]),
         deviceId: transportId,
       );

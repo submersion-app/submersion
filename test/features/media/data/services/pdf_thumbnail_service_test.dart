@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/media/data/services/pdf_thumbnail_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -122,6 +125,22 @@ void main() {
         PdfThumbnailService.cacheKeyFor(pdf(updatedAt: DateTime(2026, 8, 13))),
       ),
     );
+  });
+
+  // Issue #3996: what an older build cached is the cropped render. The key is
+  // written out here because the point is the name that build used.
+  test('a tile cached before the whole-page fix is not served', () async {
+    final dir = Directory(p.join(root.path, 'cache'))..createSync();
+    final oldKey = sha1.convert(utf8.encode('${'a' * 64}|512')).toString();
+    File(p.join(dir.path, '$oldKey.jpg')).writeAsBytesSync([9, 9]);
+
+    final result = await service().thumbFor(
+      pdf(contentHash: 'a' * 64),
+      source: serving(BytesData(bytes: Uint8List.fromList([37, 80]))),
+    );
+
+    expect(result, equals(jpeg));
+    expect(renderCalls, 1);
   });
 
   test('an unresolvable source never reaches the renderer', () async {

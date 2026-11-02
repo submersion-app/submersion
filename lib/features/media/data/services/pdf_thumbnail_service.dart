@@ -187,6 +187,13 @@ class PdfThumbnailService {
 
   static const int _jpegQuality = 80;
 
+  /// Part of every cache key, and raised when a page's render changes for
+  /// the same document, so an older build's files are regenerated instead of
+  /// served. [ScratchSweep] ages the abandoned ones out.
+  ///
+  /// 2: the whole page, not a crop of its 72 dpi render (issue #3996).
+  static const int _renderRevision = 2;
+
   Future<Uint8List?> _render({File? file, Uint8List? bytes}) => _renderer(
     file: file,
     bytes: bytes,
@@ -209,7 +216,9 @@ class PdfThumbnailService {
     final signature =
         item.contentHash ??
         '${item.id}|${item.updatedAt.millisecondsSinceEpoch}';
-    return sha1.convert(utf8.encode('$signature|$maxDimension')).toString();
+    return sha1
+        .convert(utf8.encode('$signature|r$_renderRevision|$maxDimension'))
+        .toString();
   }
 
   /// Cache key for [item]'s large render at [maxDimension]; distinct from
@@ -220,7 +229,9 @@ class PdfThumbnailService {
         item.contentHash ??
         '${item.id}|${item.updatedAt.millisecondsSinceEpoch}';
     return sha1
-        .convert(utf8.encode('$signature|preview|$maxDimension'))
+        .convert(
+          utf8.encode('$signature|preview|r$_renderRevision|$maxDimension'),
+        )
         .toString();
   }
 

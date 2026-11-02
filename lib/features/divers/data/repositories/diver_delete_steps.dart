@@ -109,6 +109,12 @@ const _ofDiverTrips = 'trip_id IN (SELECT id FROM trips WHERE diver_id = ?1)';
 const _ofDiverTripCylinders =
     'trip_cylinder_id IN (SELECT id FROM trip_cylinders WHERE $_ofDiverTrips)';
 
+/// trip_checklist_sections/items reference a trip through trip_checklists
+/// (issue #3356), not trips directly, so they need one more hop than
+/// [_ofDiverTrips].
+const _ofDiverTripChecklists =
+    'checklist_id IN (SELECT id FROM trip_checklists WHERE $_ofDiverTrips)';
+
 /// The trips and sites the diver still owns: the private ones, and the
 /// shared ones too when no diver survived to take them. A trip's children
 /// reference `trips` with no ON DELETE action, so they go first, tombstoned
@@ -128,11 +134,16 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
   (
     table: 'trip_checklist_items',
     entityType: 'tripChecklistItems',
-    where: _ofDiverTrips,
+    where: _ofDiverTripChecklists,
   ),
   (
     table: 'trip_checklist_sections',
     entityType: 'tripChecklistSections',
+    where: _ofDiverTripChecklists,
+  ),
+  (
+    table: 'trip_checklists',
+    entityType: 'tripChecklists',
     where: _ofDiverTrips,
   ),
   // The ledger first: it cascades from its slot, and a cascade logs nothing.

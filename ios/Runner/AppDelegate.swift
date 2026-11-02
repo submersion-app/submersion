@@ -7,6 +7,7 @@ import workmanager_apple
   private var bookmarkHandler: SecurityScopedBookmarkHandler?
   private var icloudHandler: ICloudContainerHandler?
   private var metadataHandler: MetadataWriteHandler?
+  private var photoMetadataHandler: PhotoMetadataHandler?
   private var localMediaHandler: LocalMediaHandler?
   private var backupBookmarkHandler: BackupBookmarkHandler?
   private var deviceNameHandler: DeviceNameHandler?
@@ -34,6 +35,9 @@ import workmanager_apple
     }
     if let metadataRegistrar = self.registrar(forPlugin: "MetadataWriteHandler") {
       metadataHandler = MetadataWriteHandler(messenger: metadataRegistrar.messenger())
+    }
+    if let photoMetadataRegistrar = self.registrar(forPlugin: "PhotoMetadataHandler") {
+      photoMetadataHandler = PhotoMetadataHandler(messenger: photoMetadataRegistrar.messenger())
     }
     if let localMediaRegistrar = self.registrar(forPlugin: "LocalMediaHandler") {
       localMediaHandler = LocalMediaHandler(messenger: localMediaRegistrar.messenger())

@@ -45,6 +45,53 @@ void main() {
     });
   });
 
+  group('startingTankOf', () {
+    GasSwitch bare(String tankId, int timestamp) => GasSwitch(
+      id: 'gs-$tankId-$timestamp',
+      diveId: 'dive-1',
+      timestamp: timestamp,
+      tankId: tankId,
+      createdAt: DateTime(2026),
+    );
+
+    test('a switch in the first minute names the start', () {
+      final tank = startingTankOf(
+        tanks: const [back, deco],
+        switches: [bare('deco', 30)],
+        diveStart: 0,
+      );
+
+      expect(tank?.id, 'deco');
+    });
+
+    test('a later switch leaves the back gas', () {
+      final tank = startingTankOf(
+        tanks: const [back, deco],
+        switches: [bare('deco', 600)],
+        diveStart: 0,
+      );
+
+      expect(tank?.id, 'back');
+    });
+
+    test('a switch to an unknown tank is ignored', () {
+      final tank = startingTankOf(
+        tanks: const [back, deco],
+        switches: [bare('stale', 10)],
+        diveStart: 0,
+      );
+
+      expect(tank?.id, 'back');
+    });
+
+    test('no tanks is null', () {
+      expect(
+        startingTankOf(tanks: const [], switches: const [], diveStart: 0),
+        isNull,
+      );
+    });
+  });
+
   group('activeTankAt', () {
     test('the back gas is breathed up to a switch late in the dive', () {
       // The grace for a starting gas runs from the dive's start, not from
@@ -170,6 +217,14 @@ void main() {
         ),
         isEmpty,
       );
+    });
+
+    test('a twin set with no switches spans the dive (issue #3374)', () {
+      const twin = DiveTank(id: 'twin', role: TankRole.twinSet);
+
+      expect(windowsOf(twin, const [], tanks: const [twin, stage]), [
+        (start: 0, end: 2400),
+      ]);
     });
 
     test('a stage no switch names has no windows', () {

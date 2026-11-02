@@ -376,7 +376,7 @@ List<Override> _fullOverrides({
     allEquipmentProvider.overrideWith((ref) async => existingEquipment),
     allBuddiesProvider.overrideWith((ref) async => existingBuddies),
     allDiveCentersProvider.overrideWith((ref) async => existingDiveCenters),
-    allCertificationsProvider.overrideWith(
+    certificationMetadataProvider.overrideWith(
       (ref) async => existingCertifications,
     ),
     tagsProvider.overrideWith((ref) async => existingTags),

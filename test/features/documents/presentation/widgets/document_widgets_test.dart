@@ -197,23 +197,4 @@ void main() {
     expect(find.text('2 of 2'), findsOneWidget);
     expect(find.text('p1.txt'), findsOneWidget);
   });
-
-  testWidgets('viewer shows a placeholder for a corrupt image', (t) async {
-    await t.pumpWidget(
-      testApp(
-        locale: const Locale('en'),
-        child: DocumentPageViewer(
-          pages: [
-            _page(
-              fileName: 'front.jpg',
-              mimeType: 'image/jpeg',
-              bytes: const [0, 1],
-            ),
-          ],
-        ),
-      ),
-    );
-    await t.pumpAndSettle();
-    expect(find.text("Can't display this page"), findsOneWidget);
-  });
 }

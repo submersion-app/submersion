@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/data/services/dive_gallery_lookup.dart';
 import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/services/dive_photo_matcher.dar
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 
 /// Result of scanning the device gallery for trip photos.
 ///
@@ -115,7 +116,7 @@ class TripMediaScanner {
     bool bestIsExact = false;
 
     for (final dive in dives) {
-      final (rawEntry, rawExit) = _getDiveBounds(dive);
+      final (rawEntry, rawExit) = diveBounds(dive);
       final entryTime = toWallClockUtc(rawEntry);
       final exitTime = toWallClockUtc(rawExit);
 
@@ -240,7 +241,7 @@ class TripMediaScanner {
 
     // Build DiveBounds from each dive (normalised to wall-clock-as-UTC).
     final bounds = dives.map((dive) {
-      final (rawEntry, rawExit) = _getDiveBounds(dive);
+      final (rawEntry, rawExit) = diveBounds(dive);
       return DiveBounds(
         diveId: dive.id,
         entryTime: toWallClockUtc(rawEntry),
@@ -293,7 +294,7 @@ class TripMediaScanner {
       bounds: bounds,
       assetMetadataResolver:
           assetMetadataResolver ??
-          (asset) => _extractAssetFileMetadata(asset, photoPickerService),
+          (asset) => readGalleryAssetMetadata(asset, photoPickerService),
     );
     final fallbackSelection = matcher.match(
       files: fallbackExtractedById.values.toList(),
@@ -313,18 +314,26 @@ class TripMediaScanner {
     );
 
     // Round-trip matched files back to AssetInfo via sourcePath == asset.id.
+    // A photo dated by its EXIF goes on with that time rather than this
+    // device's digits, or it would be stored and placed on the profile hours
+    // from where it matched (#259).
+    AssetInfo assetFor(ExtractedFile file) {
+      final asset = assetById[file.sourcePath]!;
+      final exifTime = fallbackExtractedById[file.sourcePath]?.metadata.takenAt;
+      if (exifTime == null) return asset;
+      return asset.copyWith(createDateTime: wallClockUtcToLocal(exifTime));
+    }
+
     final diveById = {for (final d in dives) d.id: d};
     final Map<Dive, List<AssetInfo>> matchedByDive = {};
     for (final entry in selection.matched.entries) {
       final dive = diveById[entry.key];
       if (dive == null) continue;
-      matchedByDive[dive] = entry.value
-          .map((ef) => assetById[ef.sourcePath]!)
-          .toList();
+      matchedByDive[dive] = entry.value.map(assetFor).toList();
     }
 
     final List<AssetInfo> unmatched = selection.unmatched
-        .map((ef) => assetById[ef.sourcePath]!)
+        .map(assetFor)
         .toList();
 
     final alreadyLinkedCount =
@@ -340,8 +349,9 @@ class TripMediaScanner {
   /// Scan the device gallery for photos near a single dive.
   ///
   /// Uses the dive's entry/exit times with [DivePhotoMatcher.preBuffer] before
-  /// entry and [DivePhotoMatcher.postBuffer] after exit as the gallery query
-  /// window. Filters out photos the dive's [linked] rows already stand for.
+  /// entry and [DivePhotoMatcher.postBuffer] after exit as the dive window that
+  /// [DiveGalleryLookup] searches. Filters out photos the dive's [linked] rows
+  /// already stand for.
   ///
   /// Returns a list of new [AssetInfo] found, or null if permission is denied.
   static Future<List<AssetInfo>?> scanGalleryForDive({
@@ -356,15 +366,14 @@ class TripMediaScanner {
       return null;
     }
 
-    final (entryTime, exitTime) = _getDiveBounds(dive);
+    final (entryTime, exitTime) = diveBounds(dive);
     final rangeStart = entryTime.subtract(DivePhotoMatcher.preBuffer);
     final rangeEnd = exitTime.add(DivePhotoMatcher.postBuffer);
 
-    // Convert from wall-clock-as-UTC to local for photo_manager,
-    // which filters by local device time.
-    final assets = await photoPickerService.getAssetsInDateRange(
-      wallClockUtcToLocal(rangeStart),
-      wallClockUtcToLocal(rangeEnd),
+    final assets = await DiveGalleryLookup.find(
+      windowStart: rangeStart,
+      windowEnd: rangeEnd,
+      photoPickerService: photoPickerService,
     );
 
     // Not a synced-id comparison: a row linked on another device carries
@@ -379,7 +388,7 @@ class TripMediaScanner {
   /// Get the effective entry and exit times for a dive.
   ///
   /// Falls back to dateTime and dateTime + duration if entry/exit times not set.
-  static (DateTime, DateTime) _getDiveBounds(Dive dive) {
+  static (DateTime, DateTime) diveBounds(Dive dive) {
     final entryTime = dive.entryTime ?? dive.dateTime;
     final exitTime =
         dive.exitTime ??
@@ -523,6 +532,7 @@ class TripMediaScanner {
       final takenAt = metadata?.takenAt;
       if (metadata == null ||
           takenAt == null ||
+          metadata.takenAtSource == TakenAtSource.fileModifiedTime ||
           !_isInTripWindowOrDiveBuffer(
             takenAt,
             tripWindowStart,
@@ -546,31 +556,6 @@ class TripMediaScanner {
       );
     }
     return extractedById;
-  }
-
-  static Future<MediaSourceMetadata?> _extractAssetFileMetadata(
-    AssetInfo asset,
-    PhotoPickerService photoPickerService,
-  ) async {
-    try {
-      final nativeMetadata = await photoPickerService.getAssetMetadata(
-        asset.id,
-      );
-      if (nativeMetadata?.takenAt != null) {
-        return nativeMetadata;
-      }
-
-      final path = await photoPickerService.getFilePath(asset.id);
-      if (path == null) return null;
-      return await ExifExtractor().extract(File(path));
-    } on Object catch (error, stackTrace) {
-      _log.debug(
-        'Failed to extract EXIF fallback for gallery asset ${asset.id}',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
   }
 
   static MatchedSelection _mergeSelections({

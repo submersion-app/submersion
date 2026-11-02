@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
+import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
 
 /// The shortcuts that open a sub-page must push rather than go, so the
 /// Android system back button can pop them instead of closing the app (#647).
@@ -40,6 +41,7 @@ void main() {
           ],
         ),
         GoRoute(path: '/sites', builder: (_, _) => host('Sites')),
+        GoRoute(path: '/search', builder: (_, _) => host('Global search')),
       ],
     );
     addTearDown(router.dispose);
@@ -74,6 +76,29 @@ void main() {
       // Pushed, not replaced: the list is still underneath to pop back to.
       // This is the property that keeps system back from closing the app.
       expect(router.routerDelegate.canPop(), isTrue);
+    });
+
+    testWidgets('global search shortcut pushes over the current page', (
+      tester,
+    ) async {
+      final router = await pumpShortcutHost(tester, initialLocation: '/sites');
+
+      await pressControl(tester, LogicalKeyboardKey.keyK);
+
+      expect(find.text('Global search'), findsOneWidget);
+      expect(router.routerDelegate.canPop(), isTrue);
+    });
+
+    testWidgets('on the search page the global shortcut asks for the field', (
+      tester,
+    ) async {
+      final router = await pumpShortcutHost(tester, initialLocation: '/search');
+      final before = container.read(globalSearchFocusTickProvider);
+
+      await pressControl(tester, LogicalKeyboardKey.keyK);
+
+      expect(router.routerDelegate.canPop(), isFalse);
+      expect(container.read(globalSearchFocusTickProvider), before + 1);
     });
 
     testWidgets('search shortcut opens and focuses the dive search row', (

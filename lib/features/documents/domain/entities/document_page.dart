@@ -14,6 +14,11 @@ enum DocumentPageSide {
   };
 }
 
+/// Which stored content a page holds. Every write to a page moves its hlc,
+/// which also tells apart two writes in one millisecond of updatedAt, so two
+/// pages with the same key hold the same bytes.
+typedef DocumentPageContentKey = ({String id, DateTime updatedAt, String? hlc});
+
 /// One page of a document: an embedded file (image, PDF, Word or text).
 class DocumentPage extends Equatable {
   /// Empty for a page not yet saved.
@@ -30,6 +35,9 @@ class DocumentPage extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// This page's sync clock; null for a page not yet saved.
+  final String? hlc;
+
   const DocumentPage({
     required this.id,
     required this.documentId,
@@ -41,10 +49,18 @@ class DocumentPage extends Equatable {
     this.bytes,
     required this.createdAt,
     required this.updatedAt,
+    this.hlc,
   });
 
   bool get isImage => mimeType.startsWith('image/');
   bool get isPdf => mimeType == 'application/pdf';
+
+  /// Whether the app draws this page, and so needs its content to show it.
+  /// Any other page is a file tile, which reads it only when opened.
+  bool get rendersInApp => isImage || isPdf;
+
+  DocumentPageContentKey get contentKey =>
+      (id: id, updatedAt: updatedAt, hlc: hlc);
 
   DocumentPage copyWith({
     String? id,
@@ -65,6 +81,7 @@ class DocumentPage extends Equatable {
     bytes: bytes ?? this.bytes,
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    hlc: hlc,
   );
 
   /// The same page without its content, for metadata-only listings.
@@ -78,6 +95,7 @@ class DocumentPage extends Equatable {
     sizeBytes: sizeBytes,
     createdAt: createdAt,
     updatedAt: updatedAt,
+    hlc: hlc,
   );
 
   // bytes are left out: hashing megabytes for equality is never wanted.
@@ -92,5 +110,6 @@ class DocumentPage extends Equatable {
     sizeBytes,
     createdAt,
     updatedAt,
+    hlc,
   ];
 }

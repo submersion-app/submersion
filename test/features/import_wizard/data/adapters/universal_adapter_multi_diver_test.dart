@@ -131,7 +131,7 @@ Future<UniversalAdapter> _adapter(
         allEquipmentProvider.overrideWith((ref) async => []),
         allBuddiesProvider.overrideWith((ref) async => []),
         allDiveCentersProvider.overrideWith((ref) async => []),
-        allCertificationsProvider.overrideWith((ref) async => []),
+        certificationMetadataProvider.overrideWith((ref) async => []),
         tagsProvider.overrideWith((ref) async => []),
         diveTypesProvider.overrideWith((ref) async => []),
       ],

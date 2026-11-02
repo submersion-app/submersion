@@ -6,6 +6,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -30,6 +31,7 @@ void main() {
       final tripRepository = TripRepository();
       final templateRepository = ChecklistTemplateRepository();
       final tripChecklistRepository = TripChecklistRepository();
+      final tripChecklistsRepository = TripChecklistsRepository();
 
       final trip = await tripRepository.createTrip(
         Trip(
@@ -68,10 +70,14 @@ void main() {
         ),
       ]);
 
+      final checklist = await tripChecklistsRepository.createChecklist(
+        tripId: trip.id,
+        name: 'Checklist',
+      );
       final pendingItem = await tripChecklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Book flights',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -80,7 +86,7 @@ void main() {
       final doneItem = await tripChecklistRepository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Confirm nitrox certification',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -104,6 +110,7 @@ void main() {
       // 3. Assert record counts and that is-done round-trips truthy.
       expect(data.checklistTemplates, hasLength(1));
       expect(data.checklistTemplateItems, hasLength(2));
+      expect(data.tripChecklists, hasLength(1));
       expect(data.tripChecklistItems, hasLength(2));
 
       expect(
@@ -137,6 +144,7 @@ void main() {
 
       expect(roundTripped.checklistTemplates, hasLength(1));
       expect(roundTripped.checklistTemplateItems, hasLength(2));
+      expect(roundTripped.tripChecklists, hasLength(1));
       expect(roundTripped.tripChecklistItems, hasLength(2));
 
       expect(

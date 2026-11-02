@@ -11,6 +11,7 @@ Future<void> showMutedObservationKinds(BuildContext context) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) => const SafeArea(child: _MutedKindsSheet()),
     );
 

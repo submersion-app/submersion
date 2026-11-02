@@ -85,8 +85,23 @@ void main() {
     }
   });
 
-  test('other and no location offer nothing', () {
+  test('other and no location offer Active to loaned gear (#3790)', () {
+    expect(
+      offeredStatusAfterMove(
+        EquipmentLocationKind.other,
+        EquipmentStatus.loaned,
+      ),
+      EquipmentStatus.active,
+    );
+    expect(
+      offeredStatusAfterMove(null, EquipmentStatus.loaned),
+      EquipmentStatus.active,
+    );
+  });
+
+  test('other and no location offer nothing to any other status', () {
     for (final status in statuses) {
+      if (status == EquipmentStatus.loaned) continue;
       expect(
         offeredStatusAfterMove(EquipmentLocationKind.other, status),
         isNull,

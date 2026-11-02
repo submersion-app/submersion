@@ -112,6 +112,13 @@ void main() {
       );
     });
 
+    test('certifications invalidates certificationMetadataProvider', () {
+      expect(
+        _record({ImportEntityType.certifications}),
+        contains(certificationMetadataProvider),
+      );
+    });
+
     test('courses invalidates allCoursesProvider', () {
       expect(_record({ImportEntityType.courses}), contains(allCoursesProvider));
     });

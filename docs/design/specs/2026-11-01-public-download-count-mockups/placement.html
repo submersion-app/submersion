@@ -1,0 +1,72 @@
+<style>
+  .sub-mock { font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif !important; font-weight: 300 !important; line-height: 1.6 !important; padding: 32px 28px !important; }
+  .sub-deep { background: linear-gradient(180deg, #03111f, #01060e) !important; color: #eaf6fa !important; text-align: center !important; }
+  .sub-top { background: linear-gradient(180deg, #49e8ff, #2bc3dc) !important; color: #06303c !important; text-align: left !important; }
+  .sub-tag { font-size: 12px !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; opacity: 0.72 !important; margin: 0 0 6px !important; }
+  .sub-h { font-size: 30px !important; font-weight: 600 !important; margin: 0 0 8px !important; letter-spacing: -0.01em !important; }
+  .sub-intro { font-size: 14px !important; margin: 0 auto 20px !important; max-width: 46ch !important; opacity: 0.72 !important; }
+  .sub-btn { display: inline-block !important; padding: 12px 30px !important; border: 1px solid rgba(143,220,236,0.55) !important; border-radius: 8px !important; background: rgba(143,220,236,0.14) !important; color: #eaf6fa !important; font-size: 15px !important; font-weight: 500 !important; }
+  .sub-btn small { display: block !important; font-size: 11px !important; opacity: 0.72 !important; font-weight: 300 !important; }
+  .sub-stores { display: flex !important; gap: 10px !important; justify-content: center !important; margin-top: 14px !important; }
+  .sub-store { width: 112px !important; height: 36px !important; border: 1px solid rgba(234,246,250,0.16) !important; border-radius: 7px !important; font-size: 11px !important; line-height: 36px !important; opacity: 0.8 !important; }
+  .sub-count { font-size: 14px !important; color: rgba(234,246,250,0.72) !important; margin: 14px 0 0 !important; }
+  .sub-count b { font-weight: 600 !important; color: #8fdcec !important; }
+  .sub-eyebrow { font-size: 12px !important; font-weight: 500 !important; margin: 0 0 10px !important; }
+  .sub-hero-h { font-size: 28px !important; font-weight: 700 !important; letter-spacing: -0.01em !important; margin: 0 0 12px !important; color: #06303c !important; }
+  .sub-cta { display: flex !important; gap: 10px !important; align-items: center !important; flex-wrap: wrap !important; }
+  .sub-cta span.b { padding: 9px 20px !important; border-radius: 8px !important; border: 1px solid #06303c !important; font-size: 14px !important; font-weight: 500 !important; }
+  .sub-cta span.c { font-size: 13px !important; font-weight: 500 !important; color: #0b4452 !important; }
+  .sub-big { font-size: 38px !important; font-weight: 600 !important; color: #8fdcec !important; letter-spacing: -0.02em !important; margin: 18px 0 0 !important; line-height: 1.1 !important; }
+  .sub-big-l { font-size: 13px !important; color: rgba(234,246,250,0.72) !important; margin: 2px 0 12px !important; }
+  .sub-plats { display: flex !important; gap: 8px !important; justify-content: center !important; flex-wrap: wrap !important; font-size: 12px !important; }
+  .sub-plats span { padding: 5px 12px !important; border: 1px solid rgba(234,246,250,0.16) !important; border-radius: 999px !important; color: rgba(234,246,250,0.72) !important; }
+</style>
+
+<h2>Where should the download count sit on submersion.app?</h2>
+<p class="subtitle">These use the site's colours and today's real figure: 11,452 installer downloads from GitHub. That includes updates. Click the one that feels right.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>A quiet line under the download button</h3>
+      <p>Seen by people already deciding to download. Understated.</p>
+      <div class="sub-mock sub-deep">
+        <p class="sub-tag">60 m · Download</p>
+        <p class="sub-h">Get Submersion.</p>
+        <p class="sub-intro">Free on every platform.</p>
+        <span class="sub-btn">Download for macOS<small>v1.8.3.9095</small></span>
+        <p class="sub-count"><b>11,452</b> downloads from GitHub</p>
+        <div class="sub-stores"><div class="sub-store">App Store</div><div class="sub-store">Google Play</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Beside the buttons at the top of the page</h3>
+      <p>The first thing every visitor sees. Strongest as proof of popularity.</p>
+      <div class="sub-mock sub-top">
+        <p class="sub-eyebrow">Free · Open source · iOS · Android · macOS · Windows · Linux</p>
+        <p class="sub-hero-h">The complete dive app, free and open.</p>
+        <div class="sub-cta"><span class="b">Download</span><span class="b">Source on GitHub</span><span class="c">11,452 downloads from GitHub</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>A big number with a platform breakdown</h3>
+      <p>Most detail in the download section. Puts the mostly desktop mix in plain view.</p>
+      <div class="sub-mock sub-deep">
+        <p class="sub-h">Get Submersion.</p>
+        <span class="sub-btn">Download for macOS<small>v1.8.3.9095</small></span>
+        <p class="sub-big">11,452</p>
+        <p class="sub-big-l">downloads from GitHub</p>
+        <div class="sub-plats"><span>macOS 7,271</span><span>Android 2,028</span><span>Windows 1,537</span><span>Linux 616</span></div>
+      </div>
+    </div>
+  </div>
+</div>

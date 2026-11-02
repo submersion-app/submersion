@@ -42,6 +42,7 @@ class CertificationMultiSelectField extends ConsumerWidget {
       onTap: () => showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
+        useSafeArea: true,
         showDragHandle: true,
         builder: (_) => CertificationMultiPickerSheet(
           courseId: courseId,

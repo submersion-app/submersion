@@ -44,6 +44,7 @@ abstract final class RecordListSection {
   static const diveCenters = 'dive-centers';
   static const certifications = 'certifications';
   static const courses = 'courses';
+  static const tracks = 'tracks';
 }
 
 /// Per list section, the record the details pane showed when the diver

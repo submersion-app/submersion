@@ -114,15 +114,19 @@ Widget buildTestTable({
   bool Function(TestEntity)? isEntityMuted,
   Widget? Function(TestEntity, TestField)? cellTrailingBuilder,
   Locale? locale,
+  TestAdapter? adapter,
+  UnitFormatter? units,
+  String? highlightedId,
 }) {
   return testApp(
     locale: locale,
     child: EntityTableView<TestEntity, TestField>(
       entities: entities,
       idExtractor: (e) => e.id,
-      adapter: _adapter,
+      adapter: adapter ?? _adapter,
       config: config ?? testTableConfig,
-      units: _units,
+      units: units ?? _units,
+      highlightedId: highlightedId,
       onSortFieldChanged: onSortFieldChanged ?? (_) {},
       onResizeColumn: onResizeColumn ?? (_, _) {},
       onEntityTap: onEntityTap ?? (_) {},

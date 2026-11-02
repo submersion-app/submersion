@@ -9,6 +9,7 @@ Welcome to the Submersion developer documentation. This section covers architect
 - [State Management](state-management.md): Riverpod patterns
 - [Navigation](navigation.md): go_router setup
 - [Testing](testing.md): Test organization and running
+- [Agent access](agent-access.md): The in-app MCP server, its tools, security rules and lifecycle
 - [Local Test Performance](local-test-performance.md): Making local test runs fast
 - [Building](building.md): Build and run instructions
 - [Release Process](release-process.md): Beta and production releases

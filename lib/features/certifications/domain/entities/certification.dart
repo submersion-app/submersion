@@ -73,6 +73,11 @@ class Certification extends Equatable {
   final String? cardId;
   final Uint8List? photoFront;
   final Uint8List? photoBack;
+
+  /// False on a certification read without its card images (issue #3848):
+  /// null photos then say nothing about the card, and saving it leaves the
+  /// card as it is. Anything that draws or edits a card reads it in full.
+  final bool cardImagesLoaded;
   final String notes;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -95,6 +100,7 @@ class Certification extends Equatable {
     this.cardId,
     this.photoFront,
     this.photoBack,
+    this.cardImagesLoaded = true,
     this.notes = '',
     required this.createdAt,
     required this.updatedAt,
@@ -165,6 +171,7 @@ class Certification extends Equatable {
     String? cardId,
     Uint8List? photoFront,
     Uint8List? photoBack,
+    bool? cardImagesLoaded,
     String? notes,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -188,6 +195,7 @@ class Certification extends Equatable {
       cardId: cardId ?? this.cardId,
       photoFront: photoFront ?? this.photoFront,
       photoBack: photoBack ?? this.photoBack,
+      cardImagesLoaded: cardImagesLoaded ?? this.cardImagesLoaded,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -214,6 +222,7 @@ class Certification extends Equatable {
       cardId: cardId,
       photoFront: clearFront ? null : photoFront,
       photoBack: clearBack ? null : photoBack,
+      cardImagesLoaded: cardImagesLoaded,
       notes: notes,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -251,6 +260,7 @@ class Certification extends Equatable {
     cardId,
     photoFront,
     photoBack,
+    cardImagesLoaded,
     notes,
     createdAt,
     updatedAt,

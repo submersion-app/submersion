@@ -67,7 +67,7 @@ void main() {
         tripScrubberMarginsProvider(
           'trip-1',
         ).overrideWith((ref) async => margins),
-        tripChecklistProgressProvider(
+        tripChecklistCombinedProgressProvider(
           'trip-1',
         ).overrideWith((ref) async => progress ?? (done: 0, total: 0)),
       ],

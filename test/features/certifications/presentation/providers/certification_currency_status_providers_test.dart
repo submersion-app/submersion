@@ -47,7 +47,7 @@ ProviderContainer _container({
 }) {
   final c = ProviderContainer(
     overrides: [
-      allCertificationsProvider.overrideWith((ref) async => certs),
+      certificationMetadataProvider.overrideWith((ref) async => certs),
       currencyRulesProvider.overrideWith((ref) async {
         if (rulesThrow) throw StateError('corrupt catalog');
         return [_refresher];

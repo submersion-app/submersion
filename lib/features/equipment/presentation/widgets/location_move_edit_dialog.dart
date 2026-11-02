@@ -52,6 +52,7 @@ class _LocationMoveEditDialogState
       () => _locationId = switch (picked) {
         PlacePick(:final location) => location.id,
         NoLocationPick() => null,
+        BuddyPick() => _locationId,
       },
     );
   }

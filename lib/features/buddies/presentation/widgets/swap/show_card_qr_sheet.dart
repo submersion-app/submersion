@@ -15,6 +15,7 @@ Future<void> showCardQrSheet(BuildContext context, BuddyCard card) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) {
       final l10n = context.l10n;
       final theme = Theme.of(context);

@@ -245,8 +245,27 @@ class MediaStoreResolver {
     return null;
   }
 
-  Future<MediaSourceData?> _fetchThumb(MediaItem item, String hash) =>
-      _gate.run('$hash#thumb', () => _fetchThumbInner(item, hash));
+  Future<MediaSourceData?> _fetchThumb(MediaItem item, String hash) {
+    final version = _thumbVersion(item);
+    // As with renditions: two rows sharing a hash but not a stamp must not
+    // share a fetch that is checked against the stamp.
+    return _gate.run(
+      version == null
+          ? '$hash#thumb'
+          : '$hash#thumb#${version.millisecondsSinceEpoch}',
+      () => _fetchThumbInner(item, hash),
+    );
+  }
+
+  /// What a cached thumb of [item] must be at least as new as, or null when
+  /// any copy will do.
+  ///
+  /// A PDF's thumb is the one that gets overwritten in place
+  /// (PdfThumbRefreshSweep, issue #3996), and its stamp is how this device
+  /// finds out. Everything else keeps the one-stat path: a grid asks for
+  /// these every time a tile scrolls into view.
+  DateTime? _thumbVersion(MediaItem item) =>
+      item.isPdf ? item.remoteThumbUploadedAt : null;
 
   Future<MediaSourceData?> _fetchThumbInner(MediaItem item, String hash) async {
     // The pipeline always uploads thumbs as JPEG, whatever the source's own
@@ -262,9 +281,11 @@ class MediaStoreResolver {
     try {
       // The cheap hit first: one stat, no index read and write. [get] still
       // finds a thumbnail cached before they were all stored as JPEG.
-      final cached =
-          await _cache.peekThumb(hash) ??
-          await _cache.get(hash, MediaCacheKind.thumb);
+      final version = _thumbVersion(item);
+      final cached = version != null
+          ? await _cache.get(hash, MediaCacheKind.thumb, freshAfter: version)
+          : await _cache.peekThumb(hash) ??
+                await _cache.get(hash, MediaCacheKind.thumb);
       if (cached != null) {
         return FileData(
           file: cached,
@@ -281,6 +302,7 @@ class MediaStoreResolver {
         hash,
         MediaCacheKind.thumb,
         staging,
+        sourceVersion: version?.millisecondsSinceEpoch,
         extension: 'jpg',
       );
       return FileData(

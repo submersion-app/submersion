@@ -211,4 +211,44 @@ void main() {
       );
     });
   });
+
+  group('displayComparable', () {
+    test('reads a volume rate in the diver\'s volume unit', () {
+      const imperial = UnitFormatter(
+        AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+      );
+
+      expect(
+        display(units: imperial).displayComparable(28.3168, among: const ['a']),
+        closeTo(1.0, 0.001),
+      );
+    });
+
+    test('reads a pressure rate in the diver\'s pressure unit', () {
+      const imperial = UnitFormatter(
+        AppSettings(pressureUnit: PressureUnit.psi),
+      );
+      final rates = display(units: imperial, lane: GasConsumptionLane.sac);
+
+      expect(
+        rates.displayComparable(1.0, among: const ['a']),
+        closeTo(14.5, 0.01),
+      );
+    });
+
+    test('stays in pressure units when one entry cannot convert', () {
+      final rates = display(volumeFor: (id) => id == 'back' ? 12.0 : null);
+
+      expect(rates.displayComparable(1.5, among: const ['back', 'stage']), 1.5);
+    });
+  });
+
+  group('comparableUnit', () {
+    test('matches what formatComparable writes', () {
+      final rates = display(volumeFor: (id) => id == 'back' ? 12.0 : null);
+
+      expect(rates.comparableUnit(const ['back']), 'L/min');
+      expect(rates.comparableUnit(const ['back', 'stage']), 'bar/min');
+    });
+  });
 }

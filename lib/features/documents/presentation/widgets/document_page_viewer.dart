@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/helpers/document_page_opener.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Swipes through a document's pages. Images zoom with a pinch, PDFs render
 /// in place, and Word and text pages offer "Open with". A page that fails
 /// to render degrades to a placeholder with the same action.
-class DocumentPageViewer extends StatefulWidget {
+///
+/// [pages] carry no content. It is read for the page on screen and its two
+/// neighbours, so a swipe lands on a loaded page, and released as the diver
+/// moves on: a document of 50 pages holds three.
+class DocumentPageViewer extends ConsumerStatefulWidget {
   final List<DocumentPage> pages;
 
   const DocumentPageViewer({super.key, required this.pages});
 
   @override
-  State<DocumentPageViewer> createState() => _DocumentPageViewerState();
+  ConsumerState<DocumentPageViewer> createState() => _DocumentPageViewerState();
 }
 
-class _DocumentPageViewerState extends State<DocumentPageViewer> {
+class _DocumentPageViewerState extends ConsumerState<DocumentPageViewer> {
   final _controller = PageController();
   int _current = 0;
 
@@ -44,6 +50,11 @@ class _DocumentPageViewerState extends State<DocumentPageViewer> {
   @override
   Widget build(BuildContext context) {
     final pages = widget.pages;
+    // The page on screen first: reads run in the order they are asked for.
+    for (final i in [_current, _current + 1, _current - 1]) {
+      if (i < 0 || i >= pages.length || !pages[i].rendersInApp) continue;
+      ref.listen(documentPageContentProvider(pages[i].contentKey), (_, _) {});
+    }
     return Column(
       children: [
         if (pages.length > 1)
@@ -67,27 +78,33 @@ class _DocumentPageViewerState extends State<DocumentPageViewer> {
   }
 }
 
-class _PageView extends StatelessWidget {
+class _PageView extends ConsumerWidget {
   final DocumentPage page;
 
   const _PageView({required this.page});
 
   @override
-  Widget build(BuildContext context) {
-    final bytes = page.bytes;
-    if (bytes == null) return _FileTile(page: page);
-    if (page.isImage) {
-      return InteractiveViewer(
-        maxScale: 6,
-        child: Image.memory(
-          bytes,
-          fit: BoxFit.contain,
-          errorBuilder: (context, _, _) => _CannotDisplay(page: page),
-        ),
-      );
-    }
-    if (page.isPdf) return _PdfPage(page: page);
-    return _FileTile(page: page);
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!page.rendersInApp) return _FileTile(page: page);
+    return ref
+        .watch(documentPageContentProvider(page.contentKey))
+        .when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) => _CannotDisplay(page: page),
+          data: (bytes) {
+            if (bytes == null) return _FileTile(page: page);
+            final loaded = page.copyWith(bytes: bytes);
+            if (page.isPdf) return _PdfPage(page: loaded);
+            return InteractiveViewer(
+              maxScale: 6,
+              child: Image.memory(
+                bytes,
+                fit: BoxFit.contain,
+                errorBuilder: (context, _, _) => _CannotDisplay(page: loaded),
+              ),
+            );
+          },
+        );
   }
 }
 
@@ -126,13 +143,13 @@ class _PdfPageState extends State<_PdfPage> {
   }
 }
 
-class _FileTile extends StatelessWidget {
+class _FileTile extends ConsumerWidget {
   final DocumentPage page;
 
   const _FileTile({required this.page});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     // Scrolls rather than overflows when the pages get a short strip (a
     // phone in landscape with the details open).
@@ -157,7 +174,7 @@ class _FileTile extends StatelessWidget {
             FilledButton.tonalIcon(
               icon: const Icon(Icons.open_in_new),
               label: Text(context.l10n.documents_page_openWith),
-              onPressed: () => openDocumentPageExternally(context, page),
+              onPressed: () => openDocumentPageExternally(context, ref, page),
             ),
           ],
         ),
@@ -166,13 +183,13 @@ class _FileTile extends StatelessWidget {
   }
 }
 
-class _CannotDisplay extends StatelessWidget {
+class _CannotDisplay extends ConsumerWidget {
   final DocumentPage page;
 
   const _CannotDisplay({required this.page});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     // Scrolls rather than overflows when the pages get a short strip (a
     // phone in landscape with the details open).
@@ -197,7 +214,7 @@ class _CannotDisplay extends StatelessWidget {
             FilledButton.tonalIcon(
               icon: const Icon(Icons.open_in_new),
               label: Text(context.l10n.documents_page_openWith),
-              onPressed: () => openDocumentPageExternally(context, page),
+              onPressed: () => openDocumentPageExternally(context, ref, page),
             ),
           ],
         ),

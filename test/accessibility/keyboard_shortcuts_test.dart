@@ -194,6 +194,7 @@ void main() {
       expect(labels, contains('Go to Insights'));
       expect(labels, contains('Go to Settings'));
       expect(labels, contains('Search dives'));
+      expect(labels, contains('Search everything'));
       expect(labels, contains('Go back'));
       expect(labels, contains('Close / Cancel'));
       expect(labels, contains('Keyboard shortcuts'));

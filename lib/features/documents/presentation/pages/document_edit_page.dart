@@ -123,7 +123,9 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
     if (id != null) {
       final repo = ref.read(documentRepositoryProvider);
       final doc = await repo.getById(id);
-      final pages = await repo.getPages(id);
+      // Without content: the strip reads what it shows, and a save keeps the
+      // stored content of any page that has none.
+      final pages = await repo.getPages(id, withBytes: false);
       if (!mounted) return;
       if (doc != null) {
         _original = doc;

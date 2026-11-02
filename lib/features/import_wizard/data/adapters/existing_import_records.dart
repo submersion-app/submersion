@@ -153,7 +153,8 @@ Future<ExistingImportRecords> loadActiveDiverRecords(
     equipment: () => container.refresh(allEquipmentProvider.future),
     buddies: () => container.refresh(allBuddiesProvider.future),
     diveCenters: () => container.refresh(allDiveCentersProvider.future),
-    certifications: () => container.refresh(allCertificationsProvider.future),
+    certifications: () =>
+        container.refresh(certificationMetadataProvider.future),
     tags: () => container.refresh(tagsProvider.future),
     diveTypes: () => container.refresh(diveTypesProvider.future),
     certificationCatalog: () =>
@@ -188,7 +189,7 @@ Future<ExistingImportRecords> loadProfileRecords(
         .getAllDiveCenters(diverId: diverId),
     certifications: () => container
         .read(certificationRepositoryProvider)
-        .getAllCertifications(diverId: diverId),
+        .getCertificationMetadata(diverId: diverId),
     tags: () =>
         container.read(tagRepositoryProvider).getAllTags(diverId: diverId),
     diveTypes: () => container

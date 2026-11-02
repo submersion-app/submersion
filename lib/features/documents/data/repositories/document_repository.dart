@@ -271,7 +271,8 @@ class DocumentRepository {
   }
 
   /// A document's pages in order. [withBytes] false reads every column but
-  /// the content, so listing pages costs no BLOB reads.
+  /// the content, so listing pages costs no BLOB reads; [getPageContent]
+  /// then reads a page when it is shown.
   Future<List<DocumentPage>> getPages(
     String documentId, {
     bool withBytes = true,
@@ -285,14 +286,9 @@ class DocumentRepository {
     return [for (final r in rows) pageFromRow(r)];
   }
 
-  /// The first page, for a thumbnail: its content only when it is an
-  /// image. A PDF, Word or text page shows an icon, so its (up to 10 MB)
-  /// bytes are not read.
-  Future<DocumentPage?> getFirstPage(String documentId) async {
-    final page = (await _pagesWithoutBytes(documentId, limit: 1)).firstOrNull;
-    if (page == null || !page.isImage) return page;
-    return page.copyWith(bytes: await _pageBytes(page.id));
-  }
+  /// The first page without its content, for a thumbnail.
+  Future<DocumentPage?> getFirstPage(String documentId) async =>
+      (await _pagesWithoutBytes(documentId, limit: 1)).firstOrNull;
 
   Future<List<DocumentPage>> _pagesWithoutBytes(
     String documentId, {
@@ -310,6 +306,7 @@ class DocumentRepository {
         t.sizeBytes,
         t.createdAt,
         t.updatedAt,
+        t.hlc,
       ])
       ..where(t.documentId.equals(documentId))
       ..orderBy([OrderingTerm(expression: t.pageIndex)]);
@@ -326,11 +323,13 @@ class DocumentRepository {
           sizeBytes: r.read(t.sizeBytes)!,
           createdAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.createdAt)!),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.updatedAt)!),
+          hlc: r.read(t.hlc),
         ),
     ];
   }
 
-  Future<Uint8List?> _pageBytes(String pageId) =>
+  /// One page's content, up to 10 MB; null when the page is gone.
+  Future<Uint8List?> getPageContent(String pageId) =>
       (_db.selectOnly(_db.documentPages)
             ..addColumns([_db.documentPages.bytes])
             ..where(_db.documentPages.id.equals(pageId)))
@@ -340,8 +339,9 @@ class DocumentRepository {
   /// Saves [document] and makes [pages] its exact page list, in order: new
   /// pages (empty id) are inserted, kept pages updated only when changed,
   /// missing ones deleted and tombstoned. A page with no bytes keeps its
-  /// stored content. [tagIds], when given, become the document's exact tag
-  /// set (issue #1970); null leaves its tags alone. One transaction.
+  /// stored content, and is skipped when it has been deleted since it was
+  /// listed. [tagIds], when given, become the document's exact tag set
+  /// (issue #1970); null leaves its tags alone. One transaction.
   Future<Document> save(
     Document document,
     List<DocumentPage> pages, {
@@ -434,14 +434,19 @@ class DocumentRepository {
       final old = existing[pageId];
       final bytes = page.bytes;
       if (bytes == null && old == null) {
-        throw ArgumentError('page $pageId has no content');
+        if (page.id.isEmpty) {
+          throw ArgumentError('page $pageId has no content');
+        }
+        // Deleted since it was listed (a sync pull while the editor was
+        // open): the deletion stands, and the rest of the save goes ahead.
+        continue;
       }
       final contentChanged =
           bytes != null &&
           (old == null ||
               old.sizeBytes != bytes.length ||
               !const ListEquality<int>().equals(
-                await _pageBytes(pageId),
+                await getPageContent(pageId),
                 bytes,
               ));
       if (!contentChanged) {

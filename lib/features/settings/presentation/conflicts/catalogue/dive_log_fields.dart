@@ -277,6 +277,10 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_firstDepth,
     FieldKind.depth,
   ),
+  'gasSwitchesEdited': ConflictField(
+    (l) => l.settings_conflict_field_gasSwitchesEdited,
+    FieldKind.boolean,
+  ),
   'gradientFactorHigh': ConflictField(
     (l) => DiveField.gradientFactorHigh.localizedDisplayName(l),
     FieldKind.percent,

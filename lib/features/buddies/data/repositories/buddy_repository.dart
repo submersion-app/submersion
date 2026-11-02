@@ -33,6 +33,7 @@ import 'package:submersion/features/certifications/domain/certification_primary.
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_buddy_links.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 
 // Re-export merge types so callers can import from buddy_repository.dart
@@ -355,7 +356,7 @@ class BuddyRepository {
         // deleteCertification() emits an event per cert, which would fire
         // observers mid-transaction. We tombstone here (the FK cascade writes
         // no deletion_log) and emit a single notify after commit instead.
-        final certs = await _certRepo.getCertificationsByBuddy(id);
+        final certs = await _certRepo.getCertificationMetadataByBuddy(id);
         // The buddy's documents and their certifications' documents go
         // with them, tombstoned (issue #2613).
         final documents = DocumentRepository();
@@ -375,6 +376,10 @@ class BuddyRepository {
         // Their people tags too, tombstoned (issue #1745): the cascade
         // would remove them without a word to other devices.
         await MediaPeopleRepository().deleteForBuddies([id]);
+        // Their gear places stay, without the link (issue #3790).
+        await clearEquipmentLocationBuddyLinks(_db, _syncRepository, [
+          id,
+        ], now: DateTime.now().millisecondsSinceEpoch);
         // Dive buddies will be automatically deleted due to CASCADE
         await (_db.delete(_db.buddies)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'buddies', recordId: id);

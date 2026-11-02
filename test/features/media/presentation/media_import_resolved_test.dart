@@ -6,6 +6,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_view.dart';
 
 AssetInfo asset(String id) => AssetInfo(
@@ -28,6 +29,7 @@ MediaItem imported(String assetId) => MediaItem(
 /// Records every call and can be told to throw for one dive or site.
 class _FakeImportService implements MediaImportService {
   final List<(String diveId, List<String> assetIds)> diveCalls = [];
+  final List<AssetInfo> diveAssets = [];
   final List<(String siteId, List<String> assetIds)> siteCalls = [];
   String? throwForDive;
   String? throwForSite;
@@ -39,6 +41,7 @@ class _FakeImportService implements MediaImportService {
     required Dive dive,
   }) async {
     diveCalls.add((dive.id, [for (final a in selectedAssets) a.id]));
+    diveAssets.addAll(selectedAssets);
     if (dive.id == throwForDive) throw StateError('dive import blew up');
     return ImportResult(
       imported: [
@@ -83,6 +86,29 @@ class _FakeDiveRepo implements DiveRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A photo library that only answers for its assets' metadata.
+class _FakeLibrary implements PhotoPickerService {
+  _FakeLibrary([this.exif = const {}]);
+
+  final Map<String, MediaSourceMetadata> exif;
+  final List<String> reads = [];
+
+  @override
+  bool get supportsGalleryBrowsing => true;
+
+  @override
+  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async {
+    reads.add(assetId);
+    return exif[assetId];
+  }
+
+  @override
+  Future<String?> getFilePath(String assetId) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
   late _FakeImportService service;
 
@@ -92,14 +118,60 @@ void main() {
     List<AssetInfo> assets,
     Map<String, MediaAttachTarget> targets, {
     Set<String> dives = const {'d1', 'd2'},
+    PhotoPickerService? library,
   }) {
     return MediaImportView.importResolved(
       service: service,
       diveRepository: _FakeDiveRepo(dives),
+      photoPickerService: library ?? _FakeLibrary(),
       assets: assets,
       targets: targets,
     );
   }
+
+  test('a photo assigned to a dive imports with its EXIF wall-time when this '
+      'device has changed timezone since it was taken (#259)', () async {
+    // The dive starts at midnight on Jun 12 and the photo was taken 20
+    // minutes in, which reads as the evening before on this device.
+    final shifted = AssetInfo(
+      id: 'shifted',
+      type: AssetType.image,
+      createDateTime: DateTime(2026, 6, 11, 9, 20),
+      width: 100,
+      height: 100,
+    );
+
+    await run(
+      [shifted],
+      {'shifted': const DiveAttachTarget('d1')},
+      library: _FakeLibrary({
+        'shifted': MediaSourceMetadata(
+          takenAt: DateTime.utc(2026, 6, 12, 0, 20),
+          mimeType: 'image/jpeg',
+        ),
+      }),
+    );
+
+    expect(
+      service.diveAssets.single.createDateTime,
+      DateTime(2026, 6, 12, 0, 20),
+    );
+  });
+
+  test(
+    'a photo going to a site is never read, having no dive to match',
+    () async {
+      final library = _FakeLibrary();
+
+      await run(
+        [asset('a')],
+        {'a': const SiteAttachTarget('s1')},
+        library: library,
+      );
+
+      expect(library.reads, isEmpty);
+    },
+  );
 
   test('groups assets by dive and by site, one service call each', () async {
     final out = await run(

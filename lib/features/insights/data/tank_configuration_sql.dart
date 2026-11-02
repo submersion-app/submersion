@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration_classifier.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/twin_set_candidates.dart';
 
 /// `tank_config_base(...)`: a dive's [TankBaseConfiguration] name.
 const String kTankConfigBaseFunction = 'tank_config_base';
@@ -17,6 +18,11 @@ const String kTankConfigBaseFunction = 'tank_config_base';
 /// classification, each name followed by a comma (`sidemount,stages,`). The
 /// first name is the base, so `,<extra>,` only ever finds an extra.
 const String kTankConfigSummaryFunction = 'tank_config_summary';
+
+/// `twin_set_candidate(tank_role, tank_name, preset_name, volume)`: 1 when a
+/// `dive_tanks` row is a Back Gas cylinder the old name-and-size guess
+/// counted as a twin set (issue #3374), else 0. Mirrors `isTwinSetCandidate`.
+const String kTwinSetCandidateFunction = 'twin_set_candidate';
 
 /// The tables [tankConfigBaseSql] and [tankConfigSummarySql] read besides
 /// `dives`, for a query field's change ticks.
@@ -77,7 +83,23 @@ void registerTankConfigurationFunctions(CommonDatabase db) {
     argumentCount: const AllowedArgumentCount(6),
     deterministic: true,
   );
+  db.createFunction(
+    functionName: kTwinSetCandidateFunction,
+    function: (arguments) => _isTwinSetCandidate(arguments) ? 1 : 0,
+    argumentCount: const AllowedArgumentCount(4),
+    deterministic: true,
+  );
 }
+
+bool _isTwinSetCandidate(SqliteArguments arguments) => isTwinSetCandidate(
+  domain.DiveTank(
+    id: '',
+    role: _tankRolesByName[arguments[0]] ?? TankRole.backGas,
+    name: arguments[1] as String?,
+    presetName: arguments[2] as String?,
+    volume: _double(arguments[3]),
+  ),
+);
 
 String _encodeSummary(TankConfigurationResult result) => [
   result.base.name,

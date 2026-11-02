@@ -1,12 +1,16 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
@@ -18,9 +22,10 @@ import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 /// Opens [page] outside the app from a temp copy of its bytes: the
 /// platform opener on desktop, the share sheet on mobile. Used for pages
 /// the app cannot render (Word, text) and as the fallback for one that
-/// fails to render.
+/// fails to render. A page shown without its content reads it here.
 Future<void> openDocumentPageExternally(
   BuildContext context,
+  WidgetRef ref,
   DocumentPage page,
 ) async {
   if (!demoSealGuard(context, DemoSealedFeature.share)) {
@@ -31,7 +36,19 @@ Future<void> openDocumentPageExternally(
   final anchor = shareAnchorFrom(context);
   final messenger = ScaffoldMessenger.of(context);
   final unavailable = context.l10n.documents_page_cannotDisplay;
-  final bytes = page.bytes;
+  final repo = ref.read(documentRepositoryProvider);
+  final Uint8List? bytes;
+  try {
+    bytes = page.bytes ?? await repo.getPageContent(page.id);
+  } catch (e, stackTrace) {
+    LoggerService.forClass(DocumentPage).warning(
+      'Could not read document page ${page.id}',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    messenger.showSnackBar(SnackBar(content: Text(unavailable)));
+    return;
+  }
   if (bytes == null) {
     messenger.showSnackBar(SnackBar(content: Text(unavailable)));
     return;

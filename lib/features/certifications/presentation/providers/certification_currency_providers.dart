@@ -76,7 +76,7 @@ final credentialCurrencyProvider = FutureProvider<List<CredentialCurrency>>((
   ref,
 ) async {
   // Watch every input before awaiting any, so they load concurrently.
-  final certifications = ref.watch(allCertificationsProvider.future);
+  final certifications = ref.watch(certificationMetadataProvider.future);
   final rules = ref.watch(currencyRulesProvider.future);
   final prefs = ref.watch(currencyPrefsProvider.future);
   final events = ref.watch(currencyEventsProvider.future);
