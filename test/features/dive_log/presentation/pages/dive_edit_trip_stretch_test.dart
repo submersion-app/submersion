@@ -8,6 +8,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 
@@ -16,6 +18,12 @@ import '../../../../helpers/test_database.dart';
 
 /// Saving a dive outside its trip stretches the trip and says so (issue
 /// #3351). Drives the real editor against a real database.
+class _FailingStretchRepository extends TripRepository {
+  @override
+  Future<List<TripDateStretch>> stretchToCoverDives(List<String> diveIds) =>
+      Future.error(StateError('stretch failed'));
+}
+
 void main() {
   late DiveRepository dives;
   late TripRepository trips;
@@ -47,6 +55,7 @@ void main() {
     WidgetTester tester, {
     String? diveId,
     String? tripId,
+    List<Override> extra = const [],
   }) async {
     tester.view.physicalSize = const Size(950, 8000);
     tester.view.devicePixelRatio = 1.0;
@@ -61,6 +70,7 @@ void main() {
             (ref) => DiveListNotifier(dives, ref),
           ),
           customTankPresetsProvider.overrideWith((ref) async => []),
+          ...extra,
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -173,6 +183,27 @@ void main() {
     await save(tester);
 
     expect((await trips.getTripById('roatan'))!.endDate, DateTime(2026, 1, 20));
+  });
+
+  testWidgets('a failed stretch says so and keeps the saved dive', (
+    tester,
+  ) async {
+    await addTrip();
+    await dives.createDive(Dive(id: 'd', dateTime: entry, entryTime: entry));
+    await pumpEditor(
+      tester,
+      diveId: 'd',
+      extra: [
+        tripRepositoryProvider.overrideWithValue(_FailingStretchRepository()),
+      ],
+    );
+
+    await pickTrip(tester);
+    await save(tester);
+
+    expect(find.textContaining("couldn't be updated"), findsOneWidget);
+    expect(find.textContaining('Error saving dive'), findsNothing);
+    expect((await dives.getDiveById('d'))!.trip?.id, 'roatan');
   });
 
   testWidgets('saving an out-of-range dive unchanged leaves its trip', (

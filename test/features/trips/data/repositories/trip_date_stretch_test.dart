@@ -279,6 +279,19 @@ void main() {
       expect(await staged('t'), isFalse);
     });
 
+    test('puts a larger trip back with its side trip', () async {
+      await addTrip('parent');
+      await addTrip('side', parent: 'parent');
+      final stretches = await stretch([
+        await addDive('side', DateTime.utc(2026, 3, 14, 9)),
+      ]);
+
+      await restoreStretchedTripDates(db, sync, stretches, now: now + 1);
+
+      expect((await stored('parent')).end, DateTime(2026, 3, 10));
+      expect((await stored('side')).end, DateTime(2026, 3, 10));
+    });
+
     test('a trip deleted since is skipped', () async {
       final stretches = await stretched();
       await db.customStatement('UPDATE dives SET trip_id = NULL');
