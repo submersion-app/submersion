@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 
@@ -45,6 +46,9 @@ const Duration syncTempFileGrace = Duration(minutes: 5);
 Future<void> sweepLeftoverSyncTempFiles({
   @visibleForTesting Future<Directory> Function()? tempDir,
 }) async {
+  // The browser's temp files live in the origin private file system, which
+  // "Forget this device" clears whole; there is no directory to list here.
+  if (HostPlatform.isWeb && tempDir == null) return;
   try {
     final dir = await (tempDir?.call() ?? resolveSyncTempDir());
     final cutoff = DateTime.now().subtract(syncTempFileGrace);

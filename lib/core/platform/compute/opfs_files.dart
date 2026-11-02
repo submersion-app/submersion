@@ -31,6 +31,10 @@ abstract interface class OpfsFiles {
   /// Appends [bytes] to the open file behind [handle].
   Future<void> append(int handle, Uint8List bytes);
 
+  /// Overwrites [bytes] at [offset] in the open file behind [handle]; the
+  /// range must lie within what was appended.
+  Future<void> writeAt(int handle, int offset, Uint8List bytes);
+
   /// Closes the open file behind [handle] and returns its path.
   Future<String> close(int handle);
 
@@ -62,6 +66,10 @@ class UnavailableOpfsFiles implements OpfsFiles {
 
   @override
   Future<void> append(int handle, Uint8List bytes) async => _unavailable();
+
+  @override
+  Future<void> writeAt(int handle, int offset, Uint8List bytes) async =>
+      _unavailable();
 
   @override
   Future<String> close(int handle) async => _unavailable();

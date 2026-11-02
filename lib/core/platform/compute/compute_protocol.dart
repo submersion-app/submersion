@@ -24,6 +24,7 @@ enum ComputeJob {
   hashDispose,
   opfsCreate,
   opfsAppend,
+  opfsWriteAt,
   opfsClose,
   opfsRead,
   opfsLength,

@@ -28,6 +28,20 @@ class MemoryOpfsFiles implements OpfsFiles {
   }
 
   @override
+  Future<void> writeAt(int handle, int offset, Uint8List bytes) async {
+    final builder = _open[_nameOf(handle)]!;
+    final current = builder.takeBytes();
+    RangeError.checkValueInInterval(
+      offset + bytes.length,
+      0,
+      current.length,
+      'end',
+    );
+    current.setRange(offset, offset + bytes.length, bytes);
+    builder.add(current);
+  }
+
+  @override
   Future<String> close(int handle) async {
     final name = _nameOf(handle);
     _files[name] = _open.remove(name)!.takeBytes();

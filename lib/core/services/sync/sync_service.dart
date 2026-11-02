@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:drift/drift.dart' show TableUpdate, Variable;
 
+import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
@@ -2294,7 +2295,7 @@ class SyncService {
     DateTime? localLastSync, {
     void Function(double fraction)? onProgress,
   }) async {
-    final totalBytes = await File(filePath).length();
+    final totalBytes = await SyncTempFiles.length(filePath);
     final stopwatch = Stopwatch()..start();
     _log.info('Applying peer base: $totalBytes bytes');
     final progress = BaseApplyProgress(totalBytes, onProgress);
@@ -2309,6 +2310,12 @@ class SyncService {
         progress,
       );
     } catch (e, st) {
+      // No inline parse in a browser: a base the worker cannot handle is
+      // too large for the page, so the failure is reported as it is.
+      if (HostPlatform.isWeb) {
+        await client?.dispose();
+        rethrow;
+      }
       _log.warning(
         'Base-apply worker failed; falling back to inline',
         error: e,
@@ -2501,12 +2508,13 @@ class SyncService {
     DateTime? localLastSync,
     BaseApplyProgress progress,
   ) async {
-    final file = File(filePath);
     final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
     // The inline parse blocks the UI isolate, so its heartbeats are what
     // keep the bar moving; the fallback runs the whole file three times.
-    Stream<List<int>> openWithProgress() =>
-        withByteProgress(file.openRead(), onProgress: progress.consumed);
+    Stream<List<int>> openWithProgress() => withByteProgress(
+      SyncTempFiles.openRead(filePath),
+      onProgress: progress.consumed,
+    );
 
     // ---- Pass 1: exportedAt + deletions ----
     var baseExportedAt = 0;
@@ -5674,7 +5682,7 @@ class SyncService {
       }
 
       await BaseJsonStreamReader().parse(
-        File(unit.file!).openRead(),
+        SyncTempFiles.openRead(unit.file!),
         wantRows: (section, table) =>
             section == 'data' && _baseApplyEntityFlags.containsKey(table),
         onRow: (section, table, rowBytes) async {
@@ -5938,7 +5946,7 @@ class SyncService {
   /// absent (an unstamped/legacy base sorts first, which is the safe default).
   Future<int> _readBaseExportedAt(String path) async {
     final bytes = <int>[];
-    await for (final chunk in File(path).openRead(0, 65536)) {
+    await for (final chunk in SyncTempFiles.openRead(path, 0, 65536)) {
       bytes.addAll(chunk);
     }
     final head = utf8.decode(bytes, allowMalformed: true);

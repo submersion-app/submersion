@@ -64,6 +64,13 @@ class WebOpfsFiles implements OpfsFiles {
   }
 
   @override
+  Future<void> writeAt(int handle, int offset, Uint8List bytes) async {
+    final open = _openFile(handle);
+    RangeError.checkValueInInterval(offset + bytes.length, 0, open.size, 'end');
+    open.access.write(bytes.toJS, web.FileSystemReadWriteOptions(at: offset));
+  }
+
+  @override
   Future<String> close(int handle) async {
     final open = _openFile(handle);
     _open.remove(handle);

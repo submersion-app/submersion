@@ -204,6 +204,11 @@ void main() {
         'handle': handle,
         'bytes': Uint8List.fromList([4, 5]),
       });
+      await handler.handle(ComputeJob.opfsWriteAt, {
+        'handle': handle,
+        'offset': 3,
+        'bytes': Uint8List.fromList([9]),
+      });
       final path = await handler.handle(ComputeJob.opfsClose, {
         'handle': handle,
       });
@@ -215,7 +220,7 @@ void main() {
           'offset': 1,
           'length': 3,
         }),
-        [2, 3, 4],
+        [2, 3, 9],
       );
       expect(
         await handler.handle(ComputeJob.opfsExists, {'path': path}),

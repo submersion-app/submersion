@@ -128,6 +128,13 @@ class ComputeJobHandler {
       case ComputeJob.opfsAppend:
         await files.append(_int(args, 'handle'), _bytes(args, 'bytes'));
         return null;
+      case ComputeJob.opfsWriteAt:
+        await files.writeAt(
+          _int(args, 'handle'),
+          _int(args, 'offset'),
+          _bytes(args, 'bytes'),
+        );
+        return null;
       case ComputeJob.opfsClose:
         return files.close(_int(args, 'handle'));
       case ComputeJob.opfsRead:

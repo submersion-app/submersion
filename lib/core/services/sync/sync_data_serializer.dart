@@ -5,7 +5,6 @@ import 'dart:math' as math;
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show listEquals, visibleForTesting;
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/platform/compute/compute_jobs.dart';
@@ -26,6 +25,7 @@ import 'package:submersion/core/services/sync/sync_json_weight.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
@@ -1713,15 +1713,17 @@ class SyncDataSerializer {
     DateTime Function() now = DateTime.now,
     Future<Directory> Function()? tempDir,
   }) async {
-    final dir = await (tempDir?.call() ?? resolveSyncTempDir());
-    // p.join, not a literal '/': on Windows the temp dir is backslashed, and a
-    // path mixing both separators is what broke the move into the publish
-    // directory in #1304.
-    final path = p.join(
-      dir.path,
+    // The sink joins the directory and name itself (never a literal '/':
+    // a mixed-separator path broke the Windows publish in #1304). A browser
+    // has one temp directory and no provider to ask, so none is resolved.
+    final directoryPath = tempDir == null && HostPlatform.isWeb
+        ? null
+        : (await (tempDir?.call() ?? resolveSyncTempDir())).path;
+    final out = await SyncTempFiles.create(
       'ssv1_base_${deviceId}_${seq ?? 0}.${_baseTempUuid.v4()}.json',
+      directoryPath: directoryPath,
     );
-    final raf = await File(path).open(mode: FileMode.write);
+    final path = out.path;
     final digestSink = _Sha256DigestSink();
     final dataHash = sha256.startChunkedConversion(digestSink);
     final exportedAt = now().millisecondsSinceEpoch;
@@ -1733,19 +1735,21 @@ class SyncDataSerializer {
     Future<void> writeData(String s) async {
       final bytes = utf8.encode(s);
       dataHash.add(bytes);
-      await raf.writeFrom(bytes);
+      await out.add(bytes);
     }
 
     try {
       // Header up to (but not including) the checksum value.
-      await raf.writeString(
-        '{"version":$syncFormatVersion,"exportedAt":$exportedAt,'
-        '"deviceId":${jsonEncode(deviceId)},"lastSyncTimestamp":null,'
-        '"checksum":"',
+      await out.add(
+        utf8.encode(
+          '{"version":$syncFormatVersion,"exportedAt":$exportedAt,'
+          '"deviceId":${jsonEncode(deviceId)},"lastSyncTimestamp":null,'
+          '"checksum":"',
+        ),
       );
-      final checksumOffset = await raf.position();
-      await raf.writeFrom(List.filled(64, 0x30)); // '0'*64 placeholder
-      await raf.writeString('","data":');
+      final checksumOffset = out.length;
+      await out.add(List.filled(64, 0x30)); // '0'*64 placeholder
+      await out.add(utf8.encode('","data":'));
 
       // ---- data object (hashed) ----
       await writeData('{');
@@ -1844,18 +1848,16 @@ class SyncDataSerializer {
         (k, v) => tailBuf.write(',${jsonEncode(k)}:${jsonEncode(v)}'),
       );
       tailBuf.write('}');
-      await raf.writeString(tailBuf.toString());
+      await out.add(utf8.encode(tailBuf.toString()));
 
       // ---- patch the checksum placeholder with the real data digest ----
       dataHash.close();
-      final endPos = await raf.position();
-      await raf.setPosition(checksumOffset);
-      await raf.writeFrom(utf8.encode(digestSink.value.toString()));
-      await raf.setPosition(endPos);
-      await raf.flush();
-      await raf.close();
-
-      final byteLength = await File(path).length();
+      await out.writeAt(
+        checksumOffset,
+        utf8.encode(digestSink.value.toString()),
+      );
+      final byteLength = out.length;
+      await out.close();
       return (
         path: path,
         byteLength: byteLength,
@@ -1864,9 +1866,11 @@ class SyncDataSerializer {
         rowCount: rowCount,
       );
     } catch (_) {
-      await raf.close();
       try {
-        await File(path).delete();
+        await out.close();
+      } catch (_) {}
+      try {
+        await SyncTempFiles.delete(path);
       } catch (_) {}
       rethrow;
     }
