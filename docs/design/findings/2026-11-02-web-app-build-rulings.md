@@ -200,6 +200,7 @@ Each ruling ends with what it costs if it turns out wrong.
 
 - Dispose the bootstrap semantics handle in addTearDown: impossible as asked, since the framework checks handles before tear-downs run, so the test disposes it in its body.
 - A .dockerignore beside web_hosting/Dockerfile.
+- Sharing a media item in a browser fails with its message; documents and certifications download instead, and media could do the same.
 - google_sign_in_web loads Google's sign-in script on every visit, also for a user who never connects Google Drive. It comes from the plugin's registration; deferring it needs a change there. The hosting guide says so.
 - The Google client id cannot be corrected once stored, short of Forget this device: a well-formed id from the wrong project keeps failing with Remember on. It needs a Change client id row, which is a design choice.
 - A failed Forget leaves the tab on a closed database until the retry or a reload; pressing Forget again works, since each step tolerates what the last run did.

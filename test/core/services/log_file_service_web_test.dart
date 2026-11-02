@@ -55,4 +55,12 @@ void main() {
     await service.clearLog();
     expect(await service.readEntries(), isEmpty);
   });
+
+  test('readLines hands back every stored line, oldest first', () async {
+    final service = LogFileService(logDirectory: '/opfs/support/logs');
+    await service.initialize();
+    await service.writeLine('first');
+    await service.writeLine('second');
+    expect(await service.readLines(), ['first', 'second']);
+  });
 }

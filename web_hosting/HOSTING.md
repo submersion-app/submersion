@@ -27,8 +27,8 @@ Cross-Origin-Embedder-Policy: credentialless
 
 They make the page "cross-origin isolated", which unlocks the fastest
 browser storage: the database runs in a web worker over the browser's
-private file system. Chrome only gets that with the headers; Firefox gets
-it either way. Without them the app still works, on a slower path.
+private file system. Chrome only gets that with the headers. Without them
+the app still works, on a slower path.
 Settings, Cloud Sync shows a **Browser storage** row naming what is in
 use: *Browser file storage*, *Browser database (slower)* where the browser
 has no file storage or, in Chrome, the headers are missing, or a warning

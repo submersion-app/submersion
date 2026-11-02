@@ -94,6 +94,18 @@ class LogFileService {
     return entries;
   }
 
+  /// Every non-empty line of the file as written, oldest first; empty when
+  /// there is no file. Decoded leniently, for the reason [readEntries] is.
+  Future<List<String>> readLines() async {
+    final file = File(_logFilePath);
+    if (!await file.exists()) return const [];
+    final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
+    return const LineSplitter()
+        .convert(text)
+        .where((line) => line.isNotEmpty)
+        .toList();
+  }
+
   /// Delete the log file.
   Future<void> clearLog() async {
     if (!_isInitialized) {

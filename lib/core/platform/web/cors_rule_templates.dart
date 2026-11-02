@@ -42,7 +42,7 @@ String _s3Json(String origin, bool writes) =>
     "AllowedOrigins": ["$origin"],
     "AllowedMethods": [${_quoted(_s3Methods(writes))}],
     "AllowedHeaders": ["*"],
-    "ExposeHeaders": ["ETag", "x-amz-request-id", "x-amz-version-id"],
+    "ExposeHeaders": ["ETag", "x-amz-request-id", "x-amz-version-id", "x-amz-bucket-region"],
     "MaxAgeSeconds": 3000
   }
 ]
@@ -61,7 +61,7 @@ b2 bucket update --cors-rules '[
     "allowedOrigins": ["$origin"],
     "allowedOperations": [${_quoted(operations)}],
     "allowedHeaders": ["*"],
-    "exposeHeaders": ["etag", "x-amz-request-id"],
+    "exposeHeaders": ["etag", "x-amz-request-id", "x-amz-bucket-region"],
     "maxAgeSeconds": 3600
   }
 ]' <bucket-name>

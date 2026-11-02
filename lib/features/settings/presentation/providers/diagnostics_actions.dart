@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/services.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/log_environment.dart';
@@ -49,18 +46,9 @@ Future<String> buildDiagnosticsReport(
       '${resolved.toExportHeader()}'
       'verbose logging: ${verboseLogging ? 'on' : 'off'}\n';
 
-  final lines = await _readLines(File(service.logFilePath));
+  final lines = await service.readLines();
   if (lines.isEmpty) return '$header(no log entries recorded)';
   return header + _newestThatFit(lines, maxChars - header.length);
-}
-
-Future<List<String>> _readLines(File file) async {
-  if (!await file.exists()) return const [];
-  final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
-  return const LineSplitter()
-      .convert(text)
-      .where((line) => line.isNotEmpty)
-      .toList();
 }
 
 /// The newest [lines], redacted, that fit in [budget] characters joined by

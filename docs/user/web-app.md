@@ -76,7 +76,7 @@ resource sharing"; R2: the bucket's Settings, "CORS policy"):
     "AllowedOrigins": ["https://your-site"],
     "AllowedMethods": ["GET", "HEAD", "PUT", "POST", "DELETE"],
     "AllowedHeaders": ["*"],
-    "ExposeHeaders": ["ETag", "x-amz-request-id", "x-amz-version-id"],
+    "ExposeHeaders": ["ETag", "x-amz-request-id", "x-amz-version-id", "x-amz-bucket-region"],
     "MaxAgeSeconds": 3000
   }
 ]
@@ -94,7 +94,7 @@ b2 bucket update --cors-rules '[
     "allowedOrigins": ["https://your-site"],
     "allowedOperations": ["s3_get", "s3_head", "s3_put", "s3_post", "s3_delete"],
     "allowedHeaders": ["*"],
-    "exposeHeaders": ["etag", "x-amz-request-id"],
+    "exposeHeaders": ["etag", "x-amz-request-id", "x-amz-bucket-region"],
     "maxAgeSeconds": 3600
   }
 ]' <bucket-name>
@@ -207,7 +207,7 @@ Settings, Cloud Sync shows a **Browser storage** row naming what is in
 use:
 
 - *Browser file storage*: the fastest. Chrome uses it when the site sends
-  the two headers the hosting guide describes; Firefox uses it either way.
+  the two headers the hosting guide describes.
 - *Browser database (slower)*: a browser without file storage, or Chrome
   on a site without the headers. Everything works; large libraries take
   longer to open.

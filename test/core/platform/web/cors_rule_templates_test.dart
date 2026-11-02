@@ -57,4 +57,13 @@ void main() {
       contains('PROPFIND'),
     );
   });
+
+  test('the S3 rule exposes the header region correction reads', () {
+    final rule = corsRuleTemplate(
+      StoreKind.awsS3,
+      origin: 'https://dive.example.com',
+      writes: true,
+    );
+    expect(rule, contains('x-amz-bucket-region'));
+  });
 }

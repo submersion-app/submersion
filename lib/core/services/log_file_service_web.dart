@@ -49,6 +49,12 @@ class LogFileService {
     return [for (final line in _lines) ?LogEntry.tryParse(line)];
   }
 
+  /// Every stored line as written, oldest first.
+  Future<List<String>> readLines() async {
+    _ensureInitialized('readLines');
+    return _lines.toList(growable: false);
+  }
+
   /// Forgets every line.
   Future<void> clearLog() async {
     _ensureInitialized('clearLog');

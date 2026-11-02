@@ -8,16 +8,16 @@ import 'package:submersion/features/auto_update/domain/entities/update_channel.d
 /// checks the screens made for themselves before this object existed.
 DeviceCapabilities currentDeviceCapabilities() {
   final mobile = HostPlatform.isAndroid || HostPlatform.isIOS;
-  final mobileOrDesktopWithRadios =
+  final hasBiometrics =
       mobile || HostPlatform.isMacOS || HostPlatform.isWindows;
   return DeviceCapabilities(
     diveComputerDownload: true,
     nfc: mobile,
-    nearby: mobileOrDesktopWithRadios,
+    nearby: true,
     healthImport: mobile,
     devicePhotoLibrary: mobile || HostPlatform.isMacOS,
     mediaAttach: true,
-    biometricLock: mobileOrDesktopWithRadios,
+    biometricLock: hasBiometrics,
     databaseEncryption: true,
     backgroundTasks: true,
     offlineMapTiles: true,
@@ -26,7 +26,7 @@ DeviceCapabilities currentDeviceCapabilities() {
     demoMode: true,
     agentAccess: hasDesktopWindow(),
     autoUpdate: UpdateChannelConfig.isAutoUpdateEnabled,
-    ocrImport: mobileOrDesktopWithRadios,
+    ocrImport: true,
     customDatabaseFolder: true,
     revealInFileManager: HostPlatform.isDesktop,
     cloudICloud: HostPlatform.isApple,

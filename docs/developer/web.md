@@ -125,8 +125,8 @@ from a shared worker, so it never offers the first, and the second needs
 `SharedArrayBuffer`, which only a cross-origin isolated page has. So
 Chrome with the hosting headers (`Cross-Origin-Opener-Policy: same-origin`
 and `Cross-Origin-Embedder-Policy: credentialless`) runs the locked OPFS
-mode, Chrome without them runs IndexedDB, and Firefox runs the shared
-worker either way. `BackgroundDatabaseConnection`'s web half records the
+mode, and Chrome without them runs IndexedDB. `BackgroundDatabaseConnection`'s
+web half records the
 choice in `WebDatabaseStatusHolder`; the Cloud Sync page shows it as the
 Browser storage row.
 

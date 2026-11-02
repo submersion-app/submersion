@@ -5,6 +5,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -129,12 +131,20 @@ class _CertificationShareSheetState
         throw Exception('Failed to generate card image');
       }
 
-      // Save to temp file
-      final tempDir = await getTemporaryDirectory();
       final filename = certificationImageFileName(
         certificationTitle(widget.certification, catalog: catalog),
         CertificationImage.card,
       );
+
+      // No temp folder or share sheet in a browser: it downloads.
+      if (HostPlatform.isWeb) {
+        if (mounted) Navigator.of(context).pop();
+        await saveAndShareFileBytes(bytes, filename, 'image/png');
+        return;
+      }
+
+      // Save to temp file
+      final tempDir = await getTemporaryDirectory();
       final file = File(p.join(tempDir.path, filename));
       await file.writeAsBytes(bytes);
 
@@ -177,12 +187,20 @@ class _CertificationShareSheetState
         throw Exception('Failed to generate certificate image');
       }
 
-      // Save to temp file
-      final tempDir = await getTemporaryDirectory();
       final filename = certificationImageFileName(
         certificationTitle(widget.certification, catalog: catalog),
         CertificationImage.certificate,
       );
+
+      // No temp folder or share sheet in a browser: it downloads.
+      if (HostPlatform.isWeb) {
+        if (mounted) Navigator.of(context).pop();
+        await saveAndShareFileBytes(bytes, filename, 'image/png');
+        return;
+      }
+
+      // Save to temp file
+      final tempDir = await getTemporaryDirectory();
       final file = File(p.join(tempDir.path, filename));
       await file.writeAsBytes(bytes);
 

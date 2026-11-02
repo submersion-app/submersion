@@ -54,13 +54,13 @@ void main() {
       final mobile = HostPlatform.isAndroid || HostPlatform.isIOS;
       expect(caps.isBrowser, isFalse);
       expect(caps.diveComputerDownload, isTrue);
+      // Every native platform: nothing gated these before the table existed,
+      // and Linux reads paper logs through Tesseract.
+      expect(caps.nearby, isTrue);
+      expect(caps.ocrImport, isTrue);
       expect(caps.nfc, mobile);
       expect(caps.healthImport, mobile);
       expect(caps.devicePhotoLibrary, mobile || HostPlatform.isMacOS);
-      expect(
-        caps.nearby,
-        mobile || HostPlatform.isMacOS || HostPlatform.isWindows,
-      );
       expect(caps.cloudICloud, HostPlatform.isApple);
       expect(caps.revealInFileManager, HostPlatform.isDesktop);
       expect(caps.cloudGit, isTrue);

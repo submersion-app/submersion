@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
@@ -52,6 +53,15 @@ Future<void> openDocumentPageExternally(
   }
   if (bytes == null) {
     messenger.showSnackBar(SnackBar(content: Text(unavailable)));
+    return;
+  }
+  // No temp folder or viewer to hand it to in a browser: it downloads.
+  if (HostPlatform.isWeb) {
+    await saveAndShareFileBytes(
+      bytes,
+      p.basename(page.fileName),
+      page.mimeType,
+    );
     return;
   }
   final dir = Directory(
