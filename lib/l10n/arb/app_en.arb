@@ -1384,6 +1384,7 @@
   "accessibility_shortcut_newDive": "New dive",
   "accessibility_shortcut_openSettings": "Open settings",
   "accessibility_shortcut_searchDives": "Search dives",
+  "accessibility_shortcut_searchEverything": "Search everything",
   "accessibility_shortcut_askQuestion": "Ask about your dives",
   "accessibility_sort_selectedLabel": "Sort by {displayName}, currently selected",
   "accessibility_sort_unselectedLabel": "Sort by {displayName}",
@@ -2036,8 +2037,6 @@
   "buddies_picker_selectRole": "Select Role for {name}",
   "buddies_picker_setMyRole": "Set my role",
   "buddies_picker_tapToAdd": "Tap 'Add' to select dive buddies",
-  "buddies_search_hint": "Search by name, email, or phone",
-  "buddies_search_noResults": "No buddies found for \"{query}\"",
   "buddies_section_certifications": "Certifications",
   "buddies_certifications_empty": "No certifications",
   "buddies_section_contact": "Contact",
@@ -2150,13 +2149,6 @@
   "@buddies_picker_selectRole": {
     "placeholders": {
       "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@buddies_search_noResults": {
-    "placeholders": {
-      "query": {
         "type": "Object"
       }
     }
@@ -2761,10 +2753,6 @@
   "@certifications_picker_selectTitle": {
     "description": "Title of the multi-select certification sheet in the course editor"
   },
-  "certifications_search_empty_hint": "Search by name, agency, or card number",
-  "certifications_search_noResults": "No certifications found for \"{query}\"",
-  "certifications_search_tooltip_back": "Back",
-  "certifications_search_tooltip_clear": "Clear search",
   "certifications_share_error_card": "Failed to share card: {error}",
   "certifications_share_error_certificate": "Failed to share certificate: {error}",
   "certifications_share_option_card_subtitle": "Credit card-style certification image",
@@ -2932,13 +2920,6 @@
   "@certifications_picker_error": {
     "placeholders": {
       "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@certifications_search_noResults": {
-    "placeholders": {
-      "query": {
         "type": "Object"
       }
     }
@@ -4184,8 +4165,6 @@
   "diveCenters_picker_nearThisDive": "Near this dive",
   "diveCenters_picker_nearYourLocation": "Near your location",
   "@diveCenters_picker_nearYourLocation": {"description": "Dive center picker section header: centers near where the device is now, for a new dive with no site or GPS"},
-  "diveCenters_search_noResults": "No results for \"{query}\"",
-  "diveCenters_search_prompt": "Search dive centers",
   "diveCenters_tag_closed": "Closed",
   "diveCenters_section_address": "Address",
   "diveCenters_section_affiliations": "Affiliations",
@@ -4349,13 +4328,6 @@
   "@diveCenters_label_source": {
     "placeholders": {
       "source": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveCenters_search_noResults": {
-    "placeholders": {
-      "query": {
         "type": "Object"
       }
     }
@@ -5703,6 +5675,16 @@
   "diveLog_search_jumpTitle": "Jump to dive",
   "diveLog_search_jumpNumberTitle": "#{number} · {title}",
   "@diveLog_search_jumpNumberTitle": {"placeholders": {"number": {"type": "int"}, "title": {"type": "String"}}},
+  "globalSearch_hint": "Search everything, or try depth > 30m",
+  "globalSearch_clear": "Clear search",
+  "globalSearch_prompt": "Find dives, sites, trips, gear, buddies, documents and more",
+  "globalSearch_noResults": "No results for \"{query}\"",
+  "@globalSearch_noResults": {"placeholders": {"query": {"type": "String"}}},
+  "globalSearch_failed": "Search failed. Please try again.",
+  "globalSearch_seeAll": "See all {count}",
+  "@globalSearch_seeAll": {"placeholders": {"count": {"type": "int"}}},
+  "globalSearch_section_gpsTracks": "GPS tracks",
+  "globalSearch_section_underwaterRoutes": "Underwater routes",
   "diveLog_ask_row": "Ask: {text}",
   "@diveLog_ask_row": {"placeholders": {"text": {"type": "String"}}},
   "diveLog_ask_running": "Asking the on-device model",
@@ -7174,10 +7156,6 @@
   },
   "diveSites_refresh_progress_title": "Refreshing place names",
   "diveSites_refresh_nothing": "No site has coordinates to look up.",
-  "diveSites_list_search_backTooltip": "Back",
-  "diveSites_list_search_clearTooltip": "Clear Search",
-  "diveSites_list_search_emptyHint": "Search by site name, country, or region",
-  "diveSites_list_search_error": "Error: {error}",
   "diveSites_list_search_noResults": "No sites found for \"{query}\"",
   "diveSites_list_search_placeholder": "Search sites...",
   "diveSites_list_selection_mergeTooltip": "Merge Selected",
@@ -7463,13 +7441,6 @@
     }
   },
   "@diveSites_list_error_loadingSites": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveSites_list_search_error": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -9858,11 +9829,6 @@
     }
   },
   "equipment_retypeOther_undone": "Retype undone",
-  "equipment_search_backTooltip": "Back",
-  "equipment_search_clearTooltip": "Clear Search",
-  "equipment_search_fieldLabel": "Search equipment...",
-  "equipment_search_hint": "Search by name, brand, model, or serial number",
-  "equipment_search_noResults": "No equipment found for \"{query}\"",
   "equipment_serviceDialog_addButton": "Add",
   "equipment_serviceDialog_addTitle": "Add Service Record",
   "equipment_serviceDialog_cancelButton": "Cancel",
@@ -10271,13 +10237,6 @@
   },
   "@equipment_list_typeFilterAll": {
     "description": "Label of the chip that clears the category filter and shows equipment of every type"
-  },
-  "@equipment_search_noResults": {
-    "placeholders": {
-      "query": {
-        "type": "Object"
-      }
-    }
   },
   "@equipment_serviceDialog_snackbar_error": {
     "placeholders": {
@@ -11118,7 +11077,6 @@
   "marineLife_speciesManage_backTooltip": "Back",
   "marineLife_speciesManage_builtInSpeciesHeader": "Built-in Species ({count})",
   "marineLife_speciesManage_cancelButton": "Cancel",
-  "marineLife_speciesManage_clearSearchTooltip": "Clear search",
   "marineLife_speciesManage_customSpeciesHeader": "Custom Species ({count})",
   "marineLife_speciesManage_deleteButton": "Delete",
   "marineLife_speciesManage_deleteTooltip": "Delete species",
@@ -11236,7 +11194,6 @@
   },
   "marineLife_speciesPage_title": "Species",
   "marineLife_speciesPage_searchHint": "Search species you have seen",
-  "marineLife_speciesPage_clearSearchTooltip": "Clear search",
   "marineLife_speciesPage_manageCatalogTooltip": "Manage catalog",
   "marineLife_speciesPage_sortTooltip": "Sort",
   "marineLife_speciesPage_sort_mostSightings": "Most sightings",
@@ -12697,6 +12654,7 @@
   "nav_trainingSubtitle": "Certifications and courses",
   "nav_transfer": "Transfer",
   "nav_trips": "Trips",
+  "nav_search": "Search",
   "@nav_buddies": {
     "description": "Navigation label for buddies section"
   },
@@ -19131,12 +19089,6 @@
   "trips_picker_sheetTitle": "Select Trip",
   "trips_picker_suggestedPrefix": "Suggested: {name}",
   "trips_picker_suggestedUse": "Use",
-  "trips_search_empty_hint": "Search by name, location, or resort",
-  "trips_search_fieldLabel": "Search trips...",
-  "trips_search_noResults": "No trips found for \"{query}\"",
-  "trips_search_error": "Couldn't search your trips.",
-  "trips_search_tooltip_back": "Back",
-  "trips_search_tooltip_clear": "Clear search",
   "trips_summary_header_subtitle": "Select a trip from the list to view details",
   "trips_summary_header_title": "Trips",
   "trips_summary_overview_title": "Overview",
@@ -19804,13 +19756,6 @@
   "@trips_picker_suggestedPrefix": {
     "placeholders": {
       "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_search_noResults": {
-    "placeholders": {
-      "query": {
         "type": "Object"
       }
     }
@@ -32880,6 +32825,20 @@
   "@query_customFields_key": {"description": "Field label in the query builder"},
   "query_customFields_value": "Value",
   "@query_customFields_value": {"description": "Field label in the query builder"},
+  "query_divePlans_date": "Date",
+  "@query_divePlans_date": {"description": "Field label in the query builder"},
+  "query_divePlans_depth": "Max depth",
+  "@query_divePlans_depth": {"description": "Field label in the query builder"},
+  "query_divePlans_mode": "Mode",
+  "@query_divePlans_mode": {"description": "Field label in the query builder"},
+  "query_divePlans_name": "Name",
+  "@query_divePlans_name": {"description": "Field label in the query builder"},
+  "query_divePlans_notes": "Notes",
+  "@query_divePlans_notes": {"description": "Field label in the query builder"},
+  "query_divePlans_runtime": "Runtime",
+  "@query_divePlans_runtime": {"description": "Field label in the query builder"},
+  "query_divePlans_site": "Site",
+  "@query_divePlans_site": {"description": "Field label in the query builder"},
   "query_diveTypes_builtIn": "Built-in",
   "@query_diveTypes_builtIn": {"description": "Field label in the query builder"},
   "query_diveTypes_name": "Name",
@@ -33036,20 +32995,30 @@
   "@query_entity_courses": {"description": "Field label in the query builder"},
   "query_entity_customFields": "Custom fields",
   "@query_entity_customFields": {"description": "Field label in the query builder"},
+  "query_entity_divePlans": "Saved plans",
+  "@query_entity_divePlans": {"description": "Name of a kind of record in the query builder"},
   "query_entity_diveTypes": "Dive types",
   "@query_entity_diveTypes": {"description": "Field label in the query builder"},
   "query_entity_dives": "Dives",
   "@query_entity_dives": {"description": "Field label in the query builder"},
+  "query_entity_documents": "Documents",
+  "@query_entity_documents": {"description": "Name of a kind of record in the query builder"},
   "query_entity_equipment": "Equipment",
   "@query_entity_equipment": {"description": "Field label in the query builder"},
   "query_entity_equipmentAttributes": "Equipment attributes",
   "@query_entity_equipmentAttributes": {"description": "Field label in the query builder"},
+  "query_entity_equipmentSets": "Equipment sets",
+  "@query_entity_equipmentSets": {"description": "Name of a kind of record in the query builder"},
   "query_entity_findings": "Safety findings",
   "@query_entity_findings": {"description": "Entity label in the query builder"},
   "query_findings_rule": "Rule",
   "@query_findings_rule": {"description": "Field label in the query builder"},
+  "query_entity_gpsTracks": "GPS tracks",
+  "@query_entity_gpsTracks": {"description": "Name of a kind of record in the query builder"},
   "query_entity_media": "Media",
   "@query_entity_media": {"description": "Field label in the query builder"},
+  "query_entity_navTracks": "Underwater routes",
+  "@query_entity_navTracks": {"description": "Name of a kind of record in the query builder"},
   "query_entity_sightings": "Sightings",
   "@query_entity_sightings": {"description": "Field label in the query builder"},
   "query_entity_siteTypes": "Site types",
@@ -33074,6 +33043,16 @@
   "@query_equipmentAttributes_valueNum": {"description": "Field label in the query builder"},
   "query_equipmentAttributes_valueText": "Text value",
   "@query_equipmentAttributes_valueText": {"description": "Field label in the query builder"},
+  "query_equipmentSets_default": "Default",
+  "@query_equipmentSets_default": {"description": "Field label in the query builder"},
+  "query_equipmentSets_description": "Description",
+  "@query_equipmentSets_description": {"description": "Field label in the query builder"},
+  "query_equipmentSets_itemCount": "Item count",
+  "@query_equipmentSets_itemCount": {"description": "Field label in the query builder"},
+  "query_equipmentSets_items": "Items",
+  "@query_equipmentSets_items": {"description": "Field label in the query builder"},
+  "query_equipmentSets_name": "Name",
+  "@query_equipmentSets_name": {"description": "Field label in the query builder"},
   "query_equipment_active": "Active",
   "@query_equipment_active": {"description": "Field label in the query builder"},
   "query_equipment_attributes": "Attributes",
@@ -33114,6 +33093,18 @@
   "@query_filter_clear": {"description": "Clears a list's query, in its chip bar, filter sheet and no-match state"},
   "query_filter_tooltip": "Filter",
   "@query_filter_tooltip": {"description": "Tooltip of the filter icon that opens a list's query filter sheet"},
+  "query_gpsTracks_date": "Date",
+  "@query_gpsTracks_date": {"description": "Field label in the query builder"},
+  "query_gpsTracks_deviceName": "Device",
+  "@query_gpsTracks_deviceName": {"description": "Field label in the query builder"},
+  "query_gpsTracks_duration": "Duration",
+  "@query_gpsTracks_duration": {"description": "Field label in the query builder"},
+  "query_gpsTracks_file": "File",
+  "@query_gpsTracks_file": {"description": "Field label in the query builder"},
+  "query_gpsTracks_name": "Name",
+  "@query_gpsTracks_name": {"description": "Field label in the query builder"},
+  "query_gpsTracks_source": "Source",
+  "@query_gpsTracks_source": {"description": "Field label in the query builder"},
   "query_list_noMatch": "Nothing matches this query",
   "@query_list_noMatch": {"description": "Shown when a list's query hides every row"},
   "query_media_caption": "Caption",
@@ -33261,6 +33252,28 @@
   "@query_op_contains": {"description": "Operator label in the query builder"},
   "query_op_inList": "is one of",
   "@query_op_inList": {"description": "Operator label in the query builder"},
+  "query_navTracks_date": "Date",
+  "@query_navTracks_date": {"description": "Field label in the query builder"},
+  "query_navTracks_depth": "Max depth",
+  "@query_navTracks_depth": {"description": "Field label in the query builder"},
+  "query_navTracks_deviceName": "Device",
+  "@query_navTracks_deviceName": {"description": "Field label in the query builder"},
+  "query_navTracks_distance": "Distance",
+  "@query_navTracks_distance": {"description": "Field label in the query builder"},
+  "query_navTracks_dive": "Dive",
+  "@query_navTracks_dive": {"description": "Field label in the query builder"},
+  "query_navTracks_duration": "Duration",
+  "@query_navTracks_duration": {"description": "Field label in the query builder"},
+  "query_navTracks_equipment": "Equipment",
+  "@query_navTracks_equipment": {"description": "Field label in the query builder"},
+  "query_navTracks_file": "File",
+  "@query_navTracks_file": {"description": "Field label in the query builder"},
+  "query_navTracks_name": "Name",
+  "@query_navTracks_name": {"description": "Field label in the query builder"},
+  "query_navTracks_site": "Site",
+  "@query_navTracks_site": {"description": "Field label in the query builder"},
+  "query_navTracks_source": "Source",
+  "@query_navTracks_source": {"description": "Field label in the query builder"},
   "query_op_between": "between",
   "@query_op_between": {"description": "Operator label in the query builder"},
   "query_op_isEmpty": "is not set",
@@ -33279,6 +33292,40 @@
   "@query_editor_allOf": {"description": "Group toggle: every row must match (AND)"},
   "query_editor_anyOf": "Any of",
   "@query_editor_anyOf": {"description": "Group toggle: one row must match (OR)"},
+  "query_documents_buddy": "Buddy",
+  "@query_documents_buddy": {"description": "Field label in the query builder"},
+  "query_documents_center": "Dive center",
+  "@query_documents_center": {"description": "Field label in the query builder"},
+  "query_documents_certification": "Certification",
+  "@query_documents_certification": {"description": "Field label in the query builder"},
+  "query_documents_course": "Course",
+  "@query_documents_course": {"description": "Field label in the query builder"},
+  "query_documents_dive": "Dive",
+  "@query_documents_dive": {"description": "Field label in the query builder"},
+  "query_documents_equipment": "Equipment",
+  "@query_documents_equipment": {"description": "Field label in the query builder"},
+  "query_documents_expiryDate": "Expiry date",
+  "@query_documents_expiryDate": {"description": "Field label in the query builder"},
+  "query_documents_issueDate": "Issue date",
+  "@query_documents_issueDate": {"description": "Field label in the query builder"},
+  "query_documents_issuer": "Issuer",
+  "@query_documents_issuer": {"description": "Field label in the query builder"},
+  "query_documents_notes": "Notes",
+  "@query_documents_notes": {"description": "Field label in the query builder"},
+  "query_documents_primary": "Primary",
+  "@query_documents_primary": {"description": "Field label in the query builder"},
+  "query_documents_referenceNumber": "Reference number",
+  "@query_documents_referenceNumber": {"description": "Field label in the query builder"},
+  "query_documents_site": "Site",
+  "@query_documents_site": {"description": "Field label in the query builder"},
+  "query_documents_tags": "Tags",
+  "@query_documents_tags": {"description": "Field label in the query builder"},
+  "query_documents_title": "Title",
+  "@query_documents_title": {"description": "Field label in the query builder"},
+  "query_documents_trip": "Trip",
+  "@query_documents_trip": {"description": "Field label in the query builder"},
+  "query_documents_type": "Type",
+  "@query_documents_type": {"description": "Field label in the query builder"},
   "query_editor_addCondition": "Add condition",
   "@query_editor_addCondition": {"description": "Builder button"},
   "query_editor_addGroup": "Add group",
@@ -34395,5 +34442,13 @@
   "changeLog_clear_failed": "Couldn't clear the change log. Nothing was removed.",
   "changeLog_day_today": "Today",
   "changeLog_day_yesterday": "Yesterday",
-  "changeLog_storage_label": "Change log"
+  "changeLog_storage_label": "Change log",
+  "search_everywhere": "Search everything for \"{text}\"",
+  "@search_everywhere": {"description": "Row under a list's search field that opens global search with the typed text", "placeholders": {"text": {"type": "String"}}},
+  "search_fieldHint": "Search, or type a query",
+  "@search_fieldHint": {"description": "A list's search row, shared by every list"},
+  "search_closeTooltip": "Close search",
+  "@search_closeTooltip": {"description": "A list's search row, shared by every list"},
+  "search_openTooltip": "Search",
+  "@search_openTooltip": {"description": "A list's search row, shared by every list"}
 }

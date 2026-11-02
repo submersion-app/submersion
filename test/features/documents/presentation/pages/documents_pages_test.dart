@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -320,9 +321,11 @@ void main() {
     await pump(t, '/documents');
     expect(find.textContaining('Advanced Nitrox'), findsWidgets);
     await t.enterText(find.byType(TextField), 'nitrox diver');
+    await t.pump(kEntitySearchDebounce);
     await t.pumpAndSettle();
     expect(find.text('Nitrox log'), findsNothing);
     await t.enterText(find.byType(TextField), 'advanced');
+    await t.pump(kEntitySearchDebounce);
     await t.pumpAndSettle();
     expect(find.text('Nitrox log'), findsOneWidget);
 

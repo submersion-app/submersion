@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_set_tile.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
-import 'package:submersion/shared/widgets/feature_accent.dart';
-import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Content widget for the equipment set list, used in master-detail layout.
 ///
@@ -148,82 +146,12 @@ class EquipmentSetListContent extends ConsumerWidget {
           itemBuilder: (context, index) {
             final set = sets[index];
             final isSelected = selectedId == set.id;
-            final itemCountText = set.itemCount == 1
-                ? context.l10n.equipment_sets_itemCountSingular(set.itemCount)
-                : context.l10n.equipment_sets_itemCountPlural(set.itemCount);
-            // The count leads the description on one line rather than sitting
-            // in a trailing chip: a ListTile lays trailing out at its natural
-            // width first, and a chip there starves the set name (issue #2717).
-            final description = markdownToPlainText(
-              set.description,
-            ).replaceAll('\n', ' ');
-            final subtitleText = description.isEmpty
-                ? itemCountText
-                : set.itemCount > 0
-                ? '$itemCountText · $description'
-                : description;
             return KeyboardListItem(
               navigationKey: set.id,
-              child: Semantics(
-                label: listItemLabel(title: set.name, subtitle: subtitleText),
-                child: Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  color: isSelected
-                      ? Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer.withValues(alpha: 0.5)
-                      : null,
-                  child: ListTile(
-                    onTap: () => open(set.id),
-                    leading: Builder(
-                      builder: (context) {
-                        final accent = resolveFeatureAccent(
-                          context,
-                          ref,
-                          surface: AccentSurface.list,
-                          featureId: 'equipment',
-                        );
-                        return CircleAvatar(
-                          backgroundColor:
-                              accent?.withValues(alpha: 0.15) ??
-                              Theme.of(context).colorScheme.primaryContainer,
-                          child: Icon(
-                            Icons.folder,
-                            color:
-                                accent ??
-                                Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                          ),
-                        );
-                      },
-                    ),
-                    title: Row(
-                      children: [
-                        Flexible(child: Text(set.name)),
-                        if (set.isDefault) ...[
-                          const SizedBox(width: 8),
-                          Chip(
-                            label: Text(
-                              context.l10n.equipment_sets_defaultBadge,
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ],
-                      ],
-                    ),
-                    subtitle: Text(
-                      subtitleText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
+              child: EquipmentSetTile(
+                set: set,
+                isSelected: isSelected,
+                onTap: () => open(set.id),
               ),
             );
           },

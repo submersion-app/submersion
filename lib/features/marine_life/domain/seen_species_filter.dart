@@ -21,7 +21,7 @@ typedef SpeciesNameOf = String Function(Species species);
 /// [entries] is never mutated.
 List<SeenSpecies> filterSeenSpecies(
   List<SeenSpecies> entries, {
-  required String query,
+  String query = '',
   SpeciesCategory? category,
   required SeenSpeciesSort sort,
   required SpeciesNameOf nameOf,

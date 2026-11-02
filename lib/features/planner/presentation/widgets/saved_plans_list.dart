@@ -73,18 +73,9 @@ class SavedPlansList extends ConsumerWidget {
           for (final group in groups) ...[
             _ModeHeader(group.mode),
             for (final plan in group.plans)
-              ListTile(
-                leading: const Icon(Icons.route),
-                title: Text(plan.name),
-                subtitle: Text(
-                  [
-                    if (plan.maxDepth != null)
-                      units.formatDepth(plan.maxDepth!),
-                    if (plan.runtimeSeconds != null)
-                      '${(plan.runtimeSeconds! / 60).ceil()}′',
-                    ?planLinkBadge(context.l10n, plan, units),
-                  ].join(' · '),
-                ),
+              SavedPlanTile(
+                plan: plan,
+                units: units,
                 onTap: () => context.push('/planning/dive-planner/${plan.id}'),
               ),
           ],
@@ -136,4 +127,33 @@ class _ModeHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A saved plan's row: its name, depth, runtime and the dive it is linked to.
+class SavedPlanTile extends StatelessWidget {
+  const SavedPlanTile({
+    super.key,
+    required this.plan,
+    required this.units,
+    required this.onTap,
+  });
+
+  final DivePlanSummary plan;
+  final UnitFormatter units;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: const Icon(Icons.route),
+    title: Text(plan.name),
+    subtitle: Text(
+      [
+        if (plan.maxDepth != null) units.formatDepth(plan.maxDepth!),
+        if (plan.runtimeSeconds != null)
+          '${(plan.runtimeSeconds! / 60).ceil()}′',
+        ?planLinkBadge(context.l10n, plan, units),
+      ].join(' · '),
+    ),
+    onTap: onTap,
+  );
 }

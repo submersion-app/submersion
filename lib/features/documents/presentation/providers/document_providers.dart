@@ -3,6 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/painting.dart';
 
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/documents/query/document_query_entity.dart';
+import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
 import 'package:submersion/core/database/compaction/database_compaction_monitor.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -38,6 +41,21 @@ final allDocumentsProvider = FutureProvider<List<DocumentListEntry>>((
   if (diverId == null) return const [];
   return repo.getAllForDiver(diverId);
 });
+
+/// The Documents page's query (#3882): words and the document fields, from
+/// its search row.
+final documentQueryProvider = StateProvider<QueryNode?>((ref) => null);
+
+/// Every document of the active diver that [documentQueryProvider] keeps.
+final filteredDocumentsProvider = Provider<AsyncValue<List<DocumentListEntry>>>(
+  (ref) => narrowByQuery(
+    ref,
+    ref.watch(allDocumentsProvider),
+    documentQueryEntity,
+    ref.watch(documentQueryProvider),
+    (e) => e.document.id,
+  ),
+);
 
 final documentByIdProvider = FutureProvider.family<Document?, String>((
   ref,

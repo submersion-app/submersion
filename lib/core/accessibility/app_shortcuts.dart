@@ -4,12 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/global_search_location.dart';
 import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
+import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -114,6 +117,12 @@ class AppShortcuts {
         label: 'Search dives',
         category: 'Search',
         activator: platformShortcut(LogicalKeyboardKey.keyF),
+        isGlobal: true,
+      ),
+      ShortcutEntry(
+        label: 'Search everything',
+        category: 'Search',
+        activator: platformShortcut(LogicalKeyboardKey.keyK),
         isGlobal: true,
       ),
       // 'Ask about your dives' is listed by globalBindings, which can read
@@ -262,6 +271,14 @@ class AppShortcuts {
             uri.queryParameters['view'] == 'map' &&
             !ResponsiveBreakpoints.isMasterDetail(context);
         if (uri.path != '/dives' || phoneMap) context.go('/dives');
+      },
+
+      // Global search (#3882), over whatever page is up, so Back returns to
+      // it. Pressed on the search page it puts the caret back in the field.
+      platformShortcut(LogicalKeyboardKey.keyK): () {
+        final container = ProviderScope.containerOf(context, listen: false);
+        container.read(globalSearchFocusTickProvider.notifier).state++;
+        context.pushOrReturnTo(kGlobalSearchLocation);
       },
 
       // Settings

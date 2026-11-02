@@ -110,7 +110,7 @@ void main() {
     'lib/features/equipment/domain/constants/equipment_field.dart',
     'lib/features/equipment/presentation/pages/equipment_location_list_page.dart',
     'lib/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart',
-    'lib/features/equipment/presentation/widgets/equipment_set_list_content.dart',
+    'lib/features/equipment/presentation/widgets/equipment_set_tile.dart',
     'lib/features/settings/presentation/pages/diver_profile_hub_page.dart',
     'lib/features/shared_library/presentation/widgets/library_about_section.dart',
     'lib/features/trips/domain/constants/trip_field.dart',

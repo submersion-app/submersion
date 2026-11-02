@@ -407,13 +407,19 @@ void main() {
           ),
         );
 
-        expect(find.text('rating >= 3'), findsOneWidget);
-        expect(find.text('difficulty = advanced'), findsOneWidget);
+        expect(find.widgetWithText(InputChip, 'rating >= 3'), findsOneWidget);
+        expect(
+          find.widgetWithText(InputChip, 'difficulty = advanced'),
+          findsOneWidget,
+        );
 
         chip(tester, 'rating >= 3').onDeleted!();
         await tester.pumpAndSettle();
-        expect(find.text('rating >= 3'), findsNothing);
-        expect(find.text('difficulty = advanced'), findsOneWidget);
+        expect(find.widgetWithText(InputChip, 'rating >= 3'), findsNothing);
+        expect(
+          find.widgetWithText(InputChip, 'difficulty = advanced'),
+          findsOneWidget,
+        );
       },
     );
   });

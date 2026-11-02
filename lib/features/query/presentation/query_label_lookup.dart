@@ -105,6 +105,20 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_customFields_key;
     case 'query_customFields_value':
       return l10n.query_customFields_value;
+    case 'query_divePlans_date':
+      return l10n.query_divePlans_date;
+    case 'query_divePlans_depth':
+      return l10n.query_divePlans_depth;
+    case 'query_divePlans_mode':
+      return l10n.query_divePlans_mode;
+    case 'query_divePlans_name':
+      return l10n.query_divePlans_name;
+    case 'query_divePlans_notes':
+      return l10n.query_divePlans_notes;
+    case 'query_divePlans_runtime':
+      return l10n.query_divePlans_runtime;
+    case 'query_divePlans_site':
+      return l10n.query_divePlans_site;
     case 'query_diveTypes_builtIn':
       return l10n.query_diveTypes_builtIn;
     case 'query_diveTypes_name':
@@ -249,6 +263,40 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_weights;
     case 'query_dives_year':
       return l10n.query_dives_year;
+    case 'query_documents_buddy':
+      return l10n.query_documents_buddy;
+    case 'query_documents_center':
+      return l10n.query_documents_center;
+    case 'query_documents_certification':
+      return l10n.query_documents_certification;
+    case 'query_documents_course':
+      return l10n.query_documents_course;
+    case 'query_documents_dive':
+      return l10n.query_documents_dive;
+    case 'query_documents_equipment':
+      return l10n.query_documents_equipment;
+    case 'query_documents_expiryDate':
+      return l10n.query_documents_expiryDate;
+    case 'query_documents_issueDate':
+      return l10n.query_documents_issueDate;
+    case 'query_documents_issuer':
+      return l10n.query_documents_issuer;
+    case 'query_documents_notes':
+      return l10n.query_documents_notes;
+    case 'query_documents_primary':
+      return l10n.query_documents_primary;
+    case 'query_documents_referenceNumber':
+      return l10n.query_documents_referenceNumber;
+    case 'query_documents_site':
+      return l10n.query_documents_site;
+    case 'query_documents_tags':
+      return l10n.query_documents_tags;
+    case 'query_documents_title':
+      return l10n.query_documents_title;
+    case 'query_documents_trip':
+      return l10n.query_documents_trip;
+    case 'query_documents_type':
+      return l10n.query_documents_type;
     case 'query_editor_addCondition':
       return l10n.query_editor_addCondition;
     case 'query_editor_addGroup':
@@ -301,18 +349,28 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_entity_courses;
     case 'query_entity_customFields':
       return l10n.query_entity_customFields;
+    case 'query_entity_divePlans':
+      return l10n.query_entity_divePlans;
     case 'query_entity_diveTypes':
       return l10n.query_entity_diveTypes;
     case 'query_entity_dives':
       return l10n.query_entity_dives;
+    case 'query_entity_documents':
+      return l10n.query_entity_documents;
     case 'query_entity_equipment':
       return l10n.query_entity_equipment;
     case 'query_entity_equipmentAttributes':
       return l10n.query_entity_equipmentAttributes;
+    case 'query_entity_equipmentSets':
+      return l10n.query_entity_equipmentSets;
     case 'query_entity_findings':
       return l10n.query_entity_findings;
+    case 'query_entity_gpsTracks':
+      return l10n.query_entity_gpsTracks;
     case 'query_entity_media':
       return l10n.query_entity_media;
+    case 'query_entity_navTracks':
+      return l10n.query_entity_navTracks;
     case 'query_entity_sightings':
       return l10n.query_entity_sightings;
     case 'query_entity_siteTypes':
@@ -337,6 +395,16 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_equipmentAttributes_valueNum;
     case 'query_equipmentAttributes_valueText':
       return l10n.query_equipmentAttributes_valueText;
+    case 'query_equipmentSets_default':
+      return l10n.query_equipmentSets_default;
+    case 'query_equipmentSets_description':
+      return l10n.query_equipmentSets_description;
+    case 'query_equipmentSets_itemCount':
+      return l10n.query_equipmentSets_itemCount;
+    case 'query_equipmentSets_items':
+      return l10n.query_equipmentSets_items;
+    case 'query_equipmentSets_name':
+      return l10n.query_equipmentSets_name;
     case 'query_equipment_active':
       return l10n.query_equipment_active;
     case 'query_equipment_attributes':
@@ -421,6 +489,18 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_filter_tooltip;
     case 'query_findings_rule':
       return l10n.query_findings_rule;
+    case 'query_gpsTracks_date':
+      return l10n.query_gpsTracks_date;
+    case 'query_gpsTracks_deviceName':
+      return l10n.query_gpsTracks_deviceName;
+    case 'query_gpsTracks_duration':
+      return l10n.query_gpsTracks_duration;
+    case 'query_gpsTracks_file':
+      return l10n.query_gpsTracks_file;
+    case 'query_gpsTracks_name':
+      return l10n.query_gpsTracks_name;
+    case 'query_gpsTracks_source':
+      return l10n.query_gpsTracks_source;
     case 'query_list_noMatch':
       return l10n.query_list_noMatch;
     case 'query_media_caption':
@@ -429,6 +509,28 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_media_favorite;
     case 'query_media_type':
       return l10n.query_media_type;
+    case 'query_navTracks_date':
+      return l10n.query_navTracks_date;
+    case 'query_navTracks_depth':
+      return l10n.query_navTracks_depth;
+    case 'query_navTracks_deviceName':
+      return l10n.query_navTracks_deviceName;
+    case 'query_navTracks_distance':
+      return l10n.query_navTracks_distance;
+    case 'query_navTracks_dive':
+      return l10n.query_navTracks_dive;
+    case 'query_navTracks_duration':
+      return l10n.query_navTracks_duration;
+    case 'query_navTracks_equipment':
+      return l10n.query_navTracks_equipment;
+    case 'query_navTracks_file':
+      return l10n.query_navTracks_file;
+    case 'query_navTracks_name':
+      return l10n.query_navTracks_name;
+    case 'query_navTracks_site':
+      return l10n.query_navTracks_site;
+    case 'query_navTracks_source':
+      return l10n.query_navTracks_source;
     case 'query_op_between':
       return l10n.query_op_between;
     case 'query_op_contains':

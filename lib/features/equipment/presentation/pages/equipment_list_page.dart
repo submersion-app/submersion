@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -344,15 +346,11 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     double? iconSize,
   }) {
     return [
-      IconButton(
-        icon: Icon(Icons.search, size: iconSize),
+      EntitySearchAction(
+        subject: QuerySubject.equipment,
+        active: ref.watch(equipmentFilterProvider).query != null,
         tooltip: context.l10n.equipment_list_searchTooltip,
-        onPressed: () {
-          showSearch(
-            context: context,
-            delegate: EquipmentSearchDelegate(context.l10n),
-          );
-        },
+        compact: iconSize != null,
       ),
       IconButton(
         key: const ValueKey('equipment_filter_button'),

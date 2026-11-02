@@ -35,6 +35,7 @@ import 'package:submersion/features/query/presentation/app_query_labels.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/query/presentation/query_error_text.dart';
+import 'package:submersion/features/query/presentation/widgets/search_everywhere_row.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_suggestions.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -528,6 +529,8 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
           ),
         ),
         if (showAskRow) DiveAskRow(text: _text, onAsk: _ask),
+        if (_text.trim().isNotEmpty && _focus.hasFocus)
+          SearchEverywhereRow(text: _text),
         DiveAskNotice(
           onUndo: _undoAsk,
           onOpenList: (route) => context.go(route),

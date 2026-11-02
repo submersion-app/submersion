@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
@@ -27,7 +28,6 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
-import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_search_delegate.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
@@ -147,15 +147,11 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
           ),
         ),
         appBarActions: [
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
+          EntitySearchAction(
+            subject: QuerySubject.centers,
+            active: ref.watch(diveCenterQueryProvider) != null,
             tooltip: context.l10n.diveCenters_tooltip_search,
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: DiveCenterSearchDelegate(ref),
-              );
-            },
+            compact: true,
           ),
           QueryFilterAction(
             provider: diveCenterQueryProvider,

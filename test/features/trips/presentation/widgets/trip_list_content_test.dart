@@ -14,6 +14,8 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/theme/full_themes/console_theme.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -1499,7 +1501,7 @@ void main() {
   // Phone app bar: search, sort, view-mode popup menu.
   // ---------------------------------------------------------------------------
   group('phone app bar actions', () {
-    testWidgets('tapping search icon opens search delegate', (tester) async {
+    testWidgets('tapping search icon opens the search row', (tester) async {
       final overrides = await _buildPhoneOverrides(
         trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
         viewMode: ListViewMode.detailed,
@@ -1514,8 +1516,10 @@ void main() {
       // Tap the search icon in the app bar.
       await tester.tap(find.byIcon(Icons.search));
       await tester.pumpAndSettle();
-      // Search delegate should now be open (back arrow visible).
-      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+      expect(
+        find.byKey(entitySearchFieldKey(QuerySubject.trips)),
+        findsOneWidget,
+      );
     });
 
     testWidgets('tapping sort icon opens sort bottom sheet', (tester) async {
@@ -1816,87 +1820,6 @@ void main() {
     testWidgets('renders the detailed card without overflow', (tester) async {
       await pumpAndResolve(tester, 'Maldives Trip', tripName: 'Maldives Trip');
       expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('search results use the same roles as the trip card', (
-      tester,
-    ) async {
-      // The site search delegate renders its results with the real
-      // SiteListTile, so trip search results have to match the trip card too.
-      // The list underneath the search route stays in the widget tree, so the
-      // result trip is given a distinct name and date range to keep the
-      // find.text lookups unambiguous.
-      final result = _makeTrip(
-        id: 't2',
-        name: 'Maldives Trip',
-        startDate: DateTime(2025, 3, 2),
-        endDate: DateTime(2025, 3, 9),
-      );
-      final overrides = await _buildPhoneOverrides(
-        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
-        viewMode: ListViewMode.detailed,
-      );
-      overrides.add(
-        tripSearchProvider.overrideWith((ref, query) async => [result.trip]),
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          child: const TripListContent(showAppBar: true),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Mal');
-      await tester.pumpAndSettle();
-
-      // Resolve the expectations from the search route's own context:
-      // showSearch installs the delegate's appBarTheme, so reading the roles
-      // from anywhere else could compare against a different ThemeData.
-      final theme = Theme.of(tester.element(find.text('Maldives Trip')));
-
-      final title = effectiveStyleOf(tester, 'Maldives Trip');
-      expect(title.fontFamily, theme.textTheme.titleMedium!.fontFamily);
-      expect(title.fontSize, theme.textTheme.titleMedium!.fontSize);
-      expect(title.fontWeight, FontWeight.w600);
-
-      final subtitle = effectiveStyleOf(tester, 'Mar 2, 2025 - Mar 9, 2025');
-      expect(subtitle.fontSize, theme.textTheme.bodyMedium!.fontSize);
-      expect(subtitle.color, theme.colorScheme.onSurfaceVariant);
-    });
-
-    testWidgets('a failed search says so without the exception', (
-      tester,
-    ) async {
-      final overrides = await _buildPhoneOverrides(
-        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
-        viewMode: ListViewMode.detailed,
-      );
-      overrides.add(
-        tripSearchProvider.overrideWith(
-          (ref, query) async => throw StateError('database is locked'),
-        ),
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          overrides: overrides,
-          locale: const Locale('en'),
-          child: const TripListContent(showAppBar: true),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Mal');
-      await tester.pumpAndSettle();
-
-      expect(find.text("Couldn't search your trips."), findsOneWidget);
-      expect(find.textContaining('database is locked'), findsNothing);
     });
 
     testWidgets('title keeps the title font family under the console theme', (

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -14,7 +15,6 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/presentation/helpers/side_trip_delete_lines.dart';
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
@@ -38,7 +38,8 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_frame.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/query/trip_query_entity.dart';
@@ -226,7 +227,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   );
 
   /// The list body with the query's chips above it (#2365).
-  Widget _withQueryChips(Widget child) => QueryChipsFrame(
+  Widget _withQueryChips(Widget child) => EntitySearchFrame(
+    subject: QuerySubject.trips,
     root: tripQueryEntity,
     query: ref.watch(tripFilterProvider).query,
     onChanged: _setQuery,
@@ -303,15 +305,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     subtitle: tripListCountLabel(context, ref),
                   ),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.search),
+                    EntitySearchAction(
+                      subject: QuerySubject.trips,
+                      active: ref.watch(tripFilterProvider).query != null,
                       tooltip: context.l10n.trips_list_tooltip_search,
-                      onPressed: () {
-                        showSearch(
-                          context: context,
-                          delegate: TripSearchDelegate(context.l10n),
-                        );
-                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.sort),
@@ -698,15 +695,11 @@ class _TripListContentState extends ConsumerState<TripListContent> {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
+          EntitySearchAction(
+            subject: QuerySubject.trips,
+            active: ref.watch(tripFilterProvider).query != null,
             tooltip: context.l10n.trips_list_tooltip_search,
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: TripSearchDelegate(context.l10n),
-              );
-            },
+            compact: true,
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
@@ -1240,163 +1233,6 @@ class TripListTile extends ConsumerWidget {
           isThreeLine: true,
         ),
       ),
-    );
-  }
-}
-
-/// Search delegate for trips
-class TripSearchDelegate extends SearchDelegate<Trip?> {
-  TripSearchDelegate(this._l10n);
-
-  final AppLocalizations _l10n;
-
-  @override
-  String get searchFieldLabel => _l10n.trips_search_fieldLabel;
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          tooltip: context.l10n.trips_search_tooltip_clear,
-          onPressed: () => query = '',
-        ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      tooltip: context.l10n.trips_search_tooltip_back,
-      onPressed: () => close(context, null),
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return _buildSearchResults(context);
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.trips_search_empty_hint,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return _buildSearchResults(context);
-  }
-
-  Widget _buildSearchResults(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final searchAsync = ref.watch(tripSearchProvider(query));
-
-        return searchAsync.when(
-          data: (trips) {
-            if (trips.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_off,
-                      size: 64,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.trips_search_noResults(query),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return ListView.builder(
-              itemCount: trips.length,
-              itemBuilder: (context, index) {
-                final trip = trips[index];
-                final units = ref.watch(unitFormatterProvider);
-                return ListTile(
-                  // Same text theme roles as TripListTile so search results do
-                  // not fall back to ListTile's bodyLarge title default.
-                  titleTextStyle: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                  subtitleTextStyle: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                  leading: Builder(
-                    builder: (context) {
-                      final accent = resolveFeatureAccent(
-                        context,
-                        ref,
-                        surface: AccentSurface.list,
-                        featureId: 'trips',
-                      );
-                      return CircleAvatar(
-                        backgroundColor:
-                            accent?.withValues(alpha: 0.15) ??
-                            Theme.of(context).colorScheme.primaryContainer,
-                        child: Icon(
-                          trip.isLiveaboard
-                              ? Icons.sailing
-                              : Icons.flight_takeoff,
-                          color:
-                              accent ??
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      );
-                    },
-                  ),
-                  title: Text(trip.name),
-                  // A side trip names its larger trip (issue #3658).
-                  subtitle: Text(
-                    [
-                      '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
-                      if (ref.watch(parentTripProvider(trip.id)).value
-                          case final parent?)
-                        context.l10n.trips_partOf(parent.name),
-                    ].join('  ·  '),
-                  ),
-                  // Opened over the search rather than in place of it, so back
-                  // from the detail returns to these results (#3377).
-                  onTap: () => context.push('/trips/${trip.id}'),
-                );
-              },
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          // The repository logs the failure; the diver gets a plain line.
-          error: (_, _) => Center(child: Text(context.l10n.trips_search_error)),
-        );
-      },
     );
   }
 }

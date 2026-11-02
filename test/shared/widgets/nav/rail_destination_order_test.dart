@@ -23,6 +23,7 @@ void main() {
       ('planning', '/planning'),
       ('transfer', '/transfer'),
       ('tracks', '/tracks'),
+      ('search', '/search'),
       ('settings', '/settings'),
     ];
     expect(rail.length, expected.length);

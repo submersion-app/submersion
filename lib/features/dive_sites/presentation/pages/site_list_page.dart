@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
@@ -148,12 +150,11 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
           ),
         ),
         appBarActions: [
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
+          EntitySearchAction(
+            subject: QuerySubject.sites,
+            active: ref.watch(siteFilterProvider).query != null,
             tooltip: context.l10n.diveSites_list_tooltip_searchSites,
-            onPressed: () {
-              showSearch(context: context, delegate: SiteSearchDelegate(ref));
-            },
+            compact: true,
           ),
           IconButton(
             icon: Badge(
