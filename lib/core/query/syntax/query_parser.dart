@@ -228,8 +228,7 @@ class QueryParser {
       return TextNode([t.text]);
     }
     if (t.kind == TokenKind.word) {
-      final after = _tokens[_pos + 1];
-      if (_operatorFollows(after) || _presenceFollows(t)) {
+      if (_operatorFollows(t) || _presenceFollows(t)) {
         return _condition();
       }
       _next();
@@ -238,17 +237,29 @@ class QueryParser {
     throw _Abort(_err(QueryErrorCode.expectedConditionOrText, t));
   }
 
-  bool _operatorFollows(Token t) =>
-      (t.kind == TokenKind.symbol && _operatorSymbols.contains(t.text)) ||
-      _isKeyword(t, 'in') ||
-      _isKeyword(t, 'between');
+  /// Whether an operator follows [word]. `in` and `between` are also words a
+  /// diver types in a sentence (#3457), so they count only where they can
+  /// mean the operator: `ressel in 2018` stays plain words, `date in 2018`
+  /// and `dpeth in [5]` do not, the last so a mistyped field keeps its
+  /// suggestion.
+  bool _operatorFollows(Token word) {
+    final after = _tokens[_pos + 1];
+    if (_isKeyword(after, 'in')) {
+      return _isSymbol(_tokens[_pos + 2], '[') ||
+          _resolve(word).field?.type == FieldType.date;
+    }
+    if (_isKeyword(after, 'between')) return _resolve(word).error == null;
+    return after.kind == TokenKind.symbol &&
+        _operatorSymbols.contains(after.text);
+  }
+
+  PathResolution _resolve(Token word) =>
+      resolvePath(registry, _entity, FieldPath(word.text.split('.')));
 
   /// Whether [word] starts `trip is blank`. It must name a field or relation:
   /// `boat is empty` stays three words of free text.
   bool _presenceFollows(Token word) =>
-      _presencePhraseAt(_pos + 1) != null &&
-      resolvePath(registry, _entity, FieldPath(word.text.split('.'))).error ==
-          null;
+      _presencePhraseAt(_pos + 1) != null && _resolve(word).error == null;
 
   /// The spoken form of `:none` or `:any` starting at token [at] (`is blank`,
   /// `is not set`): what it means, how many tokens it spans and its last

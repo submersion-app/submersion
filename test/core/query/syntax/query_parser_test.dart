@@ -403,7 +403,6 @@ void main() {
 
   test('every unfinished construct names what it expected', () {
     expect(bad(metric(), 'waterType in [salt').error.message, contains(']'));
-    expect(bad(metric(), 'waterType in salt').error.message, contains('['));
     expect(bad(metric(), 'depth between 1 or').error.message, contains('and'));
     expect(bad(metric(), 'weights[amount > 1').error.message, contains(']'));
     expect(
@@ -462,6 +461,48 @@ void main() {
       bad(metric(), 'date between "since 2024" and 2025-01-01').error.message,
       contains('single day'),
     );
+  });
+
+  group('in and between after a word (#3457)', () {
+    AndNode words(List<String> terms) => AndNode([
+      for (final t in terms) TextNode([t]),
+    ]);
+
+    test('in after a word that names nothing reads as plain words', () {
+      expect(ok(metric(), 'ressel in 2018'), words(['ressel', 'in', '2018']));
+    });
+
+    test('in after a field or relation with no list reads as words', () {
+      expect(ok(metric(), 'depth in 2018'), words(['depth', 'in', '2018']));
+      expect(ok(metric(), 'site in 2018'), words(['site', 'in', '2018']));
+    });
+
+    test('between after a word that names nothing reads as words', () {
+      expect(
+        ok(metric(), 'ressel between 2018 and 2020'),
+        words(['ressel', 'between', '2018', '2020']),
+      );
+    });
+
+    test('in stays an operator for a date field or a list', () {
+      expect(ok(metric(), 'date in 2025'), isA<ConditionNode>());
+      expect(ok(metric(), 'depth in [10, 20]'), isA<ConditionNode>());
+    });
+
+    test('between stays an operator for a field', () {
+      expect(ok(metric(), 'depth between 18 and 30'), isA<ConditionNode>());
+    });
+
+    test('a mistyped field before a list still suggests the field', () {
+      expect(
+        bad(metric(), 'dpeth in [10, 20]').error.suggestions,
+        contains('depth'),
+      );
+    });
+
+    test('a word ending the text at in is no operator', () {
+      expect(ok(metric(), 'ressel in'), words(['ressel', 'in']));
+    });
   });
 
   test('reversed between bounds are put in order', () {
