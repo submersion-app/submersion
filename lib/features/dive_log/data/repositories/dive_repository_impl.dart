@@ -245,10 +245,12 @@ class DiveRepository {
   /// One known gap, taken on purpose. `dive_profile_series` and
   /// `dive_profile_events` appear in the query's `readsFrom` because the
   /// decompression filter joins them (see [decoSignalCondition]), so with that
-  /// filter active a profile write can change which dives match. They are left
-  /// out because a profile import writes thousands of sample rows and would
-  /// otherwise reload the whole list behind every one of them, to correct a
-  /// filter most sessions never switch on. This is no worse than the
+  /// filter active a profile write can change which dives match. The summary's
+  /// measured runtime reads `dive_profile_series` too, for a dive with neither
+  /// a stored runtime nor an exit time. They are left out because a profile
+  /// import writes thousands of sample rows and would otherwise reload the
+  /// whole list behind every one of them, to correct a filter most sessions
+  /// never switch on and a rare kind of dive. This is no worse than the
   /// dives-only tick it replaces.
   Stream<void> watchDiveListChanges() => _db
       .tableUpdates(TableUpdateQuery.allOf(_diveListTables))
