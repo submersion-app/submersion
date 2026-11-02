@@ -34,7 +34,10 @@ class SqlQueryTool implements AgentTool {
       'sql_busy until that one ends. Add a LIMIT to recursive queries. '
       'Credentials, keys, sync state, the change log and virtual tables '
       '(pragma_ functions, json_each) are refused with sql_refused. Blobs '
-      'come back as their size.';
+      'come back as their size, and a string or blob over '
+      '${kSqlMaxValueBytes ~/ (1024 * 1024)} MiB fails the statement with '
+      'sql_error, so name the columns you need instead of using * on a table '
+      'that holds large blobs.';
 
   @override
   Map<String, Object?> get inputSchema => const {

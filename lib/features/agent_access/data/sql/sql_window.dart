@@ -6,6 +6,7 @@ import 'package:sqlite3/sqlite3.dart'
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_read_catalog.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_statement_guard.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_value_limit.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
 /// Rows a call returns when it does not ask for a number.
@@ -17,9 +18,11 @@ const int kSqlMaxRows = 5000;
 /// How long a statement may run, checked between rows.
 const Duration kSqlTimeCap = Duration(seconds: 10);
 
-/// The rough size of a result. One `printf` can build a string of a gigabyte,
-/// which a row cap would let straight through.
+/// The rough size of a result, which a row cap alone would not bound.
 const int kSqlMaxResultBytes = 2 * 1024 * 1024;
+
+/// The largest string or blob SQLite may build or read on this connection.
+const int kSqlMaxValueBytes = 16 * 1024 * 1024;
 
 /// Every cell costs at least this, so a million NULLs still count.
 const int _cellBaseBytes = 8;
@@ -121,6 +124,7 @@ SqlWindowOutcome runSqlWindow(SqlWindowRequest request) {
     );
   }
   try {
+    limitSqlValueSize(db, kSqlMaxValueBytes);
     db.execute('PRAGMA query_only = ON');
     db.execute('BEGIN');
     // Before anything is compiled: BEGIN is deferred and compiling holds no

@@ -123,6 +123,25 @@ void main() {
       expect(result.rows, hasLength(1));
     });
 
+    test('a value past the limit fails inside SQLite', () {
+      const size = kSqlMaxValueBytes + 1;
+      for (final sql in [
+        "SELECT printf('%.*c', $size, 'x')",
+        'SELECT zeroblob($size)',
+      ]) {
+        final outcome = run(sql) as SqlWindowFailure;
+        expect(outcome.code, AgentToolErrorCode.sqlError, reason: sql);
+        expect(outcome.message, contains('too big'), reason: sql);
+      }
+    });
+
+    test('a value just under the limit still compiles and runs', () {
+      final result = rows('SELECT length(zeroblob($kSqlMaxValueBytes))');
+      expect(result.rows, [
+        [kSqlMaxValueBytes],
+      ]);
+    });
+
     test('never returns the bytes of a blob', () {
       expect(rows('SELECT zeroblob(5)').rows, [
         [
