@@ -54,8 +54,8 @@ class ParseContext {
   final DateTime now;
   final NameResolver names;
 
-  /// The app's language code, for the filler words of a sentence typed in
-  /// plain words. Null reads English only.
+  /// The app's language code, for the filler words and month names of a
+  /// sentence typed in plain words. Null reads English only.
   final String? language;
   const ParseContext({
     required this.prefs,

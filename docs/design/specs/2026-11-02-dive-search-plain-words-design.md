@@ -44,7 +44,8 @@ dive type, or anything else a dive carries.
 - Ranking results by how well they match. The list keeps its sort.
 - Plain-word reading for any record type but dives. Sites, trips and the rest
   gain only the `in` fix (section 7).
-- Date phrases in languages other than English (section 5.4).
+- The words around a date in other languages. `since`, `before`, `to`, `between`
+  and `last` stay English (section 5.3).
 
 ## 4. What must not go wrong
 
@@ -166,10 +167,22 @@ Rules:
 - An abbreviated month may end in a dot: `oct. 14, 2018`.
 - `between` has no direction, so `between 2020 and 2018` reads as 2018 to 2020.
   `2020 to 2018` is refused, since a reversed `to` is more likely a slip.
-- A full date needs its year, and spells the month in English like every other
-  phrase. `14 october` stays two words, because no year can be assumed. Numeric
-  forms such as `14/10/2018` stay out, because whether the day or the month
-  comes first depends on the reader. `2018-10-14` covers every language.
+- A full date needs its year. `14 october` stays two words, because no year can
+  be assumed. Numeric forms such as `14/10/2018` stay out, because whether the
+  day or the month comes first depends on the reader. `2018-10-14` covers every
+  language.
+- English months always read, and the app language adds its own, in full or
+  abbreviated, with or without accents: `14 octubre 2018`, `fevrier 2018`. A
+  date becomes fixed dates when parsed, so unlike the word meanings in section
+  5.2 it needs only the active language, and a saved search is unaffected.
+  Another language's months stay plain words, and `out 2018` means October only
+  to a diver using Portuguese.
+- Each language's own way of writing a date reads: a filler inside it
+  (`14 de octubre de 2018`, `14 ottobre del 2018`), a dot after the day
+  (`14. Oktober 2018`), `1er mai 2018`, the Hungarian year first
+  (`2018. október 14.`), the Chinese `2018年10月14日`, the Hebrew
+  `14 באוקטובר 2018`, and Arabic-Indic or full-width digits. A dot closing a date
+  belongs to it, so `october 2018.` leaves no stray `.` to search for.
 - A day the month does not have stays plain words: `31 april 2018` is the word
   `31` and April 2018.
 - A phrase's result is the same tree `date in ...` produces, so it validates,

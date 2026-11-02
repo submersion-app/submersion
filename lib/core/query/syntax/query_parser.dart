@@ -217,7 +217,7 @@ class QueryParser {
   QueryNode? _plainPhrase(Token t, PlainWordReading reading) {
     if (t.kind != TokenKind.word && t.kind != TokenKind.number) return null;
     if (_operatorFollows(t) || _presenceFollows(t)) return null;
-    if (readDatePhrase(_tokens, _pos, context.now) case (
+    if (readDatePhrase(_tokens, _pos, context) case (
       :final range,
       :final length,
     )) {
@@ -408,7 +408,7 @@ class QueryParser {
       _requireOp(field, QueryOp.between, opTok);
       final isDate = field.type == FieldType.date;
       if (isDate && _entity.plainWords != null && !_betweenTwoDays()) {
-        final phrase = readDateValue(_tokens, _pos - 1, context.now);
+        final phrase = readDateValue(_tokens, _pos - 1, context);
         if (phrase != null) {
           _pos += phrase.length - 1;
           return _dateRangeNode(path, QueryOp.eq, phrase.range, opTok);
@@ -591,7 +591,7 @@ class QueryParser {
   QueryNode _dateCondition(FieldPath path, QueryOp op, QueryField field) {
     if (_entity.plainWords != null) {
       final first = _peek;
-      if (readDateValue(_tokens, _pos, context.now) case (
+      if (readDateValue(_tokens, _pos, context) case (
         :final range,
         :final length,
       ) when length > 1) {

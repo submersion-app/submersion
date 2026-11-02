@@ -4,7 +4,9 @@
 library;
 
 import 'package:submersion/core/query/syntax/date_grammar.dart';
+import 'package:submersion/core/query/syntax/query_parse_context.dart';
 import 'package:submersion/core/query/syntax/query_tokenizer.dart';
+import 'package:submersion/core/text/ascii_digits.dart';
 
 /// `between 14th of march 2018 and 2nd of june 2019` is the longest form the
 /// grammar reads.
@@ -22,23 +24,35 @@ bool _isComma(Token t) => t.kind == TokenKind.symbol && t.text == ',';
 bool _isYear(Token t) =>
     t.kind == TokenKind.number && _bareYear.hasMatch(t.text);
 
+/// A dot written straight after [term]: `14. Oktober`, `2018. október 14.`.
+bool _closesTerm(Token dot, Token term) =>
+    dot.kind == TokenKind.word &&
+    dot.text == '.' &&
+    dot.offset == term.offset + term.length;
+
+/// A filler of the [language] can sit inside a date (`14 de octubre de 2018`).
+/// English has `of`, which the grammar reads.
+bool _joinsDate(Token t, String? language) =>
+    t.kind == TokenKind.word &&
+    (_fillers[language]?.contains(t.text.toLowerCase()) ?? false);
+
 /// The date phrase starting at token [start] and how many tokens it spans, or
 /// null when none does. A lone year is not a phrase, because `2018` also finds
 /// the notes and the dive numbered 2018; after `in` or `during` it is.
 ({DateRange range, int length})? readDatePhrase(
   List<Token> tokens,
   int start,
-  DateTime now,
+  ParseContext context,
 ) {
   if (tokens[start].kind == TokenKind.word) {
     final lead = tokens[start].text.toLowerCase();
     if (lead == 'in' || lead == 'during') {
-      final inner = readDateValue(tokens, start + 1, now);
+      final inner = readDateValue(tokens, start + 1, context);
       if (inner == null) return null;
       return (range: inner.range, length: inner.length + 1);
     }
   }
-  return _longestPhrase(tokens, start, now, yearAlone: false);
+  return _longestPhrase(tokens, start, context, yearAlone: false);
 }
 
 /// The longest date from token [start], where a date is expected, so a lone
@@ -46,31 +60,40 @@ bool _isYear(Token t) =>
 ({DateRange range, int length})? readDateValue(
   List<Token> tokens,
   int start,
-  DateTime now,
-) => _longestPhrase(tokens, start, now, yearAlone: true);
+  ParseContext context,
+) => _longestPhrase(tokens, start, context, yearAlone: true);
 
 ({DateRange range, int length})? _longestPhrase(
   List<Token> tokens,
   int start,
-  DateTime now, {
+  ParseContext context, {
   required bool yearAlone,
 }) {
-  // A comma can sit before a date's year (`october 14, 2018`), so it is
-  // stepped over and counted but never read. Any other comma separates terms.
-  // The list ends in the end token, which is neither a term nor a comma, so
-  // the index stays in range.
+  // A comma can sit before a date's year (`october 14, 2018`), and a filler of
+  // the language inside a date, so each is stepped over and counted but never
+  // read. Any other comma separates terms. The list ends in the end token,
+  // which is neither a term, a comma nor a filler, so the index stays in range.
   final words = <String>[];
   final spans = <int>[];
   var next = start;
   while (words.length < _longestDatePhrase && _isTerm(tokens[next])) {
-    words.add(tokens[next++].text);
+    final term = tokens[next++];
+    words.add(asciiDigits(term.text));
+    if (_closesTerm(tokens[next], term)) next++;
     spans.add(next - start);
-    if (_isComma(tokens[next]) && _isYear(tokens[next + 1])) next++;
+    if ((_isComma(tokens[next]) && _isYear(tokens[next + 1])) ||
+        _joinsDate(tokens[next], context.language)) {
+      next++;
+    }
   }
   for (var count = words.length; count > 0; count--) {
     final text = words.take(count).join(' ');
     if (count == 1 && !yearAlone && _bareYear.hasMatch(text)) continue;
-    final range = parseDateText(text, now: now);
+    final range = parseDateText(
+      text,
+      now: context.now,
+      language: context.language,
+    );
     if (range != null) return (range: range, length: spans[count - 1]);
   }
   return null;

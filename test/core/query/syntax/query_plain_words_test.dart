@@ -205,6 +205,150 @@ void main() {
     });
   });
 
+  group('a date in the app language', () {
+    final october14 = ConditionNode(
+      FieldPath(['date']),
+      QueryOp.eq,
+      DateValue(DateTime(2018, 10, 14)),
+    );
+
+    test('reads among the words around it', () {
+      expect(
+        read('ressel 14 octubre 2018 con mike', language: 'es'),
+        AndNode([word('ressel'), october14, word('mike')]),
+      );
+      expect(
+        read('ressel octobre 2018', language: 'fr'),
+        AndNode([word('ressel'), month(2018, 10)]),
+      );
+    });
+
+    test('stays plain words in any other language', () {
+      expect(
+        read('14 octubre 2018', language: 'fr'),
+        AndNode([word('14'), word('octubre'), word('2018')]),
+      );
+      expect(read('octubre 2018'), AndNode([word('octubre'), word('2018')]));
+    });
+
+    test('a filler of the language can join its parts', () {
+      expect(read('14 de octubre de 2018', language: 'es'), october14);
+      expect(read('octubre de 2018', language: 'es'), month(2018, 10));
+      expect(read('14 de outubro de 2018', language: 'pt'), october14);
+      expect(read('14 ottobre del 2018', language: 'it'), october14);
+      expect(
+        read('ressel de octubre de 2018', language: 'es'),
+        AndNode([word('ressel'), month(2018, 10)]),
+      );
+    });
+
+    test('a filler only joins a date', () {
+      expect(
+        read('octubre de mike', language: 'es'),
+        AndNode([word('octubre'), word('mike')]),
+      );
+      expect(
+        read('octubre 2018 de mike', language: 'es'),
+        AndNode([month(2018, 10), word('mike')]),
+      );
+    });
+
+    test('an English filler does not join a date', () {
+      expect(
+        read('october with 2018'),
+        AndNode([word('october'), word('2018')]),
+      );
+      expect(
+        read('october with 2018', language: 'es'),
+        AndNode([word('october'), word('2018')]),
+      );
+    });
+
+    test('German writes a dot after the day', () {
+      expect(read('14. Oktober 2018', language: 'de'), october14);
+      expect(
+        read('am 14. Oktober 2018 mit mike', language: 'de'),
+        AndNode([october14, word('mike')]),
+      );
+    });
+
+    test('Hungarian writes the year first, with dots', () {
+      expect(read('2018. október 14.', language: 'hu'), october14);
+      expect(read('2018. október', language: 'hu'), month(2018, 10));
+      expect(read('2018 október 14', language: 'hu'), october14);
+      expect(
+        read('2018. október 14. ressel', language: 'hu'),
+        AndNode([october14, word('ressel')]),
+      );
+    });
+
+    test('Chinese marks the year, month and day', () {
+      expect(read('2018年10月14日', language: 'zh'), october14);
+      expect(read('2018 年 10 月 14 日', language: 'zh'), october14);
+      expect(
+        read('ressel 2018年10月', language: 'zh'),
+        AndNode([word('ressel'), month(2018, 10)]),
+      );
+      expect(read('２０１８年１０月１４日', language: 'zh'), october14);
+    });
+
+    test('Hebrew and French forms read', () {
+      expect(read('14 באוקטובר 2018', language: 'he'), october14);
+      expect(read('14 fevrier 2018', language: 'fr'), isA<ConditionNode>());
+      expect(read('1er mai 2018', language: 'fr'), isA<ConditionNode>());
+    });
+
+    test('Arabic-Indic digits read', () {
+      expect(read('١٤ أكتوبر ٢٠١٨', language: 'ar'), october14);
+      expect(read('أكتوبر ٢٠١٨', language: 'ar'), month(2018, 10));
+    });
+
+    test('a lone year in any digits stays a word', () {
+      expect(read('٢٠١٨', language: 'ar'), word('٢٠١٨'));
+      expect(read('in ٢٠١٨', language: 'ar'), year(2018));
+    });
+
+    test('a dot closing a date belongs to it', () {
+      expect(
+        read('october 2018. ressel'),
+        AndNode([month(2018, 10), word('ressel')]),
+      );
+      expect(
+        read('october 2018 . ressel'),
+        AndNode([month(2018, 10), word('.'), word('ressel')]),
+      );
+    });
+
+    test('validates, prints and reads back the same tree', () {
+      for (final (text, language) in [
+        ('14 de octubre de 2018', 'es'),
+        ('ressel 14. Oktober 2018', 'de'),
+        ('2018. október 14. ressel', 'hu'),
+        ('2018年10月14日', 'zh'),
+        ('since marzo 2020', 'es'),
+      ]) {
+        final node = read(text, language: language);
+        expect(
+          validateQuery(node, plainDives, fixtureRegistry),
+          isEmpty,
+          reason: text,
+        );
+        final printed = QueryPrinter(
+          fixtureRegistry,
+          plainDives,
+          kMetricPrefs,
+          language: language,
+        ).print(node);
+        expect(read(printed, language: language), node, reason: printed);
+      }
+    });
+
+    test('a date field reads one too', () {
+      expect(read('date in octubre 2018', language: 'es'), month(2018, 10));
+      expect(read('date in 14 de octubre de 2018', language: 'es'), october14);
+    });
+  });
+
   group('filler words', () {
     test('drop beside another term', () {
       expect(read('ressel with mike'), AndNode([word('ressel'), word('mike')]));

@@ -2,7 +2,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/date_symbols.dart';
 
 import 'package:submersion/core/query/registry/query_entity.dart';
-import 'package:submersion/features/dive_log/query/dive_number_query.dart';
+import 'package:submersion/core/text/ascii_digits.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 // Words a diver types that stand for a value rather than for text (#3457):

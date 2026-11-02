@@ -8,6 +8,8 @@
 /// plain calendar values, which is what the date fields' day bounds read.
 library;
 
+import 'package:submersion/core/query/syntax/date_month_names.dart';
+
 typedef DateRange = ({DateTime? start, DateTime? end});
 
 const Map<String, int> _months = {
@@ -47,14 +49,19 @@ final RegExp _isoDate = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
 final RegExp _isoRange = RegExp(
   r'^(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})$',
 );
-final RegExp _monthYear = RegExp(r'^([a-z]+)\s+(\d{4})$');
+// A month is any run with no space or digit, so that every app language fits.
+final RegExp _monthYear = RegExp(r'^([^\s\d]+)\s+(\d{4})$');
 final RegExp _dayMonthYear = RegExp(
-  r'^(\d{1,2})(?:st|nd|rd|th)?(?:\s+of)?\s+([a-z]+)\s+(\d{4})$',
+  r'^(\d{1,2})(?:st|nd|rd|th|er)?(?:\s+of)?\s+([^\s\d]+)\s+(\d{4})$',
 );
 final RegExp _monthDayYear = RegExp(
-  r'^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s+(\d{4})$',
+  r'^([^\s\d]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s+(\d{4})$',
 );
-final RegExp _monthDot = RegExp(r'(?<=[a-z])\.');
+final RegExp _yearMonthDay = RegExp(r'^(\d{4})\s+([^\s\d]+)(?:\s+(\d{1,2}))?$');
+final RegExp _chineseDate = RegExp(
+  r'^(\d{4})\s*年(?:\s*(\d{1,2})\s*月(?:\s*(\d{1,2})\s*[日号])?)?$',
+);
+final RegExp _monthDot = RegExp(r'(?<=[^\s\d])\.');
 final RegExp _periodRange = RegExp(r'^(.+)\s+to\s+(.+)$');
 final RegExp _between = RegExp(r'^between\s+(.+)\s+and\s+(.+)$');
 final RegExp _lastN = RegExp(
@@ -63,7 +70,13 @@ final RegExp _lastN = RegExp(
 final RegExp _since = RegExp(r'^since\s+(.+)$');
 final RegExp _before = RegExp(r'^before\s+(.+)$');
 
-DateRange? parseDateText(String text, {required DateTime now}) {
+/// The period [text] names, or null. English always reads; [language] adds
+/// the month names and date order of that app language.
+DateRange? parseDateText(
+  String text, {
+  required DateTime now,
+  String? language,
+}) {
   final t = text
       .trim()
       .toLowerCase()
@@ -78,14 +91,22 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   DateRange? month(int y, int m) => m < 1 || m > 12 || y < 1900 || y > 2200
       ? null
       : (start: DateTime(y, m, 1), end: DateTime(y, m + 1, 0));
-  DateRange? day(int y, String word, int d) {
-    final mo = _months[word];
+  DateRange? day(int y, int? mo, int d) {
     if (mo == null) return null;
     final whole = month(y, mo);
     if (whole == null || d < 1 || d > whole.end!.day) return null;
     final date = DateTime(y, mo, d);
     return (start: date, end: date);
   }
+
+  DateRange? yearFirst(int y, int? mo, String? d) {
+    if (mo == null) return null;
+    return d == null ? month(y, mo) : day(y, mo, int.parse(d));
+  }
+
+  int? monthOf(String word) =>
+      _months[word] ??
+      (language == null ? null : monthInLanguage(word, language));
 
   var m = _year.firstMatch(t);
   if (m != null) return year(int.parse(m[1]!));
@@ -108,8 +129,8 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   m = between ?? _periodRange.firstMatch(t);
   if (m != null) {
     // Both periods must be closed: "since 2018" has no end to span from.
-    final first = parseDateText(m[1]!, now: now);
-    final last = parseDateText(m[2]!, now: now);
+    final first = parseDateText(m[1]!, now: now, language: language);
+    final last = parseDateText(m[2]!, now: now, language: language);
     if ((first, last) case (
       (start: final DateTime from, end: DateTime _),
       (start: DateTime _, end: final DateTime to),
@@ -117,7 +138,11 @@ DateRange? parseDateText(String text, {required DateTime now}) {
       if (!to.isBefore(from)) return (start: from, end: to);
       // "between" has no direction, unlike "to", which is likely a slip.
       if (between != null) {
-        return parseDateText('between ${m[2]} and ${m[1]}', now: now);
+        return parseDateText(
+          'between ${m[2]} and ${m[1]}',
+          now: now,
+          language: language,
+        );
       }
     }
     return null;
@@ -126,13 +151,13 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   // below, whose unknown-month branch would swallow it.
   m = _since.firstMatch(t);
   if (m != null) {
-    final inner = parseDateText(m[1]!, now: now);
+    final inner = parseDateText(m[1]!, now: now, language: language);
     if (inner?.start == null) return null;
     return (start: inner!.start, end: null);
   }
   m = _before.firstMatch(t);
   if (m != null) {
-    final inner = parseDateText(m[1]!, now: now);
+    final inner = parseDateText(m[1]!, now: now, language: language);
     final first = inner?.start;
     if (first == null) return null;
     // Calendar arithmetic: see the Duration note under "last N days".
@@ -140,13 +165,22 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   }
   m = _monthYear.firstMatch(t);
   if (m != null) {
-    final mo = _months[m[1]!];
+    final mo = monthOf(m[1]!);
     return mo == null ? null : month(int.parse(m[2]!), mo);
   }
   m = _dayMonthYear.firstMatch(t);
-  if (m != null) return day(int.parse(m[3]!), m[2]!, int.parse(m[1]!));
+  if (m != null) return day(int.parse(m[3]!), monthOf(m[2]!), int.parse(m[1]!));
   m = _monthDayYear.firstMatch(t);
-  if (m != null) return day(int.parse(m[3]!), m[1]!, int.parse(m[2]!));
+  if (m != null) return day(int.parse(m[3]!), monthOf(m[1]!), int.parse(m[2]!));
+  // Only Hungarian: elsewhere `2018 may` is a year and a word.
+  m = language == 'hu' ? _yearMonthDay.firstMatch(t) : null;
+  if (m != null) return yearFirst(int.parse(m[1]!), monthOf(m[2]!), m[3]);
+  m = _chineseDate.firstMatch(t);
+  if (m != null) {
+    final y = int.parse(m[1]!);
+    final mo = m[2];
+    return mo == null ? year(y) : yearFirst(y, int.parse(mo), m[3]);
+  }
   switch (t) {
     case 'this year':
       return year(today.year);

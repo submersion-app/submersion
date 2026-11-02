@@ -69,7 +69,7 @@ void main() {
     [diveId, gearId],
   );
 
-  Future<List<String>> found(String text) async {
+  Future<List<String>> found(String text, {String? language}) async {
     final parsed = QueryParser(
       appQueryRegistry,
       diveQueryEntity,
@@ -77,6 +77,7 @@ void main() {
         prefs: kMetricPrefs,
         now: DateTime(2026, 6, 1),
         names: NameIndex.empty,
+        language: language,
       ),
     ).parse(text);
     final node = (parsed as ParseOk).node!;
@@ -350,6 +351,17 @@ void main() {
       expect(await found('france 2 march 2018 with mike'), ['mar']);
       expect(await found('date in 14 october 2018'), ['oct']);
       expect(await found('date in 2018-10-14'), ['oct']);
+    });
+
+    test('a date in the app language finds the same dive', () async {
+      expect(await found('14 de octubre de 2018', language: 'es'), ['oct']);
+      expect(await found('14. Oktober 2018', language: 'de'), ['oct']);
+      expect(await found('2018. október 14.', language: 'hu'), ['oct']);
+      expect(await found('2018年10月14日', language: 'zh'), ['oct']);
+      expect(await found('١٤ أكتوبر ٢٠١٨', language: 'ar'), ['oct']);
+      expect(await found('france 2 mars 2018 avec mike', language: 'fr'), [
+        'mar',
+      ]);
     });
 
     test('two full dates find the days between them', () async {
