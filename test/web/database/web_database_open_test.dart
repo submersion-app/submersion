@@ -15,8 +15,13 @@ import '../web_test_assets.dart';
 void main() {
   const path = '/opfs/Submersion/submersion.db';
 
+  final previousAssetBase = BackgroundDatabaseConnection.assetBase;
   setUpAll(() {
     BackgroundDatabaseConnection.assetBase = kWebTestAssetBase;
+  });
+  // Put the statics back for whatever file the bundle runs next.
+  tearDownAll(() {
+    BackgroundDatabaseConnection.assetBase = previousAssetBase;
   });
 
   test('opens AppDatabase on WasmDatabase and creates the schema', () async {

@@ -13,8 +13,13 @@ import '../web_test_assets.dart';
 /// The browser's sync temp files: written and read back through the compute
 /// worker's OPFS jobs.
 void main() {
+  final previousAssetBase = ComputeWorkerClient.assetBase;
   setUpAll(() {
     ComputeWorkerClient.assetBase = kWebTestAssetBase;
+  });
+  // Put the statics back for whatever file the bundle runs next.
+  tearDownAll(() {
+    ComputeWorkerClient.assetBase = previousAssetBase;
   });
 
   test('a 3 MiB file written in chunks reads back byte for byte', () async {
@@ -45,4 +50,21 @@ void main() {
     await SyncTempFiles.delete(path);
     expect(await SyncTempFiles.exists(path), isFalse);
   });
+
+  test(
+    'sweepAll removes every closed file and leaves one still open',
+    () async {
+      final old = await SyncTempFiles.create('ssv1_old.json');
+      await old.add([1, 2, 3]);
+      final oldPath = await old.close();
+      final live = await SyncTempFiles.create('ssv1_live.json');
+      await live.add([4]);
+      expect(await SyncTempFiles.sweepAll(), 1);
+      expect(await SyncTempFiles.exists(oldPath), isFalse);
+      final livePath = await live.close();
+      expect(await SyncTempFiles.exists(livePath), isTrue);
+      expect(await SyncTempFiles.sweepAll(), 1);
+      expect(await SyncTempFiles.exists(livePath), isFalse);
+    },
+  );
 }

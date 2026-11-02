@@ -1,6 +1,8 @@
 @TestOn('browser')
 library;
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/platform/cross_tab_lock.dart';
@@ -31,4 +33,33 @@ void main() {
       throwsStateError,
     );
   });
+
+  test(
+    'the if-available form skips while another body holds the lock',
+    () async {
+      final release = Completer<void>();
+      var ran = false;
+      final holder = withCrossTabLock(
+        'submersion-test-avail',
+        () => release.future,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(
+        await withCrossTabLockIfAvailable('submersion-test-avail', () async {
+          ran = true;
+        }),
+        isFalse,
+      );
+      expect(ran, isFalse);
+      release.complete();
+      await holder;
+      expect(
+        await withCrossTabLockIfAvailable('submersion-test-avail', () async {
+          ran = true;
+        }),
+        isTrue,
+      );
+      expect(ran, isTrue);
+    },
+  );
 }

@@ -10,6 +10,7 @@ import 'package:submersion/core/platform/compute/compute_jobs.dart';
 import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
+import 'package:submersion/core/utils/concat_bytes.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 
 /// Single-shot SBE1 envelope: the byte form of every encrypted sync file.
@@ -245,10 +246,7 @@ abstract final class SyncEnvelope {
   ) => ComputeJobs.aesGcmDecrypt(
     key: _bytes(key),
     nonce: _bytes(box.nonce),
-    ciphertextWithMac: Uint8List.fromList([
-      ...box.cipherText,
-      ...box.mac.bytes,
-    ]),
+    ciphertextWithMac: concatBytes(box.cipherText, box.mac.bytes),
     aad: _bytes(aad),
     minBytes: minBytes,
     runner: runner,

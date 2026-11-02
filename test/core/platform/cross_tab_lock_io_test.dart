@@ -21,4 +21,15 @@ void main() {
       throwsStateError,
     );
   });
+
+  test('the if-available form always runs the body natively', () async {
+    var ran = false;
+    expect(
+      await withCrossTabLockIfAvailable('submersion-sync', () async {
+        ran = true;
+      }),
+      isTrue,
+    );
+    expect(ran, isTrue);
+  });
 }

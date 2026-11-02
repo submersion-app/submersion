@@ -25,9 +25,16 @@ import '../web_test_assets.dart';
 /// drives the wizard against the built bundle. Every worker-bound await,
 /// the close included, runs inside runAsync, where real replies arrive.
 void main() {
+  final previousDatabaseAssetBase = BackgroundDatabaseConnection.assetBase;
+  final previousWorkerAssetBase = ComputeWorkerClient.assetBase;
   setUpAll(() {
     BackgroundDatabaseConnection.assetBase = kWebTestAssetBase;
     ComputeWorkerClient.assetBase = kWebTestAssetBase;
+  });
+  // Put the statics back for whatever file the bundle runs next.
+  tearDownAll(() {
+    BackgroundDatabaseConnection.assetBase = previousDatabaseAssetBase;
+    ComputeWorkerClient.assetBase = previousWorkerAssetBase;
   });
 
   testWidgets('the startup page opens the browser database', (tester) async {

@@ -17,9 +17,14 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 
+# -O3 drops the implicit type checks and keeps the list bounds checks. The
+# next level up would also trust every list index to be in range, and the
+# compute worker inflates and decrypts payloads a peer wrote, where a corrupt
+# stream must raise a format error rather than read past a table
+# (test/architecture/web_worker_build_flags_test.dart).
 for worker in drift_worker compute_worker; do
     if [ -f "web/$worker.dart" ]; then
-        dart compile js -O4 -o "web/$worker.js" "web/$worker.dart"
+        dart compile js -O3 -o "web/$worker.js" "web/$worker.dart"
     else
         echo "compile_workers: web/$worker.dart not present yet, skipped"
     fi

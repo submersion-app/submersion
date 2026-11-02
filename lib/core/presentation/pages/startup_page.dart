@@ -19,6 +19,7 @@ import 'package:submersion/core/services/sync/changeset_log/local_only_tombstone
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
+import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/database/compaction/database_compaction_prefs.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
@@ -476,12 +477,16 @@ class _StartupWrapperState extends State<StartupWrapper>
         storedVersion =
             null; // probe path doesn't expose storedVersion; backup uses 0 default
       } else if (_isWeb) {
-        // The browser has no synchronous probe: the open reads the stored
-        // version through drift, refuses a newer one, and runs the
-        // migration itself, reporting progress on the way.
-        storedVersion = null;
-        needsMigration = false;
-        totalSteps = 0;
+        // The browser's probe is asynchronous: drift opens the file once
+        // more to read its stored version, so a pending upgrade shows its
+        // progress here as it does natively. The open below refuses a newer
+        // file and runs the upgrade itself.
+        final sv = await BackgroundDatabaseConnection.readStoredSchemaVersion(
+          openPath,
+        );
+        storedVersion = sv;
+        needsMigration = sv > 0 && sv < AppDatabase.currentSchemaVersion;
+        totalSteps = needsMigration ? AppDatabase.migrationStepCount(sv) : 0;
       } else {
         storedVersion = DatabaseService.getStoredSchemaVersion(
           openPath,
@@ -494,22 +499,26 @@ class _StartupWrapperState extends State<StartupWrapper>
       }
 
       if (needsMigration && demoPath == null) {
-        if (mounted) {
-          setState(() => _state = _StartupState.backingUp);
-        }
-        try {
-          await _runPreMigrationBackup(
-            dbPath: dbPath,
-            stored: storedVersion ?? 0,
-          );
-        } on BackupFailedException catch (e) {
+        // The browser has no file to copy aside: its upgrade runs without
+        // the pre-migration backup.
+        if (!_isWeb) {
           if (mounted) {
-            setState(() {
-              _state = _StartupState.backupFailed;
-              _backupError = e;
-            });
+            setState(() => _state = _StartupState.backingUp);
           }
-          return;
+          try {
+            await _runPreMigrationBackup(
+              dbPath: dbPath,
+              stored: storedVersion ?? 0,
+            );
+          } on BackupFailedException catch (e) {
+            if (mounted) {
+              setState(() {
+                _state = _StartupState.backupFailed;
+                _backupError = e;
+              });
+            }
+            return;
+          }
         }
         _phase = StartupPhase.upgrading;
         if (mounted) {

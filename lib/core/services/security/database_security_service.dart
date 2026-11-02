@@ -242,6 +242,7 @@ class DatabaseSecurityService {
     @visibleForTesting bool skipReopenForTesting = false,
   }) {
     _ensureNotWeb();
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     return SyncCoordinator.join(
       () => _enableEncryption(
         migrator: migrator,
@@ -258,7 +259,6 @@ class DatabaseSecurityService {
     String? dbPathOverride,
     bool skipReopenForTesting = false,
   }) async {
-    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final mlk = _mlk;
     if (mlk == null) {
       throw StateError('Cannot enable encryption while locked');

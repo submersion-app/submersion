@@ -1,4 +1,5 @@
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
@@ -89,15 +90,21 @@ class WebOpfsFiles implements OpfsFiles {
     }
   }
 
-  @override
-  Future<bool> exists(String path) async {
+  /// Whether [name] is in the directory, locked or not: a plain file handle
+  /// needs no access lock, so a file another tab is writing still counts.
+  Future<bool> _present(String name) async {
     try {
-      await length(path);
+      await (await _dir())
+          .getFileHandle(name, web.FileSystemGetFileOptions(create: false))
+          .toDart;
       return true;
     } catch (_) {
       return false;
     }
   }
+
+  @override
+  Future<bool> exists(String path) => _present(OpfsFiles.nameOf(path));
 
   @override
   Future<Uint8List> read(String path, int offset, int length) async {
@@ -118,9 +125,29 @@ class WebOpfsFiles implements OpfsFiles {
   Future<void> delete(String path) async {
     try {
       await (await _dir()).removeEntry(OpfsFiles.nameOf(path)).toDart;
-    } catch (_) {
-      // A missing file is not an error.
+    } catch (e) {
+      // A missing file is not an error. A locked one (an open access
+      // handle, here or in another tab) rejects and stays, which the
+      // caller must hear about.
+      if (!await _present(OpfsFiles.nameOf(path))) return;
+      rethrow;
     }
+  }
+
+  /// `FileSystemDirectoryHandle.keys()` is an async iterator that
+  /// package:web does not bind, so it is driven by hand.
+  @override
+  Future<List<String>> list() async {
+    final keys = (await _dir()).callMethod<JSObject>('keys'.toJS);
+    final names = <String>[];
+    while (true) {
+      final step = await keys
+          .callMethod<JSPromise<JSObject>>('next'.toJS)
+          .toDart;
+      if (step.getProperty<JSBoolean>('done'.toJS).toDart) break;
+      names.add(step.getProperty<JSString>('value'.toJS).toDart);
+    }
+    return names..sort();
   }
 
   _OpenFile _openFile(int handle) =>

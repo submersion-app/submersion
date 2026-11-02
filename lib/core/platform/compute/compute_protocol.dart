@@ -30,6 +30,7 @@ enum ComputeJob {
   opfsLength,
   opfsExists,
   opfsDelete,
+  opfsSweep,
   baseParseScalars,
   baseParseStart,
   baseParseNext,

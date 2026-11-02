@@ -5,7 +5,11 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:submersion/core/services/sync/changeset_log/base_parse_exception.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_parse_worker.dart';
 
-/// Thrown when the base-parse worker reports a parse/checksum error or dies.
+/// Main-isolate client for the base-file parse worker. Spawns a worker that
+/// reads and parses a serialized sync base document off the UI isolate and
+/// streams decoded rows back, pull-backpressured (one batch of at most 500
+/// rows per [nextDataBatch]). Operations are sequential: one in flight at a
+/// time.
 class BaseParseClient {
   BaseParseClient._(
     this._isolate,

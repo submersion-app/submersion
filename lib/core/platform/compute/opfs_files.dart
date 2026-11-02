@@ -48,8 +48,13 @@ abstract interface class OpfsFiles {
   /// the end of the file.
   Future<Uint8List> read(String path, int offset, int length);
 
-  /// Removes the file at [path]; a missing file is not an error.
+  /// Removes the file at [path]; a missing file is not an error. One that
+  /// is still open through a handle, in this worker or another tab's, is:
+  /// the call throws and the file stays.
   Future<void> delete(String path);
+
+  /// The names of every file in [directory], open or closed, sorted.
+  Future<List<String>> list();
 }
 
 /// The [OpfsFiles] of a context that has no temporary sync files: the
@@ -86,4 +91,7 @@ class UnavailableOpfsFiles implements OpfsFiles {
 
   @override
   Future<void> delete(String path) async => _unavailable();
+
+  @override
+  Future<List<String>> list() async => _unavailable();
 }

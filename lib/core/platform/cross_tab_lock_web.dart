@@ -29,3 +29,33 @@ Future<T> withCrossTabLock<T>(String name, Future<T> Function() body) async {
   }
   return completed;
 }
+
+/// Browser variant: runs [body] under the Web Lock [name] only if no tab,
+/// this one included, holds it, and returns whether it ran. Where the
+/// browser has no Web Locks the body runs unlocked.
+Future<bool> withCrossTabLockIfAvailable(
+  String name,
+  Future<void> Function() body,
+) async {
+  if (!(web.window.navigator as JSObject).has('locks')) {
+    await body();
+    return true;
+  }
+  Future<void>? run;
+  JSPromise<JSAny?> granted(web.Lock? lock) {
+    // `ifAvailable` hands the callback a null lock when it is held.
+    if (lock == null) return Future<JSAny?>.value(null).toJS;
+    final started = run = body();
+    return started
+        .then<JSAny?>((_) => null, onError: (Object _, StackTrace _) => null)
+        .toJS;
+  }
+
+  await web.window.navigator.locks
+      .request(name, web.LockOptions(ifAvailable: true), granted.toJS)
+      .toDart;
+  final completed = run;
+  if (completed == null) return false;
+  await completed;
+  return true;
+}

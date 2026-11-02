@@ -324,4 +324,89 @@ void main() {
       );
     });
   });
+
+  group('parse session lifecycle', () {
+    final doc = {
+      'data': {
+        'dives': [
+          for (var i = 0; i < 9; i++) {'id': 'd$i', 'maxDepth': 10 + i},
+        ],
+      },
+    };
+
+    test('disposing a session with a batch in flight ends its parse', () async {
+      // Eight-byte reads keep the parse at an await when the dispose lands.
+      final slow = ComputeJobHandler(
+        files: files,
+        parseBatchSize: 2,
+        readChunkBytes: 8,
+      );
+      await store('base.json', utf8.encode(jsonEncode(doc)));
+      final session = await slow.handle(ComputeJob.baseParseStart, {
+        'path': 'opfs://submersion-sync-tmp/base.json',
+        'tables': ['dives'],
+      });
+      // The expectation listens before the dispose errors the call, or the
+      // error counts as unhandled.
+      final inFlight = expectLater(
+        slow.handle(ComputeJob.baseParseNext, {'session': session}),
+        throwsStateError,
+      );
+      await slow
+          .handle(ComputeJob.baseParseDispose, {'session': session})
+          .timeout(const Duration(seconds: 2));
+      await inFlight;
+      // Nothing is parked on a resume that no caller will ever send.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(slow.runningParses, 0);
+    });
+
+    test('a second next while one is in flight is refused', () async {
+      await store('base.json', utf8.encode(jsonEncode(doc)));
+      final session = await handler.handle(ComputeJob.baseParseStart, {
+        'path': 'opfs://submersion-sync-tmp/base.json',
+        'tables': ['dives'],
+      });
+      final first = handler.handle(ComputeJob.baseParseNext, {
+        'session': session,
+      });
+      await expectLater(
+        handler.handle(ComputeJob.baseParseNext, {'session': session}),
+        throwsStateError,
+      );
+      expect(((await first) as Map)['rows'], hasLength(2));
+      await handler.handle(ComputeJob.baseParseDispose, {'session': session});
+      expect(handler.runningParses, 0);
+    });
+  });
+
+  group('opfs sweep', () {
+    test('removes every closed file and leaves one still open', () async {
+      await store('ssv1_old.json', [1, 2, 3]);
+      await store('ssv1_older.json', [4]);
+      final open = await handler.handle(ComputeJob.opfsCreate, {
+        'name': 'ssv1_live.json',
+      });
+      await handler.handle(ComputeJob.opfsAppend, {
+        'handle': open,
+        'bytes': Uint8List.fromList([5]),
+      });
+      expect(await handler.handle(ComputeJob.opfsSweep, {}), 2);
+      expect(await files.list(), ['ssv1_live.json']);
+      final path = await handler.handle(ComputeJob.opfsClose, {'handle': open});
+      expect(
+        await handler.handle(ComputeJob.opfsExists, {'path': path}),
+        isTrue,
+      );
+      expect(await handler.handle(ComputeJob.opfsSweep, {}), 1);
+      expect(
+        await handler.handle(ComputeJob.opfsExists, {'path': path}),
+        isFalse,
+      );
+    });
+
+    test('an empty directory sweeps to nothing', () async {
+      expect(await handler.handle(ComputeJob.opfsSweep, {}), 0);
+    });
+  });
 }

@@ -65,8 +65,14 @@ class MemoryOpfsFiles implements OpfsFiles {
 
   @override
   Future<void> delete(String path) async {
-    _files.remove(OpfsFiles.nameOf(path));
+    final name = OpfsFiles.nameOf(path);
+    // An open sync access handle locks its file, as OPFS does.
+    if (_open.containsKey(name)) throw StateError('$name is still open');
+    _files.remove(name);
   }
+
+  @override
+  Future<List<String>> list() async => [..._files.keys, ..._open.keys]..sort();
 
   String _nameOf(int handle) {
     final name = _handleNames[handle];

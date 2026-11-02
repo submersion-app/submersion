@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 /// The browser workers under `web/` are compiled with `dart compile js`,
 /// apart from Flutter, so everything they reach must be plain Dart: no
@@ -31,7 +32,7 @@ void main() {
   for (final worker in workers) {
     test('$worker reaches nothing the browser cannot load', () {
       final root = Directory.current.path;
-      final start = '$root/$worker';
+      final start = p.normalize(p.join(root, worker));
       expect(
         File(start).existsSync(),
         isTrue,
@@ -55,7 +56,13 @@ void main() {
             offenders.add('${path.substring(root.length + 1)} -> $uri');
           } else if (uri.startsWith('package:submersion/')) {
             queue.add(
-              '$root/lib/${uri.substring('package:submersion/'.length)}',
+              p.normalize(
+                p.join(
+                  root,
+                  'lib',
+                  uri.substring('package:submersion/'.length),
+                ),
+              ),
             );
           } else if (!uri.startsWith('package:') && !uri.startsWith('dart:')) {
             queue.add(file.parent.uri.resolve(uri).toFilePath());

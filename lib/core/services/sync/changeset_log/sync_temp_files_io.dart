@@ -56,6 +56,12 @@ abstract final class SyncTempFiles {
       // Best effort: a leftover temp file is harmless and the sweep reaps it.
     }
   }
+
+  /// The browser's whole-directory sweep. Native temp files share a
+  /// general temp directory, which `sweepLeftoverSyncTempFiles` sweeps by
+  /// prefix and age instead.
+  static Future<int> sweepAll() async =>
+      throw UnsupportedError('native sync temp files are swept by prefix');
 }
 
 class _FileSink implements SyncTempSink {

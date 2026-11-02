@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
+import 'package:meta/meta.dart';
 
 import 'package:submersion/core/platform/compute/compute_protocol.dart';
 import 'package:submersion/core/platform/compute/opfs_files.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
+import 'package:submersion/core/utils/concat_bytes.dart';
 
 /// Runs every [ComputeJob], in the worker or inline.
 ///
@@ -38,6 +40,13 @@ class ComputeJobHandler {
 
   final Map<int, _HashSession> _hashes = {};
   final Map<int, _ParseSession> _parses = {};
+  final Set<_ParseSession> _running = {};
+
+  /// Parse sessions whose parse has started and not yet ended, disposed
+  /// ones included. A count above zero once every session is disposed is a
+  /// parse parked for a resume that no caller will send.
+  @visibleForTesting
+  int get runningParses => _running.length;
   int _nextSession = 1;
 
   /// Runs [job] with [args]. [onProgress] hears byte progress while a parse
@@ -75,7 +84,7 @@ class ComputeJobHandler {
           nonce: _bytes(args, 'nonce'),
           aad: _optionalBytes(args, 'aad') ?? const [],
         );
-        return Uint8List.fromList([...box.cipherText, ...box.mac.bytes]);
+        return concatBytes(box.cipherText, box.mac.bytes);
       case ComputeJob.aesGcmDecrypt:
         final sealed = _bytes(args, 'ciphertextWithMac');
         if (sealed.length < 16) {
@@ -150,6 +159,17 @@ class ComputeJobHandler {
       case ComputeJob.opfsDelete:
         await files.delete(_string(args, 'path'));
         return null;
+      case ComputeJob.opfsSweep:
+        var removed = 0;
+        for (final name in await files.list()) {
+          try {
+            await files.delete(OpfsFiles.pathOf(name));
+            removed++;
+          } catch (_) {
+            // Still open: a sync in this or another tab is writing it.
+          }
+        }
+        return removed;
       case ComputeJob.baseParseScalars:
         return _scalarsAndDeletions(_string(args, 'path'), onProgress);
       case ComputeJob.baseParseStart:
@@ -163,7 +183,7 @@ class ComputeJobHandler {
       case ComputeJob.baseParseNext:
         return _parse(args).next(onProgress);
       case ComputeJob.baseParseDispose:
-        _parses.remove(_int(args, 'session'))?.dispose();
+        await _parses.remove(_int(args, 'session'))?.dispose();
         return null;
     }
   }
@@ -302,6 +322,7 @@ class _ParseSession {
   void Function(int bytes, int total)? _onProgress;
   Completer<Map<String, Object?>>? _waiting;
   Completer<void>? _resume;
+  Future<void>? _running;
   List<Map<String, Object?>> _batch = [];
   bool _started = false;
   bool _done = false;
@@ -313,12 +334,15 @@ class _ParseSession {
     void Function(int bytes, int total)? onProgress,
   ) {
     if (_disposed) throw StateError('parse session is disposed');
+    if (_waiting != null) {
+      throw StateError('a parse batch is already in flight');
+    }
     _onProgress = onProgress;
     if (_done) return Future.value(_reply(const [], done: true));
     final waiting = _waiting = Completer<Map<String, Object?>>();
     if (!_started) {
       _started = true;
-      unawaited(_run());
+      _running = _run();
     } else {
       _resume?.complete();
       _resume = null;
@@ -327,6 +351,7 @@ class _ParseSession {
   }
 
   Future<void> _run() async {
+    _handler._running.add(this);
     try {
       _total = await _handler.files.length(_path);
       await BaseJsonStreamReader().parse(
@@ -337,6 +362,9 @@ class _ParseSession {
         wantRows: (section, table) =>
             section == 'data' && _tables.contains(table),
         onRow: (section, table, rowBytes) async {
+          // A dispose that landed mid-batch left no caller to deliver to
+          // or to resume the parse: stop at this row.
+          if (_disposed) throw StateError('parse session is disposed');
           _batch.add(<String, Object?>{
             'table': table,
             'row': jsonDecode(utf8.decode(rowBytes)),
@@ -356,6 +384,8 @@ class _ParseSession {
       final waiting = _waiting;
       _waiting = null;
       if (!_disposed) waiting?.completeError(e, st);
+    } finally {
+      _handler._running.remove(this);
     }
   }
 
@@ -374,12 +404,15 @@ class _ParseSession {
     'total': _total,
   };
 
-  void dispose() {
+  Future<void> dispose() async {
     _disposed = true;
     _resume?.complete();
     _resume = null;
     final waiting = _waiting;
     _waiting = null;
     waiting?.completeError(StateError('parse session is disposed'));
+    // The parse stops at its next row; wait for it, so the file, its read
+    // chunk and the half-built batch are free when the reply goes out.
+    await _running;
   }
 }

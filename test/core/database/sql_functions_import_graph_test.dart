@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 /// The app's SQL functions are registered inside the browser's database
 /// worker, a Dart program compiled apart from Flutter. Everything
@@ -10,7 +11,13 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('app_sql_functions.dart reaches nothing the worker cannot load', () {
     final root = Directory.current.path;
-    final start = '$root/lib/core/database/app_sql_functions.dart';
+    final start = p.join(
+      root,
+      'lib',
+      'core',
+      'database',
+      'app_sql_functions.dart',
+    );
     expect(
       File(start).existsSync(),
       isTrue,
@@ -39,7 +46,11 @@ void main() {
             uri == 'dart:isolate') {
           offenders.add('${path.substring(root.length + 1)} -> $uri');
         } else if (uri.startsWith('package:submersion/')) {
-          queue.add('$root/lib/${uri.substring('package:submersion/'.length)}');
+          queue.add(
+            p.normalize(
+              p.join(root, 'lib', uri.substring('package:submersion/'.length)),
+            ),
+          );
         } else if (!uri.startsWith('package:') && !uri.startsWith('dart:')) {
           queue.add(file.parent.uri.resolve(uri).toFilePath());
         }

@@ -5,6 +5,10 @@
 /// browser tabs are two processes sharing one database: the web file holds
 /// a Web Lock of the given name around the body, so two tabs never publish
 /// at once and reuse one changeset sequence.
+///
+/// `withCrossTabLockIfAvailable` is the housekeeping form: it runs its body
+/// only when nobody holds the lock, and says whether it did. Web Locks are
+/// not reentrant, so a step that may run inside a sync asks that way.
 library;
 
 export 'package:submersion/core/platform/cross_tab_lock_io.dart'

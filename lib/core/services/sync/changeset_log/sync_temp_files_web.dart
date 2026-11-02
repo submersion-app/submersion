@@ -63,6 +63,12 @@ abstract final class SyncTempFiles {
 
   static Future<void> delete(String path) =>
       _worker.call(ComputeJob.opfsDelete, {'path': path});
+
+  /// Removes every file in the browser's sync temp directory and returns
+  /// how many went. A file still open for writing, in this tab or another,
+  /// is locked by its handle and stays.
+  static Future<int> sweepAll() async =>
+      ((await _worker.call(ComputeJob.opfsSweep, const {})) as num).toInt();
 }
 
 class _OpfsSink implements SyncTempSink {

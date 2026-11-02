@@ -15,8 +15,13 @@ import '../web_test_assets.dart';
 /// written to OPFS, pass one for the scalars and deletions, pass two for
 /// two tables in batches, then dispose.
 void main() {
+  final previousAssetBase = ComputeWorkerClient.assetBase;
   setUpAll(() {
     ComputeWorkerClient.assetBase = kWebTestAssetBase;
+  });
+  // Put the statics back for whatever file the bundle runs next.
+  tearDownAll(() {
+    ComputeWorkerClient.assetBase = previousAssetBase;
   });
 
   final doc = {
