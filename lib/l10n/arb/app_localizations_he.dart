@@ -57222,6 +57222,29 @@ class AppLocalizationsHe extends AppLocalizations {
       'מצב ההדגמה שומר את יומן הדוגמה בנפרד מהנתונים שלכם, ולכן אי אפשר לייבא, לייצא, לגבות או לסנכרן דבר.';
 
   @override
+  String get web_unavailable_title => 'לא זמין בדפדפן';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'זה דורש חומרה שדף אינטרנט לא יכול להגיע אליה, כמו Bluetooth, USB, NFC או המצלמה. השתמשו באפליקציית Submersion בטלפון או במחשב לשם כך.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'זה פועל ברקע או כשירות מקומי, מה שדף אינטרנט לא יכול לעשות. השתמשו באפליקציית Submersion בטלפון או במחשב לשם כך.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'זה עובד עם קבצים במכשיר, שדף אינטרנט לא יכול להגיע אליהם. השתמשו באפליקציית Submersion בטלפון או במחשב לשם כך.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud זמין רק באפליקציית Submersion במכשירי Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'שרתי Git לא מקבלים בקשות מדף אינטרנט. השתמשו באפליקציית Submersion בטלפון או במחשב עבור מאגר סנכרון Git.';
+
+  @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';
 
   @override

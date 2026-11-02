@@ -92242,6 +92242,42 @@ abstract class AppLocalizations {
   /// **'Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.'**
   String get demo_unavailable_body;
 
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Not available in a browser'**
+  String get web_unavailable_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This needs hardware a web page cannot reach, such as Bluetooth, USB, NFC or the camera. Use the Submersion app on a phone or computer for it.'**
+  String get web_unavailable_reason_hardware;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This runs in the background or as a local service, which a web page cannot do. Use the Submersion app on a phone or computer for it.'**
+  String get web_unavailable_reason_background;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This works with files on the device, which a web page cannot reach. Use the Submersion app on a phone or computer for it.'**
+  String get web_unavailable_reason_files;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud is only available in the Submersion app on Apple devices.'**
+  String get web_unavailable_reason_icloud;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Git hosts do not accept requests from a web page. Use the Submersion app on a phone or computer for a Git sync store.'**
+  String get web_unavailable_reason_git;
+
   /// Demo mode (issue #3708)
   ///
   /// In en, this message translates to:

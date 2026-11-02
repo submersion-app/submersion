@@ -58127,6 +58127,29 @@ class AppLocalizationsHu extends AppLocalizations {
       'A demó mód elkülöníti a mintanaplót az adataidtól, ezért semmit sem lehet importálni, exportálni, menteni vagy szinkronizálni.';
 
   @override
+  String get web_unavailable_title => 'Böngészőben nem érhető el';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Ehhez olyan hardver kell, amelyet egy weboldal nem ér el, például Bluetooth, USB, NFC vagy a kamera. Ehhez használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Ez a háttérben vagy helyi szolgáltatásként fut, amire egy weboldal nem képes. Ehhez használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Ez az eszközön lévő fájlokkal dolgozik, amelyeket egy weboldal nem ér el. Ehhez használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'Az iCloud csak a Submersion alkalmazásban érhető el Apple-eszközökön.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'A Git-kiszolgálók nem fogadnak kéréseket weboldalról. Git szinkronizálási tárhoz használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';
 
   @override

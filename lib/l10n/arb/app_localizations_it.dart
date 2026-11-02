@@ -58462,6 +58462,29 @@ class AppLocalizationsIt extends AppLocalizations {
       'La modalità demo tiene il logbook di esempio separato dai tuoi dati, quindi non è possibile importare, esportare, eseguire il backup o sincronizzare nulla.';
 
   @override
+  String get web_unavailable_title => 'Non disponibile in un browser';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Richiede hardware che una pagina web non può raggiungere, come Bluetooth, USB, NFC o la fotocamera. Usa l\'app Submersion su un telefono o un computer.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Viene eseguito in background o come servizio locale, cosa che una pagina web non può fare. Usa l\'app Submersion su un telefono o un computer.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Lavora con file sul dispositivo, che una pagina web non può raggiungere. Usa l\'app Submersion su un telefono o un computer.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud è disponibile solo nell\'app Submersion sui dispositivi Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Gli host Git non accettano richieste da una pagina web. Usa l\'app Submersion su un telefono o un computer per uno spazio di sincronizzazione Git.';
+
+  @override
   String get demo_row_unavailable => 'Non disponibile in modalità demo';
 
   @override

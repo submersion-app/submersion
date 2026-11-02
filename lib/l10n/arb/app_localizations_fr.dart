@@ -58587,6 +58587,29 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le mode démo garde le carnet d\'exemple séparé de vos données : rien ne peut être importé, exporté, sauvegardé ni synchronisé.';
 
   @override
+  String get web_unavailable_title => 'Indisponible dans un navigateur';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Ceci nécessite du matériel qu\'une page web ne peut pas atteindre, comme le Bluetooth, l\'USB, le NFC ou l\'appareil photo. Utilisez l\'application Submersion sur un téléphone ou un ordinateur.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Ceci s\'exécute en arrière-plan ou comme service local, ce qu\'une page web ne peut pas faire. Utilisez l\'application Submersion sur un téléphone ou un ordinateur.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Ceci travaille avec des fichiers de l\'appareil, qu\'une page web ne peut pas atteindre. Utilisez l\'application Submersion sur un téléphone ou un ordinateur.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud n\'est disponible que dans l\'application Submersion sur les appareils Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Les hébergeurs Git n\'acceptent pas les requêtes venant d\'une page web. Utilisez l\'application Submersion sur un téléphone ou un ordinateur pour un dépôt de synchronisation Git.';
+
+  @override
   String get demo_row_unavailable => 'Indisponible en mode démo';
 
   @override

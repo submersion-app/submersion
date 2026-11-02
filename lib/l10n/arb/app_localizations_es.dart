@@ -58504,6 +58504,29 @@ class AppLocalizationsEs extends AppLocalizations {
       'El modo demo mantiene el diario de ejemplo separado de tus datos, así que no se puede importar, exportar, respaldar ni sincronizar nada.';
 
   @override
+  String get web_unavailable_title => 'No disponible en un navegador';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Esto necesita hardware al que una página web no puede acceder, como Bluetooth, USB, NFC o la cámara. Usa la app de Submersion en un teléfono u ordenador.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Esto se ejecuta en segundo plano o como un servicio local, algo que una página web no puede hacer. Usa la app de Submersion en un teléfono u ordenador.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Esto trabaja con archivos del dispositivo, a los que una página web no puede acceder. Usa la app de Submersion en un teléfono u ordenador.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud solo está disponible en la app de Submersion en dispositivos Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Los servidores Git no aceptan solicitudes desde una página web. Usa la app de Submersion en un teléfono u ordenador para un almacén de sincronización Git.';
+
+  @override
   String get demo_row_unavailable => 'No disponible en el modo demo';
 
   @override

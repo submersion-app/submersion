@@ -58330,6 +58330,29 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Demomodus hält das Beispiel-Logbuch von deinen Daten getrennt, daher kann nichts importiert, exportiert, gesichert oder synchronisiert werden.';
 
   @override
+  String get web_unavailable_title => 'Im Browser nicht verfügbar';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Dafür wird Hardware benötigt, die eine Webseite nicht erreichen kann, etwa Bluetooth, USB, NFC oder die Kamera. Nutze dafür die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Das läuft im Hintergrund oder als lokaler Dienst, was eine Webseite nicht kann. Nutze dafür die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Das arbeitet mit Dateien auf dem Gerät, die eine Webseite nicht erreichen kann. Nutze dafür die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud ist nur in der Submersion-App auf Apple-Geräten verfügbar.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Git-Hosts nehmen keine Anfragen von einer Webseite an. Nutze für einen Git-Sync-Speicher die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
   String get demo_row_unavailable => 'Im Demomodus nicht verfügbar';
 
   @override

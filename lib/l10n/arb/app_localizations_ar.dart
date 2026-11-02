@@ -59224,6 +59224,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'يُبقي الوضع التجريبي السجل التجريبي منفصلًا عن بياناتك، لذا لا يمكن استيراد أي شيء أو تصديره أو نسخه احتياطيًا أو مزامنته.';
 
   @override
+  String get web_unavailable_title => 'غير متاح في المتصفح';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'يحتاج هذا إلى عتاد لا تستطيع صفحة الويب الوصول إليه، مثل البلوتوث أو USB أو NFC أو الكاميرا. استخدم تطبيق Submersion على هاتف أو حاسوب لذلك.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'يعمل هذا في الخلفية أو كخدمة محلية، وهو ما لا تستطيع صفحة الويب فعله. استخدم تطبيق Submersion على هاتف أو حاسوب لذلك.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'يتعامل هذا مع ملفات على الجهاز لا تستطيع صفحة الويب الوصول إليها. استخدم تطبيق Submersion على هاتف أو حاسوب لذلك.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud متاح فقط في تطبيق Submersion على أجهزة Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'لا تقبل خوادم Git الطلبات الواردة من صفحة ويب. استخدم تطبيق Submersion على هاتف أو حاسوب لمخزن مزامنة Git.';
+
+  @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';
 
   @override

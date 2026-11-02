@@ -57535,6 +57535,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.';
 
   @override
+  String get web_unavailable_title => 'Not available in a browser';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'This needs hardware a web page cannot reach, such as Bluetooth, USB, NFC or the camera. Use the Submersion app on a phone or computer for it.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'This runs in the background or as a local service, which a web page cannot do. Use the Submersion app on a phone or computer for it.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'This works with files on the device, which a web page cannot reach. Use the Submersion app on a phone or computer for it.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud is only available in the Submersion app on Apple devices.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Git hosts do not accept requests from a web page. Use the Submersion app on a phone or computer for a Git sync store.';
+
+  @override
   String get demo_row_unavailable => 'Unavailable in demo mode';
 
   @override

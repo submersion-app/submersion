@@ -58093,6 +58093,29 @@ class AppLocalizationsNl extends AppLocalizations {
       'De demomodus houdt het voorbeeldlogboek gescheiden van je gegevens, dus er kan niets worden geïmporteerd, geëxporteerd, geback-upt of gesynchroniseerd.';
 
   @override
+  String get web_unavailable_title => 'Niet beschikbaar in een browser';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Hiervoor is hardware nodig die een webpagina niet kan bereiken, zoals Bluetooth, USB, NFC of de camera. Gebruik hiervoor de Submersion-app op een telefoon of computer.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Dit draait op de achtergrond of als lokale dienst, wat een webpagina niet kan. Gebruik hiervoor de Submersion-app op een telefoon of computer.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Dit werkt met bestanden op het apparaat, die een webpagina niet kan bereiken. Gebruik hiervoor de Submersion-app op een telefoon of computer.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud is alleen beschikbaar in de Submersion-app op Apple-apparaten.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Git-hosts accepteren geen verzoeken van een webpagina. Gebruik de Submersion-app op een telefoon of computer voor een Git-synchronisatieopslag.';
+
+  @override
   String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
 
   @override

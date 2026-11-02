@@ -54858,6 +54858,29 @@ class AppLocalizationsZh extends AppLocalizations {
       '演示模式会将示例日志与你的数据分开保存，因此无法导入、导出、备份或同步任何内容。';
 
   @override
+  String get web_unavailable_title => '浏览器中不可用';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      '这需要网页无法访问的硬件，例如蓝牙、USB、NFC 或相机。请在手机或电脑上使用 Submersion 应用。';
+
+  @override
+  String get web_unavailable_reason_background =>
+      '这需要在后台运行或作为本地服务运行，网页无法做到。请在手机或电脑上使用 Submersion 应用。';
+
+  @override
+  String get web_unavailable_reason_files =>
+      '这需要访问设备上的文件，网页无法做到。请在手机或电脑上使用 Submersion 应用。';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud 仅在 Apple 设备上的 Submersion 应用中可用。';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Git 托管服务不接受来自网页的请求。要使用 Git 同步存储，请在手机或电脑上使用 Submersion 应用。';
+
+  @override
   String get demo_row_unavailable => '演示模式下不可用';
 
   @override

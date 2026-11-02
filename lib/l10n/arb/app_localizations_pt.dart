@@ -58448,6 +58448,29 @@ class AppLocalizationsPt extends AppLocalizations {
       'O modo de demonstração mantém o diário de exemplo separado dos seus dados, por isso nada pode ser importado, exportado, copiado ou sincronizado.';
 
   @override
+  String get web_unavailable_title => 'Indisponível num navegador';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Isto precisa de hardware que uma página web não consegue alcançar, como Bluetooth, USB, NFC ou a câmara. Use a app Submersion num telemóvel ou computador.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Isto corre em segundo plano ou como um serviço local, o que uma página web não consegue fazer. Use a app Submersion num telemóvel ou computador.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Isto trabalha com ficheiros no dispositivo, que uma página web não consegue alcançar. Use a app Submersion num telemóvel ou computador.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'O iCloud só está disponível na app Submersion em dispositivos Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Os servidores Git não aceitam pedidos vindos de uma página web. Use a app Submersion num telemóvel ou computador para um armazenamento de sincronização Git.';
+
+  @override
   String get demo_row_unavailable => 'Indisponível no modo de demonstração';
 
   @override
