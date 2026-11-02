@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mcp_dart/mcp_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/agent_access/data/agent_access_token_store.dart';
@@ -266,6 +267,33 @@ void main() {
         );
       },
     );
+
+    test('a client reaches the read tools through the controller', () async {
+      final c = await container(platform: TargetPlatform.macOS);
+      startController(c);
+      await c.read(agentAccessSettingsProvider.notifier).setPort(0);
+      await c.read(agentAccessSettingsProvider.notifier).setEnabled(true);
+      await pumpUntil(() => AgentAccessServer.instance.status.listening);
+      c.invalidate(agentAccessTokenProvider);
+      final token = await c.read(agentAccessTokenProvider.future);
+
+      final client = McpClient(
+        const Implementation(name: 'provider-test', version: '1.0.0'),
+      );
+      addTearDown(client.close);
+      await client.connect(
+        StreamableHttpClientTransport(
+          Uri.parse(AgentAccessServer.instance.status.url),
+          opts: StreamableHttpClientTransportOptions(
+            requestInit: {
+              'headers': {'Authorization': 'Bearer $token'},
+            },
+          ),
+        ),
+      );
+      final tools = await client.listTools();
+      expect(tools.tools.map((t) => t.name), contains('sql_query'));
+    });
 
     test('mirrors the server status stream', () async {
       final c = await container(platform: TargetPlatform.macOS);

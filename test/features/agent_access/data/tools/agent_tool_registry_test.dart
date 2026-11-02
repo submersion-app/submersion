@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -11,10 +12,17 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../sql/sql_window_fixture.dart';
 
 void main() {
   late AppDatabase db;
+  late SqlWindowFixture sqlFixture;
   const t = 1700000000000;
+
+  setUpAll(() async {
+    sqlFixture = await SqlWindowFixture.create();
+  });
+  tearDownAll(() => sqlFixture.dispose());
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -45,11 +53,14 @@ void main() {
       divers: divers,
       settings: settings,
       records: RecordRepositories(),
+      sql: SqlWindowRunner(
+        file: () async => SqlDatabaseFile(path: sqlFixture.path),
+      ),
     );
   }
 
   group('AgentToolRegistry', () {
-    test('standard registry exposes the four read tools', () {
+    test('standard registry exposes the read tools', () {
       expect(
         registry().tools.map((t) => t.name),
         unorderedEquals([
@@ -57,22 +68,22 @@ void main() {
           'query',
           'get_records',
           'list_records',
+          'sql_query',
         ]),
       );
     });
 
-    test(
-      'standard registry exposes the query-language and units resources',
-      () {
-        expect(
-          registry().resources.map((r) => r.uri),
-          unorderedEquals([
-            'submersion://query-language',
-            'submersion://units',
-          ]),
-        );
-      },
-    );
+    test('standard registry exposes the query-language, units and schema '
+        'resources', () {
+      expect(
+        registry().resources.map((r) => r.uri),
+        unorderedEquals([
+          'submersion://query-language',
+          'submersion://units',
+          'submersion://schema',
+        ]),
+      );
+    });
 
     test('toolNamed throws not_found for unknown names', () {
       expect(
