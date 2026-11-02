@@ -33,6 +33,11 @@ mkdir -p "$REPORT_DIR"
 
 for dir in test/web/*/; do
   name="$(basename "$dir")"
+  # test/web/assets/ holds the staged workers, not tests; a path with no
+  # test files would make flutter test run the whole repository instead.
+  if ! find "$dir" -name '*_test.dart' | grep -q .; then
+    continue
+  fi
   echo "== Browser suite: $dir =="
   flutter test --platform chrome "$dir" \
     --file-reporter "json:$REPORT_DIR/web-$name.json" "$@"
