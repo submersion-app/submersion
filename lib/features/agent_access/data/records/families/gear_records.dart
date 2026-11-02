@@ -2,6 +2,7 @@ import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/agent_access/data/documents/gear_documents.dart';
 import 'package:submersion/features/agent_access/data/documents/media_document.dart';
+import 'package:submersion/features/agent_access/data/records/families/dive_records.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
@@ -75,8 +76,12 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
         for (final t in await r.equipmentTags.getTagsForEquipment(item.id))
           t.name,
       ],
-      'media': (item, _) async => [
-        for (final m in await r.media.getMediaForEquipment(item.id))
+      'media': (item, load) async => [
+        for (final m in await visibleMedia(
+          r,
+          await r.media.getMediaForEquipment(item.id),
+          load.diverId,
+        ))
           mediaDocument(m),
       ],
       'location_moves': (item, _) async => [

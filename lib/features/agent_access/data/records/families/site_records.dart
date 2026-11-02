@@ -2,6 +2,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/agent_access/data/documents/media_document.dart';
 import 'package:submersion/features/agent_access/data/documents/site_documents.dart';
+import 'package:submersion/features/agent_access/data/records/families/dive_records.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
@@ -38,8 +39,12 @@ List<RecordEntry> siteEntries(RecordRepositories r) => [
         for (final e in await r.species.getExpectedSpeciesForSite(site.id))
           siteSpeciesDocument(e),
       ],
-      'media': (site, _) async => [
-        for (final m in await r.media.getMediaForSite(site.id))
+      'media': (site, load) async => [
+        for (final m in await visibleMedia(
+          r,
+          await r.media.getMediaForSite(site.id),
+          load.diverId,
+        ))
           mediaDocument(m),
       ],
       'shares': (site, _) async => (await r.itemShares.storedProfileIds(

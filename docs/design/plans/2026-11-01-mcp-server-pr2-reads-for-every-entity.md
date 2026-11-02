@@ -115,11 +115,11 @@ Scope names are the builders in Task 1. `via(x)` means through the parent column
 | Catalogs | `tags`, `tank_presets`, `weight_presets` | `owned` | | presets: `entries` |
 | Catalogs | `dive_types`, `dive_roles`, `pre_dive_templates` | `ownedOrBuiltIn` | | templates: `items` |
 | Catalogs | `checklist_templates` | `ownedOrNull` | | `items` |
-| Logbook | `pre_dive_sessions`, `incidents`, `emergency_chambers`, `saved_queries`, `dive_plans` | `ownedOrNull` | | sessions: `items` |
+| Logbook | `pre_dive_sessions`, `incidents`, `emergency_chambers`, `saved_queries` | `ownedOrNull` | | sessions: `items` |
 | Logbook | `documents` | `owned` | | `pages` (metadata only) |
 | Logbook | `rules`, `connection_maps`, `dive_computers`, `weight_entries` (`diver_weight_entries`) | `owned` | | |
 | Logbook | `nav_tracks` | `navTrackScope`: as `NavTrackRepository._visibleToSql` | | |
-| Logbook | `gps_tracks`, `smart_albums` (`media_smart_albums`), `csv_presets` | `everyone` | | |
+| Logbook | `dive_plans`, `gps_tracks`, `smart_albums` (`media_smart_albums`), `csv_presets` | `everyone` | | |
 | Profiles | `divers` | `everyone` | | |
 | Profiles | `diver_settings` | `owned` | | |
 
@@ -369,7 +369,7 @@ const kListRecordsMaxLimit = 500;
 
 - [ ] **Step 2: Run them, expect FAIL**
 
-- [ ] **Step 3: Implement.** `DivePlan` carries no diver id, so `dive_plans` emits the id and `linked_dive_id`, and its scope reads the column. Check where `DivePlanRepository` writes `diver_id` first: if it never does, every row is ownerless and `ownedOrNull` shows them to every profile, which matches the unfiltered `getAllPlanSummaries`. Rules load through `getById(id, names: ...)`, whose names come from `NameIndexLoader` for `load.diverId`.
+- [ ] **Step 3: Implement.** `DivePlan` carries no diver id, and `getAllPlanSummaries` is unfiltered, so `dive_plans` uses `everyone`. Rules load through `getById(id, names: ...)`, whose names come from `NameIndexLoader` for `load.diverId`.
 
 - [ ] **Step 4: Run them, expect PASS**
 

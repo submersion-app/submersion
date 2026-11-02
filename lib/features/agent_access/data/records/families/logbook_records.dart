@@ -79,12 +79,11 @@ List<RecordEntry> logbookEntries(RecordRepositories r) => [
     document: savedQueryDocument,
     summaryKeys: const ['subject', 'name'],
   ),
-  // The planner keeps no owner on a plan and lists every plan for every
-  // profile, so ownerless rows read for all of them.
+  // The planner lists every plan for every profile, whatever its diver_id.
   RecordEntity<DivePlan>(
     name: 'dive_plans',
     table: 'dive_plans',
-    scope: ownedOrNull(),
+    scope: everyone(),
     orderBy: 'r0.updated_at DESC',
     load: (ids, _) => loadEach(ids, r.divePlans.getPlan),
     document: divePlanDocument,

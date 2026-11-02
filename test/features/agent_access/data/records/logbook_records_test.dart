@@ -13,6 +13,7 @@ import 'package:submersion/features/media/domain/entities/media_library_filter.d
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
@@ -256,6 +257,26 @@ void main() {
       expect(doc['segments'], isEmpty);
       expect(doc['linked_dive_id'], isNull);
     });
+
+    test(
+      'a plan another profile owns reads, as the planner lists it',
+      () async {
+        await db
+            .into(db.divePlans)
+            .insert(
+              DivePlansCompanion.insert(
+                id: 'b-plan',
+                name: 'B plan',
+                createdAt: t,
+                updatedAt: t,
+                diverId: const Value(kDiverB),
+              ),
+            );
+        final planner = await DivePlanRepository().getAllPlanSummaries();
+        expect(await listed('dive_plans'), {for (final x in planner) x.id});
+        expect(await h.one('dive_plans', 'b-plan'), isNotNull);
+      },
+    );
 
     test(
       'ownerless plans read for every profile, as the app lists them',

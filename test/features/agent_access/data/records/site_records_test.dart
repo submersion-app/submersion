@@ -193,6 +193,37 @@ void main() {
       expect(doc['shares'], isEmpty);
     });
 
+    test('the media block follows the media rule', () async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'b-dive',
+              diveDateTime: t,
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverB),
+            ),
+          );
+      for (final (id, dive) in [('hidden', 'b-dive'), ('plain', null)]) {
+        await db
+            .into(db.media)
+            .insert(
+              MediaCompanion.insert(
+                id: id,
+                filePath: 'path/$id.jpg',
+                siteId: const Value('open'),
+                diveId: Value(dive),
+                takenAt: const Value(t),
+                createdAt: t,
+                updatedAt: t,
+              ),
+            );
+      }
+      final doc = (await h.one('sites', 'open', include: ['media']))!;
+      expect((doc['media'] as List).cast<Map>().map((m) => m['id']), ['plain']);
+    });
+
     test('shares names the profiles a site is shared with', () async {
       final doc = (await h.one(
         'sites',

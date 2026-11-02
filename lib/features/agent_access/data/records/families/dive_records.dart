@@ -4,6 +4,7 @@ import 'package:submersion/features/agent_access/data/documents/dive_document.da
 import 'package:submersion/features/agent_access/data/documents/dive_summary_document.dart';
 import 'package:submersion/features/agent_access/data/documents/media_document.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
+import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -177,7 +178,7 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
   RecordEntity<MediaItem>(
     name: 'media',
     table: 'media',
-    scope: _mediaScope,
+    scope: mediaScope,
     parentColumn: 'dive_id',
     orderBy: 'r0.taken_at',
     load: (ids, _) => loadEach(ids, r.media.getMediaById),
@@ -194,12 +195,30 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
 
 /// As `MediaLibraryRepository`: a row on a dive follows the dive, and a row
 /// on no dive is the library's, which every profile browses.
-QueryScope _mediaScope(String diverId, String alias) => (
+QueryScope mediaScope(String diverId, String alias) => (
   sql:
       '($alias.dive_id IS NULL OR $alias.dive_id IN '
       '(SELECT d.id FROM dives d WHERE d.diver_id = ?))',
   params: [diverId],
 );
+
+/// [media] without the rows [diverId] may not see. A shared site or item lists
+/// every row attached to it, including rows on another diver's dive, which the
+/// `media` entity refuses.
+Future<List<MediaItem>> visibleMedia(
+  RecordRepositories r,
+  List<MediaItem> media,
+  String diverId,
+) async {
+  final visible = await RecordReader(
+    r.db,
+  ).visibleRows('media', mediaScope, [for (final m in media) m.id], diverId);
+  final allowed = visible.toSet();
+  return [
+    for (final m in media)
+      if (allowed.contains(m.id)) m,
+  ];
+}
 
 /// A child read by id through a repository that reads by dive.
 RecordEntity<T> _diveChild<T>(
