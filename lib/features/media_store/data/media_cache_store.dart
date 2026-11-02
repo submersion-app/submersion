@@ -394,7 +394,7 @@ class MediaCacheStore {
     await (_db.delete(_db.mediaCacheEntries)..where(
           (t) =>
               t.kind.equals(_kindName(kind)) &
-              t.createdAt.isSmallerThanValue(checkedAt),
+              t.createdAt.isSmallerOrEqualValue(checkedAt),
         ))
         .go();
     return true;
@@ -442,7 +442,7 @@ class MediaCacheStore {
                     (t) =>
                         t.kind.equals(kindName) &
                         t.contentHash.isIn(dead) &
-                        t.createdAt.isSmallerThanValue(startedAt),
+                        t.createdAt.isSmallerOrEqualValue(startedAt),
                   ))
                   .go();
         }

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -18,9 +20,13 @@ class _CountingPathProvider extends PathProviderPlatform
   int calls = 0;
   bool shouldThrow = false;
 
+  /// When set, the lookup waits for this, like a real platform channel.
+  Future<void>? gate;
+
   @override
   Future<String?> getApplicationSupportPath() async {
     calls++;
+    await gate;
     if (shouldThrow) throw const FileSystemException('support dir unavailable');
     return supportPath;
   }
@@ -202,6 +208,46 @@ void main() {
       await Future.wait([cacheLocation(), cacheLocation(), cacheLocation()]);
 
       expect(platform.calls, 1);
+    });
+
+    test(
+      'a lookup abandoned in a fake zone does not strand later callers',
+      () async {
+        // A grid tile in a widget test can be the first to ask, and such a test
+        // can end with the answer still on its way. The memo outlives that
+        // test, and CI runs many files in one isolate, so a future tied to the
+        // test's zone would hang every later caller in the bundle. Through
+        // `then` because a plain await on a future can shortcut this.
+        final platformReplied = Completer<void>();
+        platform.gate = platformReplied.future;
+        fakeAsync((_) => unawaited(cacheLocation()));
+
+        platformReplied.complete();
+        final location = await cacheLocation()
+            .then((location) => location)
+            .timeout(const Duration(seconds: 5));
+
+        expect(location.mediaPools.path, inSupport(['media_cache']));
+      },
+    );
+
+    test('a failed lookup abandoned in a fake zone is not cached', () async {
+      final platformReplied = Completer<void>();
+      platform
+        ..gate = platformReplied.future
+        ..shouldThrow = true;
+      fakeAsync(
+        (_) => unawaited(cacheLocation().then<void>((_) {}, onError: (_) {})),
+      );
+      platformReplied.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      platform.shouldThrow = false;
+      final location = await cacheLocation().timeout(
+        const Duration(seconds: 5),
+      );
+
+      expect(location.mediaPools.path, inSupport(['media_cache']));
     });
 
     test('a failed lookup is not cached, so the next caller retries', () async {

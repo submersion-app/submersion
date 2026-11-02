@@ -127,7 +127,14 @@ Future<void> deleteLeftoverCaches(List<Directory> leftovers) async {
   }
 }
 
-Future<CacheLocation>? _cacheLocationFuture;
+/// How a [cacheLocation] lookup ended: a location, or what went wrong.
+typedef _Lookup = ({
+  CacheLocation? location,
+  Object? error,
+  StackTrace? stackTrace,
+});
+
+Future<_Lookup>? _lookup;
 
 /// This platform's [CacheLocation], with any old caches already moved.
 ///
@@ -141,17 +148,30 @@ Future<CacheLocation>? _cacheLocationFuture;
 /// process lives. A failed lookup is deliberately not cached, so the next
 /// caller retries rather than inheriting a permanent failure from one bad
 /// moment at boot.
+///
+/// The lookup runs in the root zone because the memo outlives whoever asked
+/// first. A grid tile in a widget test can be that caller, and a test can end
+/// with the answer on its way: tied to that test's fake zone, the future would
+/// never complete and every later caller in the isolate would hang.
+///
+/// A failure comes back as a value and is rethrown here, in the caller's zone,
+/// because a rejected future does not cross into another error zone: it would
+/// surface as an uncaught error instead of reaching the caller.
 Future<CacheLocation> cacheLocation() async {
-  final cached = _cacheLocationFuture;
-  if (cached != null) return cached;
+  final lookup = await (_lookup ??= Zone.root.run<Future<_Lookup>>(
+    _lookUpOnce,
+  ));
+  final location = lookup.location;
+  if (location != null) return location;
+  Error.throwWithStackTrace(lookup.error!, lookup.stackTrace!);
+}
 
-  final pending = _resolveAndMove();
-  _cacheLocationFuture = pending;
+Future<_Lookup> _lookUpOnce() async {
   try {
-    return await pending;
-  } catch (_) {
-    _cacheLocationFuture = null;
-    rethrow;
+    return (location: await _resolveAndMove(), error: null, stackTrace: null);
+  } catch (error, stackTrace) {
+    _lookup = null;
+    return (location: null, error: error, stackTrace: stackTrace);
   }
 }
 
@@ -168,4 +188,4 @@ Future<CacheLocation> _resolveAndMove() async {
 /// Drops the memoized [cacheLocation], so a test that overrides the
 /// path_provider platform channel is not served another test's directory.
 @visibleForTesting
-void resetCacheLocationForTesting() => _cacheLocationFuture = null;
+void resetCacheLocationForTesting() => _lookup = null;
