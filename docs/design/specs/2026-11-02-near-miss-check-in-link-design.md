@@ -86,6 +86,10 @@ normally clears it, but a peer below v338 does not know the link and two devices
 can link and resolve at once. Every device derives the same result from the same
 rows, so the repair stages nothing.
 
+Resolving a conflict by keeping the peer's row, or a copy of it, runs the same
+deferred write and repair. That row can name a check-in this device has since
+deleted, since deleting one stages its near-miss and a peer's edit then conflicts.
+
 ## Reaching the link
 
 ### From a check-in

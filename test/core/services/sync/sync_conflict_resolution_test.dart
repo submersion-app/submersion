@@ -459,6 +459,119 @@ void main() {
       });
     });
 
+    group('a near-miss naming a check-in', () {
+      Map<String, dynamic> incident({
+        String? observationId,
+        String narrative = 'local',
+      }) => {
+        'id': 'i1',
+        'equipmentId': 'reg',
+        'observationId': observationId,
+        'occurredAt': 1000,
+        'category': 'equipment',
+        'severity': 'minor',
+        'narrative': narrative,
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      };
+
+      Map<String, dynamic> checkIn({String status = 'issue'}) => {
+        'id': 'o1',
+        'equipmentId': 'reg',
+        'observedAt': 1000,
+        'status': status,
+        'issueTags': '[]',
+        'note': '',
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      };
+
+      setUp(() async {
+        await SyncDataSerializer().upsertRecord('equipment', {
+          'id': 'reg',
+          'name': 'reg',
+          'type': 'regulator',
+          'status': 'active',
+          'purchaseCurrency': 'USD',
+          'notes': '',
+          'isActive': true,
+          'createdAt': 1000,
+          'updatedAt': 1000,
+        });
+      });
+
+      test('keepRemote takes the peer\'s edit of a near-miss whose check-in '
+          'this device deleted, without the dead link', () async {
+        // Deleting a check-in stages its near-miss, so a peer's edit of that
+        // report conflicts here while still naming the deleted check-in.
+        await SyncDataSerializer().upsertRecord('incidents', incident());
+        await raiseConflict(
+          'incidents',
+          'i1',
+          incident(observationId: 'gone', narrative: 'peer'),
+        );
+
+        await buildService().resolveConflict(
+          'incidents',
+          'i1',
+          ConflictResolution.keepRemote,
+        );
+
+        final back = await SyncDataSerializer().fetchRecord('incidents', 'i1');
+        expect(back!['narrative'], 'peer');
+        expect(back['observationId'], isNull);
+        expect(await buildService().getConflicts(), isEmpty);
+      });
+
+      test('keepBoth copies that near-miss without the dead link', () async {
+        await SyncDataSerializer().upsertRecord('incidents', incident());
+        await raiseConflict(
+          'incidents',
+          'i1',
+          incident(observationId: 'gone', narrative: 'peer'),
+        );
+
+        await buildService().resolveConflict(
+          'incidents',
+          'i1',
+          ConflictResolution.keepBoth,
+        );
+
+        final rows = await DatabaseService.instance.database
+            .customSelect(
+              "SELECT observation_id FROM incidents WHERE id != 'i1'",
+            )
+            .get();
+        expect(rows.map((r) => r.read<String?>('observation_id')), [null]);
+        expect(await buildService().getConflicts(), isEmpty);
+      });
+
+      test('keepRemote of a check-in that became OK drops the link at once, '
+          'and the report stays', () async {
+        final serializer = SyncDataSerializer();
+        await serializer.upsertRecord('equipmentObservations', checkIn());
+        await serializer.upsertRecord(
+          'incidents',
+          incident(observationId: 'o1'),
+        );
+        await raiseConflict(
+          'equipmentObservations',
+          'o1',
+          checkIn(status: 'ok'),
+        );
+
+        await buildService().resolveConflict(
+          'equipmentObservations',
+          'o1',
+          ConflictResolution.keepRemote,
+        );
+
+        final back = await serializer.fetchRecord('incidents', 'i1');
+        expect(back, isNotNull);
+        expect(back!['observationId'], isNull);
+      });
+    });
+
     test('keepBoth keeps the local row and duplicates the remote under a new '
         'id', () async {
       final base = await seedDive('d-both', 10);
