@@ -8179,6 +8179,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_annotation_sheetTitle_new => 'סימון חדש';
 
   @override
+  String get diveLog_annotation_sheetTitle_editTime => 'שינוי הזמן';
+
+  @override
   String diveLog_annotation_sheetTitle_words(String words) {
     return 'סימון \"$words\"';
   }

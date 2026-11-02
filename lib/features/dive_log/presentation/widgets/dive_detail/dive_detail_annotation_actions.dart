@@ -123,6 +123,7 @@ class DiveDetailAnnotationActions {
       maxSeconds: maxSeconds,
       initialSeconds: annotation.timestamp,
       initialDepthMeters: annotation.depth,
+      editing: true,
       units: units,
     );
     if (result == null) return;

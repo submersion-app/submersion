@@ -24,17 +24,19 @@ void main() {
     WidgetTester tester, {
     ProfileEvent? event,
     DepthUnit unit = DepthUnit.feet,
+    Offset at = const Offset(200, 200),
+    Locale locale = const Locale('en'),
   }) async {
     final calls = <String>[];
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         child: Builder(
           builder: (context) => ElevatedButton(
             onPressed: () => showAnnotationMarkerPopup(
               context,
               annotation: event ?? annotation,
-              globalPosition: const Offset(200, 200),
+              globalPosition: at,
               units: UnitFormatter(AppSettings(depthUnit: unit)),
               onOpenInNotes: () => calls.add('open'),
               onMove: () => calls.add('move'),
@@ -50,6 +52,39 @@ void main() {
     await tester.pumpAndSettle();
     return calls;
   }
+
+  for (final locale in const [Locale('en'), Locale('de')]) {
+    testWidgets('fits a 320 px phone in ${locale.languageCode}, opened from '
+        'the right edge', (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final calls = await open(
+        tester,
+        at: const Offset(312, 200),
+        locale: locale,
+      );
+
+      expect(tester.takeException(), isNull);
+      final body = tester.getRect(find.byType(OverflowBar));
+      expect(body.left, greaterThanOrEqualTo(8));
+      expect(body.right, lessThanOrEqualTo(312));
+      final buttons = find.descendant(
+        of: find.byType(OverflowBar),
+        matching: find.byType(TextButton),
+      );
+      expect(buttons, findsNWidgets(3));
+      await tester.tap(buttons.last);
+      await tester.pumpAndSettle();
+      expect(calls, ['remove']);
+    });
+  }
+
+  testWidgets('keeps the width it asks for on a normal screen', (tester) async {
+    await open(tester);
+    expect(tester.getSize(find.byType(OverflowBar)).width, 300 - 24);
+  });
 
   testWidgets('shows the words, the time and depth in the diver units, and '
       'three actions', (tester) async {

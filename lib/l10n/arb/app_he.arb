@@ -2649,6 +2649,7 @@
   "diveLog_edit_section_notes": "הערות",
   "diveLog_annotation_sheetTitle_new": "סימון חדש",
   "diveLog_annotation_sheetTitle_words": "סימון \"{words}\"",
+  "diveLog_annotation_sheetTitle_editTime": "שינוי הזמן",
   "diveLog_annotation_field_words": "מה קרה",
   "diveLog_annotation_words_required": "ספרו מה קרה",
   "diveLog_annotation_field_time": "זמן מתחילת הצלילה",

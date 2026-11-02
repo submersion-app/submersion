@@ -59,7 +59,9 @@ first few words of its passage as the label. The existing event marker
 pipeline (grouping by timestamp, pixel-space thinning, collision-aware
 labels) handles them with one rule added: an annotation is never dropped
 in favour of a computer event at the same spot, and two annotations too
-close together keep the later-created one's label and both lines.
+close together keep both lines. Their labels go through the same placement
+as every other event, stacked where there is room; where there is none, the
+label earlier in the dive stays and the later one is hidden.
 
 Tapping a marker opens a small popup anchored to it:
 

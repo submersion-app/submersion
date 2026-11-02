@@ -257,6 +257,32 @@ void main() {
     expect(find.byType(AnnotationPlacementBanner), findsNothing);
   });
 
+  testWidgets('the popup\'s time opens the time sheet and Save moves the '
+      'marker', (tester) async {
+    await seedDive();
+    await seedAnnotation(timestamp: 300);
+    await pumpDetail(tester);
+
+    await tester.tapAt(await dotCenter(tester, 'a1'));
+    await settle(tester, frames: 4);
+    await tester.tap(find.textContaining(RegExp(r'^5:00')));
+    await settle(tester, frames: 4);
+    expect(find.text('Change the time'), findsOneWidget);
+
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(MinutesSecondsField),
+        matching: find.byType(TextFormField),
+      ),
+      '7:30',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await settle(tester);
+
+    expect((await rows()).single.timestamp, 450);
+    expect(await notes(), 'First.\n\n[felt sick](annotation:a1)');
+  });
+
   testWidgets('Open in Notes highlights the passage, and the Notes link '
       'opens the marker popup', (tester) async {
     await seedDive();

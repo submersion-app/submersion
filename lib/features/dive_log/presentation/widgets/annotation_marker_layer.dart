@@ -90,6 +90,7 @@ class AnnotationMarkerLayer extends StatefulWidget {
     required this.onTap,
     this.interactive = true,
     this.focusedId,
+    this.onReveal,
   });
 
   final List<ProfileEvent> annotations;
@@ -110,8 +111,13 @@ class AnnotationMarkerLayer extends StatefulWidget {
 
   /// The annotation drawn with a halo. When it changes to a new id, the
   /// layer reports that annotation through [onTap] once, after the frame,
-  /// so the page can open its popup where the dot is.
+  /// so the page can open its popup where the dot is. A dot outside the
+  /// visible window goes through [onReveal] first.
   final String? focusedId;
+
+  /// Brings a second outside the visible window into view. Returns whether
+  /// the window moved; the layer then reports the focus from the new window.
+  final bool Function(int seconds)? onReveal;
 
   @override
   State<AnnotationMarkerLayer> createState() => _AnnotationMarkerLayerState();
@@ -120,6 +126,11 @@ class AnnotationMarkerLayer extends StatefulWidget {
 class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
   Offset? _downLocal;
   int? _downPointer;
+
+  /// The focused id waiting for the window [AnnotationMarkerLayer.onReveal]
+  /// moved. A dot the pan could not reach stops here: the same pan again
+  /// leaves the window where it is, and the report goes out anyway.
+  String? _revealingId;
 
   List<Offset?> _centers(Size size) => annotationDotCenters(
     annotations: widget.annotations,
@@ -136,7 +147,9 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
   void didUpdateWidget(AnnotationMarkerLayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     final focused = widget.focusedId;
-    if (focused != null && focused != oldWidget.focusedId) {
+    if (focused == null) {
+      _revealingId = null;
+    } else if (focused != oldWidget.focusedId || focused == _revealingId) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _reportFocused());
     }
   }
@@ -150,9 +163,16 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
     if (index < 0) return;
     final box = context.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize) return;
+    final annotation = widget.annotations[index];
     final center = _centers(box.size)[index];
+    if (center == null &&
+        (widget.onReveal?.call(annotation.timestamp) ?? false)) {
+      _revealingId = focused;
+      return;
+    }
+    _revealingId = null;
     final local = center ?? Offset(box.size.width / 2, widget.insets.top);
-    widget.onTap(widget.annotations[index], box.localToGlobal(local));
+    widget.onTap(annotation, box.localToGlobal(local));
   }
 
   void _onPointerDown(PointerDownEvent event) {

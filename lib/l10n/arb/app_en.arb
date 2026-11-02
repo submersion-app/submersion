@@ -4888,6 +4888,10 @@
   "@diveLog_annotation_sheetTitle_new": {
     "description": "Title of the sheet that creates an annotation (a notes passage pinned to a time in the dive) when no words were selected"
   },
+  "diveLog_annotation_sheetTitle_editTime": "Change the time",
+  "@diveLog_annotation_sheetTitle_editTime": {
+    "description": "Title of the sheet that changes when an existing annotation happened; the words appear beneath it"
+  },
   "diveLog_annotation_sheetTitle_words": "Annotate \"{words}\"",
   "@diveLog_annotation_sheetTitle_words": {
     "description": "Title of the sheet that pins the selected notes words to a time in the dive",

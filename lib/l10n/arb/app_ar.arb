@@ -2750,6 +2750,7 @@
   "diveLog_edit_section_notes": "الملاحظات",
   "diveLog_annotation_sheetTitle_new": "تعليق جديد",
   "diveLog_annotation_sheetTitle_words": "التعليق على «{words}»",
+  "diveLog_annotation_sheetTitle_editTime": "تغيير الوقت",
   "diveLog_annotation_field_words": "ماذا حدث",
   "diveLog_annotation_words_required": "اذكر ما حدث",
   "diveLog_annotation_field_time": "الوقت منذ البداية",

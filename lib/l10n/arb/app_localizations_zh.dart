@@ -7934,6 +7934,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_annotation_sheetTitle_new => '新建标注';
 
   @override
+  String get diveLog_annotation_sheetTitle_editTime => '更改时间';
+
+  @override
   String diveLog_annotation_sheetTitle_words(String words) {
     return '标注“$words”';
   }

@@ -27,6 +27,14 @@ void main() {
     expect(annotationMarkerLabel(_ann('')), '');
   });
 
+  test('a line break inside the passage reads as a space', () {
+    expect(
+      annotationMarkerLabel(_ann('tank one\nlow  on\n\tgas')),
+      'tank one low on gas',
+    );
+    expect(cutAtWord('Annotate\nthis', maxChars: 40), 'Annotate this');
+  });
+
   test('the cut never splits an emoji or a combined character', () {
     final label = annotationMarkerLabel(
       _ann('Saw a turtle \u{1F422}\u{1F422}\u{1F422} and then a shark'),

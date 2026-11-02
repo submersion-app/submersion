@@ -8480,6 +8480,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_annotation_sheetTitle_new => 'تعليق جديد';
 
   @override
+  String get diveLog_annotation_sheetTitle_editTime => 'تغيير الوقت';
+
+  @override
   String diveLog_annotation_sheetTitle_words(String words) {
     return 'التعليق على «$words»';
   }

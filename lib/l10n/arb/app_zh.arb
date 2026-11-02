@@ -2860,6 +2860,7 @@
   "diveLog_edit_section_notes": "备注",
   "diveLog_annotation_sheetTitle_new": "新建标注",
   "diveLog_annotation_sheetTitle_words": "标注“{words}”",
+  "diveLog_annotation_sheetTitle_editTime": "更改时间",
   "diveLog_annotation_field_words": "发生了什么",
   "diveLog_annotation_words_required": "请填写发生了什么",
   "diveLog_annotation_field_time": "距开始的时间",

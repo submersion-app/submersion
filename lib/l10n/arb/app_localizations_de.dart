@@ -8356,6 +8356,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_annotation_sheetTitle_new => 'Neue Anmerkung';
 
   @override
+  String get diveLog_annotation_sheetTitle_editTime => 'Zeit ändern';
+
+  @override
   String diveLog_annotation_sheetTitle_words(String words) {
     return '„$words“ anmerken';
   }

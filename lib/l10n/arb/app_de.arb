@@ -2776,6 +2776,7 @@
   "diveLog_edit_section_notes": "Notizen",
   "diveLog_annotation_sheetTitle_new": "Neue Anmerkung",
   "diveLog_annotation_sheetTitle_words": "„{words}“ anmerken",
+  "diveLog_annotation_sheetTitle_editTime": "Zeit ändern",
   "diveLog_annotation_field_words": "Was ist passiert",
   "diveLog_annotation_words_required": "Sag, was passiert ist",
   "diveLog_annotation_field_time": "Zeit ab Beginn",

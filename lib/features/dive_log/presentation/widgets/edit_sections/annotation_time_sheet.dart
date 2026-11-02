@@ -11,7 +11,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The sheet the notes editor's pin opens (#4109): when the selected
 /// [words] happened. A time box, the dive's small profile to point at (or a
 /// note that there is none), and a words field when nothing was selected.
-/// Returns null on cancel.
+/// With [editing] it changes the time of an existing annotation instead: it
+/// never asks for words, and says so in its title and button. Returns null
+/// on cancel.
 Future<AnnotationSheetResult?> showAnnotationTimeSheet(
   BuildContext context, {
   required String? words,
@@ -19,6 +21,7 @@ Future<AnnotationSheetResult?> showAnnotationTimeSheet(
   required int maxSeconds,
   int? initialSeconds,
   double? initialDepthMeters,
+  bool editing = false,
   required UnitFormatter units,
 }) {
   return showModalBottomSheet<AnnotationSheetResult>(
@@ -32,6 +35,7 @@ Future<AnnotationSheetResult?> showAnnotationTimeSheet(
       maxSeconds: maxSeconds,
       initialSeconds: initialSeconds,
       initialDepthMeters: initialDepthMeters,
+      editing: editing,
       units: units,
     ),
   );
@@ -44,6 +48,7 @@ class _AnnotationTimeSheet extends StatefulWidget {
     required this.maxSeconds,
     required this.initialSeconds,
     required this.initialDepthMeters,
+    required this.editing,
     required this.units,
   });
 
@@ -52,6 +57,7 @@ class _AnnotationTimeSheet extends StatefulWidget {
   final int maxSeconds;
   final int? initialSeconds;
   final double? initialDepthMeters;
+  final bool editing;
   final UnitFormatter units;
 
   @override
@@ -63,7 +69,9 @@ class _AnnotationTimeSheetState extends State<_AnnotationTimeSheet> {
   late int? _seconds = widget.initialSeconds;
   late String _words = widget.words ?? '';
 
-  bool get _asksForWords => widget.words == null || widget.words!.isEmpty;
+  bool get _hasWords => widget.words?.isNotEmpty ?? false;
+
+  bool get _asksForWords => !widget.editing && !_hasWords;
 
   double? get _depth {
     final seconds = _seconds;
@@ -87,11 +95,13 @@ class _AnnotationTimeSheetState extends State<_AnnotationTimeSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final title = _asksForWords
-        ? l10n.diveLog_annotation_sheetTitle_new
-        : l10n.diveLog_annotation_sheetTitle_words(
-            cutAtWord(widget.words!, maxChars: 40),
-          );
+    final title = switch ((widget.editing, _asksForWords)) {
+      (true, _) => l10n.diveLog_annotation_sheetTitle_editTime,
+      (_, true) => l10n.diveLog_annotation_sheetTitle_new,
+      _ => l10n.diveLog_annotation_sheetTitle_words(
+        cutAtWord(widget.words!, maxChars: 40),
+      ),
+    };
     return Padding(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -106,6 +116,15 @@ class _AnnotationTimeSheetState extends State<_AnnotationTimeSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(title, style: theme.textTheme.titleMedium),
+            if (widget.editing && _hasWords) ...[
+              const SizedBox(height: 2),
+              Text(
+                cutAtWord(widget.words!, maxChars: 40),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             AnnotationForm(
               seconds: _seconds,
@@ -150,11 +169,11 @@ class _AnnotationTimeSheetState extends State<_AnnotationTimeSheet> {
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: _submit,
-                  child: Text(
-                    _asksForWords
-                        ? l10n.diveLog_annotation_action_add
-                        : l10n.diveLog_annotation_action_annotate,
-                  ),
+                  child: Text(switch ((widget.editing, _asksForWords)) {
+                    (true, _) => l10n.common_action_save,
+                    (_, true) => l10n.diveLog_annotation_action_add,
+                    _ => l10n.diveLog_annotation_action_annotate,
+                  }),
                 ),
               ],
             ),

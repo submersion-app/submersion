@@ -8331,6 +8331,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_annotation_sheetTitle_new => 'Új jelölés';
 
   @override
+  String get diveLog_annotation_sheetTitle_editTime => 'Idő módosítása';
+
+  @override
   String diveLog_annotation_sheetTitle_words(String words) {
     return '„$words” megjelölése';
   }

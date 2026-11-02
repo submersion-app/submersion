@@ -1,8 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -18,7 +20,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// on a dot that reports the annotation.
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier([super.settings = const AppSettings()]);
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -68,8 +70,12 @@ Widget _chart(
   bool showAnnotations = true,
   List<DiveProfilePoint>? profile,
   void Function(ProfileEvent, Offset)? onAnnotationTap,
+  String? focusedAnnotationId,
+  AppSettings settings = const AppSettings(),
 }) => ProviderScope(
-  overrides: [settingsProvider.overrideWith((ref) => _TestSettingsNotifier())],
+  overrides: [
+    settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
+  ],
   child: MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -86,6 +92,7 @@ Widget _chart(
               events: events,
               showAnnotations: showAnnotations,
               onAnnotationTap: onAnnotationTap,
+              focusedAnnotationId: focusedAnnotationId,
             );
           },
         ),
@@ -93,6 +100,40 @@ Widget _chart(
     ),
   ),
 );
+
+AnnotationMarkerLayer _layer(WidgetTester tester) =>
+    tester.widget<AnnotationMarkerLayer>(find.byType(AnnotationMarkerLayer));
+
+/// Where the only annotation's dot sits on screen, or null when it is off.
+Offset? _dot(WidgetTester tester) {
+  final layerFinder = find.byType(AnnotationMarkerLayer);
+  final layer = _layer(tester);
+  final center = annotationDotCenters(
+    annotations: layer.annotations,
+    size: tester.getSize(layerFinder),
+    insets: layer.insets,
+    visibleMinSeconds: layer.visibleMinSeconds,
+    visibleMaxSeconds: layer.visibleMaxSeconds,
+    visibleMinDepth: layer.visibleMinDepth,
+    visibleMaxDepth: layer.visibleMaxDepth,
+    depthAt: layer.depthAt,
+  ).single;
+  return center == null ? null : tester.getTopLeft(layerFinder) + center;
+}
+
+/// Wheel-zooms in about the plot's left end, far from a late annotation.
+Future<void> _zoomLeft(WidgetTester tester) async {
+  final plot = tester.getRect(find.byType(LineChart).first);
+  for (var i = 0; i < 6; i++) {
+    await tester.sendEventToBinding(
+      PointerScrollEvent(
+        position: plot.centerLeft + const Offset(40, 0),
+        scrollDelta: const Offset(0, -100),
+      ),
+    );
+    await tester.pump();
+  }
+}
 
 List<VerticalLine> _lines(WidgetTester tester) => tester
     .widget<LineChart>(find.byType(LineChart).first)
@@ -179,20 +220,7 @@ void main() {
       _chart([_ann('a', 600)], onAnnotationTap: (a, _) => taps.add(a)),
     );
     await tester.pumpAndSettle();
-    final layerFinder = find.byType(AnnotationMarkerLayer);
-    final layer = tester.widget<AnnotationMarkerLayer>(layerFinder);
-    final dot =
-        tester.getTopLeft(layerFinder) +
-        annotationDotCenters(
-          annotations: layer.annotations,
-          size: tester.getSize(layerFinder),
-          insets: layer.insets,
-          visibleMinSeconds: layer.visibleMinSeconds,
-          visibleMaxSeconds: layer.visibleMaxSeconds,
-          visibleMinDepth: layer.visibleMinDepth,
-          visibleMaxDepth: layer.visibleMaxDepth,
-          depthAt: layer.depthAt,
-        ).single!;
+    final dot = _dot(tester)!;
 
     final first = await tester.startGesture(dot, pointer: 1);
     final second = await tester.startGesture(
@@ -205,6 +233,66 @@ void main() {
     await tester.pump();
 
     expect(taps, isEmpty);
+  });
+
+  testWidgets('focusing an annotation outside a zoomed window pans the plot '
+      'to it and opens at its dot', (tester) async {
+    final taps = <(ProfileEvent, Offset)>[];
+    void onTap(ProfileEvent a, Offset at) => taps.add((a, at));
+    final events = [_ann('a', 1100)];
+    await tester.pumpWidget(_chart(events, onAnnotationTap: onTap));
+    await tester.pumpAndSettle();
+    await _zoomLeft(tester);
+    expect(_layer(tester).visibleMaxSeconds, lessThan(1100));
+    expect(_dot(tester), isNull);
+
+    await tester.pumpWidget(
+      _chart(events, onAnnotationTap: onTap, focusedAnnotationId: 'a'),
+    );
+    await tester.pumpAndSettle();
+
+    final layer = _layer(tester);
+    expect(layer.visibleMinSeconds, lessThan(1100));
+    expect(layer.visibleMaxSeconds, greaterThan(1100));
+    expect(taps.single.$1.id, 'a');
+    expect(taps.single.$2, offsetMoreOrLessEquals(_dot(tester)!));
+  });
+
+  testWidgets('the pan finds the depth in the diver\'s units', (tester) async {
+    const feet = AppSettings(depthUnit: DepthUnit.feet);
+    final events = [_ann('a', 800)];
+    await tester.pumpWidget(_chart(events, settings: feet));
+    await tester.pumpAndSettle();
+    await _zoomLeft(tester);
+    expect(_dot(tester), isNull);
+
+    await tester.pumpWidget(
+      _chart(events, settings: feet, focusedAnnotationId: 'a'),
+    );
+    await tester.pumpAndSettle();
+
+    final layer = _layer(tester);
+    final depth = layer.depthAt(800)!;
+    expect(depth, greaterThan(layer.visibleMinDepth));
+    expect(depth, lessThan(layer.visibleMaxDepth));
+  });
+
+  testWidgets('focusing an annotation no pan can reach still opens it once', (
+    tester,
+  ) async {
+    final taps = <ProfileEvent>[];
+    void onTap(ProfileEvent a, Offset _) => taps.add(a);
+    final events = [_ann('a', 5000)];
+    await tester.pumpWidget(_chart(events, onAnnotationTap: onTap));
+    await tester.pumpAndSettle();
+    await _zoomLeft(tester);
+
+    await tester.pumpWidget(
+      _chart(events, onAnnotationTap: onTap, focusedAnnotationId: 'a'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(taps.map((a) => a.id), ['a']);
   });
 
   testWidgets('showAnnotations false hides the lines and the layer', (

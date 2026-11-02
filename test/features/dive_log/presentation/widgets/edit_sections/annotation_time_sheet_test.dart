@@ -25,6 +25,8 @@ void main() {
     String? words,
     List<DiveProfilePoint> profile = const [],
     int maxSeconds = 3600,
+    int? initialSeconds,
+    bool editing = false,
   }) async {
     late Future<AnnotationSheetResult?> future;
     await tester.pumpWidget(
@@ -38,6 +40,8 @@ void main() {
                 words: words,
                 profile: profile,
                 maxSeconds: maxSeconds,
+                initialSeconds: initialSeconds,
+                editing: editing,
                 units: const UnitFormatter(AppSettings()),
               );
             },
@@ -77,6 +81,40 @@ void main() {
       (result!.seconds, result.words, result.depthMeters),
       (3600, 'sick', null),
     );
+  });
+
+  testWidgets('changing an annotation\'s time reads as that, not as a new '
+      'annotation', (tester) async {
+    final future = await open(
+      tester,
+      words: 'sick',
+      initialSeconds: 60,
+      editing: true,
+    );
+    expect(find.text('Change the time'), findsOneWidget);
+    expect(find.text('sick'), findsOneWidget);
+    expect(find.text('Annotate "sick"'), findsNothing);
+    expect(primary(), findsNothing);
+
+    await tester.enterText(timeField(), '2:30');
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect((await future)!.seconds, 150);
+  });
+
+  testWidgets('an annotation with no cached words still only asks for the '
+      'time', (tester) async {
+    final future = await open(
+      tester,
+      words: '',
+      initialSeconds: 60,
+      editing: true,
+    );
+    expect(find.text('Change the time'), findsOneWidget);
+    expect(find.text('What happened'), findsNothing);
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect((await future)!.seconds, 60);
   });
 
   testWidgets('asks for words only when none were selected', (tester) async {

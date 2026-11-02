@@ -91,6 +91,29 @@ void main() {
     expect((await dive()).notes, 'x\n\n[**octo** free flow](annotation:$id)');
   });
 
+  test('a link pasted from another dive makes no row here and leaves the '
+      'original alone', () async {
+    const other = 'd2';
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: other, diveNumber: 2),
+    );
+    final id = await repo.addAnnotation(
+      diveId: diveId,
+      timestamp: 60,
+      words: 'felt sick',
+    );
+
+    await repo.reconcile(
+      diveId: other,
+      notes: 'Copied: [reworded](annotation:$id)',
+    );
+    await repo.reconcile(diveId: other, notes: 'Copied: reworded');
+
+    final row = (await rows()).single;
+    expect((row.id, row.diveId, row.description), (id, diveId, 'felt sick'));
+    expect((await dive()).notes, 'x\n\n[felt sick](annotation:$id)');
+  });
+
   test('moveAnnotation changes the row and does not touch the dive', () async {
     final id = await repo.addAnnotation(
       diveId: diveId,

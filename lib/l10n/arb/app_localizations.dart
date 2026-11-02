@@ -13171,6 +13171,12 @@ abstract class AppLocalizations {
   /// **'New annotation'**
   String get diveLog_annotation_sheetTitle_new;
 
+  /// Title of the sheet that changes when an existing annotation happened; the words appear beneath it
+  ///
+  /// In en, this message translates to:
+  /// **'Change the time'**
+  String get diveLog_annotation_sheetTitle_editTime;
+
   /// Title of the sheet that pins the selected notes words to a time in the dive
   ///
   /// In en, this message translates to:

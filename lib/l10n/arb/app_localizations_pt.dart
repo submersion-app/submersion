@@ -8353,6 +8353,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_annotation_sheetTitle_new => 'Nova marcação';
 
   @override
+  String get diveLog_annotation_sheetTitle_editTime => 'Alterar o tempo';
+
+  @override
   String diveLog_annotation_sheetTitle_words(String words) {
     return 'Marcar \"$words\"';
   }

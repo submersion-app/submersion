@@ -2649,6 +2649,7 @@
   "diveLog_edit_section_notes": "Jegyzetek",
   "diveLog_annotation_sheetTitle_new": "Új jelölés",
   "diveLog_annotation_sheetTitle_words": "„{words}” megjelölése",
+  "diveLog_annotation_sheetTitle_editTime": "Idő módosítása",
   "diveLog_annotation_field_words": "Mi történt",
   "diveLog_annotation_words_required": "Írd le, mi történt",
   "diveLog_annotation_field_time": "Idő a kezdettől",

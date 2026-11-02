@@ -2750,6 +2750,7 @@
   "diveLog_edit_section_notes": "Notities",
   "diveLog_annotation_sheetTitle_new": "Nieuwe annotatie",
   "diveLog_annotation_sheetTitle_words": "\"{words}\" annoteren",
+  "diveLog_annotation_sheetTitle_editTime": "Tijd wijzigen",
   "diveLog_annotation_field_words": "Wat er gebeurde",
   "diveLog_annotation_words_required": "Zeg wat er gebeurde",
   "diveLog_annotation_field_time": "Tijd vanaf het begin",

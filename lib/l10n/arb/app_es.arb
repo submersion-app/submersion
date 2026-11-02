@@ -2750,6 +2750,7 @@
   "diveLog_edit_section_notes": "Notas",
   "diveLog_annotation_sheetTitle_new": "Nueva anotación",
   "diveLog_annotation_sheetTitle_words": "Anotar «{words}»",
+  "diveLog_annotation_sheetTitle_editTime": "Cambiar el tiempo",
   "diveLog_annotation_field_words": "Qué pasó",
   "diveLog_annotation_words_required": "Di qué pasó",
   "diveLog_annotation_field_time": "Tiempo desde el inicio",

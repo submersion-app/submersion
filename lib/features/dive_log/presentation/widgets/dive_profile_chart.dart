@@ -1938,6 +1938,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _viewport = ChartViewport.reset;
   }
 
+  /// Pans a zoomed plot so [seconds] sits mid-window, on the depth curve.
+  /// Returns whether the window moved.
+  bool _revealSeconds(
+    int seconds, {
+    required double totalMaxTime,
+    required double totalMaxDepth,
+    required UnitFormatter units,
+  }) {
+    if (totalMaxTime <= 0 || totalMaxDepth <= 0) return false;
+    final before = _viewport;
+    // The totals are in display units; the profile is in metres.
+    final depth = units.convertDepth(_depthAtTimestamp(seconds.toDouble()));
+    _viewport = before.centredOn(seconds / totalMaxTime, depth / totalMaxDepth);
+    return !_viewport.sameWindowAs(before);
+  }
+
   /// Resolve a touch callback's touched spots to the profile's global
   /// sample index and whether that sample is the synthetic surface lead-in
   /// vertex, or null when no touched spot lands on the depth line.
@@ -5218,6 +5234,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               onTap: widget.onAnnotationTap ?? (_, _) {},
               interactive: !widget.annotationPlacement,
               focusedId: widget.focusedAnnotationId,
+              onReveal: (seconds) => _revealSeconds(
+                seconds,
+                totalMaxTime: totalMaxTime,
+                totalMaxDepth: totalMaxDepth,
+                units: units,
+              ),
             ),
           ),
         // Range-statistics handles. Topmost so a handle wins the pointer

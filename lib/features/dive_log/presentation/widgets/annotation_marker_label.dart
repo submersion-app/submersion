@@ -7,12 +7,13 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 String annotationMarkerLabel(ProfileEvent annotation, {int maxChars = 24}) =>
     cutAtWord(annotation.description ?? '', maxChars: maxChars);
 
-/// [text] trimmed and, when longer than [maxChars] characters, cut at the
-/// last word boundary before it with an ellipsis; a single word longer than
-/// the limit is cut hard. Counts user-perceived characters, so an emoji or a
-/// combined letter is never split.
+/// [text] on one line, trimmed and, when longer than [maxChars] characters,
+/// cut at the last word boundary before it with an ellipsis; a single word
+/// longer than the limit is cut hard. A line break inside a passage reads as
+/// a space, as it does in the Notes. Counts user-perceived characters, so an
+/// emoji or a combined letter is never split.
 String cutAtWord(String text, {required int maxChars}) {
-  final chars = text.trim().characters.toList();
+  final chars = text.trim().replaceAll(_whitespace, ' ').characters.toList();
   if (chars.length <= maxChars) return chars.join();
   // Back up from the limit until the cut does not split a word; a single
   // word longer than the limit is cut hard.
@@ -25,6 +26,7 @@ String cutAtWord(String text, {required int maxChars}) {
   return '$head\u2026';
 }
 
+final _whitespace = RegExp(r'\s+');
 final _wordChar = RegExp(r'[\p{L}\p{N}]', unicode: true);
 final _trailingJunk = RegExp(r'[\s\p{P}]+$', unicode: true);
 
