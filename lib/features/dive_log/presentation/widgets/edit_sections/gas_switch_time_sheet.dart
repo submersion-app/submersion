@@ -34,6 +34,7 @@ Future<int?> showGasSwitchTimeSheet(
   return showModalBottomSheet<int>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     // A vertical drag on the chart belongs to the chart.
     enableDrag: false,
     builder: (_) => _GasSwitchTimeSheet(
