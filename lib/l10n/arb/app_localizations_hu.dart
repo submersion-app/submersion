@@ -58287,6 +58287,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez mindent eltávolít, amit a Submersion ebben a böngészőben tart: a merülésnaplót, a bejelentkezési adatokat és a jelmondatot, valamint ennek az eszköznek a szinkronizálási azonosságát. A merüléseid megmaradnak a szinkronizálási tárolóban és a többi eszközödön. Az oldal újratöltődik, tiszta lappal.';
 
   @override
+  String get web_downloadBackup_title => 'Biztonsági mentés letöltése';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'A merülésnaplód másolata adatbázisfájlként, a böngésződ menti el';
+
+  @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';
 
   @override

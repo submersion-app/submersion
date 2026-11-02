@@ -57693,6 +57693,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'This removes everything Submersion keeps in this browser: the dive log, the sign-in details and passphrase, and this device\'s identity in sync. Your dives stay in the sync store and on your other devices. The page reloads to a fresh start.';
 
   @override
+  String get web_downloadBackup_title => 'Download a backup';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'A copy of your dive log as a database file, saved by your browser';
+
+  @override
   String get demo_row_unavailable => 'Unavailable in demo mode';
 
   @override

@@ -58747,6 +58747,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cela supprime tout ce que Submersion conserve dans ce navigateur : le carnet de plongées, les identifiants et la phrase secrète, et l\'identité de cet appareil dans la synchronisation. Vos plongées restent dans l\'espace de synchronisation et sur vos autres appareils. La page se recharge pour repartir de zéro.';
 
   @override
+  String get web_downloadBackup_title => 'Télécharger une sauvegarde';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'Une copie de votre carnet de plongées sous forme de fichier de base de données, enregistrée par votre navigateur';
+
+  @override
   String get demo_row_unavailable => 'Indisponible en mode démo';
 
   @override

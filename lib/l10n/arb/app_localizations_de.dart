@@ -58490,6 +58490,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das entfernt alles, was Submersion in diesem Browser aufbewahrt: das Logbuch, die Anmeldedaten und Passphrase sowie die Identität dieses Geräts in der Synchronisation. Deine Tauchgänge bleiben im Sync-Speicher und auf deinen anderen Geräten. Die Seite lädt neu und beginnt von vorn.';
 
   @override
+  String get web_downloadBackup_title => 'Sicherung herunterladen';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'Eine Kopie deines Logbuchs als Datenbankdatei, gespeichert von deinem Browser';
+
+  @override
   String get demo_row_unavailable => 'Im Demomodus nicht verfügbar';
 
   @override

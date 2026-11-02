@@ -59380,6 +59380,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'يزيل هذا كل ما يحتفظ به Submersion في هذا المتصفح: سجل الغوص، وبيانات تسجيل الدخول وعبارة المرور، وهوية هذا الجهاز في المزامنة. تبقى غوصاتك في مخزن المزامنة وعلى أجهزتك الأخرى. تُعاد تحميل الصفحة لبداية جديدة.';
 
   @override
+  String get web_downloadBackup_title => 'تنزيل نسخة احتياطية';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'نسخة من سجل الغوص كملف قاعدة بيانات يحفظه متصفحك';
+
+  @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';
 
   @override

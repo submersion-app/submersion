@@ -17484,6 +17484,8 @@
   "web_forgetDevice_subtitle": "Tauchgänge, Anmeldedaten und Geräteidentität aus diesem Browser entfernen",
   "web_forgetDevice_confirm": "Vergessen",
   "web_forgetDevice_confirmBody": "Das entfernt alles, was Submersion in diesem Browser aufbewahrt: das Logbuch, die Anmeldedaten und Passphrase sowie die Identität dieses Geräts in der Synchronisation. Deine Tauchgänge bleiben im Sync-Speicher und auf deinen anderen Geräten. Die Seite lädt neu und beginnt von vorn.",
+  "web_downloadBackup_title": "Sicherung herunterladen",
+  "web_downloadBackup_subtitle": "Eine Kopie deines Logbuchs als Datenbankdatei, gespeichert von deinem Browser",
   "demo_row_unavailable": "Im Demomodus nicht verfügbar",
   "demo_enter_confirm_title": "Mit Beispieldaten erkunden?",
   "demo_enter_confirm_body": "Dabei wird ein Beispiel-Logbuch ({size}) heruntergeladen und anstelle deines eigenen geöffnet. Dein Logbuch bleibt unberührt beiseite, bis du den Demomodus beendest.",

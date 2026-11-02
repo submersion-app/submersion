@@ -58663,6 +58663,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esto elimina todo lo que Submersion guarda en este navegador: el registro de inmersiones, los datos de acceso y la frase de contraseña, y la identidad de este dispositivo en la sincronización. Tus inmersiones permanecen en el almacén de sincronización y en tus otros dispositivos. La página se recarga desde cero.';
 
   @override
+  String get web_downloadBackup_title => 'Descargar una copia de seguridad';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'Una copia de tu registro de inmersiones como archivo de base de datos, guardada por tu navegador';
+
+  @override
   String get demo_row_unavailable => 'No disponible en el modo demo';
 
   @override

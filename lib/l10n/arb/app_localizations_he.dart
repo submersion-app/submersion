@@ -57377,6 +57377,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'פעולה זו מסירה את כל מה ש-Submersion שומר בדפדפן זה: יומן הצלילות, פרטי הכניסה וביטוי הסיסמה, וזהות המכשיר הזה בסנכרון. הצלילות שלך נשארות במאגר הסנכרון ובמכשירים האחרים שלך. הדף נטען מחדש להתחלה נקייה.';
 
   @override
+  String get web_downloadBackup_title => 'הורד גיבוי';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'עותק של יומן הצלילות שלך כקובץ מסד נתונים, שנשמר על ידי הדפדפן';
+
+  @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';
 
   @override

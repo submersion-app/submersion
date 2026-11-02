@@ -17359,6 +17359,8 @@
   "web_forgetDevice_subtitle": "Supprimer les plongées, les identifiants et l'identité de l'appareil de ce navigateur",
   "web_forgetDevice_confirm": "Oublier",
   "web_forgetDevice_confirmBody": "Cela supprime tout ce que Submersion conserve dans ce navigateur : le carnet de plongées, les identifiants et la phrase secrète, et l'identité de cet appareil dans la synchronisation. Vos plongées restent dans l'espace de synchronisation et sur vos autres appareils. La page se recharge pour repartir de zéro.",
+  "web_downloadBackup_title": "Télécharger une sauvegarde",
+  "web_downloadBackup_subtitle": "Une copie de votre carnet de plongées sous forme de fichier de base de données, enregistrée par votre navigateur",
   "demo_row_unavailable": "Indisponible en mode démo",
   "demo_enter_confirm_title": "Explorer avec des données d'exemple ?",
   "demo_enter_confirm_body": "Un carnet d'exemple ({size}) sera téléchargé et ouvert à la place du vôtre. Votre carnet est mis de côté, intact, jusqu'à ce que vous quittiez le mode démo.",

@@ -58252,6 +58252,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit verwijdert alles wat Submersion in deze browser bewaart: het duiklogboek, de aanmeldgegevens en wachtwoordzin, en de identiteit van dit apparaat in de synchronisatie. Je duiken blijven in de synchronisatieopslag en op je andere apparaten. De pagina herlaadt met een schone start.';
 
   @override
+  String get web_downloadBackup_title => 'Back-up downloaden';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'Een kopie van je duiklogboek als databasebestand, opgeslagen door je browser';
+
+  @override
   String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
 
   @override

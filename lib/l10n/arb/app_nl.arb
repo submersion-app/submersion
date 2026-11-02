@@ -17359,6 +17359,8 @@
   "web_forgetDevice_subtitle": "Verwijder de duiken, aanmeldgegevens en apparaatidentiteit uit deze browser",
   "web_forgetDevice_confirm": "Vergeten",
   "web_forgetDevice_confirmBody": "Dit verwijdert alles wat Submersion in deze browser bewaart: het duiklogboek, de aanmeldgegevens en wachtwoordzin, en de identiteit van dit apparaat in de synchronisatie. Je duiken blijven in de synchronisatieopslag en op je andere apparaten. De pagina herlaadt met een schone start.",
+  "web_downloadBackup_title": "Back-up downloaden",
+  "web_downloadBackup_subtitle": "Een kopie van je duiklogboek als databasebestand, opgeslagen door je browser",
   "demo_row_unavailable": "Niet beschikbaar in demomodus",
   "demo_enter_confirm_title": "Verkennen met voorbeeldgegevens?",
   "demo_enter_confirm_body": "Er wordt een voorbeeldlogboek ({size}) gedownload en geopend in plaats van het jouwe. Je logboek wordt onaangeroerd apart gezet tot je de demomodus afsluit.",

@@ -58608,6 +58608,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Isto remove tudo o que o Submersion guarda neste navegador: o registo de mergulhos, os dados de acesso e a frase-passe, e a identidade deste dispositivo na sincronização. Os seus mergulhos ficam no armazenamento de sincronização e nos seus outros dispositivos. A página recarrega do zero.';
 
   @override
+  String get web_downloadBackup_title => 'Transferir uma cópia de segurança';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'Uma cópia do seu registo de mergulhos como ficheiro de base de dados, guardada pelo navegador';
+
+  @override
   String get demo_row_unavailable => 'Indisponível no modo de demonstração';
 
   @override

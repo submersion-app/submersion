@@ -92500,6 +92500,18 @@ abstract class AppLocalizations {
   /// **'This removes everything Submersion keeps in this browser: the dive log, the sign-in details and passphrase, and this device\'s identity in sync. Your dives stay in the sync store and on your other devices. The page reloads to a fresh start.'**
   String get web_forgetDevice_confirmBody;
 
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Download a backup'**
+  String get web_downloadBackup_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'A copy of your dive log as a database file, saved by your browser'**
+  String get web_downloadBackup_subtitle;
+
   /// Demo mode (issue #3708)
   ///
   /// In en, this message translates to:

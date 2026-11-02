@@ -17359,6 +17359,8 @@
   "web_forgetDevice_subtitle": "Eliminar las inmersiones, los datos de acceso y la identidad del dispositivo de este navegador",
   "web_forgetDevice_confirm": "Olvidar",
   "web_forgetDevice_confirmBody": "Esto elimina todo lo que Submersion guarda en este navegador: el registro de inmersiones, los datos de acceso y la frase de contraseña, y la identidad de este dispositivo en la sincronización. Tus inmersiones permanecen en el almacén de sincronización y en tus otros dispositivos. La página se recarga desde cero.",
+  "web_downloadBackup_title": "Descargar una copia de seguridad",
+  "web_downloadBackup_subtitle": "Una copia de tu registro de inmersiones como archivo de base de datos, guardada por tu navegador",
   "demo_row_unavailable": "No disponible en el modo demo",
   "demo_enter_confirm_title": "¿Explorar con datos de ejemplo?",
   "demo_enter_confirm_body": "Se descargará un diario de ejemplo ({size}) y se abrirá en lugar del tuyo. Tu diario se guarda aparte, intacto, hasta que salgas del modo demo.",
