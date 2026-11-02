@@ -7,6 +7,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/insights/presentation/insights_saved_group.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
@@ -131,6 +132,41 @@ void main() {
         ])?.saved.name,
         'Wetsuit dives',
       );
+    });
+
+    group('ignores ref labels however deep they sit', () {
+      ConditionNode tag(String id) => ConditionNode(
+        FieldPath(const ['tags']),
+        QueryOp.inList,
+        ListValue([RefValue(id, id)]),
+      );
+
+      test('in an OR group', () {
+        final filter = DiveFilterState(
+          query: OrNode([tag('t-dry'), tag('t-wet')]),
+        );
+        final group = savedAs('Any suit', filter);
+
+        expect(activeSavedGroup(filter, [group])?.saved.name, 'Any suit');
+      });
+
+      test('under a NOT', () {
+        final filter = DiveFilterState(query: NotNode(tag('t-dry')));
+        final group = savedAs('Not drysuit', filter);
+
+        expect(activeSavedGroup(filter, [group])?.saved.name, 'Not drysuit');
+      });
+
+      test('in a scoped condition', () {
+        final filter = DiveFilterState(
+          equipmentAttrConditions: [
+            EquipmentAttrCondition.suitThickness(min: 7),
+          ],
+        );
+        final group = savedAs('Thick suit', filter);
+
+        expect(activeSavedGroup(filter, [group])?.saved.name, 'Thick suit');
+      });
     });
 
     test('a group whose tag was deleted still matches', () {

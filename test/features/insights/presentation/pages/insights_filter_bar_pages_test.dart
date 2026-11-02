@@ -3,11 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_equipment_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_geographic_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_marine_life_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_observations_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_progression_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_social_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
@@ -68,6 +73,26 @@ void main() {
     'Time patterns': (
       const InsightsTimePatternsPage(),
       const Scaffold(body: InsightsTimePatternsPage(embedded: true)),
+    ),
+    'Gas': (
+      const InsightsGasPage(),
+      const Scaffold(body: InsightsGasPage(embedded: true)),
+    ),
+    'Progression': (
+      const InsightsProgressionPage(),
+      const Scaffold(body: InsightsProgressionPage(embedded: true)),
+    ),
+    'Conditions': (
+      const InsightsConditionsPage(),
+      const Scaffold(body: InsightsConditionsPage(embedded: true)),
+    ),
+    'Equipment': (
+      const InsightsEquipmentPage(),
+      const Scaffold(body: InsightsEquipmentPage(embedded: true)),
+    ),
+    'Focus': (
+      const InsightsFocusPage(),
+      const Scaffold(body: InsightsFocusPage(embedded: true)),
     ),
     'Profile': (
       const InsightsProfilePage(),
