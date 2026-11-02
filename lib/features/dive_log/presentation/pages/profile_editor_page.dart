@@ -217,6 +217,9 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
               child: Text(l10n.diveLog_profileEditor_deleteProfile_confirmNow),
             ),
           ],

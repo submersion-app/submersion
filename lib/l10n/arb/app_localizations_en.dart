@@ -50956,7 +50956,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_confirmNow =>
-      'Delete permanently now';
+      'Delete Permanently Now';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

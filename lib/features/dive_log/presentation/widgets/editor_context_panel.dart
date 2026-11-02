@@ -331,6 +331,10 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               onPressed: widget.canDeleteProfile
                   ? widget.onDeleteProfile
                   : null,
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+              ),
               icon: const Icon(Icons.delete_outline, size: 18),
               label: const Text('Profil löschen'),
             ),
