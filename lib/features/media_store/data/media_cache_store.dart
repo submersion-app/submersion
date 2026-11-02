@@ -9,9 +9,15 @@ import 'package:submersion/features/media/data/media_cache_settings.dart';
 enum MediaCacheKind { original, thumb, rendition }
 
 /// Content-addressed local cache for store-fetched media (spec section 10).
-/// Files live under [root]; bookkeeping lives in media_cache_entries.
+/// The pools live under [root]; bookkeeping lives in media_cache_entries.
 /// Separate pools with independent caps so bulk original downloads can never
 /// evict the thumbnails that keep grids rendering.
+///
+/// On a phone the OS may empty [root] at any time, since it is the OS cache
+/// directory (issue #3341), and the index does not hear about it. Reads already
+/// treat a missing file as a miss. A pool that has gone entirely is noticed
+/// at the next [put] or [totalBytes]; [dropMissingEntries] finds the rest.
+/// Work in progress sits under a separate scratch root, out of the OS's reach.
 ///
 /// The thumbnail pool also holds the thumbnails this device makes of its own
 /// local photo files (issue #3337), keyed by a hash of the file's location
@@ -20,15 +26,21 @@ class MediaCacheStore {
   MediaCacheStore({
     required LocalCacheDatabase database,
     required Directory root,
+    Directory? scratchRoot,
     this.originalsCapBytes = 2 * 1024 * 1024 * 1024,
     this.thumbsCapBytes = kDefaultDiskCacheMb * 1024 * 1024,
     this.renditionsCapBytes = 1 * 1024 * 1024 * 1024,
     this.thumbsCapSource,
   }) : _db = database,
-       _root = root;
+       _root = root,
+       _scratchRoot = scratchRoot ?? root;
 
   final LocalCacheDatabase _db;
   final Directory _root;
+
+  /// Holds staging and transcode, which are work in progress rather than
+  /// cache. The same directory as [_root] unless the caller separates them.
+  final Directory _scratchRoot;
   final int originalsCapBytes;
   final int thumbsCapBytes;
   final int renditionsCapBytes;
@@ -219,6 +231,9 @@ class MediaCacheStore {
     int? sourceVersion,
     String? extension,
   }) async {
+    // Before anything recreates the pool's directory, which would hide a purge
+    // from every later read of the total.
+    await _forgetPoolIfGone(kind);
     final relative = _relativePath(contentHash, kind, extension: extension);
     // The index is keyed {contentHash, kind}, and relativePath used to be a
     // pure function of that key, so an overwrite always rewrote the same
@@ -288,10 +303,10 @@ class MediaCacheStore {
     }
   }
 
-  /// A unique temp file under the cache root, for downloads and pipeline
+  /// A unique temp file under the scratch root, for downloads and pipeline
   /// staging. Same volume as the cache, so put() can use a cheap rename.
   Future<File> stagingFile() async {
-    final dir = Directory(p.join(_root.path, 'staging'));
+    final dir = Directory(p.join(_scratchRoot.path, 'staging'));
     await dir.create(recursive: true);
     _stagingCounter += 1;
     return File(
@@ -305,12 +320,12 @@ class MediaCacheStore {
   }
 
   /// Deterministic transcode output path (spec section 8):
-  /// `<root>/transcode/<hash>_<level>.mp4`. Engines write `<path>.tmp` and
+  /// `<scratch root>/transcode/<hash>_<level>.mp4`. Engines write `<path>.tmp` and
   /// rename, so an existing file here is always a COMPLETE rendition; it
   /// survives upload retries and app restarts and is removed only via
   /// [deleteTranscodeArtifacts] on markDone.
   Future<File> transcodeFile(String contentHash, String levelName) async {
-    final dir = Directory(p.join(_root.path, 'transcode'));
+    final dir = Directory(p.join(_scratchRoot.path, 'transcode'));
     await dir.create(recursive: true);
     return File(p.join(dir.path, '${contentHash}_$levelName.mp4'));
   }
@@ -318,7 +333,7 @@ class MediaCacheStore {
   /// Removes every transcode artifact for [contentHash]: all levels'
   /// renditions plus any .tmp debris. Best-effort.
   Future<void> deleteTranscodeArtifacts(String contentHash) async {
-    final dir = Directory(p.join(_root.path, 'transcode'));
+    final dir = Directory(p.join(_scratchRoot.path, 'transcode'));
     try {
       if (!await dir.exists()) return;
       await for (final entity in dir.list()) {
@@ -344,7 +359,73 @@ class MediaCacheStore {
       ..addColumns([sum])
       ..where(_db.mediaCacheEntries.kind.equals(_kindName(kind)));
     final row = await query.getSingle();
-    return row.read(sum) ?? 0;
+    final total = row.read(sum) ?? 0;
+    if (total == 0) return 0;
+    return await _forgetPoolIfGone(kind) ? 0 : total;
+  }
+
+  /// Removes [kind]'s rows if its directory has gone, and says whether it did.
+  ///
+  /// A single stat, so it is cheap enough for [put], which every new thumbnail
+  /// goes through. A pool at its cap is the normal state of a large library, so
+  /// checking files row by row on that path is not an option. Doubt keeps the
+  /// rows: a read that fails is not evidence of a purge.
+  Future<bool> _forgetPoolIfGone(MediaCacheKind kind) async {
+    final pool = Directory(p.join(_root.path, _poolDirName(kind)));
+    try {
+      if (await pool.exists()) return false;
+    } on FileSystemException {
+      return false;
+    }
+    if (kind == MediaCacheKind.thumb) _touches.clear();
+    await (_db.delete(
+      _db.mediaCacheEntries,
+    )..where((t) => t.kind.equals(_kindName(kind)))).go();
+    return true;
+  }
+
+  /// Removes every row whose file has gone, across all pools, and returns how
+  /// many. For a partial purge, where the OS took some files and left the
+  /// directories, which nothing else can see.
+  ///
+  /// One stat per row, so this is for a background pass. It pages by key
+  /// rather than by offset because it deletes as it goes, and a row removed
+  /// from an earlier page would shift the offset past one not yet checked.
+  Future<int> dropMissingEntries({int pageSize = 500}) async {
+    final entries = _db.mediaCacheEntries;
+    var dropped = 0;
+    for (final kind in MediaCacheKind.values) {
+      final kindName = _kindName(kind);
+      var after = '';
+      while (true) {
+        final query = _db.selectOnly(entries)
+          ..addColumns([entries.contentHash, entries.relativePath])
+          ..where(
+            entries.kind.equals(kindName) &
+                entries.contentHash.isBiggerThanValue(after),
+          )
+          ..orderBy([OrderingTerm.asc(entries.contentHash)])
+          ..limit(pageSize);
+        final rows = await query.get();
+        if (rows.isEmpty) break;
+        final dead = <String>[];
+        for (final row in rows) {
+          final file = File(
+            p.join(_root.path, row.read(entries.relativePath)!),
+          );
+          if (!await file.exists()) dead.add(row.read(entries.contentHash)!);
+        }
+        if (dead.isNotEmpty) {
+          await (_db.delete(entries)..where(
+                (t) => t.kind.equals(kindName) & t.contentHash.isIn(dead),
+              ))
+              .go();
+          dropped += dead.length;
+        }
+        after = rows.last.read(entries.contentHash)!;
+      }
+    }
+    return dropped;
   }
 
   /// Empties [kind]'s pool: every file in it, indexed or not, and its index
