@@ -386,7 +386,17 @@ authoritative where the body above differs.
   close button removes the window before AppKit asks to quit, so while the
   page is open the window is kept from closing through `window_manager`,
   which owns the window's delegate. Windows and Linux need neither: a close
-  there is already a cancellable exit request with the window still up.
+  there is already a cancellable exit request with the window still up. A quit
+  from the Dock or taskbar can arrive with the window minimised or the app
+  hidden, where no prompt would be seen and Flutter draws no frames, so the
+  window is brought back before asking.
+- **Leaving by the sidebar.** The sidebar leaves with `go`, which no PopScope
+  sees, so the route's `onExit` asks the same question through `AppExitGuard`.
+  A back that has already asked finds nothing left to ask about.
+- **Paste, as built.** A header can name the key in any column, not only the
+  first, and a blank line leaves a keyed block keyed. A key word needs a real
+  column label beside it to count as a header, since "No" is also a toggle
+  value.
 
 ## Out of scope, noted for later
 

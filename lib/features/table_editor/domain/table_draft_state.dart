@@ -19,7 +19,6 @@ class TableDraftState {
   });
 
   int get count => byEntity.values.fold(0, (n, m) => n + m.length);
-  int get flaggedCount => all.where((d) => !d.isSaveable).length;
   bool get isEmpty => count == 0;
   List<TableDraft> get all => [for (final m in byEntity.values) ...m.values];
   List<TableDraft> get saveable => all.where((d) => d.isSaveable).toList();

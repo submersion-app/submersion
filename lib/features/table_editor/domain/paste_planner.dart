@@ -61,12 +61,12 @@ class PastePlan<F extends EntityField> {
 /// Decides where every cell of [block] lands (#3422).
 ///
 /// Rows match by key (dive number or name) when the block's header names the
-/// key column, or when there is no header, the block has at least two
-/// columns, and every first-column value is a key of a row on the sheet. A
-/// headerless single column is always positional, since a column of weights
-/// would otherwise read as dive numbers. Keys are matched against the rows
-/// on the sheet only: a key in [hiddenKeys] is reported as hidden, any other
-/// miss as unknown, so a draft never lands on a row the diver cannot see.
+/// key column, in any position, or when there is no header, the block has at
+/// least two columns, and every filled row's first value is a key of a row on
+/// the sheet. A headerless single column is always positional, since a column
+/// of weights would otherwise read as dive numbers. Keys are matched against
+/// the rows on the sheet only: a key in [hiddenKeys] is reported as hidden, any
+/// other miss as unknown, so a draft never lands on a row the diver cannot see.
 ///
 /// Columns map through a header's labels, or fill rightward from the
 /// selected column, skipping read-only ones. Positional rows fill downward
@@ -97,17 +97,22 @@ PastePlan<F> planPaste<F extends EntityField>({
     );
   }
 
-  // The header row, when the first row is all column labels (or names the
-  // key column first). A lone column has nothing for a key to address, and
-  // its first value can read as one: "No" is a key word and a toggle value.
+  // The header row, when the first row is all column labels or names the key
+  // column beside at least one of them. A key word alone is not enough: "No"
+  // is a key word and a toggle value, and a lone column has nothing for a key
+  // to address.
   final first = block.rows.first;
-  final keyHeader = block.columnCount >= 2 && isKeyHeader(first.first);
   final mapped = [for (final h in first) columnFromLabel(h)];
+  final keyWord = block.columnCount >= 2 ? first.indexWhere(isKeyHeader) : -1;
+  final keyHeader =
+      keyWord >= 0 &&
+      mapped.indexed.any((c) => c.$1 != keyWord && c.$2 != null);
+  final keyColumn = keyHeader ? keyWord : 0;
   final allLabels = first
       .asMap()
       .entries
       .where((e) => e.value.trim().isNotEmpty)
-      .every((e) => mapped[e.key] != null || (e.key == 0 && keyHeader));
+      .every((e) => mapped[e.key] != null || (e.key == keyWord && keyHeader));
   // A row of nothing but blanks is data (a sparse column starts that way),
   // never a header, and neither is one value, whatever it says.
   final hasLabel = first.any((h) => h.trim().isNotEmpty);
@@ -137,11 +142,13 @@ PastePlan<F> planPaste<F extends EntityField>({
   // hidden rather than the whole block sliding into position.
   final hidden = {for (final k in hiddenKeys) k.toLowerCase()};
   final knownKeys = {...rowByKey.keys, ...hidden, ...ambiguous};
-  bool everyFirstIsKey() =>
-      data.isNotEmpty &&
-      data.every(
-        (r) => r.isNotEmpty && knownKeys.contains(r.first.trim().toLowerCase()),
-      );
+  // A blank line between rows addresses nothing, here as in the rows below.
+  bool everyFirstIsKey() {
+    final filled = data.where((r) => r.any((c) => c.trim().isNotEmpty));
+    return filled.isNotEmpty &&
+        filled.every((r) => knownKeys.contains(r.first.trim().toLowerCase()));
+  }
+
   final keyed =
       keyHeader || (!hadHeader && block.columnCount >= 2 && everyFirstIsKey());
   final matching = !keyed
@@ -156,7 +163,7 @@ PastePlan<F> planPaste<F extends EntityField>({
   final firstDataColumn = keyed ? 1 : 0;
   if (hadHeader) {
     for (var i = 0; i < first.length; i++) {
-      if (i == 0 && keyHeader) {
+      if (i == keyColumn && keyHeader) {
         targets.add(null);
         continue;
       }
@@ -229,8 +236,8 @@ PastePlan<F> planPaste<F extends EntityField>({
     if (keyed) {
       // A blank line between rows addresses nothing.
       if (row.every((c) => c.trim().isEmpty)) continue;
-      final key = row.isEmpty ? '' : row.first.trim().toLowerCase();
-      final raw = row.isEmpty ? '' : row.first.trim();
+      final raw = keyColumn < row.length ? row[keyColumn].trim() : '';
+      final key = raw.toLowerCase();
       if (ambiguous.contains(key)) {
         skipped.add(PasteSkip(PasteSkipReason.ambiguousRow, detail: raw));
         continue;

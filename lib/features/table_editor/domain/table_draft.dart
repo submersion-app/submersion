@@ -67,13 +67,14 @@ class TableDraft extends Equatable {
       original != false &&
       !(original is List && (original! as List).isEmpty);
 
-  /// Whether [value] is what is already stored.
+  /// Whether [value] is what is already stored. A multi-choice cell writes its
+  /// picks in list order, which is no change to the same picks stored in
+  /// another.
   bool get isUnchanged =>
-      const DeepCollectionEquality().equals(value, original);
+      const DeepCollectionEquality.unordered().equals(value, original);
 
   TableDraft copyWith({
     Object? value,
-    bool clearValue = false,
     Object? original,
     bool clearOriginal = false,
     String? rawText,
@@ -83,7 +84,7 @@ class TableDraft extends Equatable {
     entityId: entityId,
     fieldName: fieldName,
     original: clearOriginal ? null : (original ?? this.original),
-    value: clearValue ? null : (value ?? this.value),
+    value: value ?? this.value,
     rawText: rawText ?? this.rawText,
     flag: clearFlag ? null : (flag ?? this.flag),
   );

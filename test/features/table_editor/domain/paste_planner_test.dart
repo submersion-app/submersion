@@ -31,7 +31,7 @@ void main() {
       'count' => TestField.entityCount,
       _ => null,
     },
-    isKeyHeader: (h) => h.toLowerCase() == 'dive',
+    isKeyHeader: (h) => const {'dive', 'no'}.contains(h.toLowerCase()),
     hiddenKeys: hidden,
     keyField: keyField,
   );
@@ -133,6 +133,43 @@ void main() {
 
     expect(p.cells.map((c) => c.field), [TestField.entityCount]);
     expect(p.skipped.single.reason, PasteSkipReason.truncated);
+  });
+
+  test('a header can name the key in any column', () {
+    final p = plan('Name\tDive\tCount\nx\t12\t6\ny\t3\t8', selectedRow: 5);
+
+    expect(p.matching, PasteMatching.byNumber);
+    expect(p.hadHeader, isTrue);
+    expect(p.cells.map((c) => (c.entityId, c.field, c.text)), [
+      ('d12', TestField.entityName, 'x'),
+      ('d12', TestField.entityCount, '6'),
+      ('d3', TestField.entityName, 'y'),
+      ('d3', TestField.entityCount, '8'),
+    ]);
+  });
+
+  test('a blank line leaves a numbered block matched by number', () {
+    final p = plan('12\t6\n\n3\t8');
+
+    expect(p.matching, PasteMatching.byNumber);
+    expect(p.cells.map((c) => (c.entityId, c.text)), [
+      ('d12', '6'),
+      ('d3', '8'),
+    ]);
+    expect(p.skipped, isEmpty);
+  });
+
+  test('a first value that only reads as a key word is data', () {
+    final p = plan('No\tYes\nYes\tNo', selectedRow: 1, selectedColumn: 0);
+
+    expect(p.matching, PasteMatching.byPosition);
+    expect(p.hadHeader, isFalse);
+    expect(p.cells.map((c) => (c.entityId, c.field, c.text)), [
+      ('d2', TestField.entityName, 'No'),
+      ('d2', TestField.entityCount, 'Yes'),
+      ('d3', TestField.entityName, 'Yes'),
+      ('d3', TestField.entityCount, 'No'),
+    ]);
   });
 
   test('unknown header is dropped and reported', () {

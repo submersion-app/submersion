@@ -3,11 +3,13 @@ import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
 import 'package:submersion/features/dive_log/presentation/providers/bulk_dive_edit_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -17,8 +19,10 @@ import 'package:submersion/features/dive_log/presentation/table/dive_field_adapt
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/table_editor/data/table_editor_save_service.dart';
 import 'package:submersion/features/table_editor/domain/table_draft_state.dart';
@@ -27,6 +31,7 @@ import 'package:submersion/features/table_editor/entities/center_table_editor_en
 import 'package:submersion/features/table_editor/entities/dive_table_editor_entity.dart';
 import 'package:submersion/features/table_editor/entities/site_table_editor_entity.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -207,10 +212,15 @@ final tableEditorEditableLibrarySitesProvider =
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       await ref.watch(sharedLibrariesProvider.future);
       final stamper = LibraryEditStamper();
+      // The answer is the library's, so a large one is asked about once.
+      final byLibrary = <String, bool>{};
       return {
         for (final s in sites)
-          if (s.site.isLibrarySite)
-            s.site.id: await stamper.mayEdit(s.site.id, actingDiverId: diverId),
+          if (s.site.sharedLibraryId case final library?)
+            s.site.id: byLibrary[library] ??= await stamper.mayEdit(
+              s.site.id,
+              actingDiverId: diverId,
+            ),
       };
     });
 
@@ -268,6 +278,11 @@ final tableEditorDiveEntityProvider =
         for (final c in computers.value ?? const [])
           if (c.model case final model? when model.isNotEmpty) model,
       };
+      // What the dive list's adapter is given, so the sheet reads and sorts a
+      // dive as the list does. Types not loaded yet fall back to the built-in
+      // names.
+      final l10n = l10nForLocaleTag(ref.watch(localeProvider));
+      final typesById = ref.watch(diveTypesByIdProvider).value;
       return AsyncValue.data(
         DiveTableEditorEntity(
           diveRepo: ref.watch(diveRepositoryProvider),
@@ -284,6 +299,8 @@ final tableEditorDiveEntityProvider =
           ],
           computers: [for (final m in models) ChoiceOption(m, m)],
           defaultWeightType: weightType.value ?? WeightType.belt,
+          gasModel: ref.watch(unitFormatterProvider).settings.gasModel,
+          diveTypeLabel: (id) => diveTypeLabel(l10n, id, typesById: typesById),
         ),
       );
     });

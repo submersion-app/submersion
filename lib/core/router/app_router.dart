@@ -1514,6 +1514,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'table-editor',
                 name: 'tableEditor',
+                onExit: confirmLeaveTableEditor,
                 builder: (context, state) => const TableEditorPage(),
               ),
               GoRoute(

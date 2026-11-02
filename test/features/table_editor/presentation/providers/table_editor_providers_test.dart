@@ -1,7 +1,10 @@
+import 'dart:ui' show Locale;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart' show WeightType;
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -16,9 +19,12 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
 import 'package:submersion/features/table_editor/presentation/providers/table_editor_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -172,7 +178,14 @@ void providerIntegration() {
       ),
     );
     final container = ProviderContainer(
-      overrides: [currentDiverIdProvider.overrideWith((ref) => diver)],
+      overrides: [
+        currentDiverIdProvider.overrideWith((ref) => diver),
+        settingsProvider.overrideWith(
+          (ref) => MockSettingsNotifier(
+            const AppSettings(gasModel: GasModel.ideal, locale: 'de'),
+          ),
+        ),
+      ],
     );
     addTearDown(container.dispose);
 
@@ -195,6 +208,12 @@ void providerIntegration() {
       () => container.read(tableEditorDiveEntityProvider).value,
     );
     expect(entity.columns, isNotEmpty);
+    // The sheet reads a dive as the list does, in the diver's language.
+    expect(entity.adapter.gasModel, GasModel.ideal);
+    expect(
+      entity.adapter.diveTypeLabel?.call('wreck'),
+      diveTypeLabel(lookupAppLocalizations(const Locale('de')), 'wreck'),
+    );
     expect(
       (await container.read(tableEditorNewWeightTypeProvider.future)),
       WeightType.integrated,

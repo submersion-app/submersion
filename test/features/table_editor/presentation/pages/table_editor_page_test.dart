@@ -100,6 +100,7 @@ void main() {
     List<SiteWithCount> sites = const [],
     TableEditorSaveService? saveService,
     AppExitGuard? exitGuard,
+    List<DiveField> extraDiveColumns = const [],
   }) async {
     // The width gate reads MediaQuery, which follows the view, not the
     // test surface.
@@ -131,6 +132,7 @@ void main() {
         ),
         GoRoute(
           path: '/settings/table-editor',
+          onExit: confirmLeaveTableEditor,
           builder: (context, state) => const TableEditorPage(),
         ),
         GoRoute(
@@ -183,6 +185,8 @@ void main() {
                     isPinned: true,
                   ),
                   EntityTableColumnConfig(field: DiveField.visibility),
+                  for (final field in extraDiveColumns)
+                    EntityTableColumnConfig(field: field),
                 ],
               ),
               (n) => diveFieldFromName(n) ?? DiveField.diveNumber,
@@ -329,6 +333,85 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l10n.tableEditor_draftCount(1)), findsOneWidget);
     expect(find.text(vis(12)), findsOneWidget);
+  });
+
+  testWidgets('switching tabs with a cell still open asks first', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await tester.tap(find.text(vis(15)));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.enterText(find.byType(TextField), '12');
+
+    await tester.tap(find.text(l10n.tableEditor_tab_sites));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.forms_discard_title), findsOneWidget);
+    await tester.tap(find.text(l10n.forms_discard_keepEditing));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.tableEditor_draftCount(1)), findsOneWidget);
+  });
+
+  testWidgets('switching tabs with an untouched cell open just switches', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await tester.tap(find.text(vis(15)));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.text(l10n.tableEditor_tab_sites));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.forms_discard_title), findsNothing);
+    expect(find.text(vis(15)), findsNothing);
+  });
+
+  group('leaving by the sidebar', () {
+    void leave(WidgetTester tester) =>
+        GoRouter.of(tester.element(find.byType(TableEditorPage))).go('/home');
+
+    testWidgets('with drafts it asks, and keep editing stays', (tester) async {
+      await pumpPage(tester);
+      await draftVisibility(tester, '12');
+
+      leave(tester);
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.forms_discard_title), findsOneWidget);
+
+      await tester.tap(find.text(l10n.forms_discard_keepEditing));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TableEditorPage), findsOneWidget);
+      expect(find.text(l10n.tableEditor_draftCount(1)), findsOneWidget);
+    });
+
+    testWidgets('discarding leaves and the drafts do not come back', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      await draftVisibility(tester, '12');
+
+      leave(tester);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.forms_discard_discard));
+      await tester.pumpAndSettle();
+      expect(find.text('open editor'), findsOneWidget);
+
+      await tester.tap(find.text('open editor'));
+      await tester.pumpAndSettle();
+      expect(find.text(vis(15)), findsOneWidget);
+      expect(find.text(l10n.tableEditor_draftCount(1)), findsNothing);
+    });
+
+    testWidgets('with nothing unsaved it simply leaves', (tester) async {
+      await pumpPage(tester);
+
+      leave(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.forms_discard_title), findsNothing);
+      expect(find.text('open editor'), findsOneWidget);
+    });
   });
 
   testWidgets('drafts survive a window narrowed below the gate', (
@@ -564,6 +647,47 @@ void main() {
 
       expect(find.text(l10n.forms_discard_title), findsNothing);
       expect(find.text('open editor'), findsOneWidget);
+    });
+
+    testWidgets('a selection no longer on the sheet is let go, so Paste goes '
+        'quiet rather than doing nothing', (tester) async {
+      mockClipboard('2\t12\n');
+      await pumpPage(tester);
+      ProviderScope.containerOf(tester.element(find.byType(TableEditorPage)))
+          .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+          .setSelected(const CellPosition('gone', 'visibility'));
+      await tester.pump();
+
+      await tester.tap(find.byTooltip(l10n.tableEditor_paste));
+      await tester.pumpAndSettle();
+
+      final paste = find.ancestor(
+        of: find.byIcon(Icons.content_paste),
+        matching: find.byType(IconButton),
+      );
+      expect(tester.widget<IconButton>(paste).onPressed, isNull);
+    });
+
+    testWidgets('the paste shortcut works with a toggle cell open', (
+      tester,
+    ) async {
+      mockClipboard('2\t12\n');
+      await pumpPage(tester, extraDiveColumns: const [DiveField.isFavorite]);
+      final notifier = ProviderScope.containerOf(
+        tester.element(find.byType(TableEditorPage)),
+      ).read(tableEditorDraftsProvider(TableEditorTab.dives).notifier);
+      notifier.setEditing(const CellPosition('d1', 'isFavorite'));
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyV);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+      await tester.pumpAndSettle();
+
+      expect(
+        notifier.draftAt(const CellPosition('d2', 'isFavorite')),
+        isNotNull,
+      );
     });
 
     testWidgets('a paste that lands nothing says why', (tester) async {

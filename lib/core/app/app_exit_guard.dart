@@ -15,7 +15,8 @@ class AppExitBlocker {
   /// Whether there is anything to lose right now.
   final bool Function() hasUnsavedWork;
 
-  /// Asks the diver. True gives the work up and lets the quit go ahead.
+  /// Asks the diver. True gives the work up and lets the quit or the leaving
+  /// go ahead.
   final Future<bool> Function() confirmLeaving;
 
   const AppExitBlocker({
@@ -39,21 +40,42 @@ class AppExitBlocker {
 /// closing and the attempt comes here as [closeWindowRequested] instead. A
 /// close on Windows and Linux already reaches the engine as a cancellable
 /// exit request with the window still up.
+///
+/// A quit can also come from the Dock or the taskbar with the window out of
+/// sight, where no prompt would be seen and Flutter draws no frames at all, so
+/// the window is brought back before asking.
 class AppExitGuard {
   AppExitGuard({
     Future<void> Function()? retryExit,
     Future<void> Function(bool prevent)? preventWindowClose,
-  }) : _retryExit = retryExit ?? _exitThroughThePlatform {
+    Future<void> Function()? revealWindow,
+  }) : _retryExit = retryExit ?? _exitThroughThePlatform,
+       _revealWindow = revealWindow ?? _revealThroughThePlugin {
     _preventWindowClose = preventWindowClose ?? _platformPreventWindowClose();
   }
 
   final Future<void> Function() _retryExit;
+  final Future<void> Function() _revealWindow;
   late final Future<void> Function(bool prevent) _preventWindowClose;
   final _blockers = <AppExitBlocker>[];
   bool _asking = false;
 
   static Future<void> _exitThroughThePlatform() =>
       ServicesBinding.instance.exitApplication(AppExitType.cancelable);
+
+  static Future<void> _revealThroughThePlugin() async {
+    final desktop =
+        !kIsWeb &&
+        const {
+          TargetPlatform.macOS,
+          TargetPlatform.windows,
+          TargetPlatform.linux,
+        }.contains(defaultTargetPlatform);
+    if (!desktop) return;
+    await windowManager.ensureInitialized();
+    if (await windowManager.isMinimized()) await windowManager.restore();
+    await windowManager.show();
+  }
 
   Future<void> Function(bool prevent) _platformPreventWindowClose() {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.macOS) {
@@ -104,15 +126,14 @@ class AppExitGuard {
     if (_blockers.isEmpty) return;
     final blocker = _blockerWithWork();
     if (blocker != null) return _ask(blocker);
-    try {
-      await _retryExit();
-    } catch (error, stackTrace) {
-      _log.warning(
-        'Could not exit after the window was closed',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
+    await _exit();
+  }
+
+  /// Whether a held page may be left inside the app: the same question a quit
+  /// asks, for a way out the page itself cannot stop (`GoRoute.onExit`).
+  Future<bool> mayLeave() async {
+    final blocker = _blockerWithWork();
+    return blocker == null || await _confirm(blocker);
   }
 
   AppExitBlocker? _blockerWithWork() {
@@ -131,23 +152,54 @@ class AppExitGuard {
     return null;
   }
 
+  /// A cancelled quit: the diver is asked, and the exit requested again.
   Future<void> _ask(AppExitBlocker blocker) async {
-    // A repeated quit lands on the prompt already showing.
-    if (_asking) return;
+    if (await _confirm(blocker, reveal: true)) await _exit();
+  }
+
+  Future<bool> _confirm(AppExitBlocker blocker, {bool reveal = false}) async {
+    // A repeated request lands on the prompt already showing.
+    if (_asking) return false;
     _asking = true;
     try {
-      final leave = await blocker.confirmLeaving();
-      _asking = false;
-      if (leave) await _retryExit();
+      if (reveal) await _revealForPrompt();
+      return await blocker.confirmLeaving();
     } catch (error, stackTrace) {
-      // The request was cancelled and the app is still up: the work is safe.
+      // Nothing has gone and the app is still up: the work is safe.
       _log.warning(
-        'Could not finish asking about unsaved work at exit',
+        'Could not finish asking about unsaved work',
         error: error,
         stackTrace: stackTrace,
       );
+      return false;
     } finally {
       _asking = false;
+    }
+  }
+
+  /// A window that stays hidden is no reason not to ask: the prompt waits for
+  /// the diver to come back to it.
+  Future<void> _revealForPrompt() async {
+    try {
+      await _revealWindow();
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not bring the window back to ask about unsaved work',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _exit() async {
+    try {
+      await _retryExit();
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not ask the platform to exit',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

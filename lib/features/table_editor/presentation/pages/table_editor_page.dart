@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/table_editor/domain/paste_planner.dart';
+import 'package:submersion/features/table_editor/domain/table_draft.dart';
+import 'package:submersion/features/table_editor/domain/table_editor_column.dart';
 import 'package:submersion/features/table_editor/domain/table_editor_entity.dart';
 import 'package:submersion/features/table_editor/presentation/providers/table_editor_providers.dart';
 import 'package:submersion/features/table_editor/presentation/table_editor_paste.dart';
@@ -27,6 +29,17 @@ import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+
+/// [GoRoute.onExit] for the editor. The sidebar leaves with `go`, which no
+/// PopScope sees, so this is what stops it walking away from drafts. A back
+/// that has already asked finds nothing left to ask about.
+Future<bool> confirmLeaveTableEditor(
+  BuildContext context,
+  GoRouterState state,
+) => ProviderScope.containerOf(
+  context,
+  listen: false,
+).read(appExitGuardProvider).mayLeave();
 
 /// Settings, Data tools, Table editor (#3422): a spreadsheet per entity
 /// where cells are typed into or pasted, kept as drafts, and saved all at
@@ -61,7 +74,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   late final AppExitGuard _exitGuard = ref.read(appExitGuardProvider);
   late final AppExitBlocker _exitBlocker = AppExitBlocker(
     hasUnsavedWork: () => _anyDrafts || _anyOpenCell,
-    confirmLeaving: _confirmQuit,
+    confirmLeaving: _confirmLeaving,
   );
 
   TableEditorTab get _tab => TableEditorTab.values[_tabs.index];
@@ -149,9 +162,9 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     navigator.pop();
   }
 
-  /// The app is quitting: an open cell lands first, since an untouched one
-  /// holds nothing to ask about. True lets the quit go ahead.
-  Future<bool> _confirmQuit() async {
+  /// The app is quitting or the sidebar is leaving: an open cell lands first,
+  /// since an untouched one holds nothing to ask about. True lets it go ahead.
+  Future<bool> _confirmLeaving() async {
     await _closeOpenCells();
     if (!mounted || !_anyDrafts) return true;
     if (!await _confirmDiscard()) return false;
@@ -163,16 +176,19 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   }
 
   /// The tab bar has already moved to [index] when this runs, so the tab
-  /// being left is the one last settled on. With drafts there, go back and
-  /// ask.
+  /// being left is the one last settled on. With drafts there, or a cell
+  /// that may land as one, go back and ask.
   Future<void> _onTabTap(int index) async {
-    final from = _settled;
-    if (index == from || !_hasDrafts(TableEditorTab.values[from])) return;
-    _tabs.index = from;
-    if (await _confirmDiscard() && mounted) {
-      _clearDrafts(TableEditorTab.values[from]);
-      _tabs.animateTo(index);
-    }
+    final from = TableEditorTab.values[_settled];
+    final open = ref.read(tableEditorDraftsProvider(from)).editing != null;
+    if (index == _settled || (!open && !_hasDrafts(from))) return;
+    _tabs.index = _settled;
+    await _closeOpenCells();
+    if (!mounted) return;
+    if (_hasDrafts(from) && !await _confirmDiscard()) return;
+    if (!mounted) return;
+    _clearDrafts(from);
+    _tabs.animateTo(index);
   }
 
   /// Reached from a snackbar that may outlive the page.
@@ -268,6 +284,12 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         configProvider: configProvider,
         adapter: entity.adapter,
       ),
+      opensAsField: (cell) {
+        final field = entity.fieldFromName(cell.fieldName);
+        final kind = entity.columnFor(field)?.kind;
+        return kind != CellEditorKind.toggle &&
+            kind != CellEditorKind.multiChoice;
+      },
       saveAll: ({bool confirm = true}) async {
         if (_saving) return false;
         setState(() => _saving = true);
@@ -294,11 +316,23 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         final drafts = ref.read(tableEditorDraftsProvider(tab));
         final selected = drafts.editing ?? drafts.selected;
         if (selected == null) return;
+        final notifier = ref.read(tableEditorDraftsProvider(tab).notifier);
+        final config = ref.read(configProvider);
+        final visible = [for (final c in config.columnsAsShown) c.field];
+        // A filter, a save or a hidden column can take the selection off the
+        // sheet. Letting it go turns Paste off, which says more than a click
+        // that does nothing.
+        final onSheet =
+            rows.any((r) => entity.idOf(r) == selected.entityId) &&
+            visible.any((f) => f.name == selected.fieldName);
+        if (!onSheet) {
+          notifier.setEditing(null);
+          notifier.setSelected(null);
+          return;
+        }
         final text = await readClipboardText();
         if (text == null || !mounted) return;
         final l10n = context.l10n;
-        final config = ref.read(configProvider);
-        final visible = [for (final c in config.columnsAsShown) c.field];
         // The block lands in the order on screen.
         final shown = sortTableEntities(
           rows,
@@ -315,7 +349,6 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
           l10n: l10n,
           hiddenKeys: hiddenKeys(),
         );
-        final notifier = ref.read(tableEditorDraftsProvider(tab).notifier);
         notifier.setEditing(null);
         final extra = applyPastePlan<T, F>(
           plan: plan,
@@ -431,8 +464,10 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     final diveFilter = ref.watch(tableEditorDiveFilterProvider);
     final canPaste =
         handle != null && (drafts.editing ?? drafts.selected) != null;
-    // While a text cell is open its own field handles Ctrl+V.
-    final shortcutPaste = canPaste && drafts.editing == null;
+    // An open cell with a text field handles Ctrl+V itself.
+    final open = drafts.editing;
+    final shortcutPaste =
+        canPaste && (open == null || !handle.opensAsField(open));
     return PopScope(
       canPop: !_anyDrafts && !_anyOpenCell,
       onPopInvokedWithResult: (didPop, _) => _handlePop(didPop),
@@ -523,12 +558,17 @@ enum _OpenChoice { stay, discard, save }
 class _TabHandle {
   final String Function(String id) route;
   final VoidCallback pickColumns;
+
+  /// Whether [cell] opens with a text field: a toggle or a checkbox list has
+  /// none.
+  final bool Function(CellPosition cell) opensAsField;
   final Future<bool> Function({bool confirm}) saveAll;
   final Future<void> Function() paste;
 
   const _TabHandle({
     required this.route,
     required this.pickColumns,
+    required this.opensAsField,
     required this.saveAll,
     required this.paste,
   });

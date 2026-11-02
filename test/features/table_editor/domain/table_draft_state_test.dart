@@ -41,12 +41,26 @@ void main() {
     expect(n.state.at('d1', 'visibility'), isNull);
   });
 
+  test('the same choices in another order are no change', () {
+    const reordered = TableDraft(
+      entityId: 's1',
+      fieldName: 'entryType',
+      original: ['shore', 'boat'],
+      value: ['boat', 'shore'],
+    );
+    final n = TableDraftsNotifier();
+    n.put(reordered);
+
+    expect(reordered.isUnchanged, isTrue);
+    expect(n.state.isEmpty, isTrue);
+  });
+
   test('put keeps a flagged draft even when value equals original', () {
     final n = TableDraftsNotifier();
     n.put(draft(value: 10.0, flag: TableDraftFlag.unparsable, rawText: 'x'));
 
     expect(n.state.count, 1);
-    expect(n.state.flaggedCount, 1);
+    expect(n.state.saveable, isEmpty);
     expect(n.state.at('d1', 'visibility')?.isSaveable, isFalse);
   });
 
@@ -67,7 +81,7 @@ void main() {
       final n = TableDraftsNotifier();
       n.put(draft());
       n.flag('d1', 'visibility', TableDraftFlag.changedElsewhere);
-      expect(n.state.flaggedCount, 1);
+      expect(n.state.saveable, isEmpty);
 
       n.rebase('d1', 'visibility', 11.0);
 
@@ -75,7 +89,7 @@ void main() {
       expect(d.value, 12.0);
       expect(d.original, 11.0);
       expect(d.flag, isNull);
-      expect(n.state.flaggedCount, 0);
+      expect(n.state.saveable, [d]);
     },
   );
 

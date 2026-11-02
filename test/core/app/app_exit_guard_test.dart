@@ -134,6 +134,121 @@ void main() {
     expect(await guard.answer(close), AppExitResponse.exit);
   });
 
+  group('a window out of sight', () {
+    test('a quit brings it back before asking', () async {
+      final guard = AppExitGuard(
+        retryExit: () async {},
+        preventWindowClose: (_) async {},
+        revealWindow: () async => calls.add('reveal'),
+      );
+      guard.hold(
+        AppExitBlocker(
+          hasUnsavedWork: () => true,
+          confirmLeaving: () async {
+            calls.add('ask');
+            return false;
+          },
+        ),
+      );
+
+      await guard.answer(close);
+      await pumpEventQueue();
+
+      expect(calls, ['reveal', 'ask']);
+    });
+
+    test('a reveal that fails still asks', () async {
+      final guard = AppExitGuard(
+        retryExit: () async {},
+        preventWindowClose: (_) async {},
+        revealWindow: () async => throw StateError('no window'),
+      );
+      guard.hold(
+        AppExitBlocker(
+          hasUnsavedWork: () => true,
+          confirmLeaving: () async {
+            calls.add('ask');
+            return false;
+          },
+        ),
+      );
+
+      await guard.answer(close);
+      await pumpEventQueue();
+
+      expect(calls, ['ask']);
+    });
+  });
+
+  group('leaving inside the app', () {
+    test('with nothing held the way is clear', () async {
+      expect(await guard.mayLeave(), isTrue);
+    });
+
+    test('a blocker with no unsaved work does not ask', () async {
+      guard.hold(
+        AppExitBlocker(
+          hasUnsavedWork: () => false,
+          confirmLeaving: () async => fail('nothing to ask about'),
+        ),
+      );
+
+      expect(await guard.mayLeave(), isTrue);
+    });
+
+    test('the answer decides, and the window is left alone', () async {
+      final revealing = AppExitGuard(
+        retryExit: () async => calls.add('retry'),
+        preventWindowClose: (_) async {},
+        revealWindow: () async => calls.add('reveal'),
+      );
+      var leave = false;
+      revealing.hold(
+        AppExitBlocker(
+          hasUnsavedWork: () => true,
+          confirmLeaving: () async => leave,
+        ),
+      );
+
+      expect(await revealing.mayLeave(), isFalse);
+      leave = true;
+      expect(await revealing.mayLeave(), isTrue);
+      expect(calls, isEmpty);
+    });
+
+    test('a prompt that throws stays', () async {
+      guard.hold(
+        AppExitBlocker(
+          hasUnsavedWork: () => true,
+          confirmLeaving: () async => throw StateError('no navigator'),
+        ),
+      );
+
+      expect(await guard.mayLeave(), isFalse);
+    });
+
+    test('while a prompt is up it stays and asks nothing more', () async {
+      final answer = Completer<bool>();
+      var asked = 0;
+      guard.hold(
+        AppExitBlocker(
+          hasUnsavedWork: () => true,
+          confirmLeaving: () {
+            asked++;
+            return answer.future;
+          },
+        ),
+      );
+
+      final first = guard.mayLeave();
+      expect(await guard.mayLeave(), isFalse);
+      answer.complete(true);
+
+      expect(await first, isTrue);
+      expect(asked, 1);
+    });
+  });
+
   group('the close button', () {
     late List<bool> prevented;
 
