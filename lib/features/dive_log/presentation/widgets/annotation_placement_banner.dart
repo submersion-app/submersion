@@ -44,3 +44,33 @@ class AnnotationPlacementBanner extends StatelessWidget {
     );
   }
 }
+
+/// The pin that starts placing an annotation (#4109), lit while the chart is
+/// in placement mode. Shared by the Dive Profile card and the fullscreen
+/// profile.
+class AnnotationPinButton extends StatelessWidget {
+  const AnnotationPinButton({
+    super.key,
+    required this.active,
+    required this.onPressed,
+  });
+
+  final bool active;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return IconButton(
+      icon: Icon(active ? Icons.push_pin : Icons.push_pin_outlined),
+      tooltip: context.l10n.diveLog_annotation_add,
+      visualDensity: VisualDensity.compact,
+      isSelected: active,
+      style: IconButton.styleFrom(
+        backgroundColor: active ? colors.secondaryContainer : null,
+        foregroundColor: active ? colors.onSecondaryContainer : null,
+      ),
+      onPressed: onPressed,
+    );
+  }
+}

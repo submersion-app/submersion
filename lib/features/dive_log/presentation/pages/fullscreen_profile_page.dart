@@ -13,6 +13,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
@@ -284,6 +290,34 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     }
 
     final notifier = ref.read(playbackProvider(widget.diveId).notifier);
+    // Annotations (#4109): the same actions as the detail page's chart host.
+    // "Open in Notes" hands the request to the detail page underneath, then
+    // pops.
+    final annotationActions = DiveDetailAnnotationActions(
+      ref: ref,
+      context: context,
+      dive: dive,
+      onOpenInNotes: (id) {
+        ref
+                .read(
+                  annotationOpenInNotesRequestProvider(widget.diveId).notifier,
+                )
+                .state =
+            id;
+        Navigator.of(context).pop();
+      },
+    );
+    final annotationPlacement = ref.watch(
+      annotationPlacementProvider(widget.diveId),
+    );
+    final focusedAnnotation = ref.watch(annotationFocusProvider(widget.diveId));
+    final annotationEvents =
+        ref.watch(diveAnnotationsProvider(widget.diveId)).valueOrNull ??
+        const <ProfileEvent>[];
+    final computerEvents = analysis?.events.where((e) => !e.isAnnotation);
+    final chartEvents = computerEvents == null && annotationEvents.isEmpty
+        ? null
+        : [...?computerEvents, ...annotationEvents];
 
     // Active source and overlays (mirrors the detail page's wiring).
     final labels = SourceNameLabels(
@@ -473,6 +507,13 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                     isEnabled: rangeState.isEnabled,
                                   ),
                                 ),
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: AnnotationPinButton(
+                                    active: annotationPlacement != null,
+                                    onPressed: annotationActions.onPinPressed,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -484,7 +525,24 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                               analysis?.computerStopsWithCalculatedCeiling ??
                               false,
                           ascentRates: analysis?.ascentRates,
-                          events: analysis?.events,
+                          events: chartEvents,
+                          annotationPlacement: annotationPlacement != null,
+                          onAnnotationPlaced: annotationActions.place,
+                          onAnnotationTap: (annotation, at) {
+                            if (focusedAnnotation != null) {
+                              ref
+                                      .read(
+                                        annotationFocusProvider(
+                                          widget.diveId,
+                                        ).notifier,
+                                      )
+                                      .state =
+                                  null;
+                            }
+                            annotationActions.onMarkerTap(annotation, at);
+                          },
+                          onSecondaryTapAt: annotationActions.onSecondaryTap,
+                          focusedAnnotationId: focusedAnnotation,
                           ndlCurve: analysis?.ndlCurve,
                           sacCurve: analysis?.smoothedSacCurve,
                           environment:
@@ -617,6 +675,24 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                       ),
                       if (!tooltipFollowsCursor)
                         _FixedTooltipPanel(rows: _fixedTooltipRows),
+                      if (annotationPlacement != null)
+                        Positioned(
+                          top: 56,
+                          left: 16,
+                          right: 16,
+                          child: AnnotationPlacementBanner(
+                            text: annotationPlacement.isMove
+                                ? context.l10n.diveLog_annotation_banner_move
+                                : context.l10n.diveLog_annotation_banner_place,
+                            onCancel: ref
+                                .read(
+                                  annotationPlacementProvider(
+                                    widget.diveId,
+                                  ).notifier,
+                                )
+                                .cancel,
+                          ),
+                        ),
                     ],
                   ),
                 ),

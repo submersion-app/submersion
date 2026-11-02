@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
@@ -253,6 +254,34 @@ void main() {
     expect(row.timestamp, inInclusiveRange(800, 1200));
     expect(await notes(), 'First.\n\n[felt sick](annotation:a1)');
     expect(find.byType(AnnotationPlacementBanner), findsNothing);
+  });
+
+  testWidgets('Open in Notes highlights the passage, and the Notes link '
+      'opens the marker popup', (tester) async {
+    await seedDive();
+    await seedAnnotation();
+    await pumpDetail(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+    // The Notes card draws the linked passage with its pin.
+    expect(find.byIcon(Icons.push_pin), findsWidgets);
+
+    await tester.tapAt(await dotCenter(tester, 'a1'));
+    await settle(tester, frames: 4);
+    await tester.tap(find.text('Open in Notes'));
+    await settle(tester, frames: 4);
+    expect(container.read(annotationNotesHighlightProvider(diveId)), 'a1');
+    await tester.pump(const Duration(milliseconds: 1600));
+    await settle(tester, frames: 2);
+    expect(container.read(annotationNotesHighlightProvider(diveId)), isNull);
+
+    // Back the other way: the Notes link lights the marker and opens its
+    // popup, then the focus request is spent.
+    await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
+    await settle(tester, frames: 6);
+    expect(find.text('Remove'), findsOneWidget);
+    expect(container.read(annotationFocusProvider(diveId)), isNull);
   });
 
   testWidgets('a dive with no profile accepts an annotation by typed time', (

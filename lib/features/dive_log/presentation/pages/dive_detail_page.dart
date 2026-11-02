@@ -37,6 +37,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
@@ -118,6 +120,56 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   bool _hasRedirected = false;
 
   final GlobalKey _safetyReviewSectionKey = GlobalKey();
+  final GlobalKey _notesSectionKey = GlobalKey();
+  final GlobalKey _profileSectionKey = GlobalKey();
+
+  /// "Open in Notes" on an annotation's popup (#4109): unfolds the Notes
+  /// card when the list layout folds it, scrolls there and highlights the
+  /// passage for a moment.
+  Future<void> _scrollToNotes(String annotationId) async {
+    final layout = ref.read(settingsProvider.select((s) => s.diveDetailLayout));
+    if (layout.foldsSections) {
+      await ref
+          .read(settingsProvider.notifier)
+          .setDiveDetailSectionExpanded(DiveDetailSectionId.notes, true);
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted) return;
+    final ctx = _notesSectionKey.currentContext;
+    if (ctx != null && ctx.mounted) {
+      await Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.05,
+      );
+    }
+    if (!mounted) return;
+    final highlight = annotationNotesHighlightProvider(widget.diveId);
+    ref.read(highlight.notifier).state = annotationId;
+    Future<void>.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted && ref.read(highlight) == annotationId) {
+        ref.read(highlight.notifier).state = null;
+      }
+    });
+  }
+
+  /// A tap on an annotation link in the Notes card (#4109): scrolls to the
+  /// profile and asks the chart to light the marker and open its popup.
+  Future<void> _scrollToProfileAndFocus(String annotationId) async {
+    final ctx = _profileSectionKey.currentContext;
+    if (ctx != null) {
+      await Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.05,
+      );
+    }
+    if (!mounted) return;
+    ref.read(annotationFocusProvider(widget.diveId).notifier).state =
+        annotationId;
+  }
 
   /// Scrolls the page so the safety review section is visible (callout
   /// "Details" action). The selection stays active.
@@ -162,6 +214,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       diveId: dive.id,
     ),
     openDocument: (item) => DocumentOpenHelper.open(context, ref, item),
+    openAnnotation: _scrollToProfileAndFocus,
   );
 
   /// What [_profileSectionFor] last built.
@@ -177,10 +230,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final section = _profileSection;
     if (section != null && section.diveId == id) return section;
     return _profileSection = DiveDetailProfileSection(
+      key: _profileSectionKey,
       diveId: id,
       exportKey: _profileChartExportKey,
       onSafetyFindingDetails: _scrollToSafetySection,
       onSetPrimarySource: _setPrimarySource,
+      onOpenInNotes: _scrollToNotes,
     );
   }
 
@@ -203,6 +258,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    // The fullscreen profile's "Open in Notes" (#4109): it pops, then asks
+    // this page to scroll to the Notes card.
+    ref.listen<String?>(annotationOpenInNotesRequestProvider(widget.diveId), (
+      _,
+      id,
+    ) {
+      if (id == null) return;
+      ref
+              .read(
+                annotationOpenInNotesRequestProvider(widget.diveId).notifier,
+              )
+              .state =
+          null;
+      _scrollToNotes(id);
+    });
     final embeddedSiteId = widget.embeddedSiteId;
     if (embeddedSiteId != null && embeddedSiteId.isNotEmpty) {
       return SiteDetailPage(
@@ -356,6 +426,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
               dive: dive,
               profileSection: _profileSectionFor(dive.id),
               safetyReviewKey: _safetyReviewSectionKey,
+              notesKey: _notesSectionKey,
               retention: _analysisRetention,
               actions: _sectionActions,
             ),
