@@ -23,6 +23,7 @@ class HeaderMapBackdrop extends StatelessWidget {
     super.key,
     required this.fadeColor,
     required this.child,
+    this.passesPointerThrough = false,
   });
 
   /// The color the map fades into; the header card's background.
@@ -30,6 +31,13 @@ class HeaderMapBackdrop extends StatelessWidget {
 
   /// The map drawn behind the fade.
   final Widget child;
+
+  /// Whether taps go through the fade to [child]. Off by default: the fade
+  /// then counts as hit everywhere, which is what lets the dive detail
+  /// header's InkWell take a tap on the map's corner instead of the locked
+  /// map swallowing it as a dead zone. The trip story's day card turns it
+  /// on so the pins on its day map stay tappable under the fade (#4106).
+  final bool passesPointerThrough;
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +57,10 @@ class HeaderMapBackdrop extends StatelessWidget {
               clipper: const _BottomInsetClipper(kHeaderMapBottomInset),
               child: child,
             ),
-            // The fade is paint only: a DecoratedBox counts as hit for every
-            // pointer inside it, which would swallow the taps on a day map's
-            // pins under the trip story's day hero (issue #4106).
+            // A DecoratedBox counts as hit for every pointer inside it; see
+            // [passesPointerThrough] for which callers want that.
             IgnorePointer(
+              ignoring: passesPointerThrough,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(

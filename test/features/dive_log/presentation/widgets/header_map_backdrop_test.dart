@@ -95,9 +95,10 @@ void main() {
     expect(_fadeGradient(tester).stops, [0.0, 0.0, 0.0, 0.0, 1.0]);
   });
 
-  testWidgets('a tap through the fade reaches the map under it', (
-    tester,
-  ) async {
+  Future<int> tapsThroughFade(
+    WidgetTester tester, {
+    required bool passesPointerThrough,
+  }) async {
     var taps = 0;
     await tester.pumpWidget(
       Directionality(
@@ -108,6 +109,7 @@ void main() {
             height: 200,
             child: HeaderMapBackdrop(
               fadeColor: _fade,
+              passesPointerThrough: passesPointerThrough,
               child: GestureDetector(
                 key: _mapKey,
                 behavior: HitTestBehavior.opaque,
@@ -123,6 +125,20 @@ void main() {
     await tester.tapAt(
       tester.getTopLeft(find.byKey(_mapKey)) + const Offset(20, 20),
     );
-    expect(taps, 1);
+    return taps;
+  }
+
+  testWidgets('by default the fade takes the tap, as the dive header needs', (
+    tester,
+  ) async {
+    // The dive detail header's InkWell wraps the whole stack; the fade
+    // counting as hit is what keeps the map's corner from being a dead zone.
+    expect(await tapsThroughFade(tester, passesPointerThrough: false), 0);
+  });
+
+  testWidgets('passesPointerThrough lets a tap reach the map under the fade', (
+    tester,
+  ) async {
+    expect(await tapsThroughFade(tester, passesPointerThrough: true), 1);
   });
 }

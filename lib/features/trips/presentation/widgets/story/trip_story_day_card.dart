@@ -152,6 +152,8 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                 child: Builder(
                   builder: (context) => HeaderMapBackdrop(
                     fadeColor: backdropColorOf(context),
+                    // The pins above the header row stay tappable.
+                    passesPointerThrough: true,
                     child: TripDayMap(
                       day: day,
                       points: widget.mapPoints,
