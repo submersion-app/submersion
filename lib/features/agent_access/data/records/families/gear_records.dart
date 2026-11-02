@@ -1,4 +1,3 @@
-import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/agent_access/data/documents/gear_documents.dart';
 import 'package:submersion/features/agent_access/data/documents/media_document.dart';
@@ -28,17 +27,12 @@ final _viaEquipment = viaParent('equipment', 'equipment_id', _equipmentScope);
 /// As `CylinderFillRepository.getAllVisibleTo`: a fill follows its cylinder,
 /// and one on no cylinder belongs to whoever logged it.
 QueryScope _fillScope(String diverId, String alias) {
-  final visible = VisibilityFilter.equipmentSqlFragment(
-    tableAlias: '${alias}e',
-    diverId: diverId,
-    conjunction: 'WHERE',
-  );
+  final onCylinder = _viaEquipment(diverId, alias)!;
   return (
     sql:
-        '($alias.equipment_id IN (SELECT ${alias}e.id FROM equipment '
-        '${alias}e${visible.whereClause}) OR ($alias.equipment_id IS NULL '
+        '(${onCylinder.sql} OR ($alias.equipment_id IS NULL '
         'AND $alias.diver_id = ?))',
-    params: [for (final v in visible.variables) v.value as Object, diverId],
+    params: [...onCylinder.params, diverId],
   );
 }
 
@@ -92,9 +86,19 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
         for (final o in await r.equipmentObservations.getForEquipment(item.id))
           equipmentObservationDocument(o),
       ],
+      // As the cylinder's own page: its gear row's fills and its passport's.
       'fills': (item, load) async => [
-        for (final f in await r.cylinderFills.getAllVisibleTo(load.diverId))
-          if (f.equipmentId == item.id) cylinderFillDocument(f),
+        for (final f in await RecordReader(r.db).keepVisible(
+          'cylinder_fills',
+          _fillScope,
+          await r.cylinderFills.getForCylinder(
+            passportId: await r.cylinderPassports.getPassportId(item.id),
+            equipmentId: item.id,
+          ),
+          (f) => f.id,
+          load.diverId,
+        ))
+          cylinderFillDocument(f),
       ],
       'transmitters': (item, _) async => [
         for (final x in await r.transmitters.getForEquipment(item.id))
@@ -112,19 +116,14 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
     document: serviceRecordDocument,
     summaryKeys: const ['equipment_id', 'category', 'service_date', 'provider'],
   ),
-  RecordEntity<ServiceSchedule>(
+  childEntity<ServiceSchedule>(
+    r,
     name: 'service_schedules',
     table: 'service_schedules',
     scope: _viaEquipment,
     parentColumn: 'equipment_id',
-    load: (ids, _) => loadChildren(
-      r.db,
-      table: 'service_schedules',
-      parentColumn: 'equipment_id',
-      ids: ids,
-      idOf: (s) => s.id,
-      byParents: r.serviceSchedules.getSchedulesForEquipmentIds,
-    ),
+    idOf: (s) => s.id,
+    byParents: r.serviceSchedules.getSchedulesForEquipmentIds,
     document: serviceScheduleDocument,
     summaryKeys: const [
       'equipment_id',
@@ -142,21 +141,16 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
     document: serviceKindDocument,
     summaryKeys: const ['name', 'is_built_in', 'default_interval_days'],
   ),
-  RecordEntity<EquipmentComponent>(
+  childEntity<EquipmentComponent>(
+    r,
     name: 'equipment_components',
     table: 'equipment_components',
     scope: viaParent('equipment', 'parent_equipment_id', _equipmentScope),
     parentColumn: 'parent_equipment_id',
     orderBy: 'r0.parent_equipment_id, r0.sort_order',
-    load: (ids, _) => loadChildren(
-      r.db,
-      table: 'equipment_components',
-      parentColumn: 'parent_equipment_id',
-      ids: ids,
-      idOf: (c) => c.id,
-      byParents: (parents) =>
-          eachParent(parents, r.equipmentComponents.getComponents),
-    ),
+    idOf: (c) => c.id,
+    byParents: (parents) =>
+        eachParent(parents, r.equipmentComponents.getComponents),
     document: equipmentComponentDocument,
     summaryKeys: const [
       'parent_equipment_id',
@@ -164,37 +158,27 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
       'role',
     ],
   ),
-  RecordEntity<EquipmentShare>(
+  childEntity<EquipmentShare>(
+    r,
     name: 'equipment_shares',
     table: 'equipment_shares',
     scope: _viaEquipment,
     parentColumn: 'equipment_id',
-    load: (ids, _) => loadChildren(
-      r.db,
-      table: 'equipment_shares',
-      parentColumn: 'equipment_id',
-      ids: ids,
-      idOf: (s) => s.id,
-      byParents: r.equipmentShares.getSharesForItems,
-    ),
+    idOf: (s) => s.id,
+    byParents: r.equipmentShares.getSharesForItems,
     document: equipmentShareDocument,
     summaryKeys: const ['equipment_id', 'diver_id'],
   ),
-  RecordEntity<EquipmentLocationMove>(
+  childEntity<EquipmentLocationMove>(
+    r,
     name: 'equipment_location_moves',
     table: 'equipment_location_moves',
     scope: _viaEquipment,
     parentColumn: 'equipment_id',
     orderBy: 'r0.equipment_id, r0.moved_at DESC',
-    load: (ids, _) => loadChildren(
-      r.db,
-      table: 'equipment_location_moves',
-      parentColumn: 'equipment_id',
-      ids: ids,
-      idOf: (m) => m.id,
-      byParents: (parents) =>
-          eachParent(parents, r.equipmentLocationMoves.getMovesFor),
-    ),
+    idOf: (m) => m.id,
+    byParents: (parents) =>
+        eachParent(parents, r.equipmentLocationMoves.getMovesFor),
     document: equipmentLocationMoveDocument,
     summaryKeys: const ['equipment_id', 'location_id', 'moved_at'],
   ),
@@ -223,20 +207,23 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
     table: 'equipment_sets',
     scope: owned(),
     orderBy: 'r0.name COLLATE NOCASE',
-    load: (ids, _) => loadEach(ids, r.equipmentSets.getSetById),
+    // A set can outlive a share, so a member may not be this diver's to see.
+    load: (ids, load) => loadEach(ids, (id) async {
+      final set = await r.equipmentSets.getSetById(id);
+      return set?.copyWith(
+        equipmentIds: await RecordReader(r.db).visibleRows(
+          'equipment',
+          _equipmentScope,
+          set.equipmentIds,
+          load.diverId,
+        ),
+      );
+    }),
     document: equipmentSetDocument,
     summaryKeys: const ['name', 'description', 'is_default'],
     blocks: {
-      // A set can outlive a share, so a member may not be this diver's to see.
-      'items': (set, load) async => [
-        for (final e in await r.equipment.getEquipmentByIds(
-          await RecordReader(r.db).visibleRows(
-            'equipment',
-            _equipmentScope,
-            set.equipmentIds,
-            load.diverId,
-          ),
-        ))
+      'items': (set, _) async => [
+        for (final e in await r.equipment.getEquipmentByIds(set.equipmentIds))
           equipmentDocument(e),
       ],
       'geofences': (set, _) async => [

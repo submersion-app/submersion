@@ -126,7 +126,9 @@ void main() {
       expect(m.keys, isNot(contains('image_data')));
       expect(m['local_path'], '/photos/sig.png');
       expect(m['source_type'], 'localFile');
-      expect(m['captured_at'], '2024-05-01T10:00:00.000Z');
+      // taken_at is stored as a wall clock, so it takes the wall-clock key.
+      expect(m['captured_time'], '2024-05-01T10:00:00.000Z');
+      expect(m.containsKey('captured_at'), isFalse);
       expect(m.toString(), isNot(contains('[9, 8, 7, 6, 5]')));
     });
 

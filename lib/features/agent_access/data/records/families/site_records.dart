@@ -53,20 +53,15 @@ List<RecordEntry> siteEntries(RecordRepositories r) => [
       )).toList(),
     },
   ),
-  RecordEntity<SiteFeature>(
+  childEntity<SiteFeature>(
+    r,
     name: 'site_features',
     table: 'site_features',
     scope: viaParent('dive_sites', 'site_id', rootScope(QuerySubject.sites)),
     parentColumn: 'site_id',
     orderBy: 'r0.site_id, r0.name',
-    load: (ids, _) => loadChildren(
-      r.db,
-      table: 'site_features',
-      parentColumn: 'site_id',
-      ids: ids,
-      idOf: (f) => f.id,
-      byParents: r.siteFeatures.getFeaturesForSites,
-    ),
+    idOf: (f) => f.id,
+    byParents: r.siteFeatures.getFeaturesForSites,
     document: siteFeatureDocument,
     summaryKeys: const ['site_id', 'type', 'name', 'depth_m'],
   ),
@@ -84,7 +79,12 @@ List<RecordEntry> siteEntries(RecordRepositories r) => [
     table: 'dive_centers',
     scope: rootScope(QuerySubject.centers),
     orderBy: 'r0.name COLLATE NOCASE',
-    load: (ids, _) => loadEach(ids, r.centers.getDiveCenterById),
+    load: (ids, load) => loadEachOrAll(
+      ids,
+      r.centers.getDiveCenterById,
+      () => r.centers.getAllDiveCenters(diverId: load.diverId),
+      (c) => c.id,
+    ),
     document: centerDocument,
     summaryKeys: const ['name', 'city', 'country', 'rating'],
     blocks: {

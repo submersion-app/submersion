@@ -12,6 +12,19 @@ import 'package:submersion/features/planner/domain/entities/mission/scooter_spec
 void main() {
   final at = DateTime.utc(2026, 5, 1, 9);
 
+  test('a plan start reads back local and keeps its digits and its Z', () {
+    final doc = divePlanDocument(
+      DivePlan(
+        id: 'p',
+        name: 'Deep',
+        createdAt: at,
+        updatedAt: at,
+        startDateTime: DateTime(2026, 5, 1, 9),
+      ),
+    );
+    expect(doc['start_date_time'], '2026-05-01T09:00:00.000Z');
+  });
+
   test('a plan keeps its settings under unit-named keys', () {
     final doc = divePlanDocument(
       DivePlan(

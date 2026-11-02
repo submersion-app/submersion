@@ -1,3 +1,4 @@
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/agent_access/data/documents/dive_document.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -12,7 +13,10 @@ Map<String, Object?> divePlanDocument(DivePlan p) => {
   'notes': p.notes,
   'site_id': p.siteId,
   'mode': p.mode.name,
-  'start_date_time': wallClockOrNull(p.startDateTime),
+  // The planner holds this as a local DateTime whose digits are the wall clock.
+  'start_date_time': p.startDateTime == null
+      ? null
+      : wallClock(asWallClockUtc(p.startDateTime!)),
   'source_dive_id': p.sourceDiveId,
   'linked_dive_id': p.linkedDiveId,
   'altitude_m': p.altitude,

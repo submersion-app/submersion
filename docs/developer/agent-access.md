@@ -70,7 +70,8 @@ Every entity an agent can read is one entry in the catalogue. To add one:
 2. Add a `RecordEntity<T>` to the family under `data/records/families/`: the
    wire `name`, the `table`, a `scope`, a `load`, the `document`, and
    `summaryKeys`. Give it a `parentColumn` when `parent_id` makes sense, and
-   `blocks` for children a caller asks for by name.
+   `blocks` for children a caller asks for by name. A child whose repository
+   only reads by parent is a `childEntity`, which wires the read by id.
 3. Copy `scope` from the repository's own list method, so the agent sees what
    the app shows that profile: `owned`, `ownedOrNull`, `ownedOrBuiltIn`,
    `ownedNullOrBuiltIn`, `ownedOrShared`, `rootScope`, `viaParent`, `everyone`,
@@ -78,6 +79,10 @@ Every entity an agent can read is one entry in the catalogue. To add one:
    against that list method.
 4. Add a repository to `RecordRepositories` if it needs a new one. Keep it
    `late final`, because the bundle is built per request.
+
+A block that lists rows another entity governs passes them through
+`RecordReader.keepVisible` with that entity's scope, so a block never shows a
+row the entity itself would refuse.
 
 `record_catalog_guard_test.dart` fails on a tracked table with no decision: a
 new table must be an entity, a link, folded into a parent, or listed as
@@ -106,6 +111,12 @@ reads: a repository that reads with `isUtc: true` usually holds a wall clock.
 `calendarDate` reads the value as held and never goes through `toUtc()`:
 most of these are stored as local midnight, so a shift would move them to the
 day before.
+
+`wallClock` asserts that its value is flagged UTC, because the right conversion
+depends on where a local-flagged value came from. A Drift `dateTime()` column
+written from a wall clock reads back local-flagged and needs `toUtc()`. A local
+`DateTime` whose digits are the wall clock, such as a plan's start, needs
+`asWallClockUtc`.
 
 ## Service status in queries
 

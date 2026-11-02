@@ -1,3 +1,4 @@
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/agent_access/data/documents/logbook_documents.dart';
 import 'package:submersion/features/agent_access/data/documents/plan_documents.dart';
 import 'package:submersion/features/agent_access/data/documents/track_documents.dart';
@@ -13,13 +14,11 @@ import 'package:submersion/features/media/domain/entities/media_smart_album.dart
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
-import 'package:submersion/features/query/data/name_index_loader.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/safety/domain/entities/emergency_info.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The records that stand alone: documents, incidents, plans, rules, tracks,
 /// computers and the views a diver has saved.
@@ -112,12 +111,9 @@ List<RecordEntry> logbookEntries(RecordRepositories r) => [
     table: 'rules',
     scope: owned(),
     orderBy: 'r0.subject, r0.sort_order, r0.name',
-    load: (ids, load) async {
-      final names = await NameIndexLoader(
-        r.db,
-      ).load(diverId: load.diverId, l10n: l10nForLocaleTag('en'));
-      return loadEach(ids, (id) => r.rules.getById(id, names: names));
-    },
+    // The document carries the stored JSON, so no name needs resolving.
+    load: (ids, _) =>
+        loadEach(ids, (id) => r.rules.getById(id, names: NameIndex.empty)),
     document: ruleDocument,
     summaryKeys: const ['subject', 'name', 'enabled'],
   ),

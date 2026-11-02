@@ -12,7 +12,8 @@ RecordEntity<String> _entity({
   String table = 'tags',
   RecordScope? scope,
   String? parentColumn,
-  String orderBy = 'r0.id',
+  String? orderBy,
+  List<String> summaryKeys = const ['name'],
   Map<String, BlockLoader<String>> blocks = const {},
 }) => RecordEntity<String>(
   name: 'things',
@@ -25,7 +26,7 @@ RecordEntity<String> _entity({
       if (id != 'gone') id: id,
   },
   document: (s) => {'id': s, 'name': 'name of $s', 'body': 'long'},
-  summaryKeys: const ['name'],
+  summaryKeys: summaryKeys,
   blocks: blocks,
 );
 
@@ -137,6 +138,17 @@ void main() {
         isEmpty,
       );
     });
+
+    test('keepVisible keeps the rows a rule allows, in their order', () async {
+      final kept = await RecordReader(db).keepVisible(
+        'tags',
+        owned(),
+        const [('t2', 'two'), ('x1', 'foreign'), ('t1', 'one')],
+        (row) => row.$1,
+        a,
+      );
+      expect(kept, [('t2', 'two'), ('t1', 'one')]);
+    });
   });
 
   group('page', () {
@@ -221,6 +233,13 @@ void main() {
       ]);
     });
 
+    test('a summary key the document lacks fails, never reads null', () async {
+      await expectLater(
+        _entity(summaryKeys: const ['nope']).summaries(['t1'], load),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
     test('a summarize function replaces the projection', () async {
       final entity = RecordEntity<String>(
         name: 'things',
@@ -246,6 +265,37 @@ void main() {
         'b',
       ], (id) async => id == 'a' ? 'found' : null);
       expect(loaded, {'a': 'found'});
+    });
+
+    test('loadEachOrAll reads a short page one row at a time', () async {
+      var lists = 0;
+      final loaded = await loadEachOrAll<String>(
+        ['a', 'b'],
+        (id) async => id,
+        () async {
+          lists++;
+          return const [];
+        },
+        (s) => s,
+      );
+      expect(loaded, {'a': 'a', 'b': 'b'});
+      expect(lists, 0);
+    });
+
+    test('loadEachOrAll lists once for a long page', () async {
+      var reads = 0;
+      final ids = [for (var i = 0; i <= kLoadEachMaxIds; i++) 'id-$i'];
+      final loaded = await loadEachOrAll<String>(
+        ids,
+        (id) async {
+          reads++;
+          return id;
+        },
+        () async => ids,
+        (s) => s,
+      );
+      expect(loaded.keys, ids);
+      expect(reads, 0);
     });
 
     test('byId keys a list', () {

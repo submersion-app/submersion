@@ -242,8 +242,10 @@ Map<String, Object?> diveDataSourceDocument(DiveDataSource s) => {
   'avg_depth_m': s.avgDepth,
   'duration_s': s.duration,
   'water_temp_c': s.waterTemp,
-  'entry_time': wallClockOrNull(s.entryTime),
-  'exit_time': wallClockOrNull(s.exitTime),
+  // Drift columns of type dateTime read back local-flagged, so toUtc restores
+  // the wall clock the import wrote.
+  'entry_time': wallClockOrNull(s.entryTime?.toUtc()),
+  'exit_time': wallClockOrNull(s.exitTime?.toUtc()),
   'max_ascent_rate_m_min': s.maxAscentRate,
   'max_descent_rate_m_min': s.maxDescentRate,
   'surface_interval_s': s.surfaceInterval,

@@ -12,10 +12,19 @@ const kDocumentDateRule =
 
 /// A dive clock value: wall-clock time flagged UTC. Printed as held, without
 /// `toLocal()`, so the `Z` it carries is nominal.
-String wallClock(DateTime value) => value.toIso8601String();
+///
+/// A local-flagged value is refused rather than printed, because what it
+/// needs depends on where it came from: `toUtc()` for a Drift `dateTime()`
+/// column written from a wall clock, `asWallClockUtc` for a local `DateTime`
+/// whose digits are the wall clock.
+String wallClock(DateTime value) {
+  assert(value.isUtc, 'A wall clock is flagged UTC before it is printed.');
+  return value.toIso8601String();
+}
 
 /// [wallClock] for an optional value.
-String? wallClockOrNull(DateTime? value) => value?.toIso8601String();
+String? wallClockOrNull(DateTime? value) =>
+    value == null ? null : wallClock(value);
 
 /// A calendar date. Read from the value as held and never through `toUtc()`,
 /// because most of these are stored as local midnight and a zone shift would

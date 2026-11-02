@@ -31,9 +31,10 @@ class GetRecordsTool implements AgentTool {
       'blocks are returned only when listed in include; a name the entity '
       'does not have is refused and the refusal lists the ones it does. '
       'Samples and track points are paged with profile_offset and '
-      'profile_limit. fields narrows each document to the named keys. Ids the '
-      'named diver cannot see are listed under missing. Bytes (photos, card '
-      'images, document pages) are never returned.';
+      'profile_limit. fields narrows each document to the named keys, and a '
+      'name a returned document does not have is refused. Ids the named diver '
+      'cannot see are listed under missing. Bytes (photos, card images, '
+      'document pages) are never returned.';
 
   @override
   Map<String, Object?> get inputSchema => {

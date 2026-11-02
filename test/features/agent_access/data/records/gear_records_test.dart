@@ -468,7 +468,49 @@ void main() {
           );
       final doc = (await h.one('equipment_sets', 'set-a', include: ['items']))!;
       expect((doc['items'] as List).cast<Map>().map((e) => e['id']), ['mine']);
+      expect(doc['equipment_ids'], ['mine']);
     });
+
+    test(
+      'an equipment item\'s fills include those under its passport',
+      () async {
+        await db
+            .into(db.equipmentAttributes)
+            .insert(
+              EquipmentAttributesCompanion.insert(
+                id: 'attr-passport',
+                equipmentId: 'mine',
+                attrKey: 'passport_id',
+                valueText: const Value('p-held'),
+                createdAt: t,
+                updatedAt: t,
+              ),
+            );
+        for (final (id, owner) in [
+          ('fill-held', kDiverA),
+          ('fill-held-theirs', kDiverB),
+        ]) {
+          await db
+              .into(db.cylinderFills)
+              .insert(
+                CylinderFillsCompanion.insert(
+                  id: id,
+                  passportId: 'p-held',
+                  filledAt: t,
+                  o2Percent: 32,
+                  createdAt: t,
+                  updatedAt: t,
+                  diverId: Value(owner),
+                ),
+              );
+        }
+        final doc = (await h.one('equipment', 'mine', include: ['fills']))!;
+        expect(
+          {for (final f in (doc['fills'] as List).cast<Map>()) f['id']},
+          {'fill-mine', 'fill-held'},
+        );
+      },
+    );
 
     test('a cylinder config folds its items in', () async {
       final doc = (await h.one(

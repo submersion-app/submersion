@@ -229,6 +229,8 @@ void main() {
               id: 'src',
               diveId: 'a1',
               isPrimary: const Value(true),
+              entryTime: Value(DateTime.utc(2024, 5, 1, 10)),
+              exitTime: Value(DateTime.utc(2024, 5, 1, 10, 45)),
               importedAt: DateTime.utc(2024),
               createdAt: DateTime.utc(2024),
             ),
@@ -244,7 +246,42 @@ void main() {
       ]);
       expect((doc['weights'] as List).cast<Map>().single['amount_kg'], 4.0);
       expect((doc['media'] as List).cast<Map>().single['id'], 'm1');
-      expect((doc['data_sources'] as List).cast<Map>().single['id'], 'src');
+      final source = (doc['data_sources'] as List).cast<Map>().single;
+      expect(source['id'], 'src');
+      // Drift reads this column local-flagged; the wall clock must survive.
+      expect(source['entry_time'], '2024-05-01T10:00:00.000Z');
+      expect(source['exit_time'], '2024-05-01T10:45:00.000Z');
+    });
+
+    test('a type another profile owns gives no name away', () async {
+      await db
+          .into(db.diveTypes)
+          .insert(
+            DiveTypesCompanion.insert(
+              id: 'their-type',
+              name: 'Their private type',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverB),
+            ),
+          );
+      await db
+          .into(db.diveDiveTypes)
+          .insert(
+            DiveDiveTypesCompanion.insert(
+              id: 'ddt-theirs',
+              diveId: 'a1',
+              diveTypeId: 'their-type',
+              createdAt: t,
+            ),
+          );
+
+      final doc = (await h.one('dives', 'a1', include: ['types']))!;
+
+      final type = (doc['types'] as List).cast<Map>().singleWhere(
+        (t) => t['id'] == 'their-type',
+      );
+      expect(type['name'], isNull);
     });
 
     test('gear names the equipment on the dive', () async {
@@ -312,6 +349,22 @@ void main() {
   });
 
   group('media', () {
+    test('a row with no capture time still reads', () async {
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              id: 'undated',
+              filePath: 'path/undated.jpg',
+              diveId: const Value('a1'),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      final doc = (await h.one('media', 'undated'))!;
+      expect(doc['captured_time'], endsWith('Z'));
+    });
+
     test('media scope matches the library rule', () async {
       expect((await h.list('media')).toSet(), {'m1', 'm3'});
       expect((await h.list('media', diverId: kDiverB)).toSet(), {'m2', 'm3'});

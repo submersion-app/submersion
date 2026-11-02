@@ -32,6 +32,17 @@ void main() {
   });
 
   group('wallClock', () {
+    test('a local-flagged value is refused, not printed without its Z', () {
+      expect(
+        () => wallClock(DateTime(2024, 5, 1, 10)),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => wallClockOrNull(DateTime(2024, 5, 1, 10)),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
     test('wall clock keeps the value as held', () {
       expect(
         wallClock(DateTime.utc(2024, 5, 1, 10)),

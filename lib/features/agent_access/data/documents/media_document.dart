@@ -18,7 +18,9 @@ Map<String, Object?> mediaDocument(MediaItem m) {
     'url': m.url,
     'thumbnail_path': m.thumbnailPath,
     'original_filename': m.originalFilename,
-    'captured_at': instant(m.takenAt),
+    // Already a wall clock; toUtc only matters to a row with no taken_at, which
+    // the mapper fills from a local now.
+    'captured_time': wallClock(m.takenAt.toUtc()),
     'latitude': m.latitude,
     'longitude': m.longitude,
     'width_px': m.width,

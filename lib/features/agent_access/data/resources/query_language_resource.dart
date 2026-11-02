@@ -1,4 +1,5 @@
 import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/query_roots.dart';
 import 'package:submersion/features/agent_access/data/resources/agent_resource.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
@@ -6,7 +7,8 @@ import 'package:submersion/features/query/app_query_registry.dart';
 
 /// The grammar, as the query language design records it
 /// (docs/design/specs/2026-09-25-entity-query-language-design.md).
-const kQueryGrammarText = '''
+const kQueryGrammarText =
+    '''
 # Submersion query language
 
 Case-insensitive keywords. Whitespace-separated terms are ANDed. Precedence:
@@ -58,10 +60,7 @@ site.country = Mexico AND depth > 30
 Field keys are lowerCamel (`waterTemp`, `bottomTime`) with aliases listed
 below. An empty query matches every record.
 
-Times in tool results: date_time and keys ending in _time are the
-local wall clock of the dive or event, carried as ISO 8601 with a nominal Z
-suffix. They are not UTC instants: do not shift them. Keys ending in _date are calendar
-dates. Keys ending in _at are true UTC instants.
+$kDocumentDateRule
 
 serviceDue and nextServiceDue are evaluated for the named diver when a query
 runs, so they work for every profile on the device.

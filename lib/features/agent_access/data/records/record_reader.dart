@@ -59,6 +59,24 @@ class RecordReader {
     ];
   }
 
+  /// [rows] without the ones [rule] refuses, for a block that lists rows
+  /// another entity governs.
+  Future<List<T>> keepVisible<T>(
+    String table,
+    RecordScope rule,
+    List<T> rows,
+    String Function(T) idOf,
+    String diverId,
+  ) async {
+    final visible = (await visibleRows(table, rule, [
+      for (final row in rows) idOf(row),
+    ], diverId)).toSet();
+    return [
+      for (final row in rows)
+        if (visible.contains(idOf(row))) row,
+    ];
+  }
+
   /// One window over what [diverId] may see, narrowed to one parent when
   /// [parentId] names it.
   Future<RecordPage> page(
@@ -82,6 +100,7 @@ class RecordReader {
       if (parentId != null) 'r0.$parentColumn = ?',
     ];
     final where = clauses.isEmpty ? '' : ' WHERE ${clauses.join(' AND ')}';
+    final order = [?entry.orderBy, 'r0.id'].join(', ');
     final variables = [
       if (scope != null)
         for (final p in scope.params) Variable<Object>(p),
@@ -96,7 +115,7 @@ class RecordReader {
     final rows = await _db
         .customSelect(
           'SELECT r0.id AS id FROM ${entry.table} r0$where '
-          'ORDER BY ${entry.orderBy}, r0.id LIMIT ? OFFSET ?',
+          'ORDER BY $order LIMIT ? OFFSET ?',
           variables: [
             ...variables,
             Variable<int>(limit),

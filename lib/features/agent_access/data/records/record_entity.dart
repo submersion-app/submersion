@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
@@ -46,8 +47,9 @@ abstract interface class RecordEntry {
   /// The column `parent_id` filters on, when the entity has one.
   String? get parentColumn;
 
-  /// SQL over alias `r0`, ahead of the `r0.id` tie break.
-  String get orderBy;
+  /// SQL over alias `r0`, ahead of the `r0.id` tie break, when the entity has
+  /// an order of its own.
+  String? get orderBy;
 
   Set<String> get blocks;
 
@@ -75,7 +77,7 @@ class RecordEntity<T> implements RecordEntry {
     required Map<String, Object?> Function(T) document,
     required List<String> summaryKeys,
     this.parentColumn,
-    this.orderBy = 'r0.id',
+    this.orderBy,
     Map<String, BlockLoader<T>> blocks = const {},
     Future<List<Map<String, Object?>>> Function(List<String>, RecordLoad)?
     summarize,
@@ -94,7 +96,7 @@ class RecordEntity<T> implements RecordEntry {
   @override
   final String? parentColumn;
   @override
-  final String orderBy;
+  final String? orderBy;
 
   final Future<Map<String, T>> Function(List<String>, RecordLoad) _load;
   final Map<String, Object?> Function(T) _document;
@@ -140,9 +142,16 @@ class RecordEntity<T> implements RecordEntry {
     );
     return [
       for (final id in ids)
-        if (documents[id] case final document?)
-          {'id': id, for (final key in _summaryKeys) key: document[key]},
+        if (documents[id] case final document?) _summary(id, document),
     ];
+  }
+
+  Map<String, Object?> _summary(String id, Map<String, Object?> document) {
+    assert(
+      _summaryKeys.every(document.containsKey),
+      '$name summary keys must all be document keys.',
+    );
+    return {'id': id, for (final key in _summaryKeys) key: document[key]};
   }
 }
 
@@ -150,6 +159,37 @@ class RecordEntity<T> implements RecordEntry {
 Map<String, T> byId<T>(Iterable<T> records, String Function(T) idOf) => {
   for (final record in records) idOf(record): record,
 };
+
+/// An entity read by id through a repository that only reads by parent. Its
+/// rows list under [parentColumn].
+RecordEntity<T> childEntity<T>(
+  RecordRepositories r, {
+  required String name,
+  required String table,
+  required String parentColumn,
+  required RecordScope scope,
+  required String Function(T) idOf,
+  required Future<Map<String, List<T>>> Function(List<String>) byParents,
+  required Map<String, Object?> Function(T) document,
+  required List<String> summaryKeys,
+  String? orderBy,
+}) => RecordEntity<T>(
+  name: name,
+  table: table,
+  scope: scope,
+  parentColumn: parentColumn,
+  orderBy: orderBy,
+  load: (ids, _) => loadChildren<T>(
+    r.db,
+    table: table,
+    parentColumn: parentColumn,
+    ids: ids,
+    idOf: idOf,
+    byParents: byParents,
+  ),
+  document: document,
+  summaryKeys: summaryKeys,
+);
 
 /// One read per id, for a repository with no batch method. A read tool is
 /// bounded by its page size, and these reads are local.
@@ -164,6 +204,23 @@ Future<Map<String, T>> loadEach<T>(
   }
   return loaded;
 }
+
+/// Past this many ids a root reads its whole list once instead of one row per
+/// id. `get_records` stops here, so only a long page of `query` summaries
+/// reaches the list.
+const kLoadEachMaxIds = 50;
+
+/// [loadEach] for a root whose repository lists everything the diver sees:
+/// `query` can ask for thousands of summaries, and one statement per id would
+/// be thousands of statements for one call.
+Future<Map<String, T>> loadEachOrAll<T>(
+  List<String> ids,
+  Future<T?> Function(String) read,
+  Future<List<T>> Function() readAll,
+  String Function(T) idOf,
+) async => ids.length > kLoadEachMaxIds
+    ? byId(await readAll(), idOf)
+    : loadEach(ids, read);
 
 /// One read per parent, for [loadChildren] over a repository with no batch
 /// method.

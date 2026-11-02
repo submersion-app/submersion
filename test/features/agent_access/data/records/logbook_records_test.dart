@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
@@ -305,6 +306,22 @@ void main() {
       expect((doc['actions'] as Map)['actions'], isEmpty);
       expect(await h.one('rules', id, diverId: kDiverB), isNull);
     });
+
+    test('a condition this read cannot resolve comes back as stored', () async {
+      final id = await RuleRepository().create(
+        diverId: kDiverA,
+        subject: RuleSubject.dives,
+        name: 'Named site',
+        triggers: const {},
+        condition: null,
+        actions: const [],
+      );
+      const stored = {'version': 1, 'site': 'a site no index holds'};
+      await (db.update(db.rules)..where((r) => r.id.equals(id))).write(
+        RulesCompanion(conditionJson: Value(jsonEncode(stored))),
+      );
+      expect((await h.one('rules', id))!['condition'], stored);
+    });
   });
 
   group('saved_queries', () {
@@ -511,6 +528,21 @@ void main() {
       final doc = (await h.one('smart_albums', album.id, diverId: kDiverB))!;
       expect(doc['name'], 'Reefs');
       expect(doc['filter'], isA<Map>());
+    });
+
+    test('a smart album states its date bounds as calendar dates', () async {
+      final album = await MediaSmartAlbumRepository().create(
+        name: 'March',
+        filter: MediaLibraryFilter(
+          fromDate: DateTime(2025, 3, 1),
+          toDate: DateTime(2025, 3, 31),
+        ),
+      );
+      final filter = (await h.one('smart_albums', album.id))!['filter'] as Map;
+      expect(filter['from_date'], '2025-03-01');
+      expect(filter['to_date'], '2025-03-31');
+      expect(filter.containsKey('fromDate'), isFalse);
+      expect(filter.containsKey('toDate'), isFalse);
     });
 
     test('a connection map decodes its spec for its owner', () async {

@@ -355,13 +355,36 @@ void main() {
               createdAt: t,
             ),
           );
+      for (final (id, owner) in [('alpha', kDiverA), ('foreign', kDiverB)]) {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: id,
+                diveDateTime: t,
+                createdAt: t,
+                updatedAt: t,
+                diverId: Value(owner),
+              ),
+            );
+        await db
+            .into(db.diveCourses)
+            .insert(
+              DiveCoursesCompanion.insert(
+                id: 'link-$id',
+                diveId: id,
+                courseId: 'course-a',
+                createdAt: t,
+              ),
+            );
+      }
       final doc = (await h.one(
         'courses',
         'course-a',
         include: ['requirements', 'dive_ids'],
       ))!;
       expect((doc['requirements'] as List), hasLength(1));
-      expect(doc['dive_ids'], ['dive']);
+      expect(doc['dive_ids'], ['alpha', 'dive']);
     });
 
     test('a start date is a calendar date', () async {

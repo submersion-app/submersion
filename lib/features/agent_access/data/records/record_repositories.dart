@@ -11,6 +11,7 @@ import 'package:submersion/features/courses/data/repositories/course_repository.
 import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_lab/data/repositories/dive_scenario_repository.dart';
@@ -87,6 +88,7 @@ class RecordRepositories {
   late final dives = DiveRepository();
   late final cylinderConfigs = CylinderConfigRepository();
   late final cylinderFills = CylinderFillRepository();
+  late final cylinderPassports = CylinderPassportRepository();
   late final divePlans = DivePlanRepository();
   late final diveRoles = DiveRoleRepository();
   late final diveScenarios = DiveScenarioRepository();

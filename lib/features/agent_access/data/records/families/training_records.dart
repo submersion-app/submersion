@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' show Variable;
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/agent_access/data/documents/training_documents.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
+import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -41,7 +42,12 @@ List<RecordEntry> trainingEntries(RecordRepositories r) => [
     table: 'buddies',
     scope: rootScope(QuerySubject.buddies),
     orderBy: 'r0.name COLLATE NOCASE',
-    load: (ids, _) => loadEach(ids, r.buddies.getBuddyById),
+    load: (ids, load) => loadEachOrAll(
+      ids,
+      r.buddies.getBuddyById,
+      () => r.buddies.getAllBuddies(diverId: load.diverId),
+      (b) => b.id,
+    ),
     document: buddyDocument,
     summaryKeys: const ['name', 'email', 'certification_title', 'is_favorite'],
     blocks: {
@@ -140,7 +146,12 @@ List<RecordEntry> trainingEntries(RecordRepositories r) => [
     table: 'courses',
     scope: rootScope(QuerySubject.courses),
     orderBy: 'r0.start_date DESC',
-    load: (ids, _) => loadEach(ids, r.courses.getCourseById),
+    load: (ids, load) => loadEachOrAll(
+      ids,
+      r.courses.getCourseById,
+      () => r.courses.getAllCourses(diverId: load.diverId),
+      (c) => c.id,
+    ),
     document: courseDocument,
     summaryKeys: const ['name', 'agency', 'start_date', 'completion_date'],
     blocks: {
@@ -148,31 +159,32 @@ List<RecordEntry> trainingEntries(RecordRepositories r) => [
         for (final p in await _requirements(r, course.id))
           courseRequirementDocument(p),
       ],
-      'dive_ids': (course, _) async {
+      'dive_ids': (course, load) async {
         final rows = await r.db
             .customSelect(
-              'SELECT dive_id FROM dive_courses WHERE course_id = ?',
+              'SELECT dive_id FROM dive_courses WHERE course_id = ? '
+              'ORDER BY dive_id',
               variables: [Variable<String>(course.id)],
             )
             .get();
-        return [for (final row in rows) row.read<String>('dive_id')];
+        return RecordReader(r.db).visibleRows(
+          'dives',
+          rootScope(QuerySubject.dives),
+          [for (final row in rows) row.read<String>('dive_id')],
+          load.diverId,
+        );
       },
     },
   ),
-  RecordEntity<CourseRequirement>(
+  childEntity<CourseRequirement>(
+    r,
     name: 'course_requirements',
     table: 'course_requirements',
     scope: viaParent('courses', 'course_id', rootScope(QuerySubject.courses)),
     parentColumn: 'course_id',
     orderBy: 'r0.course_id, r0.sort_order',
-    load: (ids, _) => loadChildren(
-      r.db,
-      table: 'course_requirements',
-      parentColumn: 'course_id',
-      ids: ids,
-      idOf: (x) => x.id,
-      byParents: (courses) => eachParent(courses, (id) => _requirements(r, id)),
-    ),
+    idOf: (x) => x.id,
+    byParents: (courses) => eachParent(courses, (id) => _requirements(r, id)),
     document: courseRequirementDocument,
     summaryKeys: const ['course_id', 'name', 'kind', 'completed_at'],
   ),
@@ -181,7 +193,12 @@ List<RecordEntry> trainingEntries(RecordRepositories r) => [
     table: 'species',
     scope: rootScope(QuerySubject.species),
     orderBy: 'r0.common_name COLLATE NOCASE',
-    load: (ids, _) => loadEach(ids, r.species.getSpeciesById),
+    load: (ids, _) => loadEachOrAll(
+      ids,
+      r.species.getSpeciesById,
+      r.species.getAllSpecies,
+      (s) => s.id,
+    ),
     document: speciesDocument,
     summaryKeys: const ['common_name', 'scientific_name', 'category'],
   ),

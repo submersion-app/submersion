@@ -102,10 +102,11 @@ class QueryTool implements AgentTool {
     final includeSummaries = args['include_summaries'] == true;
 
     final ctx = await _loader.load(diverId: args['diver_id'] as String?);
+    final now = DateTime.now();
     final parser = QueryParser(
       appQueryRegistry,
       root,
-      ParseContext(prefs: ctx.prefs, now: DateTime.now(), names: ctx.names),
+      ParseContext(prefs: ctx.prefs, now: now, names: ctx.names),
     );
     final node = switch (parser.parse(text)) {
       ParseOk(:final node) => node,
@@ -134,7 +135,7 @@ class QueryTool implements AgentTool {
             diverId: ctx.diverId,
             settings: ctx.settings,
             repositories: _catalog.repositories,
-            now: DateTime.now(),
+            now: now,
           )
         : null;
     final runner = QueryIdSetRunner(context.db);

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/media_smart_album.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
@@ -109,8 +110,17 @@ Map<String, Object?> ruleDocument(Rule r) => {
 Map<String, Object?> smartAlbumDocument(MediaSmartAlbum a) => {
   'id': a.id,
   'name': a.name,
-  'filter': a.filter.toJson(),
+  'filter': _albumFilter(a.filter),
   'sort_order': a.sortOrder,
+};
+
+/// The stored filter, with its date bounds as calendar dates instead of the
+/// epoch millis it stores them as.
+Map<String, Object?> _albumFilter(MediaLibraryFilter f) => {
+  for (final MapEntry(:key, :value) in f.toJson().entries)
+    if (key != 'fromDate' && key != 'toDate') key: value,
+  'from_date': calendarDate(f.fromDate),
+  'to_date': calendarDate(f.toDate),
 };
 
 Map<String, Object?> connectionMapDocument(SavedConnectionMap m) => {

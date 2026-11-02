@@ -44,10 +44,19 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
           diveBuddyDocument(b),
       ],
       'tags': (dive, _) async => [for (final tag in dive.tags) tag.name],
-      'types': (dive, _) async => [
-        for (final id in dive.diveTypeIds)
-          {'id': id, 'name': (await r.diveTypes.getDiveTypeById(id))?.name},
-      ],
+      // Named from what the diver can see, as `dive_types` is: a type another
+      // profile owns keeps its id here and gives no name away.
+      'types': (dive, load) async {
+        final names = {
+          for (final t in await r.diveTypes.getAllDiveTypes(
+            diverId: load.diverId,
+          ))
+            t.id: t.name,
+        };
+        return [
+          for (final id in dive.diveTypeIds) {'id': id, 'name': names[id]},
+        ];
+      },
       'weights': (dive, _) async => [
         for (final w in dive.weights) diveWeightDocument(w),
       ],
@@ -89,25 +98,16 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
       ),
     },
   ),
-  RecordEntity<_DiveTankRow>(
+  _diveChild<_DiveTankRow>(
+    r,
     name: 'dive_tanks',
     table: 'dive_tanks',
-    scope: _viaDive,
-    parentColumn: 'dive_id',
     orderBy: 'r0.dive_id, r0.tank_order',
-    load: (ids, _) => loadChildren(
-      r.db,
-      table: 'dive_tanks',
-      parentColumn: 'dive_id',
-      ids: ids,
-      idOf: (row) => row.tank.id,
-      byParents: (diveIds) async => {
-        for (final dive in await r.dives.getDivesByIdsWithoutSamples(diveIds))
-          dive.id: [
-            for (final tank in dive.tanks) (diveId: dive.id, tank: tank),
-          ],
-      },
-    ),
+    idOf: (row) => row.tank.id,
+    byDive: (ids) async => {
+      for (final dive in await r.dives.getDivesByIdsWithoutSamples(ids))
+        dive.id: [for (final tank in dive.tanks) (diveId: dive.id, tank: tank)],
+    },
     document: (row) => diveTankDocument(row.tank, diveId: row.diveId),
     summaryKeys: const ['dive_id', 'name', 'volume_l', 'o2_fraction', 'role'],
   ),
@@ -187,7 +187,7 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
       'dive_id',
       'source_type',
       'media_type',
-      'captured_at',
+      'captured_time',
       'caption',
     ],
   ),
@@ -195,12 +195,13 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
 
 /// As `MediaLibraryRepository`: a row on a dive follows the dive, and a row
 /// on no dive is the library's, which every profile browses.
-QueryScope mediaScope(String diverId, String alias) => (
-  sql:
-      '($alias.dive_id IS NULL OR $alias.dive_id IN '
-      '(SELECT d.id FROM dives d WHERE d.diver_id = ?))',
-  params: [diverId],
-);
+QueryScope mediaScope(String diverId, String alias) {
+  final onDive = _viaDive(diverId, alias)!;
+  return (
+    sql: '($alias.dive_id IS NULL OR ${onDive.sql})',
+    params: onDive.params,
+  );
+}
 
 /// [media] without the rows [diverId] may not see. A shared site or item lists
 /// every row attached to it, including rows on another diver's dive, which the
@@ -209,16 +210,9 @@ Future<List<MediaItem>> visibleMedia(
   RecordRepositories r,
   List<MediaItem> media,
   String diverId,
-) async {
-  final visible = await RecordReader(
-    r.db,
-  ).visibleRows('media', mediaScope, [for (final m in media) m.id], diverId);
-  final allowed = visible.toSet();
-  return [
-    for (final m in media)
-      if (allowed.contains(m.id)) m,
-  ];
-}
+) => RecordReader(
+  r.db,
+).keepVisible('media', mediaScope, media, (m) => m.id, diverId);
 
 /// A child read by id through a repository that reads by dive.
 RecordEntity<T> _diveChild<T>(
@@ -230,22 +224,17 @@ RecordEntity<T> _diveChild<T>(
   required Map<String, Object?> Function(T) document,
   required List<String> summaryKeys,
   String orderBy = 'r0.dive_id',
-}) => RecordEntity<T>(
+}) => childEntity<T>(
+  r,
   name: name,
   table: table,
-  scope: _viaDive,
   parentColumn: 'dive_id',
-  orderBy: orderBy,
-  load: (ids, _) => loadChildren<T>(
-    r.db,
-    table: table,
-    parentColumn: 'dive_id',
-    ids: ids,
-    idOf: idOf,
-    byParents: byDive,
-  ),
+  scope: _viaDive,
+  idOf: idOf,
+  byParents: byDive,
   document: document,
   summaryKeys: summaryKeys,
+  orderBy: orderBy,
 );
 
 /// The profile is the one expensive part of a dive; decode it only when the
