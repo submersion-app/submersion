@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
-import 'package:submersion/core/services/storage/scratch_sweep.dart';
 import 'package:submersion/features/media_store/data/media_cache_index_sweep.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 
@@ -50,8 +49,7 @@ void main() {
     final report = await sweep().run(dryRun: false);
 
     expect(await rows(), 1);
-    expect(report.filesDeleted, ScratchSweepReport.empty.filesDeleted);
-    expect(report.bytesReclaimed, 0);
+    expect(report.isEmpty, isTrue);
   });
 
   test('a dry run changes nothing and opens no store', () async {

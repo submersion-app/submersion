@@ -48,6 +48,10 @@ class CacheLocation {
   /// Holds the media cache's staging and transcode directories.
   Directory get mediaScratch => _in(_supportBase, _mediaCacheDir);
 
+  Directory get mediaStaging => _in(mediaScratch, 'staging');
+
+  Directory get mediaTranscode => _in(mediaScratch, 'transcode');
+
   Directory get videoThumbnails => _in(_regenerableBase, _videoThumbnailsDir);
 
   Directory get pdfThumbnails => _in(_regenerableBase, _pdfThumbnailsDir);
@@ -110,7 +114,7 @@ Future<List<Directory>> moveCachesToOsDirectory(CacheLocation location) async {
 }
 
 /// Deletes caches that could not be moved. Everything in them can be made
-/// again, and the issue asks that nothing is left behind.
+/// again, and left in place they would go on being backed up.
 ///
 /// Never throws. A directory that survives is found again next launch.
 Future<void> deleteLeftoverCaches(List<Directory> leftovers) async {

@@ -74,6 +74,11 @@ void main() {
       expect(location.osManagesCaches, isTrue);
       expect(location.mediaPools.path, inCache(['media_cache']));
       expect(location.mediaScratch.path, inSupport(['media_cache']));
+      expect(location.mediaStaging.path, inSupport(['media_cache', 'staging']));
+      expect(
+        location.mediaTranscode.path,
+        inSupport(['media_cache', 'transcode']),
+      );
       expect(location.videoThumbnails.path, inCache(['video_thumbnails']));
       expect(location.pdfThumbnails.path, inCache(['pdf_thumbnails']));
     });

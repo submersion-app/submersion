@@ -111,14 +111,9 @@ class StorageScratchSweep {
       at,
       dryRun,
     );
+    report += await _sweep(location.mediaStaging, stagingMaxAge, at, dryRun);
     report += await _sweep(
-      Directory(p.join(location.mediaScratch.path, 'staging')),
-      stagingMaxAge,
-      at,
-      dryRun,
-    );
-    report += await _sweep(
-      Directory(p.join(location.mediaScratch.path, 'transcode')),
+      location.mediaTranscode,
       transcodeMaxAge,
       at,
       dryRun,

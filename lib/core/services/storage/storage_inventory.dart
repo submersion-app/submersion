@@ -84,12 +84,14 @@ class StorageInventory {
     StorageCategory(
       id: StorageCategoryId.mediaCacheStaging,
       group: StorageGroup.mediaCache,
-      measure: () => _measureMediaScratch('staging'),
+      measure: () async =>
+          measureDirectoryBytes((await _cacheLocation()).mediaStaging),
     ),
     StorageCategory(
       id: StorageCategoryId.mediaCacheTranscode,
       group: StorageGroup.mediaCache,
-      measure: () => _measureMediaScratch('transcode'),
+      measure: () async =>
+          measureDirectoryBytes((await _cacheLocation()).mediaTranscode),
     ),
     StorageCategory(
       id: StorageCategoryId.mapTiles,
@@ -156,11 +158,6 @@ class StorageInventory {
       File('$path-wal'),
       File('$path-shm'),
     ]);
-  }
-
-  Future<int?> _measureMediaScratch(String name) async {
-    final scratch = (await _cacheLocation()).mediaScratch;
-    return measureDirectoryBytes(Directory(p.join(scratch.path, name)));
   }
 
   /// FMTC reports kibibytes as a double. Converting here rather than at the

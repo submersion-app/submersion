@@ -16,7 +16,7 @@
 - Moved: `thumbs`, `originals`, `renditions`, `video_thumbnails`, `pdf_thumbnails`. Stay in application support: `staging`, `transcode`, `submersion_local.db`.
 - `relativePath` values in `media_cache_entries` keep their current form (`thumbs/ab/abc.jpg`).
 - No schema change, no new UI, no new strings, no change to `StorageGcCoordinator`.
-- Nothing on the `put` path may check files row by row. One stat per pool is the limit.
+- Nothing on the `put` path may check files row by row. Its stats stay constant however large the pool: up to four, one for its own pool and one per non-empty pool during eviction.
 - The new sweep returns `ScratchSweepReport.empty`: removing a row reclaims no bytes.
 - Paths are built with `p.join`, and tests use `Directory.systemTemp`.
 
@@ -168,7 +168,7 @@ git commit -m "feat(media): keep the media cache index honest after a purge"
 
 **Interfaces:**
 - Consumes: `cacheLocation()`, `resetCacheLocationForTesting()`, `CacheLocation`, `MediaCacheStore.scratchRoot` from Tasks 1 and 2.
-- Produces: `mediaCacheRoot()` returns `(await cacheLocation()).mediaPools`. `openMediaCacheStore` passes `root: location.mediaPools, scratchRoot: location.mediaScratch`. `resetMediaCacheRootForTesting()` stays and calls `resetCacheLocationForTesting()`.
+- Produces: `mediaCacheRoot()` returns `(await cacheLocation()).mediaPools`. `openMediaCacheStore` passes `root: location.mediaPools, scratchRoot: location.mediaScratch`. `resetMediaCacheRootForTesting()` is removed, since a test-only call from `lib/` is an analyzer warning, and its callers use `resetCacheLocationForTesting()`.
 
 - [ ] **Step 1: Write the failing test**
 
