@@ -1,3 +1,4 @@
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/buddy_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
@@ -6,11 +7,11 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 
 /// Every entity an agent can change, by the read catalogue's names.
 class WriteCatalog {
-  WriteCatalog(RecordRepositories repositories)
+  WriteCatalog(RecordRepositories repositories, {LibraryEditStamper? stamper})
     : all = List.unmodifiable(<WritableEntry>[
         DiveWrites(repositories),
         BuddyWrites(repositories),
-        SiteWrites(repositories),
+        SiteWrites(repositories, stamper: stamper),
       ]);
 
   final List<WritableEntry> all;
