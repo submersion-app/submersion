@@ -57,9 +57,12 @@ void main() {
     diveRepository = _FakeDiveRepository();
   });
 
+  /// [withCandidates] false leaves the candidates provider for the test to
+  /// override itself.
   Future<List<Override>> overrides(
     TwinSetCandidates candidates, {
     Map<String, Object> storedPrefs = const {},
+    bool withCandidates = true,
   }) async {
     SharedPreferences.setMockInitialValues(storedPrefs);
     prefs = await SharedPreferences.getInstance();
@@ -73,7 +76,8 @@ void main() {
       insightsRepositoryProvider.overrideWithValue(
         RecordingInsightsRepository(ids: candidates.diveIds),
       ),
-      twinSetCandidatesProvider.overrideWith((ref) async => candidates),
+      if (withCandidates)
+        twinSetCandidatesProvider.overrideWith((ref) async => candidates),
       tankConfigurationStatsProvider.overrideWith(
         (ref) async => TankConfigurationStats.empty,
       ),
@@ -185,12 +189,11 @@ void main() {
     tester,
   ) async {
     final candidates = _candidates();
-    final base = await overrides(candidates);
     final neverForOther = Completer<TwinSetCandidates>();
     await tester.pumpWidget(
       testApp(
         overrides: [
-          ...base.where((o) => !identical(o, base[base.length - 2])),
+          ...await overrides(candidates, withCandidates: false),
           twinSetCandidatesProvider.overrideWith((ref) {
             final diverId = ref.watch(currentDiverIdProvider);
             return diverId == _diverId
