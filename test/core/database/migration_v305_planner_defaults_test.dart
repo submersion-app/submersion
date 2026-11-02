@@ -82,7 +82,10 @@ void main() {
   // NULL now means "follow Settings", which a pre-305 reader's
   // non-nullable fromJson cannot decode, so v305-v308 hold older peers.
   test('the nullable columns raise the sync floor to 308', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 308);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(308),
+    );
   });
 
   test(

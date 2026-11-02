@@ -25,6 +25,7 @@ Future<void> showTankSeriesReassignSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (sheetContext) => _ReassignSheet(
       dive: dive,
       tankPressures: tankPressures,

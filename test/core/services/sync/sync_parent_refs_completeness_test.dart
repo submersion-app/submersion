@@ -37,6 +37,7 @@ void main() {
     'checklist_templates': 'checklistTemplates',
     'checklist_template_sections': 'checklistTemplateSections',
     'checklist_template_items': 'checklistTemplateItems',
+    'trip_checklists': 'tripChecklists',
     'trip_checklist_sections': 'tripChecklistSections',
     'trip_checklist_items': 'tripChecklistItems',
     'equipment': 'equipment',
@@ -190,6 +191,11 @@ void main() {
     // pre_dive_checklist_templates or pre_dive_sessions here: they were not
     // in this map before this change, and adding them is a broader,
     // unrelated completeness fix this plan does not cover.
+    // Checklists (issue #3356): a checklist is deletable (its sections and
+    // items are deleted explicitly alongside it, never via SQL cascade;
+    // see TripChecklistsRepository.deleteChecklist), so this FK direction
+    // needs checking too.
+    'trip_checklists': 'tripChecklists',
     'trip_checklist_sections': 'tripChecklistSections',
     'checklist_template_sections': 'checklistTemplateSections',
     'pre_dive_checklist_template_sections': 'preDiveChecklistTemplateSections',

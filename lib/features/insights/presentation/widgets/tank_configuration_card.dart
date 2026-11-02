@@ -11,6 +11,7 @@ import 'package:submersion/features/insights/presentation/open_chart_dives.dart'
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/features/insights/presentation/widgets/twin_set_review_note.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dives by how their tanks were carried, on the Gas page (issue #3421).
@@ -34,10 +35,18 @@ class TankConfigurationCard extends ConsumerWidget {
       title: l10n.insights_gas_tankConfig_title,
       subtitle: l10n.insights_gas_tankConfig_subtitle,
       child: statsAsync.when(
+        // The re-role note reads the whole logbook, not the Insights
+        // filter, so it stays above an empty state the filter produced.
         data: (stats) => stats.totalDives == 0
-            ? StatEmptyState(
-                icon: MdiIcons.divingScubaTank,
-                message: l10n.insights_gas_tankConfig_empty,
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const TwinSetReviewNote(),
+                  StatEmptyState(
+                    icon: MdiIcons.divingScubaTank,
+                    message: l10n.insights_gas_tankConfig_empty,
+                  ),
+                ],
               )
             : _content(context, ref, stats),
         loading: () => const SizedBox(
@@ -125,6 +134,7 @@ class TankConfigurationCard extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: 12),
+        const TwinSetReviewNote(),
         Text(
           l10n.insights_gas_tankConfig_note,
           style: theme.textTheme.bodySmall?.copyWith(

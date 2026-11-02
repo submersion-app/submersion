@@ -50,7 +50,7 @@ void main() {
         tripMediaPreviewProvider(
           'trip-1',
         ).overrideWith((ref) async => TripMediaPreview.empty),
-        tripChecklistProvider('trip-1').overrideWith((ref) async => []),
+        tripChecklistAllItemsProvider('trip-1').overrideWith((ref) async => []),
         tripSightingsByDiveProvider('trip-1').overrideWith((ref) async => {}),
       ].cast(),
     );
@@ -80,7 +80,7 @@ void main() {
       tripMediaPreviewProvider(
         'trip-1',
       ).overrideWith((ref) async => TripMediaPreview.empty),
-      tripChecklistProvider('trip-1').overrideWith((ref) async => []),
+      tripChecklistAllItemsProvider('trip-1').overrideWith((ref) async => []),
       tripSightingsByDiveProvider('trip-1').overrideWith((ref) async => {}),
     ];
 
@@ -131,7 +131,9 @@ void main() {
           tripByIdProvider('trip-1').overrideWith((ref) async => trip),
           divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
           itineraryDaysProvider('trip-1').overrideWith((ref) async => []),
-          tripChecklistProvider('trip-1').overrideWith((ref) async => []),
+          tripChecklistAllItemsProvider(
+            'trip-1',
+          ).overrideWith((ref) async => []),
           // Both enrichment sources error; the story should still compose.
           tripMediaPreviewProvider(
             'trip-1',

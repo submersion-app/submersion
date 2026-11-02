@@ -26,6 +26,7 @@ Future<void> showSavedPlansSheet(BuildContext context) {
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
+    useSafeArea: true,
     // The sheet's own snackbar host, so export confirmations and import
     // errors show on the sheet rather than on the page underneath it.
     builder: (_) =>

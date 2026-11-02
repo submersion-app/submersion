@@ -737,5 +737,43 @@ extension RungsFromV231 on AppDatabase {
     // no backfill; the log starts empty. Re-asserted in beforeOpen.
     if (from < 332) await _assertChangeLogSchema();
     if (from < 332) await reportProgress();
+
+    // v333: dives.gas_switches_edited (issue #32). Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 333) await _assertDiveGasSwitchesEditedColumn();
+    if (from < 333) await reportProgress();
+
+    // v334: equipment_locations.buddy_id, the buddy a Person place stands
+    // for (issue #3790). Column only, no backfill; re-asserted in beforeOpen.
+    if (from < 334) await _assertEquipmentLocationBuddyColumn();
+    if (from < 334) await reportProgress();
+
+    // v335: nav_tracks.scale_factor (issue #3823). Column only; the default
+    // gives every existing track 100%. Re-asserted in beforeOpen through
+    // _assertNavTracksSchema.
+    if (from < 335) await _assertNavTrackScaleFactorColumn();
+    if (from < 335) await reportProgress();
+
+    // v336: trip_checklists, splitting one trip's single flat checklist
+    // into several named ones (issue #3356). Backfills a default checklist
+    // for every trip with existing sections/items; re-asserted in
+    // beforeOpen. Raises minimumCompatibleSchemaVersion to 336 (see
+    // database.dart): trip_id becomes checklist_id on both child tables.
+    //
+    // The v297 step runs first, idempotently, for a database stamped v297 or
+    // later without that rung ever truly running. Converting its trip_id
+    // first would strand it, since the v297 step only migrates FROM trip_id.
+    // The beforeOpen backstops already run the two in this order.
+    if (from < 336) {
+      await _assertAndBackfillTripChecklistSections();
+      await _assertAndBackfillTripChecklists();
+    }
+    if (from < 336) await reportProgress();
+
+    // v337: dives.weather_fetched_at holds seconds again where the bulk
+    // conditions fill wrote milliseconds (issue #4119). Data only, so the
+    // compatibility floor does not move.
+    if (from < 337) await _repairWeatherFetchedAtSeconds();
+    if (from < 337) await reportProgress();
   }
 }

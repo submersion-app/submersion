@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_buddy_links.dart';
 import 'package:submersion/features/media/data/repositories/media_people_buddy_merge.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 
@@ -80,6 +81,7 @@ class BuddyMergeSnapshot {
     this.roleDiveIds = const [],
     this.documentOriginalBuddyIds = const {},
     this.mediaPeople = const MediaPeopleMergeSnapshot(),
+    this.placeOriginalBuddyIds = const {},
   });
 
   /// Document id -> the buddy it was filed under before the merge
@@ -88,6 +90,9 @@ class BuddyMergeSnapshot {
 
   /// The duplicates' people tags moved to the survivor (issue #1745).
   final MediaPeopleMergeSnapshot mediaPeople;
+
+  /// Gear place id -> the buddy it stood for before the merge (issue #3790).
+  final Map<String, String> placeOriginalBuddyIds;
 }
 
 /// Result from a buddy merge operation.
@@ -266,6 +271,7 @@ class BuddyMergeRepository {
       // Document id -> the duplicate buddy it was filed under (#2613).
       final documentOwners = <String, String>{};
       var mediaPeople = const MediaPeopleMergeSnapshot();
+      var placeLinks = const <String, String>{};
 
       await _db.transaction(() async {
         // Update survivor with merged fields
@@ -464,6 +470,15 @@ class BuddyMergeRepository {
           ),
         );
 
+        // Their gear places follow, before the delete's SET NULL (#3790).
+        placeLinks = await repointEquipmentLocationBuddyLinks(
+          _db,
+          _syncRepository,
+          fromBuddyIds: duplicateIds,
+          toBuddyId: survivorId,
+          now: now,
+        );
+
         // Delete duplicate buddy rows (CASCADE cleans remaining junction rows)
         for (final duplicateId in duplicateIds) {
           await (_db.delete(
@@ -515,6 +530,7 @@ class BuddyMergeRepository {
           roleDiveIds: roleDiveIds,
           documentOriginalBuddyIds: documentOwners,
           mediaPeople: mediaPeople,
+          placeOriginalBuddyIds: placeLinks,
         ),
       );
     } catch (e, stackTrace) {
@@ -642,6 +658,14 @@ class BuddyMergeRepository {
           );
         }
 
+        // 4c. Gear places back on the re-created buddies (issue #3790).
+        await restoreEquipmentLocationBuddyLinks(
+          _db,
+          _syncRepository,
+          snapshot.placeOriginalBuddyIds,
+          now: now,
+        );
+
         // 5a. People tags back to the re-created buddies (issue #1745).
         await undoMediaPeopleMerge(
           _db,
@@ -716,6 +740,13 @@ class BuddyMergeRepository {
         await documents.deleteForOwners(DocumentOwnerKind.buddy, ids);
         // Their people tags too (issue #1745).
         await MediaPeopleRepository().deleteForBuddies(ids);
+        // Their gear places stay, without the link (issue #3790).
+        await clearEquipmentLocationBuddyLinks(
+          _db,
+          _syncRepository,
+          ids,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         for (final certs in certsByBuddy.values) {
           for (final cert in certs) {
             await (_db.delete(

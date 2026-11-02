@@ -1,5 +1,6 @@
 #include "dive_computer_host_api_impl.h"
 
+#include "ble_connect_failure.h"
 #include "dive_converter.h"
 #include "native_logger.h"
 #include "serial_scanner.h"
@@ -528,9 +529,16 @@ void DiveComputerHostApiImpl::PerformDownload(
                     address, [] {}, [](const auto&) {});
             });
         if (!ble_stream_->ConnectAndDiscover(ble_address)) {
+            // Name the step that broke. A fixed "Failed to connect to
+            // device" here was all a Windows report could carry (issue
+            // #4094); the Dart layer localizes the codes a diver can act on
+            // and shows the detail for the rest.
+            const BleConnectFailure failure = ble_stream_->connect_failure();
             flutter_api_->OnError(
-                DiveComputerError("connect_failed",
-                                  "Failed to connect to device"),
+                DiveComputerError(
+                    BleConnectFailureCode(failure),
+                    BleConnectFailureMessage(
+                        failure, ble_stream_->connect_failure_detail())),
                 [] {}, [](const auto&) {});
             libdc_download_session_free(session);
             download_session_ = nullptr;

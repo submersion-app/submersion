@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
@@ -24,7 +25,6 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.d
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
-import 'package:submersion/features/buddies/presentation/widgets/buddy_search_delegate.dart';
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
@@ -115,15 +115,11 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
           ),
           appBarActions: [
             const SwapWithBuddyButton(iconSize: 20),
-            IconButton(
-              icon: const Icon(Icons.search, size: 20),
+            EntitySearchAction(
+              subject: QuerySubject.buddies,
+              active: ref.watch(buddyQueryProvider) != null,
               tooltip: context.l10n.buddies_action_search,
-              onPressed: () {
-                showSearch(
-                  context: context,
-                  delegate: BuddySearchDelegate(ref),
-                );
-              },
+              compact: true,
             ),
             QueryFilterAction(
               provider: buddyQueryProvider,

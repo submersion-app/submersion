@@ -13,6 +13,10 @@ const Set<TankRole> sidemountRoles = {
   TankRole.sidemountRight,
 };
 
+/// The roles that mean the primary gas worn on the back: a single cylinder
+/// or a manifolded twin set logged as one (issue #3374).
+const Set<TankRole> backmountRoles = {TankRole.backGas, TankRole.twinSet};
+
 /// The volume of [tank] for consumption math, in liters: its own, else the
 /// volume of the first other cylinder of the dive that forms a matched pair
 /// with it (see [isMatchedPair]), since a pair is the same size and
@@ -29,13 +33,14 @@ double? consumptionVolume(DiveTank tank, List<DiveTank> tanks) {
 }
 
 /// The cylinder a SAC in bar is expressed in: on a multi-tank dive the
-/// back gas, else the first cylinder; the only cylinder on a single-tank
-/// dive whatever its role. Null when there are no cylinders.
+/// backmount gas (back gas or twin set), else the first cylinder; the only
+/// cylinder on a single-tank dive whatever its role. Null when there are no
+/// cylinders.
 DiveTank? sacReferenceTankOf(List<DiveTank> tanks) {
   if (tanks.isEmpty) return null;
   if (tanks.length == 1) return tanks.first;
   return tanks.firstWhere(
-    (t) => t.role == TankRole.backGas,
+    (t) => backmountRoles.contains(t.role),
     orElse: () => tanks.first,
   );
 }
@@ -99,12 +104,14 @@ double? referenceBarsPerBar(
 const double sameGasTolerancePct = 0.5;
 
 /// Whether [a] and [b] are a matched pair, assumed the same size when a
-/// size is missing: both sidemount cylinders, or both back gas on the same
-/// gas (doubles logged as independents). The gas matters for back gas
-/// because downloads default an untagged cylinder, a deco stage included,
-/// to that role.
+/// size is missing: both sidemount cylinders, both twin set rows (a diver
+/// chose that role, so no gas check), or both back gas on the same gas
+/// (doubles logged as independents). The gas matters for back gas because
+/// downloads default an untagged cylinder, a deco stage included, to that
+/// role.
 bool isMatchedPair(DiveTank a, DiveTank b) =>
     (sidemountRoles.contains(a.role) && sidemountRoles.contains(b.role)) ||
+    (a.role == TankRole.twinSet && b.role == TankRole.twinSet) ||
     (a.role == TankRole.backGas &&
         b.role == TankRole.backGas &&
         (a.gasMix.o2 - b.gasMix.o2).abs() <= sameGasTolerancePct &&

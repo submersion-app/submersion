@@ -649,6 +649,14 @@ extension DiveMigrations on AppDatabase {
   Future<void> clearGeneratedWeatherDescriptionsForTesting() =>
       _clearGeneratedWeatherDescriptions();
 
+  /// v333: dives.gas_switches_edited (issue #32). Idempotent, so the ladder
+  /// and the beforeOpen backstop can both call it.
+  Future<void> _assertDiveGasSwitchesEditedColumn() => _addColumnIfMissing(
+    'dives',
+    'gas_switches_edited',
+    'INTEGER NOT NULL DEFAULT 0',
+  );
+
   /// Idempotent DDL for dive_tanks.source_id (v251, issue #2716).
   Future<void> _assertDiveTankSourceIdColumn() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
@@ -745,5 +753,14 @@ extension DiveMigrations on AppDatabase {
           WHERE s.dive_id = dive_tanks.dive_id
         )
     ''');
+  }
+
+  /// v337: [repairWeatherFetchedAtSeconds] (issue #4119). Guarded on the column,
+  /// as the other helpers are, for migration fixtures that build only part of
+  /// the schema.
+  Future<void> _repairWeatherFetchedAtSeconds() async {
+    if (await _columnExists('dives', 'weather_fetched_at')) {
+      await repairWeatherFetchedAtSeconds(this);
+    }
   }
 }

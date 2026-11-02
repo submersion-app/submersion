@@ -63,6 +63,7 @@ Future<SiteFeatureSheetResult?> showSiteFeatureSheet(
   return showModalBottomSheet<SiteFeatureSheetResult>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     showDragHandle: true,
     // The inset padding reads the SHEET's context, not the caller's, so it
     // tracks the keyboard as it opens instead of freezing at the value

@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -278,8 +279,9 @@ void main() {
 
     // Gas & Gear: CCR panel, two tank cards, equipment and weights blocks.
     expect(find.byType(CcrSettingsPanel), findsOneWidget);
-    expect(find.textContaining('Tank 1'), findsOneWidget);
-    expect(find.textContaining('Tank 2'), findsOneWidget);
+    // By widget, not by text: the gas switch list's "Starts on Tank 1"
+    // line also carries the cylinder's name.
+    expect(find.byType(TankRow), findsNWidgets(2));
     expect(find.textContaining('Weight'), findsWidgets);
 
     // Conditions: dropdowns and weather fields are populated.

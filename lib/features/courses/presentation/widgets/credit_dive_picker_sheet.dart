@@ -21,6 +21,7 @@ Future<String?> showCreditDivePickerSheet(
   return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => _CreditDivePickerSheet(courseId: courseId),
   );
 }

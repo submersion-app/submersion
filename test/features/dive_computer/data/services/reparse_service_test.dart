@@ -2538,8 +2538,11 @@ void main() {
                 ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
               .get();
 
-      // Tank 1 was removed by the re-parse, so we should have tanks 0 and 2
-      expect(tanks.length, 2);
+      // Tank 1 has no source index, so it is the diver's own cylinder and a
+      // re-parse keeps it (issue #32): tanks 0, 1 and 2.
+      expect(tanks.length, 3);
+      expect(tanks.map((t) => t.tankOrder), [0, 1, 2]);
+      expect(tanks.firstWhere((t) => t.tankOrder == 1).tankName, 'Deco Stage');
 
       // Tank 0: computer fields updated, user fields preserved
       final t0 = tanks.firstWhere((t) => t.tankOrder == 0);
@@ -2561,6 +2564,61 @@ void main() {
       expect(t2.endPressure, 100.0);
       expect(t2.computerId, 'comp-1');
     });
+
+    test(
+      'a computer cylinder the parse no longer reports is still removed',
+      () async {
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        await insertSource(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          isPrimary: true,
+        );
+        for (final index in [0, 1]) {
+          await db
+              .into(db.diveTanks)
+              .insert(
+                DiveTanksCompanion(
+                  id: Value('tank-$index'),
+                  diveId: const Value('dive-1'),
+                  computerId: const Value('comp-1'),
+                  o2Percent: const Value(21.0),
+                  hePercent: const Value(0.0),
+                  tankOrder: Value(index),
+                  // The computer's own row: it carries the parse index.
+                  sourceTankIndex: Value(index),
+                ),
+              );
+        }
+
+        await service.applyParsedUpdate(
+          diveId: 'dive-1',
+          sourceRowId: 'src-1',
+          parsed: makeParsedDive(
+            tanks: [
+              pigeon.TankInfo(index: 0, gasMixIndex: 0),
+              pigeon.TankInfo(index: 2, gasMixIndex: 1),
+            ],
+            gasMixes: [
+              pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0),
+              pigeon.GasMix(index: 1, o2Percent: 100.0, hePercent: 0.0),
+            ],
+          ),
+          descriptorVendor: null,
+          descriptorProduct: null,
+          descriptorModel: null,
+          libdivecomputerVersion: null,
+        );
+
+        final tanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('dive-1'))).get();
+        expect(tanks.map((t) => t.tankOrder).toSet(), {0, 2});
+        expect(tanks.map((t) => t.id), isNot(contains('tank-1')));
+      },
+    );
 
     test('synthesizes tanks from gas mixes when the computer reports no '
         'tank records (transmitter-less, e.g. Aqualung i330R)', () async {

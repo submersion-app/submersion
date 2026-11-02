@@ -124,6 +124,29 @@ void main() {
       expect(await queryLanguageSac('bb'), closeTo(1.5, 1e-9));
     });
 
+    test('sums two unsized twin set rows one to one (#3374)', () async {
+      await insertDive('tw');
+      await insertTank('tw', 0, 'twinSet');
+      await insertTank('tw', 1, 'twinSet', end: 137, o2: 32);
+
+      final trend = await repository.getSacPressurePerDive();
+      expect(trend.single.value, closeTo(1.5, 1e-9));
+      expect(await queryLanguageSac('tw'), closeTo(1.5, 1e-9));
+    });
+
+    test('a twin set is the reference ahead of a stage (#3374)', () async {
+      await insertDive('ts');
+      // Stage first, so order alone would pick it: 63 bar from a 12 L
+      // stage is 31.5 bar of a 24 L twin set, 126 + 31.5 over 42 min at
+      // 3 bar is 1.25 bar/min.
+      await insertTank('ts', 0, 'stage', volume: 12, end: 137);
+      await insertTank('ts', 1, 'twinSet', volume: 24);
+
+      final trend = await repository.getSacPressurePerDive();
+      expect(trend.single.value, closeTo(1.25, 1e-9));
+      expect(await queryLanguageSac('ts'), closeTo(1.25, 1e-9));
+    });
+
     test('does not pair back-gas cylinders carrying different gases', () async {
       await insertDive('bd');
       await insertTank('bd', 0, 'backGas');
@@ -252,6 +275,22 @@ void main() {
         rightVolume: 11.1,
         leftRole: 'backGas',
         rightRole: 'backGas',
+      );
+      expect(borrowed, closeTo(sized, 1e-9));
+    });
+
+    test('twin set rows borrow like a sidemount pair (#3374)', () async {
+      final borrowed = await rmvOfPair(
+        rightVolume: null,
+        leftRole: 'twinSet',
+        rightRole: 'twinSet',
+        rightO2: 32,
+      );
+      final sized = await rmvOfPair(
+        rightVolume: 11.1,
+        leftRole: 'twinSet',
+        rightRole: 'twinSet',
+        rightO2: 32,
       );
       expect(borrowed, closeTo(sized, 1e-9));
     });

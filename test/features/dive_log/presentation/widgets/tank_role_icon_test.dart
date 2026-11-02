@@ -15,6 +15,14 @@ void main() {
       expect(TankRole.pony.icon, SubmersionIcons.tankPony);
       expect(TankRole.diluent.icon, SubmersionIcons.tankRebreather);
       expect(TankRole.oxygenSupply.icon, SubmersionIcons.tankRebreather);
+      expect(TankRole.twinSet.icon, SubmersionIcons.tankTwinSet);
+    });
+
+    test('twin set is declared right after back gas', () {
+      expect(
+        TankRole.values.indexOf(TankRole.twinSet),
+        TankRole.values.indexOf(TankRole.backGas) + 1,
+      );
     });
 
     test('the two sidemount sides are told apart', () {

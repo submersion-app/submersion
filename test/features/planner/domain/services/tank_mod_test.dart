@@ -52,6 +52,11 @@ void main() {
       }
     });
 
+    test('a twin set uses the bottom limit like back gas', () {
+      expect(usesDecoLimit(TankRole.twinSet, ean32), isFalse);
+      expect(modLimitClassFor(TankRole.twinSet, ean32), ModLimitClass.bottom);
+    });
+
     test('a bailout richer than air uses the deco limit', () {
       for (final gas in [ean32, ean50, oxygen]) {
         expect(

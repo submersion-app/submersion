@@ -36,4 +36,12 @@ enum QuerySubject {
 
   /// Custom certification levels (issue #690): name-only, as above.
   certificationLevels,
+
+  /// Records with no list query of their own: global search roots at them
+  /// (#3882).
+  equipmentSets,
+  documents,
+  divePlans,
+  gpsTracks,
+  navTracks,
 }
