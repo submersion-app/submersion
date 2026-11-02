@@ -346,6 +346,36 @@ void main() {
       }
     });
 
+    test('a media URL is refused however it is named', () {
+      for (final sql in const [
+        'SELECT url FROM media',
+        "SELECT id FROM media WHERE url LIKE 'https%'",
+        "SELECT instr(url, 'token') FROM media",
+        'SELECT length(url) FROM media',
+        'WITH c AS (SELECT * FROM media) SELECT url FROM c',
+        'SELECT id FROM media ORDER BY url',
+        'SELECT url, count(*) FROM media GROUP BY 1',
+      ]) {
+        expectRefused(sql, mentions: 'url');
+      }
+      expectRefused('SELECT * FROM media');
+    });
+
+    test('the rest of media stays readable, sort indexes included', () {
+      for (final sql in const [
+        'SELECT count(*) FROM media',
+        'SELECT id, caption FROM media',
+        'SELECT id FROM media ORDER BY COALESCE(taken_at, created_at) DESC, '
+            'id DESC LIMIT 5',
+        'SELECT id FROM media ORDER BY COALESCE(original_filename, file_path), '
+            'id LIMIT 5',
+        'SELECT id FROM media ORDER BY COALESCE(content_size_bytes, -1) DESC, '
+            'id DESC LIMIT 5',
+      ]) {
+        rows(sql);
+      }
+    });
+
     test('no table in the real schema gives up a denied column', () {
       final tables = rows(
         "SELECT name, sql FROM sqlite_schema WHERE type = 'table'",
@@ -372,6 +402,12 @@ void main() {
               as SqlWindowFailure;
       expect(
         '${feed.message} ${feed.details}',
+        isNot(contains('example.test')),
+      );
+
+      final item = run('SELECT url FROM media') as SqlWindowFailure;
+      expect(
+        '${item.message} ${item.details}',
         isNot(contains('example.test')),
       );
     });

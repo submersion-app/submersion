@@ -35,7 +35,20 @@ void main() {
   });
 
   test('the denied columns are the policy credentials and feed URLs', () {
-    expect(kSqlDeniedColumns, {...changeLogCredentialColumns, 'manifest_url'});
+    expect(kSqlDeniedColumns, {
+      ...changeLogCredentialColumns,
+      'manifest_url',
+      'url',
+    });
+  });
+
+  test('a denied column is found as a whole name, in any case', () {
+    expect(sqlNamesDeniedColumn('lower(url)'), isTrue);
+    expect(sqlNamesDeniedColumn('LOWER(URL)'), isTrue);
+    expect(sqlNamesDeniedColumn('lower("url")'), isTrue);
+    expect(sqlNamesDeniedColumn('lower(curl)'), isFalse);
+    expect(sqlNamesDeniedColumn('base64url'), isFalse);
+    expect(sqlNamesDeniedColumn('media_url'), isFalse);
   });
 
   test('a table is readable only when the policy knows it', () {

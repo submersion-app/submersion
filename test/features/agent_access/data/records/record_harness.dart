@@ -21,9 +21,9 @@ const kDiverB = 'diver-b';
 const kSeedTime = 1700000000000;
 
 /// Keys no document may carry: whatever the SQL window refuses, and values
-/// that belong to one device.
+/// that belong to one device. A media document still carries its link.
 final Set<String> kForbiddenDocumentKeys = {
-  ...kSqlDeniedColumns,
+  ...kSqlDeniedColumns.difference(const {'url'}),
   for (final keys in deviceLocalSyncColumns.values)
     for (final key in keys) changeLogSqlName(key),
 };

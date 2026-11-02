@@ -41,7 +41,7 @@ void main() {
 
   test('names no denied table or column anywhere', () {
     for (final name in [...kSqlDeniedTables, ...kSqlDeniedColumns]) {
-      expect(text, isNot(contains(name)));
+      expect(text, isNot(contains(sqlNamePattern(name))), reason: name);
     }
   });
 
