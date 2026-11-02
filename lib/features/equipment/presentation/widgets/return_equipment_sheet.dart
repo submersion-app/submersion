@@ -46,6 +46,7 @@ Future<int?> showEquipmentReturnFlow(
     final draft = await showModalBottomSheet<_ReturnDraft>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _ReturnEquipmentSheet(
         itemCount: items.length,
         destinations: destinations,
