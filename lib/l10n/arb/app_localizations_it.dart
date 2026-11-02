@@ -30070,6 +30070,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_filterBar_clear => 'Cancella filtro';
 
   @override
+  String get insights_filterBar_allDives => 'Tutte le immersioni';
+
+  @override
+  String get insights_filterBar_customFilter => 'Filtro personalizzato';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Scegli un gruppo di immersioni';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Salva filtro corrente...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'Gestisci query salvate';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -29857,6 +29857,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_filterBar_clear => 'Filter wissen';
 
   @override
+  String get insights_filterBar_allDives => 'Alle duiken';
+
+  @override
+  String get insights_filterBar_customFilter => 'Aangepast filter';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Duikgroep kiezen';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Huidig filter opslaan...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'Opgeslagen query\'s beheren';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

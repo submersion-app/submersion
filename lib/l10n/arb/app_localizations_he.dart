@@ -29293,6 +29293,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_filterBar_clear => 'ניקוי מסנן';
 
   @override
+  String get insights_filterBar_allDives => 'כל הצלילות';
+
+  @override
+  String get insights_filterBar_customFilter => 'מסנן מותאם אישית';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'בחירת קבוצת צלילות';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'שמירת המסנן הנוכחי...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'ניהול שאילתות שמורות';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

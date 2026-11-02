@@ -29912,6 +29912,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_filterBar_clear => 'Szűrő törlése';
 
   @override
+  String get insights_filterBar_allDives => 'Összes merülés';
+
+  @override
+  String get insights_filterBar_customFilter => 'Egyéni szűrő';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Merüléscsoport kiválasztása';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Jelenlegi szűrő mentése...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'Mentett lekérdezések kezelése';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

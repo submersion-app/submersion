@@ -48174,6 +48174,36 @@ abstract class AppLocalizations {
   /// **'Clear filter'**
   String get insights_filterBar_clear;
 
+  /// Insights group selector: every dive, no group chosen
+  ///
+  /// In en, this message translates to:
+  /// **'All dives'**
+  String get insights_filterBar_allDives;
+
+  /// Insights group selector: a filter that is not one of the saved groups
+  ///
+  /// In en, this message translates to:
+  /// **'Custom filter'**
+  String get insights_filterBar_customFilter;
+
+  /// Tooltip of the Insights group selector
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a dive group'**
+  String get insights_filterBar_chooseGroup;
+
+  /// Insights group menu: saves the active filter as a named group
+  ///
+  /// In en, this message translates to:
+  /// **'Save current filter...'**
+  String get insights_filterBar_saveCurrent;
+
+  /// Insights group menu: opens the saved queries page
+  ///
+  /// In en, this message translates to:
+  /// **'Manage saved queries'**
+  String get insights_filterBar_manageSaved;
+
   /// No description provided for @insights_filterBar_diveCount.
   ///
   /// In en, this message translates to:

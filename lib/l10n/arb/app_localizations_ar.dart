@@ -30295,6 +30295,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_filterBar_clear => 'مسح التصفية';
 
   @override
+  String get insights_filterBar_allDives => 'كل الغوصات';
+
+  @override
+  String get insights_filterBar_customFilter => 'تصفية مخصصة';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'اختر مجموعة غوصات';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'حفظ التصفية الحالية...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'إدارة الاستعلامات المحفوظة';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
