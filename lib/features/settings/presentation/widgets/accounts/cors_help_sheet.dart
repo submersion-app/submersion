@@ -12,6 +12,7 @@ Future<void> showCorsHelpSheet(BuildContext context, CorsDiagnosis diagnosis) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       showDragHandle: true,
       builder: (_) => CorsHelpSheet(diagnosis: diagnosis),
     );

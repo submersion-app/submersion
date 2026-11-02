@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
