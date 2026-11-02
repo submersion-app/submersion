@@ -265,6 +265,23 @@ void main() {
   });
 
   group('safetyStopWindows', () {
+    // A hold at 5 m that drifts to 7 m and 4 m, a short climb to the surface,
+    // then a second hold the diver descends away from.
+    final profile = [
+      for (final (timestamp, depth) in const [
+        (90, 9.0),
+        (100, 5.0),
+        (200, 7.0),
+        (300, 4.0),
+        (310, 1.0),
+        (320, 0.0),
+        (400, 5.0),
+        (500, 5.0),
+        (510, 9.0),
+      ])
+        DiveProfilePoint(timestamp: timestamp, depth: depth),
+    ];
+
     ProfileEvent stop(int timestamp, {required bool isStart}) =>
         ProfileEvent.safetyStop(
           id: '$timestamp',
@@ -276,9 +293,18 @@ void main() {
           source: EventSource.imported,
         );
 
+    List<StopWindow> windows(
+      List<ProfileEvent> events, {
+      ({String? computerId})? analyzedSource,
+    }) => safetyStopWindows(
+      events,
+      profile: profile,
+      analyzedSource: analyzedSource,
+    );
+
     test('pairs each start with the next end', () {
       expect(
-        safetyStopWindows([
+        windows([
           stop(100, isStart: true),
           stop(200, isStart: false),
           stop(300, isStart: true),
@@ -288,12 +314,44 @@ void main() {
       );
     });
 
-    test('a start with no end has no window', () {
-      expect(safetyStopWindows([stop(100, isStart: true)]), isEmpty);
+    test('a start with no end runs to the end of its hold', () {
+      // Every import writes a computer's safety stop as a lone start.
+      expect(windows([stop(100, isStart: true)]), [(start: 100, end: 300)]);
+    });
+
+    test('a hold closes on the diver descending away from it', () {
+      expect(windows([stop(400, isStart: true)]), [(start: 400, end: 500)]);
+    });
+
+    test('a start falling between samples reads from the next one', () {
+      expect(windows([stop(150, isStart: true)]), [(start: 150, end: 300)]);
+    });
+
+    test('a start after the last sample is only its own moment', () {
+      expect(windows([stop(600, isStart: true)]), [(start: 600, end: 600)]);
+    });
+
+    test('both ends of a stop logged as starts stay inside the hold', () {
+      // libdivecomputer's begin and end flags both import as a start.
+      expect(windows([stop(100, isStart: true), stop(250, isStart: true)]), [
+        (start: 100, end: 300),
+        (start: 250, end: 300),
+      ]);
+    });
+
+    test('a lone start does not reach a later stop\'s end', () {
+      expect(
+        windows([
+          stop(100, isStart: true),
+          stop(400, isStart: true).copyWith(source: EventSource.computed),
+          stop(500, isStart: false).copyWith(source: EventSource.computed),
+        ]),
+        [(start: 100, end: 300), (start: 400, end: 500)],
+      );
     });
 
     test('an end with no start has no window', () {
-      expect(safetyStopWindows([stop(100, isStart: false)]), isEmpty);
+      expect(windows([stop(100, isStart: false)]), isEmpty);
     });
 
     group('for one source', () {
@@ -305,11 +363,8 @@ void main() {
 
       test('leaves out another computer\'s stop', () {
         expect(
-          safetyStopWindows(
-            [
-              from('other', 100, isStart: true),
-              from('other', 200, isStart: false),
-            ],
+          windows(
+            [from('other', 100, isStart: true)],
             analyzedSource: (computerId: 'viewed'),
           ),
           isEmpty,
@@ -318,7 +373,7 @@ void main() {
 
       test('another computer\'s start cannot open its own stop', () {
         expect(
-          safetyStopWindows(
+          windows(
             [
               from('other', 100, isStart: true),
               from('viewed', 150, isStart: true),
@@ -332,37 +387,28 @@ void main() {
 
       test('keeps a stop with no computer', () {
         expect(
-          safetyStopWindows(
-            [from(null, 100, isStart: true), from(null, 200, isStart: false)],
+          windows(
+            [from(null, 100, isStart: true)],
             analyzedSource: (computerId: 'viewed'),
           ),
-          [(start: 100, end: 200)],
+          [(start: 100, end: 300)],
         );
       });
 
       test('a source with no computer only reads unattributed stops', () {
         expect(
-          safetyStopWindows(
-            [
-              from('other', 100, isStart: true),
-              from('other', 200, isStart: false),
-              from(null, 300, isStart: true),
-              from(null, 400, isStart: false),
-            ],
+          windows(
+            [from('other', 100, isStart: true), from(null, 400, isStart: true)],
             analyzedSource: (computerId: null),
           ),
-          [(start: 300, end: 400)],
+          [(start: 400, end: 500)],
         );
       });
 
       test('a dive-level analysis reads every computer', () {
-        expect(
-          safetyStopWindows([
-            from('other', 100, isStart: true),
-            from('other', 200, isStart: false),
-          ]),
-          [(start: 100, end: 200)],
-        );
+        expect(windows([from('other', 100, isStart: true)]), [
+          (start: 100, end: 300),
+        ]);
       });
     });
   });

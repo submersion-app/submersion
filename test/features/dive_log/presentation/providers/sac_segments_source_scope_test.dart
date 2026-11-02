@@ -293,19 +293,9 @@ void main() {
     ];
 
     /// The phases of the primary source, on an NDL curve that reads deco
-    /// throughout, with a stop over the 5 m hold recorded by [computerId].
+    /// throughout, with a stop on the 5 m hold recorded by [computerId]. As
+    /// every import writes one, it is a start with no end.
     Future<Iterable<DivePhase?>> phasesWithStopFrom(String computerId) async {
-      ProfileEvent stopEvent(int timestamp, {required bool isStart}) =>
-          ProfileEvent.safetyStop(
-            id: 'stop-$timestamp',
-            diveId: diveId,
-            timestamp: timestamp,
-            depth: 5,
-            createdAt: now,
-            isStart: isStart,
-            source: EventSource.imported,
-          ).copyWith(computerId: computerId);
-
       final segments = await container(
         sources: twoComputers,
         profiles: {
@@ -321,8 +311,14 @@ void main() {
         analysis: ProfileAnalysis.empty().copyWith(
           ndlCurve: List.filled(points.length, -1),
           events: [
-            stopEvent(1210, isStart: true),
-            stopEvent(1570, isStart: false),
+            ProfileEvent.safetyStop(
+              id: 'recorded',
+              diveId: diveId,
+              timestamp: 1210,
+              depth: 5,
+              createdAt: now,
+              source: EventSource.imported,
+            ).copyWith(computerId: computerId),
           ],
         ),
       ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);

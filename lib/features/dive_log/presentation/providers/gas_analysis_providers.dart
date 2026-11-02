@@ -149,6 +149,7 @@ final phaseSegmentsProvider =
         decoStops: analysis?.decoStopWindows ?? const [],
         safetyStops: safetyStopWindows(
           analysis?.events ?? const [],
+          profile: inputs.profile,
           analyzedSource: source == null
               ? null
               : (computerId: source.computerId),

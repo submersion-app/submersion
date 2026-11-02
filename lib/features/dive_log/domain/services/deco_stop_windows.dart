@@ -7,6 +7,12 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 /// A hold in the safety stop band, in seconds from the start of the dive.
 typedef StopWindow = ({int start, int end});
 
+/// Shallower than this, in metres, a diver has left a stop for the surface.
+const safetyStopExitShallow = 1.5;
+
+/// Deeper than this, in metres, a diver has descended away from a stop.
+const safetyStopExitDeep = 8.0;
+
 /// Takes the calculated safety stops that were required decompression out of
 /// [events], and returns the windows they covered.
 ///
@@ -50,29 +56,52 @@ typedef StopWindow = ({int start, int end});
   );
 }
 
-/// The safety stops [events] carries, whoever recorded them. A start with no
-/// end has no window. [events] is sorted by timestamp.
+/// The safety stops in [events] that belong to [analyzedSource] (see
+/// [ProfileEvent.countsFor]), since an analysis keeps every computer's events
+/// for the chart to filter. [events] is sorted by timestamp.
 ///
-/// An analysis keeps every computer's events for the chart to filter, so
-/// [analyzedSource] names the source these stops have to belong to (see
-/// [ProfileEvent.countsFor]).
+/// Only a calculated stop has an end. Every import writes a computer's stop as
+/// a lone start, so a start with no end of its own runs to the end of its hold
+/// on [profile].
 List<StopWindow> safetyStopWindows(
   List<ProfileEvent> events, {
+  required List<DiveProfilePoint> profile,
   ({String? computerId})? analyzedSource,
 }) {
+  final stops = [
+    for (final event in events)
+      if (event.countsFor(analyzedSource) &&
+          (event.eventType == ProfileEventType.safetyStopStart ||
+              event.eventType == ProfileEventType.safetyStopEnd))
+        event,
+  ];
   final windows = <StopWindow>[];
-  int? start;
-  for (final event in events) {
-    if (!event.countsFor(analyzedSource)) continue;
-    if (event.eventType == ProfileEventType.safetyStopStart) {
-      start ??= event.timestamp;
-    } else if (event.eventType == ProfileEventType.safetyStopEnd &&
-        start != null) {
-      windows.add((start: start, end: event.timestamp));
-      start = null;
-    }
+  for (final (i, stop) in stops.indexed) {
+    if (stop.eventType != ProfileEventType.safetyStopStart) continue;
+    final next = stops.elementAtOrNull(i + 1);
+    windows.add((
+      start: stop.timestamp,
+      end: next?.eventType == ProfileEventType.safetyStopEnd
+          ? next!.timestamp
+          : _endOfHold(stop.timestamp, profile),
+    ));
   }
   return windows;
+}
+
+/// The last sample from [start] before the diver clearly left the hold, by the
+/// rule that closes a calculated stop.
+int _endOfHold(int start, List<DiveProfilePoint> profile) {
+  var end = start;
+  for (final point in profile) {
+    if (point.timestamp < start) continue;
+    if (point.depth < safetyStopExitShallow ||
+        point.depth > safetyStopExitDeep) {
+      break;
+    }
+    end = point.timestamp;
+  }
+  return end;
 }
 
 /// Whether the sample at [index] reads as in deco. What the computer recorded

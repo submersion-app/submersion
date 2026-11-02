@@ -1289,12 +1289,11 @@ class ProfileAnalysisService {
     const maxStopDepth = 6.0;
     // Once a stop has opened, brief drifts just outside the 3-6 m band
     // (buoyancy wobble, small level changes) must not end it. The stop closes
-    // only on a *clear* departure: surfacing (shallower than [stopExitShallow])
-    // or descending back down (deeper than [stopExitDeep]). Without this
-    // hysteresis a long, gently varying shallow phase gets chopped into many
-    // spurious start/end pairs as the depth repeatedly crosses 3 m or 6 m.
-    const stopExitShallow = 1.5; // m -- heading to the surface
-    const stopExitDeep = 8.0; // m -- descending away from the stop
+    // only on a *clear* departure: surfacing (shallower than
+    // [safetyStopExitShallow]) or descending back down (deeper than
+    // [safetyStopExitDeep]). Without this hysteresis a long, gently varying
+    // shallow phase gets chopped into many spurious start/end pairs as the
+    // depth repeatedly crosses 3 m or 6 m.
     const minStopDuration = 120; // 2 minutes
     const maxConsolidationGap = 120; // seconds -- bridge brief clear departures
 
@@ -1332,7 +1331,7 @@ class ProfileAnalysisService {
           stopStartIndex = i;
           stopStartTimestamp = timestamps[i];
         }
-      } else if (depth < stopExitShallow || depth > stopExitDeep) {
+      } else if (depth < safetyStopExitShallow || depth > safetyStopExitDeep) {
         // Clear departure: close at the previous sample (which may sit
         // between the band edge and the hysteresis threshold, e.g. 7m).
         addRawStop(stopStartIndex, stopStartTimestamp!, i - 1);
