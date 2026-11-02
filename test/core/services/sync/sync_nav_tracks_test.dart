@@ -5,6 +5,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -42,6 +43,46 @@ void main() {
       sourceRef: '008.DAT.csv',
     );
   }
+
+  group('scaleFactor from a peer that predates it (issue #3823)', () {
+    test('an edit omitting it keeps the local scale', () async {
+      final id = await seedRoute();
+      await repo.updateCorrection(
+        id,
+        const NavTrackCorrection(scaleFactor: 1.38),
+      );
+
+      final fetched = await serializer.fetchRecord('navTracks', id);
+      final peerRow = Map<String, dynamic>.of(fetched!)
+        ..remove('scaleFactor')
+        ..['name'] = 'Renamed on old device';
+      await serializer.upsertRecord('navTracks', peerRow);
+
+      final after = await repo.getById(id);
+      expect(after!.name, 'Renamed on old device');
+      expect(after.scaleFactor, 1.38);
+    });
+
+    test('a row new here without the key reads 100%', () async {
+      final id = await seedRoute();
+      final fetched = await serializer.fetchRecord('navTracks', id);
+      final peerRow = Map<String, dynamic>.of(fetched!)
+        ..remove('scaleFactor')
+        ..['id'] = 'born-on-old-peer';
+      await serializer.upsertRecord('navTracks', peerRow);
+
+      expect((await repo.getById('born-on-old-peer'))!.scaleFactor, 1.0);
+    });
+
+    test('a scale from a current peer applies', () async {
+      final id = await seedRoute();
+      final fetched = await serializer.fetchRecord('navTracks', id);
+      final peerRow = Map<String, dynamic>.of(fetched!)..['scaleFactor'] = 0.75;
+      await serializer.upsertRecord('navTracks', peerRow);
+
+      expect((await repo.getById(id))!.scaleFactor, 0.75);
+    });
+  });
 
   test('navTracks round-trips fetchRecord/fetchRecords/upsertRecord/'
       'recordIdsFor/deleteRecord with intact blob', () async {

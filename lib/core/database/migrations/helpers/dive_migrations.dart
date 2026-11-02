@@ -649,6 +649,14 @@ extension DiveMigrations on AppDatabase {
   Future<void> clearGeneratedWeatherDescriptionsForTesting() =>
       _clearGeneratedWeatherDescriptions();
 
+  /// v333: dives.gas_switches_edited (issue #32). Idempotent, so the ladder
+  /// and the beforeOpen backstop can both call it.
+  Future<void> _assertDiveGasSwitchesEditedColumn() => _addColumnIfMissing(
+    'dives',
+    'gas_switches_edited',
+    'INTEGER NOT NULL DEFAULT 0',
+  );
+
   /// Idempotent DDL for dive_tanks.source_id (v251, issue #2716).
   Future<void> _assertDiveTankSourceIdColumn() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();

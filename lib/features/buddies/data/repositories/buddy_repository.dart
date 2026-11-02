@@ -33,6 +33,7 @@ import 'package:submersion/features/certifications/domain/certification_primary.
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_buddy_links.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 
 // Re-export merge types so callers can import from buddy_repository.dart
@@ -375,6 +376,10 @@ class BuddyRepository {
         // Their people tags too, tombstoned (issue #1745): the cascade
         // would remove them without a word to other devices.
         await MediaPeopleRepository().deleteForBuddies([id]);
+        // Their gear places stay, without the link (issue #3790).
+        await clearEquipmentLocationBuddyLinks(_db, _syncRepository, [
+          id,
+        ], now: DateTime.now().millisecondsSinceEpoch);
         // Dive buddies will be automatically deleted due to CASCADE
         await (_db.delete(_db.buddies)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'buddies', recordId: id);

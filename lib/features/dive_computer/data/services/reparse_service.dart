@@ -194,6 +194,14 @@ class ReparseService {
       final isMultiSource = sourceRows.length > 1;
       final ownsStrand = sourceOwnsProfileStrand(sourceRow, sourceRows);
 
+      // A switch list the diver edited is theirs (issue #32): the re-parse
+      // rewrites events, cylinders and pressure as before but leaves every
+      // switch row alone, the way it keeps an edited profile.
+      final diveRow = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      final keepsSwitches = diveRow.gasSwitchesEdited;
+
       // ------------------------------------------------------------------
       // 3. Replace DiveProfiles for this source's computerId -- but only
       //    when this source actually authored that strand in its own parse
@@ -276,6 +284,7 @@ class ReparseService {
             )
           : const <DownloadedTank>[];
       final rewritesTanks = resolvedTanks.isNotEmpty;
+      final rewritesSwitches = rewritesTanks && !keepsSwitches;
 
       if (rewritesEvents) {
         // Tombstoned: a peer's import only upserts these, so a row removed
@@ -285,12 +294,14 @@ class ReparseService {
           await _idsOf(db.diveProfileEvents, diveId),
           diveId: diveId,
         );
-        if (rewritesTanks) {
+        if (rewritesSwitches) {
           await _deleteAndTombstone(
             'gasSwitches',
             await _idsOf(db.gasSwitches, diveId),
             diveId: diveId,
           );
+        }
+        if (rewritesTanks) {
           await _tankSeries.deleteForDive(diveId);
         }
 
@@ -313,12 +324,22 @@ class ReparseService {
         // Resolved once: the bailout claim reads them, and so does the
         // switch rewrite below.
         final switches = resolveGasSwitches(parsed);
+        // The cylinders the dive's stored switches name. On a dive whose
+        // list the diver edited these are still here; otherwise the rows
+        // were just deleted above and the set is empty.
+        final switchedTankIds = {
+          for (final row in await (db.select(
+            db.gasSwitches,
+          )..where((t) => t.diveId.equals(diveId))).get())
+            row.tankId,
+        };
         final tankIdsByIndex = await _carryOverTanks(
           diveId: diveId,
           computerId: computerId,
           resolvedTanks: resolvedTanks,
           parsed: parsed,
           switches: switches,
+          switchedTankIds: switchedTankIds,
         );
         // A tank this parse gained is new, with no source yet (v251, issue
         // #2716); a single-source dive's one source is it.
@@ -335,13 +356,15 @@ class ReparseService {
           parsed: parsed,
           tankIdsByIndex: tankIdsByIndex,
         );
-        await _insertGasSwitches(
-          diveId: diveId,
-          computerId: computerId,
-          switches: switches,
-          tankIdsByIndex: tankIdsByIndex,
-          now: now,
-        );
+        if (rewritesSwitches) {
+          await _insertGasSwitches(
+            diveId: diveId,
+            computerId: computerId,
+            switches: switches,
+            tankIdsByIndex: tankIdsByIndex,
+            now: now,
+          );
+        }
       }
 
       // ------------------------------------------------------------------
@@ -372,8 +395,11 @@ class ReparseService {
       }
       if (rewritesTanks) {
         await stage('diveTanks', await _idsOf(db.diveTanks, diveId));
+      }
+      if (rewritesSwitches) {
         // gasSwitches is only touched (deleted + re-inserted) alongside
-        // tanks; see the guard above.
+        // tanks, and never on a dive whose list the diver edited; see the
+        // guards above.
         await stage('gasSwitches', await _idsOf(db.gasSwitches, diveId));
       }
       if (sourceRow.isPrimary) await stage('dives', [diveId]);
@@ -962,6 +988,7 @@ class ReparseService {
     required List<DownloadedTank> resolvedTanks,
     required pigeon.ParsedDive parsed,
     required List<GasSwitchEvent> switches,
+    required Set<String> switchedTankIds,
   }) async {
     final tankIdsByIndex = <int, String>{};
     // Get existing tanks
@@ -1023,6 +1050,16 @@ class ReparseService {
           )
         : (edited: const <int>{}, importers: const <int>{});
 
+    // A cylinder a stored gas switch names was breathed, whatever this parse
+    // says (issue #32): neither the claim nor the unused-gas cleanup may
+    // take it, or the switch would cascade away with it.
+    final switchNamed = {
+      for (final tank in parsedTanks)
+        if (matches[tank.index] case final row?
+            when switchedTankIds.contains(row.id))
+          tank.index,
+    };
+
     // A bailout transmitter claims the computer's pressureless cylinder for
     // its gas (#3307). Stored roles the diver set count, so a transmitter the
     // diver made the bailout keeps the cylinder merged; a stored cylinder the
@@ -1062,6 +1099,7 @@ class ReparseService {
         // The wider unused-gas test: a hand-entered pressure, regulator, trip
         // cylinder or passport on such a row would go with a claim.
         ...unusedRows.edited,
+        ...switchNamed,
       },
     );
 
@@ -1070,7 +1108,10 @@ class ReparseService {
     // added in the editor reaches a dropped index only through the order
     // fallback and is left alone below.
     final unused = omitUnusedOcGases
-        ? dropUnusedOcGases(claim.tanks, keep: unusedRows.edited)
+        ? dropUnusedOcGases(
+            claim.tanks,
+            keep: {...unusedRows.edited, ...switchNamed},
+          )
         : (tanks: claim.tanks, dropped: const <int>{});
 
     // Claimed cylinders are gone from [claim.tanks]; a role overlaid above
@@ -1164,9 +1205,11 @@ class ReparseService {
       }
     }
 
-    // Delete tanks that exist in DB but were neither matched nor kept by
-    // order (the pre-v200 rule, so manual rows on a re-parsed dive behave as
-    // before).
+    // Delete the computer's tanks that exist in DB but were neither matched
+    // nor kept by order (the pre-v200 rule). A row with no source index that
+    // the parse did not match is the diver's own cylinder, or a pre-v200 row
+    // the parse never matched, which cannot be told apart: both are kept
+    // (issue #32), so a re-parse never takes a cylinder the diver added.
     // A stored cylinder a transmitter claimed is merged into it, so it goes
     // even though this parse matched it. A row the parse did not match keeps
     // the pre-v200 rule: its order still counts as taken.
@@ -1188,6 +1231,13 @@ class ReparseService {
     for (final existing in existingTanks) {
       final claimed = claimedIds.contains(existing.id);
       if (matchedIds.contains(existing.id) && !claimed) continue;
+      if (!matchedIds.contains(existing.id) &&
+          existing.sourceTankIndex == null) {
+        continue;
+      }
+      // A cylinder a stored switch names was breathed: the switch would
+      // cascade away with the row (issue #32).
+      if (switchedTankIds.contains(existing.id)) continue;
       if (claimed || !newTankOrders.contains(existing.tankOrder)) {
         await (db.delete(
           db.diveTanks,

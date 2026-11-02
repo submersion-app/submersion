@@ -65,6 +65,13 @@ If you remember diving with someone but not their name, you can add a buddy call
 
 A buddy left out of the rankings no longer appears in **Top Dive Buddies** in Insights, as a regular buddy in your Insights observations, or under **Most Dives** in the Buddies overview. Everything else stays the same: their dives still count as buddy dives in **Solo vs Buddy Dives**, and they stay in your buddy list and on each dive. Their detail page shows **Left out of buddy rankings** in the **Dive Statistics** card.
 
+### Gear a buddy has
+
+If you lend gear to a buddy, their page lists it under **Gear with** their name,
+with **Returned** to take an item back and **All returned** for everything.
+Choose **Lend gear** from the page's menu to lend more. See
+[Lending gear to a buddy](equipment.md#lending-gear-to-a-buddy).
+
 ### Merging duplicate buddies
 
 If the same person has been entered more than once (for example, with slightly different name spellings), you can merge the duplicates into one record without losing any dive history.

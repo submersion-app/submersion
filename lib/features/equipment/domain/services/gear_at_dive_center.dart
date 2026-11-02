@@ -11,11 +11,22 @@ List<GearAtCenter> gearAtDiveCenter(
   String centerId,
   List<EquipmentItem> items,
   Map<String, EquipmentLocation> currentPlaces,
+) => gearAtPlacesWhere(
+  items,
+  currentPlaces,
+  (place) => place.diveCenterId == centerId,
+);
+
+/// The [items] whose current place in [currentPlaces] passes [matches], by
+/// item name.
+List<({EquipmentItem item, EquipmentLocation place})> gearAtPlacesWhere(
+  List<EquipmentItem> items,
+  Map<String, EquipmentLocation> currentPlaces,
+  bool Function(EquipmentLocation place) matches,
 ) {
-  final rows = <GearAtCenter>[
+  final rows = [
     for (final item in items)
-      if (currentPlaces[item.id] case final place?
-          when place.diveCenterId == centerId)
+      if (currentPlaces[item.id] case final place? when matches(place))
         (item: item, place: place),
   ];
   return sortedByText(rows, (row) => row.item.name);

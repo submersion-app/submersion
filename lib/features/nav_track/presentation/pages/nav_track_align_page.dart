@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
-import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
@@ -17,6 +16,7 @@ import 'package:submersion/features/bathymetry/presentation/depth_overlay_toggle
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
@@ -27,6 +27,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_scale_handle.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_terrain_check.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -35,6 +36,8 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_ali
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_rotation_control.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_position_row_controls.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_scale_control.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_scale_handle_layer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -49,52 +52,9 @@ const double _uncappedPanelMinBodyHeight = 540;
 /// What the crosshair-and-pan flow is currently placing, or nothing.
 enum _Placing { none, start, end }
 
-/// The corrected points of the ACTIVE dead-reckoned range only -- up to
-/// [NavTrackCorrector.activeRangeEndIndex] -- for the terrain check and its
-/// conflict-dot overlay. A GPS-fixed/out-of-water tail (a device sitting on
-/// a car dashboard, say) is not part of the diver's swim path and must not
-/// be checked against the seafloor at all: including it would inflate the
-/// "N points on land / below the seafloor" readout with samples that have
-/// nothing to do with where the route actually sits, the same "whole raw
-/// recording" mistake the 3D ribbon, the 2D layer and the summary
-/// statistics elsewhere in this module already avoid.
-List<CorrectedNavTrackPoint> _activeCorrectedPoints(
-  List<NavTrackPoint> points,
-  NavTrackCorrection correction,
-) {
-  final range = NavTrackCorrector.activeRange(points);
-  final corrected = NavTrackCorrector.apply(points, correction);
-  return corrected.sublist(
-    range.start.clamp(0, corrected.length),
-    (range.end + 1).clamp(0, corrected.length),
-  );
-}
-
-/// A degree tolerance for [_geoPointsMatch]: well under a millimetre at any
-/// latitude, loose enough to absorb floating-point rounding differences
-/// between two independently computed values that are meant to be the same
-/// point, tight enough that two genuinely different suggestions never read
-/// as a match.
-const double _geoPointMatchToleranceDeg = 1e-9;
-
-/// Whether [a] and [b] are the same point, within [_geoPointMatchToleranceDeg].
-///
-/// Used instead of [GeoPoint]'s own `==` to mark a start suggestion chip
-/// selected: a suggestion like [NavTrackCorrector]'s pre-dive-fix back-solve
-/// re-derives its [GeoPoint] from scratch on every build (the same
-/// floating-point arithmetic over the same inputs, not a cached value), so
-/// exact equality would only be as robust as that recomputation happening
-/// to land on the exact same bits as it did for the selection stored in
-/// [NavTrackCorrection.anchor].
-bool _geoPointsMatch(GeoPoint? a, GeoPoint? b) {
-  if (a == null || b == null) return false;
-  return (a.latitude - b.latitude).abs() < _geoPointMatchToleranceDeg &&
-      (a.longitude - b.longitude).abs() < _geoPointMatchToleranceDeg;
-}
-
 /// The alignment page (spec 2026-09-10-underwater-nav-track-design.md, "The
-/// alignment page"): start point, end point, trust slider, rotation and the
-/// terrain check, all against a transient in-memory [NavTrackCorrection]
+/// alignment page"): start point, end point, trust slider, rotation, scale and
+/// the terrain check, all against a transient in-memory [NavTrackCorrection]
 /// that is only written back with "Save".
 ///
 /// Renders the route by constructing a transient [NavTrack] copy carrying
@@ -113,6 +73,7 @@ class NavTrackAlignPage extends ConsumerStatefulWidget {
 
 class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   final MapController _mapController = MapController();
+  final GlobalKey _mapKey = GlobalKey();
 
   /// Shared by the controls panel's scroll view and its [Scrollbar]: a scroll
   /// view inherits the PrimaryScrollController on mobile only, so a Scrollbar
@@ -121,6 +82,11 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   Timer? _terrainDebounce;
 
   bool _initialized = false;
+
+  /// How the map opens: fitted to the track, so a small one keeps the scale
+  /// handle clear of the start marker. Read once, at the first layout. Null
+  /// for a track with no start point, which opens on the world view.
+  TrackCamera? _openingCamera;
   NavTrackCorrection _correction = const NavTrackCorrection();
   _Placing _placing = _Placing.none;
   NavTrackTerrainCheckResult? _terrainResult;
@@ -156,6 +122,16 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
       correction = correction.copyWith(endMode: NavTrackEndMode.sameAsStart);
     }
     _correction = correction;
+    final opening = route.withCorrection(correction);
+    if (opening.anchor != null) {
+      _openingCamera = navTrackCamera(
+        opening,
+        padding: const EdgeInsets.all(48),
+        // As on the detail map: a tiny track must not fit past what a map
+        // style has tiles for.
+        maxZoom: 17,
+      );
+    }
     _scheduleTerrainCheck(route);
   }
 
@@ -220,7 +196,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
       }
       return;
     }
-    final corrected = _activeCorrectedPoints(route.points, _correction);
+    final corrected = activeCorrectedPoints(route.points, _correction);
     final grid = await ref.read(
       bathymetryGridProvider(BathymetryRepository.quantize(anchor)).future,
     );
@@ -238,41 +214,6 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
       () => _terrainResult = NavTrackTerrainCheck.run(corrected, anchor, grid),
     );
   }
-
-  /// A transient [NavTrack] carrying [_correction] instead of the persisted
-  /// one, for the map layers that read a [NavTrack] directly.
-  NavTrack _transientRoute(NavTrack base) => NavTrack(
-    id: base.id,
-    diveId: base.diveId,
-    linkMode: base.linkMode,
-    isPrimary: base.isPrimary,
-    siteId: base.siteId,
-    source: base.source,
-    sourceRef: base.sourceRef,
-    deviceName: base.deviceName,
-    name: base.name,
-    equipmentId: base.equipmentId,
-    startTime: base.startTime,
-    endTime: base.endTime,
-    tzOffsetMinutes: base.tzOffsetMinutes,
-    timeOffsetSeconds: base.timeOffsetSeconds,
-    pointCount: base.pointCount,
-    totalDistance: base.totalDistance,
-    maxDepth: base.maxDepth,
-    maxSpeed: base.maxSpeed,
-    avgSpeed: base.avgSpeed,
-    durationSeconds: base.durationSeconds,
-    anchorLatitude: _correction.anchor?.latitude,
-    anchorLongitude: _correction.anchor?.longitude,
-    endMode: _correction.endMode,
-    endLatitude: _correction.endPoint?.latitude,
-    endLongitude: _correction.endPoint?.longitude,
-    trustFraction: _correction.trustFraction,
-    headingOffsetDeg: _correction.headingOffsetDeg,
-    points: base.points,
-    createdAt: base.createdAt,
-    updatedAt: base.updatedAt,
-  );
 
   Future<void> _persistCorrection(NavTrack route) => ref
       .read(navTrackRepositoryProvider)
@@ -326,18 +267,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     setState(() => _placing = _Placing.none);
   }
 
-  void _dragPoint(NavTrack route, bool isStart, Offset delta) {
-    final current = isStart ? _correction.anchor : _correction.endPoint;
-    if (current == null) return;
-    final zoom = _mapController.camera.zoom;
-    final metersPerPixel =
-        156543.03392 *
-        math.cos(current.latitude * math.pi / 180) /
-        math.pow(2, zoom);
-    final dLon =
-        delta.dx * metersPerPixel / metersPerDegreeLongitude(current.latitude);
-    final dLat = -delta.dy * metersPerPixel / metersPerDegreeLatitude;
-    final moved = GeoPoint(current.latitude + dLat, current.longitude + dLon);
+  void _dragPoint(NavTrack route, bool isStart, GeoPoint moved) {
     if (isStart) {
       _updateCorrection((c) => c.copyWith(anchor: moved), route);
     } else {
@@ -386,7 +316,7 @@ class _AlignPageBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final correction = state._correction;
     final anchor = correction.anchor;
-    final transientRoute = state._transientRoute(route);
+    final transientRoute = route.withCorrection(correction);
     final fixEvents = NavTrackSegmenter.classify(route.points).fixEvents;
     final hasFix = fixEvents.isNotEmpty;
     // Gates the "GPS position at surfacing" end chip specifically: `hasFix`
@@ -416,6 +346,12 @@ class _AlignPageBody extends ConsumerWidget {
       (activeEnd + 1).clamp(0, corrected.length),
     );
 
+    final endPinned = NavTrackCorrector.endIsPinned(route.points, correction);
+    final scaleHandle = anchor == null || endPinned
+        ? null
+        : scaleHandleIndex(route.points, start: activeStart, end: activeEnd);
+
+    final opening = state._openingCamera;
     final initialCenter = anchor != null
         ? LatLng(anchor.latitude, anchor.longitude)
         : const LatLng(0, 0);
@@ -458,12 +394,14 @@ class _AlignPageBody extends ConsumerWidget {
               child: Stack(
                 children: [
                   TrackpadZoomMap(
+                    key: state._mapKey,
                     controller: state._mapController,
                     child: FlutterMap(
                       mapController: state._mapController,
                       options: MapOptions(
-                        initialCenter: initialCenter,
-                        initialZoom: anchor != null ? 15 : 3,
+                        initialCameraFit: opening?.fit,
+                        initialCenter: opening?.center ?? initialCenter,
+                        initialZoom: opening?.zoom ?? (anchor != null ? 15 : 3),
                         // The zoom range, pole stop and pinch handling every
                         // other map has (#3664).
                         minZoom: 2.0,
@@ -496,20 +434,43 @@ class _AlignPageBody extends ConsumerWidget {
                               trustedDistance,
                             ),
                           ),
+                        if (anchor != null &&
+                            scaleHandle != null &&
+                            state._placing == _Placing.none)
+                          NavTrackScaleHandleLayer(
+                            mapKey: state._mapKey,
+                            point: offsetToGeoPoint(
+                              anchor,
+                              east: corrected[scaleHandle].east,
+                              north: corrected[scaleHandle].north,
+                            ),
+                            pivot: offsetToGeoPoint(
+                              anchor,
+                              east: corrected[activeStart].east,
+                              north: corrected[activeStart].north,
+                            ),
+                            scaleFactor: correction.scaleFactor,
+                            onChanged: (value) => state._updateCorrection(
+                              (c) => c.copyWith(scaleFactor: value),
+                              route,
+                            ),
+                          ),
                         if (anchor != null)
                           NavTrackDraggableMarker(
+                            mapKey: state._mapKey,
                             point: anchor,
                             color: Colors.green,
                             keyValue: 'nav-track-align-start-marker',
-                            onDrag: (d) => state._dragPoint(route, true, d),
+                            onDrag: (p) => state._dragPoint(route, true, p),
                           ),
                         if (correction.endMode == NavTrackEndMode.point &&
                             correction.endPoint != null)
                           NavTrackDraggableMarker(
+                            mapKey: state._mapKey,
                             point: correction.endPoint!,
                             color: Colors.red,
                             keyValue: 'nav-track-align-end-marker',
-                            onDrag: (d) => state._dragPoint(route, false, d),
+                            onDrag: (p) => state._dragPoint(route, false, p),
                           ),
                         const MapAttribution(),
                       ],
@@ -573,6 +534,7 @@ class _AlignPageBody extends ConsumerWidget {
                 route: route,
                 correction: correction,
                 hasPostDiveFix: hasPostDiveFix,
+                endPinned: endPinned,
                 activeStart: activeStart,
                 cumulative: cumulative,
                 totalDistance: totalDistance,
