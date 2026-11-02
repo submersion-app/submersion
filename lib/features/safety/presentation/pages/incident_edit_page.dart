@@ -65,15 +65,24 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   /// names one, or one matches.
   String? _observationId;
 
-  /// The dive the report is linked to. The form shows no dive of its own; a
-  /// chosen check-in fills this when the report has none.
+  /// The report's own dive. The form shows no dive field, so a dive that only
+  /// came from a chosen check-in stays apart in [_checkInDiveId]: it must go
+  /// when that check-in does, with no way for the diver to see it otherwise.
   String? _diveId;
+  String? _checkInDiveId;
+
+  /// The dive the report saves with: its own, else the chosen check-in's.
+  String? get _effectiveDiveId => _diveId ?? _checkInDiveId;
   // A timezone-stable wall-clock date (stored as UTC), so the chosen day does
   // not shift when the synced incident is viewed in another timezone.
   DateTime _occurredAt = _todayWallClockUtc();
 
   /// Whether the diver has picked a date. A check-in moves only the default.
   var _dateTouched = false;
+
+  /// True from the first Save tap until the write finishes, so a second tap
+  /// cannot write the report twice.
+  var _saving = false;
   var _loaded = false;
   var _loadFailed = false;
 
@@ -158,6 +167,8 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
         _equipmentId = found.equipmentId;
         _category = IncidentCategory.equipment;
         _narrative.text = found.note;
+        // The report starts on this dive, whatever becomes of the link.
+        _diveId ??= found.diveId;
         _adoptCheckIn(found);
       }
       _loaded = true;
@@ -168,8 +179,13 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   /// diver or a saved report has set.
   void _adoptCheckIn(EquipmentObservation checkIn) {
     _observationId = checkIn.id;
-    _diveId ??= checkIn.diveId;
+    _checkInDiveId = checkIn.diveId;
     if (_existing == null && !_dateTouched) _occurredAt = _dayOf(checkIn);
+  }
+
+  void _clearCheckIn() {
+    _observationId = null;
+    _checkInDiveId = null;
   }
 
   @override
@@ -321,7 +337,10 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               ),
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: _save, child: Text(l10n.incidentEdit_save)),
+            FilledButton(
+              onPressed: _saving ? null : _save,
+              child: Text(l10n.incidentEdit_save),
+            ),
           ],
         ),
       ),
@@ -333,7 +352,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   /// away and each item is listed once.
   Future<void> _pickEquipment() async {
     final l10n = context.l10n;
-    final diveId = _diveId;
+    final diveId = _effectiveDiveId;
     final dive = diveId == null
         ? null
         : await ref.read(diveProvider(diveId).future);
@@ -381,7 +400,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     setState(() {
       _equipmentId = chosen.equipmentId;
       // A check-in belongs to one item, so it cannot follow the report.
-      if (changed) _observationId = null;
+      if (changed) _clearCheckIn();
       if (chosen.equipmentId != null && !_categoryTouched) {
         _category = IncidentCategory.equipment;
       }
@@ -393,13 +412,15 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   /// exactly one issue. Two means two faults, and picking is the diver's call.
   Future<void> _matchCheckIn() async {
     final equipmentId = _equipmentId;
-    final diveId = _diveId;
+    final diveId = _effectiveDiveId;
     if (equipmentId == null || diveId == null) return;
     final onDive = await ref
         .read(equipmentObservationRepositoryProvider)
         .getForEquipmentOnDive(equipmentId, diveId);
     final issues = onDive.where((o) => o.isIssue).toList();
-    if (issues.length != 1 || !mounted || _equipmentId != equipmentId) return;
+    if (issues.length != 1 || !mounted) return;
+    // The diver may have moved on while the query ran.
+    if (_equipmentId != equipmentId || _observationId != null) return;
     setState(() => _adoptCheckIn(issues.single));
   }
 
@@ -418,14 +439,14 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     final chosen = await showIncidentCheckInPicker(
       context,
       checkIns: issues,
-      diveId: _diveId,
+      diveId: _effectiveDiveId,
     );
     if (!mounted) return;
     switch (chosen) {
       case null:
         return;
       case IncidentCheckInNone():
-        setState(() => _observationId = null);
+        setState(_clearCheckIn);
       case IncidentCheckInPicked(:final observation):
         setState(() => _adoptCheckIn(observation));
       case IncidentCheckInAddNew():
@@ -440,7 +461,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     required List<EquipmentObservation> known,
   }) async {
     final item = await ref.read(equipmentItemProvider(equipmentId).future);
-    final diveId = _diveId;
+    final diveId = _effectiveDiveId;
     final dive = diveId == null
         ? null
         : await ref.read(diveProvider(diveId).future);
@@ -451,6 +472,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
       dive: dive,
       offerNearMiss: false,
     );
+    if (!mounted) return;
     final knownIds = {for (final o in known) o.id};
     final added = [
       for (final o in await _issuesOn(equipmentId))
@@ -514,12 +536,24 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    setState(() => _saving = true);
+    try {
+      await _write();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _write() async {
     final repo = ref.read(incidentRepositoryProvider);
     final narrative = _narrative.text.trim();
     final factors = _factors.text.trim();
     final lessons = _lessons.text.trim();
     final observationId = await _linkableObservationId();
+    // A dive that came only from the check-in goes if the check-in has.
+    final diveId = observationId == null ? _diveId : _effectiveDiveId;
 
     if (_existing == null) {
       await repo.createIncident(
@@ -529,7 +563,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
         narrative: narrative,
         contributingFactors: factors.isEmpty ? null : factors,
         lessonsLearned: lessons.isEmpty ? null : lessons,
-        diveId: _diveId,
+        diveId: diveId,
         // The validated id, as the gear picker and the incident list read
         // it: a stale raw id would file the report where neither looks.
         diverId: await ref.read(validatedCurrentDiverIdProvider.future),
@@ -545,7 +579,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
           narrative: narrative,
           contributingFactors: factors.isEmpty ? null : factors,
           lessonsLearned: lessons.isEmpty ? null : lessons,
-          diveId: _diveId,
+          diveId: diveId,
           equipmentId: _equipmentId,
           clearEquipmentId: _equipmentId == null,
           observationId: observationId,

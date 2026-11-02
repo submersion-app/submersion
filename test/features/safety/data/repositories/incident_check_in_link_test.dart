@@ -5,6 +5,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/services/equipment_item_fold.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
@@ -151,6 +152,25 @@ void main() {
     expect(after.equipmentId, isNull);
     expect(after.observationId, isNull);
     expect(await pendingIncidents(), [incident.id]);
+  });
+
+  test('merging the item into another keeps the link', () async {
+    final observation = await issue();
+    final incident = await linkedTo(observation);
+    final into = await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'New', type: EquipmentType.regulator),
+    );
+
+    final merged = await EquipmentItemFold().fold(
+      fromId: reg.id,
+      intoId: into.id,
+    );
+
+    expect(merged, isTrue);
+    final after = (await incidents.getIncidentById(incident.id))!;
+    expect(after.equipmentId, into.id);
+    expect(after.observationId, observation.id);
+    expect((await observations.getById(observation.id))!.equipmentId, into.id);
   });
 
   test('deleting the dive keeps the link', () async {

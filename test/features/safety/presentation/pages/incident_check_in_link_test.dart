@@ -308,6 +308,53 @@ void main() {
       expect(incident.occurredAt, DateTime.utc(2026, 2, 20));
     });
 
+    testWidgets('a dive that came with a check-in goes with it', (
+      tester,
+    ) async {
+      await checkIn(diveId: 'd2');
+
+      await pumpPage(tester, const IncidentEditPage());
+      await pickGear(tester, 'Apeks XTX');
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Free flow').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(SimpleDialogOption, 'None'));
+      await tester.pumpAndSettle();
+      await enterNarrative(tester);
+      await save(tester);
+
+      final incident = await saved();
+      expect(incident.observationId, isNull);
+      expect(incident.diveId, isNull);
+    });
+
+    testWidgets('picking another check-in takes its dive, not the first', (
+      tester,
+    ) async {
+      await checkIn(diveId: 'd1');
+      final second = await checkIn(diveId: 'd2', tag: ObservationTag.leak);
+
+      await pumpPage(tester, const IncidentEditPage());
+      await pickGear(tester, 'Apeks XTX');
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Free flow').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Leak').last);
+      await tester.pumpAndSettle();
+      await enterNarrative(tester);
+      await save(tester);
+
+      final incident = await saved();
+      expect(incident.observationId, second.id);
+      expect(incident.diveId, 'd2');
+    });
+
     testWidgets('changing an edited report keeps its own dive and date', (
       tester,
     ) async {

@@ -167,11 +167,14 @@ class EquipmentObservationRepository {
   /// no clock and stages nothing, so a peer would keep the stale link. Runs
   /// inside the caller's transaction.
   Future<void> _unlinkIncidents(String observationId, DateTime stamp) async {
-    final linked = _db.incidents.observationId.equals(observationId);
-    final rows = await (_db.select(_db.incidents)..where((_) => linked)).get();
+    final rows = await (_db.select(
+      _db.incidents,
+    )..where((t) => t.observationId.equals(observationId))).get();
     if (rows.isEmpty) return;
     final at = stamp.millisecondsSinceEpoch;
-    await (_db.update(_db.incidents)..where((_) => linked)).write(
+    await (_db.update(
+      _db.incidents,
+    )..where((t) => t.observationId.equals(observationId))).write(
       IncidentsCompanion(
         observationId: const Value(null),
         updatedAt: Value(at),
