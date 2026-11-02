@@ -53,6 +53,12 @@ class DataToolsPage extends ConsumerWidget {
             l10n.dataQuality_settings_subtitle,
             '/settings/data-quality',
           ),
+          tool(
+            Icons.grid_on,
+            l10n.settings_tableEditor_title,
+            l10n.settings_tableEditor_subtitle,
+            '/settings/table-editor',
+          ),
           if (showAgentAccess)
             DataRowTile(
               icon: Icons.smart_toy_outlined,

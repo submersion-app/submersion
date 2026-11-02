@@ -98,6 +98,29 @@ Widget _buildHeaderCell({
 
 void main() {
   group('EntityTableHeaderCell', () {
+    testWidgets('a long suffix fits a narrow sorted and filtered column', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: const Row(
+            children: [
+              EntityTableHeaderCell(
+                field: _TestField.sortableField,
+                width: 60,
+                isSorted: true,
+                sortAscending: true,
+                isFiltered: true,
+                labelSuffix: 'mbar',
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('renders displayName text', (tester) async {
       await tester.pumpWidget(_buildHeaderCell());
       await tester.pumpAndSettle();

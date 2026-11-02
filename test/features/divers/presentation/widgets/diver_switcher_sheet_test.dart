@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,7 +45,7 @@ const _newDiverStub = 'new diver page stub';
 void main() {
   late MockCurrentDiverIdNotifier currentDiver;
 
-  Widget buildHost({List<Diver>? divers}) {
+  Widget buildHost({List<Diver>? divers, AppExitGuard? exitGuard}) {
     currentDiver = MockCurrentDiverIdNotifier();
     currentDiver.setCurrentDiver('a');
 
@@ -71,6 +72,8 @@ void main() {
 
     return ProviderScope(
       overrides: [
+        if (exitGuard != null)
+          appExitGuardProvider.overrideWithValue(exitGuard),
         currentDiverIdProvider.overrideWith((ref) => currentDiver),
         diverListNotifierProvider.overrideWith(
           (ref) => _StubDiverListNotifier(
@@ -87,8 +90,12 @@ void main() {
     );
   }
 
-  Future<void> openSheet(WidgetTester tester, {List<Diver>? divers}) async {
-    await tester.pumpWidget(buildHost(divers: divers));
+  Future<void> openSheet(
+    WidgetTester tester, {
+    List<Diver>? divers,
+    AppExitGuard? exitGuard,
+  }) async {
+    await tester.pumpWidget(buildHost(divers: divers, exitGuard: exitGuard));
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
   }
@@ -122,6 +129,44 @@ void main() {
     expect(currentDiver.state, 'b');
     expect(find.text('Switch Diver'), findsNothing);
     expect(find.text('Switched to Bob Ray'), findsOneWidget);
+  });
+
+  // The sheet opens from any page (Cmd+Shift+D), and a switch starts the table
+  // editor clean, so it asks as leaving that page would (#3422).
+  group('with unsaved work on a page underneath', () {
+    AppExitGuard guardAnswering(bool giveItUp) =>
+        AppExitGuard(
+          retryExit: () async {},
+          preventWindowClose: (_) async {},
+          revealWindow: () async {},
+        )..hold(
+          AppExitBlocker(
+            hasUnsavedWork: () => true,
+            confirmLeaving: () async => giveItUp,
+          ),
+        );
+
+    testWidgets('keeping the work keeps the diver and the sheet', (
+      tester,
+    ) async {
+      await openSheet(tester, exitGuard: guardAnswering(false));
+
+      await tester.tap(find.text('Bob Ray'));
+      await tester.pumpAndSettle();
+
+      expect(currentDiver.state, 'a');
+      expect(find.text('Switch Diver'), findsOneWidget);
+    });
+
+    testWidgets('giving the work up switches', (tester) async {
+      await openSheet(tester, exitGuard: guardAnswering(true));
+
+      await tester.tap(find.text('Bob Ray'));
+      await tester.pumpAndSettle();
+
+      expect(currentDiver.state, 'b');
+      expect(find.text('Switch Diver'), findsNothing);
+    });
   });
 
   testWidgets('offers an Add New Diver row that opens the new diver page', (
