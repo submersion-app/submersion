@@ -1,0 +1,227 @@
+# The Web Build
+
+Submersion runs as a web page: the same app, compiled with `dart compile
+js`, reading the diver's data from their own sync store and keeping it in
+the browser's storage. Nothing runs on a server. This page is how that
+build is put together, what keeps it building, and how to run and test it.
+The user-facing side is in the [user guide](../user/web-app.md) and the
+hosting guide shipped inside the bundle (`web_hosting/HOSTING.md`).
+
+## Platform seams
+
+The browser has no `dart:io`, no isolates, no plugins for hardware, and
+`flutter build web` compiles every library `lib/main.dart` reaches, so a
+VM-only import anywhere stops the build. Three conventions keep it
+building:
+
+- **Facades with an io and a web half.** A file that needs a platform API
+  is split into `x.dart`, which only exports, `x_io.dart` and `x_web.dart`:
+
+  ```dart
+  export 'x_io.dart' if (dart.library.js_interop) 'x_web.dart';
+  ```
+
+  Both halves declare the same names. Examples: `lib/core/platform/`
+  `file_saver`, `secure_storage_backend`, `cross_tab_lock`,
+  `browser_origin_storage`, `device_capabilities`, `host_platform`, and
+  `lib/core/database/` `background_database_connection`,
+  `scratch_database`. `test/architecture/web_compile_seams_test.dart`
+  fails when a VM-only import appears outside an `_io.dart` half.
+- **`HostPlatform`, never `Platform`.** Operating-system checks go through
+  `lib/core/platform/host_platform.dart`, whose web half answers from the
+  user agent. `test/architecture/host_platform_single_source_test.dart`
+  keeps `dart:io`'s `Platform` out of shared code.
+- **`DeviceCapabilities`, never `kIsWeb` in a widget.** What a device can
+  do is one value, `DeviceCapabilities` (`lib/core/platform/
+  device_capabilities_model.dart`), read through
+  `deviceCapabilitiesProvider`. The native half reproduces the old
+  scattered gates; `DeviceCapabilities.web` is the browser's table. A
+  screen that must hide a feature reads one capability field; it never
+  asks the platform. Adding a feature the browser lacks means adding a
+  field, setting it false in the web table, and gating on it. A whole
+  route the browser cannot serve goes in `webUnavailableRoutePrefixes`
+  (`lib/core/router/web_unavailable_routes.dart`), which redirects to the
+  "not available in a browser" page; a router-backed test checks that
+  every prefix is a route the router serves.
+
+The connect flow, the credential stores, the CORS diagnoser and the rest
+of the browser-only code live under `lib/core/platform/web/` and the
+`web/` subfolders of the settings feature.
+
+## The two workers
+
+Two scripts under `web/` run beside the app, compiled apart from Flutter
+by `scripts/web/compile_workers.sh` (`dart compile js -O3`):
+
+- `web/drift_worker.dart` is drift's SQLite worker: it loads
+  `sqlite3.wasm`, opens the database in the browser's private file system
+  (or IndexedDB where there is none) and registers the app's SQL functions
+  on every connection, as the native connection setup does.
+- `web/compute_worker.dart` runs what native code runs on isolates:
+  inflating and compressing sync payloads, AES-GCM, Argon2id, hashing, and
+  streaming a large sync base through a temporary file in the origin
+  private file system.
+
+Everything they reach must be plain Dart: no Flutter, no `dart:ui`, no VM
+libraries. `test/architecture/web_worker_import_graph_test.dart` walks
+their import graphs. They are compiled with `-O3`, not `-O4`:
+`web_worker_build_flags_test.dart` guards that, because `-O4` trusts
+primitives and would drop the bounds checks the compute worker relies on
+when it inflates a payload a peer wrote.
+
+`sqlite3.wasm` is fetched by `scripts/web/fetch_sqlite3_wasm.sh` from the
+release pinned in `scripts/web/sqlite3_wasm.lock` (URL and SHA-256). The
+module and `package:sqlite3`'s bindings ship together, so
+`scripts/web/check_sqlite3_wasm_lock.py` fails CI when the lock names a
+release other than pubspec.lock's; bump both at once.
+
+The compiled workers and the module are git-ignored. `flutter build web`
+copies everything under `web/` into the bundle, so the build script
+removes the worker sources and the `.deps` and `.map` sidecars afterwards
+and the bundle check refuses them.
+
+## Building
+
+```bash
+scripts/build_web.sh
+```
+
+That is the one entry: fetch `sqlite3.wasm`, compile the workers,
+`flutter build web --release --pwa-strategy=none`, remove
+`flutter_service_worker.js` (Flutter writes it whatever the strategy; the
+bootstrap registers nothing, and a cached bundle is what a self-hoster who
+replaces the files must not get), copy the hosting files from
+`web_hosting/`, and run `scripts/check_web_bundle.py`. The check fails on a
+missing file, a `sqlite3.wasm` that is not the lock's build, a service
+worker, or a source or sidecar in the bundle.
+
+To run the app in a browser during development:
+
+```bash
+scripts/web/fetch_sqlite3_wasm.sh
+scripts/web/compile_workers.sh
+flutter run -d chrome
+```
+
+The page loads `sqlite3.wasm`, `drift_worker.js` and `compute_worker.js`
+from the site root, which is why the two scripts come first; rerun
+`compile_workers.sh` after changing anything a worker reaches.
+
+To serve a built bundle the way a configured host would (the two
+cross-origin isolation headers, `application/wasm`):
+
+```bash
+python3 scripts/web/serve_bundle.py --dir build/web --port 8080
+```
+
+## Storage
+
+The database is drift's `WasmDatabase` over `sqlite3.wasm`. Drift probes
+the browser and picks the best storage it supports: the origin private
+file system in a shared worker (needs the page cross-origin isolated, so
+the hosting files send `Cross-Origin-Opener-Policy: same-origin` and
+`Cross-Origin-Embedder-Policy: credentialless`), then OPFS in a dedicated
+worker, then IndexedDB, then memory. `BackgroundDatabaseConnection`'s web
+half records the choice in `WebDatabaseStatusHolder`; the Cloud Sync page
+shows it as the Browser storage row.
+
+Forget this device wipes the browser through `WebForgetDeviceService`:
+sync off, secrets and preferences cleared, the database closed and then
+deleted through drift's probe (`deleteStoredDatabases`, which covers OPFS
+and IndexedDB alike), the sync temp files removed, then a reload. A
+database that survives deletion stops the wipe and is reported, never
+reloaded over.
+
+A backup in the browser is a copy, not a file read: drift keeps the file
+where a page cannot read it and SQLite's page table is not compiled in, so
+`readDatabaseImage` (`lib/core/database/database_image.dart`) replays the
+schema into a scratch database (a second `sqlite3.wasm` over an in-memory
+file system in the page), copies every row, then the indexes, triggers and
+views, and hands the bytes to `FileSaver` as a download.
+
+## Tests
+
+Browser tests live under `test/web/` and are `@TestOn('browser')`; the VM
+shards leave the directory out (`bundle_tests.py --exclude-dir test/web`).
+They load the compiled workers from `test/web/assets/`, which
+`compile_workers.sh` stages:
+
+```bash
+scripts/web/compile_workers.sh
+scripts/web/test_web.sh --allow-skips
+```
+
+The script runs one directory of `test/web/` per Chrome: one Chrome
+loading every file loses its connection after about nine suites,
+serially too, while each directory passes on its own. Without
+`--allow-skips` it fails on any skipped test.
+
+The tests under `test/web/sync/` that talk to a store skip, saying so,
+without the `MINIO_*` defines. To run them locally against MinIO:
+
+```bash
+docker run -d --name minio -p 9000:9000 \
+  -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+  -e MINIO_API_CORS_ALLOW_ORIGIN='*' minio/minio:latest server /data
+docker run -d --name minio-nocors -p 9001:9000 \
+  -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+  -e MINIO_API_CORS_ALLOW_ORIGIN='https://example.invalid' minio/minio:latest server /data
+mc alias set open http://localhost:9000 minioadmin minioadmin
+mc mb open/submersion-test
+```
+
+Seed the library the round trip pulls (two divers, a site, a buddy, five
+dives with profiles, published under the device id `seed-device`), then
+run the suite with the defines:
+
+```bash
+flutter test tool/seed_sync_library_test.dart \
+  --dart-define=MINIO_ENDPOINT=http://localhost:9000 \
+  --dart-define=MINIO_BUCKET=submersion-test \
+  --dart-define=MINIO_ACCESS_KEY=minioadmin \
+  --dart-define=MINIO_SECRET_KEY=minioadmin
+scripts/web/test_web.sh \
+  --dart-define=MINIO_ENDPOINT=http://localhost:9000 \
+  --dart-define=MINIO_NOCORS_ENDPOINT=http://localhost:9001 \
+  --dart-define=MINIO_BUCKET=submersion-test \
+  --dart-define=MINIO_ACCESS_KEY=minioadmin \
+  --dart-define=MINIO_SECRET_KEY=minioadmin
+```
+
+The seeder is a Flutter test run as a tool, like `tool/demo_data/`,
+because the sync stack needs the Flutter binding.
+
+The three-browser smoke (`scripts/web/smoke_test.py`) drives Chromium,
+Firefox and WebKit with Playwright through connecting, the first sync, a
+dive edit and a publish, against a served bundle and the same store:
+
+```bash
+python3 -m pip install -r scripts/web/requirements-smoke.txt
+python3 -m playwright install --with-deps chromium firefox webkit
+python3 scripts/web/serve_bundle.py --dir build/web --port 8080 &
+MINIO_ENDPOINT=http://localhost:9000 MINIO_BUCKET=submersion-test \
+MINIO_ACCESS_KEY=minioadmin MINIO_SECRET_KEY=minioadmin \
+python3 -m pytest scripts/web/smoke_test.py -v
+```
+
+It opens the page with `?a11y=1`, which the web bootstrap reads to keep
+Flutter's semantics tree on from the first frame; Playwright finds every
+tile, field and button through that tree.
+
+## CI
+
+- `web-build` runs `scripts/build_web.sh`, builds the bundle's Dockerfile
+  once so it cannot rot (never pushed) and uploads `build/web` as the
+  `web-bundle` artifact.
+- `web-tests` starts two MinIO containers (one admitting every origin, one
+  admitting only another site, which proves the CORS diagnoser's failure
+  shape in a real browser), seeds the library and runs the browser suite,
+  failing on any skipped test.
+- `web-smoke` serves `web-build`'s artifact and runs the Playwright smoke
+  in the three browsers, failing on a junit file with no tests.
+- `build-all`'s `build-web` job zips the bundle as
+  `Submersion-<tag>-Web.zip`, which the release workflow attaches and
+  validates like every other asset.
+
+All three CI jobs sit in the `ci-success` gate, and `script-tests` covers
+`check_web_bundle.py`, `check_sqlite3_wasm_lock.py` and `serve_bundle.py`.
