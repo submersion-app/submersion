@@ -8207,10 +8207,12 @@ class DiveRepository {
         _db.diveTanks,
       )..where((t) => t.id.isIn(tankIds))).get();
       if (rows.isEmpty) return 0;
-      await (_db.update(
-        _db.diveTanks,
-      )..where((t) => t.id.isIn(tankIds))).write(companion);
+      // One write per row, each marked pending in the same block: the row
+      // keeps a fresh clock, so a peer's older copy cannot undo the role.
       for (final row in rows) {
+        await (_db.update(
+          _db.diveTanks,
+        )..where((t) => t.id.equals(row.id))).write(companion);
         await _syncRepository.markRecordPending(
           entityType: 'diveTanks',
           recordId: row.id,
