@@ -192,6 +192,21 @@ The sweep:
 - Update the class comment on `StorageScratchSweep`, the `MediaCacheStore`
   comments and `mediaCacheRoot()`, all of which describe a single root.
 
+### Opening a video after a purge
+
+`resolvedFilePathProvider` used to keep its answer for the life of the process, so
+after "Clear cache" with the app in the background, a store-backed original opened
+earlier in that session failed until the app restarted. Purging makes this reachable
+on any Android phone, so the provider now answers once and disposes, and every open
+resolves afresh. The cost is a row lookup and a stat for a cached original, and a
+gallery lookup for a gallery video, small beside starting a video player. The same
+change clears two older problems: an original evicted by the LRU cap, and a miss
+while offline, neither of which could recover without a restart.
+
+The provider holds a keep-alive link while it resolves. Its readers make one-off
+reads, which keep no listener, and it uses its ref after the first await, so without
+the link it can be disposed part way through a video open.
+
 ## Accepted edge cases
 
 - **A partial purge, for up to a day.** If the OS removes some files and leaves the
@@ -201,11 +216,6 @@ The sweep:
   and the cost is regenerating them. Checking files on every over-cap `put` would
   close this gap, but at a cost paid constantly by every diver with a large library
   to fix something rare and cheap.
-- **A path held across a purge (Android).** `resolvedFilePathProvider` keeps a path
-  for the life of the process, so if "Clear cache" empties the directory while the
-  app is in the background, a store-backed original opened earlier in that session
-  fails until the app restarts. LRU eviction has always had this staleness, and it
-  needs a user action while the app is alive, so it is left as it is.
 - **A purge while the app is open (Android).** A file can vanish between a tile
   finding it and drawing it, giving a broken-image tile until the next view. The
   window is very small, and scrolling away and back resolves it. No handling.

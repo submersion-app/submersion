@@ -121,10 +121,25 @@ final resolvedFullResolutionProvider =
 /// the item's own localPath when that file exists -> the media store
 /// fallback (downloads the original into the content-addressed cache;
 /// design spec section 10) -> null.
+///
+/// Disposes as soon as it has answered, so the next open asks again: the
+/// answer does not stay true. A cached original can be evicted, or purged by
+/// the OS with the app running, and an original missed offline can be found
+/// later. It is held while it resolves because its readers make one-off reads,
+/// which keep no listener, and the ref is used after the first await.
 final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>((
   ref,
   item,
 ) async {
+  final resolving = ref.keepAlive();
+  try {
+    return await _resolveFilePath(ref, item);
+  } finally {
+    resolving.close();
+  }
+}, isAutoDispose: true);
+
+Future<String?> _resolveFilePath(Ref ref, MediaItem item) async {
   // Gallery fast path.
   if (item.platformAssetId != null) {
     final service = ref.watch(assetResolutionServiceProvider);
@@ -149,4 +164,4 @@ final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>((
   final data = await runtime?.resolver.tryResolveRemote(item, thumbnail: false);
   if (data is FileData) return data.file.path;
   return null;
-});
+}
