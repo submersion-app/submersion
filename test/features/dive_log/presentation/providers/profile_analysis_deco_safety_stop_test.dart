@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 
 /// A hold in the 3-6 m band while deco is owed is required decompression, so
@@ -260,6 +261,39 @@ void main() {
       final (result, _) = overlayComputerDecoData(base, profile);
 
       expect(safetyStops(result), isEmpty);
+    });
+  });
+
+  group('safetyStopWindows', () {
+    ProfileEvent stop(int timestamp, {required bool isStart}) =>
+        ProfileEvent.safetyStop(
+          id: '$timestamp',
+          diveId: 'dive',
+          timestamp: timestamp,
+          depth: 5,
+          createdAt: DateTime.utc(2026),
+          isStart: isStart,
+          source: EventSource.imported,
+        );
+
+    test('pairs each start with the next end', () {
+      expect(
+        safetyStopWindows([
+          stop(100, isStart: true),
+          stop(200, isStart: false),
+          stop(300, isStart: true),
+          stop(400, isStart: false),
+        ]),
+        [(start: 100, end: 200), (start: 300, end: 400)],
+      );
+    });
+
+    test('a start with no end has no window', () {
+      expect(safetyStopWindows([stop(100, isStart: true)]), isEmpty);
+    });
+
+    test('an end with no start has no window', () {
+      expect(safetyStopWindows([stop(100, isStart: false)]), isEmpty);
     });
   });
 

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
@@ -243,6 +244,44 @@ void main() {
       segments!.map((s) => s.phase),
       isNot(contains(DivePhase.safetyStop)),
     );
+  });
+
+  test('a stop the chart keeps stays a safety stop (#4079)', () async {
+    // The NDL curve reads deco throughout, but the analysis kept the stop, as
+    // it does when the computer flagged a safety stop in the hold.
+    final points = [
+      for (var t = 0; t <= 1200; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 20),
+      for (var t = 1210; t <= 1570; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 5),
+    ];
+    ProfileEvent stopEvent(int timestamp, {required bool isStart}) =>
+        ProfileEvent.safetyStop(
+          id: 'stop-$timestamp',
+          diveId: diveId,
+          timestamp: timestamp,
+          depth: 5,
+          createdAt: now,
+          isStart: isStart,
+        );
+
+    final segments = await container(
+      sources: [source('a', 'primary-dc', isPrimary: true)],
+      profiles: const {},
+      switches: const [],
+      profile: points,
+      analysis: ProfileAnalysis.empty().copyWith(
+        ndlCurve: List.filled(points.length, -1),
+        events: [
+          stopEvent(1210, isStart: true),
+          stopEvent(1570, isStart: false),
+        ],
+      ),
+    ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
+
+    final phases = segments!.map((s) => s.phase);
+    expect(phases, contains(DivePhase.safetyStop));
+    expect(phases, isNot(contains(DivePhase.deco)));
   });
 
   test('gas rows ignore another computer\'s switches', () async {

@@ -662,7 +662,7 @@ void main() {
         for (var t = 660; t <= 1020; t += 10)
           DiveProfilePoint(timestamp: t, depth: 5),
       ];
-      List<DivePhase?> phases(List<DecoStopWindow> decoStops) => service
+      List<DivePhase?> phases(List<StopWindow> decoStops) => service
           .calculatePhaseSegments(
             profile: profile,
             tanks: const [tank],
@@ -714,6 +714,21 @@ void main() {
           shortPhases(List.filled(short.length, -1)),
           isNot(contains(DivePhase.safetyStop)),
         );
+      });
+
+      test('stays a safety stop inside a safety stop window', () {
+        final result = service
+            .calculatePhaseSegments(
+              profile: profile,
+              tanks: const [tank],
+              tankPressures: {'t1': linearPressure('t1', 200, 80, 1020)},
+              safetyStops: const [(start: 660, end: 1020)],
+              ndlCurve: List.filled(profile.length, -1),
+            )!
+            .map((s) => s.phase);
+
+        expect(result, contains(DivePhase.safetyStop));
+        expect(result, isNot(contains(DivePhase.deco)));
       });
 
       test('stays a safety stop outside every window', () {

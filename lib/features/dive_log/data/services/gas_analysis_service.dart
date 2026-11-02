@@ -169,14 +169,16 @@ class GasAnalysisService {
   /// A hold inside one of [decoStops], or on a sample [ndlCurve] reads as in
   /// deco, is a deco stop, not a safety stop. The curve catches the short stops
   /// that are too brief to be a window. A curve whose length does not match
-  /// [profile] is another series, and is treated as absent.
+  /// [profile] is another series, and is treated as absent. A hold inside one
+  /// of [safetyStops] stays a safety stop, so this agrees with the chart.
   List<SacSegment>? calculatePhaseSegments({
     required List<DiveProfilePoint> profile,
     required List<DiveTank> tanks,
     Map<String, List<TankPressurePoint>>? tankPressures,
     List<GasSwitchWithTank>? gasSwitches,
     DiveEnvironment environment = DiveEnvironment.standard,
-    List<DecoStopWindow> decoStops = const [],
+    List<StopWindow> decoStops = const [],
+    List<StopWindow> safetyStops = const [],
     List<int> ndlCurve = const [],
   }) {
     if (profile.length < 10) return null;
@@ -195,10 +197,11 @@ class GasAnalysisService {
     final phasePoints = <({int timestamp, DivePhase phase})>[];
     for (int i = 0; i < profile.length; i++) {
       final timestamp = profile[i].timestamp;
+      bool isInside(StopWindow w) => timestamp >= w.start && timestamp <= w.end;
       var phase = _classifyPhase(profile, i, maxDepth);
       if (phase == DivePhase.safetyStop &&
-          (decoStops.any((w) => timestamp >= w.start && timestamp <= w.end) ||
-              isDecoSample(profile, alignedNdl, i))) {
+          !safetyStops.any(isInside) &&
+          (decoStops.any(isInside) || isDecoSample(profile, alignedNdl, i))) {
         phase = DivePhase.deco;
       }
       phasePoints.add((timestamp: timestamp, phase: phase));

@@ -210,7 +210,7 @@ class ProfileAnalysis {
   /// Holds in the safety stop band that were required decompression, so they
   /// carry no safety stop event. Filled in by `overlayComputerDecoData`, the
   /// first point that knows which deco reading this analysis ends up showing.
-  final List<DecoStopWindow> decoStopWindows;
+  final List<StopWindow> decoStopWindows;
 
   /// Decompression ceiling at each profile point (meters)
   final List<double> ceilingCurve;
@@ -461,7 +461,7 @@ class ProfileAnalysis {
     AscentRateStats? ascentRateStats,
     List<AscentRateViolation>? ascentRateViolations,
     List<ProfileEvent>? events,
-    List<DecoStopWindow>? decoStopWindows,
+    List<StopWindow>? decoStopWindows,
     List<double>? ceilingCurve,
     List<double>? decoStopCurve,
     List<int>? ndlCurve,

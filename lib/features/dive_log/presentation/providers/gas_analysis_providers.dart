@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
+import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -142,6 +143,7 @@ final phaseSegmentsProvider =
         gasSwitches: inputs.gasSwitches.isEmpty ? null : inputs.gasSwitches,
         environment: inputs.environment,
         decoStops: analysis?.decoStopWindows ?? const [],
+        safetyStops: safetyStopWindows(analysis?.events ?? const []),
         ndlCurve: analysis?.ndlCurve ?? const [],
       );
     });

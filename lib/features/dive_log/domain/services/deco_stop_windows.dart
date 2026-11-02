@@ -4,9 +4,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show DiveProfilePoint;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 
-/// A stretch of a dive, in seconds from its start, that held in the safety
-/// stop band while decompression was owed.
-typedef DecoStopWindow = ({int start, int end});
+/// A hold in the safety stop band, in seconds from the start of the dive.
+typedef StopWindow = ({int start, int end});
 
 /// Takes the calculated safety stops that were required decompression out of
 /// [events], and returns the windows they covered.
@@ -19,13 +18,13 @@ typedef DecoStopWindow = ({int start, int end});
 /// [ndlCurve] is the curve the analysis ends up showing, one value per
 /// [profile] sample, with a negative value meaning in deco. [events] holds
 /// each calculated stop's start before its end, as detection emits them.
-({List<ProfileEvent> events, List<DecoStopWindow> windows}) splitOutDecoStops(
+({List<ProfileEvent> events, List<StopWindow> windows}) splitOutDecoStops(
   List<ProfileEvent> events, {
   required List<DiveProfilePoint> profile,
   required List<int> ndlCurve,
 }) {
   final removed = <String>{};
-  final windows = <DecoStopWindow>[];
+  final windows = <StopWindow>[];
   ProfileEvent? opened;
   for (final event in events) {
     if (event.source != EventSource.computed) continue;
@@ -51,6 +50,23 @@ typedef DecoStopWindow = ({int start, int end});
   );
 }
 
+/// The safety stops [events] carries, whoever recorded them. A start with no
+/// end has no window. [events] is sorted by timestamp.
+List<StopWindow> safetyStopWindows(List<ProfileEvent> events) {
+  final windows = <StopWindow>[];
+  int? start;
+  for (final event in events) {
+    if (event.eventType == ProfileEventType.safetyStopStart) {
+      start ??= event.timestamp;
+    } else if (event.eventType == ProfileEventType.safetyStopEnd &&
+        start != null) {
+      windows.add((start: start, end: event.timestamp));
+      start = null;
+    }
+  }
+  return windows;
+}
+
 /// Whether the sample at [index] reads as in deco. What the computer recorded
 /// outranks [ndlCurve], which can be the app's own model.
 bool isDecoSample(
@@ -68,7 +84,7 @@ bool isDecoSample(
 /// computers run a safety stop after light deco, so one anywhere in the hold
 /// keeps it unless the computer called the arrival itself a deco stop.
 bool _owedOnArrival(
-  DecoStopWindow stop,
+  StopWindow stop,
   List<DiveProfilePoint> profile,
   List<int> ndlCurve,
 ) {
