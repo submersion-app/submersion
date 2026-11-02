@@ -1,7 +1,7 @@
 # Agent access (MCP server)
 
-Agent access lets an AI agent on the same desktop machine read, and in later
-phases change, the diver's logbook through the Model Context Protocol. The
+Agent access lets an AI agent on the same desktop machine read and change the
+diver's logbook through the Model Context Protocol. The
 design is `docs/design/specs/2026-11-01-mcp-server-design.md`; this page is
 the map of the code and the rules it keeps.
 
@@ -32,7 +32,9 @@ Everything is under `lib/features/agent_access/`:
 | `data/records/families/` | One file per family of entities, each returning its catalogue entries |
 | `data/documents/` | JSON mappers per family, metric with unit-named keys, and `document_dates.dart` |
 | `data/sql/` | The SQL window: the denied set, the bytecode guard, the worker and its runner |
-| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, and the registry |
+| `data/writes/` | The write catalogue: change sets, field codecs, the planner, the plan store and the applier |
+| `data/writes/families/` | One file per family of writable entities, each going through its repository or service |
+| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, `preview_changes`, `apply_changes`, `revert_operation`, and the registry |
 | `data/resources/` | `submersion://query-language`, `submersion://units` and `submersion://schema` |
 | `data/server/` | The loopback listener, the bearer check, and the adapter onto `mcp_dart` |
 | `presentation/providers/` | Settings notifier, token store, status stream, lifecycle controller |
@@ -96,6 +98,59 @@ two hundred columns and no domain shape, so `settingsDocument` drops the
 device-local and bookkeeping columns and renames the dimensioned ones from
 `kSettingUnitKeys`. A new `REAL` column must join that map or
 `kUnitlessSettings`, or the guard fails.
+
+## Writes
+
+A write takes two calls. `preview_changes` reads and diffs, and `apply_changes`
+runs the plan it stored. The preview never opens a transaction: a rolled back
+one would still fire triggers and tick streams, and
+`write_planner_test.dart` counts both to prove it.
+
+Apply checks the plan is still true, asks the diver when the setting is on,
+then checks again inside `SyncCoordinator.run`, because the dialog can stay
+open for five minutes. It then opens `ChangeLogScope.run` with source `agent`,
+and inside that one transaction around every operation. A refusal rolls back
+everything. The settler files other divers' records under `operation:diver`,
+so one apply can return several operation ids, each revertable alone.
+
+A plan with a blocked item gets no `plan_id`, so a diver is never asked to
+allow something that cannot run. A plan is single use and lasts 15 minutes.
+Plans live in `agentWritePlanStoreProvider`, not in the registry, because the
+protocol builds a server per request.
+
+A version marker is `updated_at` plus the current ids of each relation the
+plan changes, since a link can change without touching its parent row.
+
+### Adding a writable entity
+
+1. Add a `WritableEntry` under `data/writes/families/` and list it in
+   `WriteCatalog`. Its `name` and field keys are the read catalogue's, so a
+   document can be edited and sent back.
+2. Write through a repository or service, never a table. Most `copyWith`
+   methods use `??` and cannot clear a field, and rebuilding a whole entity
+   loses any field the mapper forgets, so use a partial companion
+   (`BulkDiveEditService`, `BuddyRepository.updateFields`) or clear flags
+   (`DiveSite.copyWith`).
+3. Add a test that every key in `fields` reaches its column, and read each
+   value back through the document.
+4. Implement `refuse` for what the repository would quietly ignore.
+   `updateSite` keeps a library's values and reports success, so
+   `SiteWrites.refuse` blocks that case in the preview.
+5. Move the repository's methods from
+   `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
+   `agent_write_coverage_test.dart`. That guard fails on a new repository
+   write no entity reaches, and on a baseline line that has gone.
+
+### Known limits
+
+- Many MCP clients time out a request after about a minute, which is shorter
+  than the dialog. The server keeps asking, so a later Allow applies a change
+  the agent reported as failed. The `apply_changes` description tells agents
+  to read the records before trying again.
+- `bulkDeleteDives` holds a deleted dive's remote media blobs so a revert
+  finds them, and nothing releases them, the same as the logbook's own delete.
+- A change set cannot refer to a record it creates. Linking a new buddy to a
+  dive takes two applies.
 
 ## The date rule
 

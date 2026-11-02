@@ -629,3 +629,10 @@ TDD applies. Minimum coverage:
 | Documents carry everything but bytes, contact and ID fields included | Eric |
 | Every editable entity is readable, not only the write checklist | Eric |
 | Diver profiles and settings are readable records; `list_divers` stays a short view | Eric |
+| A plan with a blocked item gets no `plan_id` | design |
+| Fields write through a partial companion or clear flags, because `copyWith` cannot clear and a rebuilt entity loses what a mapper forgets | design |
+| Dives write through `BulkDiveEditService`; `date_time` writes as a shift, so entry and exit move with it | design |
+| A version marker is `updated_at` plus the current ids of each changed relation | design |
+| Markers are checked again inside the sync turn, after the diver confirms, and apply refuses if the database was replaced | design |
+| A record appears once per change set; a reference to a record the set deletes is blocked; no placeholder ids | design |
+| `revert_operation` keeps records changed since unless `include_changed_since` is set, and asks the diver nothing | design |

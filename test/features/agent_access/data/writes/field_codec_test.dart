@@ -9,7 +9,7 @@ Matcher _refused(String reasonPart) => throwsA(
 
 void main() {
   test('number outside its range is refused', () {
-    final codec = FieldCodec.number(min: 0, max: 350);
+    const codec = FieldCodec.number(min: 0, max: 350);
     expect(codec.parse(40.5), 40.5);
     expect(codec.parse(40), 40.0);
     expect(() => codec.parse(351), _refused('350'));
@@ -18,15 +18,18 @@ void main() {
   });
 
   test('null on a required field is refused', () {
-    expect(() => FieldCodec.text().parse(null), _refused('required'));
-    expect(() => FieldCodec.flag().parse(null), _refused('required'));
-    expect(() => FieldCodec.wallClock().parse(null), _refused('required'));
+    expect(() => const FieldCodec.text().parse(null), _refused('required'));
+    expect(() => const FieldCodec.flag().parse(null), _refused('required'));
+    expect(
+      () => const FieldCodec.wallClock().parse(null),
+      _refused('required'),
+    );
   });
 
   test('null on a nullable field stays null', () {
-    expect(FieldCodec.text(nullable: true).parse(null), isNull);
-    expect(FieldCodec.number(nullable: true).parse(null), isNull);
-    expect(FieldCodec.integer(nullable: true).parse(null), isNull);
+    expect(const FieldCodec.text(nullable: true).parse(null), isNull);
+    expect(const FieldCodec.number(nullable: true).parse(null), isNull);
+    expect(const FieldCodec.integer(nullable: true).parse(null), isNull);
     expect(
       FieldCodec.enumName(_Mood.values, nullable: true).parse(null),
       isNull,
@@ -34,34 +37,37 @@ void main() {
   });
 
   test('a blank required text is refused', () {
-    expect(() => FieldCodec.text().parse('   '), _refused('blank'));
-    expect(FieldCodec.text(nullable: true).parse(''), '');
+    expect(() => const FieldCodec.text().parse('   '), _refused('blank'));
+    expect(const FieldCodec.text(nullable: true).parse(''), '');
   });
 
   test('a required text may allow a blank but not a clear', () {
-    final codec = FieldCodec.text(allowBlank: true);
+    const codec = FieldCodec.text(allowBlank: true);
     expect(codec.parse(''), '');
     expect(() => codec.parse(null), _refused('required'));
   });
 
   test('text keeps inner whitespace', () {
-    expect(FieldCodec.text().parse('Blue  Hole\n2'), 'Blue  Hole\n2');
+    expect(const FieldCodec.text().parse('Blue  Hole\n2'), 'Blue  Hole\n2');
   });
 
   test('text over its limit is refused', () {
-    expect(() => FieldCodec.text(maxLength: 3).parse('abcd'), _refused('3'));
+    expect(
+      () => const FieldCodec.text(maxLength: 3).parse('abcd'),
+      _refused('3'),
+    );
   });
 
   test('an integer refuses a fraction', () {
-    final codec = FieldCodec.integer(min: 0, max: 5);
+    const codec = FieldCodec.integer(min: 0, max: 5);
     expect(codec.parse(3), 3);
     expect(() => codec.parse(3.5), _refused('whole'));
     expect(() => codec.parse(6), _refused('5'));
   });
 
   test('a flag takes only a boolean', () {
-    expect(FieldCodec.flag().parse(true), true);
-    expect(() => FieldCodec.flag().parse(1), _refused('true or false'));
+    expect(const FieldCodec.flag().parse(true), true);
+    expect(() => const FieldCodec.flag().parse(1), _refused('true or false'));
   });
 
   test('an enum refuses a name it does not have and lists the names', () {
@@ -71,7 +77,7 @@ void main() {
   });
 
   test('a wall clock reads with a nominal Z', () {
-    final codec = FieldCodec.wallClock();
+    const codec = FieldCodec.wallClock();
     final value = codec.parse('2024-03-14T09:30:00.000Z');
     expect(value, DateTime.utc(2024, 3, 14, 9, 30));
     expect(codec.wire(value), '2024-03-14T09:30:00.000Z');
@@ -79,20 +85,23 @@ void main() {
 
   test('a wall clock with an offset is refused', () {
     expect(
-      () => FieldCodec.wallClock().parse('2024-03-14T09:30:00+02:00'),
+      () => const FieldCodec.wallClock().parse('2024-03-14T09:30:00+02:00'),
       _refused('Z'),
     );
     expect(
-      () => FieldCodec.wallClock().parse('2024-03-14T09:30:00'),
+      () => const FieldCodec.wallClock().parse('2024-03-14T09:30:00'),
       _refused('Z'),
     );
-    expect(() => FieldCodec.wallClock().parse('yesterday'), _refused('Z'));
+    expect(
+      () => const FieldCodec.wallClock().parse('yesterday'),
+      _refused('Z'),
+    );
   });
 
   test('canonical makes a document value comparable with a parsed one', () {
-    final number = FieldCodec.number();
+    const number = FieldCodec.number();
     expect(number.canonical(24), number.parse(24.0));
-    final clock = FieldCodec.wallClock();
+    const clock = FieldCodec.wallClock();
     expect(
       clock.canonical('2024-03-14T09:30:00.000Z'),
       clock.parse('2024-03-14T09:30:00Z'),

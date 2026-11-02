@@ -38,7 +38,7 @@ class _FakeConfirmer implements WriteConfirmer {
 
 /// Dives whose delete always fails, to reach the rollback.
 class _RefusingCatalog extends WriteCatalog {
-  _RefusingCatalog(RecordRepositories r) : super(r);
+  _RefusingCatalog(super.r);
 
   @override
   List<WritableEntry> get all => [

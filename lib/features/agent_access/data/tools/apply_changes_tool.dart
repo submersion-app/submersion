@@ -22,10 +22,12 @@ class ApplyChangesTool implements AgentTool {
       'Second of two steps to change the logbook: runs a plan from '
       'preview_changes. All of it applies or none does. The diver may be '
       'asked to allow it inside Submersion, so this can wait up to five '
-      'minutes; refusing answers not_confirmed. A record changed since the '
-      'preview refuses the whole plan with plan_stale, and a plan is good '
-      'for one call, so preview again after any refusal. Returns one change '
-      'log operation per diver touched; pass an operation_id to '
+      'minutes; give the call a timeout longer than that where you can. If '
+      'your call times out the diver may still allow it, so read the records '
+      'before trying again. Refusing answers not_confirmed. A record changed '
+      'since the preview refuses the whole plan with plan_stale, and a plan '
+      'is good for one call, so preview again after any refusal. Returns one '
+      'change log operation per diver touched; pass an operation_id to '
       'revert_operation to undo it.';
 
   @override

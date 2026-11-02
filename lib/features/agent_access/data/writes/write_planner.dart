@@ -478,7 +478,8 @@ class _Pass {
 }
 
 class _Parsed {
-  const _Parsed({this.changes = const {}, this.values = const {}, this.block});
+  const _Parsed({this.changes = const {}, this.values = const {}})
+    : block = null;
 
   const _Parsed.blocked(PlanBlock this.block)
     : changes = const {},
@@ -490,7 +491,8 @@ class _Parsed {
 }
 
 class _Links {
-  const _Links({this.deltas = const {}, this.current = const {}, this.block});
+  const _Links({this.deltas = const {}, this.current = const {}})
+    : block = null;
 
   const _Links.blocked(PlanBlock this.block)
     : deltas = const {},
