@@ -101,11 +101,22 @@ void main() {
             ),
           );
       await db
+          .into(db.tripChecklists)
+          .insert(
+            TripChecklistsCompanion.insert(
+              id: 'list-$id',
+              tripId: id,
+              name: 'Dive equipment',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await db
           .into(db.tripChecklistSections)
           .insert(
             TripChecklistSectionsCompanion.insert(
               id: 'sec-$id',
-              tripId: id,
+              checklistId: 'list-$id',
               title: 'Packing',
               createdAt: t,
               updatedAt: t,
@@ -116,7 +127,7 @@ void main() {
           .insert(
             TripChecklistItemsCompanion.insert(
               id: 'chk-$id',
-              tripId: id,
+              checklistId: 'list-$id',
               title: 'Passport',
               sectionId: Value('sec-$id'),
               dueDate: Value(DateTime(2024, 2, 20).millisecondsSinceEpoch),
@@ -195,7 +206,7 @@ void main() {
           'itinerary',
           'liveaboard',
           'cylinders',
-          'checklist',
+          'checklists',
           'side_trips',
           'shares',
           'equipment_ids',
@@ -204,7 +215,8 @@ void main() {
       expect((doc['itinerary'] as List).cast<Map>().single['id'], 'day-mine');
       expect((doc['liveaboard'] as Map)['vessel_name'], 'Sea Star');
       expect((doc['cylinders'] as List).cast<Map>().single['id'], 'cyl-mine');
-      final checklist = doc['checklist'] as Map;
+      final checklist = (doc['checklists'] as List).cast<Map>().single;
+      expect(checklist['name'], 'Dive equipment');
       expect((checklist['sections'] as List), hasLength(1));
       expect((checklist['items'] as List), hasLength(1));
       expect(doc['side_trips'], isEmpty);
@@ -271,8 +283,7 @@ void main() {
       ('itinerary_days', 'day-mine', 'day-theirs'),
       ('liveaboard_details', 'boat-mine', 'boat-theirs'),
       ('trip_cylinders', 'cyl-mine', 'cyl-theirs'),
-      ('trip_checklist_sections', 'sec-mine', 'sec-theirs'),
-      ('trip_checklist_items', 'chk-mine', 'chk-theirs'),
+      ('trip_checklists', 'list-mine', 'list-theirs'),
     ]) {
       test('$entity reads by id and stops at the profile', () async {
         expect((await h.one(entity, own))!['trip_id'], 'mine');
@@ -282,6 +293,18 @@ void main() {
       test('$entity lists by trip', () async {
         expect(await h.list(entity, parentId: 'mine'), [own]);
         expect(await h.list(entity, parentId: 'theirs'), isEmpty);
+      });
+    }
+
+    for (final (entity, own, other) in [
+      ('trip_checklist_sections', 'sec-mine', 'sec-theirs'),
+      ('trip_checklist_items', 'chk-mine', 'chk-theirs'),
+    ]) {
+      test('$entity follows its checklist to the trip', () async {
+        expect((await h.one(entity, own))!['checklist_id'], 'list-mine');
+        expect(await h.one(entity, other), isNull);
+        expect(await h.list(entity, parentId: 'list-mine'), [own]);
+        expect(await h.list(entity, parentId: 'list-theirs'), isEmpty);
       });
     }
 

@@ -6,6 +6,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/connections/data/repositories/connection_map_repository.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
@@ -127,6 +128,7 @@ class RecordRepositories {
   late final tags = TagRepository();
   late final tankPresets = TankPresetRepository();
   late final transmitters = TransmitterRepository();
+  late final tripChecklistLists = TripChecklistsRepository();
   late final tripChecklists = TripChecklistRepository();
   late final tripCylinders = TripCylinderRepository();
   late final tripEquipment = TripEquipmentRepository();

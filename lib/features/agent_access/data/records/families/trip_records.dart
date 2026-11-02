@@ -6,6 +6,7 @@ import 'package:submersion/features/agent_access/data/records/record_entity.dart
 import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.da
 
 final _tripScope = rootScope(QuerySubject.trips);
 final _viaTrip = viaParent('trips', 'trip_id', _tripScope);
+final _viaChecklist = viaParent('trip_checklists', 'checklist_id', _viaTrip);
 
 /// Trips and everything planned or recorded against them.
 List<RecordEntry> tripEntries(RecordRepositories r) => [
@@ -45,16 +47,24 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
         for (final c in await r.tripCylinders.getCylindersForTrip(trip.id))
           tripCylinderDocument(c),
       ],
-      'checklist': (trip, _) async => {
-        'sections': [
-          for (final s in await r.tripChecklists.getSectionsForTrip(trip.id))
-            tripChecklistSectionDocument(s),
-        ],
-        'items': [
-          for (final i in await r.tripChecklists.getByTripId(trip.id))
-            tripChecklistItemDocument(i),
-        ],
-      },
+      'checklists': (trip, _) async => [
+        for (final list in await r.tripChecklistLists.getChecklistsForTrip(
+          trip.id,
+        ))
+          {
+            ...tripChecklistDocument(list),
+            'sections': [
+              for (final s in await r.tripChecklists.getSectionsForChecklist(
+                list.id,
+              ))
+                tripChecklistSectionDocument(s),
+            ],
+            'items': [
+              for (final i in await r.tripChecklists.getByChecklistId(list.id))
+                tripChecklistItemDocument(i),
+            ],
+          },
+      ],
       'dive_ids': (trip, load) =>
           r.trips.getDiveIdsForTrip(trip.id, diverId: load.diverId),
       'equipment_ids': (trip, load) async => RecordReader(r.db).visibleRows(
@@ -131,29 +141,42 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
     document: tripCylinderEventDocument,
     summaryKeys: const ['trip_cylinder_id', 'kind', 'occurred_time'],
   ),
+  childEntity<TripChecklist>(
+    r,
+    name: 'trip_checklists',
+    table: 'trip_checklists',
+    scope: _viaTrip,
+    parentColumn: 'trip_id',
+    orderBy: 'r0.trip_id, r0.sort_order',
+    idOf: (l) => l.id,
+    byParents: (trips) =>
+        eachParent(trips, r.tripChecklistLists.getChecklistsForTrip),
+    document: tripChecklistDocument,
+    summaryKeys: const ['trip_id', 'name'],
+  ),
   childEntity<TripChecklistSection>(
     r,
     name: 'trip_checklist_sections',
     table: 'trip_checklist_sections',
-    scope: _viaTrip,
-    parentColumn: 'trip_id',
-    orderBy: 'r0.trip_id, r0.sort_order',
+    scope: _viaChecklist,
+    parentColumn: 'checklist_id',
+    orderBy: 'r0.checklist_id, r0.sort_order',
     idOf: (s) => s.id,
-    byParents: (trips) =>
-        eachParent(trips, r.tripChecklists.getSectionsForTrip),
+    byParents: (lists) =>
+        eachParent(lists, r.tripChecklists.getSectionsForChecklist),
     document: tripChecklistSectionDocument,
-    summaryKeys: const ['trip_id', 'title'],
+    summaryKeys: const ['checklist_id', 'title'],
   ),
   childEntity<TripChecklistItem>(
     r,
     name: 'trip_checklist_items',
     table: 'trip_checklist_items',
-    scope: _viaTrip,
-    parentColumn: 'trip_id',
-    orderBy: 'r0.trip_id, r0.sort_order',
+    scope: _viaChecklist,
+    parentColumn: 'checklist_id',
+    orderBy: 'r0.checklist_id, r0.sort_order',
     idOf: (i) => i.id,
-    byParents: (trips) => eachParent(trips, r.tripChecklists.getByTripId),
+    byParents: (lists) => eachParent(lists, r.tripChecklists.getByChecklistId),
     document: tripChecklistItemDocument,
-    summaryKeys: const ['trip_id', 'title', 'is_done', 'due_date'],
+    summaryKeys: const ['checklist_id', 'title', 'is_done', 'due_date'],
   ),
 ];

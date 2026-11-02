@@ -1,5 +1,6 @@
 import 'package:submersion/features/agent_access/data/documents/dive_document.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
@@ -89,16 +90,23 @@ Map<String, Object?> tripCylinderEventDocument(TripCylinderEvent e) => {
   'note': e.note,
 };
 
+Map<String, Object?> tripChecklistDocument(TripChecklist l) => {
+  'id': l.id,
+  'trip_id': l.tripId,
+  'name': l.name,
+  'sort_order': l.sortOrder,
+};
+
 Map<String, Object?> tripChecklistSectionDocument(TripChecklistSection s) => {
   'id': s.id,
-  'trip_id': s.tripId,
+  'checklist_id': s.checklistId,
   'title': s.title,
   'sort_order': s.sortOrder,
 };
 
 Map<String, Object?> tripChecklistItemDocument(TripChecklistItem i) => {
   'id': i.id,
-  'trip_id': i.tripId,
+  'checklist_id': i.checklistId,
   'section_id': i.sectionId,
   'title': i.title,
   'notes': i.notes,
