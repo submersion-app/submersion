@@ -94,6 +94,27 @@ void main() {
     expect(chart.secondarySeries.single.label, 'Diluent');
   });
 
+  testWidgets('the two lines stand apart from each other and the overlay', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      () async =>
+          CcrGasUseTrend(o2: [_point(1, 1.2)], diluent: [_point(1, 3.0)]),
+    );
+
+    final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+    final diluent = HSVColor.fromColor(chart.secondarySeries.single.color).hue;
+    // TrendChartSection's rolling mean, dark and light, and the O2 line.
+    for (final other in [
+      Colors.amber.shade300,
+      Colors.amber.shade800,
+      chart.pointColor!,
+    ]) {
+      expect((diluent - HSVColor.fromColor(other).hue).abs(), greaterThan(60));
+    }
+  });
+
   testWidgets('a diver with diluent data only still gets the card', (
     tester,
   ) async {

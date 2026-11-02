@@ -142,7 +142,10 @@ class TrendChartSection extends ConsumerWidget {
                     ref.read(settingsProvider.notifier).setTrendGapThreshold(t),
                 onRangePresetSelected: (preset) =>
                     preset == TrendRangePreset.custom
-                    ? _pickCustomRange(context, ref, points)
+                    ? _pickCustomRange(context, ref, [
+                        ...points,
+                        for (final series in secondarySeries) ...series.points,
+                      ])
                     : _update(
                         ref,
                         settings.copyWith(range: TrendRange.preset(preset)),

@@ -20,7 +20,8 @@ class CcrGasUseSection extends ConsumerWidget {
   const CcrGasUseSection({super.key});
 
   static const _o2Color = Colors.blue;
-  static const _diluentColor = Colors.orange;
+  // Not orange: the rolling mean is amber in both themes.
+  static const _diluentColor = Colors.green;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

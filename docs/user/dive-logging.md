@@ -387,6 +387,15 @@ dive mode reveals a settings panel.
 | **Scrubber** | The carbon-dioxide scrubber **Type** (for example Sofnolime), its **Rated** life in minutes, and the **Remaining** minutes at the start of the dive. |
 | **Loop Volume** | The breathing-loop volume in litres. |
 
+On a CCR dive the **Cylinders** card shows **Loop use** for gas that left a
+cylinder while you were on the loop: plain litres per minute of loop time, with
+no depth correction, since oxygen and diluent use do not scale with depth the
+way open-circuit breathing does. Gas used after a recorded bailout shows as
+SAC and RMV over the bailout instead, and a transmitter lets one cylinder show
+both. A cylinder not marked **Diluent** or **O₂ Supply** needs to lose more than
+20 bar on the loop to count, because an untouched bailout can lose nearly that
+just cooling down in the water.
+
 ### SCR settings (semi-closed rebreather)
 
 | Field | Notes |

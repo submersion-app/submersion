@@ -53,6 +53,7 @@ void main() {
     double volume = 3,
     double o2 = 21,
     int order = 0,
+    String? computerId,
   }) => db
       .into(db.diveTanks)
       .insert(
@@ -66,6 +67,7 @@ void main() {
           o2Percent: Value(o2),
           hePercent: const Value(0.0),
           tankOrder: Value(order),
+          computerId: Value(computerId),
         ),
       );
 
@@ -246,6 +248,45 @@ void main() {
       final trend = await repository.getCcrGasUsePerDive();
 
       expect(trend.diluent.single.value, closeTo(42 * 3 / 42, 1e-9));
+    });
+
+    test('a two-computer dive counts one copy of each cylinder', () async {
+      await insertDive('ccr');
+      for (final (computer, primary) in [('c1', true), ('c2', false)]) {
+        await db
+            .into(db.diveComputers)
+            .insert(
+              DiveComputersCompanion(
+                id: Value(computer),
+                name: Value(computer),
+                createdAt: const Value(0),
+                updatedAt: const Value(0),
+              ),
+            );
+        await db
+            .into(db.diveDataSources)
+            .insert(
+              DiveDataSourcesCompanion(
+                id: Value('src-$computer'),
+                diveId: const Value('ccr'),
+                computerId: Value(computer),
+                isPrimary: Value(primary),
+                importedAt: Value(DateTime.utc(2024)),
+                createdAt: Value(DateTime.utc(2024)),
+              ),
+            );
+        await insertTank(
+          'ccr',
+          'o2-$computer',
+          'oxygenSupply',
+          o2: 100,
+          computerId: computer,
+        );
+      }
+
+      final trend = await repository.getCcrGasUsePerDive();
+
+      expect(trend.o2.single.value, closeTo(9, 1e-9));
     });
 
     test('one dive reads the same here as on the card', () async {

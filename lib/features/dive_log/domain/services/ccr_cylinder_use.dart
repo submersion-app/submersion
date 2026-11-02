@@ -9,8 +9,8 @@
 /// both read this, so one dive cannot show two figures.
 library;
 
-import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -183,13 +183,15 @@ CcrCylinderUse _cylinderUse({
   required int diveEnd,
   required GasModel gasModel,
 }) {
-  final breathed = tankUsageWindows(
-    tank: tank,
-    gasSwitches: switches,
-    diveStart: 0,
-    diveEnd: diveEnd,
-    tanks: tanks,
-  );
+  final breathed = bailouts.isEmpty
+      ? const <TankUsageWindow>[]
+      : tankUsageWindows(
+          tank: tank,
+          gasSwitches: switches,
+          diveStart: 0,
+          diveEnd: diveEnd,
+          tanks: tanks,
+        );
   final bailoutWindows = [
     for (final period in bailouts) ...breathed.within(period.start, period.end),
   ];
@@ -303,4 +305,4 @@ bool _isMarkedLoopGas(DiveTank tank) =>
     isLoopTankRole(ccrCylinderRole(tank).name);
 
 bool _holdsOxygen(DiveTank tank) =>
-    ccrCylinderRole(tank) == TankRole.oxygenSupply || tank.gasMix.o2 >= 99.0;
+    ccrCylinderRole(tank) == TankRole.oxygenSupply || tank.gasMix.isOxygen;

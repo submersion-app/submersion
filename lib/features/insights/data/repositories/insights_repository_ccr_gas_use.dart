@@ -22,7 +22,11 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
       final rows = await _db
           .customSelect(
             '''
-        SELECT d.id, d.dive_date_time
+        SELECT d.id, d.dive_date_time,
+          (SELECT id FROM dive_data_sources
+           WHERE dive_id = d.id AND is_primary = 1 LIMIT 1) AS primary_source_id,
+          (SELECT computer_id FROM dive_data_sources
+           WHERE dive_id = d.id AND is_primary = 1 LIMIT 1) AS primary_computer_id
         FROM dives d
         WHERE d.dive_mode = 'ccr' $diverFilter ${df.clause}
         ORDER BY d.dive_date_time
@@ -32,41 +36,45 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
             ],
           )
           .get();
-      final ids = [for (final row in rows) row.read<String>('id')];
-      if (ids.isEmpty) return const CcrGasUseTrend(o2: [], diluent: []);
-
-      final dives = {
-        for (final dive in await _diveRepository.getDivesByIdsWithoutSamples(
-          ids,
-        ))
-          dive.id: dive,
-      };
-      final switches = await _diveRepository.getGasSwitchesForDives(ids);
-      final pressures = await _tankPressureRepository
-          .getDisplayedTankPressuresForDives(ids);
+      if (rows.isEmpty) return const CcrGasUseTrend(o2: [], diluent: []);
+      final rowsById = {for (final row in rows) row.read<String>('id'): row};
 
       final o2 = <TrendDataPoint>[];
       final diluent = <TrendDataPoint>[];
-      for (final row in rows) {
-        final id = row.read<String>('id');
-        final dive = dives[id];
-        if (dive == null) continue;
-        final use = ccrDiveUse(
-          tanks: dive.tanks,
-          gasSwitches: switches[id],
-          tankPressures: pressures[id],
-          diveEnd: dive.effectiveRuntime?.inSeconds ?? 0,
-          gasModel: gasModel,
-        );
-        final date = DateTime.fromMillisecondsSinceEpoch(
-          row.read<int>('dive_date_time'),
-          isUtc: true,
-        );
-        if (use.o2Rate case final rate?) {
-          o2.add(TrendDataPoint(date: date, value: rate, diveId: id));
-        }
-        if (use.diluentRate case final rate?) {
-          diluent.add(TrendDataPoint(date: date, value: rate, diveId: id));
+      // A chunk at a time: a pressure series is a blob, and this runs over
+      // every CCR dive in the logbook.
+      for (final ids in seriesIdChunks(rowsById.keys.toList())) {
+        final dives = {
+          for (final dive in await _diveRepository.getDivesByIdsWithoutSamples(
+            ids,
+          ))
+            dive.id: dive,
+        };
+        final switches = await _diveRepository.getGasSwitchesForDives(ids);
+        final pressures = await _tankPressureRepository
+            .getDisplayedTankPressuresForDives(ids);
+
+        for (final id in ids) {
+          final dive = dives[id];
+          if (dive == null) continue;
+          final row = rowsById[id]!;
+          final use = _ccrUseOfPrimaryRecording(
+            dive,
+            switches: switches[id],
+            pressures: pressures[id],
+            primarySourceId: row.read<String?>('primary_source_id'),
+            primaryComputerId: row.read<String?>('primary_computer_id'),
+          );
+          final date = DateTime.fromMillisecondsSinceEpoch(
+            row.read<int>('dive_date_time'),
+            isUtc: true,
+          );
+          if (use.o2Rate case final rate?) {
+            o2.add(TrendDataPoint(date: date, value: rate, diveId: id));
+          }
+          if (use.diluentRate case final rate?) {
+            diluent.add(TrendDataPoint(date: date, value: rate, diveId: id));
+          }
         }
       }
       return CcrGasUseTrend(o2: o2, diluent: diluent);
@@ -78,5 +86,38 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
       );
       rethrow;
     }
+  }
+
+  /// [ccrDiveUse] over the cylinders of the dive's primary recording. A dive
+  /// consolidated from two computers can keep a copy of a cylinder from each,
+  /// and these rates add cylinders up, so the copies must count once.
+  CcrDiveUse _ccrUseOfPrimaryRecording(
+    domain.Dive dive, {
+    required List<GasSwitchWithTank>? switches,
+    required Map<String, List<domain.TankPressurePoint>>? pressures,
+    required String? primarySourceId,
+    required String? primaryComputerId,
+  }) {
+    bool owned(domain.DiveTank tank) => tankOwnedByPrimary(
+      tank,
+      primarySourceId: primarySourceId,
+      primaryComputerId: primaryComputerId,
+    );
+    final copies = {
+      for (final tank in dive.tanks)
+        if (!owned(tank)) tank.id,
+    };
+    return ccrDiveUse(
+      tanks: dive.tanks.where(owned).toList(),
+      gasSwitches: switches,
+      // Dropped by name, so another computer's series is not read as a stray
+      // one for a cylinder here to adopt.
+      tankPressures: {
+        for (final entry in (pressures ?? const {}).entries)
+          if (!copies.contains(entry.key)) entry.key: entry.value,
+      },
+      diveEnd: dive.effectiveRuntime?.inSeconds ?? 0,
+      gasModel: gasModel,
+    );
   }
 }
