@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -165,6 +166,23 @@ void main() {
     );
     final outcome = await runner.run(sql: 'SELECT count(*) FROM dives');
     expect(outcome, isA<SqlWindowFailure>());
+  });
+
+  test('the live lookup follows the database service', () async {
+    addTearDown(DatabaseService.instance.resetForTesting);
+    DatabaseService.instance
+      ..setCurrentPathForTesting('first.db')
+      ..databaseKeyHex = _key;
+    final first = await liveSqlDatabaseFile();
+    expect(first.path, 'first.db');
+    expect(first.keyHex, _key);
+
+    DatabaseService.instance
+      ..setCurrentPathForTesting('second.db')
+      ..databaseKeyHex = null;
+    final second = await liveSqlDatabaseFile();
+    expect(second.path, 'second.db');
+    expect(second.keyHex, isNull);
   });
 
   test('a missing file answers database_unavailable', () async {

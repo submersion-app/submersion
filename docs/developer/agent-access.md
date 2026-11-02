@@ -227,7 +227,7 @@ The server factory runs per MCP session, and per request on the stateless
 ## Roadmap
 
 The remaining PRs, all behind the debug-mode gate until the last one: the
-read-only SQL window with the generated schema resource; the write core (`preview_changes`,
+write core (`preview_changes`,
 `apply_changes`, `revert_operation`, the confirmation dialog, change log
 source `agent`); write coverage per entity family with a guard test; then
 the gate removal, user documentation and release note.

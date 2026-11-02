@@ -132,12 +132,7 @@ class AgentAccessController {
   /// One for the listener's life, unlike the server built per request below.
   /// Reads the file at call time, so a restore, a storage move or an
   /// encryption change is seen by the next statement.
-  final _sqlRunner = SqlWindowRunner(
-    file: () async => SqlDatabaseFile(
-      path: await DatabaseService.instance.databasePath,
-      keyHex: DatabaseService.instance.databaseKeyHex,
-    ),
-  );
+  final _sqlRunner = SqlWindowRunner(file: liveSqlDatabaseFile);
 
   /// Called when the owning provider is disposed (a scope rebuild). A sync
   /// still awaiting the keychain, the settings or the package info resumes

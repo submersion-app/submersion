@@ -279,6 +279,21 @@ void main() {
       }
     });
 
+    test('no table in the real schema gives up a denied column', () {
+      final tables = rows(
+        "SELECT name, sql FROM sqlite_schema WHERE type = 'table'",
+      ).rows;
+      var attacked = 0;
+      for (final [name as String, sql as String?] in tables) {
+        for (final column in kSqlDeniedColumns) {
+          if (sql == null || !sql.contains('"$column"')) continue;
+          attacked++;
+          expectRefused('SELECT "$column" FROM "$name"');
+        }
+      }
+      expect(attacked, greaterThanOrEqualTo(kSqlDeniedColumns.length));
+    });
+
     test('a refusal never carries the value', () {
       final outcome =
           run('SELECT credentials_host_id FROM media_subscriptions')

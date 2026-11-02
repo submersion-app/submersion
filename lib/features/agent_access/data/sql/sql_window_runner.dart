@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
@@ -16,6 +17,12 @@ class SqlDatabaseFile {
   final String path;
   final String? keyHex;
 }
+
+/// The file the app has open now, for [SqlWindowRunner.new].
+Future<SqlDatabaseFile> liveSqlDatabaseFile() async => SqlDatabaseFile(
+  path: await DatabaseService.instance.databasePath,
+  keyHex: DatabaseService.instance.databaseKeyHex,
+);
 
 typedef SqlWindowWorker =
     Future<SqlWindowOutcome> Function(SqlWindowRequest request);
