@@ -221,6 +221,98 @@ void main() {
       expect(find.text('Copied to clipboard'), findsNothing);
     });
 
+    group('behind another message', () {
+      Future<void> elapse(WidgetTester tester, Duration time) async {
+        const frame = Duration(milliseconds: 50);
+        for (var t = Duration.zero; t < time; t += frame) {
+          await tester.pump(frame);
+        }
+      }
+
+      ScaffoldMessengerState messengerOf(WidgetTester tester) =>
+          ScaffoldMessenger.of(tester.element(find.byType(DetailRow).first));
+
+      testWidgets('a second copy queues no second confirmation', (
+        tester,
+      ) async {
+        recordClipboardCalls();
+        await _pump(tester, _row());
+        messengerOf(tester).showSnackBar(
+          const SnackBar(
+            content: Text('Item deleted'),
+            duration: Duration(milliseconds: 500),
+          ),
+        );
+        await elapse(tester, const Duration(milliseconds: 100));
+
+        await tester.tap(_copyButton);
+        await tester.pump();
+        await tester.tap(_copyButton);
+        await tester.pump();
+
+        // The first message leaves, then one confirmation runs its course.
+        await elapse(tester, const Duration(milliseconds: 1500));
+        expect(find.text('Item deleted'), findsNothing);
+        expect(find.text('Copied to clipboard'), findsOneWidget);
+        await elapse(tester, const Duration(milliseconds: 2500));
+        expect(find.text('Copied to clipboard'), findsNothing);
+      });
+
+      testWidgets('a confirmation dropped from the queue silences no later '
+          'one', (tester) async {
+        recordClipboardCalls();
+        await _pump(tester, _row());
+        final messenger = messengerOf(tester);
+        messenger.showSnackBar(const SnackBar(content: Text('Item deleted')));
+        await elapse(tester, const Duration(milliseconds: 100));
+        await tester.tap(_copyButton);
+        await tester.pump();
+
+        // clearSnackBars forgets a waiting message without closing it.
+        messenger.clearSnackBars();
+        await elapse(tester, const Duration(seconds: 3));
+
+        await tester.tap(_copyButton);
+        await elapse(tester, const Duration(milliseconds: 400));
+        expect(find.text('Copied to clipboard'), findsOneWidget);
+      });
+
+      testWidgets('a confirmation in one messenger leaves another alone', (
+        tester,
+      ) async {
+        recordClipboardCalls();
+        await _pump(
+          tester,
+          Column(
+            children: [
+              _row(label: 'Outer', value: 'outer-value'),
+              SizedBox(
+                height: 300,
+                child: ScaffoldMessenger(
+                  child: Scaffold(
+                    body: _row(label: 'Inner', value: 'inner-value'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+        final buttons = find.byTooltip('Copy');
+        await tester.tap(buttons.first);
+        await elapse(tester, const Duration(milliseconds: 400));
+        expect(find.text('Copied to clipboard'), findsOneWidget);
+
+        ScaffoldMessenger.of(
+          tester.element(find.text('inner-value')),
+        ).showSnackBar(const SnackBar(content: Text('Item deleted')));
+        await elapse(tester, const Duration(milliseconds: 400));
+
+        await tester.tap(buttons.last);
+        await elapse(tester, const Duration(milliseconds: 400));
+        expect(find.text('Item deleted'), findsOneWidget);
+      });
+    });
+
     testWidgets('on desktop the row does not pose as a button', (tester) async {
       await _pump(tester, _row(), platform: TargetPlatform.macOS);
 

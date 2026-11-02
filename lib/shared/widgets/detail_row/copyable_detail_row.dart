@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,6 +33,10 @@ class CopyableDetailRow extends StatelessWidget {
   static const double _iconSize = 18;
   static const Duration _messageDuration = Duration(seconds: 2);
 
+  /// The latest confirmation per messenger: a sheet has its own, and what
+  /// one messenger shows says nothing about another.
+  static final _confirmations = Expando<_Confirmation>();
+
   final String copyValue;
   final String semanticsLabel;
 
@@ -57,13 +62,41 @@ class CopyableDetailRow extends StatelessWidget {
       return;
     }
     unawaited(HapticFeedback.mediumImpact());
-    // Replaces only our own message: another may be offering an Undo.
-    if (_CopiedMessage.isShowing) messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
+    _confirm(messenger, l10n.common_snackbar_copiedToClipboard);
+  }
+
+  /// Shows the confirmation in [messenger], without a pile-up: one on screen
+  /// is replaced, and one still waiting behind another message stands.
+  ///
+  /// Only the message's own confirmation is ever closed, because the current
+  /// message could be someone's Undo. A waiting one holds off a new one only
+  /// for [_messageDuration], because `clearSnackBars` can drop it without
+  /// closing it, and that must not silence every later copy.
+  void _confirm(ScaffoldMessengerState messenger, String text) {
+    final latest = _confirmations[messenger];
+    if (latest != null) {
+      if (latest.visible) {
+        messenger.hideCurrentSnackBar();
+      } else if (clock.now().difference(latest.raisedAt) < _messageDuration) {
+        return;
+      }
+    }
+
+    final confirmation = _Confirmation(clock.now());
+    _confirmations[messenger] = confirmation;
+    final message = messenger.showSnackBar(
       SnackBar(
-        content: _CopiedMessage(l10n.common_snackbar_copiedToClipboard),
+        content: Text(text),
         duration: _messageDuration,
+        onVisible: () => confirmation.visible = true,
       ),
+    );
+    unawaited(
+      message.closed.whenComplete(() {
+        if (identical(_confirmations[messenger], confirmation)) {
+          _confirmations[messenger] = null;
+        }
+      }),
     );
   }
 
@@ -117,33 +150,12 @@ class CopyableDetailRow extends StatelessWidget {
   }
 }
 
-/// The confirmation, which counts itself while on screen: the messenger cannot
-/// be asked which message is current, and a queued message is not built yet.
-class _CopiedMessage extends StatefulWidget {
-  const _CopiedMessage(this.text);
+/// A confirmation raised in a messenger, which cannot be asked what it holds.
+class _Confirmation {
+  _Confirmation(this.raisedAt);
 
-  static int _onScreen = 0;
-  static bool get isShowing => _onScreen > 0;
+  final DateTime raisedAt;
 
-  final String text;
-
-  @override
-  State<_CopiedMessage> createState() => _CopiedMessageState();
-}
-
-class _CopiedMessageState extends State<_CopiedMessage> {
-  @override
-  void initState() {
-    super.initState();
-    _CopiedMessage._onScreen++;
-  }
-
-  @override
-  void dispose() {
-    _CopiedMessage._onScreen--;
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => Text(widget.text);
+  /// False while it waits behind another message.
+  bool visible = false;
 }
