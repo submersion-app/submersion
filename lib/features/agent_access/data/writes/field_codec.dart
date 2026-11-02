@@ -16,8 +16,13 @@ class FieldRefusal implements Exception {
 abstract class FieldCodec {
   const FieldCodec({this.nullable = false});
 
-  /// Plain text. Stored exactly as sent. A required field refuses a blank.
-  const factory FieldCodec.text({int? maxLength, bool nullable}) = _TextCodec;
+  /// Plain text, stored exactly as sent. A required field refuses a blank
+  /// unless [allowBlank], for a column that holds no null but may be empty.
+  const factory FieldCodec.text({
+    int? maxLength,
+    bool nullable,
+    bool allowBlank,
+  }) = _TextCodec;
 
   /// A decimal, optionally inside [min] to [max].
   const factory FieldCodec.number({double? min, double? max, bool nullable}) =
@@ -58,9 +63,10 @@ abstract class FieldCodec {
 }
 
 class _TextCodec extends FieldCodec {
-  const _TextCodec({this.maxLength, super.nullable});
+  const _TextCodec({this.maxLength, super.nullable, this.allowBlank = false});
 
   final int? maxLength;
+  final bool allowBlank;
 
   @override
   String get describe => 'text';
@@ -68,7 +74,7 @@ class _TextCodec extends FieldCodec {
   @override
   Object parseValue(Object raw) {
     if (raw is! String) throw const FieldRefusal('This field takes text.');
-    if (!nullable && raw.trim().isEmpty) {
+    if (!nullable && !allowBlank && raw.trim().isEmpty) {
       throw const FieldRefusal('This field is required and cannot be blank.');
     }
     final limit = maxLength;

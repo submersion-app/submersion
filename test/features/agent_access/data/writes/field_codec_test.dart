@@ -38,6 +38,12 @@ void main() {
     expect(FieldCodec.text(nullable: true).parse(''), '');
   });
 
+  test('a required text may allow a blank but not a clear', () {
+    final codec = FieldCodec.text(allowBlank: true);
+    expect(codec.parse(''), '');
+    expect(() => codec.parse(null), _refused('required'));
+  });
+
   test('text keeps inner whitespace', () {
     expect(FieldCodec.text().parse('Blue  Hole\n2'), 'Blue  Hole\n2');
   });
