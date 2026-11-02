@@ -311,13 +311,11 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       annotationPlacementProvider(widget.diveId),
     );
     final focusedAnnotation = ref.watch(annotationFocusProvider(widget.diveId));
-    final annotationEvents =
-        ref.watch(diveAnnotationsProvider(widget.diveId)).valueOrNull ??
-        const <ProfileEvent>[];
-    final computerEvents = analysis?.events.where((e) => !e.isAnnotation);
-    final chartEvents = computerEvents == null && annotationEvents.isEmpty
-        ? null
-        : [...?computerEvents, ...annotationEvents];
+    final chartEvents = mergeChartEvents(
+      analysis?.events,
+      ref.watch(diveAnnotationsProvider(widget.diveId)).valueOrNull ??
+          const <ProfileEvent>[],
+    );
 
     // Active source and overlays (mirrors the detail page's wiring).
     final labels = SourceNameLabels(

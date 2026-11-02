@@ -440,9 +440,7 @@ class _NotesBuilder {
       ..._tappable(children, recognizer, linkStyle),
       TextSpan(
         text: ' $time',
-        style: (theme.textTheme.bodySmall ?? style).copyWith(
-          color: _colors.onSurfaceVariant,
-        ),
+        style: style.copyWith(fontSize: size, color: _colors.onSurfaceVariant),
       ),
     ];
   }

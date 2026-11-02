@@ -372,13 +372,11 @@ class DiveProfileChartHost extends ConsumerWidget {
         : ref.watch(annotationFocusProvider(diveId));
     // The diver's annotations come from their own provider (#4109), not the
     // analysis, so they draw whether or not the dive has an analysis.
-    final annotationEvents =
-        ref.watch(diveAnnotationsProvider(diveId)).valueOrNull ??
-        const <ProfileEvent>[];
-    final computerEvents = analysis?.events.where((e) => !e.isAnnotation);
-    final chartEvents = computerEvents == null && annotationEvents.isEmpty
-        ? null
-        : [...?computerEvents, ...annotationEvents];
+    final chartEvents = mergeChartEvents(
+      analysis?.events,
+      ref.watch(diveAnnotationsProvider(diveId)).valueOrNull ??
+          const <ProfileEvent>[],
+    );
 
     return MouseRegion(
       onExit: (_) {

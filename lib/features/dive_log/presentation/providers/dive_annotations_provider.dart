@@ -20,3 +20,28 @@ final diveAnnotationsProvider = FutureProvider.autoDispose
           .annotationsForDive(diveId);
       return dropOrphanAnnotations(annotations, dive?.notes ?? '');
     });
+
+/// The events a chart draws: the analysis's events without any annotation
+/// rows it carries, then [annotations]. The result keeps its identity while
+/// both inputs do, so a host rebuild (a hover move) hands the chart the same
+/// list and its didUpdateWidget stays quiet. Null when there is nothing.
+List<ProfileEvent>? mergeChartEvents(
+  List<ProfileEvent>? analysisEvents,
+  List<ProfileEvent> annotations,
+) {
+  if (analysisEvents == null) return annotations.isEmpty ? null : annotations;
+  final cached = _mergedEvents[analysisEvents];
+  if (cached != null && identical(cached.annotations, annotations)) {
+    return cached.merged;
+  }
+  final merged = <ProfileEvent>[
+    for (final e in analysisEvents)
+      if (!e.isAnnotation) e,
+    ...annotations,
+  ];
+  _mergedEvents[analysisEvents] = (annotations: annotations, merged: merged);
+  return merged;
+}
+
+final _mergedEvents =
+    Expando<({List<ProfileEvent> annotations, List<ProfileEvent> merged})>();
