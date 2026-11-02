@@ -236,7 +236,7 @@ void main() {
     }
 
     test('a table the policy does not know is refused', () {
-      expectRefused('SELECT * FROM probe_blobs');
+      expectRefused('SELECT * FROM probe_unclassified');
     });
 
     test('a virtual table is refused', () {

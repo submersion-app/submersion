@@ -29,7 +29,7 @@ final _version = RegExp(r'^v\d+\s*[:,]?\s*');
 final _versionTag = RegExp(r'\s*\((?:schema )?v\d[^)]*\)');
 final _heading = RegExp(r'\b(?:fields|metadata)$', caseSensitive: false);
 final _docLink = RegExp(r'\[(\w+(?:\.\w+)*)\]');
-final _sentenceEnd = RegExp(r'[.;](?:\s|$)');
+final _sentenceEnd = RegExp(r'(?<!e\.g|i\.e|etc|approx|vs)[.;](?:\s|$)');
 final _noise = RegExp(r'^(?:coverage:|ignore:|TODO|FIXME|-{3}|={3}|\*{3})');
 
 /// `notes[table][column]` for every commented column under [tablesDirectory].
@@ -128,9 +128,10 @@ String _quote(String text) {
 }
 
 /// Nothing the SQL window refuses gets a note, and no note names what it
-/// refuses.
+/// refuses. `hlc` is on most tables, and the schema header covers it once.
 bool _keep(String table, String column, String note) =>
     sqlTableReadable(table) &&
+    column != 'hlc' &&
     !kSqlDeniedColumns.contains(column) &&
     ![...kSqlDeniedTables, ...kSqlDeniedColumns].any(note.contains);
 

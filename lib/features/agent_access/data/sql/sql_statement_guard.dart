@@ -116,6 +116,10 @@ SqlRefusal? inspectSqlProgram(
       case 'Column':
         final refusal = _deniedColumn(cursors[step.p1], step.p2);
         if (refusal != null) return refusal;
+      // A whole record, so every column it holds.
+      case 'RowData' when cursors[step.p1]?.deniedColumns.isNotEmpty ?? false:
+        final root = cursors[step.p1]!;
+        return _deniedColumn(root, root.deniedColumns.keys.first);
       case 'IsType' when step.p1 >= 0:
         final refusal = _deniedColumn(cursors[step.p1], step.p3);
         if (refusal != null) return refusal;

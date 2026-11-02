@@ -61,9 +61,10 @@ class SchemaResource implements AgentResource {
     for (final row in keys) {
       final target = row.read<String>('target');
       if (!sqlTableReadable(target)) continue;
-      final column = row.read<String>('target_col');
+      // NULL when the key names only a table: its primary key is meant.
+      final column = row.readNullable<String>('target_col');
       (joins[row.read<String>('tbl')] ??= {})[row.read<String>('col')] =
-          '$target.$column';
+          column == null ? target : '$target.$column';
     }
 
     final tables = <String, List<String>>{};

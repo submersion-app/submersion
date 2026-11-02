@@ -10,7 +10,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'card_last_dive': 'A calendar date: Unix ms of its midnight in wall-clock UTC, so every time zone reads the same day back',
     'card_received_at': 'Unix ms',
     'excluded_from_rankings': 'Keeps this buddy out of the buddy rankings, such as a placeholder for someone whose name the diver forgot',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'linked_diver_id': 'The local diver profile this buddy IS',
     'photo': 'Profile photo: a 512x512 square JPEG produced by `lib/core/services/images/profile_photo_codec.dart`',
     'photo_path': 'Deprecated, superseded by photo',
@@ -27,17 +26,15 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'applicable_agencies': 'JSON arrays of CertificationAgency and CertificationLevel names',
     'clock_kind': '`date` counts from a date on the card',
     'counted_dive_type_ids': 'Activity clocks only: which dives count',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'supersedes_rule_id': 'Set on a custom rule that replaces a built-in one',
   },
   'certifications': {
     'additional_credentials': 'Extra (agency, level) pairs the same physical card grants, as a JSON array like `[{"agency":"cmas","level":"cmas1StarDiver"}]` (issue: dual credentials)',
-    'agency': 'PADI, SSI, etc',
+    'agency': 'PADI, SSI, etc.',
     'buddy_id': 'Owner when this certification belongs to a buddy instead of the diver',
     'card_id': 'the buddy card that created this row',
     'course_id': 'Link to training course (bidirectional, v1.5)',
     'expiry_date': 'For certs that expire',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'instructor_id': 'Structured instructor link',
     'level': 'For more specific level info',
     'name': 'e.g., "Open Water Diver"',
@@ -48,67 +45,39 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'checklist_template_items': {
     'due_offset_days': 'Days before trip start the item is due (14 = "two weeks out")',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'section_id': 'The section this item is grouped under, if any',
-  },
-  'checklist_template_sections': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
-  'checklist_templates': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
-  },
-  'course_requirement_dives': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
   },
   'course_requirements': {
     'completed_at': 'Unix ms, checklist',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
   },
   'courses': {
     'agency': 'CertificationAgency enum',
     'certification_id': 'Link to earned certification (bidirectional, no FK to avoid circular ref)',
     'completion_date': 'null = in progress',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'instructor_name': 'Text fallback',
     'instructor_number': 'Instructor cert number',
     'location': 'Dive center/shop',
     'name': 'e.g., "Advanced Open Water Diver"',
     'start_date': 'Unix timestamp',
   },
-  'csv_presets': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
-  },
   'custom_certification_agencies': {
     'color_argb': 'Primary e-card colour (ARGB)',
     'diver_id': 'No ON DELETE action: the diver deletion clears and tombstones these rows itself (diver_owned_rows.dart), as it does dive_roles',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
   },
   'custom_certification_levels': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'is_progression': 'A ranked rung (after the agency\'s built-in ladder) or a specialty',
     'is_shared': 'Used only under a built-in agency',
     'sort_order': 'Rank among this agency\'s custom progression rungs',
   },
   'cylinder_config_items': {
     'deco_switch_depth': 'MOD in metres set by hand',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'tank_material': 'TankMaterial.name',
     'tank_role': 'TankRole.name',
   },
-  'cylinder_configs': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
-  },
   'cylinder_fills': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'signed_record': 'The JWS token verbatim (PR 3)',
     'source': 'FillSource.name: manual, qr, nfc, file, link, issued',
     'station_key': 'base64url Ed25519 public key from a signed record (PR 3)',
-  },
-  'dive_buddies': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
-  },
-  'dive_buddy_roles': {
-    'hlc': 'This child\'s own clock (see DiveDiverRoles.hlc)',
   },
   'dive_center_gear_notes': {
     'dive_id': 'The dive the note was written on, if any',
@@ -119,9 +88,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'volume_liters': 'The cylinder\'s true capacity, for tank notes',
   },
   'dive_centers': {
-    'affiliations': 'PADI, SSI, etc',
+    'affiliations': 'PADI, SSI, etc. comma-separated',
     'fill_opens_at': 'fill hours for the trip fill forecast, minutes after local midnight',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'is_permanently_closed': 'the center is out of business',
     'state_province': 'State, province, or region',
     'street': 'Street address',
@@ -129,7 +97,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   'dive_computer_connections': {
     'address': 'Device-local: this device\'s BLE identifier or USB port',
     'detail': 'The file format (`ImportFormat.name`) or cloud provider',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'kind': '`ble`, `bluetoothClassic`, `usb`, `infrared`, `file` or `cloud`',
     'local_last_used_at': 'Device-local: when this device last used the connection, which picks the transport a saved-computer download uses here',
   },
@@ -137,20 +104,12 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'bluetooth_address': 'Device-local BLE/MAC identifier',
     'connection_type': '"bluetooth", "usb", "ble"',
     'equipment_id': 'The equipment row representing this device as gear, its "gear twin"',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'last_download_timestamp': 'Unix timestamp',
     'manufacturer': 'e.g., "Shearwater"',
     'model': 'e.g., "Perdix AI"',
     'name': 'User-friendly name e.g., "My Perdix"',
   },
-  'dive_courses': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
-  'dive_custom_fields': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
-  },
   'dive_data_sources': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'imported_file_id': 'The ImportedFiles row holding the original logbook file this source was parsed out of, so a later parser fix can be replayed onto the dive',
     'merge_source_slot': 'This row\'s position among its own original dive\'s data sources at the moment a sequential Combine carried it here',
     'raw_data': 'The raw bytes libdivecomputer returned for this download, zlib-compressed at rest behind a self-describing header',
@@ -165,51 +124,38 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'source_updated_at': 'The dive\'s `updated_at` this row was built from',
     'unsupported_reason': '`UnsupportedReason.name` when a metric could not be derived',
   },
-  'dive_dive_types': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
-  },
-  'dive_diver_roles': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
   'dive_equipment': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'updated_at': 'When this link was last written, in Unix ms',
     'via_equipment_id': 'Provenance: the immediate parent assembly this row was attached through, null for a top-level row',
     'via_set_id': 'The equipment set that was applied, carried by every row of the expanded subtree',
   },
   'dive_plan_equipment': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'updated_at': 'The sync merge\'s age signal for this link',
     'via_equipment_id': 'Provenance: the immediate parent assembly this row was attached through, null for a top-level row',
     'via_set_id': 'The equipment set that was applied, carried by every row of the expanded subtree',
   },
   'dive_plan_mission_legs': {
     'current_speed_mps': 'This leg\'s current',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'label': 'The waypoint the leg ends at, for example "T" or "Jump 2"',
     'shore_swim_m': 'Open water shore exit from this leg\'s waypoint',
   },
   'dive_plan_mission_members': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'sac_bottom': 'Bottom surface air consumption, litres per minute',
   },
   'dive_plan_missions': {
     'battery_reserve_fraction': 'Fraction of scooter burn time that must remain at the surface',
     'default_current_speed_mps': 'Current inherited by legs without their own',
     'environment': 'MissionEnvironment.name: overhead or openWater',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'surface_swim_limit_m': 'Longest acceptable surface swim, metres',
     'walk_speed_mps': 'Walking speed for a shore exit, m/s',
   },
   'dive_plan_segments': {
     'dive_mode_override': 'Per-segment dive-mode override enum name (\'oc\'|\'ccr\'|\'scr\'|\'pscr\')',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'setpoint_bar': 'Per-segment CCR setpoint override in bar',
     'type': 'SegmentType enum name',
   },
   'dive_plan_tanks': {
     'deco_switch_depth': 'MOD set by hand in meters, for any role',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'is_travel_gas': 'Whether this cylinder also doubles as travel gas, breathed on the descent before switching to its primary role\'s gas',
     'material': 'TankMaterial enum name',
     'role': 'TankRole enum name',
@@ -223,7 +169,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'final_ascent_rate': 'Ascent rate from the last stop to the surface, m per minute',
     'gas_switch_stop_seconds': 'Null = use the diver\'s Settings default',
     'gf_low': 'Null = use the diver\'s Settings default',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'hypercapnia_amv': 'Hypercapnia-bailout overrides for this plan',
     'hypercapnia_explicitly_off': 'True = this plan\'s OC bailout never uses a hypercapnia phase, regardless of the diver\'s Settings toggle',
     'intermediate_ascent_rate': 'Ascent rate between intermediate (deeper than 9 m) stops, m per minute',
@@ -254,7 +199,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'computer_id': 'Which computer contributed this event (null = primary source / manual)',
     'depth': 'depth at event (meters)',
     'event_type': 'See ProfileEventType enum',
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'severity': 'info, warning, alert',
     'source': 'EventSource.name',
     'tank_id': 'for gas switch events',
@@ -263,27 +207,22 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'dive_profile_series': {
     'has_deco_type': 'Any sample carries deco_type',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'max_depth': 'Metres',
     'samples': '`ProfileSeriesCodec` output',
     'start_timestamp': 'Seconds from dive start of the first and last sample',
   },
   'dive_roles': {
     'diver_id': 'null for built-in roles',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
   },
   'dive_safety_findings': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'rule_id': 'SafetyRuleId.dbValue',
     'severity': 'SafetySeverity.dbValue',
   },
   'dive_safety_reviews': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'inputs_hash': 'the fingerprint of the diver settings the review\'s analysis ran on (AnalysisSettings.fingerprint, issue #2592)',
   },
   'dive_scenarios': {
     'branch_seconds': 'Runtime seconds on the dive\'s primary profile where the timelines part',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'interventions_json': 'Versioned JSON envelope (scenario_intervention_codec: formatVersion + interventions)',
     'mode': 'ScenarioMode name: `replay` or `replan`',
   },
@@ -293,23 +232,18 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'city': 'Location hierarchy',
     'difficulty': 'Beginner, Intermediate, Advanced, Technical',
     'entry_method': 'Typical entry and exit method at this site, stored as EntryMethod.name',
-    'hazards': 'Currents, boats, marine life, etc',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
+    'hazards': 'Currents, boats, marine life, etc.',
     'max_depth': 'Deepest point',
     'min_depth': 'Shallowest point',
     'mooring_number': 'Mooring buoy number for boats',
     'parking_info': 'Parking availability and tips',
     'shared_library_id': 'The shared site library this site belongs to',
   },
-  'dive_tags': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
-  },
   'dive_tanks': {
     'computer_id': 'Which computer contributed this tank (null = primary source / manual)',
     'end_pressure': 'bar',
     'equipment_id': 'The cylinder\'s gear item, written by the transmitter registry',
     'extra_regulator_ids': 'the regulators on this cylinder after the first, a JSON array of equipment ids (tank_extra_regulators.dart)',
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'passport_id': 'the passport id of the tagged cylinder this tank was filled from, set when the diver scanned a tag or picked a cylinder that has one',
     'preset_name': 'preset name (e.g., \'al80\', \'hp100\')',
     'regulator_equipment_id': 'the regulator breathed from this cylinder, so high-O2 exposure reaches the regulator\'s service clocks',
@@ -320,7 +254,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'start_pressure': 'bar',
     'tank_material': 'aluminum, steel, carbonFiber',
     'tank_name': 'user-friendly name like "Primary AL80"',
-    'tank_role': 'backGas, stage, deco, bailout, etc',
+    'tank_role': 'backGas, stage, deco, bailout, etc.',
     'transmitter_serial': 'Serial of the air-integration transmitter that reported this tank, as the computer logged it',
     'trip_cylinder_id': 'the trip cylinder slot this tank was breathed from',
     'usage_duration': 'how long this cylinder was breathed, in seconds, as the source log recorded it',
@@ -329,7 +263,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'dive_types': {
     'diver_id': 'null for built-in types',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'id': 'Unique identifier (slug)',
     'is_built_in': 'System vs user-defined',
     'name': 'Display name',
@@ -339,8 +272,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'dive_weights': {
     'amount_kg': 'kg',
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
-    'label': 'The diver\'s own name for this weight, e.g',
+    'label': 'The diver\'s own name for this weight, e.g. "Top pocket"',
     'weight_type': 'Integrated, Belt, Trim, Ankle, Backplate, Other',
   },
   'diver_settings': {
@@ -380,7 +312,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'hidden_built_in_ids': 'built-in catalog entries the diver hid from the pickers, a JSON object of catalog key to id list',
     'hidden_chamber_ids': 'Emergency card: hidden bundled chamber ids (JSON list) and a manual region override (ISO country code)',
     'hidden_tank_preset_ids': 'built-in tank presets the diver hid from the pickers, JSON list of preset slugs',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'insights_muted_observation_rules': 'muted Insights observation rules, JSON list of ObservationRuleId.dbValue',
     'locale': 'Locale (language preference: \'system\', \'en\', \'es\', \'fr\', etc.)',
     'map_style': 'Map style',
@@ -418,14 +349,12 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'visibility_scale_preset': 'per-diver calibration deciding which measured distances count as excellent/good/moderate/poor visibility',
   },
   'diver_weight_entries': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'measured_at': 'Unix ms',
   },
   'divers': {
-    'diving_since': 'year, e.g',
+    'diving_since': 'year, e.g. 1990',
     'emergency_contact2_name': 'Secondary emergency contact',
     'emergency_contact_name': 'Emergency contact',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'insurance_emergency_phone': 'The insurer\'s 24-hour dive emergency assistance line, and its general or office line',
     'insurance_expiry_date': 'Unix timestamp',
     'insurance_provider': 'Insurance',
@@ -461,10 +390,9 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'gas_switches_edited': 'set once the diver saves a change to the dive\'s gas switches',
     'gradient_factor_high': '0-100',
     'gradient_factor_low': 'Decompression gradient factors',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'humidity': '0-100',
     'import_id': 'Source-specific ID (e.g., HealthKit UUID)',
-    'import_source': 'Import source tracking - tracks import source for Apple Watch, Garmin, etc',
+    'import_source': 'Import source tracking - tracks import source for Apple Watch, Garmin, etc.',
     'import_version': 'Import version: null = pre-fix, 1 = wall-clock-as-UTC convention',
     'is_favorite': 'Favorite flag',
     'is_planned': 'Dive planner flag',
@@ -503,85 +431,59 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'wind_speed': 'Weather conditions',
   },
   'document_pages': {
-    'hlc': 'This page\'s own clock: exported on it, so a stale page from a peer cannot overwrite a newer one (the diveProfileSeries pattern)',
     'side': '\'front\' or \'back\' for card types',
   },
-  'document_tags': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
   'documents': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'type': 'DocumentType storage name',
   },
   'equipment': {
     'buoyancy_kg': 'Buoyancy metadata: net in-water buoyancy in kg (positive floats), and dry weight in kg (feeds displacement scaling)',
-    'custom_reminder_days': 'JSON array override, e.g',
+    'custom_reminder_days': 'JSON array override, e.g. "[7, 30]"',
     'custom_reminder_enabled': 'Notification overrides',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'parent_equipment_id': 'the item this one is installed in (an O2 cell in a rebreather, a battery in a computer)',
     'size': 'S, M, L, XL, or specific size',
-    'status': 'active, needsService, retired, etc',
+    'status': 'active, needsService, retired, etc.',
     'thickness': '2,3,4,5,6 or 6mm',
-    'type': 'regulator, bcd, wetsuit, etc',
-  },
-  'equipment_attributes': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
+    'type': 'regulator, bcd, wetsuit, etc.',
   },
   'equipment_components': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'role': 'Free text such as "Primary second stage"',
   },
   'equipment_location_moves': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
     'location_id': 'SET NULL so deleting a place leaves its moves reading "no location" rather than vanishing',
   },
   'equipment_locations': {
     'buddy_id': 'The buddy a Person place stands for',
     'dive_center_id': 'The saved center a Dive center place stands for',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'kind': 'An `EquipmentLocationKind` name: storage, diveCenter, serviceShop, person, other',
   },
   'equipment_observations': {
     'status': '\'ok\' | \'issue\'',
-  },
-  'equipment_ownership_events': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
   },
   'equipment_service_status': {
     'due_date': 'The worst clock\'s date trigger, epoch ms, when it has one',
     'severity': 'A `ServiceClockSeverity` name: ok, dueSoon or overdue',
   },
   'equipment_set_geofences': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'label': 'Display label',
   },
   'equipment_set_items': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'updated_at': 'The sync merge\'s age signal for this link',
   },
   'equipment_sets': {
-    'auto_apply_on_computer_import': 'Whether this set is auto-applied to a dive whose computer is a member of it, e.g',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
+    'auto_apply_on_computer_import': 'Whether this set is auto-applied to a dive whose computer is a member of it, e.g. a CCR rig set that bundles the controller with drysuit and tec fins',
     'is_default': 'Whether this set is the diver\'s default (auto-applied to new dives with no equipment)',
     'show_figure': 'Whether the set page draws this set\'s gear on the diver figure',
-  },
-  'equipment_shares': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
-  'equipment_tags': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
   },
   'gas_switches': {
     'computer_id': 'which computer\'s reading the switch came from, so replacing one computer\'s reading leaves the others\' switches alone',
     'depth': 'depth at switch (meters)',
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'timestamp': 'seconds from dive start',
   },
   'gps_track_points_local': {
     'timestamp': 'Wall-clock-as-UTC epoch seconds',
   },
   'gps_tracks': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'name': 'User-editable label',
     'points': 'Gzipped JSON array of [wallClockEpochSeconds, lat, lon, accuracyMeters]',
     'source': 'Provenance: \'phone\' | \'gpx\' | \'fit\' | \'kml\' | \'csv\'',
@@ -594,17 +496,10 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'byte_count': 'Length of the original bytes, so size can be read without inflating the blob',
     'bytes': 'The file exactly as it was imported, zlib-compressed at rest behind the self-describing header the raw-download column uses',
     'file_name': 'The basename the file was imported under, which is all that is needed to hand the bytes back as a file again (the extension comes with it)',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'id': 'Lowercase hex sha256 of bytes as the original file had them',
   },
   'incidents': {
     'equipment_id': 'the item an equipment incident attributes to',
-  },
-  'insight_observation_dismissals': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
-  'liveaboard_detail_records': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
   },
   'media': {
     'cloud_asset_id': 'PhotoKit\'s cloud identifier for a gallery link (media sync program spec 6.2), which names the same photo on every device sharing an iCloud Photos library',
@@ -628,30 +523,19 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'media_enrichment': {
     'depth_meters': 'Calculated from dive profile at photo timestamp',
-    'hlc': 'sync replication',
     'match_confidence': 'Confidence/quality',
-  },
-  'media_people': {
-    'hlc': 'This tag\'s own clock, stamped when it is marked pending',
   },
   'media_smart_albums': {
     'filter_json': 'A serialized `MediaLibraryFilter`',
   },
   'media_species': {
     'bbox_x': 'Reserved for future spatial annotation (nullable for now)',
-    'hlc': 'Hybrid Logical Clock, added in v195',
   },
   'media_stores': {
-    'display_hint': 'e.g',
+    'display_hint': 'e.g. \'dive-media @ minio.host\'',
     'id': 'storeId UUID, matches smv1/store.json',
     'last_sweep_at': 'epoch millis of the last completed Verify Library sweep on ANY device (fleet-wide cadence',
     'provider_type': '\'s3\' (Phase 4 adds others)',
-  },
-  'media_subscriptions': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
-  'media_tags': {
-    'hlc': 'This link\'s own clock, stamped when it is marked pending',
   },
   'nav_tracks': {
     'anchor_latitude': 'Where the route\'s origin sits on the map',
@@ -678,117 +562,68 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'pre_dive_checklist_template_items': {
     'equipment_id': 'Remembered equipment for an \'equipment\'-typed item',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'is_required': 'Required items must end Done or Flagged (never Skipped)',
     'item_type': '\'check\' | \'value\' | \'equipmentSet\' | \'equipment\' (PreDiveItemType.name)',
     'section_id': 'The section this item is grouped under, if any',
     'source_item_id': 'For a \'cellLinearity\' item, the template item holding this cell\'s air reading',
     'value_min': 'Warning thresholds for value items, advisory, never blocking',
   },
-  'pre_dive_checklist_template_sections': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
   'pre_dive_checklist_templates': {
     'builtin_key': 'Stable identity for built-in re-seeding and content upgrades',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'strict_order': 'Enforce item order during sessions (CCR-build style)',
   },
   'pre_dive_session_items': {
     'completed_at': 'Stamped at tap time, audit evidence, never backfilled',
     'equipment_id': 'Set for equipment-expanded rows',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-    'note': 'Diver note recorded during the run (e.g',
+    'note': 'Diver note recorded during the run (e.g. "cell 2 sluggish")',
     'overdue_services': 'JSON-encoded list of overdue-service entries, frozen the moment the diver last moved this item away from pending',
     'section_id': 'The session section this item is grouped under, if any',
     'source_item_id': 'For a \'cellLinearity\' item, the session item holding this cell\'s air reading, remapped from the template item id at compose time',
     'source_value_number': 'The air millivolts, frozen when the diver resolved this item',
     'state': '\'pending\' | \'done\' | \'skipped\' | \'flagged\' (PreDiveItemState.name)',
   },
-  'pre_dive_session_sections': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
   'pre_dive_sessions': {
     'equipment_set_name': 'Display snapshot',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'status': '\'inProgress\' | \'completed\' | \'aborted\' (PreDiveSessionStatus.name)',
     'strict_order': 'Snapshot of the template\'s strictOrder at session start',
     'template_name': 'Snapshot',
   },
   'quality_findings': {
     'computer_id': 'Source computer for source-scoped findings',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'params': 'JSON object of numeric arguments',
     'related_dive_id': 'The other dive for cross-dive findings (duplicates, splits, overlaps)',
   },
-  'rule_run_changes': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
-  'rule_runs': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
-  'rules': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
-  'saved_queries': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
   'service_kinds': {
-    'applicable_types': 'JSON array of EquipmentType names this kind suggests for, e.g',
+    'applicable_types': 'JSON array of EquipmentType names this kind suggests for, e.g. \'["tank"]\'',
     'auto_attach': 'Auto-create a schedule when matching equipment is created',
     'default_category': 'the category prefilled into a new service record logged against this service type',
     'default_cost': 'default price for this maintenance, prefilled into a new service record',
     'exposure_intervals': 'JSON object of ExposureUnit name to interval for the units that have no column of their own ({"coldDives": 50})',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
   },
   'service_records': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'provider': 'Shop or technician name',
     'service_category': 'renamed from serviceType',
     'service_kind_id': 'which service kind this record fulfills (resets that clock)',
   },
   'service_schedules': {
-    'anchor_date': 'The diver\'s baseline date: where the clock counts from (e.g',
+    'anchor_date': 'The diver\'s baseline date: where the clock counts from (e.g. last hydro before app adoption)',
     'anchor_set_at': 'when the diver set anchorDate',
     'default_cost': 'per-item default price, overriding the kind\'s',
     'exposure_intervals': 'per-item overrides for the map units',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'interval_days': 'Per-item overrides',
-  },
-  'settings': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
-  },
-  'sightings': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
   },
   'site_features': {
     'bearing_deg': '0-359 compass degrees',
     'depth_meters': 'Stored meters',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'type': 'SiteFeatureType enum name',
-  },
-  'site_hides': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
-  'site_shares': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
-  'site_site_types': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
-  'site_species': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
-  },
-  'site_tags': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
   },
   'site_types': {
     'diver_id': 'null for built-ins',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'id': 'Unique identifier (slug)',
   },
   'species': {
-    'category': 'fish, coral, mammal, etc',
-    'taxonomy_class': 'e.g',
+    'category': 'fish, coral, mammal, etc.',
+    'taxonomy_class': 'e.g. Actinopterygii',
   },
   'tags': {
     'applies_to_dives': 'Whether the tag is offered on dives',
@@ -797,13 +632,11 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'applies_to_media': 'Whether the tag is offered on photos and videos',
     'applies_to_sites': 'Whether the tag is offered on dive sites',
     'color': 'Hex color code for UI',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
   },
   'tank_presets': {
     'description': 'Optional description',
     'display_name': 'User-friendly display name',
     'diver_id': 'Owner of preset',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'material': 'aluminum, steel, carbonFiber',
     'name': 'Internal name/identifier',
     'volume_liters': 'Water volume in liters',
@@ -816,14 +649,12 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'height_meters': 'Current tide at dive time',
     'high_tide_height': 'Nearby high tide',
     'high_tide_time': 'Unix timestamp of high tide',
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'low_tide_height': 'Nearby low tide',
     'low_tide_time': 'Unix timestamp of low tide',
     'rate_of_change': 'meters per hour (positive = rising)',
     'tide_state': 'rising, falling, slackHigh, slackLow',
   },
   'transmitters': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'is_configured': 'Whether the diver configured this entry',
     'tank_material': 'TankMaterial.name',
     'tank_role': 'TankRole.name',
@@ -832,20 +663,12 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'trip_checklist_items': {
     'due_date': 'Absolute due date, resolved from the template offset at apply time',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'section_id': 'The section this item is grouped under, if any',
-  },
-  'trip_checklist_sections': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
-  },
-  'trip_checklists': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
   },
   'trip_cylinder_events': {
     'analyzed_o2': 'what the analyzer read',
     'bottle_label': 'The operator\'s number for the bottle now in the slot (fills)',
     'currency': 'Null means the diver\'s default currency, as the service cost defaults do',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'kind': 'TripCylinderEventKind.name: fill or adjustment',
     'o2_percent': 'the mix ordered',
     'occurred_at': 'The diver\'s wall clock as UTC epoch milliseconds, the frame dives.dive_date_time uses, so fills and dives order on one timeline',
@@ -853,7 +676,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'trip_cylinders': {
     'equipment_id': 'The owned cylinder in this slot, if any',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution',
     'label': 'The slot\'s name, or the owned bottle\'s mark: "Truck 3", "My HP100"',
     'material': 'TankMaterial.name',
     'volume': 'liters',
@@ -863,7 +685,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'air_temp': 'celsius',
     'cloud_cover': 'enum: CloudCover.name',
     'date': 'UTC midnight for the day, as epoch milliseconds (milliseconds being the convention TripItineraryDays.date is written with)',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'humidity': '0-100',
     'latitude': 'The coordinates the lookup actually used, so a row records what it was fetched for even if the trip\'s sites later move',
     'precipitation': 'enum: Precipitation.name',
@@ -872,34 +693,19 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'wind_direction': 'enum: CurrentDirection.name',
     'wind_speed': 'm/s',
   },
-  'trip_equipment': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
-  'trip_hides': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
-  },
   'trip_itinerary_days': {
     'date': 'Unix timestamp',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'planned_dives': 'the day\'s planned dives for the fill forecast',
-  },
-  'trip_shares': {
-    'hlc': 'This child\'s own clock, stamped when it is marked pending (SyncDataSerializer.parentGatedChildEntities)',
   },
   'trips': {
     'divers_sharing_cylinders': 'the fill forecast\'s inputs: how many divers breathe from the trip\'s cylinders, and a dives-per-day target (null derives it)',
     'end_date': 'Unix timestamp',
     'expected_dives': 'overrides for the scrubber trip-margin estimate (phase 4)',
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
     'parent_trip_id': 'the larger trip this one is a side trip of',
     'return_flight_at': 'Return flight departure, wall-clock-as-UTC epoch ms',
     'start_date': 'Unix timestamp',
   },
   'weight_preset_entries': {
-    'hlc': 'this child\'s own clock, stamped when it is marked pending',
     'label': 'The diver\'s own name for this entry, copied to and from a dive\'s weights',
-  },
-  'weight_presets': {
-    'hlc': 'Hybrid Logical Clock for cross-device conflict resolution (nullable: rows written before HLC rollout fall back to updatedAt)',
   },
 };

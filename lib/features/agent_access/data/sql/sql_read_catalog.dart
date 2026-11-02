@@ -49,6 +49,7 @@ class SqlReadCatalog {
       columns,
     )) {
       final table = row['tbl'] as String;
+      if (!sqlTableReadable(table)) continue;
       (positions[table] ??= {})[row['cid'] as int] = row['col'] as String;
     }
     // `Column` numbers storage slots. Those equal the declared position only

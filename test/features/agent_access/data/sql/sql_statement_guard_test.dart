@@ -113,6 +113,27 @@ void main() {
       );
     });
 
+    test('a whole record from a guarded table is refused', () {
+      expect(
+        _inspect([
+          _step('OpenRead', p1: 2, p2: _stores),
+          _step('RowData', p1: 2, p2: 1),
+        ]),
+        isNotNull,
+      );
+    });
+
+    test('a whole record from anywhere else passes', () {
+      expect(
+        _inspect([
+          _step('OpenRead', p1: 2, p2: _dives),
+          _step('RowData', p1: 2, p2: 1),
+          _step('RowData', p1: 7, p2: 1),
+        ]),
+        isNull,
+      );
+    });
+
     test('a type test on a denied column is refused', () {
       expect(
         _inspect([

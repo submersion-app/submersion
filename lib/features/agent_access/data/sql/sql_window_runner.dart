@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:submersion/features/agent_access/data/sql/sql_window.dart';
@@ -72,13 +71,6 @@ class SqlWindowRunner {
       // The path and key are read per call: a restore, a storage move or an
       // encryption change between calls must take effect on the next one.
       final file = await _file();
-      if (!File(file.path).existsSync()) {
-        _busy = false;
-        return const SqlWindowFailure(
-          AgentToolErrorCode.databaseUnavailable,
-          'The database file is not available.',
-        );
-      }
       work = _worker(
         SqlWindowRequest(
           path: file.path,

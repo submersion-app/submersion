@@ -202,6 +202,9 @@ token through a function.
 | `unknown_diver` | `diver_id` names no profile on this device |
 | `not_found` | No such tool or record |
 | `too_many_ids` | More ids than `get_records` accepts in one call |
+| `sql_refused` | `sql_query` would read something denied, or is not one read-only statement; names the table or column |
+| `sql_error` | SQLite rejected the statement, with its message |
+| `sql_busy` | An earlier `sql_query` statement is still running and cannot be stopped |
 | `internal` | Anything else; the exception type only, never a message that could leak data |
 
 Arguments the schema itself rejects (a wrong type, an unknown property, a

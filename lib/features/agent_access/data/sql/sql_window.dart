@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:sqlite3/sqlite3.dart'
-    show Database, OpenMode, PreparedStatement, SqliteException, sqlite3;
+    show Database, OpenMode, PreparedStatement, SqliteException;
 
-import 'package:submersion/core/database/database_connection_setup.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_read_catalog.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_statement_guard.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -109,7 +109,11 @@ SqlWindowOutcome runSqlWindow(SqlWindowRequest request) {
 
   final Database db;
   try {
-    db = sqlite3.open(request.path, mode: OpenMode.readOnly);
+    db = DatabaseService.openRaw(
+      request.path,
+      mode: OpenMode.readOnly,
+      keyHex: request.keyHex,
+    );
   } on SqliteException catch (e) {
     return SqlWindowFailure(
       AgentToolErrorCode.databaseUnavailable,
@@ -117,11 +121,13 @@ SqlWindowOutcome runSqlWindow(SqlWindowRequest request) {
     );
   }
   try {
-    applyConnectionBasics(db, keyHex: request.keyHex);
     db.execute('PRAGMA query_only = ON');
-    // One snapshot, so the root pages below match the program that runs.
     db.execute('BEGIN');
-    return _run(db, request, clock);
+    // Before anything is compiled: BEGIN is deferred and compiling holds no
+    // lock, so this first read is what fixes the snapshot. The root pages and
+    // the program inspected against them then cannot disagree.
+    final catalog = SqlReadCatalog.load(db);
+    return _run(db, request, catalog, clock);
   } on SqliteException catch (e) {
     return SqlWindowFailure(AgentToolErrorCode.sqlError, e.message);
   } finally {
@@ -129,7 +135,12 @@ SqlWindowOutcome runSqlWindow(SqlWindowRequest request) {
   }
 }
 
-SqlWindowOutcome _run(Database db, SqlWindowRequest request, Stopwatch clock) {
+SqlWindowOutcome _run(
+  Database db,
+  SqlWindowRequest request,
+  SqlReadCatalog catalog,
+  Stopwatch clock,
+) {
   final PreparedStatement statement;
   try {
     statement = db.prepare(request.sql, checkNoTail: true);
@@ -153,10 +164,7 @@ SqlWindowOutcome _run(Database db, SqlWindowRequest request, Stopwatch clock) {
         '${request.params.length} were given.',
       );
     }
-    final refusal = inspectSqlProgram(
-      _explain(db, request),
-      SqlReadCatalog.load(db),
-    );
+    final refusal = inspectSqlProgram(_explain(db, request), catalog);
     if (refusal != null) {
       return SqlWindowFailure(
         AgentToolErrorCode.sqlRefused,

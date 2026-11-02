@@ -55,7 +55,7 @@ class SqlWindowFixture {
                 'host-secret', 1, 1)
       ''');
       raw.execute('''
-        CREATE TABLE IF NOT EXISTS probe_blobs (id INTEGER PRIMARY KEY, b BLOB)
+        CREATE TABLE IF NOT EXISTS probe_unclassified (id INTEGER PRIMARY KEY)
       ''');
     } finally {
       raw.close();
