@@ -1,6 +1,7 @@
 import 'package:markdown/markdown.dart' as md;
 
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 
 /// A Markdown note as plain words, for places that cannot draw formatting:
 /// list subtitles, table cells, Excel and the CSVs Submersion cannot read
@@ -121,9 +122,12 @@ String _inline(List<md.Node> nodes) {
   return out.toString();
 }
 
-/// `text (address)`, or just the address when the text adds nothing.
+/// `text (address)`, or just the address when the text adds nothing. An
+/// annotation link (#4109) is its bare words: the address names a row, not
+/// a place a reader could go.
 String _linkText(String text, String? href) {
   if (href == null || href.isEmpty) return text;
+  if (annotationIdFromHref(href) != null) return text;
   if (text.isEmpty ||
       text == href ||
       'http://$text' == href ||

@@ -7,6 +7,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/markdown/notes_markdown.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/dive_log/data/services/merge_gap_fill.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_segment_grouper.dart';
 import 'package:submersion/features/dive_log/domain/services/shared_tank_pressures.dart';
@@ -74,7 +76,9 @@ class UncombineSegment {
 /// trip, course, rating, favourite, weighting, statistics exclusions and
 /// import provenance. Copying the dive row wholesale and clearing only a
 /// couple of those quietly duplicated the rest onto every restored dive,
-/// which is not what the confirmation dialog promises.
+/// which is not what the confirmation dialog promises. The one exception is
+/// an annotation in a restored segment, whose words go with its marker
+/// (#4109).
 ///
 /// What carries is what describes the dive itself rather than the log of it:
 /// its timings, depths and temperatures, the deco and CCR settings it was run
@@ -597,8 +601,10 @@ class DiveUncombineService {
     await _tankSeries.deleteByIds([for (final s in movingPressures) s.id]);
 
     // 7. Profile events and gas switches, re-based and re-pointed.
+    final movedEventIds = <String, String>{};
     for (final row in movingEvents) {
       final freshId = _uuid.v4();
+      movedEventIds[row.id] = freshId;
       await _db
           .into(_db.diveProfileEvents)
           .insert(
@@ -641,6 +647,12 @@ class DiveUncombineService {
         localUpdatedAt: now,
       );
     }
+    await _carryAnnotationWords(
+      fromDiveId: diveId,
+      toDiveId: newDiveId,
+      movedEventIds: movedEventIds,
+      now: now,
+    );
     await _deleteEvents(movingEvents);
     await _deleteSwitches(movingSwitches);
 
@@ -757,6 +769,51 @@ class DiveUncombineService {
     await _sync.markRecordPending(
       entityType: 'dives',
       recordId: diveId,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// An annotation is the passage its link names, and the Notes stay on the
+  /// kept dive. So one that left with its segment takes its words along as a
+  /// linked paragraph of the restored dive's Notes, and on the kept dive
+  /// they are plain words again (#4109).
+  Future<void> _carryAnnotationWords({
+    required String fromDiveId,
+    required String toDiveId,
+    required Map<String, String> movedEventIds,
+    required int now,
+  }) async {
+    final from = await (_db.select(
+      _db.dives,
+    )..where((t) => t.id.equals(fromDiveId))).getSingle();
+    var kept = from.notes;
+    var restored = '';
+    for (final MapEntry(key: id, value: words) in annotationWordsInNotes(
+      from.notes,
+    ).entries) {
+      final movedTo = movedEventIds[id];
+      if (movedTo == null) continue;
+      kept = unlinkAnnotation(kept, id);
+      restored = appendMarkdownParagraph(
+        restored,
+        annotationLinkMarkdown(words, movedTo),
+      );
+    }
+    if (restored.isEmpty) return;
+    await (_db.update(_db.dives)..where((t) => t.id.equals(fromDiveId))).write(
+      DivesCompanion(notes: Value(kept), updatedAt: Value(now)),
+    );
+    await (_db.update(_db.dives)..where((t) => t.id.equals(toDiveId))).write(
+      DivesCompanion(notes: Value(restored), updatedAt: Value(now)),
+    );
+    await _sync.markRecordPending(
+      entityType: 'dives',
+      recordId: fromDiveId,
+      localUpdatedAt: now,
+    );
+    await _sync.markRecordPending(
+      entityType: 'dives',
+      recordId: toDiveId,
       localUpdatedAt: now,
     );
   }

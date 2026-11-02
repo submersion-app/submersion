@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
@@ -6057,7 +6058,15 @@ class DiveRepository {
   // Profile Event Operations
   // ============================================================================
 
-  /// Bulk insert profile events (for dive computer imports and analysis results)
+  /// Which of [ids] already name a profile event row, on any dive. A backup
+  /// restore carries each event's own id (#4109), and gives its new dive a
+  /// fresh one in place of any of these.
+  Future<Set<String>> existingProfileEventIds(Iterable<String> ids) =>
+      takenProfileEventIds(_db, ids);
+
+  /// Bulk insert profile events (for dive computer imports and analysis
+  /// results). Duplicate ids throw, so a write that must be all or nothing
+  /// fails loudly.
   Future<void> insertProfileEvents(List<ProfileEvent> events) async {
     if (events.isEmpty) return;
 
@@ -6067,11 +6076,8 @@ class DiveRepository {
       for (final event in events) {
         final id = event.id.isEmpty ? _uuid.v4() : event.id;
         diveIds.add(event.diveId);
-        // Drift's default conflict mode is `insertOrFail` — duplicate IDs
-        // throw. Callers are expected to pass unique IDs (either freshly
-        // generated via _uuid.v4() or from domain entities that assigned them);
-        // the `event.id.isEmpty ? _uuid.v4()` guard above covers the most
-        // common case where the caller hasn't assigned an ID yet.
+        // Drift's default conflict mode is `insertOrFail`: callers pass unique
+        // ids (fresh, or a domain entity's own).
         await _db
             .into(_db.diveProfileEvents)
             .insert(

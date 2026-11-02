@@ -244,4 +244,79 @@ void main() {
       tester.getSize(find.text('c')).height,
     );
   });
+
+  group('annotation links (#4109)', () {
+    Future<List<String>> pumpAnnotated(
+      WidgetTester tester,
+      String source, {
+      Map<String, String>? times,
+      bool withTap = true,
+      String? highlighted,
+    }) async {
+      final taps = <String>[];
+      await tester.pumpWidget(
+        testApp(
+          child: MarkdownNotesView(
+            source,
+            annotationTimes: times,
+            onAnnotationTap: withTap ? taps.add : null,
+            highlightedAnnotationId: highlighted,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return taps;
+    }
+
+    testWidgets(
+      'a resolved annotation link shows a pin, is tappable and shows its '
+      'time',
+      (tester) async {
+        final taps = await pumpAnnotated(
+          tester,
+          'I [felt sick](annotation:a1).',
+          times: {'a1': '21:30'},
+        );
+        expect(find.byIcon(Icons.push_pin), findsOneWidget);
+        expect(_span(tester, ' 21:30'), isNotNull);
+        expect(_span(tester, 'felt sick').recognizer, isNotNull);
+        await tester.tapOnText(find.textRange.ofSubstring('felt sick'));
+        expect(taps, ['a1']);
+      },
+    );
+
+    testWidgets('a dangling annotation link is plain words', (tester) async {
+      await pumpAnnotated(
+        tester,
+        'I [felt sick](annotation:gone).',
+        times: {'a1': '21:30'},
+      );
+      expect(find.byIcon(Icons.push_pin), findsNothing);
+      expect(_span(tester, 'felt sick').recognizer, isNull);
+      expect(_allText(tester), isNot(contains('21:30')));
+    });
+
+    testWidgets('without the annotation hooks an annotation link is plain '
+        'words', (tester) async {
+      await pump(tester, 'I [felt sick](annotation:a1).');
+      expect(find.byIcon(Icons.push_pin), findsNothing);
+      expect(_span(tester, 'felt sick').recognizer, isNull);
+      expect(_allText(tester), 'I felt sick.');
+    });
+
+    testWidgets('the highlighted annotation gets a background', (tester) async {
+      await pumpAnnotated(
+        tester,
+        '[felt sick](annotation:a1) and [calm](annotation:b2)',
+        times: {'a1': '21:30', 'b2': '30:00'},
+        highlighted: 'a1',
+      );
+      final theme = Theme.of(tester.element(find.byType(MarkdownNotesView)));
+      expect(
+        _span(tester, 'felt sick').style?.backgroundColor,
+        theme.colorScheme.primaryContainer,
+      );
+      expect(_span(tester, 'calm').style?.backgroundColor, isNull);
+    });
+  });
 }

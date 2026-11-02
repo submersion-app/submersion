@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_merge_builder.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
@@ -173,11 +174,20 @@ class DiveMergeService {
     final mergedId = result.mergedDive.id;
     final snapshot = await captureSnapshot(diveIds, mergedId);
     final now = DateTime.now().millisecondsSinceEpoch;
+    // The events come across under fresh ids (step 5), and an annotation is
+    // held together by its id, so the links in the combined Notes follow
+    // them (#4109).
+    final mergedEventIds = {
+      for (final row in snapshot.eventRows) row.id: _uuid.v4(),
+    };
+    final mergedDive = result.mergedDive.copyWith(
+      notes: renameAnnotationLinks(result.mergedDive.notes, mergedEventIds),
+    );
 
     await _db.transaction(() async {
       // 1. Merged dive + entity-carried children (tanks, weights, custom
       //    fields, profile=[], equipment, tags, dive types).
-      await _diveRepo.createDive(result.mergedDive);
+      await _diveRepo.createDive(mergedDive);
 
       // 1b. Columns the domain Dive entity has no field for (computerId,
       //     importVersion, cnsStart/cnsEnd/otu) never travel through
@@ -470,7 +480,7 @@ class DiveMergeService {
       // 5. Existing profile events, re-based, tank text-refs remapped.
       for (final row in snapshot.eventRows) {
         final offset = result.segmentOffsetsSeconds[row.diveId] ?? 0;
-        final eventId = _uuid.v4();
+        final eventId = mergedEventIds[row.id]!;
         await _db
             .into(_db.diveProfileEvents)
             .insert(
@@ -661,7 +671,7 @@ class DiveMergeService {
     });
 
     SyncEventBus.notifyLocalChange();
-    return DiveMergeOutcome(mergedDive: result.mergedDive, snapshot: snapshot);
+    return DiveMergeOutcome(mergedDive: mergedDive, snapshot: snapshot);
   }
 
   /// Restores the source dives exactly and removes the merged dive.

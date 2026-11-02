@@ -3405,6 +3405,10 @@
   "@notesEditor_action_numberedList": {
     "description": "Tooltip for the notes editor button that turns lines into a numbered list"
   },
+  "notesEditor_action_annotate": "Annotate",
+  "@notesEditor_action_annotate": {
+    "description": "Tooltip for the notes editor button that pins the selected words to a time in the dive (an annotation)"
+  },
   "notesEditor_action_preview": "Preview",
   "@notesEditor_action_preview": {
     "description": "Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed"
@@ -4900,6 +4904,104 @@
   "diveLog_edit_section_equipment": "Equipment",
   "diveLog_edit_section_marineLife": "Species",
   "diveLog_edit_section_notes": "Notes",
+  "diveLog_annotation_sheetTitle_new": "New annotation",
+  "@diveLog_annotation_sheetTitle_new": {
+    "description": "Title of the sheet that creates an annotation (a notes passage pinned to a time in the dive) when no words were selected"
+  },
+  "diveLog_annotation_sheetTitle_editTime": "Change the time",
+  "@diveLog_annotation_sheetTitle_editTime": {
+    "description": "Title of the sheet that changes when an existing annotation happened; the words appear beneath it"
+  },
+  "diveLog_annotation_sheetTitle_words": "Annotate \"{words}\"",
+  "@diveLog_annotation_sheetTitle_words": {
+    "description": "Title of the sheet that pins the selected notes words to a time in the dive",
+    "placeholders": {
+      "words": {"type": "String", "example": "started feeling nauseous"}
+    }
+  },
+  "diveLog_annotation_field_words": "What happened",
+  "@diveLog_annotation_field_words": {
+    "description": "Label of the words field on the annotation sheet"
+  },
+  "diveLog_annotation_words_required": "Say what happened",
+  "@diveLog_annotation_words_required": {
+    "description": "Validation message when the annotation words field is left empty"
+  },
+  "diveLog_annotation_field_time": "Time from the start",
+  "@diveLog_annotation_field_time": {
+    "description": "Label of the minutes:seconds field on the annotation sheet"
+  },
+  "diveLog_annotation_time_invalid": "Enter minutes:seconds",
+  "@diveLog_annotation_time_invalid": {
+    "description": "Validation message when the annotation time does not parse as minutes:seconds"
+  },
+  "diveLog_annotation_time_outsideDive": "Must be within the dive",
+  "@diveLog_annotation_time_outsideDive": {
+    "description": "Validation message when the annotation time is later than the dive's runtime"
+  },
+  "diveLog_annotation_pickOnProfile": "Or tap the profile to place it",
+  "@diveLog_annotation_pickOnProfile": {
+    "description": "Hint above the small dive profile on the annotation sheet"
+  },
+  "diveLog_annotation_noProfile": "This dive has no profile to point at. Type the time instead.",
+  "@diveLog_annotation_noProfile": {
+    "description": "Shown on the annotation sheet in place of the small profile when the dive has no profile samples"
+  },
+  "diveLog_annotation_action_annotate": "Annotate",
+  "@diveLog_annotation_action_annotate": {
+    "description": "Primary button of the annotation sheet when the words were selected in the notes"
+  },
+  "diveLog_annotation_action_add": "Add",
+  "@diveLog_annotation_action_add": {
+    "description": "Primary button of the annotation sheet when it also asked for the words"
+  },
+  "diveLog_annotation_add": "Add annotation",
+  "@diveLog_annotation_add": {
+    "description": "Tooltip of the pin button on the dive profile card that starts placing an annotation"
+  },
+  "diveLog_annotation_banner_place": "Tap the profile where it happened. Press and hold to fine-tune.",
+  "@diveLog_annotation_banner_place": {
+    "description": "Banner above the dive profile while a new annotation is being placed"
+  },
+  "diveLog_annotation_banner_move": "Tap the new spot for this annotation.",
+  "@diveLog_annotation_banner_move": {
+    "description": "Banner above the dive profile while an existing annotation is being moved"
+  },
+  "diveLog_annotation_banner_cancel": "Cancel",
+  "@diveLog_annotation_banner_cancel": {
+    "description": "Button on the placement banner that leaves placement mode with nothing added"
+  },
+  "diveLog_annotation_popup_meta": "{time} at {depth}",
+  "@diveLog_annotation_popup_meta": {
+    "description": "Time and depth line of the annotation popup, e.g. 21:30 at 19.6m",
+    "placeholders": {
+      "time": {"type": "String", "example": "21:30"},
+      "depth": {"type": "String", "example": "19.6m"}
+    }
+  },
+  "diveLog_annotation_popup_openInNotes": "Open in Notes",
+  "@diveLog_annotation_popup_openInNotes": {
+    "description": "Annotation popup action that scrolls to the Notes card and highlights the passage"
+  },
+  "diveLog_annotation_popup_move": "Move",
+  "@diveLog_annotation_popup_move": {
+    "description": "Annotation popup action that re-enters placement mode for this annotation"
+  },
+  "diveLog_annotation_popup_remove": "Remove",
+  "@diveLog_annotation_popup_remove": {
+    "description": "Annotation popup action that deletes the annotation and keeps its words as plain text"
+  },
+  "diveLog_annotation_contextMenu_annotateAt": "Annotate at {time}",
+  "@diveLog_annotation_contextMenu_annotateAt": {
+    "description": "Right-click menu item on the dive profile that opens the annotation sheet for that time",
+    "placeholders": {
+      "time": {"type": "String", "example": "30:00"}
+    }
+  },
+  "diveLog_annotation_removed": "Annotation removed",
+  "@diveLog_annotation_removed": {
+    "description": "Snack bar shown after an annotation was removed from the profile"
+  },
   "diveLog_edit_section_rating": "Rating",
   "diveLog_edit_section_tags": "Tags",
   "diveLog_edit_section_trainingCourses": "Training Courses",
@@ -5124,6 +5226,7 @@
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Depth",
   "diveLog_legend_label_events": "Events",
+  "diveLog_legend_label_annotations": "Annotations",
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
@@ -8143,6 +8246,7 @@
   "enum_profileEvent_maxDepth": "Max Depth",
   "enum_profileEvent_missedStop": "Missed Deco Stop",
   "enum_profileEvent_note": "Note",
+  "enum_profileEvent_annotation": "Annotation",
   "enum_profileEvent_ppO2High": "High ppO2",
   "enum_profileEvent_ppO2Low": "Low ppO2",
   "enum_profileEvent_safetyStopEnd": "Safety Stop End",

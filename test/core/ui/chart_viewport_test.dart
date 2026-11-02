@@ -58,6 +58,29 @@ void main() {
       }
     });
 
+    test('centredOn puts a point mid-window at the same zoom, and clamps', () {
+      const vp = ChartViewport(
+        zoom: 4,
+        offsetX: 0.1,
+        offsetY: 0.2,
+        zoomLimit: 20,
+      );
+      final mid = vp.centredOn(0.5, 0.6);
+      expect(mid.offsetX, closeTo(0.375, 1e-9));
+      expect(mid.offsetY, closeTo(0.475, 1e-9));
+      expect((mid.zoom, mid.zoomLimit), (4, 20));
+
+      final corner = vp.centredOn(1, 0);
+      expect(corner.offsetX, closeTo(0.75, 1e-9));
+      expect(corner.offsetY, 0.0);
+      expect(
+        ChartViewport.reset
+            .centredOn(0.9, 0.9)
+            .sameWindowAs(ChartViewport.reset),
+        isTrue,
+      );
+    });
+
     test('pannedBy clamps to [0, 1 - 1/zoom]', () {
       const vp = ChartViewport(zoom: 2, offsetX: 0.25, offsetY: 0.25);
       final left = vp.pannedBy(-1, -1);

@@ -5390,6 +5390,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get notesEditor_action_numberedList => 'רשימה ממוספרת';
 
   @override
+  String get notesEditor_action_annotate => 'סימון';
+
+  @override
   String get notesEditor_action_preview => 'תצוגה מקדימה';
 
   @override
@@ -8205,6 +8208,81 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_section_notes => 'הערות';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'סימון חדש';
+
+  @override
+  String get diveLog_annotation_sheetTitle_editTime => 'שינוי הזמן';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return 'סימון \"$words\"';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'מה קרה';
+
+  @override
+  String get diveLog_annotation_words_required => 'ספרו מה קרה';
+
+  @override
+  String get diveLog_annotation_field_time => 'זמן מתחילת הצלילה';
+
+  @override
+  String get diveLog_annotation_time_invalid => 'הזינו דקות:שניות';
+
+  @override
+  String get diveLog_annotation_time_outsideDive => 'חייב להיות בתוך הצלילה';
+
+  @override
+  String get diveLog_annotation_pickOnProfile => 'או הקישו על הפרופיל כדי למקם';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'לצלילה זו אין פרופיל להצביע עליו. הזינו את הזמן במקום זאת.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'סימון';
+
+  @override
+  String get diveLog_annotation_action_add => 'הוספה';
+
+  @override
+  String get diveLog_annotation_add => 'הוספת סימון';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'הקישו על הפרופיל במקום שבו זה קרה. לחיצה ארוכה לכוונון עדין.';
+
+  @override
+  String get diveLog_annotation_banner_move =>
+      'הקישו על המקום החדש לסימון הזה.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'ביטול';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time בעומק $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'פתיחה בהערות';
+
+  @override
+  String get diveLog_annotation_popup_move => 'העברה';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'הסרה';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'סימון ב-$time';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'הסימון הוסר';
+
+  @override
   String get diveLog_edit_section_rating => 'דירוג';
 
   @override
@@ -8772,6 +8850,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'אירועים';
+
+  @override
+  String get diveLog_legend_label_annotations => 'סימונים';
 
   @override
   String get diveLog_legend_label_computedEvents => 'אירועים מחושבים';
@@ -13431,6 +13512,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => 'הערה';
+
+  @override
+  String get enum_profileEvent_annotation => 'סימון';
 
   @override
   String get enum_profileEvent_ppO2High => 'ppO2 גבוה';

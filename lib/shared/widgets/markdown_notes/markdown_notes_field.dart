@@ -29,6 +29,7 @@ class MarkdownNotesField extends StatefulWidget {
     this.textCapitalization = TextCapitalization.sentences,
     this.style,
     this.onPreviewChanged,
+    this.onAnnotate,
   });
 
   final TextEditingController controller;
@@ -46,6 +47,14 @@ class MarkdownNotesField extends StatefulWidget {
   /// Told when the Preview toggle changes, so a host that ends editing on
   /// focus loss (a collapsing form row) can stay open while previewing.
   final ValueChanged<bool>? onPreviewChanged;
+
+  /// Asks the page to pin the selected words to a time in the dive (#4109),
+  /// with the selection's words ('' for a caret). A null answer changes
+  /// nothing; otherwise the selection becomes the annotation's link, or the
+  /// answer's words are inserted as a new linked line. The toolbar shows
+  /// the pin only when this is set.
+  final Future<AnnotationRequestResult?> Function(String selectedWords)?
+  onAnnotate;
 
   @override
   State<MarkdownNotesField> createState() => _MarkdownNotesFieldState();
@@ -82,6 +91,24 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
     }
     widget.controller.value = next;
     widget.onChanged?.call(next.text);
+  }
+
+  Future<void> _annotate() async {
+    final ask = widget.onAnnotate;
+    if (ask == null || _previewing) return;
+    // The sheet takes focus, which can drop the selection; it is put back
+    // for the edit when the text has not changed underneath it.
+    final before = widget.controller.value;
+    final result = await ask(selectedWords(before));
+    if (result == null || !mounted) return;
+    _apply((v) {
+      final value = v.text == before.text ? before : v;
+      return wrapSelectionAsAnnotation(
+        value,
+        id: result.id,
+        words: result.words,
+      );
+    });
   }
 
   void _setPreview(bool on) {
@@ -163,6 +190,7 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
           onNumberedList: () =>
               _apply((v) => toggleLinePrefix(v, NotesLinePrefix.numbered)),
           onPreviewChanged: _setPreview,
+          onAnnotate: widget.onAnnotate == null ? null : _annotate,
         ),
         if (_previewing) ...[
           SizedBox(
