@@ -458,6 +458,15 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("not under test/: testdata/f00_test.dart", err)
 
+    def test_subset_with_a_path_climbing_out_of_the_root_is_an_error(self):
+        os.makedirs("testdata")
+        self.write(os.path.join("testdata", "f00_test.dart"), PLAIN)
+        code, _, err = self.run_main(
+            "--subset", self.subset_list("test/../testdata/f00_test.dart")
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("not under test/: testdata/f00_test.dart", err)
+
     def test_subset_with_an_empty_list_is_an_error(self):
         path = self.subset_list()
         code, _, err = self.run_main("--subset", path)

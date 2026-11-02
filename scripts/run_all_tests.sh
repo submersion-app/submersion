@@ -37,7 +37,8 @@
 # characters), the bundles are rebuilt with more files each until their paths
 # fit, and the suite runs unbundled if no size fits; RUN_ALL_TESTS_ARG_LIMIT
 # overrides the limit in characters. Without a working python3 the test files
-# run one by one. The bundles go in a directory of this run's own under
+# run one by one, a selection in as many calls as the command line needs. The
+# bundles go in a directory of this run's own under
 # test/.bundles (git-ignored), removed however the run ends.
 #
 # `RUN_ALL_TESTS=1 git push` runs this script.
@@ -78,7 +79,8 @@ if [ -n "${TEST_FILES_FROM:-}" ]; then
     while IFS= read -r line || [ -n "$line" ]; do
         line="${line%$'\r'}"
         [ -n "$line" ] || continue
-        if [ -f "$line" ] && [ "${line#test/}" != "$line" ]; then
+        if [ -f "$line" ] && [ "${line#test/}" != "$line" ] \
+            && [ "${line#*/../}" = "$line" ]; then
             SELECTED+=("$line")
         else
             refused="${refused}  ${line}
@@ -167,15 +169,6 @@ while [ "${#ENTRYPOINTS[@]}" -gt 0 ] && [ "$LIMIT" -gt 0 ] \
     max_files=$((max_files * 2))
     bundle_suite "$max_files"
 done
-
-# What flutter test is given: the bundles, else the selected files, else
-# nothing (the whole suite).
-TARGETS=()
-if [ "${#ENTRYPOINTS[@]}" -gt 0 ]; then
-    TARGETS=("${ENTRYPOINTS[@]}")
-elif [ "${#SELECTED[@]}" -gt 0 ]; then
-    TARGETS=("${SELECTED[@]}")
-fi
 
 if [ "${#SELECTED[@]}" -gt 0 ]; then
     if [ "${#SELECTED[@]}" -eq 1 ]; then
@@ -273,9 +266,39 @@ report_failures() {
     fi
 }
 
-flutter test --exclude-tags performance --concurrency="$CONCURRENCY" \
-    "$@" ${TARGETS[@]+"${TARGETS[@]}"} 2>&1 | tee "$LOG"
-status=${PIPESTATUS[0]}
+CALLER_OPTIONS=("$@")
+
+# Runs flutter test on the targets "$@", adding to the log. Returns its status.
+run_flutter() {
+    flutter test --exclude-tags performance --concurrency="$CONCURRENCY" \
+        ${CALLER_OPTIONS[@]+"${CALLER_OPTIONS[@]}"} "$@" 2>&1 | tee -a "$LOG"
+    return "${PIPESTATUS[0]}"
+}
+
+# Runs the selected files in as many calls as the command-line limit needs,
+# which is one where there is no limit. Later calls still run after a failure.
+run_selected_files() {
+    local -a batch=()
+    local path length=0
+    for path in "${SELECTED[@]}"; do
+        if [ "$LIMIT" -gt 0 ] && [ "${#batch[@]}" -gt 0 ] \
+            && [ $((length + ${#path} + 1)) -gt "$LIMIT" ]; then
+            run_flutter "${batch[@]}" || status=$?
+            batch=()
+            length=0
+        fi
+        batch+=("$path")
+        length=$((length + ${#path} + 1))
+    done
+    run_flutter "${batch[@]}" || status=$?
+}
+
+status=0
+if [ "${#ENTRYPOINTS[@]}" -eq 0 ] && [ "${#SELECTED[@]}" -gt 0 ]; then
+    run_selected_files
+else
+    run_flutter ${ENTRYPOINTS[@]+"${ENTRYPOINTS[@]}"} || status=$?
+fi
 
 if [ "$status" -ne 0 ]; then
     echo ""

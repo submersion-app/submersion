@@ -476,6 +476,72 @@ else
         "exit $run_status, $flutter_calls calls: $run_output"
 fi
 
+printf 'test/../scripts/run_all_tests.sh\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -eq 2 ] && [ "$flutter_calls" -eq 0 ]; then
+    pass 'a list path climbing out of test/ is refused before anything runs'
+else
+    fail 'a list path climbing out of test/ is refused before anything runs' \
+        "exit $run_status, $flutter_calls calls: $run_output"
+fi
+
+# --- Test 13: an unbundled selection fits the command line -------------------
+#
+# Without python3 the selection falls back to the files themselves, and a list
+# too long for the Windows command line fails before any test runs. A fixed 100
+# files does not settle it: the mean path in this repository is 68 characters,
+# so that is about 7,000 of the 8,000 allowed, and paths run to 107. The files go
+# in as many calls as the limit needs.
+
+cat > "$tmp/bin/python3" <<'STUB'
+#!/bin/bash
+echo 'python3: not usable here' >&2
+exit 127
+STUB
+chmod +x "$tmp/bin/python3"
+mkdir -p "$root/test/many"
+: > "$tmp/many.txt"
+for i in $(seq 1 250); do
+    printf 'void main() {}\n' > "$root/test/many/m${i}_test.dart"
+    printf 'test/many/m%s_test.dart\n' "$i" >> "$tmp/many.txt"
+done
+
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" RUN_ALL_TESTS_ARG_LIMIT=1000
+paths_run="$(printf '%s\n' "$flutter_args" | awk '
+    {
+        length_here = 0
+        for (i = 1; i <= NF; i++) {
+            if ($i ~ /^test\/many\//) { total++; length_here += length($i) + 1 }
+        }
+        if (length_here > longest) longest = length_here
+    }
+    END { print total, longest }')"
+limited_calls="$flutter_calls"
+if [ "$run_status" -eq 0 ] && [ "$limited_calls" -gt 1 ] \
+    && [ "${paths_run% *}" -eq 250 ] && [ "${paths_run#* }" -le 1000 ]; then
+    pass 'an unbundled selection runs in calls that fit the command line'
+else
+    fail 'an unbundled selection runs in calls that fit the command line' \
+        "exit $run_status, $limited_calls calls, files and longest: $paths_run"
+fi
+
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" RUN_ALL_TESTS_ARG_LIMIT=1000 FLUTTER_TEST_FAIL=test
+if [ "$run_status" -ne 0 ] && [ "$flutter_calls" -eq "$limited_calls" ]; then
+    pass 'a failing call does not stop the later ones'
+else
+    fail 'a failing call does not stop the later ones' \
+        "exit $run_status, $flutter_calls calls of $limited_calls"
+fi
+
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" RUN_ALL_TESTS_ARG_LIMIT=0
+if [ "$run_status" -eq 0 ] && [ "$flutter_calls" -eq 1 ]; then
+    pass 'with no command-line limit the selection is one call'
+else
+    fail 'with no command-line limit the selection is one call' \
+        "exit $run_status, $flutter_calls calls"
+fi
+rm -rf "$root/test/many" "$tmp/bin/python3"
+
 rm -rf "$tmp"
 
 # --- Summary ---------------------------------------------------------------
