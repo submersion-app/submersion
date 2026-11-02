@@ -6,8 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
-import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
-import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -46,19 +45,9 @@ class InsightsProfilePage extends ConsumerWidget {
       return content;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.insights_profile_appBar_title),
-        actions: const [InsightsFilterAction()],
-      ),
-      // Expanded is required: content scrolls, and a Column would otherwise
-      // hand it unbounded height.
-      body: Column(
-        children: [
-          const InsightsFilterBar(),
-          Expanded(child: content),
-        ],
-      ),
+    return InsightsFilteredScaffold(
+      title: context.l10n.insights_profile_appBar_title,
+      body: content,
     );
   }
 

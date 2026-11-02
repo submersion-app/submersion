@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -144,6 +145,22 @@ void main() {
       expect(container.read(insightsFilterProvider).hasActiveFilters, false);
     });
 
+    testWidgets('the count keeps its width beside a short name', (
+      tester,
+    ) async {
+      await pumpBar(
+        tester,
+        filter: DiveFilterState(query: coldNode),
+        saved: [load('Cold', coldNode)],
+        count: 1234,
+      );
+
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.text('1234 dives'),
+      );
+      expect(paragraph.didExceedMaxLines, false);
+    });
+
     testWidgets('a long group name fits a narrow pane', (tester) async {
       await pumpBar(
         tester,
@@ -245,6 +262,27 @@ void main() {
       );
     });
 
+    testWidgets('a selected group with a deleted reference stays flagged', (
+      tester,
+    ) async {
+      await pumpBar(
+        tester,
+        filter: DiveFilterState(query: coldNode),
+        saved: [
+          load('Old tag', coldNode, problem: SavedQueryProblem.unresolvedRef),
+        ],
+      );
+
+      await openMenu(tester);
+
+      expect(find.byIcon(Icons.check), findsOneWidget);
+      expect(find.byIcon(Icons.warning_amber), findsOneWidget);
+      expect(
+        find.byTooltip('"Old tag" refers to something that no longer exists'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('an unreadable group explains itself and applies nothing', (
       tester,
     ) async {
@@ -296,6 +334,16 @@ void main() {
         filter: DiveFilterState(query: coldNode),
         saved: [load('Cold water', coldNode)],
       );
+
+      await openMenu(tester);
+
+      expect(saveItem(tester).enabled, false);
+    });
+
+    testWidgets('is disabled for a filter that lowers to nothing', (
+      tester,
+    ) async {
+      await pumpBar(tester, filter: DiveFilterState(query: AndNode(const [])));
 
       await openMenu(tester);
 

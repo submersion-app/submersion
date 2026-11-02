@@ -15,8 +15,7 @@ import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
-import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
-import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_overview_empty_state.dart';
 import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -49,19 +48,9 @@ class InsightsOverviewPage extends ConsumerWidget {
     );
 
     if (embedded) return body;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.insights_category_overview_title),
-        actions: const [InsightsFilterAction()],
-      ),
-      // Expanded is required: body scrolls, and a Column would otherwise
-      // hand it unbounded height.
-      body: Column(
-        children: [
-          const InsightsFilterBar(),
-          Expanded(child: body),
-        ],
-      ),
+    return InsightsFilteredScaffold(
+      title: context.l10n.insights_category_overview_title,
+      body: body,
     );
   }
 }

@@ -13,8 +13,7 @@ import 'package:submersion/features/insights/presentation/providers/trend_chart_
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
-import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
-import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -55,19 +54,9 @@ class InsightsProgressionPage extends ConsumerWidget {
       return content;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.insights_progression_appBar_title),
-        actions: const [InsightsFilterAction()],
-      ),
-      // Expanded is required: content is a SingleChildScrollView, and a
-      // Column would otherwise hand it unbounded height.
-      body: Column(
-        children: [
-          const InsightsFilterBar(),
-          Expanded(child: content),
-        ],
-      ),
+    return InsightsFilteredScaffold(
+      title: context.l10n.insights_progression_appBar_title,
+      body: content,
     );
   }
 

@@ -27,6 +27,9 @@ final savedQueriesProvider = FutureProvider.autoDispose
 final savedQueryLoadsProvider = FutureProvider.autoDispose
     .family<List<SavedQueryLoad>, String?>((ref, subject) async {
       final rows = await ref.watch(savedQueriesProvider(subject).future);
+      // The Insights bar keeps this alive, so a diver with nothing saved
+      // should not pay for every site, species and gear name.
+      if (rows.isEmpty) return const [];
       final names = await ref.watch(queryNameIndexProvider.future);
       return [for (final r in rows) loadSavedQuery(r, appQueryRegistry, names)];
     });

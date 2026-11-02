@@ -36,43 +36,46 @@ class InsightsFilterBar extends ConsumerWidget {
       color: filter.hasActiveFilters
           ? theme.colorScheme.surfaceContainerHighest
           : null,
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: InsightsGroupMenu(
-                filter: filter,
-                active: activeSavedGroup(filter, loads),
-                loads: loads,
+      child: LayoutBuilder(
+        builder: (context, constraints) => Row(
+          children: [
+            Expanded(
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: InsightsGroupMenu(
+                  filter: filter,
+                  active: activeSavedGroup(filter, loads),
+                  loads: loads,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          // Gives way to the group's name in a narrow pane or at a large
-          // text size.
-          Flexible(
-            child: Padding(
-              padding: filter.hasActiveFilters
-                  ? EdgeInsets.zero
-                  : const EdgeInsetsDirectional.only(end: 8),
-              child: Text(
-                countText,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium,
+            const SizedBox(width: 8),
+            // Its full width where there is room, but it gives way to the
+            // group's name in a narrow pane or at a large text size.
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.4),
+              child: Padding(
+                padding: filter.hasActiveFilters
+                    ? EdgeInsets.zero
+                    : const EdgeInsetsDirectional.only(end: 8),
+                child: Text(
+                  countText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
               ),
             ),
-          ),
-          if (filter.hasActiveFilters)
-            IconButton(
-              icon: const Icon(Icons.close, size: 18),
-              tooltip: context.l10n.insights_filterBar_clear,
-              onPressed: () => ref.read(insightsFilterProvider.notifier).state =
-                  const DiveFilterState(),
-            ),
-        ],
+            if (filter.hasActiveFilters)
+              IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                tooltip: context.l10n.insights_filterBar_clear,
+                onPressed: () =>
+                    ref.read(insightsFilterProvider.notifier).state =
+                        const DiveFilterState(),
+              ),
+          ],
+        ),
       ),
     );
   }

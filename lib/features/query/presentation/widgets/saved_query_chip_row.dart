@@ -56,11 +56,7 @@ class SavedQueryChipRow extends ConsumerWidget {
         return Tooltip(
           message: context.l10n.query_savedRow_unresolved(name),
           child: ActionChip(
-            avatar: Icon(
-              Icons.warning_amber,
-              size: 16,
-              color: theme.colorScheme.tertiary,
-            ),
+            avatar: savedQueryProblemIcon(load, theme, size: 16),
             label: Text(name),
             onPressed: () => onApply(load),
           ),
@@ -69,11 +65,7 @@ class SavedQueryChipRow extends ConsumerWidget {
       case SavedQueryProblem.invalid:
       case SavedQueryProblem.unknownSubject:
         return ActionChip(
-          avatar: Icon(
-            Icons.error_outline,
-            size: 16,
-            color: theme.colorScheme.error,
-          ),
+          avatar: savedQueryProblemIcon(load, theme, size: 16),
           label: Text(name),
           onPressed: () => showSavedQueryProblem(context, load),
         );

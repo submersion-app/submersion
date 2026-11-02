@@ -25,6 +25,23 @@ void showSavedQueryProblem(BuildContext context, SavedQueryLoad load) {
   );
 }
 
+/// The mark for [load] wherever saved queries are listed, or null when
+/// nothing is wrong: a deleted reference still applies, flagged; anything
+/// else cannot apply.
+Icon? savedQueryProblemIcon(
+  SavedQueryLoad load,
+  ThemeData theme, {
+  required double size,
+}) => switch (load.problem) {
+  null => null,
+  SavedQueryProblem.unresolvedRef => Icon(
+    Icons.warning_amber,
+    size: size,
+    color: theme.colorScheme.tertiary,
+  ),
+  _ => Icon(Icons.error_outline, size: size, color: theme.colorScheme.error),
+};
+
 /// Why a saved query cannot be used as it stands, in the diver's language,
 /// or null when nothing is wrong. Shared by the Manage page and the chip
 /// row so both say the same thing. The loader's English [SavedQueryLoad]

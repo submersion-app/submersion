@@ -71,14 +71,14 @@ class InsightsGroupMenu extends ConsumerWidget {
           _item(
             label: load.saved.name,
             selected: identical(load, active),
-            icon: _problemIcon(load, theme),
+            problem: _problem(context, load, theme),
             onTap: () => _pick(context, ref, load),
           ),
         const PopupMenuDivider(),
         PopupMenuItem<VoidCallback>(
           // Shown even with nothing to save, so a diver with no groups yet
           // can tell that they exist.
-          enabled: filtered && active == null,
+          enabled: active == null && insightsFilterQuery(filter) != null,
           value: () => _save(context, ref),
           child: Text(l10n.insights_filterBar_saveCurrent),
         ),
@@ -112,37 +112,34 @@ class InsightsGroupMenu extends ConsumerWidget {
     required String label,
     required bool selected,
     required VoidCallback onTap,
-    Widget? icon,
+    Widget? problem,
   }) => PopupMenuItem<VoidCallback>(
     value: onTap,
     child: Row(
       children: [
         SizedBox(
           width: 32,
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: selected ? const Icon(Icons.check, size: 18) : icon,
-          ),
+          child: selected
+              ? const Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Icon(Icons.check, size: 18),
+                )
+              : null,
         ),
         Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+        if (problem != null) ...[const SizedBox(width: 8), problem],
       ],
     ),
   );
 
-  /// The same marks as the Refine panel's chips: a deleted reference still
-  /// applies, flagged; anything else cannot apply and explains itself.
-  Widget? _problemIcon(SavedQueryLoad load, ThemeData theme) =>
-      switch (load.problem) {
-        null => null,
-        SavedQueryProblem.unresolvedRef => Icon(
-          Icons.warning_amber,
-          size: 18,
-          color: theme.colorScheme.tertiary,
-        ),
-        _ => Icon(
-          Icons.error_outline,
-          size: 18,
-          color: theme.colorScheme.error,
-        ),
-      };
+  /// Beside the name, so a selected group stays flagged. Worded as the
+  /// Refine panel's chip is.
+  Widget? _problem(BuildContext context, SavedQueryLoad load, ThemeData theme) {
+    final icon = savedQueryProblemIcon(load, theme, size: 18);
+    if (load.problem != SavedQueryProblem.unresolvedRef) return icon;
+    return Tooltip(
+      message: context.l10n.query_savedRow_unresolved(load.saved.name),
+      child: icon,
+    );
+  }
 }
