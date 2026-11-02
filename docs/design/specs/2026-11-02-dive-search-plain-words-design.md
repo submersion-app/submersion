@@ -224,9 +224,9 @@ still lead, then the text and year matches.
 
 ## 8. What the diver sees
 
-The field keeps the diver's words until they remove a chip. Removing one
-rewrites the field from what is left, as it does today, so filler words disappear
-and a date prints as `date in 2018-10`.
+The field keeps the diver's words until they remove a chip or a layout change
+rebuilds it. Either one rewrites the field from the parsed tree, as it does today,
+so filler words disappear and a date prints as `date in 2018-10`.
 
 **Date chips.** A top-level date condition shows in plain words, in the diver's
 language and date format. The chip has a small leading calendar icon, a

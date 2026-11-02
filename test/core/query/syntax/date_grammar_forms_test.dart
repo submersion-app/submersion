@@ -85,6 +85,28 @@ void main() {
     ));
   });
 
+  test('two periods span the first start to the second end', () {
+    expect(parseDateText('2018 to 2020', now: now), (
+      start: DateTime(2018, 1, 1),
+      end: DateTime(2020, 12, 31),
+    ));
+    expect(parseDateText('between 2018 and 2020', now: now), (
+      start: DateTime(2018, 1, 1),
+      end: DateTime(2020, 12, 31),
+    ));
+    expect(parseDateText('march 2018 to june 2019', now: now), (
+      start: DateTime(2018, 3, 1),
+      end: DateTime(2019, 6, 30),
+    ));
+  });
+
+  test('reversed or open-ended periods are not a range', () {
+    expect(parseDateText('2020 to 2018', now: now), isNull);
+    expect(parseDateText('since 2018 to 2020', now: now), isNull);
+    expect(parseDateText('2018 to', now: now), isNull);
+    expect(parseDateText('between 2018', now: now), isNull);
+  });
+
   test('anything else is null', () {
     expect(parseDateText('when the water was warm', now: now), isNull);
     expect(parseDateText('', now: now), isNull);

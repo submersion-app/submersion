@@ -47,6 +47,8 @@ final RegExp _isoRange = RegExp(
   r'^(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})$',
 );
 final RegExp _monthYear = RegExp(r'^([a-z]+)\s+(\d{4})$');
+final RegExp _periodRange = RegExp(r'^(.+)\s+to\s+(.+)$');
+final RegExp _between = RegExp(r'^between\s+(.+)\s+and\s+(.+)$');
 final RegExp _lastN = RegExp(
   r'^(?:last|past)\s+(\d{1,3})\s+(day|week|month|year)s?$',
 );
@@ -79,6 +81,18 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   if (_isoDate.hasMatch(t)) {
     final d = parseIsoDay(t);
     return d == null ? null : (start: d, end: d);
+  }
+  // Before the open-ended forms: "since 2018 to 2020" would otherwise read
+  // as an open bound over a closed range.
+  m = _between.firstMatch(t) ?? _periodRange.firstMatch(t);
+  if (m != null) {
+    final first = parseDateText(m[1]!, now: now);
+    final last = parseDateText(m[2]!, now: now);
+    if (first?.start == null || last?.end == null) return null;
+    if (first!.end == null || last!.start == null) return null;
+    return last.end!.isBefore(first.start!)
+        ? null
+        : (start: first.start, end: last.end);
   }
   // Open-ended forms first: "since 2022" also matches the month-year shape
   // below, whose unknown-month branch would swallow it.
