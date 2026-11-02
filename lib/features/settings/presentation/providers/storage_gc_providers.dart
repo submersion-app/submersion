@@ -37,6 +37,16 @@ final storageGcNetworkProvider = Provider<Future<NetworkKind> Function()>(
   (ref) => NetworkStatusService().current,
 );
 
+/// Clears index rows whose file the OS has taken. A provider so that a test
+/// can see the cleanup run it, since on a desktop host it does nothing.
+// no-tick: the value is a SERVICE. It opens the store inside its run.
+final mediaCacheIndexSweepProvider = Provider<MediaCacheIndexSweep>(
+  (ref) => MediaCacheIndexSweep(
+    osManagesCaches: () async => (await cacheLocation()).osManagesCaches,
+    store: () => openMediaCacheStore(mediaCachePrefsOrNull(ref)),
+  ),
+);
+
 /// The storage cleanup coordinator, wired to the live services. Also runs it
 /// every six hours, since a desktop app can stay open for days without a
 /// launch or a resume.
@@ -54,10 +64,8 @@ final storageGcCoordinatorProvider = Provider<StorageGcCoordinator>((ref) {
       ({required now, required dryRun}) => RestoreTempSweep(
         temporaryDirectory: getTemporaryDirectory,
       ).run(now: now, dryRun: dryRun),
-      ({required now, required dryRun}) => MediaCacheIndexSweep(
-        osManagesCaches: () async => (await cacheLocation()).osManagesCaches,
-        store: () => openMediaCacheStore(mediaCachePrefsOrNull(ref)),
-      ).run(dryRun: dryRun),
+      ({required now, required dryRun}) =>
+          ref.read(mediaCacheIndexSweepProvider).run(dryRun: dryRun),
     ],
     localCacheSweep: (now, {required force}) =>
         _localCacheSweepIfDue(ref, now, force: force),

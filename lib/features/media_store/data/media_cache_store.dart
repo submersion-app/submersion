@@ -353,15 +353,23 @@ class MediaCacheStore {
     }
   }
 
+  /// [kind]'s size according to the index, in bytes.
+  ///
+  /// Not purely a read: a pool whose directory has gone loses its rows here,
+  /// so that a purge shows up as soon as anything asks how big the pool is.
   Future<int> totalBytes(MediaCacheKind kind) async {
+    final total = await _indexedBytes(kind);
+    if (total == 0 || !await _forgetPoolIfGone(kind)) return total;
+    return _indexedBytes(kind);
+  }
+
+  Future<int> _indexedBytes(MediaCacheKind kind) async {
     final sum = _db.mediaCacheEntries.sizeBytes.sum();
     final query = _db.selectOnly(_db.mediaCacheEntries)
       ..addColumns([sum])
       ..where(_db.mediaCacheEntries.kind.equals(_kindName(kind)));
     final row = await query.getSingle();
-    final total = row.read(sum) ?? 0;
-    if (total == 0) return 0;
-    return await _forgetPoolIfGone(kind) ? 0 : total;
+    return row.read(sum) ?? 0;
   }
 
   /// Removes [kind]'s rows if its directory has gone, and says whether it did.
@@ -370,7 +378,12 @@ class MediaCacheStore {
   /// goes through. A pool at its cap is the normal state of a large library, so
   /// checking files row by row on that path is not an option. Doubt keeps the
   /// rows: a read that fails is not evidence of a purge.
+  ///
+  /// Rows written since the look at the directory are spared. Several puts run
+  /// at once, and one can recreate the pool and file its row while another is
+  /// on its way here having seen the pool gone.
   Future<bool> _forgetPoolIfGone(MediaCacheKind kind) async {
+    final checkedAt = DateTime.now().millisecondsSinceEpoch;
     final pool = Directory(p.join(_root.path, _poolDirName(kind)));
     try {
       if (await pool.exists()) return false;
@@ -378,9 +391,12 @@ class MediaCacheStore {
       return false;
     }
     if (kind == MediaCacheKind.thumb) _touches.clear();
-    await (_db.delete(
-      _db.mediaCacheEntries,
-    )..where((t) => t.kind.equals(_kindName(kind)))).go();
+    await (_db.delete(_db.mediaCacheEntries)..where(
+          (t) =>
+              t.kind.equals(_kindName(kind)) &
+              t.createdAt.isSmallerThanValue(checkedAt),
+        ))
+        .go();
     return true;
   }
 

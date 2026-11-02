@@ -146,12 +146,14 @@ to work through the dead rows.
 **A pool whose directory has gone has no entries.** `totalBytes` is the one place
 that adds up a pool, and both eviction and the Storage usage page read it. If the
 pool's directory does not exist, it deletes that pool's rows in a single statement
-and returns 0. That is one stat and no row-by-row work, so it is safe on the `put`
-path, and it fixes Android's "Clear cache" and any purge that takes the whole
+and returns 0, sparing any row written since it looked, because several saves run
+at once. That is one stat and no row-by-row work, so it is safe on the `put` path, and it fixes Android's "Clear cache" and any purge that takes the whole
 directory immediately, including while the app is in the background and on the
 very next look at the Storage usage page. A device restored from a backup, where
 the index came back but the caches did not, is the same case. It is correct on
-every platform, so desktop gets it too, at the cost of one stat per `put`.
+every platform, so desktop gets it too. A `put` makes up to four stats in all, its
+own check plus one for each non-empty pool during eviction, however large the
+pools are.
 
 **Daily cleanup for partial purges.** A new device sweep in `StorageGcCoordinator`
 removes rows whose file is gone, for all three pools, one by one. It runs only on
@@ -199,6 +201,11 @@ The sweep:
   and the cost is regenerating them. Checking files on every over-cap `put` would
   close this gap, but at a cost paid constantly by every diver with a large library
   to fix something rare and cheap.
+- **A path held across a purge (Android).** `resolvedFilePathProvider` keeps a path
+  for the life of the process, so if "Clear cache" empties the directory while the
+  app is in the background, a store-backed original opened earlier in that session
+  fails until the app restarts. LRU eviction has always had this staleness, and it
+  needs a user action while the app is alive, so it is left as it is.
 - **A purge while the app is open (Android).** A file can vanish between a tile
   finding it and drawing it, giving a broken-image tile until the next view. The
   window is very small, and scrolling away and back resolves it. No handling.

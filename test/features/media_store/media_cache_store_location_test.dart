@@ -148,6 +148,31 @@ void main() {
       expect(await cache.totalBytes(MediaCacheKind.thumb), 50);
     });
 
+    test('spares a row written after the look at the directory', () async {
+      // Several thumbnails are made at once. One can see the pool gone just
+      // before another recreates it and files its row, and that row must not
+      // go with the purge.
+      final key = hash('ab');
+      final later = DateTime.now()
+          .add(const Duration(hours: 1))
+          .millisecondsSinceEpoch;
+      await db
+          .into(db.mediaCacheEntries)
+          .insert(
+            MediaCacheEntriesCompanion.insert(
+              contentHash: key,
+              kind: 'thumb',
+              relativePath: p.join('thumbs', 'ab', key),
+              sizeBytes: 9,
+              lastAccessedAt: later,
+              createdAt: later,
+            ),
+          );
+
+      expect(await cache.totalBytes(MediaCacheKind.thumb), 9);
+      expect(await db.select(db.mediaCacheEntries).get(), hasLength(1));
+    });
+
     test('leaves a pool whose directory exists alone', () async {
       final key = hash('ab');
       final stored = await put(key, MediaCacheKind.thumb, 3);
