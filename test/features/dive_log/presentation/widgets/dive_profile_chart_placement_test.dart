@@ -213,7 +213,7 @@ void main() {
     addTearDown(container.dispose);
     final notifier = container.read(annotationPlacementProvider('d1').notifier);
     expect(container.read(annotationPlacementProvider('d1')), isNull);
-    notifier.startNew();
+    notifier.toggleNew();
     expect(container.read(annotationPlacementProvider('d1'))?.movingId, isNull);
     expect(container.read(annotationPlacementProvider('d1')), isNotNull);
     notifier.startMove('a1');

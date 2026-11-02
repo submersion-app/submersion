@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -7,10 +8,13 @@ import 'package:submersion/features/dive_log/data/repositories/annotation_reposi
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_popup.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/annotation_time_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the dive detail page (and the fullscreen profile) do with the
@@ -23,6 +27,7 @@ class DiveDetailAnnotationActions {
     required this.context,
     required this.dive,
     this.onOpenInNotes,
+    this.shownProfile = const [],
   });
 
   final WidgetRef ref;
@@ -37,7 +42,24 @@ class DiveDetailAnnotationActions {
   /// where no Notes card is at hand, which leaves the action out of the popup.
   final ValueChanged<String>? onOpenInNotes;
 
+  /// The profile the chart is drawing, which is another computer's when one
+  /// is selected. Empty leaves the dive's own.
+  final List<DiveProfilePoint> shownProfile;
+
+  /// These actions for the profile a chart is drawing.
+  DiveDetailAnnotationActions onProfile(List<DiveProfilePoint> profile) =>
+      DiveDetailAnnotationActions(
+        ref: ref,
+        context: context,
+        dive: dive,
+        onOpenInNotes: onOpenInNotes,
+        shownProfile: profile,
+      );
+
   String get diveId => dive.id;
+
+  List<DiveProfilePoint> get _profile =>
+      shownProfile.isNotEmpty ? shownProfile : dive.profile;
 
   AnnotationPlacementNotifier get _placement =>
       ref.read(annotationPlacementProvider(diveId).notifier);
@@ -48,7 +70,7 @@ class DiveDetailAnnotationActions {
   /// The latest second an annotation may fall on: the profile's last sample,
   /// else the runtime, else a day (see [annotationTimeCap]).
   int get maxSeconds {
-    final profile = dive.profile;
+    final profile = _profile;
     if (profile.isNotEmpty) return profile.last.timestamp;
     return annotationTimeCap(dive.effectiveRuntime?.inSeconds);
   }
@@ -56,7 +78,7 @@ class DiveDetailAnnotationActions {
   /// The pin button: enters (or leaves) placement mode; a dive with no
   /// profile to point at goes straight to the sheet, by typed time.
   Future<void> onPinPressed() async {
-    if (dive.profile.isEmpty) {
+    if (_profile.isEmpty) {
       _placement.cancel();
       await addAt(0, null);
       return;
@@ -81,22 +103,29 @@ class DiveDetailAnnotationActions {
   }
 
   /// Opens the sheet prefilled with [seconds] and writes the annotation on
-  /// Add; Cancel adds nothing. Leaves placement mode either way. The widget
-  /// behind [ref] can be rebuilt away while the sheet is open, and the words
-  /// still count, so the repository is read first. Placement is read after:
-  /// it disposes itself when nothing watches it, which also ends the mode.
+  /// Add; Cancel adds nothing. Leaves placement mode either way, and turns
+  /// the legend's Annotations toggle on, so the new marker appears. The
+  /// widget behind [ref] can be rebuilt away while the sheet is open, and the
+  /// words still count, so the repository is read first. Placement is read
+  /// after: it disposes itself when nothing watches it, which also ends the
+  /// mode.
   Future<void> addAt(int seconds, double? depthMeters) async {
     final repository = _repository;
     final result = await showAnnotationTimeSheet(
       context,
       words: null,
-      profile: dive.profile,
+      profile: _profile,
       maxSeconds: maxSeconds,
       initialSeconds: seconds,
       initialDepthMeters: depthMeters,
       units: units,
     );
-    if (context.mounted) _placement.cancel();
+    if (context.mounted) {
+      _placement.cancel();
+      if (result != null && !ref.read(profileLegendProvider).showAnnotations) {
+        ref.read(profileLegendProvider.notifier).toggleAnnotations();
+      }
+    }
     if (result == null) return;
     await repository.addAnnotation(
       diveId: diveId,
@@ -106,9 +135,17 @@ class DiveDetailAnnotationActions {
     );
   }
 
-  /// A tap on an annotation's dot: the popup, anchored to it.
+  /// A tap on an annotation's dot, or a focus request served: the popup,
+  /// anchored to it. Open in Notes needs a Notes card to go to, which the
+  /// diver can have switched off.
   Future<void> onMarkerTap(ProfileEvent annotation, Offset globalCenter) {
-    final openInNotes = onOpenInNotes;
+    final focus = ref.read(annotationFocusProvider(diveId).notifier);
+    if (focus.state != null) focus.state = null;
+    final notesShown = ref
+        .read(settingsProvider)
+        .diveDetailSections
+        .shows(DiveDetailSectionId.notes, gauge: dive.isGauge);
+    final openInNotes = notesShown ? onOpenInNotes : null;
     return showAnnotationMarkerPopup(
       context,
       annotation: annotation,
@@ -129,7 +166,7 @@ class DiveDetailAnnotationActions {
     final result = await showAnnotationTimeSheet(
       context,
       words: annotation.description ?? '',
-      profile: dive.profile,
+      profile: _profile,
       maxSeconds: maxSeconds,
       initialSeconds: annotation.timestamp,
       initialDepthMeters: annotation.depth,

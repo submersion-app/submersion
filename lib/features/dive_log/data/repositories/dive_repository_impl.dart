@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
@@ -5996,22 +5997,8 @@ class DiveRepository {
   /// Which of [ids] already name a profile event row, on any dive. A backup
   /// restore carries each event's own id (#4109), and gives its new dive a
   /// fresh one in place of any of these.
-  Future<Set<String>> existingProfileEventIds(Iterable<String> ids) async {
-    final list = ids.toSet().toList();
-    if (list.isEmpty) return const {};
-    final found = <String>{};
-    for (final chunk in seriesIdChunks(list)) {
-      final rows =
-          await (_db.selectOnly(_db.diveProfileEvents)
-                ..addColumns([_db.diveProfileEvents.id])
-                ..where(_db.diveProfileEvents.id.isIn(chunk)))
-              .get();
-      for (final row in rows) {
-        found.add(row.read(_db.diveProfileEvents.id)!);
-      }
-    }
-    return found;
-  }
+  Future<Set<String>> existingProfileEventIds(Iterable<String> ids) =>
+      takenProfileEventIds(_db, ids);
 
   /// Bulk insert profile events (for dive computer imports and analysis
   /// results). Duplicate ids throw, so a write that must be all or nothing

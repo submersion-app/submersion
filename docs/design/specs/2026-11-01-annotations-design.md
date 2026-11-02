@@ -223,12 +223,27 @@ the marker label and the popup too.
   of ours, ignore the extensions as today. (Diver's choice.)
 - **Legend.** The profile legend gains its own "Annotations" toggle, on by
   default and independent of the Events toggle, so hiding the computer's
-  events keeps the diver's own. (Diver's choice.)
+  events keeps the diver's own. Adding one from the chart turns it back on,
+  so the new marker appears. (Diver's choice; the turning on is the
+  builder's.)
 - **Dive split, merge, uncombine, timeline re-zero and consolidation**
-  already move or copy events by dive id and shift timestamps; an
-  annotation follows the same rules as any other event with no special
-  case. Where a service drops events outright, it must keep `user` rows,
-  on the same principle as resync.
+  move or copy events by dive id and shift timestamps, and an annotation
+  moves with them, but most of them mint a fresh event id and an annotation
+  is held together by its id, so each must carry the link too:
+  - Combine renames the links in the merged Notes to the fresh ids.
+  - Consolidation does the same when the target's empty Notes fill in from
+    a secondary. It never stamps a computer on a `user` row, which would let
+    a later split carry the row away from its Notes. A secondary's Notes the
+    target does not take leave that secondary's annotations orphaned.
+  - Uncombine leaves the Notes on the kept dive, so an annotation in a
+    departing segment takes its words along as a linked paragraph of the
+    restored dive's Notes, and they are plain words on the kept dive.
+    (Builder's call.)
+  - Split moves only a computer's rows, so an annotation stays with the
+    Notes.
+  Where a service drops events outright, it must keep `user` rows, on the
+  same principle as resync. Any new path that copies events has to do the
+  same.
 - **Delete a dive**: cascade, as today.
 - **Reconciliation on save** (the dive edit page's save, the popup's
   Remove, the chart's Add, and any in-place Notes rewrite): parse Notes
@@ -254,6 +269,10 @@ the marker label and the popup too.
   view exposes, so other Notes consumers (courses, medical info, trip
   notes) render them as plain words with no behaviour. Only the dive
   detail Notes card wires the hook.
+- **Hidden sections.** With the Notes section switched off the popup
+  leaves Open in Notes out, as it does for the dashboard. With the profile
+  section off a Notes link opens the time sheet, as it does on a dive with
+  no profile. (Builder's call.)
 - **Units.** Depth in the popup, the sheet and the readout uses the active
   diver's depth unit via the existing unit formatter.
 - **Times** are mm:ss from the start of the dive, matching the chart's

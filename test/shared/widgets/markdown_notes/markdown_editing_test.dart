@@ -259,4 +259,40 @@ void main() {
       'a **[big]** turtle',
     );
   });
+
+  group('a caret inside an annotation link', () {
+    const link = '[felt sick](annotation:a1)';
+    TextEditingValue caretAt(int offset) => TextEditingValue(
+      text: 'Start $link end',
+      selection: TextSelection.collapsed(offset: offset),
+    );
+
+    test('inserts after the link, leaving it whole', () {
+      final result = wrapSelectionAsAnnotation(
+        caretAt('Start [felt'.length),
+        id: 'b2',
+        words: 'cold',
+      );
+      expect(result.text, contains(link));
+      expect(result.text, contains('[cold](annotation:b2)'));
+    });
+
+    test('in the address too', () {
+      final result = wrapSelectionAsAnnotation(
+        caretAt('Start [felt sick](annot'.length),
+        id: 'b2',
+        words: 'cold',
+      );
+      expect(result.text, contains(link));
+    });
+
+    test('at the edge of a link stays where it is', () {
+      final result = wrapSelectionAsAnnotation(
+        caretAt('Start '.length),
+        id: 'b2',
+        words: 'cold',
+      );
+      expect(result.text, 'Start \n[cold](annotation:b2)$link end');
+    });
+  });
 }

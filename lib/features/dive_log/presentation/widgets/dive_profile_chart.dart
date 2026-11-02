@@ -307,9 +307,6 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Whether to show event markers
   final bool showEvents;
 
-  /// Whether to draw annotations (#4109), independently of [showEvents].
-  final bool showAnnotations;
-
   /// A tap on an annotation's dot, with the dot's global centre for the
   /// popup to anchor to (#4109).
   final void Function(ProfileEvent annotation, Offset globalCenter)?
@@ -805,7 +802,6 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showDecoStops = true,
     this.showAscentRateColors = false,
     this.showEvents = true,
-    this.showAnnotations = true,
     this.onAnnotationTap,
     this.annotationPlacement = false,
     this.onAnnotationPlaced,
@@ -1757,7 +1753,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showDecoStops = widget.showDecoStops;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
-    _showAnnotations = widget.showAnnotations;
     _scheduleComputedEventsSeed();
     _zoomNotifier.addListener(_scheduleLegendMeasure);
   }
@@ -3044,9 +3039,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAscentRateLine = legendState.showAscentRateLine;
     _showEvents = legendState.showEvents;
     _showComputedEvents = legendState.showComputedEvents;
-    // A caller may force annotations off (a read-only chart); otherwise the
-    // legend's own toggle decides (#4109).
-    _showAnnotations = widget.showAnnotations && legendState.showAnnotations;
+    _showAnnotations = legendState.showAnnotations;
     // Issue #1523: the provider default is `true`, and for a dive that carries
     // the computer's own events the post-frame seed only flips it to `false`
     // after the first frame -- long enough to flash the computed markers. Until
@@ -3137,7 +3130,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           widget.events?.any((e) => e.source == EventSource.computed) ?? false,
       hasImportedEvents:
           widget.events?.any((e) => e.source == EventSource.imported) ?? false,
-      hasAnnotations: widget.showAnnotations && _annotations.isNotEmpty,
+      hasAnnotations: _annotations.isNotEmpty,
       hasMaxDepthMarker: widget.showMaxDepthMarker && _hasMaxDepthMarker,
       hasPressureMarkers:
           widget.showPressureThresholdMarkers && _hasPressureMarkers,
@@ -7555,7 +7548,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         alignment: Alignment.topLeft,
         padding: padding,
         style: TextStyle(
-          color: color,
+          // The marker colour is too pale for small text on a light surface,
+          // and the words are what an annotation is for.
+          color: event.isAnnotation ? colorScheme.onSurface : color,
           fontSize: 9,
           backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
         ),

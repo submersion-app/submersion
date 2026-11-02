@@ -367,6 +367,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // activeSourceProfileProvider is the one rule for this, shared with the
     // detail page and the dive-list panel (#543).
     final chartProfile = resolvedActive?.points ?? dive.profile;
+    final chartActions = annotationActions.onProfile(chartProfile);
 
     // Keep the range and playback extents on this page's own drawn series
     // rather than rely on the screen that opened it having set them.
@@ -531,21 +532,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           ascentRates: analysis?.ascentRates,
                           events: chartEvents,
                           annotationPlacement: annotationPlacement != null,
-                          onAnnotationPlaced: annotationActions.place,
-                          onAnnotationTap: (annotation, at) {
-                            if (focusedAnnotation != null) {
-                              ref
-                                      .read(
-                                        annotationFocusProvider(
-                                          widget.diveId,
-                                        ).notifier,
-                                      )
-                                      .state =
-                                  null;
-                            }
-                            annotationActions.onMarkerTap(annotation, at);
-                          },
-                          onSecondaryTapAt: annotationActions.onSecondaryTap,
+                          onAnnotationPlaced: chartActions.place,
+                          onAnnotationTap: chartActions.onMarkerTap,
+                          onSecondaryTapAt: chartActions.onSecondaryTap,
                           focusedAnnotationId: focusedAnnotation,
                           ndlCurve: analysis?.ndlCurve,
                           sacCurve: analysis?.smoothedSacCurve,
@@ -685,9 +674,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           left: 16,
                           right: 16,
                           child: AnnotationPlacementBanner(
-                            text: annotationPlacement.isMove
-                                ? context.l10n.diveLog_annotation_banner_move
-                                : context.l10n.diveLog_annotation_banner_place,
+                            moving: annotationPlacement.isMove,
                             onCancel: ref
                                 .read(
                                   annotationPlacementProvider(

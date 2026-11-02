@@ -133,4 +133,56 @@ void main() {
       'b': '1:05',
     });
   });
+
+  group('annotationLinkMarkdown escapes', () {
+    test('a trailing backslash cannot eat the closing bracket', () {
+      final link = annotationLinkMarkdown(r'C:\', 'x');
+      expect(annotationWordsInNotes(link), {'x': r'C:\'});
+    });
+
+    test('a bracket the words already escape is not escaped again', () {
+      expect(
+        annotationLinkMarkdown(r'see \[1\] here', 'x'),
+        r'[see \[1\] here](annotation:x)',
+      );
+    });
+
+    test('unlinking keeps the words the backslash escaped', () {
+      final link = annotationLinkMarkdown(r'C:\', 'x');
+      expect(unlinkAnnotation(link, 'x'), r'C:\\');
+    });
+  });
+
+  group('link patterns on text full of backslashes', () {
+    // The escaped pair and the plain character used to overlap, so a failed
+    // match tried both readings of every backslash: 2^64 steps here.
+    final bracketed = '[${r'\a' * 64}] and on';
+
+    test('renameAnnotationLinks finishes', () {
+      expect(renameAnnotationLinks(bracketed, {'a': 'b'}), bracketed);
+    });
+
+    test('unlinkAnnotation finishes', () {
+      expect(unlinkAnnotation(bracketed, 'a'), bracketed);
+    });
+
+    test('a backslash before a line break stays inside the link', () {
+      const notes = 'a [one\\\ntwo](annotation:x) b';
+      expect(
+        renameAnnotationLinks(notes, {'x': 'y'}),
+        contains('annotation:y'),
+      );
+    });
+  });
+
+  group('mayLinkAnnotations', () {
+    test('is true for any spelling of the scheme', () {
+      expect(mayLinkAnnotations('[w](annotation:a)'), isTrue);
+      expect(mayLinkAnnotations('[w](Annotation:a)'), isTrue);
+    });
+
+    test('is false for notes with no link', () {
+      expect(mayLinkAnnotations('plain words'), isFalse);
+    });
+  });
 }

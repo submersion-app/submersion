@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DiveProfileEvent, DivesCompanion;
 import 'package:submersion/core/providers/provider.dart';
@@ -92,7 +93,10 @@ void main() {
     }
   }
 
-  Future<void> pumpDetail(WidgetTester tester) async {
+  Future<void> pumpDetail(
+    WidgetTester tester, {
+    AppSettings settings = const AppSettings(),
+  }) async {
     tester.view.physicalSize = const Size(1000, 1400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -103,7 +107,7 @@ void main() {
     };
     addTearDown(() => FlutterError.onError = originalOnError);
     final overrides = await getBaseOverrides(
-      settingsNotifier: MockSettingsNotifier(const AppSettings()),
+      settingsNotifier: MockSettingsNotifier(settings),
     );
     await tester.pumpWidget(
       ProviderScope(
@@ -423,6 +427,41 @@ void main() {
     await settle(tester);
     expect((await rows()).single.timestamp, 450);
   });
+
+  AppSettings hiding(DiveDetailSectionId section) => AppSettings(
+    diveDetailSections: [
+      for (final s in DiveDetailSectionConfig.defaultSections)
+        s.id == section ? s.copyWith(visible: false) : s,
+    ],
+  );
+
+  testWidgets('a Notes link with the profile section hidden changes its time', (
+    tester,
+  ) async {
+    await seedDive();
+    await seedAnnotation();
+    await pumpDetail(tester, settings: hiding(DiveDetailSectionId.profile));
+
+    await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
+    await settle(tester, frames: 6);
+
+    expect(find.text('Change the time'), findsOneWidget);
+  });
+
+  testWidgets(
+    'the popup offers no Open in Notes with the Notes section hidden',
+    (tester) async {
+      await seedDive();
+      await seedAnnotation();
+      await pumpDetail(tester, settings: hiding(DiveDetailSectionId.notes));
+
+      await tester.tapAt(await dotCenter(tester, 'a1'));
+      await settle(tester, frames: 4);
+
+      expect(find.text('Remove'), findsOneWidget);
+      expect(find.text('Open in Notes'), findsNothing);
+    },
+  );
 
   testWidgets('a dive with no profile accepts an annotation by typed time', (
     tester,

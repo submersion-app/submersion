@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -185,6 +186,8 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
   }
 
   void _onPointerDown(PointerDownEvent event) {
+    // A right-click is the chart's, which answers it with its own menu.
+    if (event.buttons & kPrimaryButton == 0) return;
     // A second finger makes it a gesture, not a tap on a dot.
     if (_downPointer != null) {
       _downLocal = null;

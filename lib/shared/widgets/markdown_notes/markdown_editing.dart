@@ -112,10 +112,18 @@ TextSelection _annotationSelection(TextEditingValue value) => _hugWords(
 );
 
 /// [sel] up to the first annotation link it touches, or the words after a
-/// link it starts on; a caret after the link when nothing is left. Links do
-/// not nest, and wrapping one would leave its marker with no link to keep it.
+/// link it starts on; a caret after the link when nothing is left, or when
+/// it sat inside one. Links do not nest, and wrapping or splitting one would
+/// leave its marker with no link to keep it.
 TextSelection _clearOfLinks(String text, TextSelection sel) {
-  if (sel.isCollapsed) return sel;
+  if (sel.isCollapsed) {
+    for (final link in annotationLinkPattern.allMatches(text)) {
+      if (link.start < sel.start && sel.start < link.end) {
+        return TextSelection.collapsed(offset: link.end);
+      }
+    }
+    return sel;
+  }
   var start = sel.start;
   for (final link in annotationLinkPattern.allMatches(text)) {
     if (link.end <= start) continue;

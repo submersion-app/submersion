@@ -47,7 +47,6 @@ void main() {
       await nonUserEventIds(db, 'd1'),
       unorderedEquals(['i1', 'i2', 'k1']),
     );
-    expect(await nonUserEventIds(db, 'd1', computerId: 'c1'), ['i1']);
   });
 
   test('restampUserEvents marks every user row pending with a clock', () async {

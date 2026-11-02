@@ -20,9 +20,10 @@ abstract final class ProfileMetricColors {
 
   // Markers and event glyphs.
   static const Color events = Color(0xFF00838F); // Cyan 800
-  /// Annotations (#4109): amber, apart from the events cyan and every
-  /// metric colour, and readable on both surfaces.
-  static const Color annotation = Color(0xFFF9A825); // Amber 800
+  /// Annotations (#4109): a line and dot apart from the events cyan and every
+  /// metric colour. Too pale for small text on a light surface, so a
+  /// marker's words use the surface's own text colour.
+  static const Color annotation = Color(0xFFF9A825); // Yellow 800
   static const Color maxDepth = Color(0xFF880E4F); // Pink 900
   /// Must stay equal to the first entry of the tank palette in
   /// [ProfileMarker.getColor], which is what the chart actually draws these

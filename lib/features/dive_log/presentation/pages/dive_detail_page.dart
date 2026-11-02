@@ -160,14 +160,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     });
   }
 
+  bool _hasMarkerToOpen(Dive dive) =>
+      dive.profile.isNotEmpty &&
+      ref
+          .read(settingsProvider)
+          .diveDetailSections
+          .shows(DiveDetailSectionId.profile, gauge: dive.isGauge);
+
   /// A tap on an annotation link in the Notes card (#4109): unfolds the
   /// profile when the list layout folds it, turns the legend's Annotations
   /// toggle back on if it was off, scrolls to the profile and asks the chart
-  /// to light the marker and open its popup. A dive with no profile has no
-  /// marker to open, so the link changes the time instead.
+  /// to light the marker and open its popup. A dive with no profile, or a
+  /// page with the profile section switched off, has no marker to open, so
+  /// the link changes the time instead.
   Future<void> _scrollToProfileAndFocus(String annotationId) async {
     final dive = ref.read(diveProvider(widget.diveId)).value;
-    if (dive != null && dive.profile.isEmpty) {
+    if (dive != null && !_hasMarkerToOpen(dive)) {
       final annotations = await ref
           .read(annotationRepositoryProvider)
           .annotationsForDive(widget.diveId);

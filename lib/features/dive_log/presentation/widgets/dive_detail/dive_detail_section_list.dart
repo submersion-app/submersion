@@ -101,8 +101,7 @@ class DiveDetailSectionList extends ConsumerWidget {
     // Visible sections in configured order, minus gauge-hidden ones.
     final visible = [
       for (final section in sections)
-        if (section.visible && !(dive.isGauge && section.id.hiddenInGaugeMode))
-          section.id,
+        if (section.shownFor(gauge: dive.isGauge)) section.id,
     ];
     final visibleIds = visible.toSet();
     final unfolded = {

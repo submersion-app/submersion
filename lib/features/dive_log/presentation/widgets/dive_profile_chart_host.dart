@@ -363,7 +363,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         ? selectedFinding
         : null;
 
-    final annotations = annotationActions;
+    final annotations = annotationActions?.onProfile(chartProfile);
     final placement = annotations == null
         ? null
         : ref.watch(annotationPlacementProvider(diveId));
@@ -402,15 +402,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         events: chartEvents,
         annotationPlacement: placement != null,
         onAnnotationPlaced: annotations?.place,
-        onAnnotationTap: annotations == null
-            ? null
-            : (annotation, at) {
-                if (focusedAnnotation != null) {
-                  ref.read(annotationFocusProvider(diveId).notifier).state =
-                      null;
-                }
-                annotations.onMarkerTap(annotation, at);
-              },
+        onAnnotationTap: annotations?.onMarkerTap,
         onSecondaryTapAt: annotations?.onSecondaryTap,
         focusedAnnotationId: focusedAnnotation,
         ndlCurve: analysis?.ndlCurve,

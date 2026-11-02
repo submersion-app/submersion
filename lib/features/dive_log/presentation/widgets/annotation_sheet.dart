@@ -12,9 +12,9 @@ typedef AnnotationSheetResult = ({
   String words,
 });
 
-/// The fields every annotation sheet shares (#4109): the time box, the
-/// depth at that time, and the words when the sheet has to ask for them
-/// ([onWordsChanged] set). Lives inside the caller's [Form].
+/// The annotation sheet's fields (#4109): the time box, the depth at that
+/// time, and the words when the sheet has to ask for them ([onWordsChanged]
+/// set). Lives inside the caller's [Form].
 class AnnotationForm extends StatelessWidget {
   const AnnotationForm({
     super.key,

@@ -161,12 +161,14 @@ class AdditionalComputerWriter {
           onSkipped: onSkippedEvent,
         ))
           // A second computer's events are new rows whatever ids the file
-          // carried (a backup of this log names rows that already exist).
-          event.copyWith(
-            id: _uuid.v4(),
-            timestamp: event.timestamp + offset,
-            computerId: computerId,
-          ),
+          // carried (a backup of this log names rows that already exist),
+          // and an annotation is not a computer's: nothing here links it.
+          if (!event.isAnnotation)
+            event.copyWith(
+              id: _uuid.v4(),
+              timestamp: event.timestamp + offset,
+              computerId: computerId,
+            ),
       ],
     );
   }

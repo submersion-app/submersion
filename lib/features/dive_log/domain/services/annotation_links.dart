@@ -26,10 +26,18 @@ String? annotationIdFromHref(String? href) {
 }
 
 /// The Markdown for an annotation link. Brackets in the words are escaped
-/// so the link text starts and ends where the selection did.
-String annotationLinkMarkdown(String words, String id) =>
-    '[${words.replaceAll('[', r'\[').replaceAll(']', r'\]')}]'
-    '($annotationLinkScheme:$id)';
+/// so the link text starts and ends where the selection did, and so is a
+/// last backslash, which would otherwise escape the closing bracket. What
+/// the words already escape (a selection is Markdown source) stays as it is.
+String annotationLinkMarkdown(String words, String id) {
+  final text = words.replaceAllMapped(
+    _linkTextEscapes,
+    (m) => m[0]!.length == 2 ? m[0]! : '\\${m[0]}',
+  );
+  return '[$text]($annotationLinkScheme:$id)';
+}
+
+final RegExp _linkTextEscapes = RegExp(r'\\[\s\S]|\\$|[\[\]]');
 
 /// Annotation id to the plain words of the first link in [notes] that names
 /// it. Inline emphasis inside the link is dropped, so `[**free** flow]`
@@ -62,14 +70,30 @@ Map<String, String> annotationWordsInNotes(String notes) {
   return words;
 }
 
+/// Whether [notes] can hold an annotation link at all, for skipping a read
+/// on a dive that cannot have one.
+bool mayLinkAnnotations(String notes) => _schemeInText.hasMatch(notes);
+
+final RegExp _schemeInText = RegExp(
+  '$annotationLinkScheme:',
+  caseSensitive: false,
+);
+
 /// The ids every annotation link in [notes] names.
 Set<String> annotationIdsInNotes(String notes) =>
     annotationWordsInNotes(notes).keys.toSet();
 
+/// A link's text as written in Notes, with its escaped pairs. The two
+/// alternatives never overlap: if a backslash could be read both ways, a
+/// failed match would try every combination, doubling for each backslash.
+const String _linkText = r'(?:\\[\s\S]|[^\]\\])*';
+
 /// Any annotation link as written in Notes, whatever its id, which is the
 /// first group.
 final annotationLinkPattern = RegExp(
-  r'\[(?:\\.|[^\]])*\]\('
+  r'\['
+  '$_linkText'
+  r'\]\('
   '$annotationLinkScheme:'
   r'([^)\s]*)\)',
   caseSensitive: false,
@@ -95,7 +119,9 @@ String unlinkAnnotation(String notes, String id) {
   // Case-insensitive on the scheme, like [annotationIdFromHref], so a
   // hand-edited `Annotation:` link is unlinked the way it was recognised.
   final link = RegExp(
-    r'\[((?:\\.|[^\]])*)\]\('
+    r'\[('
+    '$_linkText'
+    r')\]\('
     '$annotationLinkScheme:$escapedId'
     r'\)',
     caseSensitive: false,

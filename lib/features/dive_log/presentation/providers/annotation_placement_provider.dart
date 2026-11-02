@@ -14,8 +14,6 @@ class AnnotationPlacement {
 class AnnotationPlacementNotifier extends StateNotifier<AnnotationPlacement?> {
   AnnotationPlacementNotifier() : super(null);
 
-  void startNew() => state = const AnnotationPlacement();
-
   void startMove(String id) => state = AnnotationPlacement(movingId: id);
 
   void cancel() => state = null;

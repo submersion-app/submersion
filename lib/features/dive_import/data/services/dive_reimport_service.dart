@@ -3,7 +3,6 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -766,14 +765,18 @@ class DiveReimportService {
     // A file that carries this log's own event ids (a UDDF backup): an id
     // kept on this dive is the same row, skipped; an id a row of another
     // dive holds (the backup restored twice) gets a fresh one, or the insert
-    // would abort the resync.
-    final takenElsewhere = await _eventIdsTakenElsewhere([
+    // would abort the resync. Nothing here links another dive's annotation,
+    // so a copy of one could only ever be a hidden row.
+    final takenElsewhere = await takenProfileEventIds(db, [
       for (final e in parsed) e.id,
-    ], diveId);
+    ], exceptDiveId: diveId);
     final events = [
       for (final e in parsed)
         if (!keptIds.contains(e.id))
-          takenElsewhere.contains(e.id) ? e.copyWith(id: _uuid.v4()) : e,
+          if (!takenElsewhere.contains(e.id))
+            e
+          else if (!e.isAnnotation)
+            e.copyWith(id: _uuid.v4()),
     ];
     for (final event in events) {
       await db
@@ -799,31 +802,6 @@ class DiveReimportService {
         localUpdatedAt: now.millisecondsSinceEpoch,
       );
     }
-  }
-
-  /// Which of [ids] already name an event row on a dive other than
-  /// [diveId].
-  Future<Set<String>> _eventIdsTakenElsewhere(
-    List<String> ids,
-    String diveId,
-  ) async {
-    if (ids.isEmpty) return const {};
-    final taken = <String>{};
-    // In chunks, like the repositories' other id lookups (series_id_chunks).
-    for (final chunk in seriesIdChunks(ids)) {
-      final rows =
-          await (db.selectOnly(db.diveProfileEvents)
-                ..addColumns([db.diveProfileEvents.id])
-                ..where(
-                  db.diveProfileEvents.id.isIn(chunk) &
-                      db.diveProfileEvents.diveId.equals(diveId).not(),
-                ))
-              .get();
-      for (final r in rows) {
-        taken.add(r.read(db.diveProfileEvents.id)!);
-      }
-    }
-    return taken;
   }
 
   /// Refreshes the primary `dive_data_sources` row's computer-authored

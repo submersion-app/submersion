@@ -14,10 +14,11 @@ final diveAnnotationsProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
       );
+      // Before the awaits: a write during them re-runs this provider, and a
+      // watch from the run it replaced throws.
+      final repository = ref.watch(annotationRepositoryProvider);
       final dive = await ref.watch(diveProvider(diveId).future);
-      final annotations = await ref
-          .watch(annotationRepositoryProvider)
-          .annotationsForDive(diveId);
+      final annotations = await repository.annotationsForDive(diveId);
       return dropOrphanAnnotations(annotations, dive?.notes ?? '');
     });
 

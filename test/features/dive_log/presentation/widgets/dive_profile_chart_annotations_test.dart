@@ -71,7 +71,6 @@ final _containers = <ProviderContainer>[];
 
 Widget _chart(
   List<ProfileEvent> events, {
-  bool showAnnotations = true,
   List<DiveProfilePoint>? profile,
   void Function(ProfileEvent, Offset)? onAnnotationTap,
   String? focusedAnnotationId,
@@ -96,7 +95,6 @@ Widget _chart(
             return DiveProfileChart(
               profile: profile ?? _profile(),
               events: events,
-              showAnnotations: showAnnotations,
               onAnnotationTap: onAnnotationTap,
               focusedAnnotationId: focusedAnnotationId,
               onPointSelected: onPointSelected,
@@ -335,15 +333,6 @@ void main() {
     expect(taps.map((a) => a.id), ['a']);
   });
 
-  testWidgets('showAnnotations false hides the lines and the layer', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_chart([_ann('a', 600)], showAnnotations: false));
-    await tester.pumpAndSettle();
-    expect(_annotationLines(tester), isEmpty);
-    expect(find.byType(AnnotationMarkerLayer), findsNothing);
-  });
-
   testWidgets('tapping the dot reports the annotation', (tester) async {
     final taps = <ProfileEvent>[];
     await tester.pumpWidget(
@@ -463,4 +452,73 @@ void main() {
       1,
     );
   });
+
+  testWidgets('a right-click on a dot leaves the moment to the chart', (
+    tester,
+  ) async {
+    final tapped = <String>[];
+    final secondary = <int>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SizedBox(
+              width: 400,
+              height: 300,
+              child: DiveProfileChart(
+                profile: _profile(),
+                events: [_ann('a', 600)],
+                onAnnotationTap: (a, _) => tapped.add(a.id),
+                onSecondaryTapAt: (seconds, _, _) => secondary.add(seconds),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final dot = _dot(tester)!;
+
+    final mouse = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+      buttons: kSecondaryMouseButton,
+    );
+    await mouse.addPointer(location: dot);
+    addTearDown(mouse.removePointer);
+    await mouse.down(dot);
+    await tester.pump();
+    await mouse.up();
+    await tester.pump();
+
+    expect(secondary, hasLength(1));
+    expect(tapped, isEmpty);
+  });
+
+  testWidgets(
+    'an annotation\'s label reads in the surface\'s own text colour',
+    (tester) async {
+      await tester.pumpWidget(_chart([_ann('a', 600), _warning(300)]));
+      await tester.pump();
+
+      final lines = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .extraLinesData
+          .verticalLines;
+      final annotation = lines.firstWhere((l) => l.x == 600);
+      final warning = lines.firstWhere((l) => l.x == 300);
+      final onSurface = Theme.of(
+        tester.element(find.byType(DiveProfileChart)),
+      ).colorScheme.onSurface;
+      expect(annotation.label.style?.color, onSurface);
+      expect(annotation.color, ProfileMetricColors.annotation);
+      expect(warning.label.style?.color, isNot(onSurface));
+    },
+  );
 }

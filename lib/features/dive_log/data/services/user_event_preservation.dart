@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 /// Keeps the diver's own profile events through the paths that replace a
 /// dive's events wholesale (#4109): a file resync, a computer re-parse and a
@@ -19,23 +20,39 @@ import 'package:submersion/core/database/database.dart';
 Expression<bool> nonUserEvent($DiveProfileEventsTable t) =>
     t.source.equals(EventSource.user.name).not();
 
-/// The ids of the dive's events that are not user-authored, on one computer
-/// when [computerId] is given.
-Future<List<String>> nonUserEventIds(
-  AppDatabase db,
-  String diveId, {
-  String? computerId,
-}) {
+/// The ids of the dive's events that are not user-authored.
+Future<List<String>> nonUserEventIds(AppDatabase db, String diveId) {
   final query = db.selectOnly(db.diveProfileEvents)
     ..addColumns([db.diveProfileEvents.id])
     ..where(
       db.diveProfileEvents.diveId.equals(diveId) &
-          nonUserEvent(db.diveProfileEvents) &
-          (computerId == null
-              ? const Constant(true)
-              : db.diveProfileEvents.computerId.equals(computerId)),
+          nonUserEvent(db.diveProfileEvents),
     );
   return query.map((row) => row.read(db.diveProfileEvents.id)!).get();
+}
+
+/// Which of [ids] already name an event row, on any dive but [exceptDiveId].
+/// A backup carries each event's own id (#4109), which a second copy of the
+/// row cannot share.
+Future<Set<String>> takenProfileEventIds(
+  AppDatabase db,
+  Iterable<String> ids, {
+  String? exceptDiveId,
+}) async {
+  final events = db.diveProfileEvents;
+  final taken = <String>{};
+  for (final chunk in seriesIdChunks(ids.toSet().toList())) {
+    final query = db.selectOnly(events)
+      ..addColumns([events.id])
+      ..where(
+        events.id.isIn(chunk) &
+            (exceptDiveId == null
+                ? const Constant(true)
+                : events.diveId.equals(exceptDiveId).not()),
+      );
+    taken.addAll(await query.map((row) => row.read(events.id)!).get());
+  }
+  return taken;
 }
 
 /// Marks every user-authored event of the dive pending, so each carries a

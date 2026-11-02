@@ -158,9 +158,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
             const SizedBox(height: 8),
             if (placement != null) ...[
               AnnotationPlacementBanner(
-                text: placement.isMove
-                    ? context.l10n.diveLog_annotation_banner_move
-                    : context.l10n.diveLog_annotation_banner_place,
+                moving: placement.isMove,
                 onCancel: ref
                     .read(annotationPlacementProvider(dive.id).notifier)
                     .cancel,
