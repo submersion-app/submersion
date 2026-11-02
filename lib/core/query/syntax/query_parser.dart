@@ -149,6 +149,8 @@ class QueryParser {
         readTerm();
       } else if (_startsPrimary(_peek)) {
         readTerm();
+      } else if (_entity.plainWords != null && _isSymbol(_peek, ',')) {
+        _next();
       } else {
         break;
       }
@@ -566,6 +568,16 @@ class QueryParser {
   /// A date value is one token; a range collapses to `inList` and an
   /// open-ended phrase ("since 2024") to the bound it has.
   QueryNode _dateCondition(FieldPath path, QueryOp op, QueryField field) {
+    if (_entity.plainWords != null) {
+      final first = _peek;
+      if (readDateValue(_tokens, _pos, context.now) case (
+        :final range,
+        :final length,
+      ) when length > 1) {
+        _pos += length;
+        return _dateRangeNode(path, op, range, first);
+      }
+    }
     final t = _next();
     if (t.kind == TokenKind.end || t.kind == TokenKind.symbol) {
       throw _Abort(_err(QueryErrorCode.expectedDateValue, t));

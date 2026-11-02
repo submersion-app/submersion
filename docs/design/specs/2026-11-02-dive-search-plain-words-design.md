@@ -68,8 +68,7 @@ changes is how many ways a clue can be satisfied.
 Added to the dive entity's `textSearchSql`, matching with
 `unicode_lower(...) LIKE` as the other templates do. Each reads its matches once
 per word with an uncorrelated `IN (SELECT ...)`, not once per dive: the first
-build used a correlated `EXISTS` and failed section 10's limit. A nullable key
-needs `COALESCE`, so that a negated word still keeps a dive with no link:
+build used a correlated `EXISTS` and failed section 10's limit:
 
 | Record | Columns | Reached through |
 | --- | --- | --- |
@@ -159,6 +158,8 @@ Rules:
 - Reading a phrase never produces an error. Anything the grammar refuses stays
   plain words.
 - A negated phrase works: `not last year`, `-2018-10`.
+- A phrase also works after a date field: `date in october 2018`.
+- A comma between terms is ignored: `ressel, october 2018`.
 - A phrase's result is the same tree `date in ...` produces, so it validates,
   prints and saves with no new node type.
 
@@ -170,7 +171,8 @@ small list in the diver's app language. English always applies, because that is 
 grammar reads.
 
 - Only a bare word at the top level of a term list is dropped. A quoted word and
-  a negated word stay: `"with"` and `not with` still search for it.
+  a negated word stay: `"with"` and `not with` still search for it. The printer
+  quotes a filler word it finds in a tree, so the parser reads it back the same.
 - If every term is filler, none are dropped: `the` alone still searches.
 - The filler list is a const map in one Dart file, not ARB text. Parsing already
   happens with a `ParseContext`, which gains the active language. The tree it

@@ -43,7 +43,8 @@ class QueryEditorContext {
     ParseContext(prefs: prefs, now: now(), names: names, language: language),
   );
 
-  QueryPrinter get printer => QueryPrinter(registry, root, prefs);
+  QueryPrinter get printer =>
+      QueryPrinter(registry, root, prefs, language: language);
 
   QueryEditorContext copyWith({
     QueryEntity? root,

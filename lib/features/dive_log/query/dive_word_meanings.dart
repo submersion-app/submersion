@@ -1,4 +1,5 @@
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/date_symbols.dart';
 
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
@@ -28,13 +29,23 @@ Iterable<String> diveYearTerms(String term) {
   return year < 1900 || year > 2200 ? const [] : [digits];
 }
 
+/// The calendar names of every app language. `dateTimeSymbolMap` builds every
+/// locale on each call, so it is called once.
+final List<DateSymbols> _calendars = () {
+  final symbols = dateTimeSymbolMap();
+  return [
+    for (final locale in AppLocalizations.supportedLocales)
+      symbols[locale.languageCode]!,
+  ];
+}();
+
 Map<String, String> _calendarNames(
-  List<List<String>> Function(String language) lists,
+  List<List<String>> Function(DateSymbols symbols) lists,
   String Function(int index) value,
 ) {
   final names = <String, String>{};
-  for (final locale in AppLocalizations.supportedLocales) {
-    for (final list in lists(locale.languageCode)) {
+  for (final symbols in _calendars) {
+    for (final list in lists(symbols)) {
       for (final (index, name) in list.indexed) {
         names[name.toLowerCase()] = value(index);
       }
@@ -45,17 +56,17 @@ Map<String, String> _calendarNames(
 
 /// Full month names only: `jan` is as likely a buddy, and counts as a month
 /// only in a date phrase, beside a year. Values match `strftime('%m', ...)`.
-final Map<String, String> _months = _calendarNames((language) {
-  final symbols = dateTimeSymbolMap()[language]!;
-  return [symbols.MONTHS, symbols.STANDALONEMONTHS];
-}, (index) => '${index + 1}'.padLeft(2, '0'));
+final Map<String, String> _months = _calendarNames(
+  (symbols) => [symbols.MONTHS, symbols.STANDALONEMONTHS],
+  (index) => '${index + 1}'.padLeft(2, '0'),
+);
 
 /// Full weekday names only: `sun` and `sat` are words. Sunday first, which is
 /// both the symbols' order and `strftime('%w', ...)`.
-final Map<String, String> _weekdays = _calendarNames((language) {
-  final symbols = dateTimeSymbolMap()[language]!;
-  return [symbols.WEEKDAYS, symbols.STANDALONEWEEKDAYS];
-}, (index) => '$index');
+final Map<String, String> _weekdays = _calendarNames(
+  (symbols) => [symbols.WEEKDAYS, symbols.STANDALONEWEEKDAYS],
+  (index) => '$index',
+);
 
 Iterable<String> diveMonthTerms(String term) => [
   ?_months[term.trim().toLowerCase()],

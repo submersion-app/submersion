@@ -27,13 +27,21 @@ bool _isTerm(Token t) => t.kind == TokenKind.word || t.kind == TokenKind.number;
   if (tokens[start].kind == TokenKind.word) {
     final lead = tokens[start].text.toLowerCase();
     if (lead == 'in' || lead == 'during') {
-      final inner = _longestPhrase(tokens, start + 1, now, yearAlone: true);
+      final inner = readDateValue(tokens, start + 1, now);
       if (inner == null) return null;
       return (range: inner.range, length: inner.length + 1);
     }
   }
   return _longestPhrase(tokens, start, now, yearAlone: false);
 }
+
+/// The longest date from token [start], where a date is expected, so a lone
+/// year counts.
+({DateRange range, int length})? readDateValue(
+  List<Token> tokens,
+  int start,
+  DateTime now,
+) => _longestPhrase(tokens, start, now, yearAlone: true);
 
 ({DateRange range, int length})? _longestPhrase(
   List<Token> tokens,

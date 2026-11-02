@@ -7,7 +7,7 @@ import 'package:submersion/features/marine_life/query/species_text_search.dart';
 /// the values; the stored name search covers those.
 const kSightingTranslatedTextSearch = TextSearchExpansion(
   sql:
-      'EXISTS (SELECT 1 FROM sightings tsgx WHERE tsgx.dive_id = {r}.id '
-      'AND tsgx.species_id IN ({values}))',
+      '{r}.id IN (SELECT tsgx.dive_id FROM sightings tsgx '
+      'WHERE tsgx.species_id IN ({values}))',
   values: builtInSpeciesIdsMatching,
 );

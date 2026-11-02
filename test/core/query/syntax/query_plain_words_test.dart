@@ -211,6 +211,71 @@ void main() {
     });
   });
 
+  group('commas', () {
+    test('a comma between terms is ignored', () {
+      expect(
+        read('ressel, october 2018'),
+        AndNode([word('ressel'), month(2018, 10)]),
+      );
+      expect(read('ressel, mike'), AndNode([word('ressel'), word('mike')]));
+    });
+
+    test('a trailing comma is half way to another term', () {
+      expect(read('ressel,'), word('ressel'));
+    });
+
+    test('an entity without plainWords still refuses a comma', () {
+      expect(parse('ressel, mike', root: fixtureDives), isA<ParseFailure>());
+    });
+  });
+
+  group('a phrase after a date field', () {
+    test('reads the whole phrase', () {
+      expect(read('date in october 2018'), month(2018, 10));
+      expect(read('date in last year'), year(2025));
+      expect(read('date:october 2018'), month(2018, 10));
+    });
+
+    test('stops at the next term', () {
+      expect(
+        read('date in 2018 ressel'),
+        AndNode([year(2018), word('ressel')]),
+      );
+    });
+
+    test('what the grammar refuses stays an error', () {
+      expect(parse('date in sometime'), isA<ParseFailure>());
+    });
+  });
+
+  group('printing keeps a filler word that was asked for', () {
+    final printer = QueryPrinter(
+      fixtureRegistry,
+      plainDives,
+      kMetricPrefs,
+      language: 'fr',
+    );
+
+    test('a quoted filler survives a print and a parse', () {
+      final node = read('"with" mike');
+      expect(read(printer.print(node)), node);
+    });
+
+    test('a filler in the app language does too', () {
+      final node = read('"avec" mike', language: 'fr');
+      expect(read(printer.print(node), language: 'fr'), node);
+    });
+
+    test('an entity without plainWords prints the word bare', () {
+      final bare = QueryPrinter(fixtureRegistry, fixtureDives, kMetricPrefs);
+      expect(bare.print(word('with')), 'with');
+    });
+
+    test('other words stay bare', () {
+      expect(printer.print(word('ressel')), 'ressel');
+    });
+  });
+
   test('half-typed text never fails', () {
     for (final text in [
       'ressel in',
@@ -221,6 +286,7 @@ void main() {
       'between 2018',
       'between 2018 and',
       'ressel and',
+      'ressel,',
       'oct',
       'in',
       '2018 to',

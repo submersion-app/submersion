@@ -269,10 +269,9 @@ final QueryEntity diveQueryEntity = QueryEntity(
         "AND unicode_lower(tdty.name) LIKE ? ESCAPE '\\')",
     // What a dive carries, so a brand or a trip finds it (#3457). Each of
     // these reads its matches once rather than once per dive, which keeps a
-    // word that matches nothing cheap on a long log. A nullable key needs
-    // COALESCE: NOT (NULL) drops the dive from a negated word.
+    // word that matches nothing cheap on a long log.
     kDiveGearTextSearchSql,
-    "COALESCE({r}.trip_id, '') IN (SELECT ttrp.id FROM trips ttrp WHERE "
+    "{r}.trip_id IN (SELECT ttrp.id FROM trips ttrp WHERE "
         "unicode_lower(ttrp.name) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(ttrp.location) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(ttrp.resort_name) LIKE ? ESCAPE '\\' "
@@ -286,7 +285,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
         "unicode_lower(tcrs.name) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(tcrs.location) LIKE ? ESCAPE '\\'))",
     "unicode_lower({r}.dive_computer_model) LIKE ? ESCAPE '\\'",
-    "COALESCE({r}.computer_id, '') IN (SELECT tcmp.id FROM dive_computers tcmp "
+    "{r}.computer_id IN (SELECT tcmp.id FROM dive_computers tcmp "
         "WHERE unicode_lower(tcmp.name) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(tcmp.manufacturer) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(tcmp.model) LIKE ? ESCAPE '\\')",

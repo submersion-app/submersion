@@ -86,13 +86,16 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   // as an open bound over a closed range.
   m = _between.firstMatch(t) ?? _periodRange.firstMatch(t);
   if (m != null) {
+    // Both periods must be closed: "since 2018" has no end to span from.
     final first = parseDateText(m[1]!, now: now);
     final last = parseDateText(m[2]!, now: now);
-    if (first?.start == null || last?.end == null) return null;
-    if (first!.end == null || last!.start == null) return null;
-    return last.end!.isBefore(first.start!)
-        ? null
-        : (start: first.start, end: last.end);
+    if ((first, last) case (
+      (start: final DateTime from, end: DateTime _),
+      (start: DateTime _, end: final DateTime to),
+    )) {
+      return to.isBefore(from) ? null : (start: from, end: to);
+    }
+    return null;
   }
   // Open-ended forms first: "since 2022" also matches the month-year shape
   // below, whose unknown-month branch would swallow it.
