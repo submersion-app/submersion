@@ -50662,6 +50662,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן להחליף את גרסת הפרופיל.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title => 'מחק את כל הפרופיל';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       'מחיקת גרסת הפרופיל הזו היא סופית, אינה ניתנת לביטול ונכנסת לתוקף באופן מיידי.';
 

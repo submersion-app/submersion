@@ -52414,6 +52414,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تبديل مراجعة الملف الشخصي.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title => 'حذف الملف الكامل';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       'حذف مراجعة ملف الغوص هذه نهائي، ولا يمكن التراجع عنه، ويسري مفعوله فورًا.';
 

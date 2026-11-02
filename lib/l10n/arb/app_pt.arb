@@ -15392,6 +15392,7 @@
   "diveLog_profileEditor_mode_trim": "Cortar",
   "diveLog_profileEditor_revisionSelectorTooltip": "Alternar revisão ativa. Esta mudança entra em vigor imediatamente e todas as futuras edições serão baseadas nesta revisão.",
   "diveLog_profileEditor_revisionSwitchFailed": "Não foi possível alternar a revisão do perfil.",
+  "diveLog_profileEditor_deleteProfile_title": "Excluir perfil completo",
   "diveLog_profileEditor_deleteProfile_permanentWarning": "A exclusão desta revisão de perfil é permanente, não pode ser desfeita e entra em vigor imediatamente.",
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "Este perfil foi importado de um computador de mergulho e provavelmente contém os dados originais de origem.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "Excluir permanentemente agora",

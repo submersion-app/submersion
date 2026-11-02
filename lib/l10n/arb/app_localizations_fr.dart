@@ -51863,6 +51863,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de changer de révision du profil.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Supprimer tout le profil';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       'La suppression de cette révision de profil est définitive, ne peut pas être annulée et prend effet immédiatement.';
 

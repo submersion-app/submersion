@@ -15392,6 +15392,7 @@
   "diveLog_profileEditor_mode_trim": "Ritaglia",
   "diveLog_profileEditor_revisionSelectorTooltip": "Cambia revisione attiva. Questo cambiamento ha effetto immediato e tutte le future modifiche si baseranno su questa revisione.",
   "diveLog_profileEditor_revisionSwitchFailed": "Impossibile cambiare la revisione del profilo.",
+  "diveLog_profileEditor_deleteProfile_title": "Elimina profilo completo",
   "diveLog_profileEditor_deleteProfile_permanentWarning": "L'eliminazione di questa revisione del profilo è permanente, non può essere annullata ed è immediata.",
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "Questo profilo è stato importato da un computer subacqueo e probabilmente contiene i dati originali di origine.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "Elimina definitivamente ora",

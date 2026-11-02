@@ -61,7 +61,7 @@ void main() {
   });
 
   group('FileGitObjectStore', () {
-    tearDown(() => FileGitObjectStore.debugRename = null);
+    tearDown(FileGitObjectStore.debugResetRenameForTest);
 
     test('survives a new instance on the same directory', () async {
       final dir = tempDirForTest('git_store_');
@@ -170,14 +170,14 @@ void main() {
       final store = FileGitObjectStore(dir);
       final object = _blob('rename-race-put');
 
-      FileGitObjectStore.debugRename = (source, path) async {
+      FileGitObjectStore.debugSetRenameForTest((source, path) async {
         await File(path).writeAsBytes(await source.readAsBytes(), flush: true);
         throw FileSystemException(
           'simulated race',
           source.path,
           const OSError('', 1),
         );
-      };
+      });
 
       await store.put(object);
 
@@ -196,7 +196,7 @@ void main() {
         final store = FileGitObjectStore(dir);
         final body = Uint8List.fromList(utf8.encode('rename-race-adopt'));
 
-        FileGitObjectStore.debugRename = (source, path) async {
+        FileGitObjectStore.debugSetRenameForTest((source, path) async {
           await File(
             path,
           ).writeAsBytes(await source.readAsBytes(), flush: true);
@@ -205,7 +205,7 @@ void main() {
             source.path,
             const OSError('', 1),
           );
-        };
+        });
 
         final writer = store.create(GitObjectType.blob, body.length);
         writer.add(body);
@@ -271,56 +271,6 @@ void main() {
         expect((await evicting.get(a.id))?.body, a.body);
       },
     );
-  });
-
-  group('FileGitObjectStore.unindexed', () {
-    test('reads what another store wrote', () async {
-      final dir = tempDirForTest('git_store_');
-      final blob = _blob('from the main store');
-      await FileGitObjectStore(dir).put(blob);
-
-      final worker = FileGitObjectStore.unindexed(dir);
-
-      expect(await worker.has(blob.id), isTrue);
-      expect((await worker.get(blob.id))!.body, blob.body);
-    });
-
-    test('does not scan its directory', () async {
-      final dir = tempDirForTest('git_store_');
-      // A stale temp file, which a store's first scan sweeps away.
-      final stale = File(p.join(dir.path, 'ab', 'cdef.3c4d.tmp'))
-        ..createSync(recursive: true)
-        ..setLastModifiedSync(DateTime.now().subtract(const Duration(days: 1)));
-
-      await FileGitObjectStore.unindexed(dir).put(_blob('anything'));
-
-      expect(stale.existsSync(), isTrue);
-    });
-
-    test('a store that has scanned adopts what it wrote', () async {
-      final dir = tempDirForTest('git_store_');
-      final main = FileGitObjectStore(dir);
-      final blob = _blob('from a worker');
-      expect(await main.has(blob.id), isFalse);
-
-      await FileGitObjectStore.unindexed(dir).put(blob);
-
-      expect((await main.get(blob.id))!.body, blob.body);
-    });
-
-    test('what it wrote counts toward the main store bound', () async {
-      final dir = tempDirForTest('git_store_');
-      final main = FileGitObjectStore(dir, maxBytes: 100);
-      final kept = _blob('small');
-      await main.put(kept);
-      final large = _blob('from a worker', pad: 1000);
-
-      await FileGitObjectStore.unindexed(dir).put(large);
-      expect(await main.has(large.id), isTrue);
-      await main.trim();
-
-      expect(await main.has(large.id), isFalse);
-    });
   });
 
   group('FileGitObjectStore streaming object API', () {

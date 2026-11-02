@@ -51791,6 +51791,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo cambiar la revisión del perfil.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Eliminar perfil completo';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       'La eliminación de esta revisión del perfil es permanente, no se puede deshacer y surte efecto de inmediato.';
 

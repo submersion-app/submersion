@@ -81876,6 +81876,12 @@ abstract class AppLocalizations {
   /// **'Could not switch profile revision.'**
   String get diveLog_profileEditor_revisionSwitchFailed;
 
+  /// No description provided for @diveLog_profileEditor_deleteProfile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Entire Profile'**
+  String get diveLog_profileEditor_deleteProfile_title;
+
   /// No description provided for @diveLog_profileEditor_deleteProfile_permanentWarning.
   ///
   /// In en, this message translates to:

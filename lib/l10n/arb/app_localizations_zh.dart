@@ -48545,6 +48545,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_revisionSwitchFailed => '无法切换剖面版本。';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title => '删除整个轮廓';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       '删除此轮廓版本是永久性的、无法撤销，并且会立即生效。';
 

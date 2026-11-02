@@ -15392,6 +15392,7 @@
   "diveLog_profileEditor_mode_trim": "חיתוך",
   "diveLog_profileEditor_revisionSelectorTooltip": "החלף גרסה פעילה. שינוי זה יוצא לפועל מיד וכל העריכות הבאות יהיו מבוססות על גרסה זו.",
   "diveLog_profileEditor_revisionSwitchFailed": "לא ניתן להחליף את גרסת הפרופיל.",
+  "diveLog_profileEditor_deleteProfile_title": "מחק את כל הפרופיל",
   "diveLog_profileEditor_deleteProfile_permanentWarning": "מחיקת גרסת הפרופיל הזו היא סופית, אינה ניתנת לביטול ונכנסת לתוקף באופן מיידי.",
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "הפרופיל הזה יובא ממחשב צלילה וככל הנראה מכיל את נתוני המקור המקוריים.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "מחיקה סופית עכשיו",

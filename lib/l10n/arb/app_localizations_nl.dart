@@ -51415,6 +51415,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan niet wisselen van profielrevisie.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Hele profiel verwijderen';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       'Het verwijderen van deze profielrevisie is permanent, kan niet ongedaan worden gemaakt en gaat direct in.';
 

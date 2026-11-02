@@ -50943,6 +50943,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not switch profile revision.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Delete Entire Profile';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       'Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.';
 

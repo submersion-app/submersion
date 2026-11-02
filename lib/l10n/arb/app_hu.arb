@@ -15392,6 +15392,7 @@
   "diveLog_profileEditor_mode_trim": "Vágás",
   "diveLog_profileEditor_revisionSelectorTooltip": "Aktív verzió cseréje. Ez a módosítás azonnal érvénybe lép, és az összes jövőbeli szerkesztés ezen a verziót fogja alapul venni.",
   "diveLog_profileEditor_revisionSwitchFailed": "Nem sikerült a profilverzió váltása.",
+  "diveLog_profileEditor_deleteProfile_title": "Teljes profil törlése",
   "diveLog_profileEditor_deleteProfile_permanentWarning": "A profilverzió törlése végleges, nem vonható vissza, és azonnal életbe lép.",
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "Ezt a profilt búvárkomputerből importálták, és valószínűleg az eredeti forrásadatokat tartalmazza.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "Végleges törlés most",

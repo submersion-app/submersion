@@ -15392,6 +15392,7 @@
   "diveLog_profileEditor_mode_trim": "Rogner",
   "diveLog_profileEditor_revisionSelectorTooltip": "Basculer vers la révision active. Ce changement prend effet immédiatement et toutes les futures éditions seront basées sur cette révision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Impossible de changer de révision du profil.",
+  "diveLog_profileEditor_deleteProfile_title": "Supprimer tout le profil",
   "diveLog_profileEditor_deleteProfile_permanentWarning": "La suppression de cette révision de profil est définitive, ne peut pas être annulée et prend effet immédiatement.",
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "Ce profil a été importé depuis un ordinateur de plongée et contient probablement les données source d'origine.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "Supprimer définitivement maintenant",

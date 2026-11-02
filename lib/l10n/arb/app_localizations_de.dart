@@ -51624,6 +51624,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Profilrevision konnte nicht gewechselt werden.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Gesamtes Profil löschen';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       'Das Löschen dieser Profilrevision ist dauerhaft, kann nicht rückgängig gemacht werden und wird sofort wirksam.';
 

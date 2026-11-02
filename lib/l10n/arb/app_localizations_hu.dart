@@ -51455,6 +51455,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült a profilverzió váltása.';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Teljes profil törlése';
+
+  @override
   String get diveLog_profileEditor_deleteProfile_permanentWarning =>
       'A profilverzió törlése végleges, nem vonható vissza, és azonnal életbe lép.';
 

@@ -15546,6 +15546,7 @@
   "diveLog_profileEditor_mode_trim": "Zuschneiden",
   "diveLog_profileEditor_revisionSelectorTooltip": "Aktive Revision wechseln. Diese Änderung wird sofort wirksam und alle zukünftigen Bearbeitungen basieren auf dieser Revision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Profilrevision konnte nicht gewechselt werden.",
+  "diveLog_profileEditor_deleteProfile_title": "Gesamtes Profil löschen",
   "diveLog_profileEditor_deleteProfile_permanentWarning": "Das Löschen dieser Profilrevision ist dauerhaft, kann nicht rückgängig gemacht werden und wird sofort wirksam.",
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "Dieses Profil wurde von einem Tauchcomputer importiert und enthält wahrscheinlich die ursprünglichen Quelldaten.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "Jetzt dauerhaft löschen",

@@ -168,7 +168,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
       builder: (context) {
         final l10n = context.l10n;
         return AlertDialog(
-          title: Text(l10n.common_action_delete),
+          title: Text(l10n.diveLog_profileEditor_deleteProfile_title),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

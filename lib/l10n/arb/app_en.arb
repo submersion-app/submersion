@@ -29995,6 +29995,7 @@
   "diveLog_profileEditor_mode_trim": "Trim",
   "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Could not switch profile revision.",
+  "diveLog_profileEditor_deleteProfile_title": "Delete Entire Profile",
   "diveLog_profileEditor_deleteProfile_permanentWarning": "Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.",
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "This profile was imported from a dive computer and likely contains the original source data.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "Delete permanently now",
