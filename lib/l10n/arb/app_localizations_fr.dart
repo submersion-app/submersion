@@ -30198,6 +30198,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_gas_ccrUse_o2Average => 'Moyenne O₂';
 
   @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
   String get insights_gas_ccrUse_diluentAverage => 'Moyenne diluant';
 
   @override

@@ -130,6 +130,16 @@ void main() {
       expect(trend.diluent.single.value, closeTo(9, 1e-9));
     });
 
+    test('a pure O2 Sidemount cylinder lands in O2', () async {
+      await insertDive('ccr');
+      await insertTank('ccr', 'left', 'sidemountLeft', o2: 100);
+
+      final trend = await repository.getCcrGasUsePerDive();
+
+      expect(trend.o2.single.value, closeTo(9, 1e-9));
+      expect(trend.diluent, isEmpty);
+    });
+
     test('a dive ticked out of gas statistics stays out', () async {
       await insertDive('out', excludedFromGasStats: true);
       await insertTank('out', 'dil', 'diluent');

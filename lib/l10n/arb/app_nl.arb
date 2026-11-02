@@ -8644,6 +8644,7 @@
   "insights_gas_ccrUse_title": "Gasverbruik rebreather",
   "insights_gas_ccrUse_subtitle": "Per minuut op de loop, zonder bailouttijd",
   "insights_gas_ccrUse_o2Average": "Gemiddelde O₂",
+  "insights_gas_ccrUse_o2Series": "O₂",
   "insights_gas_ccrUse_diluentAverage": "Gemiddelde diluent",
   "insights_gas_sacRecords_empty": "Nog geen verbruiksgegevens",
   "insights_gas_sacRecords_error": "Kan verbruiksrecords niet laden",

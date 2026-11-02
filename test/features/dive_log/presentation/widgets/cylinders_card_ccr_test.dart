@@ -31,11 +31,13 @@ Widget _card(
   CylinderSac row, {
   GasConsumptionDisplay display = GasConsumptionDisplay.both,
   AppSettings settings = const AppSettings(),
+  List<DiveTank> tanks = const [_tank],
+  List<CylinderSac>? rows,
 }) {
   return testApp(
     locale: const Locale('en'),
     overrides: [
-      cylinderSacProvider.overrideWith((ref, id) async => [row]),
+      cylinderSacProvider.overrideWith((ref, id) async => rows ?? [row]),
       tankPressuresProvider.overrideWith(
         (ref, id) async => const <String, List<TankPressurePoint>>{},
       ),
@@ -52,7 +54,7 @@ Widget _card(
           dateTime: DateTime(2026, 6, 1, 10),
           maxDepth: 30,
           diveMode: DiveMode.ccr,
-          tanks: const [_tank],
+          tanks: tanks,
         ),
         units: UnitFormatter(settings),
         settings: settings,
@@ -82,6 +84,41 @@ void main() {
 
       expect(find.text('Loop use 1.8 L/min'), findsOneWidget);
       expect(find.text('Gas used 108 L'), findsOneWidget);
+    });
+
+    testWidgets('each cylinder of the issue dive reads its own figure', (
+      tester,
+    ) async {
+      const left = DiveTank(id: 'left', role: TankRole.sidemountLeft);
+      const right = DiveTank(id: 'right', role: TankRole.sidemountRight);
+      CylinderSac sac(String id, TankRole role, double? loopRate) =>
+          CylinderSac(
+            tankId: id,
+            gasMix: const GasMix(),
+            role: role,
+            tankVolume: 7,
+            loopRate: loopRate,
+            startPressure: 216,
+            endPressure: 163,
+          );
+      await tester.pumpWidget(
+        _card(
+          _row(),
+          tanks: const [left, right, _tank],
+          rows: [
+            sac('left', TankRole.sidemountLeft, null),
+            sac('right', TankRole.sidemountRight, 5.4),
+            _row(loopRate: 1.9),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('tank-loop-use-left')), findsNothing);
+      final right5 = find.byKey(const Key('tank-loop-use-right'));
+      expect(tester.widget<Text>(right5).data, 'Loop use 5.4 L/min');
+      final o2 = find.byKey(const Key('tank-loop-use-tank'));
+      expect(tester.widget<Text>(o2).data, 'Loop use 1.9 L/min');
     });
 
     testWidgets('Loop use shows under every display preference', (

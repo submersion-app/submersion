@@ -8644,6 +8644,7 @@
   "insights_gas_ccrUse_title": "צריכת גז במעגל סגור",
   "insights_gas_ccrUse_subtitle": "לדקה בלולאה, ללא זמן מעבר למעגל פתוח",
   "insights_gas_ccrUse_o2Average": "ממוצע O₂",
+  "insights_gas_ccrUse_o2Series": "O₂",
   "insights_gas_ccrUse_diluentAverage": "ממוצע מדלל",
   "insights_gas_sacRecords_empty": "אין עדיין נתוני צריכה",
   "insights_gas_sacRecords_error": "שגיאה בטעינת שיאי הצריכה",

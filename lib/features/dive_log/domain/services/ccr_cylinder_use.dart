@@ -20,12 +20,6 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 
-/// Smallest loop drop, in bar, that counts on a cylinder not marked as loop
-/// gas. A cylinder filled warm loses pressure as it cools: an 11 L bailout
-/// loses about 13 bar in 5 C water without being touched, which over an hour
-/// would read as 2.5 L/min.
-const double kMinUnmarkedLoopDropBar = 20.0;
-
 /// One cylinder of a CCR dive.
 class CcrCylinderUse {
   const CcrCylinderUse({
@@ -189,15 +183,15 @@ CcrCylinderUse _cylinderUse({
   required int diveEnd,
   required GasModel gasModel,
 }) {
+  final breathed = tankUsageWindows(
+    tank: tank,
+    gasSwitches: switches,
+    diveStart: 0,
+    diveEnd: diveEnd,
+    tanks: tanks,
+  );
   final bailoutWindows = [
-    for (final period in bailouts)
-      ...tankUsageWindows(
-        tank: tank,
-        gasSwitches: switches,
-        diveStart: 0,
-        diveEnd: diveEnd,
-        tanks: tanks,
-      ).within(period.start, period.end),
+    for (final period in bailouts) ...breathed.within(period.start, period.end),
   ];
 
   var loopDrops = const <_Drop>[];
@@ -205,10 +199,9 @@ CcrCylinderUse _cylinderUse({
   final usable = _usableSeries(series, diveEnd);
   if (usable != null) {
     loopDrops = _dropsAcross(usable, loops);
-    // A cylinder not breathed on bailout has no bailout figure to carry.
-    if (bailoutWindows.isNotEmpty) {
-      bailoutDrops = _dropsAcross(usable, bailouts);
-    }
+    // Only while it was breathed: a cylinder cooling during another's bailout
+    // gave nothing up, and its SAC is taken over this same time.
+    bailoutDrops = _dropsAcross(usable, bailoutWindows);
   } else {
     final (start, end) = resolvedTankPressures(tank, series);
     if (start != null && end != null && end < start) {

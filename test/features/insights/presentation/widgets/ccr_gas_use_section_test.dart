@@ -90,7 +90,7 @@ void main() {
     expect(chart.points, hasLength(2));
     expect(chart.secondarySeries.single.points, hasLength(1));
     expect(chart.secondarySeries.single.color, isNot(chart.pointColor));
-    expect(chart.pointLabel, 'O₂ Supply');
+    expect(chart.pointLabel, 'O₂');
     expect(chart.secondarySeries.single.label, 'Diluent');
   });
 
@@ -104,9 +104,11 @@ void main() {
 
     expect(find.text('O₂ average'), findsNothing);
     expect(find.text('Diluent average'), findsOneWidget);
+    // Primary, so the fit, the rolling mean and the range picker still work.
     final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
-    expect(chart.points, isEmpty);
-    expect(chart.secondarySeries.single.points, hasLength(1));
+    expect(chart.points, hasLength(1));
+    expect(chart.pointLabel, 'Diluent');
+    expect(chart.secondarySeries, isEmpty);
   });
 
   testWidgets('a diver with O2 data only draws no second series', (

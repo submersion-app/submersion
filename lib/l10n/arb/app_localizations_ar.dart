@@ -30342,6 +30342,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_ccrUse_o2Average => 'متوسط O₂';
 
   @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
   String get insights_gas_ccrUse_diluentAverage => 'متوسط المخفف';
 
   @override

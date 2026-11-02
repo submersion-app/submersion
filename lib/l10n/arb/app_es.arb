@@ -8644,6 +8644,7 @@
   "insights_gas_ccrUse_title": "Uso de gas del rebreather",
   "insights_gas_ccrUse_subtitle": "Por minuto en el circuito, sin tiempo de bailout",
   "insights_gas_ccrUse_o2Average": "Media de O₂",
+  "insights_gas_ccrUse_o2Series": "O₂",
   "insights_gas_ccrUse_diluentAverage": "Media de diluyente",
   "insights_gas_sacRecords_empty": "Aún no hay datos de consumo",
   "insights_gas_sacRecords_error": "Error al cargar los récords de consumo",

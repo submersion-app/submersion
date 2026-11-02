@@ -123,7 +123,9 @@ import may not. Loop time is everything else. No switches means all loop time.
 **Where a cylinder's gas went.**
 
 - *With a usable pressure series:* the drop across the loop periods is loop gas,
-  and the drop across the bailout periods is bailout gas. A series showing no
+  and the drop across the stretches of bailout this cylinder was breathed is
+  bailout gas. A cylinder cooling during another's bailout gave nothing up. A
+  series showing no
   drop falls back to the logged pressures, as `calculateCylinderSac` does
   (issue #3373). Transmitter dropouts must not count as drops; reuse the rule in
   `_withoutDropouts` in `ccr_bailout_timeline.dart` rather than copying it.

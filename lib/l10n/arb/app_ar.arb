@@ -8644,6 +8644,7 @@
   "insights_gas_ccrUse_title": "استهلاك الغاز لجهاز إعادة التنفس",
   "insights_gas_ccrUse_subtitle": "لكل دقيقة على الحلقة، باستثناء وقت الانتقال إلى الدائرة المفتوحة",
   "insights_gas_ccrUse_o2Average": "متوسط O₂",
+  "insights_gas_ccrUse_o2Series": "O₂",
   "insights_gas_ccrUse_diluentAverage": "متوسط المخفف",
   "insights_gas_sacRecords_empty": "لا توجد بيانات استهلاك بعد",
   "insights_gas_sacRecords_error": "فشل تحميل سجلات الاستهلاك",

@@ -28372,6 +28372,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_ccrUse_o2Average => 'O₂ 平均';
 
   @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
   String get insights_gas_ccrUse_diluentAverage => '稀释气平均';
 
   @override

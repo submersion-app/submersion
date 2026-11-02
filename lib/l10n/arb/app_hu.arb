@@ -8543,6 +8543,7 @@
   "insights_gas_ccrUse_title": "Rebreather gázfogyasztás",
   "insights_gas_ccrUse_subtitle": "Percenként a hurkon, a bailout idő nélkül",
   "insights_gas_ccrUse_o2Average": "Átlagos O₂",
+  "insights_gas_ccrUse_o2Series": "O₂",
   "insights_gas_ccrUse_diluentAverage": "Átlagos diluens",
   "insights_gas_sacRecords_empty": "Még nincsenek fogyasztási adatok",
   "insights_gas_sacRecords_error": "Nem sikerült a fogyasztási rekordok betöltése",

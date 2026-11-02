@@ -30096,6 +30096,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_gas_ccrUse_o2Average => 'Média de O₂';
 
   @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
   String get insights_gas_ccrUse_diluentAverage => 'Média de diluente';
 
   @override

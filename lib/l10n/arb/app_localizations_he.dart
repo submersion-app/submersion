@@ -29335,6 +29335,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_ccrUse_o2Average => 'ממוצע O₂';
 
   @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
   String get insights_gas_ccrUse_diluentAverage => 'ממוצע מדלל';
 
   @override

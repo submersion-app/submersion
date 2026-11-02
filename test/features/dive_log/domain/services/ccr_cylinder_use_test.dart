@@ -322,6 +322,20 @@ void main() {
       expect(_of(use, 'd').loopRate, closeTo(30 * 7 / 60, 1e-9));
     });
 
+    test('a cylinder keeps only the gas lost while it was breathed', () {
+      // Bailed onto a at 1000 s, then b at 2000 s. a's later drop is cooling.
+      final use = _use(
+        [_tank('a', TankRole.bailout), _tank('b', TankRole.bailout)],
+        switches: [_switchTo('a', 1000), _switchTo('b', 2000)],
+        pressures: {
+          'a': _series('a', [(0, 200), (1000, 200), (2000, 150), (3600, 140)]),
+        },
+      );
+      expect(_of(use, 'a').bailoutWindows, [(start: 1000, end: 2000)]);
+      expect(_of(use, 'a').bailoutStartBar, 200);
+      expect(_of(use, 'a').bailoutEndBar, 150);
+    });
+
     test('the minimum drop applies to the loop share of a series', () {
       // 30 bar lost in all, only 15 of it on the loop.
       final use = _use(

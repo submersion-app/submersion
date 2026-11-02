@@ -8543,6 +8543,7 @@
   "insights_gas_ccrUse_title": "Consommation de gaz du recycleur",
   "insights_gas_ccrUse_subtitle": "Par minute sur la boucle, hors temps de bailout",
   "insights_gas_ccrUse_o2Average": "Moyenne O₂",
+  "insights_gas_ccrUse_o2Series": "O₂",
   "insights_gas_ccrUse_diluentAverage": "Moyenne diluant",
   "insights_gas_sacRecords_empty": "Aucune donnée de consommation",
   "insights_gas_sacRecords_error": "Échec du chargement des records de consommation",

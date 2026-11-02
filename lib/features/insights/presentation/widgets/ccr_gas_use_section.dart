@@ -29,6 +29,10 @@ class CcrGasUseSection extends ConsumerWidget {
 
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
+    // The fit, the rolling mean and the range picker read the primary series,
+    // so a diver with no O2 line has diluent there.
+    final diluentOnly = trend.o2.isEmpty;
+    final diluentLabel = l10n.insights_gas_tankRole_diluent;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TrendChartSection(
@@ -37,19 +41,21 @@ class CcrGasUseSection extends ConsumerWidget {
         title: l10n.insights_gas_ccrUse_title,
         subtitle: l10n.insights_gas_ccrUse_subtitle,
         header: _averages(context, trend, units.formatRmv),
-        pointsAsync: AsyncData(trend.o2),
-        pointLabel: l10n.insights_gas_tankRole_oxygenSupply,
+        pointsAsync: AsyncData(diluentOnly ? trend.diluent : trend.o2),
+        pointLabel: diluentOnly
+            ? diluentLabel
+            : l10n.insights_gas_ccrUse_o2Series,
         secondarySeries: [
-          if (trend.diluent.isNotEmpty)
+          if (!diluentOnly && trend.diluent.isNotEmpty)
             TrendSeries(
-              label: l10n.insights_gas_tankRole_diluent,
+              label: diluentLabel,
               points: trend.diluent,
               color: _diluentColor,
             ),
         ],
         // The card hides on an error, so this is never shown.
         errorMessage: l10n.insights_gas_sacTrend_error,
-        lineColor: _o2Color,
+        lineColor: diluentOnly ? _diluentColor : _o2Color,
         yAxisLabel: units.rmvSymbol,
         valueFormatter: units.formatRmv,
         yAxisFormatter: (value) =>

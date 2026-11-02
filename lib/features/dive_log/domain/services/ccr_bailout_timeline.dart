@@ -15,6 +15,12 @@ import 'package:submersion/core/constants/enums.dart';
 /// Smallest drop on open circuit, in bar, that can flag a cylinder.
 const double kBailoutMinOcDropBar = 20.0;
 
+/// Smallest loop drop, in bar, that counts on a cylinder not marked as loop
+/// gas. A cylinder filled warm loses pressure as it cools: an 11 L bailout
+/// loses about 13 bar in 5 C water without being touched, which over an hour
+/// would read as 2.5 L/min.
+const double kMinUnmarkedLoopDropBar = 20.0;
+
 /// Shortest total open-circuit time, in seconds, worth judging.
 const int kBailoutMinOcSeconds = 120;
 

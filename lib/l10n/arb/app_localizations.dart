@@ -48240,6 +48240,12 @@ abstract class AppLocalizations {
   /// **'O₂ average'**
   String get insights_gas_ccrUse_o2Average;
 
+  /// No description provided for @insights_gas_ccrUse_o2Series.
+  ///
+  /// In en, this message translates to:
+  /// **'O₂'**
+  String get insights_gas_ccrUse_o2Series;
+
   /// No description provided for @insights_gas_ccrUse_diluentAverage.
   ///
   /// In en, this message translates to:

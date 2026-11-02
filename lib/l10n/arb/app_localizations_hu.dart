@@ -29958,6 +29958,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_ccrUse_o2Average => 'Átlagos O₂';
 
   @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
   String get insights_gas_ccrUse_diluentAverage => 'Átlagos diluens';
 
   @override
