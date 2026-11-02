@@ -343,7 +343,7 @@ void main() {
         expect(ranges.last, (90, 210));
       });
 
-      for (final mode in [EditorMode.outlier, EditorMode.trim]) {
+      for (final mode in [EditorMode.outlier, EditorMode.delete]) {
         testWidgets('${mode.name} mode ignores the chart', (tester) async {
           await pumpChart(tester, mode: mode);
 

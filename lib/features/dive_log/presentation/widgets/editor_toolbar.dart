@@ -44,8 +44,8 @@ class EditorToolbar extends StatelessWidget {
             label: Text(context.l10n.diveLog_profileEditor_mode_draw),
           ),
           ButtonSegment(
-            value: EditorMode.trim,
-            icon: const Icon(Icons.content_cut),
+            value: EditorMode.delete,
+            icon: const Icon(Icons.cleaning_services),
             label: Text(context.l10n.common_action_delete),
           ),
         ],

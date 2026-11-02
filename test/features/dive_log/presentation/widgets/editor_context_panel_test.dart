@@ -37,7 +37,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('en'),
         home: Scaffold(
-          body: EditorContextPanel(mode: EditorMode.trim, notifier: notifier),
+          body: EditorContextPanel(mode: EditorMode.delete, notifier: notifier),
         ),
       ),
     );

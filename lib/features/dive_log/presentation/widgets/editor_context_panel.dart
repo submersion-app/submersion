@@ -72,7 +72,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
         EditorMode.smooth => _buildSmoothPanel(context),
         EditorMode.outlier => _buildOutlierPanel(context),
         EditorMode.draw => _buildDrawPanel(context),
-        EditorMode.trim => _buildTrimPanel(context),
+        EditorMode.delete => _buildTrimPanel(context),
       },
     );
   }

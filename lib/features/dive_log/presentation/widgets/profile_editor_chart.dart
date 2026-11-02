@@ -218,7 +218,7 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
   Set<int> _markedTimestamps() => switch (widget.mode) {
     EditorMode.outlier => {...?widget.outliers?.map((o) => o.timestamp)},
     EditorMode.draw => {...?widget.waypoints?.map((w) => w.timestamp)},
-    EditorMode.select || EditorMode.smooth || EditorMode.trim => const {},
+    EditorMode.select || EditorMode.smooth || EditorMode.delete => const {},
   };
 
   /// One painter serves every marked sample: it keeps nothing between draws.
@@ -234,7 +234,7 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
         EditorMode.outlier ||
         EditorMode.select ||
         EditorMode.smooth ||
-        EditorMode.trim => FlDotCirclePainter(
+        EditorMode.delete => FlDotCirclePainter(
           radius: 5,
           color: colorScheme.error,
           strokeWidth: 1.5,
