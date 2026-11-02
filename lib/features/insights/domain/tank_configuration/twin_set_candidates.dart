@@ -14,15 +14,20 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 const double twinSetMinVolumeLiters = 20.0;
 
 final RegExp _twinWord = RegExp('twin|double|doppel|manifold');
+// A twin-outlet valve on a single cylinder ("Doppelventil", "twin valve"):
+// the word describes the valve, not the cylinder (issue #3374's report).
+final RegExp _valvePhrase = RegExp(r'(twin|double|doppel)\s*(ventil|valve)s?');
 // The 2 must start a number: "12x232" is a 12 L single by its pressure.
 final RegExp _twinCount = RegExp(r'(?<![0-9.,])2\s*[x×]\s*\d');
 final RegExp _twinDCode = RegExp(r'(?<![a-z0-9])d\d{1,2}(?![a-z0-9])');
 
 /// Whether [tank] looks like a twin set logged as one cylinder: its name or
 /// preset says so (twin, double, doppel, manifold, 2x12, D12), or it holds
-/// [twinSetMinVolumeLiters] or more. Preset names are stored slugs such as
-/// `twin_12`, so an underscore separates words. Reads nothing but the name,
-/// the preset and the size; see [isTwinSetCandidate] for the role.
+/// [twinSetMinVolumeLiters] or more. A double valve ("Doppelventil", "twin
+/// valve") is a valve, not a pair, and does not count. Preset names are
+/// stored slugs such as `twin_12`, so an underscore separates words. Reads
+/// nothing but the name, the preset and the size; see [isTwinSetCandidate]
+/// for the role.
 bool looksLikeTwinSet(DiveTank tank) {
   final volume = tank.volume;
   if (volume != null && volume >= twinSetMinVolumeLiters) return true;
@@ -36,7 +41,10 @@ bool isTwinSetCandidate(DiveTank tank) =>
 
 bool _namesTwin(String? raw) {
   if (raw == null) return false;
-  final text = raw.toLowerCase().replaceAll('_', ' ');
+  final text = raw
+      .toLowerCase()
+      .replaceAll('_', ' ')
+      .replaceAll(_valvePhrase, ' ');
   return _twinWord.hasMatch(text) ||
       _twinCount.hasMatch(text) ||
       _twinDCode.hasMatch(text);

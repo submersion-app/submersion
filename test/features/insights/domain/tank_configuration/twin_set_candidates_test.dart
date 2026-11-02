@@ -59,6 +59,12 @@ void main() {
       'Faber 12x300',
       '12 x 300',
       '232x12',
+      // A valve with two outlets on a single cylinder, the forum report
+      // behind issue #3374: the word says nothing about the cylinder.
+      'Doppelventil',
+      'Mono 12 doppel Ventil',
+      'Twin valve 12',
+      '12L double valve',
     ]) {
       test('name "$name" is not a twin set', () {
         expect(looksLikeTwinSet(tank(TankRole.backGas, name: name)), isFalse);

@@ -29285,8 +29285,9 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'ב-$count צלילות יש בלונים שנראים כמו צמד בלונים.',
-      one: 'בצלילה $count יש בלון שנראה כמו צמד בלונים.',
+      other: 'ב־$count צלילות יש בלונים שנראים כמו צמד בלונים.',
+      two: 'בשתי צלילות יש בלונים שנראים כמו צמד בלונים.',
+      one: 'בצלילה אחת יש בלון שנראה כמו צמד בלונים.',
     );
     return '$_temp0';
   }
@@ -29315,9 +29316,11 @@ class AppLocalizationsHe extends AppLocalizations {
       tanks,
       locale: localeName,
       other:
-          'להגדיר את התפקיד של $tanks בלונים ב-$dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+          'להגדיר את התפקיד של $tanks בלונים $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+      two:
+          'להגדיר את התפקיד של שני בלונים $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
       one:
-          'להגדיר את התפקיד של $tanks בלון ב-$dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+          'להגדיר את התפקיד של בלון אחד $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
     );
     return '$_temp0';
   }
@@ -29327,8 +29330,9 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count צלילות',
-      one: 'צלילה $count',
+      other: 'ב־$count צלילות',
+      two: 'בשתי צלילות',
+      one: 'בצלילה אחת',
     );
     return '$_temp0';
   }
@@ -29345,7 +29349,8 @@ class AppLocalizationsHe extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count בלונים הוגדרו כצמד בלונים',
-      one: '$count בלון הוגדר כצמד בלונים',
+      two: 'שני בלונים הוגדרו כצמד בלונים',
+      one: 'בלון אחד הוגדר כצמד בלונים',
     );
     return '$_temp0';
   }
