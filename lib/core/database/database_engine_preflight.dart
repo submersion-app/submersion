@@ -1,5 +1,6 @@
 import 'package:sqlite3/common.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 
 /// Thrown when the SQLite/SQLCipher engine the app is linked against cannot be
@@ -76,6 +77,11 @@ class _InMemoryEngineProbe implements DatabaseEngineProbe {
 ///
 /// Throws [DatabaseEngineUnavailableException]; returns normally otherwise.
 void assertDatabaseEngineAvailable({DatabaseEngineProbeOpener? openProbe}) {
+  // A browser has no in-memory handle to probe: sqlite3.wasm loads when the
+  // database opens, and a failure there is reported as this same exception
+  // by the web connection, so the failure screen still says "this build is
+  // broken" rather than "your data is damaged".
+  if (HostPlatform.isWeb && openProbe == null) return;
   final DatabaseEngineProbe probe;
   try {
     probe = (openProbe ?? _InMemoryEngineProbe.new)();

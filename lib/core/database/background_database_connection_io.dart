@@ -128,6 +128,11 @@ class BackgroundDatabaseConnection {
   /// The executor to hand to a generated drift database.
   final DatabaseConnection connection;
 
+  /// Where the browser serves `sqlite3.wasm` and `drift_worker.js` from.
+  /// Unused on a native build; here so the facade's two halves match.
+  @visibleForTesting
+  static String assetBase = '';
+
   final Isolate _worker;
   final ReceivePort _exitPort;
   final Future<void> _workerExited;
@@ -157,6 +162,14 @@ class BackgroundDatabaseConnection {
   /// not shrink the file until a checkpoint.
   static Future<BackgroundDatabaseConnection> openPlain(String path) =>
       _spawn(path, _plainOpenerFor(File(path).absolute.path));
+
+  /// The browser reads the stored schema version through a probe
+  /// connection; a native build reads it synchronously through
+  /// `DatabaseService.getStoredSchemaVersion`, so this is never called.
+  static Future<int> readStoredSchemaVersion(String path) =>
+      throw UnsupportedError(
+        'native builds read the stored version through DatabaseService',
+      );
 
   static Future<BackgroundDatabaseConnection> _spawn(
     String path,

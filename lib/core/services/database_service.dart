@@ -204,10 +204,13 @@ class DatabaseService {
     final dbPath = pathOverride ?? await _resolveDatabasePath();
     _currentDatabasePath = dbPath;
 
-    // Ensure directory exists
-    final dbDir = Directory(p.dirname(dbPath));
-    if (!await dbDir.exists()) {
-      await dbDir.create(recursive: true);
+    // Ensure directory exists. A browser has no directory: its database
+    // lives in the origin private file system under drift's name for it.
+    if (!HostPlatform.isWeb) {
+      final dbDir = Directory(p.dirname(dbPath));
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+      }
     }
 
     _openAttempted = true;
@@ -219,7 +222,8 @@ class DatabaseService {
       onCompacting: onCompacting,
     );
 
-    await _assertCipherAvailable(_database!);
+    // No cipher in a browser: encryption at rest is not offered there.
+    if (!HostPlatform.isWeb) await _assertCipherAvailable(_database!);
   }
 
   /// Fails loudly if the native library behind the OPEN connection is not
@@ -283,6 +287,13 @@ class DatabaseService {
     DatabaseCompactionPrefs? compaction,
     void Function()? onCompacting,
   }) async {
+    if (HostPlatform.isWeb) {
+      return _openWebDatabase(
+        dbPath,
+        onMigrationProgress: onMigrationProgress,
+        allowSchemaUpgrade: allowSchemaUpgrade,
+      );
+    }
     final file = File(dbPath);
     final keyHex = databaseKeyHex;
     final stored = getStoredSchemaVersion(dbPath, keyHex: keyHex);
@@ -356,8 +367,42 @@ class DatabaseService {
     }
 
     return retryWhileDatabaseBusy(
-      () => _openOnBackgroundExecutor(file, keyHex, onMigrationProgress),
+      () => _openOnBackgroundExecutor(dbPath, keyHex, onMigrationProgress),
     );
+  }
+
+  /// The browser open: no file, no cipher and no upgrade ladder.
+  ///
+  /// The stored version is read through a probe connection with drift's
+  /// migrations off, so the newer-than-app guard and the upgrade refusal
+  /// apply as on native. drift then runs the schema migration itself on the
+  /// first statement, reporting through [onMigrationProgress]; the ladder's
+  /// pre-migration backup and VACUUM have no file to work on here.
+  Future<AppDatabase> _openWebDatabase(
+    String dbPath, {
+    required void Function(int currentStep, int totalSteps)?
+    onMigrationProgress,
+    required bool allowSchemaUpgrade,
+  }) async {
+    final stored = await BackgroundDatabaseConnection.readStoredSchemaVersion(
+      dbPath,
+    );
+    if (stored > AppDatabase.currentSchemaVersion) {
+      throw DatabaseVersionMismatchException(
+        storedSchemaVersion: stored,
+        supportedSchemaVersion: AppDatabase.currentSchemaVersion,
+      );
+    }
+    final migrationPending =
+        stored > 0 && stored < AppDatabase.currentSchemaVersion;
+    if (migrationPending && !allowSchemaUpgrade) {
+      throw SchemaUpgradePendingException(
+        storedSchemaVersion: stored,
+        supportedSchemaVersion: AppDatabase.currentSchemaVersion,
+      );
+    }
+    lastOpenMode = DatabaseOpenMode.background;
+    return _openOnBackgroundExecutor(dbPath, null, onMigrationProgress);
   }
 
   /// Test seam for the rewrite [_compactAsRequested] runs.
@@ -545,12 +590,12 @@ class DatabaseService {
   /// [_assertCipherAvailable]'s `PRAGMA cipher_version`, short-circuits under
   /// FLUTTER_TEST.)
   Future<AppDatabase> _openOnBackgroundExecutor(
-    File file,
+    String dbPath,
     String? keyHex,
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   ) async {
     final background = await BackgroundDatabaseConnection.open(
-      file.path,
+      dbPath,
       keyHex: keyHex,
     );
     final database = AppDatabase(

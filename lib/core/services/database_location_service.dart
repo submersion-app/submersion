@@ -13,6 +13,14 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 
+/// Where the browser's database lives.
+///
+/// A virtual path: the browser keeps the database in the origin private file
+/// system under drift's name for it (the file name without its extension),
+/// and nothing reads this string as a filesystem path. It exists so the code
+/// that passes a database path around has one, and so a log line names it.
+const String kWebDatabasePath = '/opfs/Submersion/submersion.db';
+
 /// Service for managing database file location
 ///
 /// This service handles:
@@ -160,6 +168,7 @@ class DatabaseLocationService {
     if (override != null && override.isNotEmpty) {
       return override;
     }
+    if (HostPlatform.isWeb) return kWebDatabasePath;
 
     final config = await getStorageConfig();
 
@@ -192,7 +201,10 @@ class DatabaseLocationService {
   /// - Android: app-specific external storage (internal or SD card). The live
   ///   DB needs a real lockable path; arbitrary SAF folders cannot back a
   ///   SQLite file, so the choice is curated to writable app-specific volumes.
-  bool get isCustomFolderSupported => true;
+  ///
+  /// Not in a browser, where the database lives in the origin private file
+  /// system and no folder can be chosen.
+  bool get isCustomFolderSupported => !HostPlatform.isWeb;
 
   /// Check if we're running on a desktop platform
   bool get isDesktopPlatform =>
