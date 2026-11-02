@@ -162,8 +162,8 @@ Rules:
 ### 5.4 Filler words (new, in the parser)
 
 On an entity that opts in, a bare filler word is dropped: `with`, `in`, `at`,
-`on`, `from`, `the`, `of`, `near`, `during`, plus the same small list in the
-diver's app language. English always applies, because that is what the date
+`on`, `from`, `the`, `of`, `near`, `during`, `dive`, `dives`, plus a similar
+small list in the diver's app language. English always applies, because that is what the date
 grammar reads.
 
 - Only a bare word at the top level of a term list is dropped. A quoted word and

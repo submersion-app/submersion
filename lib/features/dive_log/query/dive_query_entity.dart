@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dar
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
+import 'package:submersion/features/dive_log/query/dive_word_meanings.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -293,11 +294,16 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'courses',
     'dive_computers',
   ],
-  textSearchExpansions: const [
+  textSearchExpansions: [
     kDiveTypeTranslatedTextSearch,
     kDiveNumberTextSearch,
     kSightingTranslatedTextSearch,
+    ...diveWordExpansions(
+      entryMethodSql: _effectiveEntryMethod,
+      waterTypeSql: _effectiveWaterType,
+    ),
   ],
+  plainWords: kDivePlainWords,
   fields: [
     QueryField(
       key: 'id',

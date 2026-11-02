@@ -149,6 +149,11 @@ void main() {
       expect(read('with mike'), word('mike'));
     });
 
+    test('the word dive only names what is being searched', () {
+      expect(read('dives in the ressel'), word('ressel'));
+      expect(read('dive'), word('dive'));
+    });
+
     test('stay when every term is filler', () {
       expect(read('the'), word('the'));
       expect(read('with the'), AndNode([word('with'), word('the')]));

@@ -10,7 +10,8 @@ final _bareNumber = RegExp(
 /// CJK input method). ASCII digits need no mapping.
 const _digitZeros = [0x0660, 0x06F0, 0xFF10];
 
-String _asciiDigits(String digits) => String.fromCharCodes(
+/// [digits] with every digit set a keyboard here may type folded to ASCII.
+String asciiDigits(String digits) => String.fromCharCodes(
   digits.runes.map((r) {
     for (final zero in _digitZeros) {
       if (r >= zero && r <= zero + 9) return 0x30 + r - zero;
@@ -24,7 +25,7 @@ String _asciiDigits(String digits) => String.fromCharCodes(
 int? _diveNumberOfWord(String word) {
   final match = _bareNumber.firstMatch(word);
   if (match == null) return null;
-  return int.tryParse(_asciiDigits(match.group(1)!));
+  return int.tryParse(asciiDigits(match.group(1)!));
 }
 
 /// The dive number a search field holding only a whole number asks for, or

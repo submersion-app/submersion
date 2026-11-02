@@ -9,8 +9,8 @@ import 'package:submersion/core/query/syntax/query_tokenizer.dart';
 /// `between march 2018 and june 2019` is the longest form the grammar reads.
 const int _longestDatePhrase = 6;
 
-/// `closed circuit rebreather` and its translations fit in four words.
-const int _longestLabelPhrase = 4;
+/// `closed circuit rebreather` and its translations fit in five words.
+const int kLongestLabelPhrase = 5;
 
 final RegExp _bareYear = RegExp(r'^\d{4}$');
 
@@ -67,7 +67,7 @@ int? readLabelPhrase(
   bool Function(List<String> words) isPhrase,
 ) {
   var run = 0;
-  while (run < _longestLabelPhrase &&
+  while (run < kLongestLabelPhrase &&
       start + run < tokens.length &&
       tokens[start + run].kind == TokenKind.word) {
     run++;
@@ -102,6 +102,8 @@ const Set<String> _englishFillers = {
   'of',
   'near',
   'during',
+  'dive',
+  'dives',
 };
 
 const Map<String, Set<String>> _fillers = {

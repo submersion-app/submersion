@@ -261,4 +261,195 @@ void main() {
       );
     });
   });
+
+  Future<void> insertSite(
+    String id,
+    String name, {
+    String? country,
+    String? waterType,
+    String? entryMethod,
+  }) => sql(
+    'INSERT INTO dive_sites (id, name, country, water_type, entry_method, '
+    'created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, name, country, waterType, entryMethod, stamp, stamp],
+  );
+
+  Future<void> patchDive(String id, String column, Object? value) =>
+      sql('UPDATE dives SET $column = ? WHERE id = ?', [value, id]);
+
+  Future<void> insertTank(String id, String diveId, double o2, double he) =>
+      sql(
+        'INSERT INTO dive_tanks (id, dive_id, o2_percent, he_percent) '
+        'VALUES (?, ?, ?, ?)',
+        [id, diveId, o2, he],
+      );
+
+  group('the searches from the issue', () {
+    setUp(() async {
+      await insertSite('ressel', 'Ressel', country: 'France');
+      await insertSite('pier', 'Salt Pier', country: 'Bonaire');
+      await insertDive('oct', date: DateTime(2018, 10, 14));
+      await patchDive('oct', 'site_id', 'ressel');
+      await insertDive('mar', date: DateTime(2018, 3, 2));
+      await patchDive('mar', 'site_id', 'ressel');
+      await patchDive('mar', 'buddy', 'Mike');
+      await insertDive('later', date: DateTime(2019, 10, 14));
+      await patchDive('later', 'site_id', 'ressel');
+      await insertDive('away', date: DateTime(2018, 10, 20));
+      await patchDive('away', 'site_id', 'pier');
+    });
+
+    test('a site, a month and a year', () async {
+      expect(await found('ressel october 2018'), ['oct']);
+    });
+
+    test('a country, a month and a year', () async {
+      expect(await found('france october 2018'), ['oct']);
+    });
+
+    test('a site in a year', () async {
+      expect(await found('ressel in 2018'), unorderedEquals(['oct', 'mar']));
+    });
+
+    test('a site with a buddy', () async {
+      expect(await found('ressel with mike'), ['mar']);
+    });
+
+    test('the whole sentence', () async {
+      expect(await found('dives in the ressel in 2018 with mike'), ['mar']);
+    });
+  });
+
+  group('words that stand for a value', () {
+    test('a year finds its dives, the notes and the dive number', () async {
+      await insertDive('in-year', date: DateTime(2018, 5, 1));
+      await insertDive('in-notes', date: DateTime(2021, 5, 1));
+      await patchDive('in-notes', 'notes', 'Back here since 2018');
+      await insertDive('numbered', date: DateTime(2021, 5, 2));
+      await patchDive('numbered', 'dive_number', 2018);
+      await insertDive('other', date: DateTime(2021, 5, 3));
+
+      expect(
+        await found('2018'),
+        unorderedEquals(['in-year', 'in-notes', 'numbered']),
+      );
+    });
+
+    test('a month name finds that month of any year', () async {
+      await insertDive('one', date: DateTime(2018, 10, 1));
+      await insertDive('two', date: DateTime(2021, 10, 31));
+      await insertDive('other', date: DateTime(2021, 11, 1));
+
+      expect(await found('october'), unorderedEquals(['one', 'two']));
+      expect(await found('octobre'), unorderedEquals(['one', 'two']));
+    });
+
+    test('a month name that is also a buddy finds both', () async {
+      await insertDive('in-june', date: DateTime(2021, 6, 2));
+      await insertDive('with-june', date: DateTime(2021, 7, 2));
+      await patchDive('with-june', 'buddy', 'June');
+      await insertDive('other', date: DateTime(2021, 8, 2));
+
+      expect(await found('june'), unorderedEquals(['in-june', 'with-june']));
+    });
+
+    test('a short month alone finds a buddy, not the month', () async {
+      await insertDive('in-jan', date: DateTime(2021, 1, 2));
+      await insertDive('with-jan', date: DateTime(2021, 7, 2));
+      await patchDive('with-jan', 'buddy', 'Jan');
+
+      expect(await found('jan'), ['with-jan']);
+      expect(await found('jan 2021'), ['in-jan']);
+    });
+
+    test('a weekday finds its dives', () async {
+      await insertDive('saturday', date: DateTime(2026, 10, 31));
+      await insertDive('sunday', date: DateTime(2026, 11, 1));
+
+      expect(await found('saturday'), ['saturday']);
+    });
+
+    test('a dive mode', () async {
+      await insertDive('loop');
+      await patchDive('loop', 'dive_mode', 'ccr');
+      await insertDive('open');
+
+      expect(await found('ccr'), ['loop']);
+      expect(await found('rebreather'), ['loop']);
+      expect(await found('closed circuit rebreather'), ['loop']);
+    });
+
+    test('an entry or exit method', () async {
+      await insertDive('in');
+      await patchDive('in', 'entry_method', 'shore');
+      await insertDive('out');
+      await patchDive('out', 'exit_method', 'shore');
+      await insertDive('roll');
+      await patchDive('roll', 'entry_method', 'backRoll');
+
+      expect(await found('shore'), unorderedEquals(['in', 'out']));
+      expect(await found('back roll'), ['roll']);
+    });
+
+    test('entry follows the site when the dive has none', () async {
+      await insertSite('jetty', 'Town', entryMethod: 'shore');
+      await insertDive('at-site');
+      await patchDive('at-site', 'site_id', 'jetty');
+
+      expect(await found('shore'), ['at-site']);
+    });
+
+    test('water type follows the site when the dive has none', () async {
+      await insertSite('lake', 'Lake', waterType: 'fresh');
+      await insertDive('at-site');
+      await patchDive('at-site', 'site_id', 'lake');
+      await insertDive('sea');
+      await patchDive('sea', 'water_type', 'salt');
+
+      expect(await found('fresh water'), ['at-site']);
+      expect(await found('saltwater'), ['sea']);
+    });
+
+    test('a gas word reads the mix, not the oxygen alone', () async {
+      await insertDive('air');
+      await insertTank('t1', 'air', 21, 0);
+      await insertDive('ean32');
+      await insertTank('t2', 'ean32', 32, 0);
+      await insertDive('tx');
+      await insertTank('t3', 'tx', 21, 35);
+      await insertDive('rich-tx');
+      await insertTank('t4', 'rich-tx', 32, 10);
+
+      expect(await found('air'), ['air']);
+      expect(await found('nitrox'), ['ean32']);
+      expect(await found('trimix'), unorderedEquals(['tx', 'rich-tx']));
+      expect(await found('ean32'), ['ean32']);
+    });
+
+    test('a favourite', () async {
+      await insertDive('liked');
+      await patchDive('liked', 'is_favorite', 1);
+      await insertDive('other');
+
+      expect(await found('favourite'), ['liked']);
+      expect(await found('favorite'), ['liked']);
+    });
+
+    test('a word that is a field reads as plain words before in', () async {
+      await insertDive('liked', date: DateTime(2018, 5, 1));
+      await patchDive('liked', 'is_favorite', 1);
+      await insertDive('liked-later', date: DateTime(2019, 5, 1));
+      await patchDive('liked-later', 'is_favorite', 1);
+
+      expect(await found('favorite in 2018'), ['liked']);
+    });
+
+    test('a negated word keeps a dive with no value', () async {
+      await insertDive('walked');
+      await patchDive('walked', 'entry_method', 'shore');
+      await insertDive('unset');
+
+      expect(await found('not shore'), ['unset']);
+    });
+  });
 }
