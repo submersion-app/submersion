@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -55,6 +56,7 @@ void main() {
     List<AccountGroup> groups = const [],
     String? Function(AccountGroup)? consequenceOf,
     SetUpHost host = SetUpHost.settingsPage,
+    bool browser = false,
   }) async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
@@ -65,6 +67,10 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          if (browser)
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
           accountGroupsProvider.overrideWith((ref) async => groups),
           offerableAccountKindsProvider.overrideWithValue(const [
             AccountKindOffer.icloud,
@@ -212,5 +218,12 @@ void main() {
     await pump(tester, host: SetUpHost.assistant);
 
     expect(find.text('I have a backup file instead'), findsOneWidget);
+  });
+
+  testWidgets('a browser offers no backup file (#4121)', (tester) async {
+    await pump(tester, browser: true);
+
+    expect(find.text('I have a backup file instead'), findsNothing);
+    expect(find.text('Not now'), findsOneWidget);
   });
 }

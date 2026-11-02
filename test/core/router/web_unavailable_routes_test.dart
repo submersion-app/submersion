@@ -99,4 +99,12 @@ void main() {
       expect(feature.reason, isA<WebUnavailableReason>(), reason: feature.name);
     }
   });
+
+  test('the buddy swap screen is a nearby feature', () {
+    expect(
+      webUnavailableFeatureFor('/buddies/swap'),
+      WebUnavailableFeature.nearby,
+    );
+    expect(webUnavailableFeatureFor('/buddies'), isNull);
+  });
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart';
@@ -1403,6 +1404,20 @@ void main() {
       final updatesTop = tester.getTopLeft(find.text('Updates')).dy;
       final diagnosticsTop = tester.getTopLeft(find.text('Diagnostics')).dy;
       expect(diagnosticsTop, greaterThan(updatesTop));
+    });
+
+    testWidgets('a browser has no Updates card (#4121)', (tester) async {
+      await tester.pumpWidget(
+        buildAboutWidget([
+          ...await aboutOverrides(),
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(find.text('Updates'), findsNothing);
+      expect(find.text('Diagnostics'), findsOneWidget);
     });
 
     testWidgets('leaves the bathymetry credit to the licenses page', (

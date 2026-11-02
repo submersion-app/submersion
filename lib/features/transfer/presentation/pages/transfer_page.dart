@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/dive_computer/presentation/navigation/dive_computer_location.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
@@ -94,11 +95,12 @@ class TransferPage extends ConsumerWidget {
 }
 
 /// Mobile content showing section list for navigation.
-class TransferMobileContent extends StatelessWidget {
+class TransferMobileContent extends ConsumerWidget {
   const TransferMobileContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transferSections = ref.watch(transferSectionsProvider);
     return Scaffold(
       appBar: AppBar(
         title: FeatureAppBarTitle(
@@ -132,7 +134,8 @@ class _TransferSectionDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Find the section title
-    final section = transferSections
+    final section = ref
+        .watch(transferSectionsProvider)
         .where((s) => s.id == sectionId)
         .firstOrNull;
     final title =
@@ -784,7 +787,8 @@ class _ComputersSectionContent extends ConsumerWidget {
             error: (_, _) => const SizedBox.shrink(),
           ),
 
-          if (HostPlatform.isIOS) ...[
+          if (HostPlatform.isIOS &&
+              ref.watch(deviceCapabilitiesProvider).healthImport) ...[
             const SizedBox(height: 16),
             _buildSectionHeader(
               context,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_actions.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
@@ -88,8 +89,10 @@ class SetUpAccountStep extends ConsumerWidget {
           l10n.settings_setUpDevice_account_note,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        // First run offers its own Restore a backup file instead.
-        if (host != SetUpHost.firstRun)
+        // First run offers its own Restore a backup file instead, and a
+        // browser cannot restore one at all.
+        if (host != SetUpHost.firstRun &&
+            ref.watch(deviceCapabilitiesProvider).backupRestore)
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: TextButton(

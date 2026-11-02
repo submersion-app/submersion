@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion_saf/submersion_saf.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
@@ -53,6 +54,10 @@ class RestoreFromFileTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A browser cannot swap its database for a file.
+    if (!ref.watch(deviceCapabilitiesProvider).backupRestore) {
+      return const SizedBox.shrink();
+    }
     final busy =
         ref.watch(backupOperationProvider).status ==
         BackupOperationStatus.inProgress;

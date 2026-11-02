@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show ProviderScope;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   Future<({List<String> visited, List<bool> manualTaps})> pumpSheet(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    bool browser = false,
+  }) async {
     final visited = <String>[];
     final manualTaps = <bool>[];
     final router = GoRouter(
@@ -47,10 +50,18 @@ void main() {
       ],
     );
     await tester.pumpWidget(
-      MaterialApp.router(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: router,
+      ProviderScope(
+        overrides: [
+          if (browser)
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
       ),
     );
     await tester.tap(find.text('open'));
@@ -84,5 +95,12 @@ void main() {
     await tester.tap(find.text('Scan Paper Log'));
     await tester.pumpAndSettle();
     expect(harness.visited, ['/dives/scan']);
+  });
+
+  testWidgets('a browser offers only the manual entry (#4121)', (tester) async {
+    await pumpSheet(tester, browser: true);
+    expect(find.text('Log Dive Manually'), findsOneWidget);
+    expect(find.text('Import from Computer'), findsNothing);
+    expect(find.text('Scan Paper Log'), findsNothing);
   });
 }

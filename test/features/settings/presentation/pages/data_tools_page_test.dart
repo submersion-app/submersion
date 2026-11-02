@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
@@ -21,6 +22,7 @@ void main() {
     WidgetTester tester, {
     bool debugMode = false,
     bool demoActive = false,
+    bool browser = false,
   }) async {
     await tester.binding.setSurfaceSize(const Size(400, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -52,6 +54,10 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           logFileServiceProvider.overrideWithValue(testLogFileService()),
           demoModeActiveProvider.overrideWithValue(demoActive),
+          if (browser)
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -138,6 +144,17 @@ void main() {
       find.widgetWithText(DataRowTile, 'Agent access'),
     );
     expect(row.enabled, isFalse);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('keeps the agent access row off a browser even in debug mode', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await pumpPage(tester, debugMode: true, browser: true);
+    expect(find.byType(DataRowTile), findsNWidgets(4));
+    expect(find.text('Agent access'), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
 }

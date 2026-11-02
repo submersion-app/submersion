@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/router/training_locations.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -27,6 +28,7 @@ class NavDestination {
     this.isPinned = false,
     this.extraMatchPaths = const [],
     this.selection,
+    this.availableWhen,
     String? accent,
   }) : _accent = accent;
 
@@ -57,6 +59,12 @@ class NavDestination {
   /// A desktop master-detail selection that shows this destination's page,
   /// such as `/planning?tool=deco-calculator`.
   final NavSelectionMatch? selection;
+
+  /// Whether a device with [DeviceCapabilities] offers this destination at
+  /// all; null means always (issue #4121). Nothing in [kNavDestinations]
+  /// is hardware-only today: Transfer keeps its import and export sections
+  /// in a browser.
+  final bool Function(DeviceCapabilities caps)? availableWhen;
 
   final String? _accent;
 
@@ -228,6 +236,15 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     isPinned: true,
   ),
 ]);
+
+/// [all] without the destinations [caps] cannot offer.
+List<NavDestination> availableNavDestinations(
+  List<NavDestination> all,
+  DeviceCapabilities caps,
+) => [
+  for (final d in all)
+    if (d.availableWhen?.call(caps) ?? true) d,
+];
 
 /// The ids that can be moved between primary slots and overflow.
 final List<String> movableNavIds = List.unmodifiable(

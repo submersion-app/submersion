@@ -101,6 +101,56 @@ class DeviceCapabilities {
   /// Running as a web page.
   final bool isBrowser;
 
+  /// This value with the named capabilities changed; a test simulating one
+  /// device feature on another platform's build starts from the real value.
+  DeviceCapabilities copyWith({
+    bool? diveComputerDownload,
+    bool? nfc,
+    bool? nearby,
+    bool? healthImport,
+    bool? devicePhotoLibrary,
+    bool? mediaAttach,
+    bool? biometricLock,
+    bool? databaseEncryption,
+    bool? backgroundTasks,
+    bool? offlineMapTiles,
+    bool? backupRestore,
+    bool? sqliteImport,
+    bool? demoMode,
+    bool? agentAccess,
+    bool? autoUpdate,
+    bool? ocrImport,
+    bool? customDatabaseFolder,
+    bool? revealInFileManager,
+    bool? cloudICloud,
+    bool? cloudGit,
+    bool? cloudGoogleDrive,
+    bool? isBrowser,
+  }) => DeviceCapabilities(
+    diveComputerDownload: diveComputerDownload ?? this.diveComputerDownload,
+    nfc: nfc ?? this.nfc,
+    nearby: nearby ?? this.nearby,
+    healthImport: healthImport ?? this.healthImport,
+    devicePhotoLibrary: devicePhotoLibrary ?? this.devicePhotoLibrary,
+    mediaAttach: mediaAttach ?? this.mediaAttach,
+    biometricLock: biometricLock ?? this.biometricLock,
+    databaseEncryption: databaseEncryption ?? this.databaseEncryption,
+    backgroundTasks: backgroundTasks ?? this.backgroundTasks,
+    offlineMapTiles: offlineMapTiles ?? this.offlineMapTiles,
+    backupRestore: backupRestore ?? this.backupRestore,
+    sqliteImport: sqliteImport ?? this.sqliteImport,
+    demoMode: demoMode ?? this.demoMode,
+    agentAccess: agentAccess ?? this.agentAccess,
+    autoUpdate: autoUpdate ?? this.autoUpdate,
+    ocrImport: ocrImport ?? this.ocrImport,
+    customDatabaseFolder: customDatabaseFolder ?? this.customDatabaseFolder,
+    revealInFileManager: revealInFileManager ?? this.revealInFileManager,
+    cloudICloud: cloudICloud ?? this.cloudICloud,
+    cloudGit: cloudGit ?? this.cloudGit,
+    cloudGoogleDrive: cloudGoogleDrive ?? this.cloudGoogleDrive,
+    isBrowser: isBrowser ?? this.isBrowser,
+  );
+
   /// The browser: a page with a database and a network connection, and
   /// nothing the hardware, the filesystem or the operating system provide.
   static const DeviceCapabilities web = DeviceCapabilities(

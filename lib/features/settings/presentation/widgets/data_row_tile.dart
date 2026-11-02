@@ -12,7 +12,9 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// it for a feature that is not set up, and a chevron. The whole row opens
 /// [route] (or runs [onTap]); the button opens [setUpRoute], or [route] when
 /// none is given. A row that is not [enabled] is greyed out and says it is
-/// unavailable in demo mode (issue #3708).
+/// unavailable in demo mode (issue #3708). A row with neither [route] nor
+/// [onTap] only informs: no chevron and nothing to tap (a browser's
+/// database storage, issue #4121).
 class DataRowTile extends StatelessWidget {
   const DataRowTile({
     super.key,
@@ -25,7 +27,10 @@ class DataRowTile extends StatelessWidget {
     this.offersSetUp = false,
     this.setUpRoute,
     this.enabled = true,
-  }) : assert(route != null || onTap != null);
+  }) : assert(
+         route != null || onTap != null || !offersSetUp,
+         'a Set up action needs a route to open',
+       );
 
   final IconData icon;
   final String title;
@@ -44,6 +49,7 @@ class DataRowTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final h = health;
+    final target = route;
     final showMark = enabled && h != null && h.level != HealthLevel.notSetUp;
     if (!enabled) {
       return ListTile(
@@ -88,9 +94,15 @@ class DataRowTile extends StatelessWidget {
               ],
             )
           : Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: route == null && onTap == null
+          ? null
+          : const Icon(Icons.chevron_right),
       // In the desktop detail pane when it can show the page (#3467).
-      onTap: onTap ?? () => context.pushSettingsPage(route!),
+      onTap: onTap ?? (target == null ? null : () => _open(context, target)),
     );
+  }
+
+  static void _open(BuildContext context, String route) {
+    context.pushSettingsPage(route);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
@@ -50,6 +51,7 @@ class ExistingChoiceStep extends ConsumerWidget {
       );
     }
 
+    final caps = ref.watch(deviceCapabilitiesProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -69,24 +71,27 @@ class ExistingChoiceStep extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          card(
-            Icons.restore,
-            l10n.setup_existing_restore_title,
-            l10n.setup_existing_restore_subtitle,
-            ExistingDataSource.restoreBackup,
-          ),
+          // A browser has no file to restore from and no folder to open.
+          if (caps.backupRestore)
+            card(
+              Icons.restore,
+              l10n.setup_existing_restore_title,
+              l10n.setup_existing_restore_subtitle,
+              ExistingDataSource.restoreBackup,
+            ),
           card(
             Icons.cloud_sync,
             l10n.setup_existing_sync_title,
             l10n.setup_existing_sync_subtitle,
             ExistingDataSource.cloudSync,
           ),
-          card(
-            Icons.folder_open,
-            l10n.setup_existing_folder_title,
-            l10n.setup_existing_folder_subtitle,
-            ExistingDataSource.openFolder,
-          ),
+          if (caps.customDatabaseFolder)
+            card(
+              Icons.folder_open,
+              l10n.setup_existing_folder_title,
+              l10n.setup_existing_folder_subtitle,
+              ExistingDataSource.openFolder,
+            ),
         ],
       ),
     );

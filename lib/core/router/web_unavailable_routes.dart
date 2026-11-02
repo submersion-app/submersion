@@ -31,6 +31,7 @@ const webUnavailableRoutePrefixes = <String, WebUnavailableFeature>{
   '/dives/scan': WebUnavailableFeature.paperScan,
   '/settings/wearable-import': WebUnavailableFeature.wearableImport,
   '/settings/nearby': WebUnavailableFeature.nearby,
+  '/buddies/swap': WebUnavailableFeature.nearby,
   '/settings/offline-maps': WebUnavailableFeature.offlineMaps,
   '/settings/backup/restore': WebUnavailableFeature.backupRestore,
   '/settings/agent-access': WebUnavailableFeature.agentAccess,

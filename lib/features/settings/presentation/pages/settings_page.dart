@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -219,10 +219,10 @@ class SettingsMobileContent extends ConsumerWidget {
     final allDiversAsync = ref.watch(allDiversProvider);
     final diverCount = allDiversAsync.valueOrNull?.length ?? 0;
 
-    final sections = settingsSections
-        .where((s) => s.id != 'dataSources' || HostPlatform.isIOS)
-        .where((s) => s.id != 'sharedData' || diverCount >= 2)
-        .toList();
+    final sections = visibleSettingsSections(
+      caps: ref.watch(deviceCapabilitiesProvider),
+      diverCount: diverCount,
+    );
 
     // Insert Debug section just before About when debug mode is enabled
     if (debugEnabled) {
@@ -2194,8 +2194,8 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
               ],
             ),
           ),
-          // Auto-update section (only for non-store builds)
-          if (UpdateChannelConfig.isAutoUpdateEnabled) ...[
+          // Auto-update section (only for non-store builds, never a browser)
+          if (ref.watch(deviceCapabilitiesProvider).autoUpdate) ...[
             const SizedBox(height: 24),
             buildSettingsSectionHeader(
               context,

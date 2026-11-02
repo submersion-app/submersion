@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
@@ -107,6 +108,8 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       setUpRoute: setUpStep == null ? null : setUpStepRoute(setUpStep),
     );
 
+    final caps = ref.watch(deviceCapabilitiesProvider);
+
     Widget advanced(
       IconData icon,
       String title,
@@ -190,21 +193,31 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
           ),
           const SizedBox(height: 16),
           _header(context, l10n.settings_data_header_advanced),
-          advanced(
-            Icons.folder,
-            l10n.settings_data_databaseStorage,
-            isCustomFolder
-                ? l10n.settings_data_customFolder
-                : l10n.settings_data_appDefaultLocation,
-            '/settings/storage',
-            sealed: true,
-          ),
-          advanced(
-            Icons.cloud_download,
-            l10n.settings_data_offlineMaps,
-            l10n.settings_data_offlineMaps_subtitle,
-            '/settings/offline-maps',
-          ),
+          // A browser keeps the database in its own storage; the row says
+          // so and opens nothing.
+          if (caps.customDatabaseFolder)
+            advanced(
+              Icons.folder,
+              l10n.settings_data_databaseStorage,
+              isCustomFolder
+                  ? l10n.settings_data_customFolder
+                  : l10n.settings_data_appDefaultLocation,
+              '/settings/storage',
+              sealed: true,
+            )
+          else
+            DataRowTile(
+              icon: Icons.folder,
+              title: l10n.settings_data_databaseStorage,
+              subtitle: l10n.settings_data_appDefaultLocation,
+            ),
+          if (caps.offlineMapTiles)
+            advanced(
+              Icons.cloud_download,
+              l10n.settings_data_offlineMaps,
+              l10n.settings_data_offlineMaps_subtitle,
+              '/settings/offline-maps',
+            ),
           advanced(
             Icons.input,
             l10n.settings_data_importOptions,
@@ -230,7 +243,9 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             ),
           // Rarely used, so last under Advanced rather than beside the user's
           // real data (#3736).
-          if (demoActive)
+          if (!caps.demoMode)
+            const SizedBox.shrink()
+          else if (demoActive)
             DataRowTile(
               icon: Icons.logout,
               title: l10n.demo_settings_exit_title,

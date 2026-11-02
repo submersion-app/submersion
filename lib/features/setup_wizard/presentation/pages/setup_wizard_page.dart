@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -173,6 +174,7 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   /// wizard rather than adding a step: entering restarts the app.
   VoidCallback? _tryDemo(SetupWizardMode mode, DemoPackage? package) {
     if (mode != SetupWizardMode.firstRun || package == null) return null;
+    if (!ref.read(deviceCapabilitiesProvider).demoMode) return null;
     return () => askAndEnterDemo(
       context,
       fromFirstRun: true,

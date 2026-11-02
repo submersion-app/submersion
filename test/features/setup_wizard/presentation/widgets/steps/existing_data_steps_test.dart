@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/existing_choice_step.dart';
@@ -36,5 +37,26 @@ void main() {
     final draft = container.read(setupWizardProvider(SetupWizardMode.firstRun));
     expect(draft.source, ExistingDataSource.restoreBackup);
     expect(advanced, 1);
+  });
+
+  testWidgets('a browser offers only cloud sync (#4121)', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        ],
+        child: ExistingChoiceStep(
+          mode: SetupWizardMode.firstRun,
+          onChosen: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Connect cloud sync'), findsOneWidget);
+    expect(find.text('Restore a backup file'), findsNothing);
+    expect(find.text('Open an existing folder'), findsNothing);
   });
 }

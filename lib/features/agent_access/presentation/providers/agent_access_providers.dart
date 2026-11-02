@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/agent_access/data/agent_access_preferences.dart';
 import 'package:submersion/features/agent_access/data/agent_access_token_store.dart';
 import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
@@ -32,7 +32,9 @@ final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
 /// tools row and the server lifecycle both read this, so the final write PR
 /// removes the debug clause in one place.
 final agentAccessAvailableProvider = Provider<bool>(
-  (ref) => hasDesktopWindow() && ref.watch(debugModeNotifierProvider),
+  (ref) =>
+      ref.watch(deviceCapabilitiesProvider).agentAccess &&
+      ref.watch(debugModeNotifierProvider),
 );
 
 /// The per-device agent access settings, persisted on every change.

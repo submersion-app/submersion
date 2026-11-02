@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
@@ -111,9 +112,11 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
           ),
           const Divider(),
           // Device-to-device sync over Bluetooth, beside the cloud account
-          // rather than instead of it (issue #3731).
-          const NearbyDevicesSection(),
-          const Divider(),
+          // rather than instead of it (issue #3731); not in a browser.
+          if (ref.watch(deviceCapabilitiesProvider).nearby) ...[
+            const NearbyDevicesSection(),
+            const Divider(),
+          ],
           SyncAdvancedSection(hasProvider: hasProvider),
         ],
       ),

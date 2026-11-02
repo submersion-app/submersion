@@ -96,4 +96,13 @@ void main() {
       expect(webStorage.supportsGoogleDrive, isTrue);
     });
   });
+
+  test('copyWith changes only the named capabilities', () {
+    final phoneLike = DeviceCapabilities.web.copyWith(nfc: true);
+    expect(phoneLike.nfc, isTrue);
+    expect(phoneLike.isBrowser, isTrue);
+    expect(phoneLike.nearby, isFalse);
+    expect(phoneLike.cloudGoogleDrive, isTrue);
+    expect(DeviceCapabilities.web.nfc, isFalse);
+  });
 }
