@@ -7,6 +7,7 @@ class SqlRoot {
   const SqlRoot({
     required this.table,
     this.denied = false,
+    this.indexOfReadableTable = false,
     this.deniedColumns = const {},
   });
 
@@ -14,6 +15,10 @@ class SqlRoot {
 
   /// No statement may open this b-tree.
   final bool denied;
+
+  /// A [denied] index on a table that is itself readable, so a statement can
+  /// still reach the table some other way.
+  final bool indexOfReadableTable;
 
   /// Column position to name, for a table that is readable but for these. An
   /// index cursor never carries one: an index holding a denied column is
@@ -96,13 +101,14 @@ class SqlReadCatalog {
       final table = row['tbl_name'] as String;
       final isIndex = row['type'] == 'index';
       final name = row['name'] as String;
-      final denied =
-          !sqlTableReadable(table) ||
-          wholeTable.contains(table) ||
-          (isIndex && deniedIndexes.contains(name));
+      final tableDenied =
+          !sqlTableReadable(table) || wholeTable.contains(table);
+      final indexDenied = isIndex && deniedIndexes.contains(name);
+      final denied = tableDenied || indexDenied;
       roots[row['rootpage'] as int] = SqlRoot(
         table: table,
         denied: denied,
+        indexOfReadableTable: indexDenied && !tableDenied,
         deniedColumns: isIndex || denied
             ? const {}
             : positions[table] ?? const {},

@@ -65,6 +65,12 @@ void main() {
       catalog.root(rootOf('sqlite_autoindex_connected_accounts_1'))!.denied,
       isTrue,
     );
+    expect(
+      catalog
+          .root(rootOf('sqlite_autoindex_connected_accounts_1'))!
+          .indexOfReadableTable,
+      isFalse,
+    );
   });
 
   test('reports where a denied column sits', () {
@@ -76,6 +82,7 @@ void main() {
   test('an index over a denied column is denied, others are not', () {
     final catalog = SqlReadCatalog.load(db);
     expect(catalog.root(rootOf('idx_sub_cred'))!.denied, isTrue);
+    expect(catalog.root(rootOf('idx_sub_cred'))!.indexOfReadableTable, isTrue);
     expect(catalog.root(rootOf('idx_sub_name'))!.denied, isFalse);
   });
 

@@ -365,7 +365,13 @@ void main() {
       expectRefused('SELECT entry_key FROM media', mentions: 'entry_key');
       expectRefused(
         "SELECT id FROM media WHERE subscription_id = 'sub-1'",
-        mentions: 'an index',
+        mentions: 'NOT INDEXED',
+      );
+      expect(
+        rows(
+          "SELECT id FROM media NOT INDEXED WHERE subscription_id = 'sub-1'",
+        ).rows,
+        hasLength(1),
       );
     });
 

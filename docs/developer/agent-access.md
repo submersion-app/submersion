@@ -166,7 +166,9 @@ column goes in `changeLogCredentialColumns`, which the window reads too. A
 column the log should keep recording but an agent should not see goes in
 `kSqlDeniedColumns` directly, as `manifest_url`, `url` and `entry_key` do: any
 of them can carry an access token. An expression or partial index on such a table stays readable
-unless its own definition names a denied column.
+unless its own definition names a denied column. A statement SQLite would
+answer from a refused index is refused too, and the refusal says to write
+`NOT INDEXED` after the table name.
 
 `submersion://schema` comes from the live schema, so it cannot drift. Its notes
 come from the comments in `lib/core/database/tables/`, because Drift keeps no

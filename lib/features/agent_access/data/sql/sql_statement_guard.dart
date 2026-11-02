@@ -105,7 +105,11 @@ SqlRefusal? inspectSqlProgram(
         if (root == null) {
           return const SqlRefusal('This statement reads an unknown table.');
         }
-        if (root.denied) return _deniedTable(root);
+        if (root.denied) {
+          return root.indexOfReadableTable
+              ? _deniedIndex(root)
+              : _deniedTable(root);
+        }
         cursors[step.p1] = root;
       case 'OpenDup':
         final source = cursors[step.p2];
@@ -134,8 +138,14 @@ SqlRefusal? inspectSqlProgram(
 }
 
 SqlRefusal _deniedTable(SqlRoot root) => SqlRefusal(
-  'The table ${root.table}, or an index on it, is not available to the SQL '
-  'window.',
+  'The table ${root.table} is not available to the SQL window.',
+  details: {'table': root.table},
+);
+
+SqlRefusal _deniedIndex(SqlRoot root) => SqlRefusal(
+  'This statement would use an index on ${root.table} that the SQL window '
+  'refuses. The table is still readable: write NOT INDEXED after its name '
+  'to read it without an index.',
   details: {'table': root.table},
 );
 
