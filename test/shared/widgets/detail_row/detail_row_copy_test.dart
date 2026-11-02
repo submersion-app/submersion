@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -200,6 +202,41 @@ void main() {
         isEmpty,
       );
     });
+
+    for (final fails in [false, true]) {
+      final outcome = fails ? 'fails' : 'lands';
+      testWidgets(
+        'a copy that $outcome after the messenger has gone is quiet',
+        (tester) async {
+          final pending = Completer<void>();
+          final messenger = tester.binding.defaultBinaryMessenger;
+          messenger.setMockMethodCallHandler(SystemChannels.platform, (
+            call,
+          ) async {
+            if (call.method == 'Clipboard.setData') {
+              await pending.future;
+              if (fails) throw PlatformException(code: 'unavailable');
+            }
+            return null;
+          });
+          addTearDown(
+            () => messenger.setMockMethodCallHandler(
+              SystemChannels.platform,
+              null,
+            ),
+          );
+          await _pump(tester, _row());
+
+          await tester.tap(_copyButton);
+          await tester.pump();
+          await tester.pumpWidget(const SizedBox());
+          pending.complete();
+          await tester.pump();
+
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
 
     testWidgets('copying leaves another message on screen alone', (
       tester,

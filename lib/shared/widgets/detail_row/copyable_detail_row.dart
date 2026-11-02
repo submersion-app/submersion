@@ -56,13 +56,18 @@ class CopyableDetailRow extends StatelessWidget {
         error: e,
         stackTrace: stackTrace,
       );
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.common_error_tryAgain)),
-      );
+      // A sheet's messenger can go while the clipboard answers.
+      if (messenger.mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.common_error_tryAgain)),
+        );
+      }
       return;
     }
     unawaited(HapticFeedback.mediumImpact());
-    _confirm(messenger, l10n.common_snackbar_copiedToClipboard);
+    if (messenger.mounted) {
+      _confirm(messenger, l10n.common_snackbar_copiedToClipboard);
+    }
   }
 
   /// Shows the confirmation in [messenger], without a pile-up: one on screen
