@@ -105,7 +105,7 @@ void main() {
             height: 200,
             child: HeaderMapBackdrop(
               fadeColor: _fade,
-              fadeStart: 0.4,
+              fadeStart: 80,
               child: SizedBox.expand(key: _mapKey),
             ),
           ),
@@ -128,6 +128,42 @@ void main() {
     expect(gradient.colors[1], _fade.withValues(alpha: 0.22));
     expect(gradient.colors[2], _fade.withValues(alpha: 0.78));
     expect(gradient.colors.sublist(3), [_fade, _fade]);
+  });
+
+  testWidgets('a fade end holds its place when the backdrop grows', (
+    tester,
+  ) async {
+    Future<void> pumpAt(double height) => tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: height,
+            child: const HeaderMapBackdrop(
+              fadeColor: _fade,
+              fadeStart: 50,
+              fadeEnd: 150,
+              child: SizedBox.expand(key: _mapKey),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Larger text grows the card: the fade still ends 150 from the top.
+    await pumpAt(200);
+    expect(_fadeGradient(tester).stops![3], 150 / 200);
+    await pumpAt(300);
+    expect(_fadeGradient(tester).stops![3], 150 / 300);
+    expect(_fadeGradient(tester).stops!.first, 50 / 300);
+
+    // Too short to reach it: the fade ends at the bottom band.
+    await pumpAt(100);
+    expect(
+      _fadeGradient(tester).stops![3],
+      (100 - kHeaderMapBottomInset) / 100,
+    );
   });
 
   Future<int> tapsThroughFade(

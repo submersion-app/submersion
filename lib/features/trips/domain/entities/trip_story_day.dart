@@ -121,7 +121,7 @@ class TripStoryDay extends Equatable {
       dives.isNotEmpty || media.isNotEmpty || itineraryDay != null;
 
   /// A day with nothing to show: no dives, media, or itinerary entry, and not
-  /// a planned (future) day. Still gets the standard sticky day header, labeled
+  /// a planned (future) day. Still gets the standard day header, labeled
   /// "Surface day" in place of a day type; only its card body is empty.
   bool get isSurface => !hasContent && kind != TripStoryDayKind.future;
 

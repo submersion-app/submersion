@@ -33,17 +33,23 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// day is nothing but that header, on a shaded card so it reads as a pause
 /// in the trip rather than a dive day that lost its body.
 class TripStoryDayCard extends ConsumerStatefulWidget {
-  /// How much of the day's map shows above the header row. The backdrop fade
-  /// turns opaque under the row, so the row stays readable while the pins
-  /// above it stay tappable. Tall enough that the map reads as a map of the
-  /// day, not a strip of colour over the header.
+  /// How much of the day's map shows above the header row, whose text sits
+  /// on the end of the fade while the pins above it stay tappable. Tall
+  /// enough that the map reads as a map of the day, not a strip of colour
+  /// over the header.
   static const double mapPeekHeight = 220;
 
-  /// Fraction of the map stack that shows clear before the fade begins
+  /// How far down the map shows clear before the fade begins
   /// (`HeaderMapBackdrop.fadeStart`): the pins sit on real map, and the fade
   /// runs down to the header row instead of washing the map from its first
   /// pixel.
-  static const double mapFadeStart = 0.4;
+  static const double mapFadeStart = 108;
+
+  /// Where the fade turns opaque (`HeaderMapBackdrop.fadeEnd`), part way down
+  /// the header row and fixed from the top: larger text grows the row down
+  /// the card, so a fade sized to the card would leave the row on a lighter
+  /// part of it.
+  static const double mapFadeEnd = mapPeekHeight + 30;
 
   /// The bottom of the map stack the header row and the fade's heavy end
   /// cover (`TripDayMap.bottomInset`), so a day's pins and the attribution
@@ -154,8 +160,8 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
     );
     // With a map the header sits in its fade: the backdrop fills the stack,
     // which the padded header sizes, so the map runs mapPeekHeight above the
-    // row and the fade is opaque under it. Scaled text grows the row and the
-    // stack with it rather than pushing the row out of the opaque band.
+    // row and the fade ends behind it. Scaled text grows the row and the
+    // stack with it, and the fade stays where it is.
     final Widget top = hasMap
         ? Stack(
             children: [
@@ -166,6 +172,7 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                   builder: (context) => HeaderMapBackdrop(
                     fadeColor: backdropColorOf(context),
                     fadeStart: TripStoryDayCard.mapFadeStart,
+                    fadeEnd: TripStoryDayCard.mapFadeEnd,
                     // The pins above the header row stay tappable.
                     passesPointerThrough: true,
                     child: TripDayMap(

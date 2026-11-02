@@ -413,8 +413,12 @@ void main() {
     // from the first pixel, with the fade reaching the header row.
     expect(TripStoryDayCard.mapPeekHeight, greaterThanOrEqualTo(200));
     expect(backdropWidget.fadeStart, TripStoryDayCard.mapFadeStart);
+    expect(backdropWidget.fadeEnd, TripStoryDayCard.mapFadeEnd);
     expect(TripStoryDayCard.mapFadeStart, greaterThan(0));
-    expect(TripStoryDayCard.mapFadeStart, lessThan(0.5));
+    expect(
+      TripStoryDayCard.mapFadeEnd,
+      greaterThan(TripStoryDayCard.mapPeekHeight),
+    );
     // Pins and the attribution stay above the fade's heavy end.
     expect(
       tester.widget<TripDayMap>(find.byType(TripDayMap)).bottomInset,

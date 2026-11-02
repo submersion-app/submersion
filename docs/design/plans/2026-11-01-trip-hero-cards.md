@@ -94,10 +94,11 @@ intended, and the design changed:
   are removed, and so are the helpers extracted for it: `TripStoryHero` opens
   the story again, unchanged from before the issue.
 - Day card: the map peek grows from 120 to 220 points, and
-  `HeaderMapBackdrop` gains `fadeStart`, the fraction of its height the map
-  shows clear before the fade begins, on a smoothstep curve so neither end
-  of the fade shows as a line. The day card passes 0.4; the dive detail
-  header passes nothing and renders as before.
+  `HeaderMapBackdrop` gains `fadeStart` and `fadeEnd`, in points from its
+  top, with a smoothstep curve between them so neither end of the fade shows
+  as a line. They are fixed from the top so larger text cannot push the
+  header row onto a lighter part of the fade. The day card passes 108 and
+  250; the dive detail header passes neither and renders as before.
 - `TripDayMap.bottomInset` (120 on the day card) fits pins, and lifts the map
   attribution, above the part of the map the header row and the fade cover.
   `WorldCameraFit` honours uneven padding for a lone point so a one-site day

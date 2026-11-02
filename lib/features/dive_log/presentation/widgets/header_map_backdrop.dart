@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 /// Height of the band along the bottom of the header card that the map never
@@ -11,7 +13,7 @@ const double kHeaderMapBottomInset = 16;
 /// [child] is the map. It is clipped [kHeaderMapBottomInset] short of the
 /// bottom edge, and the fade is fully opaque over that band. Above
 /// [fadeStart] the map shows through untouched; from there the fade runs in
-/// three steps down to the opaque band.
+/// three steps down to [fadeEnd], or to the opaque band without one.
 ///
 /// The map must never reach the card's bottom edge. An opaque overlay whose
 /// edge merely coincides with the map's edge does not hide it once the card
@@ -27,7 +29,9 @@ class HeaderMapBackdrop extends StatelessWidget {
     required this.child,
     this.passesPointerThrough = false,
     this.fadeStart = 0,
-  }) : assert(fadeStart >= 0 && fadeStart < 1);
+    this.fadeEnd,
+  }) : assert(fadeStart >= 0),
+       assert(fadeEnd == null || fadeEnd > fadeStart);
 
   /// The color the map fades into; the header card's background.
   final Color fadeColor;
@@ -42,11 +46,16 @@ class HeaderMapBackdrop extends StatelessWidget {
   /// on so the pins on its day map stay tappable under the fade (#4106).
   final bool passesPointerThrough;
 
-  /// Fraction of the height the map shows with nothing over it. Zero (the
+  /// How far down from the top the map shows with nothing over it. Zero (the
   /// dive detail header) washes the map lightly from the top edge instead;
   /// the trip story's day card leaves the top of its taller map clear so the
   /// day's pins read against real map (#4106).
   final double fadeStart;
+
+  /// How far down from the top the fade turns opaque, when that should not
+  /// move with the height: text under it stays on solid colour however much
+  /// a larger text size grows the card. Null fades to the bottom band.
+  final double? fadeEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -56,12 +65,18 @@ class HeaderMapBackdrop extends StatelessWidget {
         // Where the fade turns fully opaque, as a fraction of the height: the
         // top of the band the map is clipped out of. The fade keeps its shape
         // over the map above that point.
-        final opaqueFrom = height > kHeaderMapBottomInset
+        final bandFrom = height > kHeaderMapBottomInset
             ? (height - kHeaderMapBottomInset) / height
             : 0.0;
+        final end = fadeEnd;
+        final opaqueFrom = end != null && end < height
+            ? math.min(bandFrom, end / height)
+            : bandFrom;
         // The fade's three steps run from its start to the opaque point;
         // a start past the opaque point collapses them onto it.
-        final start = fadeStart < opaqueFrom ? fadeStart : opaqueFrom;
+        final start = height > 0
+            ? math.min(fadeStart / height, opaqueFrom)
+            : 0.0;
         double step(double t) => start + t * (opaqueFrom - start);
         // From a clear start the steps trace a smoothstep curve: any sudden
         // change of slope shows as a line across the map.
