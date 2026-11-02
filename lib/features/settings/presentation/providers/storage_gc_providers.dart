@@ -16,6 +16,7 @@ import 'package:submersion/core/services/storage/restore_temp_sweep.dart';
 import 'package:submersion/core/services/storage/scratch_sweep.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media_store/data/media_cache_index_sweep.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_verify_service.dart';
@@ -53,6 +54,10 @@ final storageGcCoordinatorProvider = Provider<StorageGcCoordinator>((ref) {
       ({required now, required dryRun}) => RestoreTempSweep(
         temporaryDirectory: getTemporaryDirectory,
       ).run(now: now, dryRun: dryRun),
+      ({required now, required dryRun}) => MediaCacheIndexSweep(
+        osManagesCaches: () async => (await cacheLocation()).osManagesCaches,
+        store: () => openMediaCacheStore(mediaCachePrefsOrNull(ref)),
+      ).run(dryRun: dryRun),
     ],
     localCacheSweep: (now, {required force}) =>
         _localCacheSweepIfDue(ref, now, force: force),

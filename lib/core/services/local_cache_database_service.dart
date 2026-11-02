@@ -88,10 +88,11 @@ class LocalCacheDatabaseService {
     }
   }
 
-  /// On both iOS and macOS, getApplicationSupportDirectory() returns a
-  /// path inside ~/Library/Application Support/ (macOS) or
-  /// <sandbox>/Library/Application Support/ (iOS). Neither location is
-  /// synced by iCloud Drive — iCloud only syncs the iCloud Drive folder
-  /// and app-specific iCloud containers. No explicit
-  /// NSURLIsExcludedFromBackupKey is needed for Application Support.
+  /// On iOS, getApplicationSupportDirectory() is included in device backups
+  /// (iCloud and computer) unless a file is excluded, and on Android the files
+  /// directory falls under Auto Backup. No exclusion is set on this database,
+  /// which holds only per-device and derivable data. The media caches it
+  /// indexes are in the OS cache directory, which neither platform backs up
+  /// (issue #3341), so a restored index can name files that are not there; the
+  /// media cache copes with that. See CacheLocation.
 }
