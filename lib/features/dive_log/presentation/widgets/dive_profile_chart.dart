@@ -7482,11 +7482,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // width it will actually paint with.
         textDirection: TextDirection.ltr,
       )..layout();
-      final anchorY =
-          ((_depthAtTimestamp(t) - visibleMinDepth) / rangeY * plotH).clamp(
-            0.0,
-            plotH,
-          );
+      // The visible depth window is in display units; the profile is in
+      // metres.
+      final depth = units.convertDepth(_depthAtTimestamp(t));
+      final anchorY = ((depth - visibleMinDepth) / rangeY * plotH).clamp(
+        0.0,
+        plotH,
+      );
       inWindow.add(i);
       specs.add(
         EventLabelSpec(
