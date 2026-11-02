@@ -3,7 +3,6 @@ import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
@@ -299,7 +298,7 @@ final tableEditorDiveEntityProvider =
           ],
           computers: [for (final m in models) ChoiceOption(m, m)],
           defaultWeightType: weightType.value ?? WeightType.belt,
-          gasModel: ref.watch(unitFormatterProvider).settings.gasModel,
+          gasModel: ref.watch(settingsProvider.select((s) => s.gasModel)),
           diveTypeLabel: (id) => diveTypeLabel(l10n, id, typesById: typesById),
         ),
       );

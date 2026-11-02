@@ -86,7 +86,7 @@ PastePlan<F> planPaste<F extends EntityField>({
   final skipped = <PasteSkip>[];
   final cells = <PastedCell<F>>[];
   // A selection that left the sheet (a filter or a save moved it) places
-  // nothing; the page clears it rather than guess a cell.
+  // nothing rather than guess a cell; the page turns Paste off for it.
   final offSheet = selectedRowIndex < 0 || selectedColumnIndex < 0;
   if (block.rows.isEmpty || offSheet) {
     return PastePlan(

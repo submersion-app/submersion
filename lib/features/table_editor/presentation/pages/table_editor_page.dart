@@ -152,23 +152,17 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       return;
     }
     final navigator = Navigator.of(context);
-    await _closeOpenCells();
-    if (!mounted) return;
-    if (_anyDrafts && !await _confirmDiscard()) return;
-    if (!mounted) return;
-    for (final tab in TableEditorTab.values) {
-      _clearDrafts(tab);
-    }
-    navigator.pop();
+    if (await _exitGuard.mayLeave() && mounted) navigator.pop();
   }
 
-  /// The app is quitting or the sidebar is leaving: an open cell lands first,
+  /// The app is quitting or the page is being left: an open cell lands first,
   /// since an untouched one holds nothing to ask about. True lets it go ahead.
   Future<bool> _confirmLeaving() async {
     await _closeOpenCells();
-    if (!mounted || !_anyDrafts) return true;
-    if (!await _confirmDiscard()) return false;
     if (!mounted) return true;
+    if (_anyDrafts && !await _confirmDiscard()) return false;
+    if (!mounted) return true;
+    // Here, not after the pop: the page's teardown is no time to change state.
     for (final tab in TableEditorTab.values) {
       _clearDrafts(tab);
     }
@@ -277,6 +271,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     required Set<String> Function() hiddenKeys,
   }) {
     if (entity == null || rows == null) return null;
+    final shownColumns = ref.watch(configProvider).columnsAsShown;
     return _TabHandle(
       route: route,
       pickColumns: () => showEntityTableColumnPicker<F>(
@@ -284,6 +279,9 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         configProvider: configProvider,
         adapter: entity.adapter,
       ),
+      isOnSheet: (cell) =>
+          rows.any((r) => entity.idOf(r) == cell.entityId) &&
+          shownColumns.any((c) => c.field.name == cell.fieldName),
       opensAsField: (cell) {
         final field = entity.fieldFromName(cell.fieldName);
         final kind = entity.columnFor(field)?.kind;
@@ -316,23 +314,11 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         final drafts = ref.read(tableEditorDraftsProvider(tab));
         final selected = drafts.editing ?? drafts.selected;
         if (selected == null) return;
-        final notifier = ref.read(tableEditorDraftsProvider(tab).notifier);
-        final config = ref.read(configProvider);
-        final visible = [for (final c in config.columnsAsShown) c.field];
-        // A filter, a save or a hidden column can take the selection off the
-        // sheet. Letting it go turns Paste off, which says more than a click
-        // that does nothing.
-        final onSheet =
-            rows.any((r) => entity.idOf(r) == selected.entityId) &&
-            visible.any((f) => f.name == selected.fieldName);
-        if (!onSheet) {
-          notifier.setEditing(null);
-          notifier.setSelected(null);
-          return;
-        }
         final text = await readClipboardText();
         if (text == null || !mounted) return;
         final l10n = context.l10n;
+        final config = ref.read(configProvider);
+        final visible = [for (final c in config.columnsAsShown) c.field];
         // The block lands in the order on screen.
         final shown = sortTableEntities(
           rows,
@@ -349,6 +335,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
           l10n: l10n,
           hiddenKeys: hiddenKeys(),
         );
+        final notifier = ref.read(tableEditorDraftsProvider(tab).notifier);
         notifier.setEditing(null);
         final extra = applyPastePlan<T, F>(
           plan: plan,
@@ -462,10 +449,12 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     }
     final handle = _handleNow = _handle();
     final diveFilter = ref.watch(tableEditorDiveFilterProvider);
-    final canPaste =
-        handle != null && (drafts.editing ?? drafts.selected) != null;
-    // An open cell with a text field handles Ctrl+V itself.
+    // A filter, a save or a hidden column can take the selection off the sheet.
     final open = drafts.editing;
+    final pasteAt = open ?? drafts.selected;
+    final canPaste =
+        handle != null && pasteAt != null && handle.isOnSheet(pasteAt);
+    // An open cell with a text field handles Ctrl+V itself.
     final shortcutPaste =
         canPaste && (open == null || !handle.opensAsField(open));
     return PopScope(
@@ -559,6 +548,9 @@ class _TabHandle {
   final String Function(String id) route;
   final VoidCallback pickColumns;
 
+  /// Whether [cell]'s row and column are on the sheet now.
+  final bool Function(CellPosition cell) isOnSheet;
+
   /// Whether [cell] opens with a text field: a toggle or a checkbox list has
   /// none.
   final bool Function(CellPosition cell) opensAsField;
@@ -568,6 +560,7 @@ class _TabHandle {
   const _TabHandle({
     required this.route,
     required this.pickColumns,
+    required this.isOnSheet,
     required this.opensAsField,
     required this.saveAll,
     required this.paste,

@@ -649,17 +649,14 @@ void main() {
       expect(find.text('open editor'), findsOneWidget);
     });
 
-    testWidgets('a selection no longer on the sheet is let go, so Paste goes '
-        'quiet rather than doing nothing', (tester) async {
-      mockClipboard('2\t12\n');
+    testWidgets('Paste is off while the selection is not on the sheet', (
+      tester,
+    ) async {
       await pumpPage(tester);
       ProviderScope.containerOf(tester.element(find.byType(TableEditorPage)))
           .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
           .setSelected(const CellPosition('gone', 'visibility'));
       await tester.pump();
-
-      await tester.tap(find.byTooltip(l10n.tableEditor_paste));
-      await tester.pumpAndSettle();
 
       final paste = find.ancestor(
         of: find.byIcon(Icons.content_paste),
@@ -889,6 +886,20 @@ void main() {
 
       expect(find.text(l10n.forms_discard_title), findsNothing);
       expect(retried, 1);
+    });
+
+    testWidgets('a quit during the back prompt adds no second prompt', (
+      tester,
+    ) async {
+      await pumpPage(tester, exitGuard: guard);
+      await draftVisibility(tester, '12');
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+
+      expect(await guard.answer(close), AppExitResponse.cancel);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.forms_discard_title), findsOneWidget);
     });
 
     testWidgets('with no drafts nothing stands in the way', (tester) async {
