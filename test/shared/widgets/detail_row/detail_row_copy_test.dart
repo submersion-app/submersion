@@ -137,6 +137,19 @@ void main() {
       expect(copiedText(calls), 'A7X-20419');
     });
 
+    testWidgets('a long press on the button gives one haptic', (tester) async {
+      final calls = recordClipboardCalls();
+      await _pump(tester, _row());
+
+      await tester.longPress(_copyButton);
+      await tester.pump();
+
+      expect(
+        calls.where((c) => c.method == 'HapticFeedback.vibrate'),
+        hasLength(1),
+      );
+    });
+
     for (final blank in ['', '   ']) {
       testWidgets('a blank value "$blank" offers nothing to copy', (
         tester,

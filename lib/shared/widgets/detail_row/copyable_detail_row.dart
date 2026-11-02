@@ -101,6 +101,7 @@ class CopyableDetailRow extends StatelessWidget {
             tooltip: l10n.common_action_copy,
             onPressed: copy,
             onLongPress: copy,
+            enableFeedback: false,
             iconSize: _iconSize,
             padding: EdgeInsets.zero,
             style: IconButton.styleFrom(
