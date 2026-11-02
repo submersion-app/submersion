@@ -343,9 +343,9 @@ extension DiveMigrations on AppDatabase {
   }
 
   /// Bottom time in seconds from timestamp-ordered profile rows, replicating
-  /// [Dive.calculateBottomTimeFromProfile]: the span between the first and last
-  /// samples at/above 85% of max depth. Returns null when the profile is too
-  /// small or lacks a clear bottom window.
+  /// [Dive.calculateBottomTimeFromProfile] as it stood at v132: the span
+  /// between the first and last samples at/above 85% of max depth. Returns
+  /// null when the profile is too small or lacks a clear bottom window.
   int? _bottomTimeSecondsFromProfileRows(List<QueryRow> points) {
     if (points.length < 3) return null;
 
