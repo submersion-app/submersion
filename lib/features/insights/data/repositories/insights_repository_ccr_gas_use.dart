@@ -64,7 +64,10 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
             tanks: dive.tanks,
             gasSwitches: switches[id],
             tankPressures: pressures[id],
-            diveEnd: dive.effectiveRuntime?.inSeconds ?? 0,
+            diveEnd:
+                dive.effectiveRuntime?.inSeconds ??
+                dive.profile.lastOrNull?.timestamp ??
+                0,
             gasModel: gasModel,
             // A dive consolidated from two computers can keep a copy of a
             // cylinder from each, and these rates add cylinders up.

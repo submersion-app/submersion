@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -70,6 +70,43 @@ void main() {
   testWidgets('hidden on an error', (tester) async {
     await _pump(tester, () async => throw StateError('no'));
     expect(find.text('Rebreather gas use'), findsNothing);
+  });
+
+  testWidgets('stays up while a filter change reloads it', (tester) async {
+    final generation = StateProvider<int>((ref) => 0);
+    final trend = CcrGasUseTrend(o2: [_point(1, 1.2)], diluent: const []);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          ccrGasUseTrendProvider.overrideWith(
+            (ref) => ref.watch(generation) == 0
+                ? Future.value(trend)
+                : Completer<CcrGasUseTrend>().future,
+          ),
+        ].cast(),
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(child: CcrGasUseSection()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Rebreather gas use'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(CcrGasUseSection)),
+    ).read(generation.notifier).state = 1;
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Rebreather gas use'), findsOneWidget);
   });
 
   testWidgets('shows both averages and both series', (tester) async {

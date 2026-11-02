@@ -26,8 +26,8 @@ class CcrCylinderUse {
     required this.tankId,
     this.loopLiters = 0,
     this.loopRate,
-    this.bailoutStartBar,
-    this.bailoutEndBar,
+    this.bailoutBar = 0,
+    this.bailoutLiters = 0,
     this.bailoutWindows = const [],
   });
 
@@ -40,10 +40,13 @@ class CcrCylinderUse {
   /// there is no loop gas or no loop time.
   final double? loopRate;
 
-  /// The pressures bounding the gas lost after a bailout, in bar: the first
-  /// reading, and that less the whole drop. Null when there is none.
-  final double? bailoutStartBar;
-  final double? bailoutEndBar;
+  /// Pressure lost after a bailout, in bar, summed over the stretches this
+  /// cylinder was breathed; 0 when none.
+  final double bailoutBar;
+
+  /// Surface litres lost after a bailout, summed the same way. Gas is not
+  /// linear in pressure, so this cannot be worked back from [bailoutBar].
+  final double bailoutLiters;
 
   /// When this cylinder was breathed on bailout.
   final List<TankUsageWindow> bailoutWindows;
@@ -231,23 +234,24 @@ CcrCylinderUse _cylinderUse({
   }
 
   final volume = consumptionVolume(tank, tanks);
-  var loopLiters = 0.0;
-  if (volume != null) {
-    for (final drop in loopDrops) {
-      loopLiters +=
+  double litersOf(List<_Drop> drops) {
+    if (volume == null) return 0;
+    var liters = 0.0;
+    for (final drop in drops) {
+      liters +=
           _gasVolumeAt(tank, volume, drop.from, gasModel) -
           _gasVolumeAt(tank, volume, drop.to, gasModel);
     }
+    return liters;
   }
 
-  final bailoutBar = _totalBar(bailoutDrops);
-  final bailoutStart = bailoutDrops.isEmpty ? null : bailoutDrops.first.from;
+  final loopLiters = litersOf(loopDrops);
   return CcrCylinderUse(
     tankId: tank.id,
     loopLiters: loopLiters,
     loopRate: _perMinute(loopLiters, loopSeconds),
-    bailoutStartBar: bailoutStart,
-    bailoutEndBar: bailoutStart == null ? null : bailoutStart - bailoutBar,
+    bailoutBar: _totalBar(bailoutDrops),
+    bailoutLiters: litersOf(bailoutDrops),
     bailoutWindows: bailoutWindows,
   );
 }

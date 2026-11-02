@@ -182,8 +182,8 @@ void main() {
       );
       final right = _of(use, 'right');
       expect(right.loopRate, isNull);
-      expect(right.bailoutStartBar, 216);
-      expect(right.bailoutEndBar, 163);
+      expect(right.bailoutBar, 53);
+      expect(right.bailoutLiters, closeTo(53 * 7, 1e-9));
       expect(right.bailoutWindows, [(start: 3000, end: 3600)]);
     });
 
@@ -195,8 +195,8 @@ void main() {
         ],
         switches: [_switchTo('b', 3000)],
       );
-      expect(_of(use, 'b').bailoutStartBar, 200);
-      expect(_of(use, 's').bailoutStartBar, isNull);
+      expect(_of(use, 'b').bailoutBar, 40);
+      expect(_of(use, 's').bailoutBar, 0);
       expect(_of(use, 's').loopRate, closeTo(40 * 7 / 50, 1e-9));
     });
 
@@ -250,8 +250,7 @@ void main() {
       final right = _of(use, 'right');
       expect(use.loopSeconds, 3000);
       expect(right.loopRate, closeTo(36 * 7 / 50, 1e-9));
-      expect(right.bailoutStartBar, 180);
-      expect(right.bailoutEndBar, 163);
+      expect(right.bailoutBar, 17);
       expect(right.bailoutWindows, [(start: 3000, end: 3600)]);
     });
 
@@ -274,7 +273,7 @@ void main() {
         },
       );
       expect(_of(use, 'o2').loopRate, closeTo(50 * 1.5 / 50, 1e-9));
-      expect(_of(use, 'o2').bailoutStartBar, isNull);
+      expect(_of(use, 'o2').bailoutBar, 0);
     });
 
     test('a dropout does not count as a drop', () {
@@ -322,6 +321,45 @@ void main() {
       expect(_of(use, 'd').loopRate, closeTo(30 * 7 / 60, 1e-9));
     });
 
+    test('two bailouts on one cylinder sum each stretch\'s gas', () {
+      // Pressure recovers between them, and real gas is not linear in bar.
+      final use = _use(
+        [_tank('a', TankRole.bailout), _tank('d', TankRole.diluent)],
+        switches: [
+          _switchTo('a', 1000),
+          _switchTo('d', 1500),
+          _switchTo('a', 2000),
+          _switchTo('d', 2500),
+        ],
+        pressures: {
+          'a': _series('a', [
+            (0, 280),
+            (1000, 280),
+            (1500, 250),
+            (2000, 260),
+            (2500, 200),
+            (3600, 200),
+          ]),
+        },
+        gasModel: GasModel.real,
+      );
+      double volumeAt(double bar) => gasVolume(
+        tankSizeLiters: 7,
+        pressureBar: bar,
+        o2Percent: 21,
+        hePercent: 0,
+        model: GasModel.real,
+      );
+      expect(_of(use, 'a').bailoutBar, 90);
+      expect(
+        _of(use, 'a').bailoutLiters,
+        closeTo(
+          volumeAt(280) - volumeAt(250) + volumeAt(260) - volumeAt(200),
+          1e-9,
+        ),
+      );
+    });
+
     test('a cylinder keeps only the gas lost while it was breathed', () {
       // Bailed onto a at 1000 s, then b at 2000 s. a's later drop is cooling.
       final use = _use(
@@ -332,8 +370,7 @@ void main() {
         },
       );
       expect(_of(use, 'a').bailoutWindows, [(start: 1000, end: 2000)]);
-      expect(_of(use, 'a').bailoutStartBar, 200);
-      expect(_of(use, 'a').bailoutEndBar, 150);
+      expect(_of(use, 'a').bailoutBar, 50);
     });
 
     test('the minimum drop applies to the loop share of a series', () {
@@ -346,8 +383,7 @@ void main() {
         },
       );
       expect(_of(use, 's').loopRate, isNull);
-      expect(_of(use, 's').bailoutStartBar, 185);
-      expect(_of(use, 's').bailoutEndBar, 170);
+      expect(_of(use, 's').bailoutBar, 15);
     });
   });
 

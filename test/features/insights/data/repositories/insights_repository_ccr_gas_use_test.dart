@@ -4,8 +4,10 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/ccr_gas_use_trend.dart';
@@ -24,6 +26,7 @@ void main() {
     int day = 1,
     bool excludedFromGasStats = false,
     String? diverId,
+    int? runtime = 42 * 60,
   }) async {
     final at = DateTime.utc(2026, 1, day).millisecondsSinceEpoch;
     await db
@@ -34,7 +37,7 @@ void main() {
             diveDateTime: Value(at),
             diveMode: Value(diveMode),
             diverId: Value(diverId),
-            runtime: const Value(42 * 60),
+            runtime: Value(runtime),
             avgDepth: const Value(20.0),
             maxDepth: const Value(25.0),
             excludedFromGasStats: Value(excludedFromGasStats),
@@ -350,6 +353,37 @@ void main() {
         expect(trend.o2.single.value, closeTo(o2.loopRate!, 1e-9));
       },
     );
+
+    test('a dive with no runtime takes its end from the profile', () async {
+      await insertDive('ccr', runtime: null);
+      await insertTank('ccr', 'dil', 'diluent');
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'ccr',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 42 * 60, depth: 0),
+        ],
+        now: 0,
+      );
+
+      final trend = await repository.getCcrGasUsePerDive();
+
+      expect(trend.diluent.single.value, closeTo(9, 1e-9));
+    });
+
+    test('a single-sample profile still gives the card\'s dive end', () async {
+      await insertDive('ccr', runtime: null);
+      await insertTank('ccr', 'dil', 'diluent');
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'ccr',
+        samples: const [ProfileSample(timestamp: 42 * 60, depth: 20)],
+        now: 0,
+      );
+
+      final trend = await repository.getCcrGasUsePerDive();
+
+      expect(trend.diluent.single.value, closeTo(9, 1e-9));
+    });
 
     test('one dive reads the same here as on the card', () async {
       await insertCcrDive('ccr');

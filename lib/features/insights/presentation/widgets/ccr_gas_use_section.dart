@@ -25,7 +25,9 @@ class CcrGasUseSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trend = ref.watch(ccrGasUseTrendProvider).valueOrNull;
+    // `.value`, not `valueOrNull`: a filter change reloads this provider, and
+    // the last trend stays up rather than the card leaving the page.
+    final trend = ref.watch(ccrGasUseTrendProvider).value;
     if (trend == null || trend.isEmpty) return const SizedBox.shrink();
 
     final l10n = context.l10n;

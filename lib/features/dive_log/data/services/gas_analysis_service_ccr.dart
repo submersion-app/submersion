@@ -46,7 +46,6 @@ extension _CcrCylinderSac on GasAnalysisService {
           tankVolume: volume,
           sacRate: _bailoutSacRate(
             cylinder: cylinder,
-            tank: tank,
             tankVolume: volume,
             avgDepth: avgDepthOnBailout ?? dive.avgDepth,
             environment: dive.environment,
@@ -56,7 +55,7 @@ extension _CcrCylinderSac on GasAnalysisService {
           endPressure: end,
           gasModel: gasModel,
           usageDuration: Duration(
-            seconds: cylinder.bailoutStartBar != null
+            seconds: cylinder.bailoutBar > 0
                 ? windows.breathedSeconds
                 : use.loopSeconds,
           ),
@@ -74,30 +73,18 @@ extension _CcrCylinderSac on GasAnalysisService {
   /// breathed. Null when it lost none.
   double? _bailoutSacRate({
     required CcrCylinderUse cylinder,
-    required DiveTank tank,
     required double? tankVolume,
     required double? avgDepth,
     required DiveEnvironment environment,
   }) {
-    final start = cylinder.bailoutStartBar;
-    final end = cylinder.bailoutEndBar;
     final durationMin = cylinder.bailoutWindows.breathedSeconds / 60.0;
-    if (start == null || end == null || durationMin <= 0 || avgDepth == null) {
+    if (cylinder.bailoutBar <= 0 || durationMin <= 0 || avgDepth == null) {
       return null;
     }
     final ambientPressureBar = environment.pressureAtDepth(avgDepth);
-    if (tankVolume != null) {
-      return GasAnalysisService._zCorrectedSacRate(
-        tankVolume: tankVolume,
-        startPressureBar: start,
-        endPressureBar: end,
-        o2Percent: tank.gasMix.o2,
-        hePercent: tank.gasMix.he,
-        durationMin: durationMin,
-        ambientPressureBar: ambientPressureBar,
-        model: gasModel,
-      );
-    }
-    return (start - end) / durationMin / ambientPressureBar;
+    final barUsed = tankVolume != null && tankVolume > 0
+        ? cylinder.bailoutLiters / tankVolume
+        : cylinder.bailoutBar;
+    return barUsed / durationMin / ambientPressureBar;
   }
 }

@@ -149,9 +149,9 @@ beside that one. Cylinders marked as loop gas have no minimum.
 - Loop rate: loop gas in surface litres, from `gasVolume` under the configured
   gas model, divided by total loop minutes. Null when there is no loop gas, when
   there is no loop time, or when `consumptionVolume` knows no size.
-- Bailout SAC and RMV: the existing `_zCorrectedSacRate` calculation over the
-  bailout gas, the bailout seconds that cylinder was breathed, and the mean depth
-  across them. Reuse it; do not write a second one.
+- Bailout SAC and RMV: the bailout gas, summed in litres over each stretch since
+  gas is not linear in pressure, over the bailout seconds that cylinder was
+  breathed and the mean depth across them.
 
 **Known limits.** `classifyCcrGasChanges` decides the timeline from the role of
 the cylinder switched to, and only a Diluent-role cylinder means the loop. This
