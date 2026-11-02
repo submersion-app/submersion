@@ -8189,6 +8189,39 @@ class DiveRepository {
     return changed.length;
   }
 
+  /// Set the role of exactly the cylinders in [tankIds] to [role], as the
+  /// Gas page's twin set re-role offer does (issue #3374). Writes the role
+  /// and clears `role_source` through [_tankSpecsCompanion], so nothing
+  /// else on the row moves; marks each row and its dive pending for sync.
+  /// Owns its transaction, and Drift's table updates notify the dive
+  /// streams. Returns the number of rows changed.
+  Future<int> setTankRoles(List<String> tankIds, TankRole role) async {
+    if (tankIds.isEmpty) return 0;
+    final companion = _tankSpecsCompanion(
+      domain.DiveTank(id: '', role: role),
+      const {domain.TankSpecField.role},
+    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return _db.transaction(() async {
+      final rows = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.id.isIn(tankIds))).get();
+      if (rows.isEmpty) return 0;
+      await (_db.update(
+        _db.diveTanks,
+      )..where((t) => t.id.isIn(tankIds))).write(companion);
+      for (final row in rows) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+      await _bumpDives(rows.map((r) => r.diveId).toSet().toList(), now);
+      return rows.length;
+    });
+  }
+
   /// Write [rows] back over the tanks with the same ids, restoring prior NULLs.
   ///
   /// The undo counterpart of [bulkUpdateTankSpecs]. It updates in place instead
