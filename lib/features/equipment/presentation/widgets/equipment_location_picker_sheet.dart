@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_pick_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
@@ -24,24 +26,36 @@ class NoLocationPick extends LocationPick {
   const NoLocationPick();
 }
 
+/// A buddy to lend to. Stands for that buddy's place, which is resolved only
+/// when the move is confirmed, so backing out leaves no place behind.
+class BuddyPick extends LocationPick {
+  const BuddyPick(this.buddy);
+  final Buddy buddy;
+}
+
 /// Picks one of the diver's active places, "No location", or a place made
-/// on the spot. Null when dismissed.
+/// on the spot. With [offerBuddies] it also lends to a buddy: only for a
+/// caller that runs the move flow, because a lend must reach its status
+/// prompt. Null when dismissed.
 Future<LocationPick?> showEquipmentLocationPickerSheet(
   BuildContext context,
-  WidgetRef ref,
-) {
+  WidgetRef ref, {
+  bool offerBuddies = false,
+}) {
   return showModalBottomSheet<LocationPick>(
     context: context,
     isScrollControlled: true,
-    builder: (_) => const FractionallySizedBox(
+    builder: (_) => FractionallySizedBox(
       heightFactor: 0.8,
-      child: _EquipmentLocationPicker(),
+      child: _EquipmentLocationPicker(offerBuddies: offerBuddies),
     ),
   );
 }
 
 class _EquipmentLocationPicker extends ConsumerStatefulWidget {
-  const _EquipmentLocationPicker();
+  const _EquipmentLocationPicker({required this.offerBuddies});
+
+  final bool offerBuddies;
 
   @override
   ConsumerState<_EquipmentLocationPicker> createState() =>
@@ -60,6 +74,13 @@ class _EquipmentLocationPickerState
     );
     if (created != null && mounted) {
       Navigator.of(context).pop(PlacePick(created));
+    }
+  }
+
+  Future<void> _lendToBuddy() async {
+    final buddy = await showBuddyPickSheet(context, ref);
+    if (buddy != null && mounted) {
+      Navigator.of(context).pop(BuddyPick(buddy));
     }
   }
 
@@ -109,6 +130,13 @@ class _EquipmentLocationPickerState
                   subtitle: query.isEmpty ? null : Text(_search.trim()),
                   onTap: _createPlace,
                 ),
+                if (widget.offerBuddies)
+                  ListTile(
+                    key: const ValueKey('equipment_location_picker_buddy'),
+                    leading: const Icon(Icons.person_outline),
+                    title: Text(l10n.equipment_location_picker_lendToBuddy),
+                    onTap: _lendToBuddy,
+                  ),
                 ListTile(
                   key: const ValueKey('equipment_location_picker_none'),
                   leading: const Icon(Icons.location_off_outlined),

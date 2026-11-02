@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/move_time.dart';
@@ -21,60 +24,88 @@ class MoveDraft {
   final String note;
 }
 
+/// Whether [partCount] parts go too.
+Future<bool> askMoveParts(BuildContext context, int partCount) {
+  final l10n = context.l10n;
+  return _ask(
+    context,
+    l10n.equipment_location_parts_title,
+    l10n.equipment_location_parts_body(partCount),
+    l10n.equipment_location_parts_yes,
+    l10n.equipment_location_parts_no,
+  );
+}
+
+/// Whether [itemCount] items change to [status].
+Future<bool> askMoveStatus(
+  BuildContext context,
+  EquipmentStatus status,
+  int itemCount,
+) {
+  final l10n = context.l10n;
+  return _ask(
+    context,
+    l10n.equipment_location_status_title,
+    l10n.equipment_location_status_body(itemCount, status.localizedName(l10n)),
+    l10n.equipment_location_status_yes,
+    l10n.equipment_location_status_no,
+  );
+}
+
+/// A prompt the page can no longer show is a no: after the moves are written,
+/// a throw here would report a saved move as failed.
+Future<bool> _ask(
+  BuildContext context,
+  String title,
+  String body,
+  String yes,
+  String no,
+) async =>
+    context.mounted &&
+    (await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(title),
+            content: Text(body),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(no),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(yes),
+              ),
+            ],
+          ),
+        ) ??
+        false);
+
 /// Moves [items]: the sheet, then the parts and status prompts, then a
-/// SnackBar. Returns how many items moved, or null when cancelled or when
-/// the move failed (a SnackBar says so).
+/// SnackBar. With [lendTo] the sheet opens on that buddy. Returns how many
+/// items moved, or null when cancelled or when the move failed (a SnackBar
+/// says so).
 Future<int?> showMoveEquipmentFlow(
   BuildContext context,
   WidgetRef ref, {
   required List<EquipmentItem> items,
+  Buddy? lendTo,
 }) async {
   if (items.isEmpty) return null;
   final draft = await showMoveEquipmentSheet(
     context,
     ref,
     itemCount: items.length,
+    initialPick: lendTo == null ? null : BuddyPick(lendTo),
   );
   if (draft == null || !context.mounted) return null;
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final notifier = ref.read(equipmentListNotifierProvider.notifier);
-  // A prompt the page can no longer show is a no: after the moves are
-  // written, a throw here would report a saved move as failed.
-  Future<bool> ask(String title, String body, String yes, String no) async =>
-      context.mounted &&
-      (await showDialog<bool>(
-            context: context,
-            builder: (dialogContext) => AlertDialog(
-              title: Text(title),
-              content: Text(body),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: Text(no),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: Text(yes),
-                ),
-              ],
-            ),
-          ) ??
-          false);
   final flow = EquipmentMoveFlow(
     moves: ref.read(equipmentLocationMoveRepositoryProvider),
-    askMoveParts: (n) => ask(
-      l10n.equipment_location_parts_title,
-      l10n.equipment_location_parts_body(n),
-      l10n.equipment_location_parts_yes,
-      l10n.equipment_location_parts_no,
-    ),
-    askStatus: (status, n) => ask(
-      l10n.equipment_location_status_title,
-      l10n.equipment_location_status_body(n, status.localizedName(l10n)),
-      l10n.equipment_location_status_yes,
-      l10n.equipment_location_status_no,
-    ),
+    askMoveParts: (n) => askMoveParts(context, n),
+    askStatus: (status, n) => askMoveStatus(context, status, n),
     setStatus: notifier.setStatusForMany,
     onStatusFailed: () => messenger.showSnackBar(
       SnackBar(content: Text(l10n.common_error_tryAgain)),
@@ -87,6 +118,14 @@ Future<int?> showMoveEquipmentFlow(
       target: switch (draft.pick) {
         PlacePick(:final location) => location,
         NoLocationPick() => null,
+        BuddyPick(:final buddy) =>
+          await ref
+              .read(equipmentLocationRepositoryProvider)
+              .findOrCreateForBuddy(
+                diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+                buddyId: buddy.id,
+                name: buddy.name,
+              ),
       },
       movedAt: draft.movedAt,
       note: draft.note,
@@ -108,17 +147,20 @@ Future<MoveDraft?> showMoveEquipmentSheet(
   BuildContext context,
   WidgetRef ref, {
   required int itemCount,
+  LocationPick? initialPick,
 }) {
   return showModalBottomSheet<MoveDraft>(
     context: context,
     isScrollControlled: true,
-    builder: (_) => _MoveEquipmentSheet(itemCount: itemCount),
+    builder: (_) =>
+        _MoveEquipmentSheet(itemCount: itemCount, initialPick: initialPick),
   );
 }
 
 class _MoveEquipmentSheet extends ConsumerStatefulWidget {
-  const _MoveEquipmentSheet({required this.itemCount});
+  const _MoveEquipmentSheet({required this.itemCount, this.initialPick});
   final int itemCount;
+  final LocationPick? initialPick;
 
   @override
   ConsumerState<_MoveEquipmentSheet> createState() =>
@@ -126,7 +168,7 @@ class _MoveEquipmentSheet extends ConsumerStatefulWidget {
 }
 
 class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
-  LocationPick? _pick;
+  late LocationPick? _pick = widget.initialPick;
   DateTime _day = DateTime.now();
 
   /// Null until the diver picks a time; see [resolveMovedAt].
@@ -179,12 +221,14 @@ class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
               leading: Icon(switch (pick) {
                 PlacePick(:final location) => location.kind.icon,
                 NoLocationPick() => Icons.location_off_outlined,
+                BuddyPick() => Icons.person_outline,
                 null => Icons.place_outlined,
               }),
               title: Text(l10n.equipment_location_move_to),
               subtitle: Text(switch (pick) {
                 PlacePick(:final location) => location.name,
                 NoLocationPick() => l10n.equipment_location_noLocation,
+                BuddyPick(:final buddy) => buddy.name,
                 null => l10n.equipment_location_move_choose,
               }),
               trailing: const Icon(Icons.chevron_right),
@@ -192,6 +236,7 @@ class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
                 final picked = await showEquipmentLocationPickerSheet(
                   context,
                   ref,
+                  offerBuddies: true,
                 );
                 if (picked != null) setState(() => _pick = picked);
               },

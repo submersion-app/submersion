@@ -94,6 +94,7 @@ final siteQueryEntity = QueryEntity(
     ),
     const QueryField(
       key: 'maxDepth',
+      aliases: ['depth'],
       type: FieldType.number,
       dimension: FieldDimension.depth,
       sql: '{r}.max_depth',

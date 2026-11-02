@@ -9,6 +9,7 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/site_tables.dart';
@@ -38,6 +39,12 @@ class EquipmentLocations extends Table {
     #id,
     onDelete: KeyAction.setNull,
   )();
+
+  /// The buddy a Person place stands for (v334, issue #3790). Optional.
+  /// SET NULL so deleting a buddy leaves the place; the delete paths also
+  /// clear this by hand, because a SET NULL reaches no peer.
+  TextColumn get buddyId =>
+      text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();
 
   /// Hybrid Logical Clock for cross-device conflict resolution.
   TextColumn get hlc => text().nullable()();

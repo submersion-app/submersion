@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -51,7 +55,6 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
-import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
@@ -872,15 +875,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         error: (error, stack) => _buildErrorState(context, error),
       );
 
-      // Wrap list with active filters bar if filters are active
-      return filter.hasActiveFilters
-          ? Column(
-              children: [
-                SiteActiveFiltersBar(filter: filter),
-                Expanded(child: listContent),
-              ],
-            )
-          : listContent;
+      return Column(
+        children: [
+          _buildSearchHeader(filter),
+          if (filter.hasActiveFilters) SiteActiveFiltersBar(filter: filter),
+          Expanded(child: listContent),
+        ],
+      );
     }
 
     final loadedSites = sitesAsync.value ?? const <SiteWithDiveCount>[];
@@ -936,15 +937,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                       tooltip: context.l10n.diveSites_list_tooltip_mapView,
                       onPressed: () => context.push('/sites/map'),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.search),
+                    EntitySearchAction(
+                      subject: QuerySubject.sites,
+                      active: filter.query != null,
                       tooltip: context.l10n.diveSites_list_tooltip_searchSites,
-                      onPressed: () {
-                        showSearch(
-                          context: context,
-                          delegate: SiteSearchDelegate(ref),
-                        );
-                      },
                     ),
                     IconButton(
                       icon: Badge(
@@ -1102,6 +1098,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             children: [
               if (selection.isActive)
                 _buildCompactSelectionAppBar(context, loadedSites),
+              _buildSearchHeader(filter),
               Expanded(child: tableContent),
             ],
           );
@@ -1183,6 +1180,22 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     );
   }
 
+  /// The search row (#3882): the sites query, which the filter sheet's
+  /// query section also edits.
+  Widget _buildSearchHeader(SiteFilterState filter) => EntitySearchHeader(
+    subject: QuerySubject.sites,
+    root: siteQueryEntity,
+    query: filter.query,
+    onChanged: (query) {
+      final notifier = ref.read(siteFilterProvider.notifier);
+      // Read at write time, so a change made during the debounce survives.
+      notifier.state = notifier.state.copyWith(
+        query: query,
+        clearQuery: query == null,
+      );
+    },
+  );
+
   Widget _buildCompactAppBar(BuildContext context) {
     final filter = ref.watch(siteFilterProvider);
 
@@ -1228,12 +1241,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               tooltip: context.l10n.diveSites_list_tooltip_mapView,
               onPressed: () => context.push('/sites/map'),
             ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
+          EntitySearchAction(
+            subject: QuerySubject.sites,
+            active: filter.query != null,
             tooltip: context.l10n.diveSites_list_tooltip_searchSites,
-            onPressed: () {
-              showSearch(context: context, delegate: SiteSearchDelegate(ref));
-            },
+            compact: true,
           ),
           IconButton(
             icon: Badge(
@@ -1811,121 +1823,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Search delegate for dive sites
-class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
-  final WidgetRef ref;
-
-  SiteSearchDelegate(this.ref);
-
-  @override
-  String get searchFieldLabel => 'Search sites...';
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          tooltip: context.l10n.diveSites_list_search_clearTooltip,
-          onPressed: () => query = '',
-        ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      tooltip: context.l10n.diveSites_list_search_backTooltip,
-      onPressed: () => close(context, null),
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return _buildSearchResults(context);
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.diveSites_list_search_emptyHint,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return _buildSearchResults(context);
-  }
-
-  Widget _buildSearchResults(BuildContext context) {
-    return DebouncedSearchResults<SiteWithDiveCount>(
-      query: query,
-      watchProvider: (ref, q) => ref.watch(siteSearchWithDiveCountProvider(q)),
-      dataBuilder: (context, entries) {
-        return ListView.builder(
-          itemCount: entries.length,
-          itemBuilder: (context, index) {
-            final entry = entries[index];
-            return SiteListTile(
-              entry: entry,
-              // Opened over the search rather than in place of it, so back
-              // from the site returns to these results (#3377).
-              onTap: () => context.push('/sites/${entry.site.id}'),
-            );
-          },
-        );
-      },
-      emptyBuilder: (context, query) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.search_off,
-                size: 64,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                context.l10n.diveSites_list_search_noResults(query),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      errorBuilder: (context, error) {
-        return Center(
-          child: Text(
-            context.l10n.diveSites_list_search_error(error.toString()),
-          ),
-        );
-      },
     );
   }
 }

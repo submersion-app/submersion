@@ -164,6 +164,84 @@ void main() {
     });
   });
 
+  group('buddy link (v334)', () {
+    Map<String, dynamic> place(String id, {Object? buddy = 'keep'}) => {
+      'id': id,
+      'diverId': 'd',
+      'name': id,
+      'kind': 'person',
+      'notes': '',
+      'isArchived': false,
+      'createdAt': 1,
+      'updatedAt': 2,
+      'hlc': null,
+      if (buddy != 'keep') 'buddyId': buddy,
+    };
+
+    Future<String?> linkOf(String id) async =>
+        (await serializer.fetchRecord('equipmentLocations', id))?['buddyId']
+            as String?;
+
+    setUp(() async {
+      await db
+          .into(db.buddies)
+          .insert(
+            BuddiesCompanion.insert(
+              id: 'anna',
+              name: 'Anna',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await serializer.upsertRecord(
+        'equipmentLocations',
+        place('linked', buddy: 'anna'),
+      );
+    });
+
+    test('a record with the key sets the link', () async {
+      expect(await linkOf('linked'), 'anna');
+    });
+
+    test('an explicit null unlinks', () async {
+      await serializer.upsertRecord(
+        'equipmentLocations',
+        place('linked', buddy: null),
+      );
+      expect(await linkOf('linked'), isNull);
+    });
+
+    test('a record from before v334 keeps the local link', () async {
+      await serializer.upsertRecord('equipmentLocations', place('linked'));
+      expect(await linkOf('linked'), 'anna');
+    });
+
+    test('a new place from before v334 arrives unlinked', () async {
+      await serializer.upsertRecord('equipmentLocations', place('fresh'));
+      expect(await linkOf('fresh'), isNull);
+    });
+
+    test('in one batch each record decides by its own keys', () async {
+      await serializer.upsertRecord(
+        'equipmentLocations',
+        place('other', buddy: 'anna'),
+      );
+      await serializer.upsertRecords('equipmentLocations', [
+        place('linked'),
+        place('other', buddy: null),
+      ]);
+      expect(await linkOf('linked'), 'anna');
+      expect(await linkOf('other'), isNull);
+    });
+
+    test('a tombstoned buddy clears the link, not the place', () {
+      expect(
+        SyncService.parentRefs['equipmentLocations'],
+        contains((field: 'buddyId', parent: 'buddies', nullable: true)),
+      );
+    });
+  });
+
   test('moves are a parent-gated child of equipment', () {
     expect(
       SyncDataSerializer.parentGatedChildEntities,

@@ -742,5 +742,16 @@ extension RungsFromV231 on AppDatabase {
     // re-asserted in beforeOpen.
     if (from < 333) await _assertDiveGasSwitchesEditedColumn();
     if (from < 333) await reportProgress();
+
+    // v334: equipment_locations.buddy_id, the buddy a Person place stands
+    // for (issue #3790). Column only, no backfill; re-asserted in beforeOpen.
+    if (from < 334) await _assertEquipmentLocationBuddyColumn();
+    if (from < 334) await reportProgress();
+
+    // v335: nav_tracks.scale_factor (issue #3823). Column only; the default
+    // gives every existing track 100%. Re-asserted in beforeOpen through
+    // _assertNavTracksSchema.
+    if (from < 335) await _assertNavTrackScaleFactorColumn();
+    if (from < 335) await reportProgress();
   }
 }
