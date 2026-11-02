@@ -69,10 +69,13 @@ Set<String> annotationIdsInNotes(String notes) =>
 /// Other text is untouched; an absent [id] returns the input unchanged.
 String unlinkAnnotation(String notes, String id) {
   final escapedId = RegExp.escape(id);
+  // Case-insensitive on the scheme, like [annotationIdFromHref], so a
+  // hand-edited `Annotation:` link is unlinked the way it was recognised.
   final link = RegExp(
     r'\[((?:\\.|[^\]])*)\]\('
     '$annotationLinkScheme:$escapedId'
     r'\)',
+    caseSensitive: false,
   );
   if (!link.hasMatch(notes)) return notes;
   return notes.replaceAllMapped(

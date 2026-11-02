@@ -372,9 +372,11 @@ class DiveProfileChartHost extends ConsumerWidget {
         : ref.watch(annotationFocusProvider(diveId));
     // The diver's annotations come from their own provider (#4109), not the
     // analysis, so they draw whether or not the dive has an analysis.
+    // `.value`, not the app's valueOrNull: a reload after a write keeps the
+    // previous list on screen instead of blinking the markers out.
     final chartEvents = mergeChartEvents(
       analysis?.events,
-      ref.watch(diveAnnotationsProvider(diveId)).valueOrNull ??
+      ref.watch(diveAnnotationsProvider(diveId)).value ??
           const <ProfileEvent>[],
     );
 

@@ -311,9 +311,10 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       annotationPlacementProvider(widget.diveId),
     );
     final focusedAnnotation = ref.watch(annotationFocusProvider(widget.diveId));
+    // `.value` keeps the previous annotations on screen through a reload.
     final chartEvents = mergeChartEvents(
       analysis?.events,
-      ref.watch(diveAnnotationsProvider(widget.diveId)).valueOrNull ??
+      ref.watch(diveAnnotationsProvider(widget.diveId)).value ??
           const <ProfileEvent>[],
     );
 

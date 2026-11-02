@@ -73,8 +73,9 @@ class DiveNotesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // `.value` keeps the pins and times through a reload after a write.
     final annotations =
-        ref.watch(diveAnnotationsProvider(dive.id)).valueOrNull ??
+        ref.watch(diveAnnotationsProvider(dive.id)).value ??
         const <ProfileEvent>[];
     final highlighted = ref.watch(annotationNotesHighlightProvider(dive.id));
     return Card(

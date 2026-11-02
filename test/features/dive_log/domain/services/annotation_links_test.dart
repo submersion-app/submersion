@@ -52,6 +52,10 @@ void main() {
     expect(unlinkAnnotation('plain', 'zzz'), 'plain');
   });
 
+  test('unlink matches the scheme case-insensitively, like the reader', () {
+    expect(unlinkAnnotation('x [w](Annotation:1) y', '1'), 'x w y');
+  });
+
   test('unlink unescapes a bracket inside the words', () {
     expect(unlinkAnnotation(r'[a\]b](annotation:i)', 'i'), 'a]b');
   });
