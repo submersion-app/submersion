@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
@@ -43,6 +44,9 @@ class SiteMediaSection extends ConsumerStatefulWidget {
 }
 
 class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
+  /// A browser shows the media it can and links none (issue #4121).
+  bool get _canAttach => ref.watch(deviceCapabilitiesProvider).mediaAttach;
+
   /// Owns the bulk-selection state machine for this section.
   ///
   /// Id-based, unlike the positional per-category grids it drives (see
@@ -298,7 +302,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                   // The only way into selection: entry by long-press was
                   // removed, so nothing but this control opens the mode.
                   mediaAsync.whenOrNull(
-                        data: (media) => media.isEmpty
+                        data: (media) => media.isEmpty || !_canAttach
                             ? const SizedBox.shrink()
                             : IconButton(
                                 key: const ValueKey('enter_selection'),
@@ -313,8 +317,9 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                               ),
                       ) ??
                       const SizedBox.shrink(),
-                  if (widget.onAddPhotosPressed != null ||
-                      widget.onAddDocumentPressed != null)
+                  if (_canAttach &&
+                      (widget.onAddPhotosPressed != null ||
+                          widget.onAddDocumentPressed != null))
                     PopupMenuButton<String>(
                       icon: Icon(
                         Icons.add_photo_alternate,

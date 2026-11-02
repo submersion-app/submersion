@@ -14,6 +14,8 @@ import 'package:submersion/features/media/presentation/providers/resolved_asset_
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/media/data/services/media_serving_recorder.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -1034,6 +1036,32 @@ void main() {
 
       expect(applied, hasLength(1));
       expect((applied.single as MediaTimePinned).elapsedSeconds, 300);
+    });
+  });
+
+  group('in a browser (#4121)', () {
+    testWidgets('natively the origin can be checked', (tester) async {
+      await pump(tester, _item());
+      final en = lookupAppLocalizations(const Locale('en'));
+      expect(find.text(en.media_info_actionCheckNow), findsOneWidget);
+    });
+
+    testWidgets('a browser only reads: no check, locate or back up', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _item(),
+        extra: [
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        ],
+      );
+      final en = lookupAppLocalizations(const Locale('en'));
+      expect(find.text('reef.jpg'), findsOneWidget);
+      expect(find.text(en.media_info_actionCheckNow), findsNothing);
+      expect(find.text(en.media_info_actionLocate), findsNothing);
+      expect(find.text(en.media_info_actionCopyNow), findsNothing);
+      expect(find.text(en.media_info_actionRetryUpload), findsNothing);
     });
   });
 }

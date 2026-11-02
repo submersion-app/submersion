@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -76,6 +77,9 @@ class DiveMediaSection extends ConsumerStatefulWidget {
 }
 
 class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
+  /// A browser shows the media it can and links none (issue #4121).
+  bool get _canAttach => ref.watch(deviceCapabilitiesProvider).mediaAttach;
+
   /// Owns the bulk-selection state machine for this section.
   ///
   /// Id-based, unlike the positional [DragSelectGridView] it drives. Indices
@@ -282,11 +286,12 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             // TODO(media): l10n
             child: Text(showInOsFileManagerLabel()),
           ),
-        const PopupMenuItem<String>(
-          value: 'replace',
-          // TODO(media): l10n
-          child: Text('Replace link...'),
-        ),
+        if (ref.read(deviceCapabilitiesProvider).mediaAttach)
+          const PopupMenuItem<String>(
+            value: 'replace',
+            // TODO(media): l10n
+            child: Text('Replace link...'),
+          ),
       ],
     );
 
@@ -385,7 +390,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                   // The only way into selection: entry by long-press was
                   // removed, so nothing but this control opens the mode.
                   mediaAsync.whenOrNull(
-                        data: (media) => media.isEmpty
+                        data: (media) => media.isEmpty || !_canAttach
                             ? const SizedBox.shrink()
                             : IconButton(
                                 key: const ValueKey('enter_selection'),
@@ -400,7 +405,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                               ),
                       ) ??
                       const SizedBox.shrink(),
-                  if (widget.onScanPressed != null)
+                  if (_canAttach && widget.onScanPressed != null)
                     IconButton(
                       icon: Icon(
                         Icons.image_search,
@@ -412,7 +417,8 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                     ),
                   // Lightroom scan hidden pending Adobe review
                   // (lightroomUiEnabled).
-                  if (lightroomUiEnabled &&
+                  if (_canAttach &&
+                      lightroomUiEnabled &&
                       ref.watch(lightroomAccountProvider).value != null)
                     IconButton(
                       icon: Icon(
@@ -423,7 +429,8 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.settings_lightroom_scanNow,
                       onPressed: () => _scanLightroom(context),
                     ),
-                  if (widget.onAddPressed != null &&
+                  if (_canAttach &&
+                      widget.onAddPressed != null &&
                       widget.onAddDocumentPressed == null)
                     IconButton(
                       icon: Icon(
@@ -434,7 +441,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.media_diveMediaSection_addTooltip,
                       onPressed: widget.onAddPressed,
                     )
-                  else if (widget.onAddPressed != null)
+                  else if (_canAttach && widget.onAddPressed != null)
                     PopupMenuButton<String>(
                       icon: Icon(
                         Icons.add_photo_alternate,
