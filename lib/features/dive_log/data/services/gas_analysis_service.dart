@@ -168,7 +168,8 @@ class GasAnalysisService {
   /// Automatically detects dive phases: descent, bottom, ascent, safety stop.
   /// A hold inside one of [decoStops], or on a sample [ndlCurve] reads as in
   /// deco, is a deco stop, not a safety stop. The curve catches the short stops
-  /// that are too brief to be a window.
+  /// that are too brief to be a window. A curve whose length does not match
+  /// [profile] is another series, and is treated as absent.
   List<SacSegment>? calculatePhaseSegments({
     required List<DiveProfilePoint> profile,
     required List<DiveTank> tanks,
@@ -186,6 +187,10 @@ class GasAnalysisService {
     final maxDepth = profile.map((p) => p.depth).reduce(math.max);
     if (maxDepth < 3.0) return null; // Too shallow
 
+    final alignedNdl = ndlCurve.length == profile.length
+        ? ndlCurve
+        : const <int>[];
+
     // Classify each profile point by phase
     final phasePoints = <({int timestamp, DivePhase phase})>[];
     for (int i = 0; i < profile.length; i++) {
@@ -193,7 +198,7 @@ class GasAnalysisService {
       var phase = _classifyPhase(profile, i, maxDepth);
       if (phase == DivePhase.safetyStop &&
           (decoStops.any((w) => timestamp >= w.start && timestamp <= w.end) ||
-              isDecoSample(profile, ndlCurve, i))) {
+              isDecoSample(profile, alignedNdl, i))) {
         phase = DivePhase.deco;
       }
       phasePoints.add((timestamp: timestamp, phase: phase));

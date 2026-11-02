@@ -706,6 +706,11 @@ void main() {
 
         expect(shortPhases(const []), contains(DivePhase.safetyStop));
         expect(
+          shortPhases(List.filled(short.length - 1, -1)),
+          contains(DivePhase.safetyStop),
+          reason: 'a curve of another length is another series',
+        );
+        expect(
           shortPhases(List.filled(short.length, -1)),
           isNot(contains(DivePhase.safetyStop)),
         );
