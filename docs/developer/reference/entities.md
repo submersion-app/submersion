@@ -73,7 +73,6 @@ The primary dive log entry entity.
 | `effectiveRuntime` | Duration? | Best available runtime: stored, entry to exit, profile, else bottom time |
 | `totalWeight` | double | Sum of all weights |
 | `sac` | double? | SAC in L/min at surface |
-| `sacPressure` | double? | SAC in bar/min |
 | `isCCR` | bool | Whether this is a CCR dive |
 | `isSCR` | bool | Whether this is an SCR dive |
 | `isRebreather` | bool | Whether this is any rebreather dive |
