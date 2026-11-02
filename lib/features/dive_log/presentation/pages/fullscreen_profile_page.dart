@@ -516,7 +516,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   padding: const EdgeInsets.only(right: 8),
                                   child: AnnotationPinButton(
                                     active: annotationPlacement != null,
-                                    onPressed: annotationActions.onPinPressed,
+                                    onPressed: chartActions.onPinPressed,
                                   ),
                                 ),
                               ],

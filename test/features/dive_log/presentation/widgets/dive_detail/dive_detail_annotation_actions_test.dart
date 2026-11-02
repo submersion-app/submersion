@@ -135,6 +135,31 @@ void main() {
       );
     });
 
+    testWidgets('sends the pin to placement when only it has samples', (
+      tester,
+    ) async {
+      final dive = createTestDiveWithBottomTime(
+        id: diveId,
+        diveNumber: 1,
+      ).copyWith(profile: const []);
+      final actions = await actionsFor(tester, dive);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SizedBox).first),
+      );
+      final keepAlive = container.listen(
+        annotationPlacementProvider(diveId),
+        (_, _) {},
+      );
+      addTearDown(keepAlive.close);
+
+      await actions.onProfile(const [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 900, depth: 12),
+      ]).onPinPressed();
+
+      expect(container.read(annotationPlacementProvider(diveId)), isNotNull);
+    });
+
     testWidgets('leaves the dive\'s own profile when nothing else is drawn', (
       tester,
     ) async {
