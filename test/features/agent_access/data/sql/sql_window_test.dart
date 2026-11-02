@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart' show sqlite3;
 import 'package:submersion/features/agent_access/data/sql/sql_denied_set.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_value_limit.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
@@ -124,6 +128,13 @@ void main() {
     });
 
     test('a value past the limit fails inside SQLite', () {
+      final db = sqlite3.openInMemory();
+      addTearDown(db.close);
+      // The package's Linux build does not export sqlite3_limit.
+      if (!limitSqlValueSize(db, kSqlMaxValueBytes)) {
+        expect(Platform.isLinux, isTrue);
+        return;
+      }
       const size = kSqlMaxValueBytes + 1;
       for (final sql in [
         "SELECT printf('%.*c', $size, 'x')",

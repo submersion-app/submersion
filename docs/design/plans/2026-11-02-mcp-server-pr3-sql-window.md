@@ -32,7 +32,7 @@ The spec leaves these to the builder.
 | Row cap | 500 by default, `max_rows` up to 5000 | Enough for an analysis, small enough for a model's context |
 | Time cap | 10 seconds | Checked between rows by the worker |
 | Result size cap | 2 MiB, reported as `size_cap_hit` | One `printf` can build a gigabyte string that a row cap would pass |
-| Value size cap | 16 MiB through `sqlite3_limit`, bound directly | SQLite builds a value inside its step, so the result size cap comes too late to protect memory |
+| Value size cap | 16 MiB through `sqlite3_limit`, bound directly, where the library exports it | SQLite builds a value inside its step, so the result size cap comes too late to protect memory. The package's Linux build does not export the symbol |
 | A statement that streams no rows | The tool answers at cap plus 2 seconds with `still_running: true`; later calls answer `sql_busy` until the worker ends | Neither `Isolate.kill` nor the worker can stop a native step. See Known limits |
 | Blobs | `{"blob_bytes": n}`, never the bytes | Same rule as the documents from PR 2 |
 | Unknown tables | Refused | `sqlite_stat1`, `sqlite_sequence` and anything the change log policy has not classified. A new table must be classified before it is readable |

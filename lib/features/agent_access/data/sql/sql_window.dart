@@ -21,7 +21,8 @@ const Duration kSqlTimeCap = Duration(seconds: 10);
 /// The rough size of a result, which a row cap alone would not bound.
 const int kSqlMaxResultBytes = 2 * 1024 * 1024;
 
-/// The largest string or blob SQLite may build or read on this connection.
+/// The largest string or blob SQLite may build or read on this connection,
+/// where the library lets it be set. See [limitSqlValueSize].
 const int kSqlMaxValueBytes = 16 * 1024 * 1024;
 
 /// Every cell costs at least this, so a million NULLs still count.

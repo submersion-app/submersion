@@ -168,12 +168,14 @@ descriptions at runtime. After changing a table, run
 `dart run tool/generate_sql_column_notes.dart`; a test fails until the
 generated file matches.
 
-A string or blob over `kSqlMaxValueBytes` fails the statement. SQLite builds a
-value inside its own step, so only its own limit can bound the memory; the
-result size cap applies later and protects the reply, not the process.
-`sqlite3_limit` is bound directly in `sql_value_limit.dart` because the package
-does not bind it. If a platform's library lacks the symbol, the window runs
-without the limit.
+SQLite builds a value inside its own step, so only its own limit can bound the
+memory; the result size cap applies later and protects the reply, not the
+process. `sql_value_limit.dart` sets `SQLITE_LIMIT_LENGTH` through
+`sqlite3_limit`, bound directly because the package does not bind it. That
+works where the library exports the symbol, as on macOS. The package's Linux
+build exports only the functions it binds, so there the call answers false and
+a statement can still build a value of up to a gigabyte. Windows has not been
+checked.
 
 A statement that stays inside one native step cannot be stopped: `Isolate.kill`
 acts only when the step returns. The call answers with `still_running`, and
