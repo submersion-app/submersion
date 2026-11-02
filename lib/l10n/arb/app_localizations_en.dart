@@ -13849,6 +13849,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_twinSet => 'Twin Set';
+
+  @override
   String get enum_tideState_rising => 'Rising';
 
   @override
@@ -29664,7 +29667,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive\'s tanks for it to count as sidemount.';
+      'A dive counts as twin backmount when a cylinder\'s role is Twin Set, and as sidemount when its cylinders are Sidemount Left and Right.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives have cylinders that look like a twin set.',
+      one: '$count dive has a cylinder that looks like a twin set.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'Their names or sizes say twin, double, D12, 2x12, or $size and up, but their role is Back Gas, so they count as single backmount.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Mark as twin sets';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Review dives';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Dismiss';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle => 'Set role to Twin Set?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'Set the role of $tanks cylinders on $dives to Twin Set? Other cylinders on those dives are left alone.',
+      one:
+          'Set the role of $tanks cylinder on $dives to Twin Set? Other cylinders on those dives are left alone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Set role';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Cancel';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cylinders set to Twin Set',
+      one: '$count cylinder set to Twin Set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed => 'Could not set the role';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'Looks like a twin set';
 
   @override
   String get insights_gas_tankConfig_empty => 'No dives to show';
@@ -30117,6 +30195,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'Stage';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'Twin Set';
 
   @override
   String get insights_geographic_appBar_title => 'Geographic';

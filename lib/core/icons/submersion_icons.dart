@@ -142,4 +142,8 @@ abstract final class SubmersionIcons {
 
   /// A second stage seen face-on.
   static const IconData secondStage = IconData(0xe91e, fontFamily: fontFamily);
+
+  /// Two upright cylinders joined by a manifold, both solid: a twin set
+  /// (issue #3374).
+  static const IconData tankTwinSet = IconData(0xe91f, fontFamily: fontFamily);
 }

@@ -14025,6 +14025,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_twinSet => 'Ikerpalack';
+
+  @override
   String get enum_tideState_rising => 'Emelkedő';
 
   @override
@@ -30029,7 +30032,85 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Az egy palackként rögzített ikerpalackok akkor számítanak, ha a név ezt jelzi (twin, double, D12, 2x12), vagy a palack nagyobb bármely szokásos egyes palacknál. Állítsa be a Sidemount bal és Sidemount jobb szerepet egy merülés palackjain, hogy sidemountként számítson.';
+      'Egy merülés ikerpalackosnak számít, ha egy palack szerepe Ikerpalack, és sidemountnak, ha palackjai Sidemount bal és Sidemount jobb.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülésnél vannak olyan palackok, amelyek ikerpalacknak tűnnek.',
+      one: '$count merülésnél van olyan palack, amely ikerpalacknak tűnik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'A nevük vagy a méretük twin, double, D12, 2x12 vagy $size és nagyobb, de a szerepük Fő gáz, ezért egyes palackként számítanak.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Megjelölés ikerpalackként';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Merülések megtekintése';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Elvetés';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'Szerep beállítása Ikerpalackra?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'Beállítja $tanks palack szerepét $dives Ikerpalackra? A merülések többi palackja változatlan marad.',
+      one:
+          'Beállítja $tanks palack szerepét $dives Ikerpalackra? A merülések többi palackja változatlan marad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésnél',
+      one: '$count merülésnél',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Szerep beállítása';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Mégse';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count palack Ikerpalackra állítva',
+      one: '$count palack Ikerpalackra állítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'A szerepet nem sikerült beállítani';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'Ikerpalacknak tűnik';
 
   @override
   String get insights_gas_tankConfig_empty => 'Nincs megjeleníthető merülés';
@@ -30472,6 +30553,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'Stage';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'Ikerpalack';
 
   @override
   String get insights_geographic_appBar_title => 'Földrajzi';
