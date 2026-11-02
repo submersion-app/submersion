@@ -82,13 +82,14 @@ typedef _Drop = ({double from, double to});
 ///
 /// Loop time and bailout time come from [classifyCcrGasChanges], so this
 /// agrees with the profile and the decompression schedule about when the diver
-/// was bailed out, and inherits its reading of a switch: only a cylinder
-/// marked Diluent means the loop. A bailout onto one reads as staying on the
+/// was bailed out, past the first minute, where a switch only names the
+/// starting gas here. It inherits their reading of a switch: only a cylinder
+/// read as diluent means the loop. A bailout onto one reads as staying on the
 /// loop, and a return onto any other reads as more bailout.
 ///
 /// [tankPressures] splits a cylinder between the two. Without a usable series
 /// a cylinder gets one figure: bailout gas if the diver bailed onto it, unless
-/// it is marked as loop gas, otherwise loop gas.
+/// it is read as loop gas, otherwise loop gas.
 ///
 /// [countedInRates] picks the cylinders that add up in [CcrDiveUse.o2Rate] and
 /// [CcrDiveUse.diluentRate], for a dive that holds two recordings' copies of
@@ -210,7 +211,7 @@ CcrCylinderUse _cylinderUse({
 
   var loopDrops = const <_Drop>[];
   var bailoutDrops = const <_Drop>[];
-  final usable = _usableSeries(series, diveEnd);
+  final usable = _usableSeries(tank.id, series, diveEnd);
   if (usable != null) {
     loopDrops = _dropsAcross(usable, loops);
     // Only while it was breathed: a cylinder cooling during another's bailout
@@ -220,7 +221,7 @@ CcrCylinderUse _cylinderUse({
     final (start, end) = resolvedTankPressures(tank, series);
     if (start != null && end != null && end < start) {
       final whole = [(from: start, to: end)];
-      if (bailoutWindows.isEmpty || _isMarkedLoopGas(tank)) {
+      if (bailoutWindows.isEmpty || _readsAsLoopGas(tank)) {
         loopDrops = whole;
       } else {
         bailoutDrops = whole;
@@ -259,11 +260,11 @@ CcrCylinderUse _cylinderUse({
 /// [series] without transmitter dropouts, or null when it shows no fall over
 /// the dive: a flat or lost transmitter says nothing (issue #3373).
 List<TankPressurePoint>? _usableSeries(
+  String tankId,
   List<TankPressurePoint>? series,
   int diveEnd,
 ) {
   if (series == null || diveEnd <= 0) return null;
-  final tankId = series.isEmpty ? '' : series.first.tankId;
   final cleaned = [
     for (final sample in withoutDropouts([
       for (final p in series) (t: p.timestamp, bar: p.pressure),
@@ -314,8 +315,15 @@ double _gasVolumeAt(
 double? _perMinute(double liters, int seconds) =>
     liters > 0 && seconds > 0 ? liters / (seconds / 60) : null;
 
-bool _isMarkedLoopGas(DiveTank tank) =>
+/// Whether the timeline reads [tank] as loop gas, an untagged cylinder
+/// included (see [ccrCylinderRole]).
+bool _readsAsLoopGas(DiveTank tank) =>
     isLoopTankRole(ccrCylinderRole(tank).name);
+
+/// Whether the diver marked [tank] as loop gas. An untagged Back Gas cylinder
+/// is not marked: it is what a file import gives a cylinder it knows nothing
+/// about, which may be a bailout that only cooled.
+bool _isMarkedLoopGas(DiveTank tank) => isLoopTankRole(tank.role.name);
 
 bool _holdsOxygen(DiveTank tank) =>
     ccrCylinderRole(tank) == TankRole.oxygenSupply || tank.gasMix.isOxygen;

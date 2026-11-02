@@ -108,6 +108,20 @@ void main() {
       expect(use.loopSeconds, 61);
     });
 
+    test('a bailout and a return in one second is no bailout', () {
+      // Sorted by id on a tie, so the switch onto the stage comes first.
+      final use = _use(
+        [
+          _tank('a', TankRole.stage, start: 200, end: 150),
+          _tank('d', TankRole.diluent, start: 200, end: 190),
+        ],
+        switches: [_switchTo('a', 1000), _switchTo('d', 1000)],
+      );
+      expect(use.loopSeconds, 3600);
+      expect(_of(use, 'a').bailoutWindows, isEmpty);
+      expect(_of(use, 'a').loopRate, closeTo(50 * 7 / 60, 1e-9));
+    });
+
     test('a switch naming a stale tank is ignored', () {
       final use = _use(
         [_tank('d', TankRole.diluent, start: 200, end: 150)],
@@ -410,6 +424,21 @@ void main() {
       expect(_of(use, 'd').loopRate, closeTo(5 * 7 / 60, 1e-9));
     });
 
+    test('an untagged Back Gas cylinder that only cooled adds nothing', () {
+      // What a file import gives a cylinder it knows nothing about.
+      final use = _use([
+        _tank('bail', TankRole.backGas, volume: 11, start: 200, end: 187),
+      ]);
+      expect(_of(use, 'bail').loopLiters, 0);
+      expect(use.diluentRate, isNull);
+    });
+
+    test('an untagged Back Gas cylinder past the minimum counts', () {
+      final use = _use([_tank('dil', TankRole.backGas, start: 200, end: 170)]);
+      expect(_of(use, 'dil').loopRate, closeTo(30 * 7 / 60, 1e-9));
+      expect(use.diluentRate, closeTo(30 * 7 / 60, 1e-9));
+    });
+
     test('an O2 Supply cylinder has no minimum', () {
       final use = _use([
         _tank('o2', TankRole.oxygenSupply, start: 200, end: 195, o2: 100),
@@ -434,12 +463,12 @@ void main() {
       expect(use.diluentRate, isNull);
     });
 
-    test('an untagged pure O2 back gas is the O2 line with no minimum', () {
+    test('an untagged pure O2 back gas is the O2 line', () {
       final use = _use([
-        _tank('o2', TankRole.backGas, volume: 3, start: 200, end: 190, o2: 100),
+        _tank('o2', TankRole.backGas, volume: 3, start: 200, end: 170, o2: 100),
       ]);
-      expect(_of(use, 'o2').loopRate, closeTo(10 * 3 / 60, 1e-9));
-      expect(use.o2Rate, closeTo(10 * 3 / 60, 1e-9));
+      expect(_of(use, 'o2').loopRate, closeTo(30 * 3 / 60, 1e-9));
+      expect(use.o2Rate, closeTo(30 * 3 / 60, 1e-9));
     });
 
     test('every other cylinder adds up in the diluent line', () {

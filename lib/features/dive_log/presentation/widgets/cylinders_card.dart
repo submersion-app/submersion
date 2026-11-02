@@ -63,10 +63,11 @@ class CylindersCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tankPressures = ref.watch(tankPressuresProvider(dive.id)).valueOrNull;
+    // `.value`, not `valueOrNull`: a reload keeps the figures already shown
+    // rather than dropping them from every row.
+    final tankPressures = ref.watch(tankPressuresProvider(dive.id)).value;
     final cylinderSacs =
-        ref.watch(cylinderSacProvider(dive.id)).valueOrNull ??
-        const <CylinderSac>[];
+        ref.watch(cylinderSacProvider(dive.id)).value ?? const <CylinderSac>[];
     final sacByTankId = {for (final c in cylinderSacs) c.tankId: c};
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ??

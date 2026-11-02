@@ -19,7 +19,6 @@ import 'package:submersion/features/dive_log/data/repositories/depth_bucket_sql.
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';

@@ -82,7 +82,7 @@ extension _CcrCylinderSac on GasAnalysisService {
       return null;
     }
     final ambientPressureBar = environment.pressureAtDepth(avgDepth);
-    final barUsed = tankVolume != null && tankVolume > 0
+    final barUsed = tankVolume != null
         ? cylinder.bailoutLiters / tankVolume
         : cylinder.bailoutBar;
     return barUsed / durationMin / ambientPressureBar;

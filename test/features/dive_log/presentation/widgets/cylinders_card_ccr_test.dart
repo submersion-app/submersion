@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -119,6 +122,58 @@ void main() {
       expect(tester.widget<Text>(right5).data, 'Loop use 5.4 L/min');
       final o2 = find.byKey(const Key('tank-loop-use-tank'));
       expect(tester.widget<Text>(o2).data, 'Loop use 1.9 L/min');
+    });
+
+    testWidgets('rates stay up while the provider reloads', (tester) async {
+      final generation = StateProvider<int>((ref) => 0);
+      final row = _row(loopRate: 1.8);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            cylinderSacProvider.overrideWith(
+              (ref, id) => ref.watch(generation) == 0
+                  ? Future.value([row])
+                  : Completer<List<CylinderSac>>().future,
+            ),
+            tankPressuresProvider.overrideWith(
+              (ref, id) async => const <String, List<TankPressurePoint>>{},
+            ),
+            diveDataSourcesProvider.overrideWith(
+              (ref, id) async => const <DiveDataSource>[],
+            ),
+            transmittersProvider.overrideWith(
+              (ref) async => const <Transmitter>[],
+            ),
+          ],
+          child: SingleChildScrollView(
+            child: CylindersCard(
+              dive: Dive(
+                id: 'dive-1',
+                diveNumber: 1,
+                dateTime: DateTime(2026, 6, 1, 10),
+                maxDepth: 30,
+                diveMode: DiveMode.ccr,
+                tanks: const [_tank],
+              ),
+              units: const UnitFormatter(AppSettings()),
+              settings: const AppSettings(),
+              display: GasConsumptionDisplay.both,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('Loop use 1.8 L/min'), findsOneWidget);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(CylindersCard)),
+      ).read(generation.notifier).state = 1;
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Loop use 1.8 L/min'), findsOneWidget);
     });
 
     testWidgets('Loop use shows under every display preference', (

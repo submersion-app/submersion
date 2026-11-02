@@ -83,7 +83,8 @@ every dive.
    not only CCR ones. It was always plain bar times litres while the rates
    followed the model, which a loop rate beside it made visible: at the default
    real-gas setting 371 L over 60 minutes read as 5.4 L/min. This changes the
-   figure on open-circuit dives too, and is what #828 set out to do.
+   figure on open-circuit dives too, and is what #828 set out to do. The dive
+   table's Gas Consumed column follows the same rule, so the two agree on a dive.
 
 ## Calls made while writing this
 
@@ -139,10 +140,12 @@ import may not. Loop time is everything else. No switches means all loop time.
 
 **The minimum drop.** A filled cylinder loses pressure as it cools: an 11 L
 bailout filled warm drops about 13 bar in 5 C water without being touched, which
-over an hour would read as 2.5 L/min. So a cylinder whose `ccrCylinderRole` is
-neither `oxygenSupply` nor `diluent` has no loop gas at all unless its loop drop
-exceeds 20 bar, the same value as `kBailoutMinOcDropBar`, in a constant of its own
-beside that one. Cylinders marked as loop gas have no minimum.
+over an hour would read as 2.5 L/min. So a cylinder not marked O2 Supply or
+Diluent has no loop gas at all unless its loop drop exceeds 20 bar, the same value
+as `kBailoutMinOcDropBar`, in a constant of its own beside that one. That reads the
+stored role, not `ccrCylinderRole`: Back Gas is what a file import gives a cylinder
+it knows nothing about, so an untagged bailout must not pass as diluent. Cylinders
+marked as loop gas have no minimum.
 
 **The figures.**
 

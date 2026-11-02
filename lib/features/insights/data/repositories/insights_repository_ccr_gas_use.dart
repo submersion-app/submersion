@@ -41,9 +41,9 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
 
       final o2 = <TrendDataPoint>[];
       final diluent = <TrendDataPoint>[];
-      // A chunk at a time: a pressure series is a blob, and this runs over
-      // every CCR dive in the logbook.
-      for (final ids in seriesIdChunks(rowsById.keys.toList())) {
+      for (final ids in InsightsRepository._diveChunks(
+        rowsById.keys.toList(),
+      )) {
         final dives = {
           for (final dive in await _diveRepository.getDivesByIdsWithoutSamples(
             ids,

@@ -125,6 +125,21 @@ void main() {
       expect(trend.o2.first.date, DateTime.utc(2026, 1, 2));
     });
 
+    test('dives stay in date order across a chunk boundary', () async {
+      addTearDown(
+        () => InsightsRepository.seriesDiveChunkSize =
+            InsightsRepository.defaultSeriesDiveChunkSize,
+      );
+      InsightsRepository.seriesDiveChunkSize = 1;
+      await insertCcrDive('later', day: 5);
+      await insertCcrDive('earlier', day: 2);
+      await insertCcrDive('latest', day: 9);
+
+      final trend = await repository.getCcrGasUsePerDive();
+
+      expect(trend.o2.map((p) => p.diveId), ['earlier', 'later', 'latest']);
+    });
+
     test('a Sidemount cylinder lands in Diluent', () async {
       await insertDive('ccr');
       await insertTank('ccr', 'left', 'sidemountLeft');
