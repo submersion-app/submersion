@@ -1,75 +1,21 @@
 import 'package:submersion/core/query/domain/query_error_code.dart';
-import 'package:meta/meta.dart';
 
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
-import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/core/query/syntax/date_grammar.dart';
+import 'package:submersion/core/query/syntax/query_parse_context.dart';
+import 'package:submersion/core/query/syntax/query_plain_words.dart';
 import 'package:submersion/core/query/syntax/query_suggestions.dart';
 import 'package:submersion/core/query/syntax/query_tokenizer.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 
 export 'package:submersion/core/query/domain/query_errors.dart'
     show ParseFailure, ParseOk, ParseResult;
-
-/// Resolves a typed name to a row of [kind]. `NameIndex` in
-/// lib/core/query/names/ implements this (#2365).
-abstract class NameResolver {
-  RefValue? resolve(QuerySubject kind, String text);
-  List<String> candidates(QuerySubject kind, String text);
-}
-
-/// Implemented by resolvers that can list every row of a subject, which
-/// the editor's completions and ref pickers use; the parser itself needs
-/// only [NameResolver]. Rows, not labels: two sites can share a name
-/// ("Blue Hole"), and each must stay pickable by its own id.
-abstract class NameEntries {
-  Iterable<RefValue> refEntries(QuerySubject kind);
-}
-
-/// Exact, case-insensitive label lookup over an in-memory map. For tests
-/// and for callers that already hold the labels.
-class MapNameResolver implements NameResolver, NameEntries {
-  final Map<QuerySubject, Map<String, String>> labelsToIds;
-  const MapNameResolver(this.labelsToIds);
-
-  @override
-  Iterable<RefValue> refEntries(QuerySubject kind) => [
-    for (final e in (labelsToIds[kind] ?? const <String, String>{}).entries)
-      RefValue(e.value, e.key),
-  ];
-
-  @override
-  RefValue? resolve(QuerySubject kind, String text) {
-    final labels = labelsToIds[kind] ?? const {};
-    for (final e in labels.entries) {
-      if (e.key.toLowerCase() == text.toLowerCase()) {
-        return RefValue(e.value, e.key);
-      }
-    }
-    return null;
-  }
-
-  @override
-  List<String> candidates(QuerySubject kind, String text) =>
-      suggestNames(text, (labelsToIds[kind] ?? const {}).keys);
-}
-
-@immutable
-class ParseContext {
-  final UnitPrefs prefs;
-  final DateTime now;
-  final NameResolver names;
-  const ParseContext({
-    required this.prefs,
-    required this.now,
-    required this.names,
-  });
-}
+export 'package:submersion/core/query/syntax/query_parse_context.dart';
 
 class _Abort implements Exception {
   final QueryError error;
@@ -184,19 +130,42 @@ class QueryParser {
       _isSymbol(t, '-');
 
   QueryNode _and() {
-    final parts = [_not()];
+    final parts = <QueryNode>[];
+    final fillers = <int>{};
+    void readTerm() {
+      final first = _peek;
+      final from = _pos;
+      final part = _not();
+      if (_pos == from + 1 && _isFiller(first)) fillers.add(parts.length);
+      parts.add(part);
+    }
+
+    readTerm();
     while (true) {
       if (_isKeyword(_peek, 'and') || _isSymbol(_peek, '&')) {
         _next();
-        parts.add(_not());
+        // Half way through `between 2018 and 2020`, not a broken condition.
+        if (_entity.plainWords != null && _peek.kind == TokenKind.end) break;
+        readTerm();
       } else if (_startsPrimary(_peek)) {
-        parts.add(_not());
+        readTerm();
       } else {
         break;
       }
     }
-    return parts.length == 1 ? parts.first : AndNode(parts);
+    final kept = [
+      for (final (i, part) in parts.indexed)
+        if (!fillers.contains(i)) part,
+    ];
+    final terms = kept.isEmpty ? parts : kept;
+    return terms.length == 1 ? terms.first : AndNode(terms);
   }
+
+  /// Whether [t] is a bare word that only joins a sentence (`with`, `the`).
+  bool _isFiller(Token t) =>
+      _entity.plainWords != null &&
+      t.kind == TokenKind.word &&
+      isFillerWord(t.text, context.language);
 
   QueryNode _not() {
     if (_isKeyword(_peek, 'not') || _isSymbol(_peek, '-')) {
@@ -223,6 +192,10 @@ class QueryParser {
       if (words.isEmpty) throw _Abort(_err(QueryErrorCode.emptyText, t));
       return TextNode(words.toList());
     }
+    if (_entity.plainWords case final reading?) {
+      final phrase = _plainPhrase(t, reading);
+      if (phrase != null) return phrase;
+    }
     if (t.kind == TokenKind.number) {
       _next();
       return TextNode([t.text]);
@@ -235,6 +208,32 @@ class QueryParser {
       return TextNode([t.text]);
     }
     throw _Abort(_err(QueryErrorCode.expectedConditionOrText, t));
+  }
+
+  /// The date phrase or multi-word label starting at [t], or null. A word
+  /// that starts a condition is left to the condition.
+  QueryNode? _plainPhrase(Token t, PlainWordReading reading) {
+    if (t.kind != TokenKind.word && t.kind != TokenKind.number) return null;
+    if (_operatorFollows(t) || _presenceFollows(t)) return null;
+    if (readDatePhrase(_tokens, _pos, context.now) case (
+      :final range,
+      :final length,
+    )) {
+      _pos += length;
+      return _dateRangeNode(
+        FieldPath([reading.dateField]),
+        QueryOp.eq,
+        range,
+        t,
+      );
+    }
+    final label = readLabelPhrase(_tokens, _pos, reading.isPhrase);
+    if (label == null) return null;
+    final words = [
+      for (final token in _tokens.sublist(_pos, _pos + label)) token.text,
+    ];
+    _pos += label;
+    return TextNode(words);
   }
 
   /// Whether an operator follows [word]. `in` and `between` are also words a
@@ -575,6 +574,16 @@ class QueryParser {
     if (range == null) {
       throw _Abort(_err(QueryErrorCode.notADate, t, args: {'text': t.text}));
     }
+    return _dateRangeNode(path, op, range, t);
+  }
+
+  /// [range] as a condition on [path]; [t] is where an error points.
+  QueryNode _dateRangeNode(
+    FieldPath path,
+    QueryOp op,
+    DateRange range,
+    Token t,
+  ) {
     final (:start, :end) = range;
     if (start != null && end != null) {
       if (start == end) return ConditionNode(path, op, DateValue(start));
