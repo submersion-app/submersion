@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
@@ -728,17 +729,32 @@ class DiveReimportService {
     final eventsRaw = diveData['events'] ?? diveData['profileEvents'];
     if (eventsRaw is! List) return;
 
+    // The diver's own events (annotations, hand-added bookmarks) are not
+    // the file's to replace (#4109).
     final deleted = await (db.delete(
       db.diveProfileEvents,
-    )..where((t) => t.diveId.equals(diveId))).go();
+    )..where((t) => t.diveId.equals(diveId) & nonUserEvent(t))).go();
     // One tombstone for the dive's events, not one per event (#1926). Logged
     // before the fresh events are staged below, so their clocks are newer
-    // and a peer applying the scope keeps them.
+    // and a peer applying the scope keeps them. The kept user events are
+    // re-stamped for the same reason.
     if (deleted > 0) {
       await _syncRepository.logScopedDeletion(
         EventScopeTombstone(diveId: diveId),
       );
+      await restampUserEvents(
+        db: db,
+        sync: _syncRepository,
+        diveId: diveId,
+        now: now.millisecondsSinceEpoch,
+      );
     }
+    final keptIds = {
+      for (final row in await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get())
+        row.id,
+    };
 
     final events = profileEventsFromParsed(
       diveId: diveId,
@@ -747,6 +763,9 @@ class DiveReimportService {
       onSkipped: _log.warning,
     );
     for (final event in events) {
+      // A file that carries the kept events' own ids (a UDDF backup of this
+      // log) must not duplicate them.
+      if (keptIds.contains(event.id)) continue;
       await db
           .into(db.diveProfileEvents)
           .insert(

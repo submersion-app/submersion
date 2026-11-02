@@ -305,6 +305,38 @@ void main() {
     }
   });
 
+  test('keeps a user-authored annotation and re-stamps it newer than the '
+      'events tombstone', () async {
+    await seedPublishedDive();
+    await db
+        .into(db.diveProfileEvents)
+        .insert(
+          const DiveProfileEventsCompanion(
+            id: Value('ann-1'),
+            diveId: Value('d1'),
+            timestamp: Value(90),
+            eventType: Value('annotation'),
+            source: Value('user'),
+            description: Value('felt sick'),
+            createdAt: Value(nowMs),
+          ),
+        );
+    await publishEverything();
+
+    await reparse();
+
+    final events = await db.select(db.diveProfileEvents).get();
+    expect(events.map((e) => e.id), isNot(contains('old-event')));
+    final kept = events.singleWhere((e) => e.id == 'ann-1');
+    final scope = (await db.select(db.deletionLog).get()).singleWhere(
+      (d) => d.entityType == EventScopeTombstone.entityType,
+    );
+    expect(
+      Hlc.parse(kept.hlc!).compareTo(Hlc.parse(scope.originHlc!)),
+      greaterThan(0),
+    );
+  });
+
   test('a non-primary source publishes its source row without re-stamping '
       'the dive', () async {
     // The dive row did not change. Re-stamping it would let this device's

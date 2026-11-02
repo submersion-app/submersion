@@ -1551,6 +1551,47 @@ void main() {
       });
     });
 
+    test('keeps a user-authored annotation and re-stamps it newer than the '
+        'scope tombstone', () async {
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedSource(diveId, id: 'src-file');
+      await seedEvent(diveId, id: 'ev-old');
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'ann-1',
+              diveId: diveId,
+              timestamp: 600,
+              eventType: 'annotation',
+              source: const Value('user'),
+              description: const Value('felt sick'),
+              createdAt: 0,
+            ),
+          );
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {'dateTime': DateTime(2026, 9, 1, 9), 'events': freshEvents},
+        now: DateTime(2026, 9, 3),
+      );
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(events.map((e) => e.id), isNot(contains('ev-old')));
+      final kept = events.singleWhere((e) => e.id == 'ann-1');
+      expect(kept.description, 'felt sick');
+      final scope = (await db.select(db.deletionLog).get()).singleWhere(
+        (d) => d.entityType == EventScopeTombstone.entityType,
+      );
+      expect(
+        Hlc.parse(kept.hlc!).compareTo(Hlc.parse(scope.originHlc!)),
+        greaterThan(0),
+        reason: 'a peer applying the scope must keep the annotation',
+      );
+    });
+
     test('leaves the events of a multi-source dive alone', () async {
       final diveId = await seedDive(notes: '', buddy: '');
       await seedSource(diveId, id: 'src-file');
