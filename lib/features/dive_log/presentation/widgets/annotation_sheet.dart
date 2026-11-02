@@ -65,8 +65,10 @@ class AnnotationForm extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Wide enough for the label "Time from the start" at the
+            // theme's label size, so it never ellipsizes.
             SizedBox(
-              width: 140,
+              width: 190,
               child: MinutesSecondsField(
                 seconds: seconds,
                 onChanged: onSecondsChanged,
