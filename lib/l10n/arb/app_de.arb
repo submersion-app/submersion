@@ -8506,7 +8506,7 @@
   "settings_units_gasModel_real_subtitle": "Berücksichtigt die Kompressibilität. Eine 12-l-Flasche mit 200 bar fasst etwa 2317 l.",
   "settings_units_gasModel_ideal": "Ideales Gas",
   "settings_units_gasModel_ideal_subtitle": "Entspricht der Handrechnung und den Tauchtabellen. Eine 12-l-Flasche mit 200 bar fasst 2400 l.",
-  "settings_units_gasModel_explanation": "Wie der Flaschendruck in ein Gasvolumen umgerechnet wird. Dies betrifft das AMV, die Gasstatistik, den Planer und die Gasrechner. Ideales Gas entspricht der von den Verbänden gelehrten Rechnung; reales Gas ist physikalisch genau und ergibt beim AMV etwa 5 % niedrigere Werte.",
+  "settings_units_gasModel_explanation": "Wie der Flaschendruck in ein Gasvolumen umgerechnet wird. Dies betrifft das AMV, den Gasverbrauch, die Gasstatistik, den Planer und die Gasrechner. Ideales Gas entspricht der von den Verbänden gelehrten Rechnung; reales Gas ist physikalisch genau und ergibt beim AMV etwa 5 % niedrigere Werte.",
   "settings_units_dialog_gasModel": "Gasberechnungen",
   "settings_units_dialog_waterType": "Standard-Wassertyp",
   "settings_units_dialog_temperatureUnit": "Temperatureinheit",

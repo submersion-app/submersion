@@ -233,14 +233,14 @@ double? _computeGasConsumed(Dive dive, GasModel gasModel) {
     if (start == null || end == null || volume == null || end >= start) {
       continue;
     }
-    double litersAt(double bar) => gasVolume(
+    total += gasVolumeBetween(
       tankSizeLiters: volume,
-      pressureBar: bar,
+      startBar: start,
+      endBar: end,
       o2Percent: tank.gasMix.o2,
       hePercent: tank.gasMix.he,
       model: gasModel,
     );
-    total += litersAt(start) - litersAt(end);
   }
   return total > 0 ? total : null;
 }

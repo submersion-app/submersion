@@ -29295,7 +29295,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Comment la pression du bloc est convertie en volume de gaz. Cela concerne la consommation (RMV), les statistiques de gaz, le planificateur et les calculatrices. Le gaz parfait correspond au calcul enseigné par les fédérations ; le gaz réel est physiquement exact et donne un RMV environ 5 % plus bas.';
+      'Comment la pression du bloc est convertie en volume de gaz. Cela concerne la consommation (RMV), le gaz utilisé, les statistiques de gaz, le planificateur et les calculatrices. Le gaz parfait correspond au calcul enseigné par les fédérations ; le gaz réel est physiquement exact et donne un RMV environ 5 % plus bas.';
 
   @override
   String get settings_units_dialog_gasModel => 'Calculs de gaz';

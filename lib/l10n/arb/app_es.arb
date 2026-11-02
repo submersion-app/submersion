@@ -8372,7 +8372,7 @@
   "settings_units_gasModel_real_subtitle": "Tiene en cuenta la compresibilidad. Una botella de 12 L a 200 bar contiene unos 2317 L.",
   "settings_units_gasModel_ideal": "Gas ideal",
   "settings_units_gasModel_ideal_subtitle": "Coincide con el cálculo manual y las tablas. Una botella de 12 L a 200 bar contiene 2400 L.",
-  "settings_units_gasModel_explanation": "Cómo se convierte la presión de la botella en volumen de gas. Afecta al RMV, las estadísticas de gas, el planificador y las calculadoras. El gas ideal coincide con el cálculo que enseñan las agencias; el gas real es físicamente exacto y da un RMV un 5 % menor aproximadamente.",
+  "settings_units_gasModel_explanation": "Cómo se convierte la presión de la botella en volumen de gas. Afecta al RMV, el gas usado, las estadísticas de gas, el planificador y las calculadoras. El gas ideal coincide con el cálculo que enseñan las agencias; el gas real es físicamente exacto y da un RMV un 5 % menor aproximadamente.",
   "settings_units_dialog_gasModel": "Cálculos de gas",
   "settings_units_dialog_waterType": "Tipo de agua predeterminado",
   "settings_units_dialog_temperatureUnit": "Unidad de temperatura",

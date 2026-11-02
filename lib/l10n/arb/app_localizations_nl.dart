@@ -29014,7 +29014,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Hoe flesdruk wordt omgerekend naar gasvolume. Dit beïnvloedt het RMV, de gasstatistieken, de planner en de gasrekenmachines. Ideaal gas komt overeen met de berekening die opleidingen leren; reëel gas is fysisch nauwkeurig en geeft een ongeveer 5% lager RMV.';
+      'Hoe flesdruk wordt omgerekend naar gasvolume. Dit beïnvloedt het RMV, het gebruikte gas, de gasstatistieken, de planner en de gasrekenmachines. Ideaal gas komt overeen met de berekening die opleidingen leren; reëel gas is fysisch nauwkeurig en geeft een ongeveer 5% lager RMV.';
 
   @override
   String get settings_units_dialog_gasModel => 'Gasberekeningen';

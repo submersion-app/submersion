@@ -61,14 +61,14 @@ class CylinderSac extends Equatable {
     final end = endPressure;
     final volume = tankVolume;
     if (start == null || end == null || volume == null) return null;
-    double litersAt(double pressureBar) => gasVolume(
+    return gasVolumeBetween(
       tankSizeLiters: volume,
-      pressureBar: pressureBar,
+      startBar: start,
+      endBar: end,
       o2Percent: gasMix.o2,
       hePercent: gasMix.he,
       model: gasModel,
     );
-    return litersAt(start) - litersAt(end);
   }
 
   /// Duration this tank was actively used

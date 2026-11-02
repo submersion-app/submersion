@@ -29227,7 +29227,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Cómo se convierte la presión de la botella en volumen de gas. Afecta al RMV, las estadísticas de gas, el planificador y las calculadoras. El gas ideal coincide con el cálculo que enseñan las agencias; el gas real es físicamente exacto y da un RMV un 5 % menor aproximadamente.';
+      'Cómo se convierte la presión de la botella en volumen de gas. Afecta al RMV, el gas usado, las estadísticas de gas, el planificador y las calculadoras. El gas ideal coincide con el cálculo que enseñan las agencias; el gas real es físicamente exacto y da un RMV un 5 % menor aproximadamente.';
 
   @override
   String get settings_units_dialog_gasModel => 'Cálculos de gas';

@@ -239,9 +239,14 @@ CcrCylinderUse _cylinderUse({
     if (volume == null) return 0;
     var liters = 0.0;
     for (final drop in drops) {
-      liters +=
-          _gasVolumeAt(tank, volume, drop.from, gasModel) -
-          _gasVolumeAt(tank, volume, drop.to, gasModel);
+      liters += gasVolumeBetween(
+        tankSizeLiters: volume,
+        startBar: drop.from,
+        endBar: drop.to,
+        o2Percent: tank.gasMix.o2,
+        hePercent: tank.gasMix.he,
+        model: gasModel,
+      );
     }
     return liters;
   }
@@ -298,19 +303,6 @@ List<_Drop> _dropsAcross(
 
 double _totalBar(List<_Drop> drops) =>
     drops.fold(0.0, (total, drop) => total + drop.from - drop.to);
-
-double _gasVolumeAt(
-  DiveTank tank,
-  double volume,
-  double pressureBar,
-  GasModel model,
-) => gasVolume(
-  tankSizeLiters: volume,
-  pressureBar: pressureBar,
-  o2Percent: tank.gasMix.o2,
-  hePercent: tank.gasMix.he,
-  model: model,
-);
 
 double? _perMinute(double liters, int seconds) =>
     liters > 0 && seconds > 0 ? liters / (seconds / 60) : null;

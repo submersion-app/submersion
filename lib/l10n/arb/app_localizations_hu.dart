@@ -29068,7 +29068,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Hogyan váltja át az alkalmazás a palacknyomást gáztérfogattá. Ez érinti az RMV-értéket, a gázstatisztikákat, a tervezőt és a gázkalkulátorokat. Az ideális gáz a képzőszervezetek által tanított számítást követi; a valós gáz fizikailag pontos, és az RMV nála kb. 5%-kal alacsonyabb.';
+      'Hogyan váltja át az alkalmazás a palacknyomást gáztérfogattá. Ez érinti az RMV-értéket, a felhasznált gázt, a gázstatisztikákat, a tervezőt és a gázkalkulátorokat. Az ideális gáz a képzőszervezetek által tanított számítást követi; a valós gáz fizikailag pontos, és az RMV nála kb. 5%-kal alacsonyabb.';
 
   @override
   String get settings_units_dialog_gasModel => 'Gázszámítások';

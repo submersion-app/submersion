@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
-import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
@@ -63,14 +62,14 @@ class CylindersCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // `.value`, not `valueOrNull`: a reload keeps the figures already shown
-    // rather than dropping them from every row.
+    // `.value`, not `valueOrNull`, here and below: a reload keeps what is
+    // already shown rather than dropping it from every row.
     final tankPressures = ref.watch(tankPressuresProvider(dive.id)).value;
     final cylinderSacs =
         ref.watch(cylinderSacProvider(dive.id)).value ?? const <CylinderSac>[];
     final sacByTankId = {for (final c in cylinderSacs) c.tankId: c};
     final dataSources =
-        ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ??
+        ref.watch(diveDataSourcesProvider(dive.id)).value ??
         const <DiveDataSource>[];
     // Only badge tanks once there's more than one source to disambiguate —
     // a single-source dive never needs attribution.

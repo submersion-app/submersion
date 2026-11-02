@@ -29151,7 +29151,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Wie der Flaschendruck in ein Gasvolumen umgerechnet wird. Dies betrifft das AMV, die Gasstatistik, den Planer und die Gasrechner. Ideales Gas entspricht der von den Verbänden gelehrten Rechnung; reales Gas ist physikalisch genau und ergibt beim AMV etwa 5 % niedrigere Werte.';
+      'Wie der Flaschendruck in ein Gasvolumen umgerechnet wird. Dies betrifft das AMV, den Gasverbrauch, die Gasstatistik, den Planer und die Gasrechner. Ideales Gas entspricht der von den Verbänden gelehrten Rechnung; reales Gas ist physikalisch genau und ergibt beim AMV etwa 5 % niedrigere Werte.';
 
   @override
   String get settings_units_dialog_gasModel => 'Gasberechnungen';

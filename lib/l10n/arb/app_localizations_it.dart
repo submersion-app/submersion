@@ -29222,7 +29222,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Come la pressione della bombola viene convertita in volume di gas. Riguarda l\'RMV, le statistiche del gas, il pianificatore e i calcolatori. Il gas ideale corrisponde al calcolo insegnato dalle didattiche; il gas reale è fisicamente accurato e restituisce un RMV inferiore di circa il 5%.';
+      'Come la pressione della bombola viene convertita in volume di gas. Riguarda l\'RMV, il gas usato, le statistiche del gas, il pianificatore e i calcolatori. Il gas ideale corrisponde al calcolo insegnato dalle didattiche; il gas reale è fisicamente accurato e restituisce un RMV inferiore di circa il 5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'Calcoli del gas';

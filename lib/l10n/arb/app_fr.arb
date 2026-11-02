@@ -8271,7 +8271,7 @@
   "settings_units_gasModel_real_subtitle": "Tient compte de la compressibilité. Un bloc de 12 L à 200 bar contient environ 2317 L.",
   "settings_units_gasModel_ideal": "Gaz parfait",
   "settings_units_gasModel_ideal_subtitle": "Correspond au calcul manuel et aux tables. Un bloc de 12 L à 200 bar contient 2400 L.",
-  "settings_units_gasModel_explanation": "Comment la pression du bloc est convertie en volume de gaz. Cela concerne la consommation (RMV), les statistiques de gaz, le planificateur et les calculatrices. Le gaz parfait correspond au calcul enseigné par les fédérations ; le gaz réel est physiquement exact et donne un RMV environ 5 % plus bas.",
+  "settings_units_gasModel_explanation": "Comment la pression du bloc est convertie en volume de gaz. Cela concerne la consommation (RMV), le gaz utilisé, les statistiques de gaz, le planificateur et les calculatrices. Le gaz parfait correspond au calcul enseigné par les fédérations ; le gaz réel est physiquement exact et donne un RMV environ 5 % plus bas.",
   "settings_units_dialog_gasModel": "Calculs de gaz",
   "settings_units_dialog_waterType": "Type d'eau par défaut",
   "settings_units_dialog_temperatureUnit": "Unité de température",

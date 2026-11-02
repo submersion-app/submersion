@@ -27540,7 +27540,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
+      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、已用气体、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
 
   @override
   String get settings_units_dialog_gasModel => '气体计算';

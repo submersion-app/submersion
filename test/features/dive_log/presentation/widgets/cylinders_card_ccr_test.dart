@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -174,6 +175,79 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Loop use 1.8 L/min'), findsOneWidget);
+    });
+
+    testWidgets('source badges stay up while the provider reloads', (
+      tester,
+    ) async {
+      final generation = StateProvider<int>((ref) => 0);
+      final now = DateTime(2026, 6, 1, 10);
+      DiveDataSource source(String id, {bool isPrimary = false}) =>
+          DiveDataSource(
+            id: id,
+            diveId: 'dive-1',
+            computerId: id,
+            isPrimary: isPrimary,
+            computerModel: id,
+            entryTime: now,
+            exitTime: now.add(const Duration(minutes: 45)),
+            importedAt: now,
+            createdAt: now,
+          );
+      final sources = [source('c1', isPrimary: true), source('c2')];
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            cylinderSacProvider.overrideWith(
+              (ref, id) async => const <CylinderSac>[],
+            ),
+            tankPressuresProvider.overrideWith(
+              (ref, id) async => const <String, List<TankPressurePoint>>{},
+            ),
+            diveDataSourcesProvider.overrideWith(
+              (ref, id) => ref.watch(generation) == 0
+                  ? Future.value(sources)
+                  : Completer<List<DiveDataSource>>().future,
+            ),
+            transmittersProvider.overrideWith(
+              (ref) async => const <Transmitter>[],
+            ),
+          ],
+          child: SingleChildScrollView(
+            child: CylindersCard(
+              dive: Dive(
+                id: 'dive-1',
+                diveNumber: 1,
+                dateTime: now,
+                maxDepth: 30,
+                diveMode: DiveMode.ccr,
+                tanks: const [
+                  DiveTank(
+                    id: 'tank',
+                    computerId: 'c1',
+                    role: TankRole.diluent,
+                  ),
+                ],
+              ),
+              units: const UnitFormatter(AppSettings()),
+              settings: const AppSettings(),
+              display: GasConsumptionDisplay.both,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(FieldAttributionBadge), findsOneWidget);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(CylindersCard)),
+      ).read(generation.notifier).state = 1;
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(FieldAttributionBadge), findsOneWidget);
     });
 
     testWidgets('Loop use shows under every display preference', (

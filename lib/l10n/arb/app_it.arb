@@ -8267,7 +8267,7 @@
   "settings_units_gasModel_real_subtitle": "Tiene conto della comprimibilità. Una bombola da 12 L a 200 bar contiene circa 2317 L.",
   "settings_units_gasModel_ideal": "Gas ideale",
   "settings_units_gasModel_ideal_subtitle": "Corrisponde al calcolo manuale e alle tabelle. Una bombola da 12 L a 200 bar contiene 2400 L.",
-  "settings_units_gasModel_explanation": "Come la pressione della bombola viene convertita in volume di gas. Riguarda l'RMV, le statistiche del gas, il pianificatore e i calcolatori. Il gas ideale corrisponde al calcolo insegnato dalle didattiche; il gas reale è fisicamente accurato e restituisce un RMV inferiore di circa il 5%.",
+  "settings_units_gasModel_explanation": "Come la pressione della bombola viene convertita in volume di gas. Riguarda l'RMV, il gas usato, le statistiche del gas, il pianificatore e i calcolatori. Il gas ideale corrisponde al calcolo insegnato dalle didattiche; il gas reale è fisicamente accurato e restituisce un RMV inferiore di circa il 5%.",
   "settings_units_dialog_gasModel": "Calcoli del gas",
   "settings_units_dialog_waterType": "Tipo di acqua predefinito",
   "settings_units_dialog_temperatureUnit": "Unità di temperatura",

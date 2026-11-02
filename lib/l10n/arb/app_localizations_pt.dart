@@ -29198,7 +29198,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Como a pressão do cilindro é convertida em volume de gás. Afeta o RMV, as estatísticas de gás, o planeador e as calculadoras. O gás ideal corresponde ao cálculo ensinado pelas agências; o gás real é fisicamente exato e apresenta um RMV cerca de 5% mais baixo.';
+      'Como a pressão do cilindro é convertida em volume de gás. Afeta o RMV, o gás usado, as estatísticas de gás, o planeador e as calculadoras. O gás ideal corresponde ao cálculo ensinado pelas agências; o gás real é fisicamente exato e apresenta um RMV cerca de 5% mais baixo.';
 
   @override
   String get settings_units_dialog_gasModel => 'Cálculos de gás';

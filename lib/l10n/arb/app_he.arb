@@ -8372,7 +8372,7 @@
   "settings_units_gasModel_real_subtitle": "מתחשב בדחיסות. מיכל 12 ליטר ב-200 בר מכיל כ-2317 ליטר.",
   "settings_units_gasModel_ideal": "גז אידיאלי",
   "settings_units_gasModel_ideal_subtitle": "תואם לחישוב ידני ולטבלאות צלילה. מיכל 12 ליטר ב-200 בר מכיל 2400 ליטר.",
-  "settings_units_gasModel_explanation": "כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.",
+  "settings_units_gasModel_explanation": "כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, הגז שנוצל, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.",
   "settings_units_dialog_gasModel": "חישובי גז",
   "settings_units_dialog_waterType": "סוג מים ברירת מחדל",
   "settings_units_dialog_temperatureUnit": "יחידת טמפרטורה",

@@ -8271,7 +8271,7 @@
   "settings_units_gasModel_real_subtitle": "Figyelembe veszi az összenyomhatóságot. Egy 12 literes palack 200 baron kb. 2317 litert tartalmaz.",
   "settings_units_gasModel_ideal": "Ideális gáz",
   "settings_units_gasModel_ideal_subtitle": "Megegyezik a kézi számítással és a merüléstáblákkal. Egy 12 literes palack 200 baron 2400 litert tartalmaz.",
-  "settings_units_gasModel_explanation": "Hogyan váltja át az alkalmazás a palacknyomást gáztérfogattá. Ez érinti az RMV-értéket, a gázstatisztikákat, a tervezőt és a gázkalkulátorokat. Az ideális gáz a képzőszervezetek által tanított számítást követi; a valós gáz fizikailag pontos, és az RMV nála kb. 5%-kal alacsonyabb.",
+  "settings_units_gasModel_explanation": "Hogyan váltja át az alkalmazás a palacknyomást gáztérfogattá. Ez érinti az RMV-értéket, a felhasznált gázt, a gázstatisztikákat, a tervezőt és a gázkalkulátorokat. Az ideális gáz a képzőszervezetek által tanított számítást követi; a valós gáz fizikailag pontos, és az RMV nála kb. 5%-kal alacsonyabb.",
   "settings_units_dialog_gasModel": "Gázszámítások",
   "settings_units_dialog_waterType": "Alapértelmezett víztípus",
   "settings_units_dialog_temperatureUnit": "Hőmérséklet egység",

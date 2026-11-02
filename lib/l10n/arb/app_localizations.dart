@@ -46806,7 +46806,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_units_gasModel_explanation.
   ///
   /// In en, this message translates to:
-  /// **'How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.'**
+  /// **'How cylinder pressure is converted to gas volume. This affects RMV, gas used, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.'**
   String get settings_units_gasModel_explanation;
 
   /// No description provided for @settings_units_dialog_gasModel.
