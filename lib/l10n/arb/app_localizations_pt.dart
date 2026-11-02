@@ -58512,6 +58512,73 @@ class AppLocalizationsPt extends AppLocalizations {
   String get web_googleClientId_help => 'Como criar um';
 
   @override
+  String get web_cors_title_blockedByCors =>
+      'O armazenamento bloqueia pedidos do navegador';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'O navegador consultou o armazenamento e não obteve uma resposta que pudesse ler. As regras CORS do armazenamento têm de permitir o endereço deste site. Adicione a regra abaixo ao armazenamento e verifique de novo.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'O armazenamento permite alguns pedidos, não todos';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'O armazenamento responde a um pedido simples deste site mas recusa o método de que a app precisa, como PROPFIND no WebDAV. A sua regra CORS tem de listar todos os métodos abaixo.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'O armazenamento permite ler, não escrever';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'As leituras a partir deste site funcionam, mas uma escrita foi recusada. A regra CORS também tem de permitir PUT e DELETE; a regra abaixo inclui-os.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'O armazenamento recusou as credenciais';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'O armazenamento respondeu 403: chave de acesso ou segredo errados, ou uma chave só de leitura onde a sincronização precisa de escrever. Verifique as credenciais e as permissões da chave.';
+
+  @override
+  String get web_cors_title_notFound => 'Nada encontrado neste endereço';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'O bucket, a pasta ou o caminho não existe, ou o nome está mal escrito. Verifique o endereço e o nome do bucket ou da pasta.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'O navegador não confia no servidor ou não o consegue alcançar';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Um endereço privado por HTTPS falhou sem resposta. É o navegador, não a app, que decide em que certificados confiar: abra o endereço do servidor num novo separador e aceite ou instale o certificado, ou garanta que o servidor é alcançável daqui.';
+
+  @override
+  String get web_cors_title_ok => 'A ligação funciona';
+
+  @override
+  String get web_cors_explain_ok =>
+      'O armazenamento aceitou o teste a partir deste navegador.';
+
+  @override
+  String get web_cors_title_unknown => 'A ligação falhou';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'O navegador comunicou uma falha que não explica. Normalmente as regras CORS do armazenamento não permitem o endereço deste site; a regra abaixo é a correção habitual.';
+
+  @override
+  String get web_cors_copyRule => 'Copiar regra';
+
+  @override
+  String get web_cors_copied => 'Regra copiada';
+
+  @override
   String get demo_row_unavailable => 'Indisponível no modo de demonstração';
 
   @override

@@ -58651,6 +58651,73 @@ class AppLocalizationsFr extends AppLocalizations {
   String get web_googleClientId_help => 'Comment en créer un';
 
   @override
+  String get web_cors_title_blockedByCors =>
+      'L\'espace de stockage bloque les requêtes du navigateur';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'Le navigateur a interrogé l\'espace de stockage et n\'a reçu aucune réponse qu\'il était autorisé à lire. Les règles CORS de l\'espace doivent autoriser l\'adresse de ce site. Ajoutez la règle ci-dessous, puis vérifiez à nouveau.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'L\'espace de stockage autorise certaines requêtes, pas toutes';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'L\'espace répond à une requête simple de ce site mais refuse la méthode dont l\'application a besoin, comme PROPFIND pour WebDAV. Sa règle CORS doit lister chaque méthode ci-dessous.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'L\'espace de stockage autorise la lecture, pas l\'écriture';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Les lectures depuis ce site fonctionnent, mais une écriture a été refusée. La règle CORS doit aussi autoriser PUT et DELETE ; la règle ci-dessous les inclut.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'L\'espace de stockage a refusé les identifiants';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'L\'espace a répondu 403 : clé d\'accès ou secret erroné, ou clé en lecture seule là où la synchronisation doit écrire. Vérifiez les identifiants et les droits de la clé.';
+
+  @override
+  String get web_cors_title_notFound => 'Rien à cette adresse';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'Le bucket, le dossier ou le chemin n\'existe pas, ou le nom est mal orthographié. Vérifiez l\'adresse et le nom du bucket ou du dossier.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'Le navigateur ne fait pas confiance au serveur ou ne peut pas l\'atteindre';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Une adresse privée en HTTPS a échoué sans réponse. C\'est le navigateur, pas l\'application, qui décide des certificats de confiance : ouvrez l\'adresse du serveur dans un nouvel onglet et acceptez ou installez son certificat, ou assurez-vous que le serveur est joignable d\'ici.';
+
+  @override
+  String get web_cors_title_ok => 'La connexion fonctionne';
+
+  @override
+  String get web_cors_explain_ok =>
+      'L\'espace de stockage a accepté le test depuis ce navigateur.';
+
+  @override
+  String get web_cors_title_unknown => 'La connexion a échoué';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'Le navigateur a signalé un échec qu\'il n\'explique pas. Le plus souvent, les règles CORS de l\'espace n\'autorisent pas l\'adresse de ce site ; la règle ci-dessous est le correctif habituel.';
+
+  @override
+  String get web_cors_copyRule => 'Copier la règle';
+
+  @override
+  String get web_cors_copied => 'Règle copiée';
+
+  @override
   String get demo_row_unavailable => 'Indisponible en mode démo';
 
   @override

@@ -57285,6 +57285,69 @@ class AppLocalizationsHe extends AppLocalizations {
   String get web_googleClientId_help => 'איך ליצור אחד';
 
   @override
+  String get web_cors_title_blockedByCors => 'המאגר חוסם בקשות מהדפדפן';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'הדפדפן פנה למאגר ולא קיבל תשובה שהורשה לקרוא. כללי ה-CORS של המאגר חייבים להתיר את כתובת האתר הזה. הוסף את הכלל שלמטה למאגר ובדוק שוב.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'המאגר מתיר חלק מהבקשות, לא את כולן';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'המאגר עונה לבקשה פשוטה מהאתר הזה אך מסרב לשיטה שהאפליקציה צריכה, כמו PROPFIND ב-WebDAV. כלל ה-CORS שלו חייב לכלול כל שיטה שלמטה.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors => 'המאגר מתיר קריאה, לא כתיבה';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'קריאות מהאתר הזה עובדות, אך כתיבה נדחתה. כלל ה-CORS חייב להתיר גם PUT ו-DELETE; הכלל שלמטה כולל אותם.';
+
+  @override
+  String get web_cors_title_forbidden => 'המאגר דחה את פרטי הגישה';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'המאגר ענה 403: מפתח גישה או סוד שגויים, או מפתח לקריאה בלבד במקום שבו הסנכרון צריך לכתוב. בדוק את פרטי הגישה ואת הרשאות המפתח.';
+
+  @override
+  String get web_cors_title_notFound => 'לא נמצא דבר בכתובת זו';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'הדלי, התיקייה או הנתיב אינם קיימים, או שהשם שגוי. בדוק את הכתובת ואת שם הדלי או התיקייה.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'הדפדפן אינו בוטח בשרת או אינו מגיע אליו';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'כתובת פרטית ב-HTTPS נכשלה ללא תשובה. הדפדפן, לא האפליקציה, מחליט באילו אישורים לבטוח: פתח את כתובת השרת בכרטיסייה חדשה וקבל או התקן את האישור שלו, או ודא שהשרת נגיש מכאן.';
+
+  @override
+  String get web_cors_title_ok => 'החיבור עובד';
+
+  @override
+  String get web_cors_explain_ok => 'המאגר קיבל את הבדיקה מהדפדפן הזה.';
+
+  @override
+  String get web_cors_title_unknown => 'החיבור נכשל';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'הדפדפן דיווח על כשל שאינו מסביר. לרוב כללי ה-CORS של המאגר אינם מתירים את כתובת האתר הזה; הכלל שלמטה הוא התיקון המקובל.';
+
+  @override
+  String get web_cors_copyRule => 'העתק כלל';
+
+  @override
+  String get web_cors_copied => 'הכלל הועתק';
+
+  @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';
 
   @override

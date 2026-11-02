@@ -92344,6 +92344,114 @@ abstract class AppLocalizations {
   /// **'How to create one'**
   String get web_googleClientId_help;
 
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store blocks browser requests'**
+  String get web_cors_title_blockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The browser asked the store and got no answer it was allowed to read. The store\'s CORS rules must allow this site\'s address. Add the rule below to the store, then check again.'**
+  String get web_cors_explain_blockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store allows some requests, not all'**
+  String get web_cors_title_methodBlockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store answers a plain request from this site but refuses the method the app needs, such as PROPFIND for WebDAV. Its CORS rule must list every method below.'**
+  String get web_cors_explain_methodBlockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store allows reading, not writing'**
+  String get web_cors_title_writeBlockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Reads from this site work, but a write was refused. The CORS rule must also allow PUT and DELETE; the rule below includes them.'**
+  String get web_cors_explain_writeBlockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store refused the credentials'**
+  String get web_cors_title_forbidden;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store answered 403: a wrong access key or secret, or a read-only key where sync needs to write. Check the credentials and the key\'s permissions.'**
+  String get web_cors_explain_forbidden;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found at this address'**
+  String get web_cors_title_notFound;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The bucket, folder or path does not exist, or the name is misspelt. Check the address and the bucket or folder name.'**
+  String get web_cors_explain_notFound;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The browser does not trust or cannot reach the server'**
+  String get web_cors_title_tlsOrUnreachable;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'A private address over HTTPS failed before any answer. The browser, not the app, decides which certificates to trust: open the server\'s address in a new tab and accept or install its certificate, or make sure the server is reachable from here.'**
+  String get web_cors_explain_tlsOrUnreachable;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The connection works'**
+  String get web_cors_title_ok;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store accepted the test from this browser.'**
+  String get web_cors_explain_ok;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The connection failed'**
+  String get web_cors_title_unknown;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The browser reported a failure it does not explain. Most often the store\'s CORS rules do not allow this site\'s address; the rule below is the usual fix.'**
+  String get web_cors_explain_unknown;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Copy rule'**
+  String get web_cors_copyRule;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Rule copied'**
+  String get web_cors_copied;
+
   /// Demo mode (issue #3708)
   ///
   /// In en, this message translates to:

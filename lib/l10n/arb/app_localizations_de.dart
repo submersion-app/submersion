@@ -58393,6 +58393,74 @@ class AppLocalizationsDe extends AppLocalizations {
   String get web_googleClientId_help => 'So erstellst du eine';
 
   @override
+  String get web_cors_title_blockedByCors =>
+      'Der Speicher blockiert Browser-Anfragen';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'Der Browser hat den Speicher gefragt und keine Antwort erhalten, die er lesen durfte. Die CORS-Regeln des Speichers müssen die Adresse dieser Seite erlauben. Füge die Regel unten im Speicher hinzu und prüfe erneut.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'Der Speicher erlaubt einige Anfragen, nicht alle';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'Der Speicher beantwortet eine einfache Anfrage dieser Seite, verweigert aber die Methode, die die App braucht, etwa PROPFIND bei WebDAV. Seine CORS-Regel muss jede Methode unten aufführen.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'Der Speicher erlaubt Lesen, nicht Schreiben';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Lesen von dieser Seite klappt, ein Schreibzugriff wurde aber verweigert. Die CORS-Regel muss auch PUT und DELETE erlauben; die Regel unten enthält sie.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'Der Speicher hat die Zugangsdaten abgelehnt';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'Der Speicher hat mit 403 geantwortet: falscher Zugriffsschlüssel oder falsches Geheimnis, oder ein Nur-Lese-Schlüssel, wo die Synchronisation schreiben muss. Prüfe die Zugangsdaten und die Berechtigungen des Schlüssels.';
+
+  @override
+  String get web_cors_title_notFound =>
+      'Unter dieser Adresse wurde nichts gefunden';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'Bucket, Ordner oder Pfad existiert nicht oder der Name ist falsch geschrieben. Prüfe die Adresse und den Bucket- oder Ordnernamen.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'Der Browser vertraut dem Server nicht oder erreicht ihn nicht';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Eine private Adresse über HTTPS ist ohne Antwort fehlgeschlagen. Der Browser, nicht die App, entscheidet, welchen Zertifikaten er vertraut: Öffne die Serveradresse in einem neuen Tab und akzeptiere oder installiere das Zertifikat, oder stelle sicher, dass der Server von hier erreichbar ist.';
+
+  @override
+  String get web_cors_title_ok => 'Die Verbindung funktioniert';
+
+  @override
+  String get web_cors_explain_ok =>
+      'Der Speicher hat den Test aus diesem Browser angenommen.';
+
+  @override
+  String get web_cors_title_unknown => 'Die Verbindung ist fehlgeschlagen';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'Der Browser hat einen Fehler gemeldet, den er nicht erklärt. Meist erlauben die CORS-Regeln des Speichers die Adresse dieser Seite nicht; die Regel unten ist die übliche Lösung.';
+
+  @override
+  String get web_cors_copyRule => 'Regel kopieren';
+
+  @override
+  String get web_cors_copied => 'Regel kopiert';
+
+  @override
   String get demo_row_unavailable => 'Im Demomodus nicht verfügbar';
 
   @override

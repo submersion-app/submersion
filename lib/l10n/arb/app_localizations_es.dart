@@ -58568,6 +58568,72 @@ class AppLocalizationsEs extends AppLocalizations {
   String get web_googleClientId_help => 'Cómo crear uno';
 
   @override
+  String get web_cors_title_blockedByCors =>
+      'El almacén bloquea las solicitudes del navegador';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'El navegador consultó al almacén y no obtuvo una respuesta que pudiera leer. Las reglas CORS del almacén deben permitir la dirección de este sitio. Añade la regla de abajo al almacén y vuelve a comprobar.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'El almacén permite algunas solicitudes, no todas';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'El almacén responde a una solicitud simple desde este sitio pero rechaza el método que la app necesita, como PROPFIND en WebDAV. Su regla CORS debe incluir todos los métodos de abajo.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'El almacén permite leer, no escribir';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Las lecturas desde este sitio funcionan, pero una escritura fue rechazada. La regla CORS también debe permitir PUT y DELETE; la regla de abajo los incluye.';
+
+  @override
+  String get web_cors_title_forbidden => 'El almacén rechazó las credenciales';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'El almacén respondió 403: clave de acceso o secreto incorrectos, o una clave de solo lectura donde la sincronización necesita escribir. Comprueba las credenciales y los permisos de la clave.';
+
+  @override
+  String get web_cors_title_notFound => 'No hay nada en esta dirección';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'El bucket, la carpeta o la ruta no existe, o el nombre está mal escrito. Comprueba la dirección y el nombre del bucket o la carpeta.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'El navegador no confía en el servidor o no puede alcanzarlo';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Una dirección privada por HTTPS falló sin respuesta. El navegador, no la app, decide en qué certificados confiar: abre la dirección del servidor en una pestaña nueva y acepta o instala su certificado, o asegúrate de que el servidor sea accesible desde aquí.';
+
+  @override
+  String get web_cors_title_ok => 'La conexión funciona';
+
+  @override
+  String get web_cors_explain_ok =>
+      'El almacén aceptó la prueba desde este navegador.';
+
+  @override
+  String get web_cors_title_unknown => 'La conexión falló';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'El navegador informó de un fallo que no explica. Lo más habitual es que las reglas CORS del almacén no permitan la dirección de este sitio; la regla de abajo suele ser la solución.';
+
+  @override
+  String get web_cors_copyRule => 'Copiar regla';
+
+  @override
+  String get web_cors_copied => 'Regla copiada';
+
+  @override
   String get demo_row_unavailable => 'No disponible en el modo demo';
 
   @override

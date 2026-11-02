@@ -59287,6 +59287,70 @@ class AppLocalizationsAr extends AppLocalizations {
   String get web_googleClientId_help => 'كيفية إنشاء واحد';
 
   @override
+  String get web_cors_title_blockedByCors => 'المخزن يحظر طلبات المتصفح';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'سأل المتصفح المخزن ولم يحصل على إجابة يُسمح له بقراءتها. يجب أن تسمح قواعد CORS في المخزن بعنوان هذا الموقع. أضف القاعدة أدناه إلى المخزن ثم تحقق مجددًا.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'المخزن يسمح ببعض الطلبات لا كلها';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'يجيب المخزن على طلب بسيط من هذا الموقع لكنه يرفض الأسلوب الذي يحتاجه التطبيق، مثل PROPFIND في WebDAV. يجب أن تذكر قاعدة CORS كل الأساليب أدناه.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'المخزن يسمح بالقراءة لا بالكتابة';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'القراءة من هذا الموقع تعمل، لكن عملية كتابة رُفضت. يجب أن تسمح قاعدة CORS أيضًا بـ PUT وDELETE؛ القاعدة أدناه تتضمنهما.';
+
+  @override
+  String get web_cors_title_forbidden => 'رفض المخزن بيانات الاعتماد';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'أجاب المخزن بـ 403: مفتاح وصول أو سر خاطئ، أو مفتاح للقراءة فقط حيث تحتاج المزامنة إلى الكتابة. تحقق من بيانات الاعتماد وصلاحيات المفتاح.';
+
+  @override
+  String get web_cors_title_notFound => 'لا شيء في هذا العنوان';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'الدلو أو المجلد أو المسار غير موجود، أو الاسم مكتوب خطأ. تحقق من العنوان واسم الدلو أو المجلد.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'المتصفح لا يثق بالخادم أو لا يستطيع الوصول إليه';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'فشل عنوان خاص عبر HTTPS دون أي إجابة. المتصفح، لا التطبيق، هو من يقرر الشهادات الموثوقة: افتح عنوان الخادم في علامة تبويب جديدة واقبل شهادته أو ثبّتها، أو تأكد من إمكانية الوصول إلى الخادم من هنا.';
+
+  @override
+  String get web_cors_title_ok => 'الاتصال يعمل';
+
+  @override
+  String get web_cors_explain_ok => 'قبل المخزن الاختبار من هذا المتصفح.';
+
+  @override
+  String get web_cors_title_unknown => 'فشل الاتصال';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'أبلغ المتصفح عن فشل لا يشرحه. غالبًا لا تسمح قواعد CORS في المخزن بعنوان هذا الموقع؛ القاعدة أدناه هي الحل المعتاد.';
+
+  @override
+  String get web_cors_copyRule => 'نسخ القاعدة';
+
+  @override
+  String get web_cors_copied => 'تم نسخ القاعدة';
+
+  @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';
 
   @override

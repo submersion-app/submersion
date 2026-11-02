@@ -58191,6 +58191,73 @@ class AppLocalizationsHu extends AppLocalizations {
   String get web_googleClientId_help => 'Így hozhatsz létre egyet';
 
   @override
+  String get web_cors_title_blockedByCors =>
+      'A tároló blokkolja a böngésző kéréseit';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'A böngésző megkérdezte a tárolót, de nem kapott olyan választ, amelyet olvashatott volna. A tároló CORS-szabályainak engedélyezniük kell ennek az oldalnak a címét. Add hozzá az alábbi szabályt a tárolóhoz, majd ellenőrizd újra.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'A tároló néhány kérést engedélyez, nem mindet';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'A tároló válaszol az oldal egyszerű kérésére, de elutasítja az alkalmazásnak szükséges metódust, például a PROPFIND-ot WebDAV esetén. A CORS-szabálynak minden alábbi metódust fel kell sorolnia.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'A tároló engedi az olvasást, az írást nem';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Az olvasás erről az oldalról működik, de egy írást elutasított. A CORS-szabálynak a PUT és a DELETE metódust is engedélyeznie kell; az alábbi szabály tartalmazza őket.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'A tároló elutasította a hitelesítő adatokat';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'A tároló 403-mal válaszolt: hibás hozzáférési kulcs vagy titok, vagy csak olvasható kulcs ott, ahol a szinkronizálásnak írnia kell. Ellenőrizd a hitelesítő adatokat és a kulcs jogosultságait.';
+
+  @override
+  String get web_cors_title_notFound => 'Ezen a címen nincs semmi';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'A tároló, a mappa vagy az útvonal nem létezik, vagy a neve hibásan van írva. Ellenőrizd a címet és a tároló vagy a mappa nevét.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'A böngésző nem bízik a kiszolgálóban, vagy nem éri el';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Egy privát HTTPS-cím válasz nélkül hibázott. A böngésző dönti el, nem az alkalmazás, mely tanúsítványokban bízik: nyisd meg a kiszolgáló címét új lapon, és fogadd el vagy telepítsd a tanúsítványát, vagy győződj meg róla, hogy a kiszolgáló innen elérhető.';
+
+  @override
+  String get web_cors_title_ok => 'A kapcsolat működik';
+
+  @override
+  String get web_cors_explain_ok =>
+      'A tároló elfogadta a tesztet ebből a böngészőből.';
+
+  @override
+  String get web_cors_title_unknown => 'A kapcsolat sikertelen';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'A böngésző olyan hibát jelzett, amelyet nem magyaráz meg. Leggyakrabban a tároló CORS-szabályai nem engedélyezik ennek az oldalnak a címét; az alábbi szabály a szokásos megoldás.';
+
+  @override
+  String get web_cors_copyRule => 'Szabály másolása';
+
+  @override
+  String get web_cors_copied => 'Szabály kimásolva';
+
+  @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';
 
   @override

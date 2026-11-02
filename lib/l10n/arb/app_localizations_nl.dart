@@ -58156,6 +58156,73 @@ class AppLocalizationsNl extends AppLocalizations {
   String get web_googleClientId_help => 'Zo maak je er een';
 
   @override
+  String get web_cors_title_blockedByCors =>
+      'De opslag blokkeert browserverzoeken';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'De browser vroeg de opslag en kreeg geen antwoord dat hij mocht lezen. De CORS-regels van de opslag moeten het adres van deze site toestaan. Voeg de regel hieronder toe aan de opslag en controleer opnieuw.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'De opslag staat sommige verzoeken toe, niet alle';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'De opslag beantwoordt een eenvoudig verzoek van deze site maar weigert de methode die de app nodig heeft, zoals PROPFIND voor WebDAV. De CORS-regel moet elke methode hieronder vermelden.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'De opslag staat lezen toe, geen schrijven';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Lezen vanaf deze site werkt, maar een schrijfactie werd geweigerd. De CORS-regel moet ook PUT en DELETE toestaan; de regel hieronder bevat ze.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'De opslag weigerde de aanmeldgegevens';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'De opslag antwoordde 403: een verkeerde toegangssleutel of geheim, of een alleen-lezen sleutel waar synchronisatie moet schrijven. Controleer de aanmeldgegevens en de rechten van de sleutel.';
+
+  @override
+  String get web_cors_title_notFound => 'Niets gevonden op dit adres';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'De bucket, map of het pad bestaat niet, of de naam is verkeerd gespeld. Controleer het adres en de naam van de bucket of map.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'De browser vertrouwt de server niet of kan hem niet bereiken';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Een privéadres via HTTPS mislukte zonder antwoord. De browser, niet de app, bepaalt welke certificaten hij vertrouwt: open het serveradres in een nieuw tabblad en accepteer of installeer het certificaat, of zorg dat de server van hieruit bereikbaar is.';
+
+  @override
+  String get web_cors_title_ok => 'De verbinding werkt';
+
+  @override
+  String get web_cors_explain_ok =>
+      'De opslag accepteerde de test vanuit deze browser.';
+
+  @override
+  String get web_cors_title_unknown => 'De verbinding is mislukt';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'De browser meldde een fout die hij niet uitlegt. Meestal staan de CORS-regels van de opslag het adres van deze site niet toe; de regel hieronder is de gebruikelijke oplossing.';
+
+  @override
+  String get web_cors_copyRule => 'Regel kopiëren';
+
+  @override
+  String get web_cors_copied => 'Regel gekopieerd';
+
+  @override
   String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
 
   @override

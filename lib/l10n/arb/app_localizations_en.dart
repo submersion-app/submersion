@@ -57598,6 +57598,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String get web_googleClientId_help => 'How to create one';
 
   @override
+  String get web_cors_title_blockedByCors =>
+      'The store blocks browser requests';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'The browser asked the store and got no answer it was allowed to read. The store\'s CORS rules must allow this site\'s address. Add the rule below to the store, then check again.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'The store allows some requests, not all';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'The store answers a plain request from this site but refuses the method the app needs, such as PROPFIND for WebDAV. Its CORS rule must list every method below.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'The store allows reading, not writing';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Reads from this site work, but a write was refused. The CORS rule must also allow PUT and DELETE; the rule below includes them.';
+
+  @override
+  String get web_cors_title_forbidden => 'The store refused the credentials';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'The store answered 403: a wrong access key or secret, or a read-only key where sync needs to write. Check the credentials and the key\'s permissions.';
+
+  @override
+  String get web_cors_title_notFound => 'Nothing found at this address';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'The bucket, folder or path does not exist, or the name is misspelt. Check the address and the bucket or folder name.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'The browser does not trust or cannot reach the server';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'A private address over HTTPS failed before any answer. The browser, not the app, decides which certificates to trust: open the server\'s address in a new tab and accept or install its certificate, or make sure the server is reachable from here.';
+
+  @override
+  String get web_cors_title_ok => 'The connection works';
+
+  @override
+  String get web_cors_explain_ok =>
+      'The store accepted the test from this browser.';
+
+  @override
+  String get web_cors_title_unknown => 'The connection failed';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'The browser reported a failure it does not explain. Most often the store\'s CORS rules do not allow this site\'s address; the rule below is the usual fix.';
+
+  @override
+  String get web_cors_copyRule => 'Copy rule';
+
+  @override
+  String get web_cors_copied => 'Rule copied';
+
+  @override
   String get demo_row_unavailable => 'Unavailable in demo mode';
 
   @override

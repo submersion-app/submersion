@@ -54920,6 +54920,67 @@ class AppLocalizationsZh extends AppLocalizations {
   String get web_googleClientId_help => '如何创建';
 
   @override
+  String get web_cors_title_blockedByCors => '存储服务阻止了浏览器请求';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      '浏览器向存储服务发出了请求，但没有收到允许读取的回应。存储服务的 CORS 规则必须允许本站地址。请将下方规则添加到存储服务，然后重新检查。';
+
+  @override
+  String get web_cors_title_methodBlockedByCors => '存储服务只允许部分请求';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      '存储服务回应了本站的简单请求，却拒绝了应用所需的方法，例如 WebDAV 的 PROPFIND。其 CORS 规则必须列出下方的所有方法。';
+
+  @override
+  String get web_cors_title_writeBlockedByCors => '存储服务允许读取，不允许写入';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      '从本站读取正常，但写入被拒绝。CORS 规则还必须允许 PUT 和 DELETE；下方规则已包含它们。';
+
+  @override
+  String get web_cors_title_forbidden => '存储服务拒绝了凭据';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      '存储服务返回 403：访问密钥或密钥错误，或者在同步需要写入的地方使用了只读密钥。请检查凭据和密钥权限。';
+
+  @override
+  String get web_cors_title_notFound => '此地址下没有任何内容';
+
+  @override
+  String get web_cors_explain_notFound =>
+      '存储桶、文件夹或路径不存在，或者名称拼写有误。请检查地址以及存储桶或文件夹名称。';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable => '浏览器不信任该服务器或无法访问它';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      '通过 HTTPS 访问私有地址时在收到任何回应前就失败了。决定信任哪些证书的是浏览器而不是应用：请在新标签页中打开服务器地址并接受或安装其证书，或确认服务器可从此处访问。';
+
+  @override
+  String get web_cors_title_ok => '连接正常';
+
+  @override
+  String get web_cors_explain_ok => '存储服务接受了来自此浏览器的测试。';
+
+  @override
+  String get web_cors_title_unknown => '连接失败';
+
+  @override
+  String get web_cors_explain_unknown =>
+      '浏览器报告了一个它无法解释的失败。最常见的原因是存储服务的 CORS 规则未允许本站地址；下方规则通常可以解决。';
+
+  @override
+  String get web_cors_copyRule => '复制规则';
+
+  @override
+  String get web_cors_copied => '规则已复制';
+
+  @override
   String get demo_row_unavailable => '演示模式下不可用';
 
   @override

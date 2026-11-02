@@ -58526,6 +58526,73 @@ class AppLocalizationsIt extends AppLocalizations {
   String get web_googleClientId_help => 'Come crearne uno';
 
   @override
+  String get web_cors_title_blockedByCors =>
+      'L\'archivio blocca le richieste del browser';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'Il browser ha interrogato l\'archivio senza ricevere una risposta che potesse leggere. Le regole CORS dell\'archivio devono consentire l\'indirizzo di questo sito. Aggiungi la regola qui sotto all\'archivio, poi ricontrolla.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'L\'archivio consente alcune richieste, non tutte';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'L\'archivio risponde a una richiesta semplice da questo sito ma rifiuta il metodo di cui l\'app ha bisogno, come PROPFIND per WebDAV. La sua regola CORS deve elencare ogni metodo qui sotto.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'L\'archivio consente la lettura, non la scrittura';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Le letture da questo sito funzionano, ma una scrittura è stata rifiutata. La regola CORS deve consentire anche PUT e DELETE; la regola qui sotto li include.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'L\'archivio ha rifiutato le credenziali';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'L\'archivio ha risposto 403: chiave di accesso o segreto errati, oppure una chiave di sola lettura dove la sincronizzazione deve scrivere. Controlla le credenziali e i permessi della chiave.';
+
+  @override
+  String get web_cors_title_notFound => 'Nulla a questo indirizzo';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'Il bucket, la cartella o il percorso non esiste, oppure il nome è scritto male. Controlla l\'indirizzo e il nome del bucket o della cartella.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'Il browser non si fida del server o non lo raggiunge';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Un indirizzo privato in HTTPS è fallito senza risposta. È il browser, non l\'app, a decidere di quali certificati fidarsi: apri l\'indirizzo del server in una nuova scheda e accetta o installa il suo certificato, oppure assicurati che il server sia raggiungibile da qui.';
+
+  @override
+  String get web_cors_title_ok => 'La connessione funziona';
+
+  @override
+  String get web_cors_explain_ok =>
+      'L\'archivio ha accettato il test da questo browser.';
+
+  @override
+  String get web_cors_title_unknown => 'La connessione non è riuscita';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'Il browser ha segnalato un errore che non spiega. Di solito le regole CORS dell\'archivio non consentono l\'indirizzo di questo sito; la regola qui sotto è la soluzione consueta.';
+
+  @override
+  String get web_cors_copyRule => 'Copia regola';
+
+  @override
+  String get web_cors_copied => 'Regola copiata';
+
+  @override
   String get demo_row_unavailable => 'Non disponibile in modalità demo';
 
   @override
