@@ -37,6 +37,7 @@ void main() {
   test('the denied columns are the policy credentials and feed URLs', () {
     expect(kSqlDeniedColumns, {
       ...changeLogCredentialColumns,
+      'entry_key',
       'manifest_url',
       'url',
     });

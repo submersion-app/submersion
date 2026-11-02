@@ -287,9 +287,9 @@ Rules:
   subscription state, and the change log tables, plus the credential
   columns the change log policy lists
   (`lib/core/database/change_log/change_log_policy.dart`),
-  `media_subscriptions.manifest_url` and `media.url`, because a private
-  feed's URL and the URLs of its items can carry an access token. Derived
-  analytics
+  `media_subscriptions.manifest_url`, `media.url` and `media.entry_key`,
+  because a private feed's URL and the URLs of its items can carry an access
+  token, and a feed's item id is often that URL. Derived analytics
   tables (dive derived metrics, sensor summaries, quality findings,
   equipment findings and service status, trip day weather, rule runs) stay
   readable: they are exactly what the statistics case wants. A guard test
@@ -622,6 +622,7 @@ TDD applies. Minimum coverage:
 | Metric values with unit-named keys; query parses in the diver's units | design |
 | SQL denied list is its own list (credentials, sync, peers, change log), pinned to the policy by a guard test; derived analytics readable | design |
 | SQL window denies `manifest_url` and `media.url`: a private feed's URL and the URLs of its items can carry an access token | Eric |
+| SQL window also denies `media.entry_key`, because a feed's item id is often its URL | design |
 | Apply is atomic: one transaction, any refusal rolls back everything | design |
 | Time cap by stepping rows; FFI interrupt optional | design |
 | Client name shown live, not persisted in the change log | design |

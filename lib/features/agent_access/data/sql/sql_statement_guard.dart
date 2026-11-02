@@ -134,7 +134,8 @@ SqlRefusal? inspectSqlProgram(
 }
 
 SqlRefusal _deniedTable(SqlRoot root) => SqlRefusal(
-  'The table ${root.table} is not available to the SQL window.',
+  'The table ${root.table}, or an index on it, is not available to the SQL '
+  'window.',
   details: {'table': root.table},
 );
 

@@ -164,8 +164,8 @@ Classifying a table: a table the change log policy excludes must go in
 does. A table the policy does not know is refused at runtime. A new credential
 column goes in `changeLogCredentialColumns`, which the window reads too. A
 column the log should keep recording but an agent should not see goes in
-`kSqlDeniedColumns` directly, as `manifest_url` and `url` do: either can carry
-an access token. An expression or partial index on such a table stays readable
+`kSqlDeniedColumns` directly, as `manifest_url`, `url` and `entry_key` do: any
+of them can carry an access token. An expression or partial index on such a table stays readable
 unless its own definition names a denied column.
 
 `submersion://schema` comes from the live schema, so it cannot drift. Its notes

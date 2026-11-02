@@ -361,6 +361,14 @@ void main() {
       expectRefused('SELECT * FROM media');
     });
 
+    test('a feed entry key is refused, and so is its index', () {
+      expectRefused('SELECT entry_key FROM media', mentions: 'entry_key');
+      expectRefused(
+        "SELECT id FROM media WHERE subscription_id = 'sub-1'",
+        mentions: 'an index',
+      );
+    });
+
     test('the rest of media stays readable, sort indexes included', () {
       for (final sql in const [
         'SELECT count(*) FROM media',
@@ -372,7 +380,7 @@ void main() {
         'SELECT id FROM media ORDER BY COALESCE(content_size_bytes, -1) DESC, '
             'id DESC LIMIT 5',
       ]) {
-        rows(sql);
+        expect(rows(sql).rows, hasLength(1), reason: sql);
       }
     });
 
@@ -405,11 +413,13 @@ void main() {
         isNot(contains('example.test')),
       );
 
-      final item = run('SELECT url FROM media') as SqlWindowFailure;
-      expect(
-        '${item.message} ${item.details}',
-        isNot(contains('example.test')),
-      );
+      for (final column in const ['url', 'entry_key']) {
+        final item = run('SELECT $column FROM media') as SqlWindowFailure;
+        expect(
+          '${item.message} ${item.details}',
+          isNot(contains('example.test')),
+        );
+      }
     });
   });
 }

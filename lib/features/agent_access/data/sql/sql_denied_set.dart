@@ -54,11 +54,13 @@ const Set<String> kSqlReadableExcludedTables = {
 
 /// Columns refused on any table that is otherwise readable: the credentials
 /// the change log never records, and the URLs of a private feed and of the
-/// items in it, which can carry an access token in the query string. Those
-/// stay out of [changeLogCredentialColumns] because the log still records
-/// edits to them.
+/// items in it, which can carry an access token in the query string. An
+/// item's entry key counts, because a feed's id or guid is often that URL.
+/// Those stay out of [changeLogCredentialColumns] because the log still
+/// records edits to them.
 const Set<String> kSqlDeniedColumns = {
   ...changeLogCredentialColumns,
+  'entry_key',
   'manifest_url',
   'url',
 };
