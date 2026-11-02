@@ -769,5 +769,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertAndBackfillTripChecklists();
     }
     if (from < 336) await reportProgress();
+
+    // v337: dives.weather_fetched_at holds seconds again where the bulk
+    // conditions fill wrote milliseconds (issue #4119). Data only, so the
+    // compatibility floor does not move.
+    if (from < 337) await _repairWeatherFetchedAtSeconds();
+    if (from < 337) await reportProgress();
   }
 }

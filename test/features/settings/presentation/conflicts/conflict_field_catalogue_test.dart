@@ -214,6 +214,12 @@ void main() {
       conflictFieldFor('divePlans', 'startDateTime').kind,
       FieldKind.epochSeconds,
     );
+    // Stored in seconds by every dive write, so a millisecond reading of it
+    // shows January 1970.
+    expect(
+      conflictFieldFor('dives', 'weatherFetchedAt').kind,
+      FieldKind.epochSeconds,
+    );
     expect(conflictFieldFor('divePlans', 'sacBottom').kind, FieldKind.rmv);
   });
 

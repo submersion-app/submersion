@@ -754,4 +754,22 @@ extension DiveMigrations on AppDatabase {
         )
     ''');
   }
+
+  /// v337: `dives.weather_fetched_at` is Unix seconds, but the bulk conditions
+  /// fill wrote milliseconds until this version (issue #4119). A stored value
+  /// says which it is: seconds reach this cutoff in the year 5138, and every
+  /// value that fill wrote is far above it. Stamps neither `updated_at` nor
+  /// the HLC, so each device repairs its own copy and an upgrade cannot
+  /// outrank a newer change from a peer. Guarded on the column, as the other
+  /// helpers are, for migration fixtures that build only part of the schema.
+  Future<void> _repairWeatherFetchedAtSeconds() async {
+    final columns = await customSelect("PRAGMA table_info('dives')").get();
+    if (!columns.any((c) => c.read<String>('name') == 'weather_fetched_at')) {
+      return;
+    }
+    await customStatement(
+      'UPDATE dives SET weather_fetched_at = weather_fetched_at / 1000 '
+      'WHERE weather_fetched_at >= 100000000000',
+    );
+  }
 }

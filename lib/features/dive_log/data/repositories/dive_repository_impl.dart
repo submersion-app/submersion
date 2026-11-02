@@ -1265,7 +1265,7 @@ class DiveRepository {
                 ? Value(source.name)
                 : const Value.absent(),
             weatherFetchedAt: stampProvenance
-                ? Value(fetchedAt.millisecondsSinceEpoch)
+                ? Value(fetchedAt.millisecondsSinceEpoch ~/ 1000)
                 : const Value.absent(),
             updatedAt: Value(now),
           ),
