@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart' as sqlite3;
 
 import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/database/background_database_connection.dart';
@@ -17,6 +16,7 @@ import 'package:submersion/core/database/database_snapshot.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart'
     as sqlcipher_setup;
+import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -37,17 +37,6 @@ enum DatabaseOpenMode {
   /// A pending upgrade ladder ran on the synchronous main-isolate executor
   /// first, then the database reopened on the background executor.
   migrationThenBackground,
-}
-
-/// drift setup callback for a main-database connection: keys SQLCipher before
-/// any other statement, then applies the busy timeout and the WAL journal
-/// mode. Never null -- neither of those is conditional on encryption.
-///
-/// The single place WAL is turned on. Every other opener of a database file
-/// (the raw probes in [DatabaseService.openRaw], the backup exporters) is
-/// deliberately journal-mode-neutral.
-void Function(sqlite3.Database) _connectionSetup(String? keyHex) {
-  return (db) => applyMainDatabaseSetup(db, keyHex: keyHex);
 }
 
 /// Default for [DatabaseService._runUpgradeLadder]'s VACUUM ticket: a caller
@@ -267,13 +256,13 @@ class DatabaseService {
   ///
   /// Two phases:
   /// 1. If an upgrade ladder is PENDING, run it to completion on the
-  ///    synchronous main-isolate [NativeDatabase] exactly as before —
+  ///    synchronous main-isolate connection exactly as before —
   ///    progress callbacks, pre-migration backup close/reopen, and
   ///    hot-journal recovery are proven there, and closing a background
   ///    executor MID-migration has historically hung. The close happens
   ///    strictly after the ladder finishes.
   /// 2. Open with [BackgroundDatabaseConnection.open] (a
-  ///    [NativeDatabase.createInBackground] equivalent that owns the worker
+  ///    `NativeDatabase.createInBackground` equivalent that owns the worker
   ///    isolate, so [close] can wait for SQLite to actually finish closing):
   ///    every statement executes on drift's worker isolate. Migration
   ///    callbacks (onCreate for fresh files, the beforeOpen re-asserts)
@@ -461,7 +450,7 @@ class DatabaseService {
     }
 
     final migrator = AppDatabase(
-      NativeDatabase(file, setup: _connectionSetup(keyHex)),
+      openMainIsolateConnection(file.path, keyHex: keyHex),
       onMigrationProgress: onMigrationProgress == null ? null : report,
     );
     try {
@@ -560,7 +549,7 @@ class DatabaseService {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   ) async {
     final background = await BackgroundDatabaseConnection.open(
-      file,
+      file.path,
       keyHex: keyHex,
     );
     final database = AppDatabase(
@@ -798,17 +787,18 @@ class DatabaseService {
   /// The busy timeout matters as much here as on the drift connections: the
   /// version probe and the pre-migration WAL checkpoint both run at startup,
   /// the very moment a headless isolate is most likely to be holding a lock.
-  static sqlite3.Database openRaw(
+  static sqlite3.CommonDatabase openRaw(
     String path, {
     sqlite3.OpenMode mode = sqlite3.OpenMode.readWrite,
     String? keyHex,
   }) {
-    final db = sqlite3.sqlite3.open(path, mode: mode);
+    final db = RawSqlite.open(path, mode: mode);
     try {
       // Basics only, never the journal mode: this opens backup artifacts and
       // candidate files at other locations as well as the live database, and
       // a probe has no business rewriting the header of a file it is only
-      // looking at. WAL is set by _connectionSetup, on the real connection.
+      // looking at. WAL is set by applyMainDatabaseSetup, on the real
+      // connection.
       applyConnectionBasics(db, keyHex: keyHex);
     } catch (_) {
       db.close();

@@ -1,4 +1,6 @@
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart';
+
+import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 
 /// Thrown when the SQLite/SQLCipher engine the app is linked against cannot be
 /// used at all: the native library is missing or unresolvable, or it loaded
@@ -29,7 +31,7 @@ class DatabaseEngineUnavailableException implements Exception {
 /// The two operations [assertDatabaseEngineAvailable] needs from a throwaway
 /// database handle.
 ///
-/// Deliberately narrower than [sqlite3.Database]: a test can implement it
+/// Deliberately narrower than [CommonDatabase]: a test can implement it
 /// without a `noSuchMethod` stand-in for the whole engine API, and the seam
 /// still covers the failure that matters (the open itself throwing).
 abstract interface class DatabaseEngineProbe {
@@ -45,9 +47,9 @@ abstract interface class DatabaseEngineProbe {
 typedef DatabaseEngineProbeOpener = DatabaseEngineProbe Function();
 
 class _InMemoryEngineProbe implements DatabaseEngineProbe {
-  _InMemoryEngineProbe() : _db = sqlite3.sqlite3.openInMemory();
+  _InMemoryEngineProbe() : _db = RawSqlite.openInMemory();
 
-  final sqlite3.Database _db;
+  final CommonDatabase _db;
 
   @override
   List<String> readCipherVersion() => [

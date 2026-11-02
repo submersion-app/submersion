@@ -64,9 +64,7 @@ class LocalCacheDatabaseService {
       await dbDir.create(recursive: true);
     }
 
-    final background = await BackgroundDatabaseConnection.openPlain(
-      File(dbPath),
-    );
+    final background = await BackgroundDatabaseConnection.openPlain(dbPath);
     _background = background;
     _database = LocalCacheDatabase(background.connection);
   }

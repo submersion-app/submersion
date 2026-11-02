@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 import 'package:submersion/features/universal_import/data/services/divinglog_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
@@ -20,7 +20,7 @@ abstract final class DiveMateSchema {
   /// `DBInfo.PrgName` names the program that wrote the file, and a file
   /// that names one is taken at its word. Only a file that names none falls
   /// back to the `Logbook.TypeOfDive` column, which only DiveMate writes.
-  static bool matches(Database db, DivingLogCapabilities caps) {
+  static bool matches(CommonDatabase db, DivingLogCapabilities caps) {
     final programs = _programNames(db, caps);
     if (programs.isNotEmpty) {
       return programs.any((p) => p.toLowerCase().contains('divemate'));
@@ -29,7 +29,10 @@ abstract final class DiveMateSchema {
   }
 
   /// The non-blank `DBInfo.PrgName` values, empty when the file has none.
-  static List<String> _programNames(Database db, DivingLogCapabilities caps) {
+  static List<String> _programNames(
+    CommonDatabase db,
+    DivingLogCapabilities caps,
+  ) {
     final table = caps.actualTable('DBInfo');
     final column = caps.actualColumn('DBInfo', 'PrgName');
     if (table == null || column == null) return const [];
