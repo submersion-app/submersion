@@ -14,25 +14,27 @@ import 'package:submersion/shared/widgets/record_list_card.dart';
 /// a German "Tauchgang #412" link chip too little width on a narrow phone
 /// and squeeze it into an ellipsis (#2692, #3749), which is why #4038 had
 /// dropped that margin.
+///
+/// The tile's `selected` stays the split layout's live pick alone: that is
+/// what tells assistive technology the entry is picked, which the entry
+/// merely last opened is not, and [highlighted]'s fill marks both. The fill
+/// is all that shows the pick, as on a dive entry, so a selected tile paints
+/// the same as any other: its title, subtitle and icons share the card's
+/// `selectedColor`, and the tile gives its title
+/// [RecordCardColors.primaryText] itself.
 class TrackListCard extends StatelessWidget {
   const TrackListCard({
     super.key,
     required this.highlighted,
     required this.onTap,
     required this.builder,
-    this.picked = false,
   });
 
   /// Filled: the split layout's live pick, or the entry last opened.
   final bool highlighted;
 
-  /// The split layout's live map-pane pick alone, announced as selected to
-  /// assistive technology. The entry merely last opened is filled but not
-  /// selected.
-  final bool picked;
-
   final VoidCallback onTap;
-  final Widget Function(BuildContext context, RecordCardColors colors) builder;
+  final Widget Function(RecordCardColors colors) builder;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,6 @@ class TrackListCard extends StatelessWidget {
     final colors = RecordCardColors.forFill(theme.colorScheme, fill);
     return RecordListCard(
       color: fill,
-      selected: picked,
       onTap: onTap,
       child: ListTileTheme.merge(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12),
@@ -59,7 +60,8 @@ class TrackListCard extends StatelessWidget {
           color: colors.secondaryText,
         ),
         iconColor: colors.secondaryText,
-        child: Builder(builder: (context) => builder(context, colors)),
+        selectedColor: colors.secondaryText,
+        child: builder(colors),
       ),
     );
   }

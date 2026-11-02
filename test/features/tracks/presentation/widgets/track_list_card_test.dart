@@ -26,13 +26,17 @@ void main() {
         home: Scaffold(
           body: TrackListCard(
             highlighted: highlighted,
-            picked: picked,
             onTap: onTap ?? () {},
-            builder: (context, colors) {
+            builder: (colors) {
               received = colors;
-              return const ListTile(
-                title: Text('Wreck dive'),
-                subtitle: Text('r1.csv'),
+              return ListTile(
+                selected: picked,
+                leading: const Icon(Icons.route),
+                title: Text(
+                  'Wreck dive',
+                  style: TextStyle(color: colors.primaryText),
+                ),
+                subtitle: const Text('r1.csv'),
               );
             },
           ),
@@ -71,13 +75,30 @@ void main() {
     expect(colors?.accent, expected.accent);
   });
 
+  testWidgets('a live pick shows as the fill alone, as on a dive entry', (
+    tester,
+  ) async {
+    await pump(tester, highlighted: true, picked: true);
+    final expected = RecordCardColors.forFill(
+      scheme,
+      recordCardSelectionFill(scheme),
+    );
+
+    expect(textColor(tester, 'Wreck dive'), expected.primaryText);
+    expect(textColor(tester, 'r1.csv'), expected.secondaryText);
+    expect(
+      IconTheme.of(tester.element(find.byIcon(Icons.route))).color,
+      expected.secondaryText,
+    );
+  });
+
   testWidgets('the tile inside takes the dive card inner padding', (
     tester,
   ) async {
     await pump(tester, highlighted: false);
     final tile = tester.getRect(find.byType(ListTile));
-    final title = tester.getRect(find.text('Wreck dive'));
-    expect(title.left - tile.left, 12);
+    final leading = tester.getRect(find.byIcon(Icons.route));
+    expect(leading.left - tile.left, 12);
   });
 
   testWidgets('the card takes the tap, not the tile inside it', (tester) async {
@@ -128,10 +149,15 @@ void main() {
       );
     }
 
-    testWidgets('the live pick is announced as selected', (tester) async {
+    testWidgets('the live pick is announced as a selected button', (
+      tester,
+    ) async {
       final handle = tester.ensureSemantics();
       final node = await cardSemantics(tester, highlighted: true, picked: true);
-      expect(node, isSemantics(isSelected: true));
+      expect(
+        node,
+        isSemantics(isButton: true, isSelected: true, hasTapAction: true),
+      );
       handle.dispose();
     });
 
@@ -144,7 +170,10 @@ void main() {
         highlighted: true,
         picked: false,
       );
-      expect(node, isSemantics(isSelected: false));
+      expect(
+        node,
+        isSemantics(isButton: true, isSelected: false, hasTapAction: true),
+      );
       handle.dispose();
     });
   });

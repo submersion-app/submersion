@@ -18,11 +18,11 @@ class RecordCardColors {
   /// colour, read as `surfaceContainerHighest`.
   factory RecordCardColors.forFill(ColorScheme scheme, Color? fill) {
     final background = fill ?? scheme.surfaceContainerHighest;
-    final light = background.computeLuminance() < 0.5;
+    final useLightText = background.computeLuminance() < 0.5;
     return RecordCardColors._(
-      primaryText: light ? Colors.white : Colors.black87,
-      secondaryText: light ? Colors.white70 : Colors.black54,
-      accent: light ? Colors.cyan.shade200 : Colors.teal.shade800,
+      primaryText: useLightText ? Colors.white : Colors.black87,
+      secondaryText: useLightText ? Colors.white70 : Colors.black54,
+      accent: useLightText ? Colors.cyan.shade200 : Colors.teal.shade800,
     );
   }
 
@@ -38,8 +38,12 @@ class RecordCardColors {
 ///
 /// Everything that differs between looks of a card (a map background, a
 /// highlight marker) belongs in [child], below the InkWell: the splash lives
-/// in the InkWell's state, so a highlight that changed anything above it
-/// would cut a running splash short (issue #3474).
+/// in the InkWell's state, so everything down to it keeps its type and key
+/// across a change of look (issue #3474).
+///
+/// A selected state belongs to [child] as well, for instance a ListTile's
+/// `selected`: that tile always declares one, and two nodes that declare one
+/// cannot merge, which would split the card's button role from its tap.
 class RecordListCard extends StatelessWidget {
   const RecordListCard({
     super.key,
@@ -48,7 +52,6 @@ class RecordListCard extends StatelessWidget {
     this.onTap,
     this.onDoubleTap,
     this.semanticsLabel,
-    this.selected,
     this.clipBehavior,
     this.margin,
   });
@@ -60,11 +63,6 @@ class RecordListCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
   final String? semanticsLabel;
-
-  /// Announced as the card's selected state to assistive technology; null
-  /// leaves the card without one.
-  final bool? selected;
-
   final Clip? clipBehavior;
 
   /// Defaults to 16 horizontal and 4 vertical.
@@ -80,7 +78,6 @@ class RecordListCard extends StatelessWidget {
         clipBehavior: clipBehavior,
         child: Semantics(
           button: true,
-          selected: selected,
           label: semanticsLabel,
           child: InkWell(
             onTap: onTap,

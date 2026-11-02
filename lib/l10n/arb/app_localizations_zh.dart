@@ -52131,7 +52131,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String navTrack_detail_battery(String start, String end, String change) {
-    return '电池：$start V → $end V ($change V)';
+    return '电池：$start V → $end V（$change V）';
   }
 
   @override

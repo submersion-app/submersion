@@ -124,14 +124,14 @@ class NavTrackListRow extends ConsumerWidget {
     // or in the map view's list pane (issue #2692, same hazard as #935).
     return TrackListCard(
       highlighted: selected || isHighlighted,
-      picked: selected,
       onTap: onTap,
-      builder: (context, colors) => ListTile(
+      builder: (colors) => ListTile(
+        selected: selected,
         isThreeLine: true,
         leading: anchored
             ? const Icon(Icons.route)
             : NavTrackShapeThumbnail(points: hydratedPoints),
-        title: Text(titleText),
+        title: Text(titleText, style: TextStyle(color: colors.primaryText)),
         subtitle: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

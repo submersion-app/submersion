@@ -49,12 +49,15 @@ class GpsTrackListTile extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     return TrackListCard(
       highlighted: selected || isHighlighted,
-      picked: selected,
       onTap: onTap,
-      builder: (context, colors) => ListTile(
+      builder: (colors) => ListTile(
+        selected: selected,
         minLeadingWidth: kTrackThumbnailWidth,
         leading: GpsTrackThumbnail(trackId: track.id),
-        title: Text(formatTrackTitle(units, track)),
+        title: Text(
+          formatTrackTitle(units, track),
+          style: TextStyle(color: colors.primaryText),
+        ),
         subtitle: TrackBadgeLine(
           badge: kindBadge,
           child: Text(formatTrackDetailLine(l10n, units, track)),

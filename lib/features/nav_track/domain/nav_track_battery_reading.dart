@@ -12,19 +12,12 @@ class NavTrackBatteryReading {
   /// Null when no sample carries a plausible reading. A track with a
   /// single reading starts and ends on it.
   static NavTrackBatteryReading? of(List<NavTrackPoint> points) {
-    double? start;
-    for (final p in points) {
-      start = p.plausibleBatteryVolts;
-      if (start != null) break;
-    }
-    if (start == null) return null;
-    double? end;
-    for (final p in points.reversed) {
-      end = p.plausibleBatteryVolts;
-      if (end != null) break;
-    }
-    // A start reading guarantees an end one: the backward scan reaches it.
-    return NavTrackBatteryReading(start: start, end: end!);
+    double? firstReading(Iterable<NavTrackPoint> samples) =>
+        samples.map((p) => p.plausibleBatteryVolts).nonNulls.firstOrNull;
+    final start = firstReading(points);
+    final end = firstReading(points.reversed);
+    if (start == null || end == null) return null;
+    return NavTrackBatteryReading(start: start, end: end);
   }
 
   final double start;
