@@ -59021,7 +59021,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get web_cors_explain_unknown =>
-      'El navegador informó de un fallo que no explica. Lo más habitual es que las reglas CORS del almacén no permitan la dirección de este sitio; la regla de abajo suele ser la solución.';
+      'El navegador informó de un error que no explica. Lo más habitual es que las reglas CORS del almacén no permitan la dirección de este sitio; la regla de abajo suele ser la solución.';
 
   @override
   String get web_cors_copyRule => 'Copiar regla';

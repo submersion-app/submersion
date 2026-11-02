@@ -17439,7 +17439,7 @@
   "web_cors_title_ok": "La conexión funciona",
   "web_cors_explain_ok": "El almacén aceptó la prueba desde este navegador.",
   "web_cors_title_unknown": "La conexión falló",
-  "web_cors_explain_unknown": "El navegador informó de un fallo que no explica. Lo más habitual es que las reglas CORS del almacén no permitan la dirección de este sitio; la regla de abajo suele ser la solución.",
+  "web_cors_explain_unknown": "El navegador informó de un error que no explica. Lo más habitual es que las reglas CORS del almacén no permitan la dirección de este sitio; la regla de abajo suele ser la solución.",
   "web_cors_copyRule": "Copiar regla",
   "web_cors_copied": "Regla copiada",
   "web_storage_title": "Almacenamiento del navegador",
