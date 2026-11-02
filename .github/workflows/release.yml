@@ -439,6 +439,7 @@ jobs:
             "Submersion-${TAG_NAME}-Linux-x86_64.rpm"
             "Submersion-${TAG_NAME}-Android.apk"
             "Submersion-${TAG_NAME}-Android.aab"
+            "Submersion-${TAG_NAME}-Web.zip"
             "checksums-sha256.txt"
           )
 

@@ -677,6 +677,87 @@ jobs:
             Submersion-*.rpm
           retention-days: 5
 
+  # The browser app (issue #4121): scripts/build_web.sh, then the bundle
+  # zipped with its hosting files for the release page. No image is
+  # published; the zip carries a Dockerfile for anyone who wants one.
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          ref: ${{ inputs.ref }}
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-build-all-${{ runner.os }}-
+
+      - name: Add swap for build_runner
+        run: |
+          if sudo fallocate -l 12G /mnt/codegen.swap \
+            && sudo chmod 600 /mnt/codegen.swap \
+            && sudo mkswap /mnt/codegen.swap >/dev/null \
+            && sudo swapon /mnt/codegen.swap; then
+            swapon --show
+          else
+            sudo swapoff /mnt/codegen.swap 2>/dev/null || true
+            sudo rm -f /mnt/codegen.swap
+            echo "::warning::Could not add swap; build_runner may run out of memory on a cold build"
+          fi
+          free -m
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Override build number
+        if: inputs.build-number != ''
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ inputs.build-number }}
+        run: |
+          perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+      - name: Build the web bundle
+        run: scripts/build_web.sh
+
+      - name: Zip the bundle
+        env:
+          TAG_NAME: ${{ inputs.version-tag }}
+        run: |
+          set -euo pipefail
+          cd build/web
+          zip -qr "$GITHUB_WORKSPACE/Submersion-${TAG_NAME}-Web.zip" .
+          cd "$GITHUB_WORKSPACE"
+          unzip -l "Submersion-${TAG_NAME}-Web.zip" | grep -E ' (index\.html|HOSTING\.md|sqlite3\.wasm)$'
+
+      - name: Upload web bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-bundle
+          path: Submersion-*-Web.zip
+          retention-days: 5
+
   # ============================================================================
   # Verify Linux Packages
   # ============================================================================
