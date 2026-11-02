@@ -51,11 +51,6 @@ class CylinderSac extends Equatable {
   /// End pressure in bar
   final double? endPressure;
 
-  /// Total gas used in bar
-  double? get gasUsedBar => startPressure != null && endPressure != null
-      ? startPressure! - endPressure!
-      : null;
-
   /// Equation of state behind [gasUsedLiters], the one the rates here used.
   final GasModel gasModel;
 

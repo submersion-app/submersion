@@ -289,6 +289,68 @@ void main() {
       expect(trend.o2.single.value, closeTo(9, 1e-9));
     });
 
+    test(
+      'a bailout logged by the other computer still ends the loop',
+      () async {
+        await insertDive('ccr');
+        for (final (computer, primary) in [('c1', true), ('c2', false)]) {
+          await db
+              .into(db.diveComputers)
+              .insert(
+                DiveComputersCompanion(
+                  id: Value(computer),
+                  name: Value(computer),
+                  createdAt: const Value(0),
+                  updatedAt: const Value(0),
+                ),
+              );
+          await db
+              .into(db.diveDataSources)
+              .insert(
+                DiveDataSourcesCompanion(
+                  id: Value('src-$computer'),
+                  diveId: const Value('ccr'),
+                  computerId: Value(computer),
+                  isPrimary: Value(primary),
+                  importedAt: Value(DateTime.utc(2024)),
+                  createdAt: Value(DateTime.utc(2024)),
+                ),
+              );
+        }
+        await insertTank(
+          'ccr',
+          'o2-c1',
+          'oxygenSupply',
+          o2: 100,
+          computerId: 'c1',
+        );
+        await insertTank(
+          'ccr',
+          'bail-c2',
+          'bailout',
+          start: 200,
+          end: 200,
+          order: 1,
+          computerId: 'c2',
+        );
+        await insertSwitch('ccr', 'bail-c2', 21 * 60);
+
+        final dives = DiveRepository();
+        final dive = (await dives.getDiveById('ccr'))!;
+        final rows = const GasAnalysisService(gasModel: GasModel.ideal)
+            .calculateCylinderSac(
+              dive: dive,
+              profile: dive.profile,
+              gasSwitches: await dives.getGasSwitchesForDive('ccr'),
+            );
+        final trend = await repository.getCcrGasUsePerDive();
+
+        final o2 = rows.singleWhere((r) => r.role == TankRole.oxygenSupply);
+        expect(o2.loopRate, closeTo(378 / 21, 1e-9));
+        expect(trend.o2.single.value, closeTo(o2.loopRate!, 1e-9));
+      },
+    );
+
     test('one dive reads the same here as on the card', () async {
       await insertCcrDive('ccr');
       await insertTank('ccr', 'bail', 'bailout', start: 200, end: 120);

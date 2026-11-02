@@ -415,6 +415,41 @@ void main() {
     });
   });
 
+  group('countedInRates', () {
+    test('leaves a cylinder out of the lines but not the dive', () {
+      final tanks = [
+        _tank('keep', TankRole.oxygenSupply, volume: 3, start: 200, end: 150),
+        _tank('copy', TankRole.oxygenSupply, volume: 3, start: 200, end: 150),
+      ];
+      final use = ccrDiveUse(
+        tanks: tanks,
+        gasSwitches: null,
+        tankPressures: null,
+        diveEnd: 3600,
+        gasModel: GasModel.ideal,
+        countedInRates: (tank) => tank.id == 'keep',
+      );
+      expect(use.o2Rate, closeTo(50 * 3 / 60, 1e-9));
+      expect(_of(use, 'copy').loopRate, closeTo(50 * 3 / 60, 1e-9));
+    });
+
+    test('a switch onto an uncounted cylinder still changes the timeline', () {
+      final use = ccrDiveUse(
+        tanks: [
+          _tank('o2', TankRole.oxygenSupply, volume: 3, start: 200, end: 150),
+          _tank('b', TankRole.bailout, start: 200, end: 200),
+        ],
+        gasSwitches: [_switchTo('b', 1800)],
+        tankPressures: null,
+        diveEnd: 3600,
+        gasModel: GasModel.ideal,
+        countedInRates: (tank) => tank.id == 'o2',
+      );
+      expect(use.loopSeconds, 1800);
+      expect(use.o2Rate, closeTo(50 * 3 / 30, 1e-9));
+    });
+  });
+
   group('volume', () {
     test('unknown volume gives no rate', () {
       final use = _use([

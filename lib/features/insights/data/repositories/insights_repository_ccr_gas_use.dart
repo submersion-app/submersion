@@ -58,12 +58,21 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
           final dive = dives[id];
           if (dive == null) continue;
           final row = rowsById[id]!;
-          final use = _ccrUseOfPrimaryRecording(
-            dive,
-            switches: switches[id],
-            pressures: pressures[id],
-            primarySourceId: row.read<String?>('primary_source_id'),
-            primaryComputerId: row.read<String?>('primary_computer_id'),
+          final primarySourceId = row.read<String?>('primary_source_id');
+          final primaryComputerId = row.read<String?>('primary_computer_id');
+          final use = ccrDiveUse(
+            tanks: dive.tanks,
+            gasSwitches: switches[id],
+            tankPressures: pressures[id],
+            diveEnd: dive.effectiveRuntime?.inSeconds ?? 0,
+            gasModel: gasModel,
+            // A dive consolidated from two computers can keep a copy of a
+            // cylinder from each, and these rates add cylinders up.
+            countedInRates: (tank) => tankOwnedByPrimary(
+              tank,
+              primarySourceId: primarySourceId,
+              primaryComputerId: primaryComputerId,
+            ),
           );
           final date = DateTime.fromMillisecondsSinceEpoch(
             row.read<int>('dive_date_time'),
@@ -86,38 +95,5 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
       );
       rethrow;
     }
-  }
-
-  /// [ccrDiveUse] over the cylinders of the dive's primary recording. A dive
-  /// consolidated from two computers can keep a copy of a cylinder from each,
-  /// and these rates add cylinders up, so the copies must count once.
-  CcrDiveUse _ccrUseOfPrimaryRecording(
-    domain.Dive dive, {
-    required List<GasSwitchWithTank>? switches,
-    required Map<String, List<domain.TankPressurePoint>>? pressures,
-    required String? primarySourceId,
-    required String? primaryComputerId,
-  }) {
-    bool owned(domain.DiveTank tank) => tankOwnedByPrimary(
-      tank,
-      primarySourceId: primarySourceId,
-      primaryComputerId: primaryComputerId,
-    );
-    final copies = {
-      for (final tank in dive.tanks)
-        if (!owned(tank)) tank.id,
-    };
-    return ccrDiveUse(
-      tanks: dive.tanks.where(owned).toList(),
-      gasSwitches: switches,
-      // Dropped by name, so another computer's series is not read as a stray
-      // one for a cylinder here to adopt.
-      tankPressures: {
-        for (final entry in (pressures ?? const {}).entries)
-          if (!copies.contains(entry.key)) entry.key: entry.value,
-      },
-      diveEnd: dive.effectiveRuntime?.inSeconds ?? 0,
-      gasModel: gasModel,
-    );
   }
 }

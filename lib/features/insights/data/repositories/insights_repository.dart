@@ -23,9 +23,6 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    as domain;
-import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
@@ -769,7 +766,7 @@ class InsightsRepository with InsightsChartDives {
   /// here (issue #3673). A CCR dive does not: this divides by depth over the
   /// whole dive, which means nothing for a loop, and its rates are in
   /// [getCcrGasUsePerDive] (issue #4082). The planner's default SAC reads the
-  /// back gas row, which a CCR dive's cylinders must not feed. [roleKey] maps
+  /// backmount rows, which a CCR dive's cylinders must not feed. [roleKey] maps
   /// a stored role name to the key its cylinders average under, so a caller
   /// can fold roles into one group (back gas and twin set as one backmount
   /// rate, issue #3374) and still get an average over cylinders, not over
@@ -864,7 +861,7 @@ class InsightsRepository with InsightsChartDives {
   /// here (issue #3673). A CCR dive does not: this divides by depth over the
   /// whole dive, which means nothing for a loop, and its rates are in
   /// [getCcrGasUsePerDive] (issue #4082). The planner's default SAC reads the
-  /// back gas row, which a CCR dive's cylinders must not feed.
+  /// backmount rows, which a CCR dive's cylinders must not feed.
   Future<Map<String, double>> getSacPressureByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),

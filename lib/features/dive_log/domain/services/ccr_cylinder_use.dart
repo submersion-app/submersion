@@ -86,12 +86,18 @@ typedef _Drop = ({double from, double to});
 /// [tankPressures] splits a cylinder between the two. Without a usable series
 /// a cylinder gets one figure: bailout gas if the diver bailed onto it, unless
 /// it is marked as loop gas, otherwise loop gas.
+///
+/// [countedInRates] picks the cylinders that add up in [CcrDiveUse.o2Rate] and
+/// [CcrDiveUse.diluentRate], for a dive that holds two recordings' copies of
+/// one cylinder. Every cylinder still shapes the timeline: a switch names a
+/// real bailout whichever computer logged it.
 CcrDiveUse ccrDiveUse({
   required List<DiveTank> tanks,
   required List<GasSwitchWithTank>? gasSwitches,
   required Map<String, List<TankPressurePoint>>? tankPressures,
   required int diveEnd,
   required GasModel gasModel,
+  bool Function(DiveTank tank)? countedInRates,
 }) {
   // Dropped before classifying: a switch at the first sample names the
   // starting gas, and a dive does not begin bailed out.
@@ -122,7 +128,10 @@ CcrDiveUse ccrDiveUse({
   double? rateOf(bool Function(DiveTank tank) included) {
     var liters = 0.0;
     for (var i = 0; i < tanks.length; i++) {
-      if (included(tanks[i])) liters += cylinders[i].loopLiters;
+      final tank = tanks[i];
+      if (included(tank) && (countedInRates?.call(tank) ?? true)) {
+        liters += cylinders[i].loopLiters;
+      }
     }
     return _perMinute(liters, loopSeconds);
   }

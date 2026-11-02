@@ -206,6 +206,11 @@ out bailout time.
   the reporter's sidemount cylinders in the right line. A cylinder of unknown size
   adds nothing, as in `getSacVolumePerDive`. A dive with nothing for a line has no
   point on it.
+- **Two computers:** a dive consolidated from two computers can keep a copy of a
+  cylinder from each, so only the primary recording's cylinders add up in the two
+  lines, by the rule the tank configuration card uses (`tankOwnedByPrimary`). Every
+  cylinder still shapes the timeline, so a bailout logged by either computer ends
+  the loop, as it does on the card and the profile.
 - **Averages:** the mean of the per-dive rates, one tile each for O2 and diluent,
   over every dive in scope, not the chart's zoom window.
 - **Chart:** `TrendChartSection` with a new `TrendChartIds` entry and two new

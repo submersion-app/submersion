@@ -73,7 +73,7 @@ void main() {
   });
 
   group('CylinderSac', () {
-    test('gasUsedBar returns difference of start and end', () {
+    test('gasUsedLiters is the drop times the volume by default', () {
       const sac = CylinderSac(
         tankId: 't1',
         tankName: 'AL80',
@@ -83,10 +83,10 @@ void main() {
         startPressure: 200.0,
         endPressure: 50.0,
       );
-      expect(sac.gasUsedBar, 150.0);
+      expect(sac.gasUsedLiters, closeTo(150.0 * 11.1, 1e-9));
     });
 
-    test('gasUsedBar returns null when pressures missing', () {
+    test('gasUsedLiters returns null when pressures missing', () {
       const sac = CylinderSac(
         tankId: 't1',
         tankName: 'AL80',
@@ -94,7 +94,7 @@ void main() {
         role: TankRole.backGas,
         tankVolume: 11.1,
       );
-      expect(sac.gasUsedBar, isNull);
+      expect(sac.gasUsedLiters, isNull);
     });
   });
 }
