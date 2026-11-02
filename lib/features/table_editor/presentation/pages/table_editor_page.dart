@@ -379,6 +379,10 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   Future<void> _openRecord(String id) async {
     final handle = _handleNow;
     if (handle == null) return;
+    // A double tap never reaches the cell's single tap, so what is being typed
+    // has to land here to count as a draft.
+    await _closeOpenCells();
+    if (!mounted) return;
     if (_hasDrafts(_tab)) {
       final l10n = context.l10n;
       final choice = await showDialog<_OpenChoice>(

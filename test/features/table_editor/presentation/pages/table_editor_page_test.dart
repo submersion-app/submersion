@@ -321,6 +321,37 @@ void main() {
     expect(pushed, ['/dives/d2']);
   });
 
+  testWidgets('double tap with a cell still open asks first', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.text(vis(15)));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.enterText(find.byType(TextField), '12');
+
+    await tester.tap(find.text('#2'));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.text('#2'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.tableEditor_open_saveAndOpen), findsOneWidget);
+    expect(pushed, isEmpty);
+  });
+
+  testWidgets('double tap with an untouched cell open just opens', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await tester.tap(find.text(vis(15)));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.text('#2'));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.text('#2'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.tableEditor_open_saveAndOpen), findsNothing);
+    expect(pushed, ['/dives/d2']);
+  });
+
   testWidgets('switching tabs with drafts asks first', (tester) async {
     await pumpPage(tester);
     await draftVisibility(tester, '12');
