@@ -267,9 +267,10 @@ extension DiveMigrations on AppDatabase {
   /// v132 data fix: older imports (Subsurface/MacDive/CSV routed through the
   /// UDDF entity importer) seeded `bottom_time` from the total-time `duration`,
   /// so bottom time was stored equal to `runtime`. For any such dive that also
-  /// carries a profile, recompute bottom time from the PRIMARY profile the same
-  /// way [Dive.calculateBottomTimeFromProfile] does (time at/above 85% of max
-  /// depth) and correct it only when the derived value is shorter than runtime.
+  /// carries a profile, recompute bottom time from the PRIMARY profile the way
+  /// [Dive.calculateBottomTimeFromProfile] did at v132 (time at/above 85% of
+  /// max depth, a heuristic retired since, see the v146 fix below) and correct
+  /// it only when the derived value is shorter than runtime.
   ///
   /// Deterministic on every device, so `hlc` is left untouched and no sync
   /// traffic is needed to converge (LWW falls back to the existing hlc /

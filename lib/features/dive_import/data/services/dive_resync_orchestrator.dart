@@ -112,8 +112,8 @@ class DiveResyncOrchestrator {
     // margin left for that, so both sides of it must measure the same
     // quantity: the candidate's total time (`runtime`, else the `duration` the
     // parsers that fill only that one emit) against the dive's own total time.
-    // `dives.bottomTime` is profile-derived and excludes the ascent and every
-    // stop, so scoring a total time against it spends the margin on a
+    // `dives.bottomTime` is profile-derived and excludes the ascent and its
+    // shallow stops, so scoring a total time against it spends the margin on a
     // difference that is not a disagreement. It is still the fallback, because
     // a dive imported before `runtime` was filled has nothing else.
     Map<String, dynamic>? best;
