@@ -134,6 +134,23 @@ void main() {
     expect(find.text('1 of 2 to-dos done'), findsOneWidget);
   });
 
+  testWidgets('shows progress in the header for an empty checklist', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      pumpBlock(
+        upcoming: true,
+        overrides: [
+          tripChecklistProvider('c1').overrideWith((ref) async => []),
+          tripChecklistSectionsProvider('c1').overrideWith((ref) async => []),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('0 of 0 to-dos done'), findsOneWidget);
+  });
+
   testWidgets('groups items by section and shows checkboxes', (tester) async {
     await tester.pumpWidget(
       pumpBlock(

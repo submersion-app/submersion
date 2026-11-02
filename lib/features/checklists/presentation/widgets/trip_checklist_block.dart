@@ -73,7 +73,7 @@ class TripChecklistBlock extends ConsumerWidget {
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-        subtitle: items == null || items.isEmpty
+        subtitle: items == null
             ? null
             : Text(
                 context.l10n.checklists_progress(
