@@ -122,7 +122,7 @@ void main() {
   /// provider dispose, which is always done by the time anything reopens it.
   Future<String?> open(MediaItem item) async {
     final path = await container.read(resolvedFilePathProvider(item).future);
-    await Future<void>.delayed(Duration.zero);
+    await pumpEventQueue();
     return path;
   }
 
@@ -155,7 +155,7 @@ void main() {
     final gallery = ProviderContainer(
       overrides: [
         assetResolutionServiceProvider.overrideWithValue(
-          _GalleryLookup(lookup.future),
+          _GalleryLookup(() => lookup.future),
         ),
         photoPickerServiceProvider.overrideWithValue(_GalleryFiles()),
       ],
@@ -169,7 +169,7 @@ void main() {
     );
     // A read holds no listener, so Riverpod would dispose an unheld provider
     // here, and the lookup's return would find its ref unusable.
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await pumpEventQueue();
     lookup.complete(
       const ResolutionResult(
         localAssetId: 'asset-1',
@@ -178,6 +178,32 @@ void main() {
     );
 
     expect(await reading, '/gallery/asset-1.mp4');
+  });
+
+  test('a failed lookup reaches its reader as itself', () async {
+    final failing = ProviderContainer(
+      overrides: [
+        assetResolutionServiceProvider.overrideWithValue(
+          _GalleryLookup(() async => throw Exception('gallery unavailable')),
+        ),
+      ],
+    );
+    addTearDown(failing.dispose);
+
+    await expectLater(
+      failing.read(
+        resolvedFilePathProvider(
+          videoItem(hash: 'e' * 64).copyWith(platformAssetId: 'asset-1'),
+        ).future,
+      ),
+      throwsA(
+        isA<Exception>().having(
+          (e) => '$e',
+          'message',
+          contains('gallery unavailable'),
+        ),
+      ),
+    );
   });
 
   testWidgets('a running app asks again each time it opens a video', (
@@ -190,11 +216,9 @@ void main() {
         overrides: [
           assetResolutionServiceProvider.overrideWithValue(
             _GalleryLookup(
-              Future.value(
-                const ResolutionResult(
-                  localAssetId: 'asset-1',
-                  status: ResolutionStatus.resolved,
-                ),
+              () async => const ResolutionResult(
+                localAssetId: 'asset-1',
+                status: ResolutionStatus.resolved,
               ),
             ),
           ),
@@ -234,10 +258,10 @@ void main() {
 class _GalleryLookup extends Fake implements AssetResolutionService {
   _GalleryLookup(this.result);
 
-  final Future<ResolutionResult> result;
+  final Future<ResolutionResult> Function() result;
 
   @override
-  Future<ResolutionResult> resolveAssetId(MediaItem item) => result;
+  Future<ResolutionResult> resolveAssetId(MediaItem item) => result();
 }
 
 class _GalleryFiles extends Fake implements PhotoPickerService {

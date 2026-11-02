@@ -205,7 +205,9 @@ while offline, neither of which could recover without a restart.
 
 The provider holds a keep-alive link while it resolves. Its readers make one-off
 reads, which keep no listener, and it uses its ref after the first await, so without
-the link it can be disposed part way through a video open.
+the link it can be disposed part way through a video open. Riverpod's automatic retry
+is off for the same reason: with no listener a retry never runs, so a failure either
+never reaches the reader or reaches it disguised as a disposal error.
 
 ## Accepted edge cases
 

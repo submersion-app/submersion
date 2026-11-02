@@ -127,17 +127,22 @@ final resolvedFullResolutionProvider =
 /// the OS with the app running, and an original missed offline can be found
 /// later. It is held while it resolves because its readers make one-off reads,
 /// which keep no listener, and the ref is used after the first await.
-final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>((
-  ref,
-  item,
-) async {
-  final resolving = ref.keepAlive();
-  try {
-    return await _resolveFilePath(ref, item);
-  } finally {
-    resolving.close();
-  }
-}, isAutoDispose: true);
+///
+/// It never retries a failure. Nothing would be listening for a second attempt,
+/// the next open is one, and a retry in progress would keep the failure from
+/// reaching the reader.
+final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>(
+  (ref, item) async {
+    final resolving = ref.keepAlive();
+    try {
+      return await _resolveFilePath(ref, item);
+    } finally {
+      resolving.close();
+    }
+  },
+  isAutoDispose: true,
+  retry: (_, _) => null,
+);
 
 Future<String?> _resolveFilePath(Ref ref, MediaItem item) async {
   // Gallery fast path.
