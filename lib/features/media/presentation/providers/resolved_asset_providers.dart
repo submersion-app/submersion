@@ -121,10 +121,30 @@ final resolvedFullResolutionProvider =
 /// the item's own localPath when that file exists -> the media store
 /// fallback (downloads the original into the content-addressed cache;
 /// design spec section 10) -> null.
-final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>((
-  ref,
-  item,
-) async {
+///
+/// Disposes as soon as it has answered, so the next open asks again: the
+/// answer does not stay true. A cached original can be evicted, or purged by
+/// the OS with the app running, and an original missed offline can be found
+/// later. It is held while it resolves because its readers make one-off reads,
+/// which keep no listener, and the ref is used after the first await.
+///
+/// It never retries a failure. Nothing would be listening for a second attempt,
+/// the next open is one, and a retry in progress would keep the failure from
+/// reaching the reader.
+final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>(
+  (ref, item) async {
+    final resolving = ref.keepAlive();
+    try {
+      return await _resolveFilePath(ref, item);
+    } finally {
+      resolving.close();
+    }
+  },
+  isAutoDispose: true,
+  retry: (_, _) => null,
+);
+
+Future<String?> _resolveFilePath(Ref ref, MediaItem item) async {
   // Gallery fast path.
   if (item.platformAssetId != null) {
     final service = ref.watch(assetResolutionServiceProvider);
@@ -145,8 +165,10 @@ final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>((
 
   // Media store fallback: play from the cached (or freshly downloaded)
   // original. The viewer's loading state covers the download.
-  final runtime = await ref.read(mediaStoreRuntimeProvider.future);
+  // Watched rather than read: a runtime that failed to build retries only
+  // while something listens, so a read could wait on it forever.
+  final runtime = await ref.watch(mediaStoreRuntimeProvider.future);
   final data = await runtime?.resolver.tryResolveRemote(item, thumbnail: false);
   if (data is FileData) return data.file.path;
   return null;
-});
+}

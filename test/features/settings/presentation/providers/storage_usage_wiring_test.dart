@@ -2,12 +2,13 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
-import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_usage_providers.dart';
 
 import '../../../../helpers/fake_path_provider.dart';
@@ -34,7 +35,7 @@ void main() {
   setUp(() async {
     support = await Directory.systemTemp.createTemp('storage_wiring_test');
     useFakePathProvider(_FakePathProvider(support.path));
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
     LocalCacheDatabaseService.instance.resetForTesting();
     await LocalCacheDatabaseService.instance.initialize();
     db = LocalCacheDatabaseService.instance.database;
@@ -43,11 +44,14 @@ void main() {
   tearDown(() async {
     await db.close();
     LocalCacheDatabaseService.instance.resetForTesting();
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
     if (support.existsSync()) await support.delete(recursive: true);
   });
 
   test('the media cache rows read the real index', () async {
+    await Directory(
+      p.join(support.path, 'Submersion', 'media_cache', 'originals'),
+    ).create(recursive: true);
     await db
         .into(db.mediaCacheEntries)
         .insert(
