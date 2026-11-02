@@ -76,6 +76,7 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
   /// controller released there has to start again on its next [activate].
   bool _active = false;
 
+  ProviderSubscription<bool>? _scanningSubscription;
   ProviderSubscription<List<DiscoveredDevice>>? _devicesSubscription;
   ProviderSubscription<bool>? _downloadingSubscription;
   ProviderSubscription<bool>? _overlaySubscription;
@@ -184,9 +185,27 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
 
     _active = true;
     unawaited(
-      _ref.read(discoveryNotifierProvider.notifier).startScan(owner: this),
+      _ref.read(discoveryNotifierProvider.notifier).startScan(owner: this).then(
+        (_) {
+          // A refused permission, a switched-off radio or a native start
+          // error is caught inside DiscoveryNotifier and leaves it not
+          // scanning; without this, "Searching..." would keep spinning
+          // and the next resume would be refused.
+          if (mounted &&
+              _active &&
+              !_ref.read(discoveryNotifierProvider).isScanning) {
+            _onOwnScanEnded();
+          }
+        },
+      ),
     );
 
+    _scanningSubscription = _ref.listen(
+      discoveryNotifierProvider.select((s) => s.isScanning),
+      (wasScanning, isScanning) {
+        if (wasScanning == true && !isScanning) _onOwnScanEnded();
+      },
+    );
     _devicesSubscription = _ref.listen(
       discoveredDevicesProvider,
       (_, _) => _scheduleMatch(),
@@ -210,7 +229,25 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     if (state.isActive) state = state.copyWith(isActive: false);
   }
 
+  /// The scan failed to start or ended on its own (the native side reported
+  /// discovery complete). Deferred like the match: a device found just
+  /// before the end still gets its pass, and the state change cannot land
+  /// inside a build. Coming back to the section, the switch or the
+  /// computers changing start a new scan.
+  void _onOwnScanEnded() => scheduleMicrotask(() {
+    if (!mounted || !_active) return;
+    _tryTriggerNextMatch();
+    if (!_active) return;
+    _log.info(
+      'Auto-connect scan ended without a match',
+      category: LogCategory.bluetooth,
+    );
+    _pause();
+  });
+
   void _closeScanListeners() {
+    _scanningSubscription?.close();
+    _scanningSubscription = null;
     _devicesSubscription?.close();
     _devicesSubscription = null;
     _downloadingSubscription?.close();

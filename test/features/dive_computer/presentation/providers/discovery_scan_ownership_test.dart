@@ -25,9 +25,16 @@ class _FakeHostApi extends pigeon.DiveComputerHostApi {
   int stopDiscoveryCalls = 0;
   Completer<void>? stopGate;
 
+  /// When set, the next native start waits on this and fails if it
+  /// completes with an error.
+  Completer<void>? startGate;
+
   @override
   Future<void> startDiscovery(pigeon.TransportType transport) async {
     startDiscoveryCalls++;
+    final gate = startGate;
+    startGate = null;
+    if (gate != null) await gate.future;
   }
 
   @override
@@ -89,6 +96,20 @@ void main() {
       await stopping;
 
       expect(notifier.state.isScanning, isTrue);
+    });
+
+    test('a start failing late does not end a scan started '
+        'meanwhile', () async {
+      final firstStart = Completer<void>();
+      hostApi.startGate = firstStart;
+      final failing = notifier.startScan();
+      await notifier.startScan();
+
+      firstStart.completeError(StateError('adapter busy'));
+      await failing;
+
+      expect(notifier.state.isScanning, isTrue);
+      expect(notifier.state.errorMessage, isNull);
     });
 
     group('with the runtime permission prompt', () {

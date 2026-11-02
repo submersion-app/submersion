@@ -243,6 +243,11 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
         error: e,
         stackTrace: stackTrace,
       );
+      // A start that failed after a newer start or a stop took over must
+      // not tear down that newer scan's subscription or state. The native
+      // calls themselves run in the order they were sent, so a stop sent
+      // after this start already stops whatever this start began.
+      if (generation != _scanGeneration) return;
       // Cancel the event subscription so stray events from the native side
       // cannot mutate state after a synchronous start failure.
       _discoverySubscription?.cancel();

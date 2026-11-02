@@ -18,9 +18,14 @@ class _FakeHostApi extends pigeon.DiveComputerHostApi {
   int startDiscoveryCalls = 0;
   int stopDiscoveryCalls = 0;
 
+  /// When set, `startDiscovery` throws this, like a switched-off radio.
+  Object? startError;
+
   @override
   Future<void> startDiscovery(pigeon.TransportType transport) async {
     startDiscoveryCalls++;
+    final error = startError;
+    if (error != null) throw error;
   }
 
   @override
@@ -185,6 +190,61 @@ void main() {
     service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
     await pumpEventQueue();
     service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+    await pumpEventQueue();
+
+    expect(requested, ['c1']);
+  });
+
+  test('a scan that fails to start stops showing as searching, and the '
+      'next activate() tries again', () async {
+    final container = makeContainer(
+      computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+    );
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    hostApi.startError = StateError('radio off');
+
+    controller.activate();
+    await pumpEventQueue();
+
+    expect(hostApi.startDiscoveryCalls, 1);
+    expect(container.read(autoConnectControllerProvider).isActive, isFalse);
+
+    hostApi.startError = null;
+    controller.activate();
+    await pumpEventQueue();
+
+    expect(hostApi.startDiscoveryCalls, 2);
+    expect(container.read(autoConnectControllerProvider).isActive, isTrue);
+  });
+
+  test('a scan the native side ends stops showing as searching', () async {
+    final container = makeContainer(
+      computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+    );
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    controller.activate();
+    await pumpEventQueue();
+    expect(container.read(autoConnectControllerProvider).isActive, isTrue);
+
+    container.read(diveComputerServiceProvider).onDiscoveryComplete();
+    await pumpEventQueue();
+
+    expect(container.read(autoConnectControllerProvider).isActive, isFalse);
+    expect(requested, isEmpty);
+  });
+
+  test('a known computer found just before the scan ends is still '
+      'requested', () async {
+    final container = makeContainer(
+      computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+    );
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    controller.activate();
+    await pumpEventQueue();
+
+    final service = container.read(diveComputerServiceProvider);
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+    service.onDiscoveryComplete();
     await pumpEventQueue();
 
     expect(requested, ['c1']);

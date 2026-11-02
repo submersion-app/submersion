@@ -59,6 +59,12 @@ DiveComputerHostApiImpl::DiveComputerHostApiImpl(
 }
 
 DiveComputerHostApiImpl::~DiveComputerHostApiImpl() {
+    shutting_down_ = true;
+    // Their callbacks capture `this` and post through the dispatch window,
+    // so both stop before it goes: the serial scanner joins its thread, the
+    // BLE scanner revokes its watcher handlers.
+    ble_scanner_.reset();
+    serial_scanner_.reset();
     if (download_thread_.joinable()) {
         download_thread_.join();
     }
@@ -88,6 +94,7 @@ LRESULT CALLBACK DiveComputerHostApiImpl::DispatchWindowProc(HWND hwnd,
 
 void DiveComputerHostApiImpl::PostToPlatformThread(
     std::function<void()> task) {
+    if (shutting_down_) return;
     if (!dispatch_window_) {
         // Only when the window could not be created (logged above); running
         // inline beats dropping the call.

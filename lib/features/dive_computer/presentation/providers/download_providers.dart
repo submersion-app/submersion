@@ -491,6 +491,9 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   ) async {
     final computer = _computer;
     if (computer == null) return;
+    // Captured now: nothing awaits this method, so a startDownload for
+    // another device can replace the field before the writes below finish.
+    final device = _device;
 
     // A backend that reports '' rather than null must not blank out values
     // stored by an earlier download.
@@ -525,6 +528,9 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
           firmwareVersion == null &&
           address == null &&
           identical(relabeled, computer)) {
+        // Nothing to write on the computer itself, but the connection
+        // record may still hold an address from before (issue #4087).
+        await _recordConnection(computer, device, null);
         return;
       }
       // A digits-only report that matches a stored hex serial (the other
@@ -551,7 +557,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       // onto the wrong one. Only the call that still owns the field may
       // refresh it.
       if (identical(_computer, computer)) _computer = updated;
-      await _recordConnection(updated, address);
+      await _recordConnection(updated, device, address);
     } catch (e, stackTrace) {
       _log.error(
         'Device info persist failed for ${computer.displayName}',
@@ -566,12 +572,13 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   /// legacy address just rebound above. Left stale, a later direct connect
   /// to this computer reads [_computer.bluetoothAddress]'s predecessor
   /// format back out of here instead of the address that just worked
-  /// (issue #4087).
+  /// (issue #4087). [device] is the one this download used, captured
+  /// before any await.
   Future<void> _recordConnection(
     DiveComputer computer,
+    DiscoveredDevice? device,
     String? rebindAddress,
   ) async {
-    final device = _device;
     final connections = _connections;
     if (device == null || connections == null) return;
     try {

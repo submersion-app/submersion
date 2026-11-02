@@ -363,6 +363,58 @@ void main() {
       expect(connections.calls.single.address, _staleAddress.toLowerCase());
     });
 
+    test('records the connection even when the computer itself has '
+        'nothing to update', () async {
+      // No serial, no firmware, an address that already matches: the
+      // computer write is skipped, but the connection record may still hold
+      // an older address and has to follow this download.
+      await recordingNotifier.startDownload(
+        _device(_staleAddress.toLowerCase()),
+        computer: _savedComputer(),
+      );
+      events.add(DownloadCompleteEvent(0));
+      await pumpEventQueue();
+
+      expect(updates, isEmpty);
+      expect(connections.calls.single.computerId, 'dc-1');
+      expect(connections.calls.single.address, _staleAddress.toLowerCase());
+    });
+
+    test('records the device the download used, not one a later download '
+        'switched to meanwhile', () async {
+      const secondAddress = 'A1B2C3D4-0000-4000-8000-000000000003';
+      final firstWrite = Completer<void>();
+      when(repository.updateComputer(any)).thenAnswer((invocation) async {
+        updates.add(invocation.positionalArguments.first as DiveComputer);
+        if (updates.length == 1) await firstWrite.future;
+      });
+
+      await recordingNotifier.startDownload(
+        _device(_freshAddress),
+        computer: _savedComputer(),
+      );
+      events.add(
+        DownloadCompleteEvent(
+          0,
+          serialNumber: '074691',
+          firmwareVersion: '5.0.0',
+        ),
+      );
+      await pumpEventQueue();
+
+      // Another download starts while the first write is parked.
+      await recordingNotifier.startDownload(
+        _device(secondAddress, connectionType: DeviceConnectionType.usb),
+        computer: _savedComputer(id: 'dc-2', serialNumber: '999999'),
+      );
+      firstWrite.complete();
+      await pumpEventQueue();
+
+      expect(connections.calls.single.computerId, 'dc-1');
+      expect(connections.calls.single.kind, DiveComputerConnectionKind.ble);
+      expect(connections.calls.single.address, _freshAddress);
+    });
+
     test('records nothing when another unit answered', () async {
       await completeRecordedDownload(
         computer: _savedComputer(),
