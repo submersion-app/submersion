@@ -21,6 +21,72 @@ void main() {
     }
   });
 
+  group('a full date', () {
+    final day = DateTime(2018, 10, 14);
+
+    test('reads with the day first or the month first', () {
+      for (final text in [
+        '14 october 2018',
+        '14 Oct 2018',
+        '14th october 2018',
+        '14th of october 2018',
+        'october 14 2018',
+        'Oct 14 2018',
+        'october 14th 2018',
+      ]) {
+        expect(parseDateText(text, now: now), (
+          start: day,
+          end: day,
+        ), reason: text);
+      }
+    });
+
+    test('reads a single digit day', () {
+      expect(parseDateText('3 march 2019', now: now), (
+        start: DateTime(2019, 3, 3),
+        end: DateTime(2019, 3, 3),
+      ));
+    });
+
+    test('joins the open-ended and two period forms', () {
+      expect(parseDateText('since 14 october 2018', now: now), (
+        start: day,
+        end: null,
+      ));
+      expect(parseDateText('before october 14 2018', now: now), (
+        start: null,
+        end: DateTime(2018, 10, 13),
+      ));
+      expect(parseDateText('14 october 2018 to 20 october 2018', now: now), (
+        start: day,
+        end: DateTime(2018, 10, 20),
+      ));
+      expect(
+        parseDateText('between 14 october 2018 and 20 october 2018', now: now),
+        (start: day, end: DateTime(2018, 10, 20)),
+      );
+    });
+
+    test('reads the leap day only in a leap year', () {
+      expect(parseDateText('29 february 2024', now: now), isNotNull);
+      expect(parseDateText('29 february 2023', now: now), isNull);
+    });
+
+    test('refuses a day the month does not have', () {
+      for (final text in [
+        '0 october 2018',
+        '31 april 2018',
+        '32 october 2018',
+        'april 31 2018',
+        '14 smarch 2018',
+        'smarch 14 2018',
+        '14 october 1800',
+      ]) {
+        expect(parseDateText(text, now: now), isNull, reason: text);
+      }
+    });
+  });
+
   test('relative periods anchor on now', () {
     expect(parseDateText('this year', now: now), (
       start: DateTime(2026, 1, 1),

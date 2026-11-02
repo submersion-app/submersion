@@ -465,9 +465,10 @@ in any order, for example `ressel in october 2018 with mike` or
 `shearwater nitrox shore`. Words reach sites, countries, buddies, boats, operators,
 notes, tags, dive types, gear, trips, species, courses and dive computers.
 
-Dates work as you would say them: `october 2018`, `oct 2018`, `last year`,
-`since 2020`, `2018 to 2020`. A date shows as a chip with a calendar icon. A lone
-year or month, such as `2018` or `october`, also finds it written in your notes.
+Dates work as you would say them: `14 october 2018`, `october 14, 2018`,
+`october 2018`, `oct 2018`, `last year`, `since 2020`, `2018 to 2020`. A date
+shows as a chip with a calendar icon. A lone year or month, such as `2018` or
+`october`, also finds it written in your notes.
 Words such as `ccr`, `nitrox`, `ean32`, `shore`, `salt water` and `favourite` find
 dives by that setting. Put words in quotes to search for exactly those words.
 

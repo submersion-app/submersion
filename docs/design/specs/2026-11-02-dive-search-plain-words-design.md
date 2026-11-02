@@ -141,6 +141,7 @@ text. It reuses `parseDateText`, so it reads the forms that grammar reads:
 | Form | Examples |
 | --- | --- |
 | Month and year | `october 2018`, `oct 2018`, `sept 2021` |
+| Full date (new in the grammar) | `14 october 2018`, `14th of oct 2018`, `october 14 2018`, `October 14, 2018` |
 | ISO | `2018-10`, `2018-10-14` |
 | Relative | `this year`, `last year`, `this month`, `last month`, `last 90 days`, `past 2 years` |
 | Open-ended | `since 2020`, `before 2020`, `since march 2020` |
@@ -160,7 +161,14 @@ Rules:
 - A negated phrase works: `not last year`, `-2018-10`.
 - A phrase also works after a date field: `date in october 2018`,
   `date between 2018 and 2020`.
-- A comma between terms is ignored: `ressel, october 2018`.
+- A comma between terms is ignored: `ressel, october 2018`. A comma inside a
+  date is part of it: `october 14, 2018`.
+- A full date needs its year, and spells the month in English like every other
+  phrase. `14 october` stays two words, because no year can be assumed. Numeric
+  forms such as `14/10/2018` stay out, because whether the day or the month
+  comes first depends on the reader. `2018-10-14` covers every language.
+- A day the month does not have stays plain words: `31 april 2018` is the word
+  `31` and April 2018.
 - A phrase's result is the same tree `date in ...` produces, so it validates,
   prints and saves with no new node type.
 

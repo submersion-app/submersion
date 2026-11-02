@@ -6,8 +6,9 @@ library;
 import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/query/syntax/query_tokenizer.dart';
 
-/// `between march 2018 and june 2019` is the longest form the grammar reads.
-const int _longestDatePhrase = 6;
+/// `between 14th of march 2018 and 2nd of june 2019` is the longest form the
+/// grammar reads.
+const int _longestDatePhrase = 10;
 
 /// `closed circuit rebreather` and its translations fit in five words.
 const int kLongestLabelPhrase = 5;
@@ -15,6 +16,8 @@ const int kLongestLabelPhrase = 5;
 final RegExp _bareYear = RegExp(r'^\d{4}$');
 
 bool _isTerm(Token t) => t.kind == TokenKind.word || t.kind == TokenKind.number;
+
+bool _isComma(Token t) => t.kind == TokenKind.symbol && t.text == ',';
 
 /// The date phrase starting at token [start] and how many tokens it spans, or
 /// null when none does. A lone year is not a phrase, because `2018` also finds
@@ -49,20 +52,22 @@ bool _isTerm(Token t) => t.kind == TokenKind.word || t.kind == TokenKind.number;
   DateTime now, {
   required bool yearAlone,
 }) {
-  var run = 0;
-  while (run < _longestDatePhrase &&
-      start + run < tokens.length &&
-      _isTerm(tokens[start + run])) {
-    run++;
+  // A comma can sit inside a date (`october 14, 2018`), so it is stepped over
+  // and counted but never read. The list ends in the end token, which is
+  // neither a term nor a comma, so the index stays in range.
+  final words = <String>[];
+  final spans = <int>[];
+  var next = start;
+  while (words.length < _longestDatePhrase && _isTerm(tokens[next])) {
+    words.add(tokens[next++].text);
+    spans.add(next - start);
+    if (_isComma(tokens[next]) && _isTerm(tokens[next + 1])) next++;
   }
-  for (var length = run; length > 0; length--) {
-    final text = tokens
-        .sublist(start, start + length)
-        .map((t) => t.text)
-        .join(' ');
-    if (length == 1 && !yearAlone && _bareYear.hasMatch(text)) continue;
+  for (var count = words.length; count > 0; count--) {
+    final text = words.take(count).join(' ');
+    if (count == 1 && !yearAlone && _bareYear.hasMatch(text)) continue;
     final range = parseDateText(text, now: now);
-    if (range != null) return (range: range, length: length);
+    if (range != null) return (range: range, length: spans[count - 1]);
   }
   return null;
 }

@@ -407,7 +407,7 @@ class QueryParser {
     if (_isKeyword(opTok, 'between')) {
       _requireOp(field, QueryOp.between, opTok);
       final isDate = field.type == FieldType.date;
-      if (isDate && _entity.plainWords != null && !_startsWithDay(_peek)) {
+      if (isDate && _entity.plainWords != null && !_betweenTwoDays()) {
         final phrase = readDateValue(_tokens, _pos - 1, context.now);
         if (phrase != null) {
           _pos += phrase.length - 1;
@@ -572,10 +572,17 @@ class QueryParser {
     return DateValue(start);
   }
 
-  /// Whether [t] names one day, the form `date between` compares directly.
-  bool _startsWithDay(Token t) {
-    final range = parseDateText(t.text, now: context.now);
-    return range != null && range.start == range.end;
+  /// Whether `date between` is followed by one token naming a day on each side
+  /// of `and`, the form it compares directly. Anything else is a phrase.
+  bool _betweenTwoDays() {
+    bool isDay(Token t) {
+      final range = parseDateText(t.text, now: context.now);
+      return range != null && range.start == range.end;
+    }
+
+    return isDay(_peek) &&
+        _pos + 2 < _tokens.length &&
+        isDay(_tokens[_pos + 2]);
   }
 
   /// A date value is one token; a range collapses to `inList` and an
@@ -611,7 +618,11 @@ class QueryParser {
   ) {
     final (:start, :end) = range;
     if (start != null && end != null) {
-      if (start == end) return ConditionNode(path, op, DateValue(start));
+      if (start == end) {
+        // `in` takes a period; one day is plain equality.
+        final dayOp = op == QueryOp.inList ? QueryOp.eq : op;
+        return ConditionNode(path, dayOp, DateValue(start));
+      }
       if (op == QueryOp.eq || op == QueryOp.inList) {
         return ConditionNode(path, QueryOp.inList, DateRangeValue(start, end));
       }

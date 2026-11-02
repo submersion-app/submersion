@@ -343,6 +343,21 @@ void main() {
     test('the whole sentence', () async {
       expect(await found('dives in the ressel in 2018 with mike'), ['mar']);
     });
+
+    test('a full date finds that day alone', () async {
+      expect(await found('14 october 2018'), ['oct']);
+      expect(await found('ressel on october 14, 2018'), ['oct']);
+      expect(await found('france 2 march 2018 with mike'), ['mar']);
+      expect(await found('date in 14 october 2018'), ['oct']);
+      expect(await found('date in 2018-10-14'), ['oct']);
+    });
+
+    test('two full dates find the days between them', () async {
+      expect(
+        await found('14 october 2018 to 20 october 2018'),
+        unorderedEquals(['oct', 'away']),
+      );
+    });
   });
 
   group('words that stand for a value', () {

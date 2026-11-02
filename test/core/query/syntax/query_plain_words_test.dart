@@ -123,6 +123,60 @@ void main() {
       expect(read('ressel between 2018 and 2020'), isA<AndNode>());
     });
 
+    group('a full date', () {
+      final day = ConditionNode(
+        FieldPath(['date']),
+        QueryOp.eq,
+        DateValue(DateTime(2018, 10, 14)),
+      );
+
+      test('is one day, however it is written', () {
+        expect(read('14 october 2018'), day);
+        expect(read('14th of oct 2018'), day);
+        expect(read('october 14 2018'), day);
+        expect(read('October 14, 2018'), day);
+        expect(read('Oct 14th, 2018'), day);
+      });
+
+      test('sits among other terms', () {
+        expect(
+          read('ressel on 14 october 2018 with mike'),
+          AndNode([word('ressel'), day, word('mike')]),
+        );
+        expect(
+          read('ressel, october 14, 2018, mike'),
+          AndNode([word('ressel'), day, word('mike')]),
+        );
+        expect(read('on the 14th of october 2018'), day);
+      });
+
+      test('reads as a range of two days', () {
+        expect(
+          read('october 14, 2018 to october 20, 2018'),
+          range(DateTime(2018, 10, 14), DateTime(2018, 10, 20)),
+        );
+        expect(
+          read('between 14th of october 2018 and 20th of october 2018'),
+          range(DateTime(2018, 10, 14), DateTime(2018, 10, 20)),
+        );
+      });
+
+      test('a day the month lacks stays words beside the month', () {
+        expect(read('31 april 2018'), AndNode([word('31'), month(2018, 4)]));
+      });
+
+      test('a comma only joins a date it sits inside', () {
+        expect(
+          read('october 2018, 14'),
+          AndNode([month(2018, 10), word('14')]),
+        );
+      });
+
+      test('a month and day with no year stay words', () {
+        expect(read('14 october'), AndNode([word('14'), word('october')]));
+      });
+    });
+
     test('a phrase beside a condition keeps both', () {
       expect(read('last year depth > 30'), isA<AndNode>());
     });
@@ -279,6 +333,38 @@ void main() {
         isA<ConditionNode>().having((c) => c.op, 'op', QueryOp.between),
       );
     });
+
+    test('reads a full date', () {
+      final day = ConditionNode(
+        FieldPath(['date']),
+        QueryOp.eq,
+        DateValue(DateTime(2018, 10, 14)),
+      );
+      expect(read('date in 14 october 2018'), day);
+      expect(read('date:october 14, 2018'), day);
+    });
+
+    test('one iso day under in is plain equality, so it validates', () {
+      expect(
+        read('date in 2018-10-14'),
+        ConditionNode(
+          FieldPath(['date']),
+          QueryOp.eq,
+          DateValue(DateTime(2018, 10, 14)),
+        ),
+      );
+      expect(parse('date in 2018-10-14'), isA<ParseOk>());
+    });
+
+    test('between reads full dates, alone or beside an iso day', () {
+      final expected = range(DateTime(2018, 10, 14), DateTime(2018, 10, 20));
+      expect(
+        read('date between 14 october 2018 and 20 october 2018'),
+        expected,
+      );
+      expect(read('date between 2018-10-14 and 20 october 2018'), expected);
+      expect(read('date between 14 october 2018 and 2018-10-20'), expected);
+    });
   });
 
   group('the editor context', () {
@@ -348,6 +434,10 @@ void main() {
       'oct',
       'in',
       '2018 to',
+      '14 october',
+      'october 14',
+      'october 14,',
+      'october 14, 2018,',
     ]) {
       expect(parse(text), isA<ParseOk>(), reason: text);
     }
@@ -369,6 +459,9 @@ void main() {
       '2018 to 2020',
       '2018-10-14',
       'in 2018',
+      '14 october 2018',
+      'october 14, 2018',
+      '14 october 2018 to 20 october 2018',
     ]) {
       final node = read(text);
       expect(read(printer.print(node)), node, reason: text);

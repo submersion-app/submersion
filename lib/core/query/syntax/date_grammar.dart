@@ -2,7 +2,8 @@
 /// (#2365).
 ///
 /// A small deterministic grammar over the words a diver types for a period
-/// (`2025`, `2025-03`, `2025-03-14`, `last 90 days`, `since 2024`, ...).
+/// (`2025`, `2025-03`, `2025-03-14`, `14 march 2025`, `last 90 days`,
+/// `since 2024`, ...).
 /// Anything else is null rather than a guessed range. Pure Dart. Dates are
 /// plain calendar values, which is what the date fields' day bounds read.
 library;
@@ -47,6 +48,12 @@ final RegExp _isoRange = RegExp(
   r'^(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})$',
 );
 final RegExp _monthYear = RegExp(r'^([a-z]+)\s+(\d{4})$');
+final RegExp _dayMonthYear = RegExp(
+  r'^(\d{1,2})(?:st|nd|rd|th)?(?:\s+of)?\s+([a-z]+)\s+(\d{4})$',
+);
+final RegExp _monthDayYear = RegExp(
+  r'^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s+(\d{4})$',
+);
 final RegExp _periodRange = RegExp(r'^(.+)\s+to\s+(.+)$');
 final RegExp _between = RegExp(r'^between\s+(.+)\s+and\s+(.+)$');
 final RegExp _lastN = RegExp(
@@ -66,6 +73,13 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   DateRange? month(int y, int m) => m < 1 || m > 12 || y < 1900 || y > 2200
       ? null
       : (start: DateTime(y, m, 1), end: DateTime(y, m + 1, 0));
+  DateRange? day(int y, String word, int d) {
+    final mo = _months[word];
+    final whole = mo == null ? null : month(y, mo);
+    if (whole == null || d < 1 || d > whole.end!.day) return null;
+    final date = DateTime(y, mo!, d);
+    return (start: date, end: date);
+  }
 
   var m = _year.firstMatch(t);
   if (m != null) return year(int.parse(m[1]!));
@@ -116,6 +130,10 @@ DateRange? parseDateText(String text, {required DateTime now}) {
     final mo = _months[m[1]!];
     return mo == null ? null : month(int.parse(m[2]!), mo);
   }
+  m = _dayMonthYear.firstMatch(t);
+  if (m != null) return day(int.parse(m[3]!), m[2]!, int.parse(m[1]!));
+  m = _monthDayYear.firstMatch(t);
+  if (m != null) return day(int.parse(m[3]!), m[1]!, int.parse(m[2]!));
   switch (t) {
     case 'this year':
       return year(today.year);
