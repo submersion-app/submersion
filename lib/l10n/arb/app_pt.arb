@@ -10080,6 +10080,8 @@
   "trips_photos_tooltip_scan": "Escanear galeria do dispositivo",
   "trips_photos_viewAll": "Ver Todas",
   "trips_picker_clearTooltip": "Limpar seleção",
+  "trips_dateStretch_failed": "Mergulho guardado, mas não foi possível atualizar as datas da viagem",
+  "trips_dateStretch_message": "{trip} agora abrange {dates}",
   "trips_picker_alreadyPacked": "Já preparado",
   "trips_picker_empty_createButton": "Criar Viagem",
   "trips_picker_empty_title": "Nenhuma viagem ainda",

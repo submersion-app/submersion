@@ -33568,6 +33568,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_photos_viewAll => 'Alle anzeigen';
 
   @override
+  String get trips_dateStretch_failed =>
+      'Tauchgang gespeichert, aber die Reisedaten konnten nicht aktualisiert werden';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip läuft jetzt $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => 'Bereits gepackt';
 
   @override

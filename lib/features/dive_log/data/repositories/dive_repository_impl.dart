@@ -109,6 +109,7 @@ import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
@@ -8517,6 +8518,14 @@ class DiveRepository {
             _syncRepository,
             diveId,
             tripId: tripId,
+            now: now,
+          );
+        }
+        if (tripId != null) {
+          await stretchTripsToCoverDives(
+            _db,
+            _syncRepository,
+            diveIds,
             now: now,
           );
         }

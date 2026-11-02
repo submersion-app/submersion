@@ -33459,6 +33459,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_photos_viewAll => 'Összes megtekintése';
 
   @override
+  String get trips_dateStretch_failed =>
+      'A merülés mentve, de az út dátumait nem sikerült frissíteni';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip időtartama mostantól $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => 'Már bepakolva';
 
   @override

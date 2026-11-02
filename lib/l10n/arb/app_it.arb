@@ -9975,6 +9975,8 @@
   "trips_photos_tooltip_scan": "Scansiona galleria del dispositivo",
   "trips_photos_viewAll": "Visualizza tutte",
   "trips_picker_clearTooltip": "Cancella selezione",
+  "trips_dateStretch_failed": "Immersione salvata, ma non è stato possibile aggiornare le date del viaggio",
+  "trips_dateStretch_message": "{trip} ora copre {dates}",
   "trips_picker_alreadyPacked": "Già preparato",
   "trips_picker_empty_createButton": "Crea viaggio",
   "trips_picker_empty_title": "Nessun viaggio ancora",

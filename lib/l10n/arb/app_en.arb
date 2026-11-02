@@ -19225,6 +19225,18 @@
   "trips_photos_sectionTitle": "Photos",
   "trips_photos_tooltip_scan": "Scan device gallery",
   "trips_photos_viewAll": "View All",
+  "trips_dateStretch_failed": "Dive saved, but the trip's dates couldn't be updated",
+  "trips_dateStretch_message": "{trip} now runs {dates}",
+  "@trips_dateStretch_message": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      },
+      "dates": {
+        "type": "String"
+      }
+    }
+  },
   "trips_picker_alreadyPacked": "Already packed",
   "trips_picker_clearTooltip": "Clear selection",
   "trips_picker_empty_createButton": "Create Trip",

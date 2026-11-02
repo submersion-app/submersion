@@ -10080,6 +10080,8 @@
   "trips_photos_tooltip_scan": "Apparaatgalerij scannen",
   "trips_photos_viewAll": "Alles bekijken",
   "trips_picker_clearTooltip": "Selectie wissen",
+  "trips_dateStretch_failed": "Duik opgeslagen, maar de reisdatums konden niet worden bijgewerkt",
+  "trips_dateStretch_message": "{trip} loopt nu {dates}",
   "trips_picker_alreadyPacked": "Al ingepakt",
   "trips_picker_empty_createButton": "Reis aanmaken",
   "trips_picker_empty_title": "Nog geen reizen",

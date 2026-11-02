@@ -18,6 +18,8 @@ import 'package:submersion/features/equipment/domain/entities/gear_provenance.da
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as se;
+import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 
 /// Orchestrates a bulk edit across repositories in a single transaction.
 ///
@@ -140,6 +142,8 @@ class BulkDiveEditService {
       }
     }
 
+    var tripDateStretches = const <TripDateStretch>[];
+
     await _db.transaction(() async {
       // Inside the transaction, unlike the reads above: a tank a sync merge
       // lands before this point is not the edit's for undo to remove, and one
@@ -160,6 +164,15 @@ class BulkDiveEditService {
       }
       if (req.hasScalarChanges) {
         await _diveRepo.bulkUpdateFields(ids, req.scalars);
+      }
+      // Only the dives this edit moves: one already on the trip stays where
+      // the diver left it, outside the dates or not.
+      final trip = req.scalars.tripId;
+      if (trip.present && trip.value != null) {
+        tripDateStretches = await stretchTripsToCoverDives(_db, _sync, [
+          for (final row in priorDiveRows)
+            if (row.tripId != trip.value) row.id,
+        ], now: DateTime.now().millisecondsSinceEpoch);
       }
       if (req.notesAppend != null && req.notesAppend!.isNotEmpty) {
         await _diveRepo.bulkAppendNotes(ids, req.notesAppend!);
@@ -189,6 +202,7 @@ class BulkDiveEditService {
       priorTankSpecRows: priorTankSpecRows,
       priorWeights: priorWeights,
       priorSightings: priorSightings,
+      tripDateStretches: tripDateStretches,
     );
   }
 
@@ -218,6 +232,12 @@ class BulkDiveEditService {
           localUpdatedAt: now,
         );
       }
+      await restoreStretchedTripDates(
+        _db,
+        _sync,
+        snapshot.tripDateStretches,
+        now: now,
+      );
 
       final diverRoles = snapshot.priorDiverRoleIds;
       if (diverRoles != null) {

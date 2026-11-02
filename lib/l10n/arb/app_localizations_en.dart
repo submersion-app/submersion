@@ -33069,6 +33069,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_photos_viewAll => 'View All';
 
   @override
+  String get trips_dateStretch_failed =>
+      'Dive saved, but the trip\'s dates couldn\'t be updated';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip now runs $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => 'Already packed';
 
   @override

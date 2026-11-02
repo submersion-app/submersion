@@ -9979,6 +9979,8 @@
   "trips_photos_tooltip_scan": "Scanner la galerie de l'appareil",
   "trips_photos_viewAll": "Voir tout",
   "trips_picker_clearTooltip": "Effacer la sélection",
+  "trips_dateStretch_failed": "Plongée enregistrée, mais les dates du voyage n'ont pas pu être mises à jour",
+  "trips_dateStretch_message": "{trip} s'étend désormais sur {dates}",
   "trips_picker_alreadyPacked": "Déjà prévu",
   "trips_picker_empty_createButton": "Créer un voyage",
   "trips_picker_empty_title": "Aucun voyage",

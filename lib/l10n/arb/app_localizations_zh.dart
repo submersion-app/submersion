@@ -31685,6 +31685,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_photos_viewAll => '查看全部';
 
   @override
+  String get trips_dateStretch_failed => '潜水已保存，但无法更新旅行日期';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip 的日期现为 $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => '已打包';
 
   @override

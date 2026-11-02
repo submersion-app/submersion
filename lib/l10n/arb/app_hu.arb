@@ -9979,6 +9979,8 @@
   "trips_photos_tooltip_scan": "Eszköz galéria átnézés",
   "trips_photos_viewAll": "Összes megtekintése",
   "trips_picker_clearTooltip": "Kiválasztás törlése",
+  "trips_dateStretch_failed": "A merülés mentve, de az út dátumait nem sikerült frissíteni",
+  "trips_dateStretch_message": "{trip} időtartama mostantól {dates}",
   "trips_picker_alreadyPacked": "Már bepakolva",
   "trips_picker_empty_createButton": "Út létrehozása",
   "trips_picker_empty_title": "Még nincsenek utak",

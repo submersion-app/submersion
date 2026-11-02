@@ -33747,6 +33747,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_photos_viewAll => 'Voir tout';
 
   @override
+  String get trips_dateStretch_failed =>
+      'Plongée enregistrée, mais les dates du voyage n\'ont pas pu être mises à jour';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip s\'étend désormais sur $dates';
+  }
+
+  @override
   String get trips_picker_alreadyPacked => 'Déjà prévu';
 
   @override
