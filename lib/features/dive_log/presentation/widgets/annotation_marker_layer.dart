@@ -119,6 +119,7 @@ class AnnotationMarkerLayer extends StatefulWidget {
 
 class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
   Offset? _downLocal;
+  int? _downPointer;
 
   List<Offset?> _centers(Size size) => annotationDotCenters(
     annotations: widget.annotations,
@@ -154,9 +155,21 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
     widget.onTap(widget.annotations[index], box.localToGlobal(local));
   }
 
+  void _onPointerDown(PointerDownEvent event) {
+    // A second finger makes it a gesture, not a tap on a dot.
+    if (_downPointer != null) {
+      _downLocal = null;
+      return;
+    }
+    _downPointer = event.pointer;
+    _downLocal = event.localPosition;
+  }
+
   void _onPointerUp(PointerUpEvent event, Size size) {
+    if (event.pointer != _downPointer) return;
     final down = _downLocal;
     _downLocal = null;
+    _downPointer = null;
     if (!widget.interactive || down == null) return;
     if ((event.localPosition - down).distance > 12) return;
     final centers = _centers(size);
@@ -173,8 +186,13 @@ class _AnnotationMarkerLayerState extends State<AnnotationMarkerLayer> {
         final size = constraints.biggest;
         return Listener(
           behavior: HitTestBehavior.translucent,
-          onPointerDown: (e) => _downLocal = e.localPosition,
-          onPointerCancel: (_) => _downLocal = null,
+          onPointerDown: _onPointerDown,
+          onPointerCancel: (e) {
+            if (e.pointer == _downPointer) {
+              _downLocal = null;
+              _downPointer = null;
+            }
+          },
           onPointerUp: (e) => _onPointerUp(e, size),
           child: CustomPaint(
             size: size,

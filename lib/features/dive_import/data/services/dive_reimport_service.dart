@@ -756,16 +756,25 @@ class DiveReimportService {
         row.id,
     };
 
-    final events = profileEventsFromParsed(
+    final parsed = profileEventsFromParsed(
       diveId: diveId,
       eventMaps: eventsRaw.cast<Map<String, dynamic>>(),
       now: now,
       onSkipped: _log.warning,
     );
+    // A file that carries this log's own event ids (a UDDF backup): an id
+    // kept on this dive is the same row, skipped; an id a row of another
+    // dive holds (the backup restored twice) gets a fresh one, or the insert
+    // would abort the resync.
+    final takenElsewhere = await _eventIdsTakenElsewhere([
+      for (final e in parsed) e.id,
+    ], diveId);
+    final events = [
+      for (final e in parsed)
+        if (!keptIds.contains(e.id))
+          takenElsewhere.contains(e.id) ? e.copyWith(id: _uuid.v4()) : e,
+    ];
     for (final event in events) {
-      // A file that carries the kept events' own ids (a UDDF backup of this
-      // log) must not duplicate them.
-      if (keptIds.contains(event.id)) continue;
       await db
           .into(db.diveProfileEvents)
           .insert(
@@ -789,6 +798,24 @@ class DiveReimportService {
         localUpdatedAt: now.millisecondsSinceEpoch,
       );
     }
+  }
+
+  /// Which of [ids] already name an event row on a dive other than
+  /// [diveId].
+  Future<Set<String>> _eventIdsTakenElsewhere(
+    List<String> ids,
+    String diveId,
+  ) async {
+    if (ids.isEmpty) return const {};
+    final rows =
+        await (db.selectOnly(db.diveProfileEvents)
+              ..addColumns([db.diveProfileEvents.id])
+              ..where(
+                db.diveProfileEvents.id.isIn(ids) &
+                    db.diveProfileEvents.diveId.equals(diveId).not(),
+              ))
+            .get();
+    return {for (final r in rows) r.read(db.diveProfileEvents.id)!};
   }
 
   /// Refreshes the primary `dive_data_sources` row's computer-authored

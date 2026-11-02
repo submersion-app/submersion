@@ -43,6 +43,16 @@ void main() {
     expect(e.description, '');
   });
 
+  test('a user-authored row of any type keeps its user source', () {
+    final e = map({
+      'eventType': 'bookmark',
+      'timestamp': 30,
+      'id': 'b-1',
+      'source': 'user',
+    }).single;
+    expect(e.source, EventSource.user);
+  });
+
   test('any other event keeps a given id too', () {
     final e = map({'eventType': 'bookmark', 'timestamp': 30, 'id': 'b-1'});
     expect(e.single.id, 'b-1');

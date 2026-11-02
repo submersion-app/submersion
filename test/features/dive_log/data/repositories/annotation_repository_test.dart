@@ -115,6 +115,12 @@ void main() {
     expect(await tombstones(), contains(('diveProfileEvents', id)));
   });
 
+  test('moving an annotation that is gone writes nothing', () async {
+    await db.delete(db.syncRecords).go();
+    await repo.moveAnnotation(id: 'gone', timestamp: 5, depth: null);
+    expect(await pending(), isEmpty);
+  });
+
   test('removing an annotation twice logs one tombstone', () async {
     final id = await repo.addAnnotation(
       diveId: diveId,

@@ -25,10 +25,11 @@ String? annotationIdFromHref(String? href) {
   return id.isEmpty ? null : id;
 }
 
-/// The Markdown for an annotation link. A `]` in the words is escaped so
-/// the link text ends where it should.
+/// The Markdown for an annotation link. Brackets in the words are escaped
+/// so the link text starts and ends where the selection did.
 String annotationLinkMarkdown(String words, String id) =>
-    '[${words.replaceAll(']', r'\]')}]($annotationLinkScheme:$id)';
+    '[${words.replaceAll('[', r'\[').replaceAll(']', r'\]')}]'
+    '($annotationLinkScheme:$id)';
 
 /// Annotation id to the plain words of the first link in [notes] that names
 /// it. Inline emphasis inside the link is dropped, so `[**free** flow]`
@@ -80,7 +81,7 @@ String unlinkAnnotation(String notes, String id) {
   if (!link.hasMatch(notes)) return notes;
   return notes.replaceAllMapped(
     link,
-    (m) => m.group(1)!.replaceAll(r'\]', ']'),
+    (m) => m.group(1)!.replaceAll(r'\]', ']').replaceAll(r'\[', '['),
   );
 }
 

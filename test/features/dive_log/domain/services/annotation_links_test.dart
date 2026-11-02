@@ -71,6 +71,13 @@ void main() {
     );
   });
 
+  test('link markdown escapes both brackets and unlink restores them', () {
+    final md = annotationLinkMarkdown('tank [left] low', 'i');
+    expect(md, r'[tank \[left\] low](annotation:i)');
+    expect(annotationWordsInNotes(md), {'i': 'tank [left] low'});
+    expect(unlinkAnnotation(md, 'i'), 'tank [left] low');
+  });
+
   test('link markdown escapes a closing bracket in the words', () {
     expect(annotationLinkMarkdown('a]b', 'i'), r'[a\]b](annotation:i)');
     expect(annotationLinkMarkdown('plain', 'i'), '[plain](annotation:i)');

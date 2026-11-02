@@ -160,7 +160,10 @@ class AdditionalComputerWriter {
           now: now,
           onSkipped: onSkippedEvent,
         ))
+          // A second computer's events are new rows whatever ids the file
+          // carried (a backup of this log names rows that already exist).
           event.copyWith(
+            id: _uuid.v4(),
             timestamp: event.timestamp + offset,
             computerId: computerId,
           ),

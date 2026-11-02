@@ -94,6 +94,14 @@ void main() {
       expect(out.text, 'First.\n[Octo](annotation:a1)');
     });
 
+    test('a selection across a blank line links the first paragraph only', () {
+      final out = wrapSelectionAsAnnotation(
+        v('[felt sick\n\nlater calm] end'),
+        id: 'a1',
+      );
+      expect(out.text, '[felt sick](annotation:a1)\n\nlater calm end');
+    });
+
     test('a caret with no words to insert leaves the text alone', () {
       final v0 = v('First.|');
       expect(wrapSelectionAsAnnotation(v0, id: 'a1'), v0);

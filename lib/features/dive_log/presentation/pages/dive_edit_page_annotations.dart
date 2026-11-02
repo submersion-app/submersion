@@ -20,7 +20,7 @@ extension _AnnotationEditing on _DiveEditPageState {
       words: selectedWords.isEmpty ? null : selectedWords,
       profile: _existingDive?.profile ?? const <DiveProfilePoint>[],
       maxSeconds: maxSeconds,
-      units: UnitFormatter(ref.read(settingsProvider)),
+      units: ref.read(unitFormatterProvider),
     );
     if (result == null || !mounted) return null;
     final id = const Uuid().v4();

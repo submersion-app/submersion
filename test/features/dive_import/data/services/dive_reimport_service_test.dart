@@ -1638,6 +1638,59 @@ void main() {
       );
     });
 
+    test(
+      'a parsed event id already held by another dive gets a fresh id',
+      () async {
+        final diveId = await seedDive(notes: '', buddy: '');
+        await seedSource(diveId, id: 'src-file');
+        // The same backup restored once before, as another dive.
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion(
+                id: const Value('other-dive'),
+                diveDateTime: Value(
+                  DateTime(2026, 8, 1).millisecondsSinceEpoch,
+                ),
+                createdAt: const Value(1),
+                updatedAt: const Value(1),
+              ),
+            );
+        await db
+            .into(db.diveProfileEvents)
+            .insert(
+              DiveProfileEventsCompanion.insert(
+                id: 'ev-taken',
+                diveId: 'other-dive',
+                timestamp: 30,
+                eventType: 'bookmark',
+                createdAt: 0,
+              ),
+            );
+
+        await service.applyReimport(
+          diveId: diveId,
+          diveData: {
+            'dateTime': DateTime(2026, 9, 1, 9),
+            'events': [
+              {'eventType': 'bookmark', 'id': 'ev-taken', 'timestamp': 30},
+            ],
+          },
+          now: DateTime(2026, 9, 3),
+        );
+
+        final mine = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(mine, hasLength(1));
+        expect(mine.single.id, isNot('ev-taken'));
+        final theirs = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.id.equals('ev-taken'))).getSingle();
+        expect(theirs.diveId, 'other-dive');
+      },
+    );
+
     test('leaves the events of a multi-source dive alone', () async {
       final diveId = await seedDive(notes: '', buddy: '');
       await seedSource(diveId, id: 'src-file');

@@ -83,8 +83,15 @@ class AnnotationRepository {
     double? depth,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
+    var moved = false;
     try {
       await _db.transaction(() async {
+        // Gone meanwhile (removed on a peer): nothing to stamp or announce.
+        final row = await (_db.select(
+          _db.diveProfileEvents,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        if (row == null) return;
+        moved = true;
         await (_db.update(
           _db.diveProfileEvents,
         )..where((t) => t.id.equals(id))).write(
@@ -99,7 +106,7 @@ class AnnotationRepository {
           localUpdatedAt: now,
         );
       });
-      SyncEventBus.notifyLocalChange();
+      if (moved) SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error('Failed to move annotation', error: e, stackTrace: stackTrace);
       rethrow;

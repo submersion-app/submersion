@@ -183,8 +183,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       );
     }
     if (!mounted) return;
-    ref.read(annotationFocusProvider(widget.diveId).notifier).state =
-        annotationId;
+    // Cleared first: a request nothing could serve (no layer mounted yet)
+    // would otherwise leave the same id in place, and setting it again is
+    // not a change the layer sees.
+    final focus = ref.read(annotationFocusProvider(widget.diveId).notifier);
+    focus.state = null;
+    focus.state = annotationId;
   }
 
   /// Scrolls the page so the safety review section is visible (callout

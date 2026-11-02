@@ -84,7 +84,7 @@ TextEditingValue wrapSelectionAsAnnotation(
   String? words,
 }) {
   final text = value.text;
-  final sel = _hugWords(text, _normalized(value));
+  final sel = _hugWords(text, _firstParagraphOf(text, _normalized(value)));
   if (!sel.isCollapsed) {
     final link = annotationLinkMarkdown(text.substring(sel.start, sel.end), id);
     return TextEditingValue(
@@ -105,9 +105,26 @@ TextEditingValue wrapSelectionAsAnnotation(
   );
 }
 
+/// [sel] cut at the first blank line inside it: a Markdown link cannot span
+/// paragraphs, so an annotation covers the selection's first paragraph.
+TextSelection _firstParagraphOf(String text, TextSelection sel) {
+  if (sel.isCollapsed) return sel;
+  final match = RegExp(
+    r'\n[ \t]*\n',
+  ).firstMatch(text.substring(sel.start, sel.end));
+  if (match == null) return sel;
+  return TextSelection(
+    baseOffset: sel.start,
+    extentOffset: sel.start + match.start,
+  );
+}
+
 /// The words a selection covers once hugged, or '' for a caret.
 String selectedWords(TextEditingValue value) {
-  final sel = _hugWords(value.text, _normalized(value));
+  final sel = _hugWords(
+    value.text,
+    _firstParagraphOf(value.text, _normalized(value)),
+  );
   return sel.isCollapsed ? '' : value.text.substring(sel.start, sel.end);
 }
 
