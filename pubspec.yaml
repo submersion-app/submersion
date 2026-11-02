@@ -27,7 +27,7 @@ dependencies:
   riverpod: ^3.4.2
 
   # Database
-  drift: ^2.34.3
+  drift: ^2.35.3
   sqlite3: ^3.5.1
   # SQLCipher now arrives through the sqlite3 build hook rather than a
   # separate `sqlcipher_flutter_libs` dependency -- see the `hooks:` section
@@ -206,7 +206,7 @@ dev_dependencies:
   google_sign_in_platform_interface: ^3.1.0
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.10.4
-  drift_dev: ^2.34.0
+  drift_dev: ^2.35.2
   json_serializable: ^6.11.2
   # 4.0.8 is the generator that matches riverpod_annotation 4.0.6, and the
   # reason the analyzer floor below is ^13.

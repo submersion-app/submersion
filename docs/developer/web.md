@@ -118,12 +118,27 @@ python3 scripts/web/serve_bundle.py --dir build/web --port 8080
 
 The database is drift's `WasmDatabase` over `sqlite3.wasm`. Drift probes
 the browser and picks the best storage it supports: the origin private
-file system in a shared worker (needs the page cross-origin isolated, so
-the hosting files send `Cross-Origin-Opener-Policy: same-origin` and
-`Cross-Origin-Embedder-Policy: credentialless`), then OPFS in a dedicated
-worker, then IndexedDB, then memory. `BackgroundDatabaseConnection`'s web
-half records the choice in `WebDatabaseStatusHolder`; the Cloud Sync page
-shows it as the Browser storage row.
+file system in a shared worker, then OPFS in a dedicated worker behind
+Web Locks, then IndexedDB, then memory. Which OPFS mode a browser gets is
+not a matter of speed alone. Chromium cannot spawn a dedicated worker
+from a shared worker, so it never offers the first, and the second needs
+`SharedArrayBuffer`, which only a cross-origin isolated page has. So
+Chrome with the hosting headers (`Cross-Origin-Opener-Policy: same-origin`
+and `Cross-Origin-Embedder-Policy: credentialless`) runs the locked OPFS
+mode, Chrome without them runs IndexedDB, and Firefox runs the shared
+worker either way. `BackgroundDatabaseConnection`'s web half records the
+choice in `WebDatabaseStatusHolder`; the Cloud Sync page shows it as the
+Browser storage row.
+
+drift 2.35.3 is the floor. In 2.34.3 the locked OPFS mode hung the first
+nested write transaction (the first run's diver insert never returned:
+the inner commit released the navigator lock, the outer commit threw and
+its rollback waited forever, drift issue #3870, fixed in 2.35.2), and
+IndexedDB kept the writes of a transaction in memory until a later
+statement ran, so a reload straight after a save lost them (#3864, fixed
+in 2.35.1). The browser suite runs on IndexedDB, since `flutter test`
+serves without the headers; the smoke job's server sends them, so its
+first-run test is what exercises the locked mode.
 
 Forget this device wipes the browser through `WebForgetDeviceService`:
 sync off, secrets and preferences cleared, the database closed and then
@@ -192,8 +207,11 @@ The seeder is a Flutter test run as a tool, like `tool/demo_data/`,
 because the sync stack needs the Flutter binding.
 
 The three-browser smoke (`scripts/web/smoke_test.py`) drives Chromium,
-Firefox and WebKit with Playwright through connecting, the first sync, a
-dive edit and a publish, against a served bundle and the same store:
+Firefox and WebKit with Playwright through two first runs against a served
+bundle: one with no store (the connect step's offer, a name, the remaining
+steps, and the first write landing on the dashboard, which is the commit
+drift 2.34.3 hung on the locked OPFS mode), and one that connects to the
+same store, downloads the seeded library, edits a dive and publishes:
 
 ```bash
 python3 -m pip install -r scripts/web/requirements-smoke.txt
