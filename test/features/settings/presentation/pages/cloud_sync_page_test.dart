@@ -43,6 +43,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/nearby_devices_section.dart';
+import 'package:submersion/features/settings/presentation/widgets/web/web_sync_rows.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart'
     show connectionErrorMessage, errorDisplayText;
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
@@ -2106,6 +2107,20 @@ void main() {
         browser: true,
       );
       expect(find.byType(NearbyDevicesSection), findsNothing);
+    });
+
+    testWidgets('the browser rows show', (tester) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.s3,
+        browser: true,
+      );
+      expect(find.byType(WebSyncRows), findsOneWidget);
+    });
+
+    testWidgets('natively there are no browser rows', (tester) async {
+      await pumpPage(tester, selectedProvider: CloudProviderType.s3);
+      expect(find.byType(WebSyncRows), findsNothing);
     });
   });
 }
