@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';

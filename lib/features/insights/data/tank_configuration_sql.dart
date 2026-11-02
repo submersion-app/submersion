@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:sqlite3/common.dart'
     show AllowedArgumentCount, CommonDatabase, SqliteArguments;
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
