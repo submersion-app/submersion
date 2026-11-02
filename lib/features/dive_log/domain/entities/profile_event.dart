@@ -95,6 +95,9 @@ class ProfileEvent extends Equatable {
   /// Whether this event has associated data value
   bool get hasValue => value != null;
 
+  /// Whether this is an annotation: a Notes passage pinned to a time (#4109).
+  bool get isAnnotation => eventType == ProfileEventType.annotation;
+
   /// Create an ascent start event
   factory ProfileEvent.ascentStart({
     required String id,
@@ -227,6 +230,29 @@ class ProfileEvent extends Equatable {
       description: note,
       createdAt: createdAt,
       source: source,
+    );
+  }
+
+  /// Create an annotation: a passage of the dive's Notes pinned to a time
+  /// (#4109). [words] are the link text in Notes, cached here for readers
+  /// that never load Notes.
+  factory ProfileEvent.annotation({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    double? depth,
+    required String words,
+    required DateTime createdAt,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.annotation,
+      depth: depth,
+      description: words,
+      createdAt: createdAt,
+      source: EventSource.user,
     );
   }
 

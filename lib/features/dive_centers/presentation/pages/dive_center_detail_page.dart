@@ -527,9 +527,7 @@ class _ContactSection extends StatelessWidget {
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.diveCenters_snackbar_copiedToClipboard),
-      ),
+      SnackBar(content: Text(context.l10n.common_snackbar_copiedToClipboard)),
     );
   }
 }

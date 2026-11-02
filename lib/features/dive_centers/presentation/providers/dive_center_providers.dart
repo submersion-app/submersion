@@ -261,6 +261,10 @@ class DiveCenterListNotifier
     }
   }
 
+  /// [_silentReload] for a caller that has just written, so the list stays on
+  /// screen.
+  Future<void> reloadQuietly() => _silentReload();
+
   Future<void> refresh() async {
     // Get fresh validated diver ID before loading
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);

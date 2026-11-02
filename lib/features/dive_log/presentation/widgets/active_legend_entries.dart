@@ -134,6 +134,12 @@ List<ActiveLegendEntry> activeLegendEntries(
     Colors.amber.shade200,
   );
   add(
+    config.hasAnnotations,
+    state.showAnnotations,
+    l10n.diveLog_legend_label_annotations,
+    ProfileMetricColors.annotation,
+  );
+  add(
     config.hasHeartRateData,
     state.showHeartRate,
     l10n.diveLog_legend_label_heartRate,

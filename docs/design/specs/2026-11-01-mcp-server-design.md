@@ -277,14 +277,18 @@ Rules:
 - Runs on a second in-process connection opened read-only (SQLite read-only
   open mode plus `PRAGMA query_only`), with the same SQLCipher key and the
   same custom SQL functions registered as the main connection. Read-only is
-  enforced by the engine, not by inspecting the SQL text.
+  enforced by the engine, not by inspecting the SQL text. As built, each call
+  opens its own connection on a worker isolate and closes it, so a step never
+  blocks the UI and no handle outlives a call.
 - Statements that touch a denied table or column are refused. The denied
   set is its own list, kept in one file: tables holding credentials, keys
   or tokens (connected accounts, network credential hosts, shared library
   keys), sync bookkeeping (`sync_*`), nearby peers, local publish and
   subscription state, and the change log tables, plus the credential
   columns the change log policy lists
-  (`lib/core/database/change_log/change_log_policy.dart`). Derived analytics
+  (`lib/core/database/change_log/change_log_policy.dart`) and
+  `media_subscriptions.manifest_url`, because a private feed's URL can carry
+  an access token. Derived analytics
   tables (dive derived metrics, sensor summaries, quality findings,
   equipment findings and service status, trip day weather, rule runs) stay
   readable: they are exactly what the statistics case wants. A guard test
@@ -295,7 +299,11 @@ Rules:
   example, `EXPLAIN` output's table opens mapped through `sqlite_schema`) or
   from views that omit the denied columns, never from a regex over the text.
   The builder picks the mechanism; the test suite includes an attempt to
-  read each denied table through a view, a subquery and a CTE.
+  read each denied table through a view, a subquery and a CTE. As built:
+  `EXPLAIN`, since the bundled SQLite is compiled with `OMIT_AUTHORIZATION`.
+  The excluded tables this list does not name are denied too, apart from
+  `equipment_condition_reviews`, `gps_track_points_local` and
+  `rule_run_changes`, which stay readable with the derived tables.
 - A row cap and a time cap, both reported in the result and both the
   builder's numbers. The pinned `sqlite3` package exposes no interrupt and
   the native build omits the progress callback, so the time cap is enforced
@@ -312,7 +320,10 @@ Rules:
 - `submersion://schema`: the tables and columns the SQL window may read,
   with a one-line meaning per column, units, enum values, and the join keys.
   Generated from the Drift schema at build time or startup, not maintained
-  by hand, with the denied tables and columns removed.
+  by hand, with the denied tables and columns removed. As built: every column
+  has its type and keys, and meanings come from the comments in the table
+  sources, which many columns lack. Units and enums are stated as conventions
+  in the header, because the schema does not hold them per column.
 - `submersion://query-language`: the grammar and the field list per root.
   The grammar section of the query language spec and the per-entity field
   registries are the source; the builder generates the field list from the
@@ -609,6 +620,7 @@ TDD applies. Minimum coverage:
 | Demo mode refuses every tool | design |
 | Metric values with unit-named keys; query parses in the diver's units | design |
 | SQL denied list is its own list (credentials, sync, peers, change log), pinned to the policy by a guard test; derived analytics readable | design |
+| SQL window denies `manifest_url`: a private feed's URL can carry an access token | Eric |
 | Apply is atomic: one transaction, any refusal rolls back everything | design |
 | Time cap by stepping rows; FFI interrupt optional | design |
 | Client name shown live, not persisted in the change log | design |

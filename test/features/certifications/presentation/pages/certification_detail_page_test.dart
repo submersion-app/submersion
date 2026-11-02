@@ -17,6 +17,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../support/clipboard_recorder.dart';
 
 void main() {
   group('CertificationDetailPage desktop redirect', () {
@@ -322,6 +323,77 @@ void main() {
       }
     },
   );
+
+  group('copying identifiers (issue #3362)', () {
+    final cert = Certification(
+      id: 'cert-copy',
+      name: 'Advanced Adventurer',
+      agency: CertificationAgency.ssi.name,
+      cardNumber: '2204198700453318762-AOW',
+      instructorNumber: '484921',
+      notes: '',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    Future<void> pumpPage(WidgetTester tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(390, 1200);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            certificationByIdProvider(
+              cert.id,
+            ).overrideWith((ref) async => cert),
+            courseForCertificationProvider(
+              cert.id,
+            ).overrideWith((ref) async => null),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: CertificationDetailPage(certificationId: cert.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a long press on the card number copies it, with a message', (
+      tester,
+    ) async {
+      final calls = recordClipboardCalls();
+      await pumpPage(tester);
+
+      await tester.longPress(find.text('2204198700453318762-AOW'));
+      await tester.pump();
+
+      expect(copiedText(calls), '2204198700453318762-AOW');
+      expect(find.text('Copied to clipboard'), findsOneWidget);
+    });
+
+    testWidgets('only the card and instructor numbers offer a copy button', (
+      tester,
+    ) async {
+      final calls = recordClipboardCalls();
+      await pumpPage(tester);
+
+      final buttons = find.byTooltip('Copy');
+      expect(buttons, findsNWidgets(2));
+
+      await tester.tap(buttons.last);
+      await tester.pump();
+      expect(copiedText(calls), '484921');
+    });
+  });
 
   group('duplicate-name suppression', () {
     Future<void> pumpCert(WidgetTester tester, Certification cert) async {

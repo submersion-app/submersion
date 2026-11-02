@@ -689,6 +689,11 @@ class UddfExportBuilders {
                           'eventtype',
                           nest: event.eventType.name,
                         );
+                        // The row id and who authored it, so a restore
+                        // brings an annotation back under the id its Notes
+                        // link names (#4109).
+                        builder.element('id', nest: event.id);
+                        builder.element('source', nest: event.source.name);
                         builder.element('severity', nest: event.severity.name);
                         if (event.depth != null) {
                           builder.element(

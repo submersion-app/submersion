@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -88,9 +89,13 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
         final created = await ref
             .read(diverListNotifierProvider.notifier)
             .addDiver(newDiver);
-        await ref
-            .read(currentDiverIdProvider.notifier)
-            .setCurrentDiver(created.id);
+        // The new diver stands either way; becoming them starts the table
+        // editor clean, so the page underneath may keep the current one.
+        if (await ref.read(appExitGuardProvider).mayLeave()) {
+          await ref
+              .read(currentDiverIdProvider.notifier)
+              .setCurrentDiver(created.id);
+        }
       } else if (existingDiver != null) {
         final updated = existingDiver.copyWith(
           name: _nameCtrl.text.trim(),

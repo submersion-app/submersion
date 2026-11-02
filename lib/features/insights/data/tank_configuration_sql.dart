@@ -125,7 +125,7 @@ TankConfigurationResult _classify(SqliteArguments arguments) {
   final all = _decodeTanks(arguments[4] as String);
   final owned = [
     for (final t in all)
-      if (_ownedByPrimary(
+      if (tankOwnedByPrimary(
         t,
         primarySourceId: primarySourceId,
         primaryComputerId: primaryComputerId,
@@ -189,7 +189,7 @@ int _int(Object? value) => value is num ? value.toInt() : 0;
 /// that names no computer), so it belongs when it has no source or the
 /// primary source's; otherwise it is another recording's copy, whatever
 /// the primary is. With no primary source every tank counts.
-bool _ownedByPrimary(
+bool tankOwnedByPrimary(
   domain.DiveTank tank, {
   required String? primarySourceId,
   required String? primaryComputerId,

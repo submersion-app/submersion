@@ -5510,6 +5510,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notesEditor_action_numberedList => 'Nummerierte Liste';
 
   @override
+  String get notesEditor_action_annotate => 'Anmerken';
+
+  @override
   String get notesEditor_action_preview => 'Vorschau';
 
   @override
@@ -7019,10 +7022,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Koordinaten aus Adresse gefunden';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard =>
-      'In Zwischenablage kopiert';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '\"$name\" importiert';
   }
@@ -8385,6 +8384,83 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_section_notes => 'Notizen';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'Neue Anmerkung';
+
+  @override
+  String get diveLog_annotation_sheetTitle_editTime => 'Zeit ändern';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return '„$words“ anmerken';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'Was ist passiert';
+
+  @override
+  String get diveLog_annotation_words_required => 'Sag, was passiert ist';
+
+  @override
+  String get diveLog_annotation_field_time => 'Zeit ab Beginn';
+
+  @override
+  String get diveLog_annotation_time_invalid => 'Minuten:Sekunden eingeben';
+
+  @override
+  String get diveLog_annotation_time_outsideDive =>
+      'Muss innerhalb des Tauchgangs liegen';
+
+  @override
+  String get diveLog_annotation_pickOnProfile =>
+      'Oder tippe auf das Profil, um sie zu platzieren';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'Dieser Tauchgang hat kein Profil zum Antippen. Gib stattdessen die Zeit ein.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'Anmerken';
+
+  @override
+  String get diveLog_annotation_action_add => 'Hinzufügen';
+
+  @override
+  String get diveLog_annotation_add => 'Anmerkung hinzufügen';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'Tippe im Profil dorthin, wo es passiert ist. Gedrückt halten zum Feinjustieren.';
+
+  @override
+  String get diveLog_annotation_banner_move =>
+      'Tippe auf die neue Stelle für diese Anmerkung.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'Abbrechen';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time bei $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'In Notizen öffnen';
+
+  @override
+  String get diveLog_annotation_popup_move => 'Verschieben';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'Entfernen';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'Bei $time anmerken';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'Anmerkung entfernt';
+
+  @override
   String get diveLog_edit_section_rating => 'Bewertung';
 
   @override
@@ -8972,6 +9048,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'Ereignisse';
+
+  @override
+  String get diveLog_legend_label_annotations => 'Anmerkungen';
 
   @override
   String get diveLog_legend_label_computedEvents => 'Berechnete Ereignisse';
@@ -10710,6 +10789,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_cylinders_gasUsed(String amount) {
     return 'Gasverbrauch $amount';
+  }
+
+  @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Loop-Verbrauch $rate';
   }
 
   @override
@@ -13722,6 +13806,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => 'Notiz';
+
+  @override
+  String get enum_profileEvent_annotation => 'Anmerkung';
 
   @override
   String get enum_profileEvent_ppO2High => 'Hoher ppO2';
@@ -27033,7 +27120,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung neu zuordnen, Datenqualität';
+      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung umtypen, Datenqualität, Tabelleneditor';
 
   @override
   String get settings_agentAccess_title => 'Agentenzugriff';
@@ -29146,7 +29233,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Wie der Flaschendruck in ein Gasvolumen umgerechnet wird. Dies betrifft das AMV, die Gasstatistik, den Planer und die Gasrechner. Ideales Gas entspricht der von den Verbänden gelehrten Rechnung; reales Gas ist physikalisch genau und ergibt beim AMV etwa 5 % niedrigere Werte.';
+      'Wie der Flaschendruck in ein Gasvolumen umgerechnet wird. Dies betrifft das AMV, den Gasverbrauch, die Gasstatistik, den Planer und die Gasrechner. Ideales Gas entspricht der von den Verbänden gelehrten Rechnung; reales Gas ist physikalisch genau und ergibt beim AMV etwa 5 % niedrigere Werte.';
 
   @override
   String get settings_units_dialog_gasModel => 'Gasberechnungen';
@@ -29990,6 +30077,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_filterBar_clear => 'Filter zurücksetzen';
 
   @override
+  String get insights_filterBar_allDives => 'Alle Tauchgänge';
+
+  @override
+  String get insights_filterBar_customFilter => 'Eigener Filter';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Tauchgang-Gruppe wählen';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Aktuellen Filter speichern...';
+
+  @override
+  String get insights_filterBar_manageSaved =>
+      'Gespeicherte Abfragen verwalten';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30027,6 +30130,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'Gasverbrauch nach Flaschenrolle';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Gasverbrauch Rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Pro Minute im Loop, ohne Bailout-Zeit';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'O₂-Durchschnitt';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Diluent-Durchschnitt';
 
   @override
   String get insights_gas_sacRecords_empty =>
@@ -33533,6 +33652,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Alle anzeigen';
+
+  @override
+  String get trips_dateStretch_failed =>
+      'Tauchgang gespeichert, aber die Reisedaten konnten nicht aktualisiert werden';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip läuft jetzt $dates';
+  }
 
   @override
   String get trips_picker_alreadyPacked => 'Bereits gepackt';
@@ -42812,6 +42940,269 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Luftf.';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key bezeichnet mehr als eine Zeile';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: diese Zelle ist schreibgeschützt';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'Änderung verwerfen';
+
+  @override
+  String get tableEditor_changeLog => 'Änderungsprotokoll';
+
+  @override
+  String get settings_tableEditor_title => 'Tabelleneditor';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'Viele Tauchgänge, Plätze oder Basen in einer Tabelle bearbeiten';
+
+  @override
+  String get tableEditor_title => 'Tabelleneditor';
+
+  @override
+  String get tableEditor_tab_dives => 'Tauchgänge';
+
+  @override
+  String get tableEditor_tab_sites => 'Plätze';
+
+  @override
+  String get tableEditor_tab_centers => 'Basen';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'Der Tabelleneditor braucht ein breiteres Fenster. Öffne ihn auf einem Tablet oder Computer.';
+
+  @override
+  String get tableEditor_saveAll => 'Alle speichern';
+
+  @override
+  String get tableEditor_paste => 'Einfügen';
+
+  @override
+  String get tableEditor_clearFilters => 'Filter löschen';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ungespeichert',
+      one: '$count ungespeichert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'Änderungen speichern?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zellen ändern sich',
+      one: '$count Zelle ändert sich',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count brauchen Aufmerksamkeit und werden nicht gespeichert',
+      one: '$count braucht Aufmerksamkeit und wird nicht gespeichert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ersetzen einen vorhandenen Wert',
+      one: '$count ersetzt einen vorhandenen Wert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wurden seit deiner Änderung anderswo geändert',
+      one: '$count wurde seit deiner Änderung anderswo geändert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'Eingefügte Zeilen nach Tauchgangsnummer zugeordnet';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'Eingefügte Zeilen nach Name zugeordnet';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'Eingefügte Zeilen nach Position platziert';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column ist schreibgeschützt';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'Keine Zeile für $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key ist durch den Filter verborgen';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen über das Ende der Tabelle hinaus',
+      one: '$count Zeile über das Ende der Tabelle hinaus',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'Keine Spalte namens $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Änderungen gespeichert',
+      one: '$count Änderung gespeichert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'Nichts wurde gespeichert. Behebe den Fehler und versuche es erneut.';
+
+  @override
+  String get tableEditor_undo => 'Rückgängig';
+
+  @override
+  String get tableEditor_undoneAll => 'Änderungen rückgängig gemacht';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return '$reverted von $total Änderungen rückgängig gemacht';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'Alle speichern und öffnen';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'Verwerfen und öffnen';
+
+  @override
+  String get tableEditor_open_stay => 'Bleiben';
+
+  @override
+  String tableEditor_original(String value) {
+    return 'Vorher: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'Kein gültiger Wert';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'Nicht in der Liste';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'Breiten- und Längengrad nötig';
+
+  @override
+  String get tableEditor_flag_scrubberNeedsType =>
+      'Benötigt einen Scrubber-Typ';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'Seit deiner Änderung anderswo geändert';
+
+  @override
+  String get tableEditor_multiChoice_done => 'Fertig';
+
+  @override
+  String get tableEditor_libraryReadOnly =>
+      'Bibliotheksplatz: hier sind nur Notizen und Bewertung bearbeitbar';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'Das Löschen einer Koordinate löscht beide';
+
+  @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewichtszeilen, im Tauchgang bearbeiten',
+      one: '$count Gewichtszeile, im Tauchgang bearbeiten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Beim Setzen eines Platzes werden auch Wasserart, Ein- und Ausstieg und Tauchgangsarten übernommen';
+
+  @override
+  String get enum_diveField_excludedFromStats => 'Von Statistik ausgeschlossen';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'Keine Stat.';
+
+  @override
+  String get enum_diveField_excludedFromGasStats =>
+      'Von Gasstatistik ausgeschlossen';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'Keine Gasstat.';
+
+  @override
+  String get enum_diveField_windDirection => 'Windrichtung';
+
+  @override
+  String get enum_diveField_windDirection_short => 'Windricht.';
+
+  @override
+  String get enum_diveField_scrubberType => 'Scrubber-Typ';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'Scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'Scrubber-Dauer';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'Scrubber-Min';
+
+  @override
   String get enum_diveField_weatherDescription_short => 'Wetter';
 
   @override
@@ -50495,6 +50886,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get common_action_copy => 'Kopieren';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'In Zwischenablage kopiert';
 
   @override
   String get settings_appearance_customGradient_title => 'Eigener Farbverlauf';
@@ -58930,6 +59324,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get changeLog_label_libraryRestored =>
       'Bibliothek aus Backup wiederhergestellt';
+
+  @override
+  String get changeLog_label_tableEditor => 'Tabelleneditor';
 
   @override
   String get changeLog_label_reparse => 'Tauchgänge neu ausgewertet';

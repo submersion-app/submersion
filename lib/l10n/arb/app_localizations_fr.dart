@@ -5522,6 +5522,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notesEditor_action_numberedList => 'Liste numérotée';
 
   @override
+  String get notesEditor_action_annotate => 'Annoter';
+
+  @override
   String get notesEditor_action_preview => 'Aperçu';
 
   @override
@@ -7033,10 +7036,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Coordonnées trouvées depuis l\'adresse';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard =>
-      'Copié dans le presse-papiers';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '« $name » importé';
   }
@@ -8407,6 +8406,82 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_section_notes => 'Notes';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'Nouvelle annotation';
+
+  @override
+  String get diveLog_annotation_sheetTitle_editTime => 'Modifier le temps';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return 'Annoter « $words »';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'Ce qui s\'est passé';
+
+  @override
+  String get diveLog_annotation_words_required => 'Dites ce qui s\'est passé';
+
+  @override
+  String get diveLog_annotation_field_time => 'Temps depuis le début';
+
+  @override
+  String get diveLog_annotation_time_invalid => 'Saisissez minutes:secondes';
+
+  @override
+  String get diveLog_annotation_time_outsideDive => 'Doit être dans la plongée';
+
+  @override
+  String get diveLog_annotation_pickOnProfile =>
+      'Ou touchez le profil pour la placer';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'Cette plongée n\'a pas de profil à pointer. Saisissez l\'heure à la place.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'Annoter';
+
+  @override
+  String get diveLog_annotation_action_add => 'Ajouter';
+
+  @override
+  String get diveLog_annotation_add => 'Ajouter une annotation';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'Touchez le profil là où c\'est arrivé. Maintenez pour ajuster.';
+
+  @override
+  String get diveLog_annotation_banner_move =>
+      'Touchez le nouvel emplacement de cette annotation.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'Annuler';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time à $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'Ouvrir dans les notes';
+
+  @override
+  String get diveLog_annotation_popup_move => 'Déplacer';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'Retirer';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'Annoter à $time';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'Annotation retirée';
+
+  @override
   String get diveLog_edit_section_rating => 'Évaluation';
 
   @override
@@ -9007,6 +9082,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'Événements';
+
+  @override
+  String get diveLog_legend_label_annotations => 'Annotations';
 
   @override
   String get diveLog_legend_label_computedEvents => 'Événements calculés';
@@ -10755,6 +10833,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String diveLog_cylinders_gasUsed(String amount) {
     return 'Gaz utilisé $amount';
+  }
+
+  @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Consommation sur boucle $rate';
   }
 
   @override
@@ -13766,6 +13849,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => 'Note';
+
+  @override
+  String get enum_profileEvent_annotation => 'Annotation';
 
   @override
   String get enum_profileEvent_ppO2High => 'ppO2 élevée';
@@ -27163,7 +27249,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corriger les heures de plongée, lier les binômes, reclasser l\'équipement, qualité des données';
+      'Corriger les heures, lier les binômes, retyper le matériel, qualité des données, éditeur de tableau';
 
   @override
   String get settings_agentAccess_title => 'Accès des agents';
@@ -29290,7 +29376,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Comment la pression du bloc est convertie en volume de gaz. Cela concerne la consommation (RMV), les statistiques de gaz, le planificateur et les calculatrices. Le gaz parfait correspond au calcul enseigné par les fédérations ; le gaz réel est physiquement exact et donne un RMV environ 5 % plus bas.';
+      'Comment la pression du bloc est convertie en volume de gaz. Cela concerne la consommation (RMV), le gaz utilisé, les statistiques de gaz, le planificateur et les calculatrices. Le gaz parfait correspond au calcul enseigné par les fédérations ; le gaz réel est physiquement exact et donne un RMV environ 5 % plus bas.';
 
   @override
   String get settings_units_dialog_gasModel => 'Calculs de gaz';
@@ -30146,6 +30232,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_filterBar_clear => 'Effacer le filtre';
 
   @override
+  String get insights_filterBar_allDives => 'Toutes les plongées';
+
+  @override
+  String get insights_filterBar_customFilter => 'Filtre personnalisé';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Choisir un groupe de plongées';
+
+  @override
+  String get insights_filterBar_saveCurrent =>
+      'Enregistrer le filtre actuel...';
+
+  @override
+  String get insights_filterBar_manageSaved =>
+      'Gérer les requêtes enregistrées';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30184,6 +30287,22 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get insights_gas_sacByRole_title =>
       'Consommation de gaz par rôle du bloc';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Consommation de gaz du recycleur';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Par minute sur la boucle, hors temps de bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Moyenne O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Moyenne diluant';
 
   @override
   String get insights_gas_sacRecords_empty => 'Aucune donnée de consommation';
@@ -33711,6 +33830,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Voir tout';
+
+  @override
+  String get trips_dateStretch_failed =>
+      'Plongée enregistrée, mais les dates du voyage n\'ont pas pu être mises à jour';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip s\'étend désormais sur $dates';
+  }
 
   @override
   String get trips_picker_alreadyPacked => 'Déjà prévu';
@@ -43010,6 +43138,269 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Humid.';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key désigne plusieurs lignes';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key : cette cellule est en lecture seule';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'Abandonner la modification';
+
+  @override
+  String get tableEditor_changeLog => 'Journal des modifications';
+
+  @override
+  String get settings_tableEditor_title => 'Éditeur de tableau';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'Modifier de nombreuses plongées, sites ou centres dans un tableau';
+
+  @override
+  String get tableEditor_title => 'Éditeur de tableau';
+
+  @override
+  String get tableEditor_tab_dives => 'Plongées';
+
+  @override
+  String get tableEditor_tab_sites => 'Sites';
+
+  @override
+  String get tableEditor_tab_centers => 'Centres';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'L\'éditeur de tableau a besoin d\'une fenêtre plus large. Ouvrez-le sur une tablette ou un ordinateur.';
+
+  @override
+  String get tableEditor_saveAll => 'Tout enregistrer';
+
+  @override
+  String get tableEditor_paste => 'Coller';
+
+  @override
+  String get tableEditor_clearFilters => 'Effacer les filtres';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count non enregistrées',
+      one: '$count non enregistrée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'Enregistrer les modifications ?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cellules modifiées',
+      one: '$count cellule modifiée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count demandent attention et ne seront pas enregistrées',
+      one: '$count demande attention et ne sera pas enregistrée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count remplacent une valeur existante',
+      one: '$count remplace une valeur existante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ont été modifiées ailleurs depuis votre saisie',
+      one: '$count a été modifiée ailleurs depuis votre saisie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'Lignes collées associées par numéro de plongée';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'Lignes collées associées par nom';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'Lignes collées placées par position';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column est en lecture seule';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'Aucune ligne pour $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key est masqué par le filtre';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lignes au-delà de la fin du tableau',
+      one: '$count ligne au-delà de la fin du tableau',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'Aucune colonne nommée $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modifications enregistrées',
+      one: '$count modification enregistrée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'Rien n\'a été enregistré. Corrigez l\'erreur et réessayez.';
+
+  @override
+  String get tableEditor_undo => 'Annuler';
+
+  @override
+  String get tableEditor_undoneAll => 'Modifications annulées';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return '$reverted modifications sur $total annulées';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'Tout enregistrer et ouvrir';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'Abandonner et ouvrir';
+
+  @override
+  String get tableEditor_open_stay => 'Rester';
+
+  @override
+  String tableEditor_original(String value) {
+    return 'Avant : $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'Valeur non valide';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'Absent de la liste';
+
+  @override
+  String get tableEditor_flag_pairIncomplete =>
+      'Latitude et longitude requises';
+
+  @override
+  String get tableEditor_flag_scrubberNeedsType =>
+      'Nécessite un type de scrubber';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'Modifié ailleurs depuis votre saisie';
+
+  @override
+  String get tableEditor_multiChoice_done => 'Terminé';
+
+  @override
+  String get tableEditor_libraryReadOnly =>
+      'Site de bibliothèque : seuls les notes et la note sont modifiables ici';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'Effacer une coordonnée efface les deux';
+
+  @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lignes de lest, à modifier dans la plongée',
+      one: '$count ligne de lest, à modifier dans la plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Choisir un site reporte aussi son type d\'eau, son entrée, sa sortie et ses types de plongée sur la plongée';
+
+  @override
+  String get enum_diveField_excludedFromStats => 'Exclue des statistiques';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'Sans stats';
+
+  @override
+  String get enum_diveField_excludedFromGasStats => 'Exclue des stats de gaz';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'Sans stats gaz';
+
+  @override
+  String get enum_diveField_windDirection => 'Direction du vent';
+
+  @override
+  String get enum_diveField_windDirection_short => 'Dir. vent';
+
+  @override
+  String get enum_diveField_scrubberType => 'Type de scrubber';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'Scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'Durée du scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'Min scrubber';
+
+  @override
   String get enum_diveField_weatherDescription_short => 'Météo';
 
   @override
@@ -50722,6 +51113,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get common_action_copy => 'Copier';
+
+  @override
+  String get common_snackbar_copiedToClipboard =>
+      'Copié dans le presse-papiers';
 
   @override
   String get settings_appearance_customGradient_title => 'Dégradé personnalisé';
@@ -59188,6 +59583,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get changeLog_label_libraryRestored =>
       'Bibliothèque restaurée depuis une sauvegarde';
+
+  @override
+  String get changeLog_label_tableEditor => 'Éditeur de tableau';
 
   @override
   String get changeLog_label_reparse => 'Plongées réanalysées';

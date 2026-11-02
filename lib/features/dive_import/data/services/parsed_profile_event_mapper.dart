@@ -24,18 +24,41 @@ List<ProfileEvent> profileEventsFromParsed({
 }) {
   final events = <ProfileEvent>[];
   for (final m in eventMaps) {
+    // A row the diver authored (source user in a backup of this log) stays
+    // the diver's, whatever its type, so a resync keeps it (#4109).
+    final userAuthored = m['source'] == EventSource.user.name;
+    void add(ProfileEvent e) =>
+        events.add(userAuthored ? e.copyWith(source: EventSource.user) : e);
     final eventTypeStr = m['eventType'] as String?;
     if (eventTypeStr == null || eventTypeStr.isEmpty) continue;
     final timestamp = m['timestamp'] as int?;
     if (timestamp == null) continue;
     final value = m['value'] as double?;
     final description = m['description'] as String?;
+    // A file written by this app carries each row's id (#4109); any other
+    // file gets a fresh one.
+    final givenId = m['id'];
+    final id = givenId is String && givenId.isNotEmpty ? givenId : _uuid.v4();
     switch (eventTypeStr) {
+      case 'annotation':
+        final depth = m['depth'];
+        add(
+          ProfileEvent.annotation(
+            id: id,
+            diveId: diveId,
+            timestamp: timestamp,
+            depth: depth is num ? depth.toDouble() : null,
+            words: description ?? '',
+            createdAt: now,
+          ),
+        );
+        break;
+
       case 'setpointChange':
         if (value == null) continue;
-        events.add(
+        add(
           ProfileEvent.setpointChange(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             setpoint: value,
@@ -45,9 +68,9 @@ List<ProfileEvent> profileEventsFromParsed({
         break;
 
       case 'bookmark':
-        events.add(
+        add(
           ProfileEvent.bookmark(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             note: description,
@@ -59,9 +82,9 @@ List<ProfileEvent> profileEventsFromParsed({
         break;
 
       case 'safetyStopStart':
-        events.add(
+        add(
           ProfileEvent.safetyStop(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             // The parser does not emit depth on event elements; the same
@@ -76,9 +99,9 @@ List<ProfileEvent> profileEventsFromParsed({
         break;
 
       case 'decoStopStart':
-        events.add(
+        add(
           ProfileEvent.decoStop(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             depth: 0.0,
@@ -88,9 +111,9 @@ List<ProfileEvent> profileEventsFromParsed({
         break;
 
       case 'decoViolation':
-        events.add(
+        add(
           ProfileEvent.decoViolation(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             value: value,
@@ -106,9 +129,9 @@ List<ProfileEvent> profileEventsFromParsed({
           );
           continue;
         }
-        events.add(
+        add(
           ProfileEvent.ascentRateWarning(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             depth: 0.0,
@@ -124,9 +147,9 @@ List<ProfileEvent> profileEventsFromParsed({
           onSkipped?.call('Skipping ppO2High event with missing value');
           continue;
         }
-        events.add(
+        add(
           ProfileEvent.ppO2High(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             value: value,
@@ -140,9 +163,9 @@ List<ProfileEvent> profileEventsFromParsed({
           onSkipped?.call('Skipping ppO2Low event with missing value');
           continue;
         }
-        events.add(
+        add(
           ProfileEvent.ppO2Low(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             value: value,

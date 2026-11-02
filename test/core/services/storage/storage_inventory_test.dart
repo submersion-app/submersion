@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/core/services/storage/storage_inventory.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
@@ -32,7 +33,15 @@ void main() {
     await file.writeAsBytes(List<int>.filled(bytes, 0));
   }
 
+  /// The caches on a phone, with their base in [cacheDirectory].
+  CacheLocation phoneLocation(Directory cacheDirectory) => CacheLocation(
+    regenerableBase: Directory(p.join(cacheDirectory.path, 'Submersion')),
+    supportBase: Directory(p.join(support.path, 'Submersion')),
+    osManagesCaches: true,
+  );
+
   StorageInventory build({
+    CacheLocation? location,
     Future<int> Function(MediaCacheKind)? mediaCacheBytes,
     Future<double?> Function()? mapTileKibibytes,
     Future<Directory> Function()? networkImageDirectory,
@@ -44,6 +53,13 @@ void main() {
       supportDirectory: () async => support,
       documentsDirectory: () async => documents,
       temporaryDirectory: () async => temporary,
+      cacheLocation: () async =>
+          location ??
+          CacheLocation(
+            regenerableBase: Directory(p.join(support.path, 'Submersion')),
+            supportBase: Directory(p.join(support.path, 'Submersion')),
+            osManagesCaches: false,
+          ),
       databasePath:
           databasePath ?? () async => p.join(documents.path, 'submersion.db'),
       backupsDirectoryPath: backupsDirectoryPath ?? () async => null,
@@ -325,6 +341,85 @@ void main() {
       );
     },
   );
+
+  group('on a phone', () {
+    late Directory osCache;
+
+    setUp(() async {
+      osCache = await Directory(p.join(root.path, 'os_cache')).create();
+    });
+
+    test(
+      'measures video and PDF thumbnails in the OS cache directory',
+      () async {
+        await writeFile(
+          p.join(osCache.path, 'Submersion', 'video_thumbnails', 'a.img'),
+          12,
+        );
+        await writeFile(
+          p.join(osCache.path, 'Submersion', 'pdf_thumbnails', 'b.jpg'),
+          34,
+        );
+
+        final inventory = build(location: phoneLocation(osCache));
+
+        expect(
+          await categoryFor(
+            inventory,
+            StorageCategoryId.videoThumbnails,
+          ).measure(),
+          12,
+        );
+        expect(
+          await categoryFor(
+            inventory,
+            StorageCategoryId.pdfThumbnails,
+          ).measure(),
+          34,
+        );
+      },
+    );
+
+    test('measures staging and transcode in application support', () async {
+      final scratch = p.join(support.path, 'Submersion', 'media_cache');
+      await writeFile(p.join(scratch, 'staging', 'stage_1'), 70);
+      await writeFile(p.join(scratch, 'transcode', 'abc_high.mp4'), 900);
+
+      final inventory = build(location: phoneLocation(osCache));
+
+      expect(
+        await categoryFor(
+          inventory,
+          StorageCategoryId.mediaCacheStaging,
+        ).measure(),
+        70,
+      );
+      expect(
+        await categoryFor(
+          inventory,
+          StorageCategoryId.mediaCacheTranscode,
+        ).measure(),
+        900,
+      );
+    });
+
+    test('the temporary row does not count the caches', () async {
+      // On a phone the temp directory and the cache directory are the same
+      // place, so the caches sit under the root this row walks.
+      await writeFile(
+        p.join(temporary.path, 'Submersion', 'video_thumbnails', 'a.img'),
+        500,
+      );
+      await writeFile(p.join(temporary.path, 'shared_photo.jpg'), 60);
+
+      final inventory = build(location: phoneLocation(temporary));
+
+      expect(
+        await categoryFor(inventory, StorageCategoryId.temporary).measure(),
+        60,
+      );
+    });
+  });
 
   test('imported files report what the stored rows occupy', () async {
     final inventory = build(importedFileBytes: () async => 365);

@@ -411,6 +411,23 @@ void main() {
     expect(byRecord['src-b'], 'diveDataSources');
   });
 
+  test('a user event a computer owns gets its own tombstone, since no scope '
+      'reaches one on a peer', () async {
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);
+    await insertProfileSeriesRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileSeriesRow('dive-1', 'dc-b', isPrimary: false);
+    final stamped = await insertEvent('dive-1', 'dc-b');
+    await (db.update(db.diveProfileEvents)..where((t) => t.id.equals(stamped)))
+        .write(const DiveProfileEventsCompanion(source: Value('user')));
+
+    await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(tombstones.map((t) => t.recordId), contains(stamped));
+  });
+
   test('split writes one events tombstone however many events move', () async {
     await insertDive('dive-1', computerId: 'dc-a');
     await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);

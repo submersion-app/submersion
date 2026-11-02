@@ -34,12 +34,14 @@ void main() {
     String? computerId,
     Hlc? hlc,
     int createdAt = 1000,
+    String source = 'imported',
   }) async {
     await db.customStatement(
       'INSERT INTO dive_profile_events '
-      '(id, dive_id, timestamp, event_type, computer_id, created_at, hlc) '
-      "VALUES (?, 'd1', 60, 'bookmark', ?, ?, ?)",
-      [id, computerId, createdAt, hlc?.toString()],
+      '(id, dive_id, timestamp, event_type, computer_id, created_at, hlc, '
+      'source) '
+      "VALUES (?, 'd1', 60, 'bookmark', ?, ?, ?, ?)",
+      [id, computerId, createdAt, hlc?.toString(), source],
     );
   }
 
@@ -118,6 +120,19 @@ void main() {
     await pull(deletions: scope('d1'));
 
     expect(await eventIds(), {'e-new'});
+  });
+
+  test('a dive scope leaves a user annotation older than the tombstone '
+      'alone', () async {
+    // A resync on the other device kept its user events and re-stamped them,
+    // but an annotation made here before that resync reached us still
+    // carries its older clock (#4109).
+    await addEvent('e-user', source: 'user', hlc: at(-1000));
+    await addEvent('e-old', computerId: 'c1', hlc: at(-1000));
+
+    await pull(deletions: scope('d1'));
+
+    expect(await eventIds(), {'e-user'});
   });
 
   test('a computer scope leaves other computers and unowned events', () async {

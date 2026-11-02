@@ -84,6 +84,12 @@ void main() {
         repository.assignDivesToTrip(['dive1', 'dive2'], 't1'),
         throwsA(anything),
       );
+
+      // stretchToCoverDives - rethrows
+      await expectLater(
+        repository.stretchToCoverDives(['dive1']),
+        throwsA(anything),
+      );
     });
   });
 }

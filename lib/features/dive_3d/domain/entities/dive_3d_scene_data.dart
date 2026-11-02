@@ -73,7 +73,7 @@ class Dive3dSceneData {
       gasSwitches: gasSwitches,
       bookmarkEvents: [
         for (final e in events)
-          if (e.eventType == ProfileEventType.bookmark) e,
+          if (e.eventType == ProfileEventType.bookmark || e.isAnnotation) e,
       ],
       // Same dive-window rule as the profile chart's marker builder, so a
       // wrong-dated photo is not drawn at the surface here either.

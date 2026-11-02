@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/directory_size.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
@@ -16,6 +17,7 @@ class StorageInventory {
     required Future<Directory> Function() supportDirectory,
     required Future<Directory> Function() documentsDirectory,
     required Future<Directory> Function() temporaryDirectory,
+    required Future<CacheLocation> Function() cacheLocation,
     required Future<String> Function() databasePath,
     required Future<String?> Function() backupsDirectoryPath,
     required Future<int> Function(MediaCacheKind kind) mediaCacheBytes,
@@ -25,6 +27,7 @@ class StorageInventory {
   }) : _supportDirectory = supportDirectory,
        _documentsDirectory = documentsDirectory,
        _temporaryDirectory = temporaryDirectory,
+       _cacheLocation = cacheLocation,
        _databasePath = databasePath,
        _backupsDirectoryPath = backupsDirectoryPath,
        _mediaCacheBytes = mediaCacheBytes,
@@ -35,6 +38,7 @@ class StorageInventory {
   final Future<Directory> Function() _supportDirectory;
   final Future<Directory> Function() _documentsDirectory;
   final Future<Directory> Function() _temporaryDirectory;
+  final Future<CacheLocation> Function() _cacheLocation;
   final Future<String> Function() _databasePath;
   final Future<String?> Function() _backupsDirectoryPath;
   final Future<int> Function(MediaCacheKind kind) _mediaCacheBytes;
@@ -80,12 +84,14 @@ class StorageInventory {
     StorageCategory(
       id: StorageCategoryId.mediaCacheStaging,
       group: StorageGroup.mediaCache,
-      measure: () => _measureSupportSubdirectory(['media_cache', 'staging']),
+      measure: () async =>
+          measureDirectoryBytes((await _cacheLocation()).mediaStaging),
     ),
     StorageCategory(
       id: StorageCategoryId.mediaCacheTranscode,
       group: StorageGroup.mediaCache,
-      measure: () => _measureSupportSubdirectory(['media_cache', 'transcode']),
+      measure: () async =>
+          measureDirectoryBytes((await _cacheLocation()).mediaTranscode),
     ),
     StorageCategory(
       id: StorageCategoryId.mapTiles,
@@ -100,12 +106,14 @@ class StorageInventory {
     StorageCategory(
       id: StorageCategoryId.videoThumbnails,
       group: StorageGroup.caches,
-      measure: () => _measureSupportSubdirectory(['video_thumbnails']),
+      measure: () async =>
+          measureDirectoryBytes((await _cacheLocation()).videoThumbnails),
     ),
     StorageCategory(
       id: StorageCategoryId.pdfThumbnails,
       group: StorageGroup.caches,
-      measure: () => _measureSupportSubdirectory(['pdf_thumbnails']),
+      measure: () async =>
+          measureDirectoryBytes((await _cacheLocation()).pdfThumbnails),
     ),
     StorageCategory(
       id: StorageCategoryId.backups,
@@ -150,13 +158,6 @@ class StorageInventory {
       File('$path-wal'),
       File('$path-shm'),
     ]);
-  }
-
-  Future<int?> _measureSupportSubdirectory(List<String> segments) async {
-    final support = await _supportDirectory();
-    return measureDirectoryBytes(
-      Directory(p.joinAll([support.path, _appDir, ...segments])),
-    );
   }
 
   /// FMTC reports kibibytes as a double. Converting here rather than at the

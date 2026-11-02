@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import '../../helpers/fake_path_provider.dart';
@@ -34,11 +35,11 @@ void main() {
     support = await Directory.systemTemp.createTemp('media_cache_root_test');
     platform = _CountingPathProvider(support.path);
     useFakePathProvider(platform);
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
   });
 
   tearDown(() async {
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
     if (support.existsSync()) await support.delete(recursive: true);
   });
 
@@ -76,7 +77,7 @@ void main() {
     await mediaCacheRoot();
     expect(platform.calls, 1);
 
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
     await mediaCacheRoot();
 
     expect(platform.calls, 2);

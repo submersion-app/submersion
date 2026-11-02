@@ -156,6 +156,7 @@ class CourseDetailPage extends ConsumerWidget {
                           context.l10n.courses_label_instructorNumber,
                           course.instructorNumber!,
                           Icons.numbers,
+                          copyable: true,
                         ),
                     ],
                   ),
@@ -403,22 +404,25 @@ class CourseDetailPage extends ConsumerWidget {
     BuildContext context,
     String label,
     String value,
-    IconData icon,
-  ) {
+    IconData icon, {
+    bool copyable = false,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Semantics(
-      label: '$label: $value',
-      child: DetailRow.text(
-        icon: icon,
-        iconSize: 16,
-        iconGap: 8,
-        iconColor: colorScheme.onSurfaceVariant,
-        label: label,
-        value: value,
-        valueStyle: Theme.of(context).textTheme.bodyMedium,
-        padding: const EdgeInsets.symmetric(vertical: 4),
-      ),
+    final row = DetailRow.text(
+      icon: icon,
+      iconSize: 16,
+      iconGap: 8,
+      iconColor: colorScheme.onSurfaceVariant,
+      label: label,
+      value: value,
+      valueStyle: Theme.of(context).textTheme.bodyMedium,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      copyable: copyable,
     );
+    // A copyable row reads as one node by itself, beside its copy button.
+    if (copyable && DetailRow.canCopy(value)) return row;
+
+    return Semantics(label: '$label: $value', child: row);
   }
 
   Widget _buildCertificationSection(

@@ -5208,6 +5208,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notesEditor_action_numberedList => '编号列表';
 
   @override
+  String get notesEditor_action_annotate => '标注';
+
+  @override
   String get notesEditor_action_preview => '预览';
 
   @override
@@ -6650,9 +6653,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_snackbar_coordinatesFound => '已从地址获取坐标';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard => '已复制到剪贴板';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '已导入“$name”';
   }
@@ -7962,6 +7962,78 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_section_notes => '备注';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => '新建标注';
+
+  @override
+  String get diveLog_annotation_sheetTitle_editTime => '更改时间';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return '标注“$words”';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => '发生了什么';
+
+  @override
+  String get diveLog_annotation_words_required => '请填写发生了什么';
+
+  @override
+  String get diveLog_annotation_field_time => '距开始的时间';
+
+  @override
+  String get diveLog_annotation_time_invalid => '请输入 分钟:秒';
+
+  @override
+  String get diveLog_annotation_time_outsideDive => '必须在潜水时间范围内';
+
+  @override
+  String get diveLog_annotation_pickOnProfile => '或点击轮廓以放置';
+
+  @override
+  String get diveLog_annotation_noProfile => '此次潜水没有可指向的轮廓。请改为输入时间。';
+
+  @override
+  String get diveLog_annotation_action_annotate => '标注';
+
+  @override
+  String get diveLog_annotation_action_add => '添加';
+
+  @override
+  String get diveLog_annotation_add => '添加标注';
+
+  @override
+  String get diveLog_annotation_banner_place => '点击轮廓上事件发生的位置。长按可微调。';
+
+  @override
+  String get diveLog_annotation_banner_move => '点击此标注的新位置。';
+
+  @override
+  String get diveLog_annotation_banner_cancel => '取消';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time，$depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => '在备注中打开';
+
+  @override
+  String get diveLog_annotation_popup_move => '移动';
+
+  @override
+  String get diveLog_annotation_popup_remove => '移除';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return '在 $time 标注';
+  }
+
+  @override
+  String get diveLog_annotation_removed => '标注已移除';
+
+  @override
   String get diveLog_edit_section_rating => '评分';
 
   @override
@@ -8511,6 +8583,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => '事件';
+
+  @override
+  String get diveLog_legend_label_annotations => '标注';
 
   @override
   String get diveLog_legend_label_computedEvents => '计算的事件';
@@ -10177,6 +10252,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_cylinders_gasUsed(String amount) {
     return '已用气体 $amount';
+  }
+
+  @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return '回路用量 $rate';
   }
 
   @override
@@ -13063,6 +13143,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => '备注';
+
+  @override
+  String get enum_profileEvent_annotation => '标注';
 
   @override
   String get enum_profileEvent_ppO2High => '氧分压过高';
@@ -25577,7 +25660,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_dataTools => '数据工具';
 
   @override
-  String get settings_data_dataTools_subtitle => '修正潜水时间、关联潜伴、重新分类装备、数据质量';
+  String get settings_data_dataTools_subtitle =>
+      '修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器';
 
   @override
   String get settings_agentAccess_title => '代理访问';
@@ -27535,7 +27619,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
+      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、已用气体、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
 
   @override
   String get settings_units_dialog_gasModel => '气体计算';
@@ -28326,6 +28410,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_filterBar_clear => '清除筛选';
 
   @override
+  String get insights_filterBar_allDives => '全部潜水';
+
+  @override
+  String get insights_filterBar_customFilter => '自定义筛选';
+
+  @override
+  String get insights_filterBar_chooseGroup => '选择潜水分组';
+
+  @override
+  String get insights_filterBar_saveCurrent => '保存当前筛选...';
+
+  @override
+  String get insights_filterBar_manageSaved => '管理已保存的查询';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -28359,6 +28458,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => '按气瓶用途的气体消耗';
+
+  @override
+  String get insights_gas_ccrUse_title => '循环呼吸器气体用量';
+
+  @override
+  String get insights_gas_ccrUse_subtitle => '回路上每分钟用量，不含应急脱出时间';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'O₂ 平均';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => '稀释气平均';
 
   @override
   String get insights_gas_sacRecords_empty => '暂无消耗数据';
@@ -31650,6 +31764,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => '查看全部';
+
+  @override
+  String get trips_dateStretch_failed => '潜水已保存，但无法更新旅行日期';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip 的日期现为 $dates';
+  }
 
   @override
   String get trips_picker_alreadyPacked => '已打包';
@@ -40408,6 +40530,257 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveField_humidity_short => '湿度';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key 对应多行';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key：该单元格为只读';
+  }
+
+  @override
+  String get tableEditor_discardDraft => '放弃更改';
+
+  @override
+  String get tableEditor_changeLog => '更改日志';
+
+  @override
+  String get settings_tableEditor_title => '表格编辑器';
+
+  @override
+  String get settings_tableEditor_subtitle => '在表格中批量编辑潜水、潜点或潜店';
+
+  @override
+  String get tableEditor_title => '表格编辑器';
+
+  @override
+  String get tableEditor_tab_dives => '潜水';
+
+  @override
+  String get tableEditor_tab_sites => '潜点';
+
+  @override
+  String get tableEditor_tab_centers => '潜店';
+
+  @override
+  String get tableEditor_needsWiderScreen => '表格编辑器需要更宽的窗口。请在平板或电脑上打开。';
+
+  @override
+  String get tableEditor_saveAll => '全部保存';
+
+  @override
+  String get tableEditor_paste => '粘贴';
+
+  @override
+  String get tableEditor_clearFilters => '清除筛选';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项未保存',
+      one: '$count 项未保存',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => '保存更改？';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个单元格将更改',
+      one: '$count 个单元格将更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项需要处理，不会保存',
+      one: '$count 项需要处理，不会保存',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项将替换现有值',
+      one: '$count 项将替换现有值',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项自您编辑后已在别处更改',
+      one: '$count 项自您编辑后已在别处更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number => '粘贴的行已按潜水编号匹配';
+
+  @override
+  String get tableEditor_summary_matching_name => '粘贴的行已按名称匹配';
+
+  @override
+  String get tableEditor_summary_matching_position => '粘贴的行已按位置放置';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column 为只读';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return '没有与 $key 对应的行';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key 已被筛选隐藏';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 行超出表格末尾',
+      one: '$count 行超出表格末尾',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return '没有名为 $header 的列';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已保存 $count 项更改',
+      one: '已保存 $count 项更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed => '未保存任何内容。请修正错误后重试。';
+
+  @override
+  String get tableEditor_undo => '撤销';
+
+  @override
+  String get tableEditor_undoneAll => '已撤销更改';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return '已撤销 $total 项更改中的 $reverted 项';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => '全部保存并打开';
+
+  @override
+  String get tableEditor_open_discardAndOpen => '放弃并打开';
+
+  @override
+  String get tableEditor_open_stay => '留在此处';
+
+  @override
+  String tableEditor_original(String value) {
+    return '原值：$value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => '值无效';
+
+  @override
+  String get tableEditor_flag_unknownValue => '不在列表中';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => '需要同时填写纬度和经度';
+
+  @override
+  String get tableEditor_flag_scrubberNeedsType => '需要吸收罐类型';
+
+  @override
+  String get tableEditor_flag_changedElsewhere => '自您编辑后已在别处更改';
+
+  @override
+  String get tableEditor_multiChoice_done => '完成';
+
+  @override
+  String get tableEditor_libraryReadOnly => '资料库潜点：此处只能编辑备注和评分';
+
+  @override
+  String get tableEditor_summary_pairClear => '清除一个坐标会同时清除两个';
+
+  @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 行配重，请在潜水中编辑',
+      one: '$count 行配重，请在潜水中编辑',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap => '设置潜点也会在潜水上设置其水体类型、入水、出水和潜水类型';
+
+  @override
+  String get enum_diveField_excludedFromStats => '排除在统计之外';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => '不计统计';
+
+  @override
+  String get enum_diveField_excludedFromGasStats => '排除在气体统计之外';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => '不计气体统计';
+
+  @override
+  String get enum_diveField_windDirection => '风向';
+
+  @override
+  String get enum_diveField_windDirection_short => '风向';
+
+  @override
+  String get enum_diveField_scrubberType => '吸收罐类型';
+
+  @override
+  String get enum_diveField_scrubberType_short => '吸收罐';
+
+  @override
+  String get enum_diveField_scrubberDuration => '吸收罐时长';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => '吸收罐分钟';
+
+  @override
   String get enum_diveField_weatherDescription_short => '天气';
 
   @override
@@ -47499,6 +47872,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get common_action_copy => '复制';
+
+  @override
+  String get common_snackbar_copiedToClipboard => '已复制到剪贴板';
 
   @override
   String get settings_appearance_customGradient_title => '自定义渐变';
@@ -55436,6 +55812,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_libraryRestored => '资料库已从备份恢复';
+
+  @override
+  String get changeLog_label_tableEditor => '表格编辑器';
 
   @override
   String get changeLog_label_reparse => '已重新解析潜水';

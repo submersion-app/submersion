@@ -1551,6 +1551,196 @@ void main() {
       });
     });
 
+    test('keeps a user-authored annotation and re-stamps it newer than the '
+        'scope tombstone', () async {
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedSource(diveId, id: 'src-file');
+      await seedEvent(diveId, id: 'ev-old');
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'ann-1',
+              diveId: diveId,
+              timestamp: 600,
+              eventType: 'annotation',
+              source: const Value('user'),
+              description: const Value('felt sick'),
+              createdAt: 0,
+            ),
+          );
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {'dateTime': DateTime(2026, 9, 1, 9), 'events': freshEvents},
+        now: DateTime(2026, 9, 3),
+      );
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(events.map((e) => e.id), isNot(contains('ev-old')));
+      final kept = events.singleWhere((e) => e.id == 'ann-1');
+      expect(kept.description, 'felt sick');
+      final scope = (await db.select(db.deletionLog).get()).singleWhere(
+        (d) => d.entityType == EventScopeTombstone.entityType,
+      );
+      expect(
+        Hlc.parse(kept.hlc!).compareTo(Hlc.parse(scope.originHlc!)),
+        greaterThan(0),
+        reason: 'a peer applying the scope must keep the annotation',
+      );
+    });
+
+    test('a file that carries the kept annotation\'s own id does not '
+        'duplicate it', () async {
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedSource(diveId, id: 'src-file');
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'ann-1',
+              diveId: diveId,
+              timestamp: 600,
+              eventType: 'annotation',
+              source: const Value('user'),
+              description: const Value('felt sick'),
+              createdAt: 0,
+            ),
+          );
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {
+          'dateTime': DateTime(2026, 9, 1, 9),
+          'profileEvents': [
+            {
+              'eventType': 'annotation',
+              'id': 'ann-1',
+              'source': 'user',
+              'timestamp': 600,
+              'description': 'felt sick',
+            },
+            {'eventType': 'bookmark', 'timestamp': 30},
+          ],
+        },
+        now: DateTime(2026, 9, 3),
+      );
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(events.where((e) => e.id == 'ann-1'), hasLength(1));
+      expect(
+        events.map((e) => e.eventType),
+        unorderedEquals(['annotation', 'bookmark']),
+      );
+    });
+
+    test(
+      'a parsed event id already held by another dive gets a fresh id',
+      () async {
+        final diveId = await seedDive(notes: '', buddy: '');
+        await seedSource(diveId, id: 'src-file');
+        // The same backup restored once before, as another dive.
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion(
+                id: const Value('other-dive'),
+                diveDateTime: Value(
+                  DateTime(2026, 8, 1).millisecondsSinceEpoch,
+                ),
+                createdAt: const Value(1),
+                updatedAt: const Value(1),
+              ),
+            );
+        await db
+            .into(db.diveProfileEvents)
+            .insert(
+              DiveProfileEventsCompanion.insert(
+                id: 'ev-taken',
+                diveId: 'other-dive',
+                timestamp: 30,
+                eventType: 'bookmark',
+                createdAt: 0,
+              ),
+            );
+
+        await service.applyReimport(
+          diveId: diveId,
+          diveData: {
+            'dateTime': DateTime(2026, 9, 1, 9),
+            'events': [
+              {'eventType': 'bookmark', 'id': 'ev-taken', 'timestamp': 30},
+            ],
+          },
+          now: DateTime(2026, 9, 3),
+        );
+
+        final mine = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(mine, hasLength(1));
+        expect(mine.single.id, isNot('ev-taken'));
+        final theirs = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.id.equals('ev-taken'))).getSingle();
+        expect(theirs.diveId, 'other-dive');
+      },
+    );
+
+    test('an annotation another dive holds is not copied over on a resync, '
+        'where nothing would link it', () async {
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedSource(diveId, id: 'src-file');
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value('other-dive'),
+              diveDateTime: Value(DateTime(2026, 8, 1).millisecondsSinceEpoch),
+              createdAt: const Value(1),
+              updatedAt: const Value(1),
+            ),
+          );
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'ann-taken',
+              diveId: 'other-dive',
+              timestamp: 30,
+              eventType: 'annotation',
+              source: const Value('user'),
+              createdAt: 0,
+            ),
+          );
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {
+          'dateTime': DateTime(2026, 9, 1, 9),
+          'events': [
+            {
+              'eventType': 'annotation',
+              'id': 'ann-taken',
+              'source': 'user',
+              'timestamp': 30,
+              'description': 'felt sick',
+            },
+          ],
+        },
+        now: DateTime(2026, 9, 3),
+      );
+
+      final mine = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(mine, isEmpty);
+    });
+
     test('leaves the events of a multi-source dive alone', () async {
       final diveId = await seedDive(notes: '', buddy: '');
       await seedSource(diveId, id: 'src-file');
