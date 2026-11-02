@@ -18,8 +18,8 @@ The primary dive log entry entity.
 | `dateTime` | DateTime | Dive date/time |
 | `entryTime` | DateTime? | Water entry time |
 | `exitTime` | DateTime? | Water exit time |
-| `duration` | Duration? | Bottom time |
-| `runtime` | Duration? | Total runtime |
+| `bottomTime` | Duration? | Surface departure to start of final ascent |
+| `runtime` | Duration? | Total runtime, entry to exit |
 | `maxDepth` | double? | Maximum depth (meters) |
 | `avgDepth` | double? | Average depth (meters) |
 | `site` | DiveSite? | Dive site reference |
@@ -70,7 +70,7 @@ The primary dive log entry entity.
 |----------|-------------|-------------|
 | `effectiveEntryTime` | DateTime | Entry time or dateTime |
 | `diveTypeName` | String | Display name for dive type |
-| `calculatedDuration` | Duration? | Duration from entry/exit |
+| `effectiveRuntime` | Duration? | Best available runtime: stored, entry to exit, profile, else bottom time |
 | `totalWeight` | double | Sum of all weights |
 | `sac` | double? | SAC in L/min at surface |
 | `sacPressure` | double? | SAC in bar/min |
@@ -87,7 +87,7 @@ The primary dive log entry entity.
 Dive copyWith({String? id, DateTime? dateTime, ...})
 
 // Calculate bottom time from profile
-Duration? calculateBottomTimeFromProfile({double depthThresholdPercent = 0.85})
+Duration? calculateBottomTimeFromProfile()
 ```text
 ---
 
