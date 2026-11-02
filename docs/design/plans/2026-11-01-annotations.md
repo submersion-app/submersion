@@ -27,7 +27,7 @@
 
 1. A passage linked twice to the same id, or a link pasted into another dive's Notes, must never crash reconciliation, draw a marker it cannot resolve, or rewrite text the diver typed (Task 2 and Task 9 tests).
 2. A time typed as `75:00` on a 60-minute dive, or `-1`, is refused, and exactly the runtime is accepted (Task 13 test).
-3. A dive with no profile samples still takes an annotation by typed time and draws its marker with no dot (Task 10 and Task 13 tests).
+3. A dive with no profile samples still takes an annotation by typed time (Task 9 and Task 13 tests). The chart never draws a plot without samples, so there is no marker to draw; the detail page hides the profile card and the edit page's notes pin is the route.
 4. Two annotations three seconds apart both keep their lines, and an annotation at the same second as a computer warning is not dropped by the severity rule (Task 10 test).
 5. A peer's dive-wide event tombstone must not delete an annotation that was created on another device before the resync (Task 5 test).
 

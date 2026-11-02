@@ -211,17 +211,6 @@ void main() {
     expect(taps, hasLength(1));
   });
 
-  testWidgets('a dive with no profile draws the line and no dot', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_chart([_ann('a', 600)], profile: const []));
-    await tester.pumpAndSettle();
-    final layerFinder = find.byType(AnnotationMarkerLayer);
-    if (layerFinder.evaluate().isEmpty) return; // no plot without a profile
-    final layer = tester.widget<AnnotationMarkerLayer>(layerFinder);
-    expect(layer.depthAt(600), isNull);
-  });
-
   test('nearestAnnotationIndex picks the closest dot inside the radius', () {
     const centers = [Offset(10, 10), Offset(50, 10), null, Offset(100, 10)];
     expect(nearestAnnotationIndex(centers, const Offset(45, 12)), 1);

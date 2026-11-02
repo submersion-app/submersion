@@ -101,4 +101,28 @@ void main() {
       );
     },
   );
+
+  test('restoring the same backup twice keeps one row per annotation id and '
+      'does not abort', () async {
+    final xml = await seedAndExport();
+    await tearDownTestDatabase();
+    final db = await setUpTestDatabase();
+    final diverId = await createTestDiver();
+    Future<void> restore() async {
+      final parsed = await ExportService().importAllDataFromUddf(xml);
+      await UddfEntityImporter().import(
+        data: parsed,
+        selections: UddfImportSelections.selectAll(parsed),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+    }
+
+    await restore();
+    await restore();
+
+    expect(await DiveRepository().getAllDives(), hasLength(2));
+    final rows = await db.select(db.diveProfileEvents).get();
+    expect(rows.map((r) => r.id), ['ann-1']);
+  });
 }

@@ -103,3 +103,10 @@ List<ProfileEvent> dropOrphanAnnotations(
       if (!e.isAnnotation || linked.contains(e.id)) e,
   ];
 }
+
+/// The latest second an annotation may fall on when the dive says [known]
+/// about its length (the profile's last sample or the runtime, in seconds).
+/// A dive that says nothing takes any time within a day, so a diver can
+/// still pin a passage of a dive logged with no duration yet.
+int annotationTimeCap(int? known) =>
+    known != null && known > 0 ? known : 24 * 3600;

@@ -1,7 +1,7 @@
 # Annotations: notes tied to a moment in the dive
 
 Date: 2026-11-01
-Status: approved design, awaiting plan
+Status: implemented on the feature branch, PR pending
 Release: v1.8.4
 
 ## Intent
@@ -224,8 +224,12 @@ every save of the dive, so the two cannot drift for more than one save.
 - **Reconciliation on save** (the dive edit page's save, the popup's
   Remove, the chart's Add, and any in-place Notes rewrite): parse Notes
   for `annotation:` links; delete annotations whose id is absent; refresh
-  `description` for those present. Run inside the same transaction as the
-  Notes write.
+  `description` for those present. The chart-side writes run it inside the
+  Notes write's transaction; the edit page runs it right after the dive
+  save, in its own transaction, because the save goes through the dive
+  repository. A crash between the two is self-healing: a pending link
+  renders as plain words and an orphan row stays hidden until the next
+  save reconciles both.
 - **Chart-side writes** (Add, Move, Remove, typed time) go through the
   repository in one transaction that writes the event row and the Notes
   text together, marks both records pending for sync, and bumps the dive's

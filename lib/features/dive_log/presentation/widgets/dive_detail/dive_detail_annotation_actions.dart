@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_popup.dart';
@@ -44,13 +45,11 @@ class DiveDetailAnnotationActions {
       ref.read(annotationRepositoryProvider);
 
   /// The latest second an annotation may fall on: the profile's last sample,
-  /// else the runtime; a dive that says nothing about its length takes any
-  /// time within a day.
+  /// else the runtime, else a day (see [annotationTimeCap]).
   int get maxSeconds {
     final profile = dive.profile;
     if (profile.isNotEmpty) return profile.last.timestamp;
-    final runtime = dive.effectiveRuntime?.inSeconds ?? 0;
-    return runtime > 0 ? runtime : 24 * 3600;
+    return annotationTimeCap(dive.effectiveRuntime?.inSeconds);
   }
 
   /// The pin button: enters (or leaves) placement mode; a dive with no

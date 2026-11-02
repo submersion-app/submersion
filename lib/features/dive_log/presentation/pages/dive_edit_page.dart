@@ -31,6 +31,7 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';

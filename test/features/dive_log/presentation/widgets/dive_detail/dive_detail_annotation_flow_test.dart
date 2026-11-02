@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
@@ -282,6 +283,25 @@ void main() {
     await settle(tester, frames: 6);
     expect(find.text('Remove'), findsOneWidget);
     expect(container.read(annotationFocusProvider(diveId)), isNull);
+  });
+
+  testWidgets('the Notes link turns hidden annotations back on and opens the '
+      'popup', (tester) async {
+    await seedDive();
+    await seedAnnotation();
+    await pumpDetail(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+    container.read(profileLegendProvider.notifier).toggleAnnotations();
+    await settle(tester, frames: 3);
+    expect(find.byType(AnnotationMarkerLayer), findsNothing);
+
+    await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
+    await settle(tester, frames: 6);
+
+    expect(container.read(profileLegendProvider).showAnnotations, isTrue);
+    expect(find.text('Remove'), findsOneWidget);
   });
 
   testWidgets('a dive with no profile accepts an annotation by typed time', (

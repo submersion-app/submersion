@@ -3283,8 +3283,24 @@ class UddfEntityImporter {
           now: now,
           onSkipped: _log.warning,
         );
-        if (events.isNotEmpty) {
-          await repos.diveRepository.insertProfileEvents(events);
+        // A backup carries each event's own id (#4109); the repository skips
+        // the ones this log already holds (the original device, a peer, a
+        // second restore). A failure here must not leave the dive half
+        // imported: the events are a detail of it, not the dive.
+        try {
+          if (events.isNotEmpty) {
+            await repos.diveRepository.insertProfileEvents(
+              events,
+              skipExisting: true,
+            );
+          }
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to import the profile events of dive $diveId; the dive '
+            'itself is kept',
+            error: e,
+            stackTrace: stackTrace,
+          );
         }
       }
 

@@ -1592,6 +1592,52 @@ void main() {
       );
     });
 
+    test('a file that carries the kept annotation\'s own id does not '
+        'duplicate it', () async {
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedSource(diveId, id: 'src-file');
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'ann-1',
+              diveId: diveId,
+              timestamp: 600,
+              eventType: 'annotation',
+              source: const Value('user'),
+              description: const Value('felt sick'),
+              createdAt: 0,
+            ),
+          );
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {
+          'dateTime': DateTime(2026, 9, 1, 9),
+          'profileEvents': [
+            {
+              'eventType': 'annotation',
+              'id': 'ann-1',
+              'source': 'user',
+              'timestamp': 600,
+              'description': 'felt sick',
+            },
+            {'eventType': 'bookmark', 'timestamp': 30},
+          ],
+        },
+        now: DateTime(2026, 9, 3),
+      );
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(events.where((e) => e.id == 'ann-1'), hasLength(1));
+      expect(
+        events.map((e) => e.eventType),
+        unorderedEquals(['annotation', 'bookmark']),
+      );
+    });
+
     test('leaves the events of a multi-source dive alone', () async {
       final diveId = await seedDive(notes: '', buddy: '');
       await seedSource(diveId, id: 'src-file');

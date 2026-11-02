@@ -12,8 +12,9 @@ extension _AnnotationEditing on _DiveEditPageState {
   Future<AnnotationRequestResult?> _requestAnnotation(
     String selectedWords,
   ) async {
-    final maxSeconds = _gasSwitchMaxTimestamp;
-    if (maxSeconds == null || maxSeconds <= 0) return null;
+    // A dive logged with no duration yet still takes an annotation, capped
+    // the way the detail page caps one.
+    final maxSeconds = annotationTimeCap(_gasSwitchMaxTimestamp);
     final result = await showAnnotationTimeSheet(
       context,
       words: selectedWords.isEmpty ? null : selectedWords,

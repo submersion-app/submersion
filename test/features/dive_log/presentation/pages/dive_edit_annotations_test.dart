@@ -43,16 +43,18 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<Dive> seedDive({String notes = 'I felt sick today'}) =>
-      repository.createDive(
-        Dive(
-          id: 'dive-ann',
-          dateTime: DateTime.utc(2026, 5, 3, 10),
-          runtime: const Duration(seconds: 1800),
-          profile: profile,
-          notes: notes,
-        ),
-      );
+  Future<Dive> seedDive({
+    String notes = 'I felt sick today',
+    bool withLength = true,
+  }) => repository.createDive(
+    Dive(
+      id: 'dive-ann',
+      dateTime: DateTime.utc(2026, 5, 3, 10),
+      runtime: withLength ? const Duration(seconds: 1800) : null,
+      profile: withLength ? profile : const [],
+      notes: notes,
+    ),
+  );
 
   Future<void> pumpEditor(
     WidgetTester tester,
@@ -174,5 +176,21 @@ void main() {
 
     await save(tester);
     expect(await rows(), isEmpty);
+  });
+
+  testWidgets('a dive with no profile and no runtime still opens the sheet', (
+    tester,
+  ) async {
+    final dive = await seedDive(withLength: false);
+    await pumpEditor(tester, dive.id);
+    final controller = await openNotes(tester);
+    controller.selection = const TextSelection(baseOffset: 7, extentOffset: 11);
+    await tester.tap(find.byTooltip('Annotate'));
+    await tester.pumpAndSettle();
+    expect(find.text('Annotate "sick"'), findsOneWidget);
+    expect(
+      find.text('This dive has no profile to point at. Type the time instead.'),
+      findsOneWidget,
+    );
   });
 }

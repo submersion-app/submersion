@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
@@ -154,11 +155,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     });
   }
 
-  /// A tap on an annotation link in the Notes card (#4109): scrolls to the
-  /// profile and asks the chart to light the marker and open its popup.
+  /// A tap on an annotation link in the Notes card (#4109): unfolds the
+  /// profile when the list layout folds it, turns the legend's Annotations
+  /// toggle back on if it was off, scrolls to the profile and asks the chart
+  /// to light the marker and open its popup.
   Future<void> _scrollToProfileAndFocus(String annotationId) async {
+    final layout = ref.read(settingsProvider.select((s) => s.diveDetailLayout));
+    if (layout.foldsSections) {
+      await ref
+          .read(settingsProvider.notifier)
+          .setDiveDetailSectionExpanded(DiveDetailSectionId.profile, true);
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted) return;
+    if (!ref.read(profileLegendProvider).showAnnotations) {
+      ref.read(profileLegendProvider.notifier).toggleAnnotations();
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted) return;
     final ctx = _profileSectionKey.currentContext;
-    if (ctx != null) {
+    if (ctx != null && ctx.mounted) {
       await Scrollable.ensureVisible(
         ctx,
         duration: const Duration(milliseconds: 400),

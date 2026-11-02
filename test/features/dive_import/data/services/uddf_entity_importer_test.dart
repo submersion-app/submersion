@@ -4194,7 +4194,12 @@ void main() {
       when(mockDiveRepo.createDive(any)).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Dive,
       );
-      when(mockDiveRepo.insertProfileEvents(any)).thenAnswer((_) async {});
+      when(
+        mockDiveRepo.insertProfileEvents(
+          any,
+          skipExisting: anyNamed('skipExisting'),
+        ),
+      ).thenAnswer((_) async {});
     });
 
     test('persists setpointChange event with correct fields', () async {
@@ -4218,7 +4223,10 @@ void main() {
       );
 
       final captured = verify(
-        mockDiveRepo.insertProfileEvents(captureAny),
+        mockDiveRepo.insertProfileEvents(
+          captureAny,
+          skipExisting: anyNamed('skipExisting'),
+        ),
       ).captured;
       final events = captured.first as List<ProfileEvent>;
       expect(events, hasLength(1));
@@ -4248,7 +4256,12 @@ void main() {
         diverId: diverId,
       );
 
-      verifyNever(mockDiveRepo.insertProfileEvents(any));
+      verifyNever(
+        mockDiveRepo.insertProfileEvents(
+          any,
+          skipExisting: anyNamed('skipExisting'),
+        ),
+      );
     });
 
     test(
@@ -4289,7 +4302,10 @@ void main() {
         );
 
         final captured = verify(
-          mockDiveRepo.insertProfileEvents(captureAny),
+          mockDiveRepo.insertProfileEvents(
+            captureAny,
+            skipExisting: anyNamed('skipExisting'),
+          ),
         ).captured;
         final events = captured.first as List<ProfileEvent>;
         expect(events, hasLength(8));
@@ -4347,7 +4363,10 @@ void main() {
       );
 
       final captured = verify(
-        mockDiveRepo.insertProfileEvents(captureAny),
+        mockDiveRepo.insertProfileEvents(
+          captureAny,
+          skipExisting: anyNamed('skipExisting'),
+        ),
       ).captured;
       final events = captured.first as List<ProfileEvent>;
       expect(events, hasLength(1));
@@ -4379,7 +4398,12 @@ void main() {
           diverId: diverId,
         );
 
-        verifyNever(mockDiveRepo.insertProfileEvents(any));
+        verifyNever(
+          mockDiveRepo.insertProfileEvents(
+            any,
+            skipExisting: anyNamed('skipExisting'),
+          ),
+        );
       },
     );
 
@@ -4406,7 +4430,12 @@ void main() {
           diverId: diverId,
         );
 
-        verifyNever(mockDiveRepo.insertProfileEvents(any));
+        verifyNever(
+          mockDiveRepo.insertProfileEvents(
+            any,
+            skipExisting: anyNamed('skipExisting'),
+          ),
+        );
       },
     );
 
@@ -4433,7 +4462,12 @@ void main() {
           diverId: diverId,
         );
 
-        verifyNever(mockDiveRepo.insertProfileEvents(any));
+        verifyNever(
+          mockDiveRepo.insertProfileEvents(
+            any,
+            skipExisting: anyNamed('skipExisting'),
+          ),
+        );
       },
     );
   });
