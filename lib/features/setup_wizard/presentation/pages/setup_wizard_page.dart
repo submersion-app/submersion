@@ -110,9 +110,14 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   /// the existing-data path an empty account starts a new logbook instead.
   SetUpStepNavigation _navigationFor(SetupStepId id) {
     final notifier = ref.read(setupWizardProvider(widget.mode).notifier);
-    final existingData =
-        ref.read(setupWizardProvider(widget.mode)).path ==
-        SetupPath.existingData;
+    final draft = ref.read(setupWizardProvider(widget.mode));
+    final existingData = draft.path == SetupPath.existingData;
+    // Natively the sync step offers to start a new logbook instead; a
+    // browser, which opens on the connect step, offers it there
+    // (issue #4121).
+    final noLibrary =
+        (existingData && id == SetupStepId.setUpSync) ||
+        (draft.browser && id == SetupStepId.setUpAccount);
     return SetUpStepNavigation(
       host: widget.mode == SetupWizardMode.firstRun
           ? SetUpHost.firstRun
@@ -123,7 +128,7 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
           ? () => _goTo(SetupStepId.setUpBackups)
           : _advance,
       onSkip: id == SetupStepId.setUpPhotos ? _advance : null,
-      onNoLibrary: existingData && id == SetupStepId.setUpSync
+      onNoLibrary: noLibrary
           ? () {
               notifier.choosePath(SetupPath.fresh);
               _goToAfterRebuild(SetupStepId.profile);

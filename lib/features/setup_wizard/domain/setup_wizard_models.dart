@@ -49,6 +49,10 @@ class SetupWizardDraft {
   /// step is asked for before Finish.
   final bool needsProfile;
 
+  /// The wizard runs in a browser (issue #4121): the first run opens on the
+  /// connect step, with no welcome fork or existing-data choice before it.
+  final bool browser;
+
   const SetupWizardDraft({
     required this.mode,
     this.path = SetupPath.undecided,
@@ -57,6 +61,7 @@ class SetupWizardDraft {
     this.name = '',
     this.settings = const AppSettings(),
     this.needsProfile = false,
+    this.browser = false,
   });
 
   SetupWizardDraft copyWith({
@@ -69,6 +74,7 @@ class SetupWizardDraft {
   }) {
     return SetupWizardDraft(
       mode: mode,
+      browser: browser,
       path: path ?? this.path,
       source: source ?? this.source,
       skipRequested: skipRequested ?? this.skipRequested,
@@ -114,6 +120,22 @@ class SetupWizardDraft {
 
 /// Computes the ordered step list for the current draft state.
 List<SetupStepId> computeSteps(SetupWizardDraft draft) {
+  final steps = _stepsForPath(draft);
+  if (!draft.browser || draft.mode != SetupWizardMode.firstRun) return steps;
+  // A browser's first run has no welcome fork and no existing-data choice
+  // before it: it opens on the connect step, and "Continue without a sync
+  // store" takes the fresh path from there (issue #4121).
+  final trimmed = [
+    for (final step in steps)
+      if (step != SetupStepId.welcomeFork && step != SetupStepId.existingChoice)
+        step,
+  ];
+  return trimmed.isEmpty
+      ? const [...kSetUpWizardSteps, SetupStepId.finish]
+      : trimmed;
+}
+
+List<SetupStepId> _stepsForPath(SetupWizardDraft draft) {
   if (draft.mode == SetupWizardMode.settings) {
     return const [SetupStepId.units, ...kSetUpWizardSteps, SetupStepId.finish];
   }

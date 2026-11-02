@@ -146,4 +146,51 @@ void main() {
       expect(metric.settings.unitPreset, UnitPreset.metric);
     });
   });
+
+  group('computeSteps in a browser (#4121)', () {
+    test('a first run opens on the connect step', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        browser: true,
+        path: SetupPath.existingData,
+        source: ExistingDataSource.cloudSync,
+      );
+      expect(computeSteps(draft), [...kSetUpWizardSteps, SetupStepId.finish]);
+    });
+
+    test('continue without a sync store runs profile, units, the steps '
+        'and finish, with no fork to go back to', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        browser: true,
+        path: SetupPath.fresh,
+      );
+      expect(computeSteps(draft), [
+        SetupStepId.profile,
+        SetupStepId.units,
+        ...kSetUpWizardSteps,
+        SetupStepId.finish,
+      ]);
+    });
+
+    test('a draft with no path yet still opens on the connect step', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        browser: true,
+      );
+      expect(computeSteps(draft), [...kSetUpWizardSteps, SetupStepId.finish]);
+    });
+
+    test('the settings assistant is unchanged', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.settings,
+        browser: true,
+      );
+      expect(computeSteps(draft), [
+        SetupStepId.units,
+        ...kSetUpWizardSteps,
+        SetupStepId.finish,
+      ]);
+    });
+  });
 }

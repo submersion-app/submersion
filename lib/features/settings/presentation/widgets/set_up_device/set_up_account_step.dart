@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_actions.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
@@ -53,10 +54,16 @@ class SetUpAccountStep extends ConsumerWidget {
           ? l10n.common_action_back
           : l10n.settings_setUpDevice_notNow,
       onBack: navigation.onBack,
+      // A browser's connect step offers to continue without a sync store
+      // where native offers Not now (issue #4121).
       secondary: host.inWizard
           ? TextButton(
-              onPressed: navigation.onNotNow,
-              child: Text(l10n.settings_setUpDevice_notNow),
+              onPressed: navigation.onNoLibrary ?? navigation.onNotNow,
+              child: Text(
+                navigation.onNoLibrary != null
+                    ? l10n.web_continueWithoutSync
+                    : l10n.settings_setUpDevice_notNow,
+              ),
             )
           : null,
       primaryLabel: l10n.settings_setUpDevice_next,
@@ -89,6 +96,17 @@ class SetUpAccountStep extends ConsumerWidget {
           l10n.settings_setUpDevice_account_note,
           style: Theme.of(context).textTheme.bodySmall,
         ),
+        // A browser forgets the credentials when the tab closes unless the
+        // user asks to be remembered (issue #4121).
+        if (ref.watch(deviceCapabilitiesProvider).isBrowser)
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.web_rememberOnThisDevice_title),
+            subtitle: Text(l10n.web_rememberOnThisDevice_subtitle),
+            value: ref.watch(rememberCredentialsProvider),
+            onChanged: (value) =>
+                ref.read(rememberCredentialsProvider.notifier).set(value),
+          ),
         // First run offers its own Restore a backup file instead, and a
         // browser cannot restore one at all.
         if (host != SetUpHost.firstRun &&

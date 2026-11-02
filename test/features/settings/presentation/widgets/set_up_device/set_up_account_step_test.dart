@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -46,6 +47,14 @@ final _dropbox = _group(
   status: AccountStatus.needsSignIn,
 );
 
+class _RecordingRemember extends RememberCredentialsNotifier {
+  @override
+  bool build() => false;
+
+  @override
+  Future<void> set(bool value) async => state = value;
+}
+
 void main() {
   late SharedPreferences prefs;
   late ProviderContainer container;
@@ -57,6 +66,7 @@ void main() {
     String? Function(AccountGroup)? consequenceOf,
     SetUpHost host = SetUpHost.settingsPage,
     bool browser = false,
+    VoidCallback? onNoLibrary,
   }) async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
@@ -67,10 +77,14 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          if (browser)
+          if (browser) ...[
             deviceCapabilitiesProvider.overrideWithValue(
               DeviceCapabilities.web,
             ),
+            // Natively the switch has nothing to move; this stand-in keeps
+            // what the step sets so the wiring shows.
+            rememberCredentialsProvider.overrideWith(_RecordingRemember.new),
+          ],
           accountGroupsProvider.overrideWith((ref) async => groups),
           offerableAccountKindsProvider.overrideWithValue(const [
             AccountKindOffer.icloud,
@@ -89,6 +103,7 @@ void main() {
                 onNext: () => calls.add('next'),
                 onBack: () => calls.add('back'),
                 onNotNow: () => calls.add('notNow'),
+                onNoLibrary: onNoLibrary,
                 host: host,
               ),
               consequenceOf: consequenceOf ?? (_) => null,
@@ -225,5 +240,40 @@ void main() {
 
     expect(find.text('I have a backup file instead'), findsNothing);
     expect(find.text('Not now'), findsOneWidget);
+  });
+
+  group('in a browser (#4121)', () {
+    testWidgets('offers the remember switch, wired to the provider', (
+      tester,
+    ) async {
+      await pump(tester, browser: true);
+      expect(find.text('Remember on this device'), findsOneWidget);
+      final toggle = find.byType(SwitchListTile);
+      expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      expect(container.read(rememberCredentialsProvider), isTrue);
+      expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
+    });
+
+    testWidgets('natively there is no remember switch', (tester) async {
+      await pump(tester);
+      expect(find.text('Remember on this device'), findsNothing);
+      expect(find.byType(SwitchListTile), findsNothing);
+    });
+
+    testWidgets('continue without a sync store stands where Not now was', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        browser: true,
+        host: SetUpHost.firstRun,
+        onNoLibrary: () => calls.add('noLibrary'),
+      );
+      expect(find.text('Not now'), findsNothing);
+      await tester.tap(find.text('Continue without a sync store'));
+      expect(calls, ['noLibrary']);
+    });
   });
 }

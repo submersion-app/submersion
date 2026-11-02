@@ -1,3 +1,4 @@
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -13,13 +14,28 @@ class SetupWizardNotifier extends StateNotifier<SetupWizardDraft> {
   final Ref _ref;
 
   SetupWizardNotifier(this._ref, SetupWizardMode mode)
-    : super(SetupWizardDraft(mode: mode)) {
+    : super(_initialDraft(_ref, mode)) {
     if (mode == SetupWizardMode.settings) {
       // Seed the units from live state so re-entry edits start from what
       // the diver already has, and Finish without a change re-applies them
       // rather than resetting them to defaults.
       state = state.copyWith(settings: _ref.read(settingsProvider));
     }
+  }
+
+  /// A browser's first run opens on the connect step: the existing-data
+  /// path with cloud sync chosen, no fork before it (issue #4121).
+  static SetupWizardDraft _initialDraft(Ref ref, SetupWizardMode mode) {
+    if (mode == SetupWizardMode.firstRun &&
+        ref.read(deviceCapabilitiesProvider).isBrowser) {
+      return SetupWizardDraft(
+        mode: mode,
+        browser: true,
+        path: SetupPath.existingData,
+        source: ExistingDataSource.cloudSync,
+      );
+    }
+    return SetupWizardDraft(mode: mode);
   }
 
   void choosePath(SetupPath path) => state = state.copyWith(path: path);
