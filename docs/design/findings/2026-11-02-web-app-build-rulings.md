@@ -191,6 +191,7 @@ Each ruling ends with what it costs if it turns out wrong.
 - **Final review**: the wizard in a browser also drops the backups and photos steps in every mode and the finish step's dive-computer card (found in the screenshot pass): a browser has no files to back up on a schedule, no photo library and no Bluetooth or USB, so each would lead to a dead end. Not now on the connect step, which jumped to the backups step by id and so stopped moving in a browser (the smoke runner's fresh first-run test caught it), now lands on the step after sync. Cost if wrong: a browser user who wanted the photo step's settings reaches them from Settings instead
 - **Final review**: Back is hidden on a browser's first step, where nothing comes before it (found in the screenshot pass): the set up steps' `onBack` is nullable and the wizard passes it only past the first step. Cost if wrong: none
 - **Final review**: the smoke helper types keys rather than using Playwright's `fill`, which dropped the value of every other field of the connect form, since a Flutter text field is a DOM input only while it holds focus. Cost if wrong: none
+- **Final review**: main's SQL read tool arrived mid-build with `dart:ffi`, `dart:isolate` and native SQLite on the path the browser compiles. The constants and result types stay in `sql_window.dart`, the execution, catalog and value limit move to `_io` files, and `sql_window_worker.dart` is a facade whose web half refuses, since a page cannot bind the listener that would call it. Main's runner and tool are otherwise unchanged. Cost if wrong: none; the seam guard and the web build check it
 - **Final review**: the Google renewal in a browser closes the client it built when the account read throws, and the OAuth client is told to close its transport, which it leaves open by default. Cost if wrong: none
 
 ### Deferred minors
@@ -198,3 +199,4 @@ Each ruling ends with what it costs if it turns out wrong.
 - Pin the MinIO image tag in ci.yaml instead of latest.
 - Dispose the bootstrap semantics handle in addTearDown: impossible as asked, since the framework checks handles before tear-downs run, so the test disposes it in its body.
 - A .dockerignore beside web_hosting/Dockerfile.
+- The scanned logs migration calls path_provider in a browser and logs one MissingPluginException line at startup. It fails soft and moves nothing, so it is noise rather than a fault; gating it on the capability would quiet it.
