@@ -58253,6 +58253,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Se connecter avec Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Connectez-vous avec Google à chaque ouverture du site';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'Se connecter avec Dropbox';
 
   @override
@@ -58608,6 +58612,25 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'Les hébergeurs Git n\'acceptent pas les requêtes venant d\'une page web. Utilisez l\'application Submersion sur un téléphone ou un ordinateur pour un dépôt de synchronisation Git.';
+
+  @override
+  String get web_continueWithoutSync =>
+      'Continuer sans espace de synchronisation';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Mémoriser sur cet appareil';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Conserve les identifiants et la phrase secrète dans ce navigateur. Désactivé, ils sont oubliés à la fermeture de l\'onglet.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Seule l\'application Submersion sur un appareil Apple peut accéder à iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Les hébergeurs Git n\'acceptent pas les requêtes d\'une page web.';
 
   @override
   String get demo_row_unavailable => 'Indisponible en mode démo';

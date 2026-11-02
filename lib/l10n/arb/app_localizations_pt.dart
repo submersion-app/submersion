@@ -58116,6 +58116,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Iniciar sessão com o Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Inicie sessão com o Google sempre que abrir o site';
+
+  @override
   String get settings_setUpDevice_offer_dropbox =>
       'Iniciar sessão com o Dropbox';
 
@@ -58469,6 +58473,25 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'Os servidores Git não aceitam pedidos vindos de uma página web. Use a app Submersion num telemóvel ou computador para um armazenamento de sincronização Git.';
+
+  @override
+  String get web_continueWithoutSync =>
+      'Continuar sem um armazenamento de sincronização';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Lembrar neste dispositivo';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Guarda os dados de acesso e a frase-passe neste navegador. Desligado, são esquecidos quando o separador fecha.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Só a app Submersion num dispositivo Apple consegue aceder ao iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Os servidores Git não aceitam pedidos de uma página web.';
 
   @override
   String get demo_row_unavailable => 'Indisponível no modo de demonstração';

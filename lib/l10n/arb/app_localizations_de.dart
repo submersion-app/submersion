@@ -58001,6 +58001,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => 'Mit Google anmelden';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Bei jedem Öffnen der Seite mit Google anmelden';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'Mit Dropbox anmelden';
 
   @override
@@ -58351,6 +58355,24 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'Git-Hosts nehmen keine Anfragen von einer Webseite an. Nutze für einen Git-Sync-Speicher die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
+  String get web_continueWithoutSync => 'Ohne Sync-Speicher fortfahren';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Auf diesem Gerät merken';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'iCloud erreicht nur die Submersion-App auf einem Apple-Gerät.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Git-Hosts nehmen keine Anfragen von einer Webseite an.';
 
   @override
   String get demo_row_unavailable => 'Im Demomodus nicht verfügbar';

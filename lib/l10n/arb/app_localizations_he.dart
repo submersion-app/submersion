@@ -56899,6 +56899,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => 'התחברות עם Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'התחבר עם Google בכל פעם שהאתר נפתח';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'התחברות עם Dropbox';
 
   @override
@@ -57243,6 +57247,24 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'שרתי Git לא מקבלים בקשות מדף אינטרנט. השתמשו באפליקציית Submersion בטלפון או במחשב עבור מאגר סנכרון Git.';
+
+  @override
+  String get web_continueWithoutSync => 'המשך ללא מאגר סנכרון';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'זכור במכשיר זה';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'רק אפליקציית Submersion במכשיר Apple יכולה לגשת ל-iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'שרתי Git אינם מקבלים בקשות מדף אינטרנט.';
 
   @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';

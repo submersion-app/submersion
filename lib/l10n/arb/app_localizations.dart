@@ -91809,6 +91809,12 @@ abstract class AppLocalizations {
   /// **'Sign in with Google'**
   String get settings_setUpDevice_offer_googleDrive;
 
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google each time you open the site'**
+  String get settings_setUpDevice_offer_googleDrive_browser;
+
   /// Under Dropbox in setup step 1: what adding it takes
   ///
   /// In en, this message translates to:
@@ -92277,6 +92283,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Git hosts do not accept requests from a web page. Use the Submersion app on a phone or computer for a Git sync store.'**
   String get web_unavailable_reason_git;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Continue without a sync store'**
+  String get web_continueWithoutSync;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Remember on this device'**
+  String get web_rememberOnThisDevice_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes.'**
+  String get web_rememberOnThisDevice_subtitle;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Only the Submersion app on an Apple device can reach iCloud.'**
+  String get web_unavailable_offer_icloud;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Git hosts do not accept requests from a web page.'**
+  String get web_unavailable_offer_git;
 
   /// Demo mode (issue #3708)
   ///

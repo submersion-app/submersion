@@ -58884,6 +58884,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'سجّل الدخول باستخدام Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'سجّل الدخول بحساب Google في كل مرة تفتح فيها الموقع';
+
+  @override
   String get settings_setUpDevice_offer_dropbox =>
       'سجّل الدخول باستخدام Dropbox';
 
@@ -59245,6 +59249,24 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'لا تقبل خوادم Git الطلبات الواردة من صفحة ويب. استخدم تطبيق Submersion على هاتف أو حاسوب لمخزن مزامنة Git.';
+
+  @override
+  String get web_continueWithoutSync => 'المتابعة بدون مخزن مزامنة';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'تذكّر على هذا الجهاز';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'لا يصل إلى iCloud سوى تطبيق Submersion على جهاز Apple.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'لا تقبل مستضيفات Git الطلبات من صفحة ويب.';
 
   @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';

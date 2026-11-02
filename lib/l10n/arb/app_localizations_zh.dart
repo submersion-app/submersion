@@ -54557,6 +54557,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => '使用 Google 登录';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      '每次打开本站时都需使用 Google 登录';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => '使用 Dropbox 登录';
 
   @override
@@ -54879,6 +54883,23 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'Git 托管服务不接受来自网页的请求。要使用 Git 同步存储，请在手机或电脑上使用 Submersion 应用。';
+
+  @override
+  String get web_continueWithoutSync => '不使用同步存储继续';
+
+  @override
+  String get web_rememberOnThisDevice_title => '在此设备上记住';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      '将登录信息和密码短语保存在此浏览器中。关闭后，关闭标签页时即被忘记。';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      '只有 Apple 设备上的 Submersion 应用才能访问 iCloud。';
+
+  @override
+  String get web_unavailable_offer_git => 'Git 托管服务不接受来自网页的请求。';
 
   @override
   String get demo_row_unavailable => '演示模式下不可用';

@@ -57798,6 +57798,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Bejelentkezés Google-fiókkal';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Bejelentkezés a Google-fiókkal az oldal minden megnyitásakor';
+
+  @override
   String get settings_setUpDevice_offer_dropbox =>
       'Bejelentkezés Dropbox-fiókkal';
 
@@ -58148,6 +58152,25 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'A Git-kiszolgálók nem fogadnak kéréseket weboldalról. Git szinkronizálási tárhoz használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
+  String get web_continueWithoutSync =>
+      'Folytatás szinkronizálási tároló nélkül';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Megjegyzés ezen az eszközön';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'A bejelentkezési adatok és a jelmondat megőrzése ebben a böngészőben. Kikapcsolva a lap bezárásakor elfelejtődnek.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Az iCloudot csak az Apple-eszközökön futó Submersion alkalmazás éri el.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'A Git-kiszolgálók nem fogadnak kéréseket weboldalról.';
 
   @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';

@@ -57766,6 +57766,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => 'Inloggen met Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Meld je elke keer dat je de site opent aan met Google';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'Inloggen met Dropbox';
 
   @override
@@ -58114,6 +58118,24 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'Git-hosts accepteren geen verzoeken van een webpagina. Gebruik de Submersion-app op een telefoon of computer voor een Git-synchronisatieopslag.';
+
+  @override
+  String get web_continueWithoutSync => 'Doorgaan zonder synchronisatieopslag';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Onthouden op dit apparaat';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Bewaar de aanmeldgegevens en wachtwoordzin in deze browser. Uit: ze worden vergeten zodra het tabblad sluit.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Alleen de Submersion-app op een Apple-apparaat kan bij iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Git-hosts accepteren geen verzoeken van een webpagina.';
 
   @override
   String get demo_row_unavailable => 'Niet beschikbaar in demomodus';

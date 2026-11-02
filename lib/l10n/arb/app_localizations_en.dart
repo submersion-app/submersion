@@ -57208,6 +57208,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => 'Sign in with Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Sign in with Google each time you open the site';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'Sign in with Dropbox';
 
   @override
@@ -57556,6 +57560,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get web_unavailable_reason_git =>
       'Git hosts do not accept requests from a web page. Use the Submersion app on a phone or computer for a Git sync store.';
+
+  @override
+  String get web_continueWithoutSync => 'Continue without a sync store';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Remember on this device';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Only the Submersion app on an Apple device can reach iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Git hosts do not accept requests from a web page.';
 
   @override
   String get demo_row_unavailable => 'Unavailable in demo mode';
