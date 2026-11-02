@@ -276,6 +276,18 @@ void main() {
       }
     });
 
+    test('a pref lists its counted dive modes', () async {
+      await (db.update(
+        db.certificationCurrencyPrefs,
+      )..where((p) => p.id.equals('pref-cert-a'))).write(
+        const CertificationCurrencyPrefsCompanion(
+          countedDiveModes: Value('["ccr"]'),
+        ),
+      );
+      final doc = (await h.one('currency_prefs', 'pref-cert-a'))!;
+      expect(doc['counted_dive_modes'], ['ccr']);
+    });
+
     test('an event date is a calendar date', () async {
       expect(
         (await h.one('currency_events', 'event-cert-a'))!['event_date'],

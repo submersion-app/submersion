@@ -179,6 +179,74 @@ void main() {
       expect((doc['scenarios'] as List).cast<Map>().single['name'], 'What if');
     });
 
+    test('populated blocks map their rows', () async {
+      await db
+          .into(db.tags)
+          .insert(
+            TagsCompanion.insert(
+              id: 'tag',
+              name: 'night',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverA),
+            ),
+          );
+      await db
+          .into(db.diveTags)
+          .insert(
+            DiveTagsCompanion.insert(
+              id: 'dt',
+              diveId: 'a1',
+              tagId: 'tag',
+              createdAt: t,
+            ),
+          );
+      await db
+          .into(db.diveTypes)
+          .insert(
+            DiveTypesCompanion.insert(
+              id: 'wreck-custom',
+              name: 'Wreck',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverA),
+            ),
+          );
+      await db
+          .into(db.diveDiveTypes)
+          .insert(
+            DiveDiveTypesCompanion.insert(
+              id: 'ddt',
+              diveId: 'a1',
+              diveTypeId: 'wreck-custom',
+              createdAt: t,
+            ),
+          );
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'src',
+              diveId: 'a1',
+              isPrimary: const Value(true),
+              importedAt: DateTime.utc(2024),
+              createdAt: DateTime.utc(2024),
+            ),
+          );
+      final doc = (await h.one(
+        'dives',
+        'a1',
+        include: ['tags', 'types', 'weights', 'media', 'data_sources'],
+      ))!;
+      expect(doc['tags'], ['night']);
+      expect(doc['types'], [
+        {'id': 'wreck-custom', 'name': 'Wreck'},
+      ]);
+      expect((doc['weights'] as List).cast<Map>().single['amount_kg'], 4.0);
+      expect((doc['media'] as List).cast<Map>().single['id'], 'm1');
+      expect((doc['data_sources'] as List).cast<Map>().single['id'], 'src');
+    });
+
     test('gear names the equipment on the dive', () async {
       await db
           .into(db.equipment)

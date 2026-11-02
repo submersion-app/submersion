@@ -166,6 +166,13 @@ void main() {
     );
   });
 
+  test('an unknown entity is refused', () async {
+    await expectLater(
+      tool().call({'entity': 'nonsense'}, ctx()),
+      _throwsCode(AgentToolErrorCode.invalidArgument),
+    );
+  });
+
   test('a limit past the maximum is refused', () async {
     await expectLater(
       tool().call({

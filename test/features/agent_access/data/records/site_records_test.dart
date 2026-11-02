@@ -224,6 +224,69 @@ void main() {
       expect((doc['media'] as List).cast<Map>().map((m) => m['id']), ['plain']);
     });
 
+    test('types, tags and species blocks map their rows', () async {
+      await db
+          .into(db.siteSiteTypes)
+          .insert(
+            SiteSiteTypesCompanion.insert(
+              id: 'sst',
+              siteId: 'mine',
+              siteTypeId: 'custom-type',
+              createdAt: t,
+            ),
+          );
+      await db
+          .into(db.tags)
+          .insert(
+            TagsCompanion.insert(
+              id: 'tag',
+              name: 'wreck',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverA),
+            ),
+          );
+      await db
+          .into(db.siteTags)
+          .insert(
+            SiteTagsCompanion.insert(
+              id: 'st',
+              siteId: 'mine',
+              tagId: 'tag',
+              createdAt: t,
+            ),
+          );
+      await db
+          .into(db.species)
+          .insert(
+            SpeciesCompanion.insert(
+              id: 'turtle',
+              commonName: 'Turtle',
+              category: 'turtle',
+            ),
+          );
+      await db
+          .into(db.siteSpecies)
+          .insert(
+            SiteSpeciesCompanion.insert(
+              id: 'ss',
+              siteId: 'mine',
+              speciesId: 'turtle',
+              createdAt: t,
+            ),
+          );
+      final doc = (await h.one(
+        'sites',
+        'mine',
+        include: ['types', 'tags', 'species'],
+      ))!;
+      expect((doc['types'] as List).cast<Map>().single['id'], 'custom-type');
+      expect(doc['tags'], ['wreck']);
+      final species = (doc['species'] as List).cast<Map>().single;
+      expect(species['species_name'], 'Turtle');
+      expect(species['category'], 'turtle');
+    });
+
     test('shares names the profiles a site is shared with', () async {
       final doc = (await h.one(
         'sites',

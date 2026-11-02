@@ -285,6 +285,29 @@ void main() {
     expect(item['value_min'], 100.0);
   });
 
+  test('a pre-dive template lists its sections', () async {
+    await db
+        .into(db.preDiveChecklistTemplateSections)
+        .insert(
+          PreDiveChecklistTemplateSectionsCompanion.insert(
+            id: 'pre-sec',
+            templateId: 'pre-a',
+            title: 'Gas',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    final doc = (await h.one(
+      'pre_dive_templates',
+      'pre-a',
+      include: ['items'],
+    ))!;
+    final section = ((doc['items'] as Map)['sections'] as List)
+        .cast<Map>()
+        .single;
+    expect(section['title'], 'Gas');
+  });
+
   test('scope matches getAllTemplates for pre-dive templates', () async {
     final expected = {
       for (final x in await PreDiveTemplateRepository().getAllTemplates(

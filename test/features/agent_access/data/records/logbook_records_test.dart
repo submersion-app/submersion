@@ -8,6 +8,8 @@ import 'package:submersion/features/connections/domain/views/map_spec.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
+import 'package:submersion/features/gps_log/domain/track_point_codec.dart';
 import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
@@ -375,6 +377,30 @@ void main() {
       expect((doc['points'] as Map)['total'], 0);
     });
 
+    test('GPS points carry a wall clock and accuracy in metres', () async {
+      await (db.update(db.gpsTracks)..where((g) => g.id.equals('gps'))).write(
+        GpsTracksCompanion(
+          pointCount: const Value(1),
+          points: Value(
+            encodeTrackPoints(const [
+              GpsTrackPoint(
+                timestamp: 0,
+                latitude: 1,
+                longitude: 2,
+                accuracy: 5,
+              ),
+            ]),
+          ),
+        ),
+      );
+      final doc = (await h.one('gps_tracks', 'gps', include: ['points']))!;
+      final sample = ((doc['points'] as Map)['samples'] as List)
+          .cast<Map>()
+          .single;
+      expect(sample['sample_time'], '1970-01-01T00:00:00.000Z');
+      expect(sample['accuracy_m'], 5.0);
+    });
+
     test('nav tracks stop at the profile', () async {
       expect(await h.one('nav_tracks', 'nav-b'), isNull);
     });
@@ -429,6 +455,29 @@ void main() {
       final items = doc['items'] as Map;
       expect((items['items'] as List).cast<Map>().single['title'], 'Tank');
       expect(items['sections'], isEmpty);
+    });
+
+    test('a pre-dive session lists its sections', () async {
+      await db
+          .into(db.preDiveSessionSections)
+          .insert(
+            PreDiveSessionSectionsCompanion.insert(
+              id: 'sess-sec',
+              sessionId: 'pre-a',
+              title: 'Gas',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      final doc = (await h.one(
+        'pre_dive_sessions',
+        'pre-a',
+        include: ['items'],
+      ))!;
+      final section = ((doc['items'] as Map)['sections'] as List)
+          .cast<Map>()
+          .single;
+      expect(section['title'], 'Gas');
     });
 
     test('scope matches getAllSessions', () async {

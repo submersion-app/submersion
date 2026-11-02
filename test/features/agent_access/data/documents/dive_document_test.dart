@@ -6,6 +6,10 @@ import 'package:submersion/features/agent_access/data/documents/dive_document.da
 import 'package:submersion/features/agent_access/data/documents/media_document.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -175,6 +179,114 @@ void main() {
       final weight = diveWeightDocument(linked.weights.single);
       expect(weight['amount_kg'], 4.0);
       expect(weight['type'], 'belt');
+    });
+
+    test('every diver-entered group maps to a unit-named key', () {
+      final doc = diveDocument(
+        Dive(
+          id: 'full',
+          dateTime: taken,
+          entryTime: taken,
+          exitTime: taken,
+          runtime: const Duration(minutes: 50),
+          entryLocation: const GeoPoint(1, 2),
+          exitLocation: const GeoPoint(3, 4),
+          airTemp: 28,
+          visibility: Visibility.good,
+          visibilityMaxMeters: 20,
+          surfaceInterval: const Duration(hours: 1),
+          currentStrength: CurrentStrength.light,
+          entryMethod: EntryMethod.boat,
+          exitMethod: EntryMethod.shore,
+          waterType: WaterType.salt,
+          weightAmount: 6,
+          weightType: WeightType.belt,
+          weightingFeedback: WeightingFeedback.correct,
+          weightingFeedbackKg: 1,
+          setpointHigh: 1.3,
+          setpointDeco: 1.4,
+          scrType: ScrType.cmf,
+          scrInjectionRate: 8,
+          assumedVo2: 1.1,
+          diluentGas: const GasMix(o2: 21, he: 35),
+          loopO2Avg: 28,
+          scrubber: const ScrubberInfo(
+            type: 'Sofnolime',
+            ratedMinutes: 180,
+            remainingMinutes: 120,
+          ),
+          windDirection: CurrentDirection.north,
+          cloudCover: CloudCover.clear,
+          weatherFetchedAt: taken,
+        ),
+      );
+      expect(doc['entry_time'], '2024-05-01T10:00:00.000Z');
+      expect(doc['runtime_s'], 3000);
+      expect(doc['exit_location'], {'latitude': 3.0, 'longitude': 4.0});
+      expect(doc['air_temp_c'], 28.0);
+      expect(doc['visibility'], 'good');
+      expect(doc['visibility_max_m'], 20.0);
+      expect(doc['surface_interval_s'], 3600);
+      expect(doc['current_strength'], 'light');
+      expect(doc['entry_method'], 'boat');
+      expect(doc['water_type'], 'salt');
+      expect(doc['weight_kg'], 6.0);
+      expect(doc['weight_type'], 'belt');
+      expect(doc['weighting_feedback'], 'correct');
+      expect(doc['setpoint_high_bar'], 1.3);
+      expect(doc['scr_type'], 'cmf');
+      expect(doc['scr_injection_rate_l_min'], 8.0);
+      expect(doc['assumed_vo2_l_min'], 1.1);
+      expect(doc['diluent_o2_fraction'], closeTo(0.21, 1e-9));
+      expect(doc['diluent_he_fraction'], closeTo(0.35, 1e-9));
+      expect(doc['loop_o2_avg_percent'], 28.0);
+      expect((doc['scrubber'] as Map)['rated_minutes'], 180);
+      expect(doc['wind_direction'], 'north');
+      expect(doc['cloud_cover'], 'clear');
+      expect(doc['weather_fetched_at'], '2024-05-01T10:00:00.000Z');
+    });
+
+    test('a data source keeps its unit-named measures', () {
+      final doc = diveDataSourceDocument(
+        DiveDataSource(
+          id: 's',
+          diveId: 'd',
+          isPrimary: true,
+          maxDepth: 30,
+          duration: 2700,
+          waterTemp: 24,
+          entryTime: taken,
+          maxAscentRate: 9,
+          cns: 12,
+          importedAt: taken,
+          createdAt: taken,
+        ),
+      );
+      expect(doc['max_depth_m'], 30.0);
+      expect(doc['duration_s'], 2700);
+      expect(doc['water_temp_c'], 24.0);
+      expect(doc['entry_time'], '2024-05-01T10:00:00.000Z');
+      expect(doc['max_ascent_rate_m_min'], 9.0);
+      expect(doc['cns_percent'], 12.0);
+      expect(doc['imported_at'], '2024-05-01T10:00:00.000Z');
+    });
+
+    test('a scenario lists its interventions as JSON', () {
+      final doc = diveScenarioDocument(
+        DiveScenario(
+          id: 'x',
+          diveId: 'd',
+          name: 'Lost tank',
+          branchSeconds: 600,
+          mode: ScenarioMode.replan,
+          interventions: const [LoseTankIntervention(tankId: 't')],
+          createdAt: taken,
+          updatedAt: taken,
+        ),
+      );
+      expect(doc['branch_s'], 600);
+      expect(doc['mode'], 'replan');
+      expect((doc['interventions'] as List).cast<Map>().single['tankId'], 't');
     });
   });
 }

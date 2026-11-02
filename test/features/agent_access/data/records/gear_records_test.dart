@@ -304,6 +304,63 @@ void main() {
     });
   });
 
+  test('shares, tags and transmitters blocks map their rows', () async {
+    await db
+        .into(db.tags)
+        .insert(
+          TagsCompanion.insert(
+            id: 'tag',
+            name: 'travel',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverB),
+          ),
+        );
+    await db
+        .into(db.equipmentTags)
+        .insert(
+          EquipmentTagsCompanion.insert(
+            id: 'et',
+            equipmentId: 'lent',
+            tagId: 'tag',
+            createdAt: t,
+          ),
+        );
+    await (db.update(db.transmitters)..where((x) => x.id.equals('tx-a'))).write(
+      const TransmittersCompanion(transmitterEquipmentId: Value('lent')),
+    );
+    final doc = (await h.one(
+      'equipment',
+      'lent',
+      include: ['shares', 'tags', 'transmitters'],
+    ))!;
+    expect((doc['shares'] as List).cast<Map>().single['diver_id'], kDiverA);
+    expect(doc['tags'], ['travel']);
+    expect((doc['transmitters'] as List).cast<Map>().single['id'], 'tx-a');
+  });
+
+  test('a set lists its geofences in metres', () async {
+    await db
+        .into(db.equipmentSetGeofences)
+        .insert(
+          EquipmentSetGeofencesCompanion.insert(
+            id: 'fence',
+            setId: 'set-a',
+            latitude: 1,
+            longitude: 2,
+            radiusMeters: 500,
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    final doc = (await h.one(
+      'equipment_sets',
+      'set-a',
+      include: ['geofences'],
+    ))!;
+    expect((doc['geofences'] as List).cast<Map>().single['radius_m'], 500.0);
+  });
+
   test('the equipment media block follows the media rule', () async {
     await db
         .into(db.dives)
