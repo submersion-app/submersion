@@ -65,21 +65,24 @@ class SqlReadCatalog {
       }
     }
 
-    // Indexes over a denied column, expression and partial indexes included:
-    // a NULL column name means an expression, and either that or a predicate
-    // might be over anything.
+    // Indexes over a denied column. A NULL column name means an expression,
+    // and neither that nor a predicate lists what it reads, so those are
+    // judged on their own definition: an index can only reach its table's
+    // columns by name. No definition to read is a refusal.
     final deniedIndexes = <String>{};
     for (final table in positions.keys) {
       for (final row in db.select(
-        'SELECT l.name AS idx, l.partial AS partial, x.name AS col '
+        'SELECT l.name AS idx, l.partial AS partial, x.name AS col, '
+        '(SELECT sql FROM sqlite_schema WHERE name = l.name) AS ddl '
         'FROM pragma_index_list(?) l, pragma_index_xinfo(l.name) x '
         'WHERE x.key = 1',
         [table],
       )) {
         final column = row['col'] as String?;
-        if (column == null ||
-            row['partial'] != 0 ||
-            kSqlDeniedColumns.contains(column)) {
+        final ddl = row['ddl'] as String?;
+        final opaque = column == null || row['partial'] != 0;
+        if (kSqlDeniedColumns.contains(column) ||
+            (opaque && (ddl == null || sqlNamesDeniedColumn(ddl)))) {
           deniedIndexes.add(row['idx'] as String);
         }
       }
