@@ -207,7 +207,7 @@ class Dives extends Table {
   TextColumn get weatherDescription => text().nullable()();
   TextColumn get weatherSource =>
       text().nullable()(); // enum: WeatherSource.name
-  IntColumn get weatherFetchedAt => integer().nullable()(); // unix timestamp
+  IntColumn get weatherFetchedAt => integer().nullable()(); // Unix seconds
 
   /// Raw WMO weather code from the forecast provider.
   ///

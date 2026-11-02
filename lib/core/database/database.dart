@@ -311,7 +311,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 336;
+  static const int currentSchemaVersion = 337;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1540,6 +1540,10 @@ class AppDatabase extends _$AppDatabase {
     // v336: trip_checklists, splitting one trip's single flat checklist
     // into several named ones (issue #3356).
     336,
+    // v337: dives.weather_fetched_at back to seconds where the bulk conditions
+    // fill wrote milliseconds (issue #4119). Data only, so the floor does not
+    // move.
+    337,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
