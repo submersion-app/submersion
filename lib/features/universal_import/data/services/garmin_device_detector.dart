@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/platform/host_platform.dart';
@@ -48,7 +48,7 @@ class GarminDeviceDetector {
 
   /// Whether the current platform can mount a Garmin device as a drive.
   static bool get isSupportedPlatform {
-    if (kIsWeb) return false;
+    if (HostPlatform.isWeb) return false;
     final platform = defaultTargetPlatform;
     return platform == TargetPlatform.macOS ||
         platform == TargetPlatform.windows ||

@@ -3,7 +3,7 @@ import 'dart:io' show HttpClient, SocketException;
 import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
+    show TargetPlatform, defaultTargetPlatform, visibleForTesting;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -14,7 +14,8 @@ import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// Check if we're on a mobile platform (iOS/Android)
-bool get _isMobile => !kIsWeb && (HostPlatform.isIOS || HostPlatform.isAndroid);
+bool get _isMobile =>
+    !HostPlatform.isWeb && (HostPlatform.isIOS || HostPlatform.isAndroid);
 
 /// Nominatim (and, following it, the platform geocoders) reports a handful of
 /// administrative "states" that only restate the country: the mainland part of
@@ -168,7 +169,7 @@ class LocationService {
   /// Keyed on [defaultTargetPlatform] rather than `Platform.isIOS` so tests
   /// can reach both branches through `debugDefaultTargetPlatformOverride`.
   static bool get _useNativeGeocoder =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      !HostPlatform.isWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Process-wide spacing for every Nominatim request. Tests replace it with
   /// a zero-gap instance so lookups do not wait a real second each.
@@ -234,7 +235,7 @@ class LocationService {
       // On macOS, Core Location needs time to initialize after a fresh
       // permission grant — the location daemon must start and WiFi
       // positioning must warm up before it can deliver a fix.
-      if (wasNewlyGranted && !kIsWeb && HostPlatform.isMacOS) {
+      if (wasNewlyGranted && !HostPlatform.isWeb && HostPlatform.isMacOS) {
         _log.info(
           'Fresh permission grant on macOS, waiting for CLLocationManager init...',
         );
