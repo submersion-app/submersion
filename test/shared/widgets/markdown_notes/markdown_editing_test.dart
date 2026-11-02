@@ -67,6 +67,39 @@ void main() {
     });
   });
 
+  group('wrapSelectionAsAnnotation (#4109)', () {
+    test('wraps a selection as an annotation link and hugs the words', () {
+      final out = wrapSelectionAsAnnotation(v('I [felt sick ]today'), id: 'a1');
+      expect(out.text, 'I [felt sick](annotation:a1) today');
+      expect(out.selection.isCollapsed, isTrue);
+      expect(out.selection.baseOffset, 'I [felt sick](annotation:a1)'.length);
+    });
+
+    test('inserts a new linked line at a collapsed caret', () {
+      final out = wrapSelectionAsAnnotation(
+        v('First.|'),
+        id: 'a1',
+        words: 'Octo',
+      );
+      expect(out.text, 'First.\n[Octo](annotation:a1)');
+      expect(out.selection.baseOffset, out.text.length);
+    });
+
+    test('at a line start the link goes on that line', () {
+      final out = wrapSelectionAsAnnotation(
+        v('First.\n|'),
+        id: 'a1',
+        words: 'Octo',
+      );
+      expect(out.text, 'First.\n[Octo](annotation:a1)');
+    });
+
+    test('a whitespace-only selection counts as a caret', () {
+      final out = wrapSelectionAsAnnotation(v('a[ ]b'), id: 'a1', words: 'w');
+      expect(out.text, 'a\n[w](annotation:a1) b');
+    });
+  });
+
   group('toggleLinePrefix', () {
     test('heading on and off', () {
       expect(

@@ -2,6 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
+
+/// What a page answers when the notes editor asks to annotate (#4109): the
+/// new annotation's id, and the words to insert when nothing was selected.
+typedef AnnotationRequestResult = ({String id, String? words});
+
 /// The line-start marks the notes editor's buttons toggle.
 enum NotesLinePrefix { heading, bullet, numbered }
 
@@ -66,6 +72,40 @@ TextEditingValue toggleInlineMark(TextEditingValue value, String mark) {
       extentOffset: end + mark.length,
     ),
   );
+}
+
+/// Turns the selection into an annotation link `[words](annotation:id)`
+/// (#4109), hugging the words the way [toggleInlineMark] does. With no
+/// selection, inserts a link to [words] at the caret, on a line of its own
+/// when the caret is not at a line start. The caret lands after the link.
+TextEditingValue wrapSelectionAsAnnotation(
+  TextEditingValue value, {
+  required String id,
+  String? words,
+}) {
+  final text = value.text;
+  final sel = _hugWords(text, _normalized(value));
+  if (!sel.isCollapsed) {
+    final link = annotationLinkMarkdown(text.substring(sel.start, sel.end), id);
+    return TextEditingValue(
+      text: text.replaceRange(sel.start, sel.end, link),
+      selection: TextSelection.collapsed(offset: sel.start + link.length),
+    );
+  }
+  final caret = sel.start;
+  final atLineStart = caret == 0 || text[caret - 1] == '\n';
+  final link = annotationLinkMarkdown(words ?? '', id);
+  final insert = atLineStart ? link : '\n$link';
+  return TextEditingValue(
+    text: text.replaceRange(caret, caret, insert),
+    selection: TextSelection.collapsed(offset: caret + insert.length),
+  );
+}
+
+/// The words a selection covers once hugged, or '' for a caret.
+String selectedWords(TextEditingValue value) {
+  final sel = _hugWords(value.text, _normalized(value));
+  return sel.isCollapsed ? '' : value.text.substring(sel.start, sel.end);
 }
 
 /// [sel] shrunk to leave whitespace at its edges outside: Markdown marks

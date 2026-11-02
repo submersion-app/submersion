@@ -3395,6 +3395,10 @@
   "@notesEditor_action_numberedList": {
     "description": "Tooltip for the notes editor button that turns lines into a numbered list"
   },
+  "notesEditor_action_annotate": "Annotate",
+  "@notesEditor_action_annotate": {
+    "description": "Tooltip for the notes editor button that pins the selected words to a time in the dive (an annotation)"
+  },
   "notesEditor_action_preview": "Preview",
   "@notesEditor_action_preview": {
     "description": "Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed"
