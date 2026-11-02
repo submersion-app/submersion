@@ -27,7 +27,10 @@ void main() {
     Future<File> put(String key) async {
       final staged = await store.stagingFile();
       await staged.writeAsBytes([1], flush: true);
-      return store.put(key, MediaCacheKind.thumb, staged);
+      final stored = await store.put(key, MediaCacheKind.thumb, staged);
+      // A sweep in the same millisecond would spare this row, as it must.
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      return stored;
     }
 
     await put('aa'.padRight(64, '0'));

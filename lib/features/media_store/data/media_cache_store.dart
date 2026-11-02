@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
@@ -255,7 +256,7 @@ class MediaCacheStore {
       await source.delete();
     }
     final size = await dest.length();
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     await _db
         .into(_db.mediaCacheEntries)
         .insertOnConflictUpdate(
@@ -381,9 +382,11 @@ class MediaCacheStore {
   ///
   /// Rows written since the look at the directory are spared. Several puts run
   /// at once, and one can recreate the pool and file its row while another is
-  /// on its way here having seen the pool gone.
+  /// on its way here having seen the pool gone. A row stamped in the same
+  /// millisecond could be either, so it is spared too; if dead, the next look
+  /// or the daily sweep takes it.
   Future<bool> _forgetPoolIfGone(MediaCacheKind kind) async {
-    final checkedAt = DateTime.now().millisecondsSinceEpoch;
+    final checkedAt = clock.now().millisecondsSinceEpoch;
     final pool = Directory(p.join(_root.path, _poolDirName(kind)));
     try {
       if (await pool.exists()) return false;
@@ -394,7 +397,7 @@ class MediaCacheStore {
     await (_db.delete(_db.mediaCacheEntries)..where(
           (t) =>
               t.kind.equals(_kindName(kind)) &
-              t.createdAt.isSmallerOrEqualValue(checkedAt),
+              t.createdAt.isSmallerThanValue(checkedAt),
         ))
         .go();
     return true;
@@ -410,10 +413,12 @@ class MediaCacheStore {
   ///
   /// Rows written since the pass began are spared: a [put] can land between
   /// a key being found dead and its row being deleted, and losing that row
-  /// would leave an original on disk that nothing can serve or evict.
+  /// would leave an original on disk that nothing can serve or evict. A row
+  /// stamped in the same millisecond could be either, so it is spared too; if
+  /// dead, the next pass takes it.
   Future<int> dropMissingEntries({int pageSize = 500}) async {
     final entries = _db.mediaCacheEntries;
-    final startedAt = DateTime.now().millisecondsSinceEpoch;
+    final startedAt = clock.now().millisecondsSinceEpoch;
     var dropped = 0;
     for (final kind in MediaCacheKind.values) {
       final kindName = _kindName(kind);
@@ -442,7 +447,7 @@ class MediaCacheStore {
                     (t) =>
                         t.kind.equals(kindName) &
                         t.contentHash.isIn(dead) &
-                        t.createdAt.isSmallerOrEqualValue(startedAt),
+                        t.createdAt.isSmallerThanValue(startedAt),
                   ))
                   .go();
         }

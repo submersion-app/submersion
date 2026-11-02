@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -40,10 +41,32 @@ void main() {
   Future<File> put(String key, MediaCacheKind kind, int bytes) async {
     final staged = await cache.stagingFile();
     await staged.writeAsBytes(List<int>.filled(bytes, 1), flush: true);
-    return cache.put(key, kind, staged);
+    final stored = await cache.put(key, kind, staged);
+    // A purge in the same millisecond would spare this row, as it must.
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    return stored;
   }
 
   Directory pool(String name) => Directory(p.join(pools.path, name));
+
+  /// A row for [key] with no file behind it, stamped at [at].
+  Future<void> rowWithoutFile(
+    String key,
+    String kind,
+    String poolName,
+    int at,
+  ) => db
+      .into(db.mediaCacheEntries)
+      .insert(
+        MediaCacheEntriesCompanion.insert(
+          contentHash: key,
+          kind: kind,
+          relativePath: p.join(poolName, key.substring(0, 2), key),
+          sizeBytes: 9,
+          lastAccessedAt: at,
+          createdAt: at,
+        ),
+      );
 
   group('two roots', () {
     test('staging and transcode files live under the scratch root', () async {
@@ -173,6 +196,42 @@ void main() {
       expect(await db.select(db.mediaCacheEntries).get(), hasLength(1));
     });
 
+    test('spares a row written in the millisecond of the look', () async {
+      // A tie cannot be told from a later write, and sparing a dead row costs
+      // less than losing a live one: the daily sweep takes what is left.
+      final now = DateTime(2026, 11, 2, 12);
+      await rowWithoutFile(
+        hash('ab'),
+        'thumb',
+        'thumbs',
+        now.millisecondsSinceEpoch,
+      );
+
+      await withClock(
+        Clock.fixed(now),
+        () => cache.totalBytes(MediaCacheKind.thumb),
+      );
+
+      expect(await db.select(db.mediaCacheEntries).get(), hasLength(1));
+    });
+
+    test('still loses a row written the millisecond before', () async {
+      final now = DateTime(2026, 11, 2, 12);
+      await rowWithoutFile(
+        hash('ab'),
+        'thumb',
+        'thumbs',
+        now.millisecondsSinceEpoch - 1,
+      );
+
+      await withClock(
+        Clock.fixed(now),
+        () => cache.totalBytes(MediaCacheKind.thumb),
+      );
+
+      expect(await db.select(db.mediaCacheEntries).get(), isEmpty);
+    });
+
     test('leaves a pool whose directory exists alone', () async {
       final key = hash('ab');
       final stored = await put(key, MediaCacheKind.thumb, 3);
@@ -255,6 +314,41 @@ void main() {
 
       expect(await cache.dropMissingEntries(), 0);
       expect(await db.select(db.mediaCacheEntries).get(), hasLength(1));
+    });
+
+    test('spares a row written in the millisecond the pass began', () async {
+      final now = DateTime(2026, 11, 2, 12);
+      await rowWithoutFile(
+        hash('ab'),
+        'original',
+        'originals',
+        now.millisecondsSinceEpoch,
+      );
+
+      final dropped = await withClock(
+        Clock.fixed(now),
+        () => cache.dropMissingEntries(),
+      );
+
+      expect(dropped, 0);
+      expect(await db.select(db.mediaCacheEntries).get(), hasLength(1));
+    });
+
+    test('still drops a row written the millisecond before', () async {
+      final now = DateTime(2026, 11, 2, 12);
+      await rowWithoutFile(
+        hash('ab'),
+        'original',
+        'originals',
+        now.millisecondsSinceEpoch - 1,
+      );
+
+      final dropped = await withClock(
+        Clock.fixed(now),
+        () => cache.dropMissingEntries(),
+      );
+
+      expect(dropped, 1);
     });
 
     test('leaves everything alone when no file is missing', () async {
