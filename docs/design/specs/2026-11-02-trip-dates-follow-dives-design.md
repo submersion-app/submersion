@@ -103,7 +103,7 @@ stretch too: any profile that may place a dive on a trip may already edit its da
 
 | Path | Where | Message |
 | --- | --- | --- |
-| Bulk edit | `BulkDiveEditService._applyInner`, in its transaction, when `req.scalars.tripId` is present and not null | Yes |
+| Bulk edit | `BulkDiveEditService._applyInner`, in its transaction, when `req.scalars.tripId` is present and not null, over the dives the edit moves | Yes |
 | Logbook rules | `DiveRuleApplier`, after the `bulkUpdateFields` chunks, when the companion sets a trip | No, a rule runs unattended |
 | Dive editor | `_saveDive` in `dive_edit_page.dart`, after the dive saves, only for a new dive or when the trip or the date changed | Yes |
 | `assignDivesToTrip`, `assignDiveToTrip` | `TripRepository`, in their transactions | No |
@@ -126,6 +126,7 @@ A new helper builds the `TripDraft` from `SelectionDiveFacts`; the existing acti
 keeps its behaviour.
 
 - **Bulk edit:** facts from `loadSelectionTripFacts(bulkDiveIds)`.
+- **Either way,** a draft that cannot be built opens the blank form, as before.
 - **Dive editor:** facts built from the form, not the database: the entered date,
   selected site's region and country, selected dive center's name, and the selected
   trip. This also serves a new dive that has no row yet.

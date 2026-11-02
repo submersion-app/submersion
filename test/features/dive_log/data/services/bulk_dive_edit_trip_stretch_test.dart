@@ -83,6 +83,17 @@ void main() {
     expect(await tripDates(), (DateTime(2026, 3, 5), DateTime(2026, 3, 10)));
   });
 
+  test('a dive already on the trip does not stretch it', () async {
+    await db.customStatement(
+      "UPDATE dives SET trip_id = 't' WHERE id = 'late'",
+    );
+
+    final snapshot = await service.apply(setTrip(['inside', 'late'], 't'));
+
+    expect(snapshot.tripDateStretches, isEmpty);
+    expect(await tripDates(), (DateTime(2026, 3, 5), DateTime(2026, 3, 10)));
+  });
+
   test('clearing the trip stretches nothing', () async {
     await db.customStatement("UPDATE dives SET trip_id = 't'");
 

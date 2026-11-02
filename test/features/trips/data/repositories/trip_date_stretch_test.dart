@@ -265,6 +265,20 @@ void main() {
       expect(row.end, DateTime(2026, 3, 20));
     });
 
+    test('writes nothing when no moved bound can return', () async {
+      await addTrip('t');
+      final stretches = await stretch([
+        await addDive('t', DateTime.utc(2026, 3, 14, 9)),
+      ]);
+      await setEnd(DateTime(2026, 3, 12));
+      await sync.clearPendingRecords();
+
+      await restoreStretchedTripDates(db, sync, stretches, now: now + 1);
+
+      expect((await stored('t')).updatedAt, now);
+      expect(await staged('t'), isFalse);
+    });
+
     test('a trip deleted since is skipped', () async {
       final stretches = await stretched();
       await db.customStatement('UPDATE dives SET trip_id = NULL');

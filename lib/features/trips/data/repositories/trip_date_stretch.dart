@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/trips/data/repositories/trip_row_mapper.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/trips/domain/services/side_trips.dart';
@@ -87,8 +88,12 @@ Future<void> restoreStretchedTripDates(
       db.trips,
     )..where((t) => t.id.equals(stretch.tripId))).getSingleOrNull();
     if (row == null) continue;
-    final restoresStart = row.startDate == stretch.start.millisecondsSinceEpoch;
-    final restoresEnd = row.endDate == stretch.end.millisecondsSinceEpoch;
+    final startMoved = stretch.start != stretch.priorStart;
+    final endMoved = stretch.end != stretch.priorEnd;
+    final restoresStart =
+        startMoved && row.startDate == stretch.start.millisecondsSinceEpoch;
+    final restoresEnd =
+        endMoved && row.endDate == stretch.end.millisecondsSinceEpoch;
     if (!restoresStart && !restoresEnd) continue;
     await _writeDates(db, sync, stretch.tripId, (
       start: restoresStart
@@ -115,12 +120,16 @@ Future<Map<String, List<DateTime>>> _diveDatesByTrip(
   final byTrip = <String, List<DateTime>>{};
   for (var i = 0; i < diveIds.length; i += _chunkSize) {
     final chunk = diveIds.sublist(i, math.min(i + _chunkSize, diveIds.length));
-    final rows = await (db.select(
-      db.dives,
-    )..where((d) => d.id.isIn(chunk) & d.tripId.isNotNull())).get();
+    final dives = db.dives;
+    final rows =
+        await (db.selectOnly(dives)
+              ..addColumns([dives.tripId, dives.diveDateTime])
+              ..where(dives.id.isIn(chunk) & dives.tripId.isNotNull()))
+            .get();
     for (final row in rows) {
-      (byTrip[row.tripId!] ??= []).add(
-        DateTime.fromMillisecondsSinceEpoch(row.diveDateTime, isUtc: true),
+      final String tripId = row.read(dives.tripId)!;
+      (byTrip[tripId] ??= []).add(
+        wallClockUtcFromMillis(row.read(dives.diveDateTime)!),
       );
     }
   }

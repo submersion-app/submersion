@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gat
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 
@@ -34,7 +35,11 @@ void main() {
   Dive dive(String id, DateTime at) =>
       Dive(id: id, dateTime: at, entryTime: at);
 
-  Future<GoRouter> pumpRouter(WidgetTester tester, GoRoute editor) async {
+  Future<GoRouter> pumpRouter(
+    WidgetTester tester,
+    GoRoute editor, {
+    List<Override> extra = const [],
+  }) async {
     tester.view.physicalSize = const Size(950, 8000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -60,6 +65,7 @@ void main() {
             (ref) => DiveListNotifier(dives, ref),
           ),
           customTankPresetsProvider.overrideWith((ref) async => []),
+          ...extra,
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -176,6 +182,20 @@ void main() {
     expect(draft.trip.startDate, DateTime(2025, 3, 10));
     expect(draft.trip.endDate, DateTime(2025, 3, 14));
     expect(draft.diveIds, isEmpty);
+  });
+
+  testWidgets('a draft that cannot load still opens the form', (tester) async {
+    await dives.createDive(dive('d', DateTime.utc(2025, 3, 10, 9)));
+    await pumpRouter(
+      tester,
+      singleEditor('d'),
+      extra: [allTripsProvider.overrideWith((ref) => throw StateError('x'))],
+    );
+
+    await openNewTrip(tester);
+
+    final page = tester.widget<TripEditPage>(find.byType(TripEditPage));
+    expect(page.draft, isNull);
   });
 
   testWidgets('backing out of the form moves no dive', (tester) async {

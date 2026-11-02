@@ -3319,9 +3319,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
 
     if (result == _createNewTripSentinel && mounted) {
-      final facts = await _newTripFacts();
-      if (!mounted) return;
-      final tripId = await newTripForDiveEdit(context, ref, facts);
+      final tripId = await newTripForDiveEdit(context, ref, _newTripFacts);
       if (tripId != null && mounted) {
         final trip = await ref.read(tripRepositoryProvider).getTripById(tripId);
         if (trip != null && mounted) _setTrip(trip);
@@ -6432,6 +6430,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
       // Save using the notifier
       final notifier = ref.read(paginatedDiveListProvider.notifier);
+      // Read now: the stretch below runs even if the page goes away meanwhile.
+      final tripRepository = ref.read(tripRepositoryProvider);
+      final messenger = ScaffoldMessenger.of(context);
+      final l10n = context.l10n;
       String? savedDiveId;
       // A plan the diver just turned into a dive counts as logged by hand
       // for the logbook rules (#3513).
@@ -6650,16 +6652,34 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       }
 
       // A dive put on a trip, or moved to another day on one, stretches the
-      // trip to cover it (#3351), before navigation takes this page's context.
-      if (mounted &&
-          savedDiveId != null &&
+      // trip to cover it (#3351).
+      if (savedDiveId != null &&
           diveSaveTouchesTrip(
             tripId: _selectedTrip?.id,
             previousTripId: _existingDive?.tripId ?? _existingDive?.trip?.id,
             date: entryDateTime,
             previousDate: _existingDive?.dateTime,
           )) {
-        await _stretchTripToCover(savedDiveId, units);
+        try {
+          final message = tripDateStretchMessage(
+            l10n,
+            units,
+            await tripRepository.stretchToCoverDives([savedDiveId]),
+          );
+          if (message != null) {
+            messenger.showSnackBar(SnackBar(content: Text(message)));
+          }
+        } catch (e, stackTrace) {
+          // Reported, but it never undoes the dive save.
+          _log.error(
+            'Failed to stretch the trip of dive $savedDiveId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.trips_dateStretch_failed)),
+          );
+        }
       }
 
       // Offer to log the dive for linked buddies (issue #2002). Runs before
@@ -6722,31 +6742,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (mounted) {
         setState(() => _isSaving = false);
       }
-    }
-  }
-
-  /// Stretches the saved dive's trip to cover it and says so. A failure is
-  /// reported but never undoes the dive save.
-  Future<void> _stretchTripToCover(String diveId, UnitFormatter units) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    try {
-      final stretches = await ref
-          .read(tripRepositoryProvider)
-          .stretchToCoverDives([diveId]);
-      final message = tripDateStretchMessage(l10n, units, stretches);
-      if (message != null) {
-        messenger.showSnackBar(SnackBar(content: Text(message)));
-      }
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to stretch the trip of dive $diveId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.trips_dateStretch_failed)),
-      );
     }
   }
 
