@@ -484,6 +484,20 @@ void main() {
       );
     });
 
+    test('between after a relation reads as words', () {
+      expect(
+        ok(metric(), 'site between 2018 and 2020'),
+        words(['site', 'between', '2018', '2020']),
+      );
+    });
+
+    test('between after a field that cannot compare it reads as words', () {
+      expect(
+        ok(metric(), 'favorite between 2018 and 2020'),
+        words(['favorite', 'between', '2018', '2020']),
+      );
+    });
+
     test('in stays an operator for a date field or a list', () {
       expect(ok(metric(), 'date in 2025'), isA<ConditionNode>());
       expect(ok(metric(), 'depth in [10, 20]'), isA<ConditionNode>());

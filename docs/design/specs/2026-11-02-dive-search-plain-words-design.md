@@ -209,8 +209,10 @@ grammar reads.
 
 `in` after a word is an operator only when a `[` follows it, or the word
 resolves to a date field. `between` after a word is an operator only when the
-word resolves to a field. Anything else reads as plain words, whether or not the
-word names a field, so all of these now search:
+word resolves to a field that can be compared that way, so `site between 2018
+and 2020` and `favorite between 2018 and 2020` are words and a date. Anything
+else reads as plain words, whether or not the word names a field, so all of
+these now search:
 
 | Typed | Today | After |
 | --- | --- | --- |

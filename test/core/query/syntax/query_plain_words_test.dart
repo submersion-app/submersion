@@ -122,6 +122,14 @@ void main() {
       expect(read('2018 to 2020'), expected);
       expect(read('between 2018 and 2020'), expected);
       expect(read('ressel between 2018 and 2020'), isA<AndNode>());
+      expect(
+        read('site between 2018 and 2020'),
+        AndNode([word('site'), expected]),
+      );
+      expect(
+        read('favorite between 2018 and 2020'),
+        AndNode([word('favorite'), expected]),
+      );
     });
 
     group('a full date', () {

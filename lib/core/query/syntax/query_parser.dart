@@ -249,7 +249,9 @@ class QueryParser {
       return _isSymbol(_tokens[_pos + 2], '[') ||
           _resolve(word).field?.type == FieldType.date;
     }
-    if (_isKeyword(after, 'between')) return _resolve(word).error == null;
+    if (_isKeyword(after, 'between')) {
+      return _resolve(word).field?.ops.contains(QueryOp.between) ?? false;
+    }
     return after.kind == TokenKind.symbol &&
         _operatorSymbols.contains(after.text);
   }
