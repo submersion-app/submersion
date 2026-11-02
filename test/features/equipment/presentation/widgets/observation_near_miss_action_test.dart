@@ -63,8 +63,9 @@ void main() {
   /// route, showing where a tap went.
   Future<void> pump(
     WidgetTester tester,
-    EquipmentObservation observation,
-  ) async {
+    EquipmentObservation observation, {
+    String? activeDiver = 'me',
+  }) async {
     final router = GoRouter(
       routes: [
         GoRoute(
@@ -94,7 +95,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => activeDiver,
+          ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -147,6 +150,16 @@ void main() {
     await pump(tester, observation);
 
     expect(find.byType(TextButton), findsNothing);
+  });
+
+  testWidgets('with no active diver every report shows, as in the log', (
+    tester,
+  ) async {
+    final observation = await checkIn();
+    await report(observation, diverId: 'someone-else');
+    await pump(tester, observation, activeDiver: null);
+
+    expect(find.text('Near-miss linked'), findsOneWidget);
   });
 
   testWidgets("another diver's report stays private on shared gear", (

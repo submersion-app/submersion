@@ -220,7 +220,7 @@ Open it from **Settings > Diver Profile > Near-miss log**, or choose
 
 | Field | Notes |
 |-------|-------|
-| **When it happened** | Defaults to today; a near-miss need not be tied to a logged dive |
+| **When it happened** | Defaults to today, or to the day of a linked check-in; a near-miss need not be tied to a logged dive |
 | **Category** | Buoyancy, gas supply, equipment, buddy separation, marine life, boat or surface, medical, planning, or other |
 | **Severity** | Minor, moderate or serious: your own judgment |
 | **Equipment involved** | Optional: an item of gear, from the dive's gear or from all your gear |

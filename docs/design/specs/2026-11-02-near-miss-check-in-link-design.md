@@ -114,7 +114,9 @@ just added.
 
 Linking fills gaps and never overwrites:
 
-- A near-miss with no dive takes the check-in's dive.
+- A near-miss with no dive takes the check-in's dive while the link stands. The
+  form has no dive field, so that dive goes if the diver picks None, picks
+  another check-in or changes the item.
 - A new near-miss whose date the diver has not touched takes the check-in's day.
 
 ### Automatic match
