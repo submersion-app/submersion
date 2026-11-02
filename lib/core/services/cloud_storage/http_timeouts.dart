@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
+
+import 'package:submersion/core/network/platform_http_client.dart';
 
 /// An [http.Client] decorator that gives every request a deadline (#1279).
 ///
@@ -43,7 +43,7 @@ class TimeoutHttpClient extends http.BaseClient {
     Duration uploadTimeout = defaultUploadTimeout,
     Duration idleTimeout = defaultIdleTimeout,
   }) => TimeoutHttpClient(
-    IOClient(HttpClient()..connectionTimeout = connectTimeout),
+    createPlatformHttpClient(connectionTimeout: connectTimeout),
     responseTimeout: responseTimeout,
     uploadTimeout: uploadTimeout,
     idleTimeout: idleTimeout,

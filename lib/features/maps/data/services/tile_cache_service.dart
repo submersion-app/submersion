@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:submersion/core/network/platform_http_client.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/maps/data/services/region_download_layer.dart';
 
@@ -395,8 +395,14 @@ class TileCacheService {
   /// leaves these open for the next.
   static final Map<String, http.Client> _httpClients = {};
 
-  static http.Client _httpClientFor(String urlTemplate) => _httpClients
-      .putIfAbsent(urlTemplate, () => IOClient(HttpClient()..userAgent = null));
+  static http.Client _httpClientFor(String urlTemplate) =>
+      _httpClients.putIfAbsent(
+        urlTemplate,
+        () => createPlatformHttpClient(
+          connectionTimeout: null,
+          omitDefaultUserAgent: true,
+        ),
+      );
 
   /// The provider [getTileProvider] hands out, without the initialization
   /// guard, so its identity can be asserted without an ObjectBox backend.

@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/network/proxy/app_http_overrides.dart';
 import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/network/proxy/proxy_refresh_triggers.dart';
 import 'package:submersion/core/network/proxy/proxy_settings_store.dart';
 import 'package:submersion/core/network/proxy/system/system_proxy_resolver.dart';
+import 'package:submersion/core/platform/app_directories.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/geocoding/sea_area_service.dart';
@@ -115,9 +116,9 @@ Future<void> _bootstrap() async {
   // Initialize the log file service and attach it unconditionally: warnings
   // and errors always reach the file, so a bug report can carry the failure
   // that prompted it (#1826). Debug mode only adds the verbose levels.
-  final appSupportDir = await getApplicationSupportDirectory();
+  final appSupportDir = await AppDirectories.support();
   final logFileService = LogFileService(
-    logDirectory: '${appSupportDir.path}/logs',
+    logDirectory: p.join(appSupportDir, 'logs'),
   );
   await logFileService.initialize();
 
@@ -174,7 +175,7 @@ Future<void> _bootstrap() async {
       prefs: prefs,
       logFileService: logFileService,
       locationService: locationService,
-      demoPaths: DemoPaths(appSupportDir.path),
+      demoPaths: DemoPaths(appSupportDir),
     ),
   );
 }
