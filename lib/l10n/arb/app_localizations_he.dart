@@ -29789,6 +29789,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_tankRole_stage => 'סטייג\'';
 
   @override
+  String get insights_gas_tankRole_twinSet => 'צמד בלונים';
+
+  @override
   String get insights_geographic_appBar_title => 'גיאוגרפיה';
 
   @override

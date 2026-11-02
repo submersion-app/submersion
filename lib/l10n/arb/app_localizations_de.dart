@@ -30500,6 +30500,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_gas_tankRole_stage => 'Stage';
 
   @override
+  String get insights_gas_tankRole_twinSet => 'Doppelgerät';
+
+  @override
   String get insights_geographic_appBar_title => 'Geografie';
 
   @override

@@ -8663,6 +8663,7 @@
   "insights_gas_tankRole_sidemountLeft": "Sidemount G",
   "insights_gas_tankRole_sidemountRight": "Sidemount D",
   "insights_gas_tankRole_stage": "Stage",
+  "insights_gas_tankRole_twinSet": "Bi-bouteille",
   "insights_geographic_appBar_title": "Géographie",
   "insights_geographic_countries_empty": "Aucun pays visité",
   "insights_geographic_countries_error": "Échec du chargement des données par pays",

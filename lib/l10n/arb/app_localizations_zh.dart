@@ -28809,6 +28809,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_tankRole_stage => '阶段瓶';
 
   @override
+  String get insights_gas_tankRole_twinSet => '双瓶';
+
+  @override
   String get insights_geographic_appBar_title => '地理';
 
   @override

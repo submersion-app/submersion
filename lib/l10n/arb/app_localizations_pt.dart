@@ -30551,6 +30551,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_gas_tankRole_stage => 'Stage';
 
   @override
+  String get insights_gas_tankRole_twinSet => 'Bi-cilindro';
+
+  @override
   String get insights_geographic_appBar_title => 'Geográfico';
 
   @override

@@ -8938,6 +8938,7 @@
   "insights_gas_tankRole_sidemountLeft": "左侧挂",
   "insights_gas_tankRole_sidemountRight": "右侧挂",
   "insights_gas_tankRole_stage": "阶段瓶",
+  "insights_gas_tankRole_twinSet": "双瓶",
   "insights_geographic_appBar_title": "地理",
   "insights_geographic_countries_empty": "暂无访问的国家",
   "insights_geographic_countries_error": "加载国家数据失败",

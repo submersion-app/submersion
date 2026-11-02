@@ -8764,6 +8764,7 @@
   "insights_gas_tankRole_sidemountLeft": "Sidemount E",
   "insights_gas_tankRole_sidemountRight": "Sidemount D",
   "insights_gas_tankRole_stage": "Stage",
+  "insights_gas_tankRole_twinSet": "Bi-cilindro",
   "insights_geographic_appBar_title": "Geográfico",
   "insights_geographic_countries_empty": "Nenhum país visitado",
   "insights_geographic_countries_error": "Falha ao carregar dados de países",

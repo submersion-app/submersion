@@ -48918,6 +48918,12 @@ abstract class AppLocalizations {
   /// **'Stage'**
   String get insights_gas_tankRole_stage;
 
+  /// No description provided for @insights_gas_tankRole_twinSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin Set'**
+  String get insights_gas_tankRole_twinSet;
+
   /// No description provided for @insights_geographic_appBar_title.
   ///
   /// In en, this message translates to:

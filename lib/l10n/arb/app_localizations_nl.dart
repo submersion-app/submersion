@@ -30355,6 +30355,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_tankRole_stage => 'Stagefles';
 
   @override
+  String get insights_gas_tankRole_twinSet => 'Dubbelset';
+
+  @override
   String get insights_geographic_appBar_title => 'Geografisch';
 
   @override

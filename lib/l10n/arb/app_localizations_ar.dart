@@ -30807,6 +30807,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_tankRole_stage => 'أسطوانة مرحلية';
 
   @override
+  String get insights_gas_tankRole_twinSet => 'طقم مزدوج';
+
+  @override
   String get insights_geographic_appBar_title => 'جغرافي';
 
   @override

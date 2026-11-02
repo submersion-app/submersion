@@ -134,12 +134,13 @@ List<FigureZone> _zonesForTankRole(FigureItemInput item) {
 
 /// Two tanks in the back tank zone are one manifolded pair: the first draws
 /// the doubles piece and the second draws nothing (its label still shows).
+/// One tank whose role is Twin Set is that pair logged as one row, so it
+/// draws the doubles piece alone (issue #3374).
 List<PlacedItem> _mergeDoubles(List<PlacedItem> placed) {
   final backTanks = [
     for (final p in placed)
       if (p.zone == FigureZone.backTank && p.item.type == EquipmentType.tank) p,
   ];
-  if (backTanks.length < 2) return placed;
   PlacedItem withPieces(PlacedItem p, List<String> pieceIds) => PlacedItem(
     number: p.number,
     item: p.item,
@@ -147,6 +148,18 @@ List<PlacedItem> _mergeDoubles(List<PlacedItem> placed) {
     pieceIds: pieceIds,
     color: p.color,
   );
+  // A twin set is logged as one cylinder, so one row draws the doubles
+  // artwork on its own (issue #3374).
+  if (backTanks.length == 1 && backTanks[0].item.tankRole == TankRole.twinSet) {
+    return [
+      for (final p in placed)
+        if (identical(p, backTanks[0]))
+          withPieces(p, const ['tank_doubles_back'])
+        else
+          p,
+    ];
+  }
+  if (backTanks.length < 2) return placed;
   return [
     for (final p in placed)
       if (identical(p, backTanks[0]))
