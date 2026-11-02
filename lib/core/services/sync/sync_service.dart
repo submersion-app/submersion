@@ -3503,9 +3503,11 @@ class SyncService {
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
     // v331: the saved center behind a Dive center place (issue #3623).
-    // Cleared, not skipped: the place outlives its center.
+    // Cleared, not skipped: the place outlives its center. So too its buddy
+    // (v334, issue #3790).
     'equipmentLocations': [
       (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+      (field: 'buddyId', parent: 'buddies', nullable: true),
     ],
     // v268: an item's location log. The place reference is cleared, not
     // skipped, when the place is gone: the move then reads "No location".
