@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/markdown/notes_markdown.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
@@ -50,20 +51,20 @@ class AnnotationRepository {
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
+    // The row caches the words as the Notes render them: a mark the diver
+    // typed (asterisks, backticks) is formatting there, not text.
+    final link = annotationLinkMarkdown(words, id);
+    final rendered = annotationWordsInNotes(link)[id] ?? words;
     try {
       await _db.transaction(() async {
         final current = await _notesOf(diveId);
-        await _writeNotes(
-          diveId,
-          appendAnnotationParagraph(current, words, id),
-          now,
-        );
+        await _writeNotes(diveId, appendMarkdownParagraph(current, link), now);
         await _insertRow(
           id: id,
           diveId: diveId,
           timestamp: timestamp,
           depth: depth,
-          words: words,
+          words: rendered,
           now: now,
         );
       });

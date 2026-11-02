@@ -27,6 +27,15 @@ void main() {
     expect(annotationMarkerLabel(_ann('')), '');
   });
 
+  test('the cut never splits an emoji or a combined character', () {
+    final label = annotationMarkerLabel(
+      _ann('Saw a turtle \u{1F422}\u{1F422}\u{1F422} and then a shark'),
+      maxChars: 16,
+    );
+    expect(label, 'Saw a turtle \u{1F422}\u{1F422}\u{1F422}\u2026');
+    expect(cutAtWord('e\u0301' * 10, maxChars: 4), '${'e\u0301' * 4}\u2026');
+  });
+
   test('one long word is cut hard', () {
     expect(annotationMarkerLabel(_ann('a' * 40), maxChars: 10), '${'a' * 10}…');
   });

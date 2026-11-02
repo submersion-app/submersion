@@ -81,6 +81,16 @@ void main() {
     },
   );
 
+  test('addAnnotation caches the words as the Notes render them', () async {
+    final id = await repo.addAnnotation(
+      diveId: diveId,
+      timestamp: 5,
+      words: '**octo** free flow',
+    );
+    expect((await rows()).single.description, 'octo free flow');
+    expect((await dive()).notes, 'x\n\n[**octo** free flow](annotation:$id)');
+  });
+
   test('moveAnnotation changes the row and does not touch the dive', () async {
     final id = await repo.addAnnotation(
       diveId: diveId,

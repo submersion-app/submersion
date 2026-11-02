@@ -60,17 +60,6 @@ void main() {
     expect(unlinkAnnotation(r'[a\]b](annotation:i)', 'i'), 'a]b');
   });
 
-  test('append puts the link in its own paragraph', () {
-    expect(
-      appendAnnotationParagraph('First.', 'Octo free-flowed', 'id9'),
-      'First.\n\n[Octo free-flowed](annotation:id9)',
-    );
-    expect(
-      appendAnnotationParagraph('', 'Octo', 'id9'),
-      '[Octo](annotation:id9)',
-    );
-  });
-
   test('link markdown escapes both brackets and unlink restores them', () {
     final md = annotationLinkMarkdown('tank [left] low', 'i');
     expect(md, r'[tank \[left\] low](annotation:i)');

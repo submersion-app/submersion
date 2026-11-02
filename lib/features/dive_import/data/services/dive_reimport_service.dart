@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -807,15 +808,22 @@ class DiveReimportService {
     String diveId,
   ) async {
     if (ids.isEmpty) return const {};
-    final rows =
-        await (db.selectOnly(db.diveProfileEvents)
-              ..addColumns([db.diveProfileEvents.id])
-              ..where(
-                db.diveProfileEvents.id.isIn(ids) &
-                    db.diveProfileEvents.diveId.equals(diveId).not(),
-              ))
-            .get();
-    return {for (final r in rows) r.read(db.diveProfileEvents.id)!};
+    final taken = <String>{};
+    // In chunks: a long dive's events can outnumber SQLite's variables.
+    for (final chunk in seriesIdChunks(ids)) {
+      final rows =
+          await (db.selectOnly(db.diveProfileEvents)
+                ..addColumns([db.diveProfileEvents.id])
+                ..where(
+                  db.diveProfileEvents.id.isIn(chunk) &
+                      db.diveProfileEvents.diveId.equals(diveId).not(),
+                ))
+              .get();
+      for (final r in rows) {
+        taken.add(r.read(db.diveProfileEvents.id)!);
+      }
+    }
+    return taken;
   }
 
   /// Refreshes the primary `dive_data_sources` row's computer-authored

@@ -170,7 +170,10 @@ only coupling between the two tables; nothing else is stored.
 The words of an annotation are the link text in Notes. `description` is a
 cache for consumers that read events without Notes (UDDF export, the 3D
 view, sync peers, the conflict catalogue) and is rewritten from Notes on
-every save of the dive, so the two cannot drift for more than one save.
+every save of the dive, so the two cannot drift for more than one save. It
+holds the words as the Notes render them: a Markdown mark the diver typed
+(asterisks, backticks) is formatting there, not text, so it is formatting in
+the marker label and the popup too.
 
 ## Behaviour rules
 

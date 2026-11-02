@@ -85,10 +85,6 @@ String unlinkAnnotation(String notes, String id) {
   );
 }
 
-/// [notes] with a new paragraph holding only the annotation link.
-String appendAnnotationParagraph(String notes, String words, String id) =>
-    appendMarkdownParagraph(notes, annotationLinkMarkdown(words, id));
-
 /// Annotation id to its time as `m:ss`, for the Notes view and the PDF.
 Map<String, String> annotationTimesOf(List<ProfileEvent> annotations) => {
   for (final a in annotations) a.id: formatMinutesSeconds(a.timestamp),

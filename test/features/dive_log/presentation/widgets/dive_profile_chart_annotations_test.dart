@@ -171,6 +171,42 @@ void main() {
     expect(_lines(tester), hasLength(1), reason: 'the warning stays');
   });
 
+  testWidgets('a two-finger gesture ending on the dot opens nothing', (
+    tester,
+  ) async {
+    final taps = <ProfileEvent>[];
+    await tester.pumpWidget(
+      _chart([_ann('a', 600)], onAnnotationTap: (a, _) => taps.add(a)),
+    );
+    await tester.pumpAndSettle();
+    final layerFinder = find.byType(AnnotationMarkerLayer);
+    final layer = tester.widget<AnnotationMarkerLayer>(layerFinder);
+    final dot =
+        tester.getTopLeft(layerFinder) +
+        annotationDotCenters(
+          annotations: layer.annotations,
+          size: tester.getSize(layerFinder),
+          insets: layer.insets,
+          visibleMinSeconds: layer.visibleMinSeconds,
+          visibleMaxSeconds: layer.visibleMaxSeconds,
+          visibleMinDepth: layer.visibleMinDepth,
+          visibleMaxDepth: layer.visibleMaxDepth,
+          depthAt: layer.depthAt,
+        ).single!;
+
+    final first = await tester.startGesture(dot, pointer: 1);
+    final second = await tester.startGesture(
+      dot + const Offset(5, 0),
+      pointer: 2,
+    );
+    await tester.pump();
+    await second.up();
+    await first.up();
+    await tester.pump();
+
+    expect(taps, isEmpty);
+  });
+
   testWidgets('showAnnotations false hides the lines and the layer', (
     tester,
   ) async {
