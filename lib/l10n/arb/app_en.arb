@@ -8107,6 +8107,7 @@
   "enum_profileEvent_maxDepth": "Max Depth",
   "enum_profileEvent_missedStop": "Missed Deco Stop",
   "enum_profileEvent_note": "Note",
+  "enum_profileEvent_annotation": "Annotation",
   "enum_profileEvent_ppO2High": "High ppO2",
   "enum_profileEvent_ppO2Low": "Low ppO2",
   "enum_profileEvent_safetyStopEnd": "Safety Stop End",

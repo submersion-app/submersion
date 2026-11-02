@@ -407,7 +407,10 @@ enum ProfileEventType {
   setpointChange('Setpoint Change', 'info'),
   bookmark('Bookmark', 'info'),
   alert('Alert', 'alert'),
-  note('Note', 'info');
+  note('Note', 'info'),
+  // A passage of the dive's Notes pinned to a time (#4109). Always
+  // user-authored; its words are the Notes link text, cached in description.
+  annotation('Annotation', 'info');
 
   final String displayName;
   final String defaultSeverity; // 'info', 'warning', 'alert'
@@ -454,6 +457,8 @@ enum ProfileEventType {
         return 'notification_important';
       case ProfileEventType.note:
         return 'note';
+      case ProfileEventType.annotation:
+        return 'push_pin';
     }
   }
 }
