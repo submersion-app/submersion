@@ -22,10 +22,10 @@
 # files / concurrency each, and never over the 40 used for the suite. Measured
 # at -j 16, 86 files took 62-67s as 19 bundles but about 180s as 4 bundles of
 # 40, which left 12 workers idle. The hook's header has the comparison with
-# separate files. The list must name existing test files, by paths relative to the
-# repository root; an empty list is refused rather than silently running the
-# whole suite. Give the list file itself as an absolute path, since the script
-# changes to the repository root first.
+# separate files. The list must name existing files under test/, by paths relative
+# to the repository root; an empty list is refused rather than silently running
+# the whole suite. Give the list file itself as an absolute path, since the
+# script changes to the repository root first.
 #
 # Runs from the repository root wherever it is started, in one flutter test
 # call, so an option such as --coverage covers the whole suite. Performance
@@ -74,20 +74,20 @@ if [ -n "${TEST_FILES_FROM:-}" ]; then
         echo "TEST_FILES_FROM: no such file: $TEST_FILES_FROM" >&2
         exit 2
     fi
-    missing=""
+    refused=""
     while IFS= read -r line || [ -n "$line" ]; do
         line="${line%$'\r'}"
         [ -n "$line" ] || continue
-        if [ -f "$line" ]; then
+        if [ -f "$line" ] && [ "${line#test/}" != "$line" ]; then
             SELECTED+=("$line")
         else
-            missing="${missing}  ${line}
+            refused="${refused}  ${line}
 "
         fi
     done < "$TEST_FILES_FROM"
-    if [ -n "$missing" ]; then
-        echo "TEST_FILES_FROM names test files that do not exist:" >&2
-        printf '%s' "$missing" >&2
+    if [ -n "$refused" ]; then
+        echo "TEST_FILES_FROM must name existing files under test/; these are not:" >&2
+        printf '%s' "$refused" >&2
         exit 2
     fi
     if [ "${#SELECTED[@]}" -eq 0 ]; then

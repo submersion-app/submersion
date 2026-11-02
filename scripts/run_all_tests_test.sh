@@ -461,6 +461,21 @@ assert_contains has "$(cat "$tmp/python_args")" '--max-files 40 ' \
 
 rm -rf "$root/test/many" "$tmp/bin/python3"
 
+# --- Test 12: a list may name only files under test/ -----------------------
+#
+# The bundler refuses anything else, and its error goes nowhere, so without
+# this check the file reached flutter test with a message blaming python3.
+
+printf 'scripts/run_all_tests.sh\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -eq 2 ] && [ "$flutter_calls" -eq 0 ]; then
+    assert_contains has "$run_output" 'scripts/run_all_tests.sh' \
+        'a list naming a file outside test/ is refused before anything runs'
+else
+    fail 'a list naming a file outside test/ is refused before anything runs' \
+        "exit $run_status, $flutter_calls calls: $run_output"
+fi
+
 rm -rf "$tmp"
 
 # --- Summary ---------------------------------------------------------------

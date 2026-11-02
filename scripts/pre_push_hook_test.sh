@@ -1075,6 +1075,29 @@ assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.d
     'within budget nothing is dropped'
 assert_selected lacks 'dropped' 'within budget nothing is reported dropped'
 
+# TEST_BUDGET=2^64+1 wraps to 1 in shell arithmetic, which would trim this
+# selection. It must clamp as the other knobs do.
+run_hook "$tmp" TEST_BUDGET=18446744073709551617 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected lacks 'dropped' 'an oversized TEST_BUDGET is clamped, not wrapped'
+
+# 2^63 wraps negative, which read as "no cap" and turned the budget off.
+run_hook "$tmp" TEST_BUDGET=9223372036854775808 TEST_FILE_SECONDS=100000 TEST_CONCURRENCY=1
+assert_selected has 'dropped' 'a TEST_BUDGET past 2^63 still caps the run'
+
+run_hook "$tmp" TEST_BUDGET=000 TEST_FILE_SECONDS=100000
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'TEST_BUDGET turns the budget off when zero in any spelling'
+
+run_hook "$tmp" TEST_BUDGET=soon TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has "Ignoring invalid TEST_BUDGET='soon'" \
+    'an invalid TEST_BUDGET is reported and ignored'
+
+# RUN_ALL_AFFECTED and TEST_BUDGET=0 are not capped, so the closing hint must
+# not say that the budget capped them.
+run_hook_live "$tmp" RUN_ALL_AFFECTED=1
+assert_selected lacks 'caps the run' 'an uncapped run does not claim a cap'
+assert_selected has 'ignoring TEST_BUDGET' 'the hint says RUN_ALL_AFFECTED ignores the budget'
+
 # --- Test 16: a selection that is most of the suite runs the whole suite ----
 #
 # The whole suite bundled costs about the same as a selection covering most
