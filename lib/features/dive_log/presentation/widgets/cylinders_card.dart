@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
@@ -249,10 +250,7 @@ class CylindersCard extends ConsumerWidget {
     final serialKnown = serial != null && knownSerials.contains(serial);
     final nameDerivedRole = tank.roleSource == TankRoleSource.transmitterName;
 
-    final pressures = _resolveTankPressures(
-      tank: tank,
-      tankPressures: tankPressures,
-    );
+    final pressures = resolvedTankPressures(tank, tankPressures?[tank.id]);
     final pressureUsed = pressures.$1 != null && pressures.$2 != null
         ? pressures.$1! - pressures.$2!
         : null;
@@ -447,28 +445,6 @@ class CylindersCard extends ConsumerWidget {
       if (display.showsRmv && rmv != null)
         '${l10n.gasConsumption_rmv} ${units.formatRmv(rmv)}',
     ];
-  }
-
-  /// Resolves start/end pressure: stored tank metadata wins, per-tank
-  /// time-series fills any nulls. A negative reading is a sensor or entry
-  /// error, never a pressure, so it counts as missing: no figure level and
-  /// no used amount is drawn from it.
-  (double?, double?) _resolveTankPressures({
-    required DiveTank tank,
-    required Map<String, List<TankPressurePoint>>? tankPressures,
-  }) {
-    double? valid(double? pressure) =>
-        pressure != null && pressure >= 0 ? pressure : null;
-    final start = valid(tank.startPressure);
-    final end = valid(tank.endPressure);
-    final points = tankPressures?[tank.id];
-    if (points != null && points.isNotEmpty) {
-      return (
-        start ?? valid(points.first.pressure),
-        end ?? valid(points.last.pressure),
-      );
-    }
-    return (start, end);
   }
 
   /// computerId -> display name via the shared source-name resolver.
