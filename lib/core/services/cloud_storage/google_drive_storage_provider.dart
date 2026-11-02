@@ -9,12 +9,11 @@ import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
-import 'package:submersion/core/services/cloud_storage/google_drive/desktop_oauth_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator_choice.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_errors.dart';
-import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
@@ -39,32 +38,24 @@ class GoogleDriveStorageProvider
 
   static final _log = LoggerService.forClass(GoogleDriveStorageProvider);
 
-  static GoogleDriveAuthenticator _defaultAuthenticator() => authenticatorFor(
-    isWeb: HostPlatform.isWeb,
-    isLoopbackPlatform: HostPlatform.isWindows || HostPlatform.isLinux,
-    isMacOS: HostPlatform.isMacOS,
-  );
+  static GoogleDriveAuthenticator _defaultAuthenticator() =>
+      googleDriveAuthenticatorFor(
+        isWeb: HostPlatform.isWeb,
+        isLoopbackPlatform: HostPlatform.isWindows || HostPlatform.isLinux,
+        isMacOS: HostPlatform.isMacOS,
+      );
 
-  /// Picks the authenticator for a platform, without reading [Platform] --
-  /// which is what makes the choice testable on any host.
-  ///
-  /// macOS is the interesting case: it can use either flow, and which one
-  /// works depends on how the build is signed rather than on the platform.
-  /// [KeychainGatedAuthenticator] measures that and decides.
+  /// [googleDriveAuthenticatorFor], reachable for the tests that call it.
   @visibleForTesting
   static GoogleDriveAuthenticator authenticatorFor({
     bool isWeb = false,
     required bool isLoopbackPlatform,
     required bool isMacOS,
-  }) {
-    // A page cannot open the loopback listener, whatever OS the browser
-    // reports: google_sign_in's web implementation does the sign-in
-    // (issue #4121).
-    if (isWeb) return GoogleSignInAuthenticator();
-    if (isLoopbackPlatform) return DesktopOAuthAuthenticator();
-    if (isMacOS) return KeychainGatedAuthenticator();
-    return GoogleSignInAuthenticator();
-  }
+  }) => googleDriveAuthenticatorFor(
+    isWeb: isWeb,
+    isLoopbackPlatform: isLoopbackPlatform,
+    isMacOS: isMacOS,
+  );
 
   final GoogleDriveAuthenticator _authenticator;
   drive.DriveApi? _driveApi;

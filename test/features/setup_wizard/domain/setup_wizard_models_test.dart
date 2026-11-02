@@ -4,6 +4,37 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 
 void main() {
+  group('offersNoLibrary', () {
+    test('the browser connect step offers it on the existing-data path', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        path: SetupPath.existingData,
+        browser: true,
+      );
+      expect(offersNoLibrary(draft, SetupStepId.setUpAccount), isTrue);
+      expect(offersNoLibrary(draft, SetupStepId.setUpSync), isTrue);
+    });
+
+    test('once the path is fresh the connect step keeps Not now', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        path: SetupPath.fresh,
+        browser: true,
+      );
+      expect(offersNoLibrary(draft, SetupStepId.setUpAccount), isFalse);
+      expect(offersNoLibrary(draft, SetupStepId.setUpSync), isFalse);
+    });
+
+    test('natively only the sync step offers it', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        path: SetupPath.existingData,
+      );
+      expect(offersNoLibrary(draft, SetupStepId.setUpAccount), isFalse);
+      expect(offersNoLibrary(draft, SetupStepId.setUpSync), isTrue);
+    });
+  });
+
   group('computeSteps', () {
     test('first run starts with fork only while path undecided', () {
       const draft = SetupWizardDraft(mode: SetupWizardMode.firstRun);

@@ -30,10 +30,9 @@ const webUnavailableRoutePrefixes = <String, WebUnavailableFeature>{
   '/dive-computers': WebUnavailableFeature.diveComputers,
   '/dives/scan': WebUnavailableFeature.paperScan,
   '/settings/wearable-import': WebUnavailableFeature.wearableImport,
-  '/settings/nearby': WebUnavailableFeature.nearby,
+  '/settings/cloud-sync/nearby-pair': WebUnavailableFeature.nearby,
   '/buddies/swap': WebUnavailableFeature.nearby,
   '/settings/offline-maps': WebUnavailableFeature.offlineMaps,
-  '/settings/backup/restore': WebUnavailableFeature.backupRestore,
   '/settings/agent-access': WebUnavailableFeature.agentAccess,
 };
 

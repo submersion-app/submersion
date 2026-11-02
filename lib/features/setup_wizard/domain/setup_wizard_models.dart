@@ -119,6 +119,17 @@ class SetupWizardDraft {
 }
 
 /// Computes the ordered step list for the current draft state.
+/// Whether a shared step offers to start without a sync store: natively the
+/// sync step on the existing-data path; in a browser the connect step it
+/// opens on as well (issue #4121). Once the user took the offer the path is
+/// fresh and the step keeps its native Not now, or the offer would send
+/// them round the profile steps again.
+bool offersNoLibrary(SetupWizardDraft draft, SetupStepId id) {
+  if (draft.path != SetupPath.existingData) return false;
+  return id == SetupStepId.setUpSync ||
+      (draft.browser && id == SetupStepId.setUpAccount);
+}
+
 List<SetupStepId> computeSteps(SetupWizardDraft draft) {
   final steps = _stepsForPath(draft);
   if (!draft.browser || draft.mode != SetupWizardMode.firstRun) return steps;

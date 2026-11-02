@@ -16,6 +16,7 @@ class WebForgetDeviceService {
     required this.clearSecureStorage,
     required this.clearPreferences,
     required this.closeDatabase,
+    required this.deleteDatabase,
     required this.removeStorageEntry,
     required this.reload,
   });
@@ -24,15 +25,19 @@ class WebForgetDeviceService {
 
   /// The origin private file system entries the app owns: drift's database
   /// directory and the sync temp files.
-  static const List<String> storageEntries = [
-    'drift_db',
-    'submersion-sync-tmp',
-  ];
+  /// The sync temp files' directory in the origin's private file system.
+  static const String syncTempEntry = 'submersion-sync-tmp';
 
   final Future<void> Function() disableSync;
   final Future<void> Function() clearSecureStorage;
   final Future<void> Function() clearPreferences;
   final Future<void> Function() closeDatabase;
+
+  /// Deletes the database wherever drift stored it and throws when a copy
+  /// is still there; nothing after it runs then, since a reload over a
+  /// surviving logbook would look like nothing happened on the one machine
+  /// the user wanted it off.
+  final Future<void> Function() deleteDatabase;
   final Future<void> Function(String name) removeStorageEntry;
   final void Function() reload;
 
@@ -47,9 +52,11 @@ class WebForgetDeviceService {
     await _step('clear secure storage', clearSecureStorage);
     await _step('clear preferences', clearPreferences);
     await _step('close database', closeDatabase);
-    for (final name in storageEntries) {
-      await _step('remove $name', () => removeStorageEntry(name));
-    }
+    await deleteDatabase();
+    await _step(
+      'remove $syncTempEntry',
+      () => removeStorageEntry(syncTempEntry),
+    );
     reload();
   }
 

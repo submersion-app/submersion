@@ -14,11 +14,13 @@ void main() {
   WebForgetDeviceService service(
     List<String> log, {
     Future<void> Function()? closeDatabase,
+    Future<void> Function()? deleteDatabase,
   }) => WebForgetDeviceService(
     disableSync: () async => log.add('disableSync'),
     clearSecureStorage: () async => log.add('clearSecureStorage'),
     clearPreferences: () async => log.add('clearPreferences'),
     closeDatabase: closeDatabase ?? () async => log.add('closeDatabase'),
+    deleteDatabase: deleteDatabase ?? () async => log.add('deleteDatabase'),
     removeStorageEntry: (name) async => log.add('remove $name'),
     reload: () => log.add('reload'),
   );
@@ -31,7 +33,7 @@ void main() {
       'clearSecureStorage',
       'clearPreferences',
       'closeDatabase',
-      'remove drift_db',
+      'deleteDatabase',
       'remove submersion-sync-tmp',
       'reload',
     ]);
@@ -61,7 +63,21 @@ void main() {
       log,
       closeDatabase: () async => throw StateError('still busy'),
     ).forget();
-    expect(log, contains('remove drift_db'));
+    expect(log, contains('deleteDatabase'));
     expect(log.last, 'reload');
+  });
+
+  test('a database that survives stops the wipe before the reload', () async {
+    final log = <String>[];
+    await expectLater(
+      service(
+        log,
+        deleteDatabase: () async => throw StateError('still there'),
+      ).forget(),
+      throwsStateError,
+    );
+    expect(log, isNot(contains('reload')));
+    expect(log, isNot(contains('remove submersion-sync-tmp')));
+    expect(log, contains('closeDatabase'));
   });
 }

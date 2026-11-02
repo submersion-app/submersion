@@ -171,6 +171,12 @@ class BackgroundDatabaseConnection {
         'native builds read the stored version through DatabaseService',
       );
 
+  /// The browser's wipe for Forget this device; a native build deletes
+  /// its file through `DatabaseService`, so this is never called.
+  static Future<void> deleteStoredDatabases(String path) async {
+    throw UnsupportedError('native builds delete the database file');
+  }
+
   static Future<BackgroundDatabaseConnection> _spawn(
     String path,
     DatabaseConnection Function() opener,

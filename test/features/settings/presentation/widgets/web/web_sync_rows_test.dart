@@ -28,7 +28,11 @@ void main() {
   setUp(() => forgets = 0);
   tearDown(WebDatabaseStatusHolder.clear);
 
-  Future<void> pump(WidgetTester tester, {WebDatabaseStatus? status}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    WebDatabaseStatus? status,
+    Future<void> Function()? forget,
+  }) async {
     if (status != null) WebDatabaseStatusHolder.record(status);
     await tester.binding.setSurfaceSize(const Size(500, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -38,7 +42,9 @@ void main() {
         overrides: [
           deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
           rememberCredentialsProvider.overrideWith(_RecordingRemember.new),
-          webForgetDeviceProvider.overrideWithValue(() async => forgets++),
+          webForgetDeviceProvider.overrideWithValue(
+            forget ?? () async => forgets++,
+          ),
         ],
         child: const WebSyncRows(),
       ),
@@ -98,5 +104,14 @@ void main() {
     await tester.tap(find.text(en.web_forgetDevice_confirm));
     await tester.pumpAndSettle();
     expect(forgets, 1);
+  });
+
+  testWidgets('a database that will not go is reported', (tester) async {
+    await pump(tester, forget: () async => throw StateError('still there'));
+    await tester.tap(find.text(en.web_forgetDevice_title));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(en.web_forgetDevice_confirm));
+    await tester.pumpAndSettle();
+    expect(find.text(en.web_forgetDevice_failed), findsOneWidget);
   });
 }

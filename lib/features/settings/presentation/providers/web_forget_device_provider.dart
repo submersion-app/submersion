@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/platform/browser_origin_storage.dart';
 import 'package:submersion/core/platform/secure_storage_backend.dart';
 import 'package:submersion/core/platform/web/web_forget_device_service.dart';
+import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -18,6 +20,8 @@ final webForgetDeviceProvider = Provider<WebForgetDevice>((ref) {
     clearSecureStorage: SecureStorageBackend.clearAll,
     clearPreferences: () => ref.read(sharedPreferencesProvider).clear(),
     closeDatabase: () => DatabaseService.instance.close(strict: true),
+    deleteDatabase: () =>
+        BackgroundDatabaseConnection.deleteStoredDatabases(kWebDatabasePath),
     removeStorageEntry: BrowserOriginStorage.removeEntry,
     reload: BrowserOriginStorage.reloadPage,
   );

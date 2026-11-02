@@ -120,6 +120,34 @@ class BackgroundDatabaseConnection {
   }
 
   /// Nothing to wait for: a browser connection owns no worker isolate.
+  /// Deletes every stored copy of the database at [path], in whichever
+  /// browser storage drift put it (OPFS or IndexedDB), through drift's own
+  /// probe, and throws when a copy is still there afterwards: Forget this
+  /// device must not reload over a surviving logbook (issue #4121).
+  static Future<void> deleteStoredDatabases(String path) async {
+    final name = databaseNameFor(path);
+    final probe = await WasmDatabase.probe(
+      sqlite3Uri: sqlite3Uri,
+      driftWorkerUri: driftWorkerUri,
+      databaseName: name,
+    );
+    for (final existing in probe.existingDatabases) {
+      if (existing.$2 == name) await probe.deleteDatabase(existing);
+    }
+    final after = await WasmDatabase.probe(
+      sqlite3Uri: sqlite3Uri,
+      driftWorkerUri: driftWorkerUri,
+      databaseName: name,
+    );
+    final kept = [
+      for (final existing in after.existingDatabases)
+        if (existing.$2 == name) existing.$1.name,
+    ];
+    if (kept.isNotEmpty) {
+      throw StateError('the browser kept the database in ${kept.join(', ')}');
+    }
+  }
+
   Future<bool> awaitWorkerShutdown({
     required Duration timeout,
     required bool killIfStuck,

@@ -81,6 +81,14 @@ class WebSyncRows extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    await ref.read(webForgetDeviceProvider)();
+    try {
+      await ref.read(webForgetDeviceProvider)();
+    } catch (e) {
+      // The database survived: say so rather than reload over it.
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.web_forgetDevice_failed)));
+    }
   }
 }

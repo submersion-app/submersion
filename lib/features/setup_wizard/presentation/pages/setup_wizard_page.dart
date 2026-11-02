@@ -111,13 +111,10 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   SetUpStepNavigation _navigationFor(SetupStepId id) {
     final notifier = ref.read(setupWizardProvider(widget.mode).notifier);
     final draft = ref.read(setupWizardProvider(widget.mode));
-    final existingData = draft.path == SetupPath.existingData;
     // Natively the sync step offers to start a new logbook instead; a
     // browser, which opens on the connect step, offers it there
     // (issue #4121).
-    final noLibrary =
-        (existingData && id == SetupStepId.setUpSync) ||
-        (draft.browser && id == SetupStepId.setUpAccount);
+    final noLibrary = offersNoLibrary(draft, id);
     return SetUpStepNavigation(
       host: widget.mode == SetupWizardMode.firstRun
           ? SetUpHost.firstRun
