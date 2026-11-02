@@ -268,6 +268,17 @@ void main() {
       expect(column.id, 'dived');
     });
 
+    test('a dive with only a bottom time shows no runtime', () {
+      final column = divedColumn(
+        dive: _dive(maxDepth: 30, bottomTime: const Duration(minutes: 28)),
+        profile: const [],
+        analysis: null,
+      );
+
+      expect(column.bottomTimeSeconds, 28 * 60);
+      expect(column.runtimeSeconds, isNull);
+    });
+
     test('a dive with no profile keeps its facts and blanks the rest', () {
       final column = divedColumn(
         dive: _dive(

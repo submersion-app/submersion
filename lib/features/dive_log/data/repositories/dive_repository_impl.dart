@@ -2955,7 +2955,7 @@ class DiveRepository {
   ///
   /// - no `water_temp`, which [_mapRowToDive] takes from the profile;
   /// - no `runtime` and no usable exit time, where
-  ///   [domain.Dive.effectiveRuntime] measures the profile;
+  ///   [domain.Dive.measuredRuntime] measures the profile;
   /// - a tank with no stored start or end pressure, which [_mapRowToDive]
   ///   takes from the pressure series.
   ///
@@ -4191,7 +4191,7 @@ class DiveRepository {
         COALESCE(SUM(
           CASE WHEN dive_date_time >= ? AND dive_date_time < ? THEN 1 ELSE 0 END
         ), 0) as dives_this_year,
-        SUM(COALESCE(runtime, bottom_time)) as total_time,
+        SUM(${measuredRuntimeSecondsSql('dives')}) as total_time,
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_max_depth,
         AVG(water_temp) as avg_temp,
@@ -4233,11 +4233,9 @@ class DiveRepository {
       // open-ended bucket for anything deeper (issue #641). A dive lands in
       // a bucket by its max depth, the same rule the old 0-40 m version used.
       //
-      // Per-bucket duration resolves the full `Dive.effectiveRuntime` chain
-      // in SQL (see `effectiveRuntimeSecondsSql`) rather than the
-      // `COALESCE(runtime, bottom_time)` shortcut this query used before,
-      // which skipped the profile-derived step and reported a dive that only
-      // has a profile as zero minutes. Bucketing stays in SQL so the whole
+      // Per-bucket duration resolves `Dive.measuredRuntime` in SQL (see
+      // `measuredRuntimeSecondsSql`), so a dive that only has a profile is
+      // not reported as zero minutes. Bucketing stays in SQL so the whole
       // distribution comes back as at most 14 rows, not one row per dive.
       final depthWhereClause = diverId != null
           ? 'WHERE d.max_depth IS NOT NULL AND d.diver_id = ?'
@@ -4246,7 +4244,7 @@ class DiveRepository {
           .customSelect(
             'SELECT $depthBucketSql AS bucket, '
             'COUNT(*) AS count, '
-            'SUM(${effectiveRuntimeSecondsSql('d')}) AS total_time '
+            'SUM(${measuredRuntimeSecondsSql('d')}) AS total_time '
             'FROM dives d '
             '$depthWhereClause $fAliasD '
             'GROUP BY bucket',
@@ -4388,14 +4386,15 @@ class DiveRepository {
       LIMIT 1
     ''', variables: vars).getSingleOrNull();
 
-      // Longest dive (by runtime, falling back to bottom_time)
+      // Longest dive, by what it measured: a bottom time is not a runtime
+      // (issue #3304).
       final longestResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name,
-        COALESCE(d.runtime, d.bottom_time) as effective_runtime
+        ${measuredRuntimeSecondsSql('d')} as measured_runtime
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
-      WHERE COALESCE(d.runtime, d.bottom_time) IS NOT NULL $diverFilter $filterClause
-      ORDER BY effective_runtime DESC
+      WHERE measured_runtime > 0 $diverFilter $filterClause
+      ORDER BY measured_runtime DESC
       LIMIT 1
     ''', variables: vars).getSingleOrNull();
 
@@ -4491,9 +4490,10 @@ class DiveRepository {
       bottomTime: row.data['bottom_time'] != null
           ? Duration(seconds: row.data['bottom_time'] as int)
           : null,
-      runtime: row.data['runtime'] != null
-          ? Duration(seconds: row.data['runtime'] as int)
-          : null,
+      runtime: switch (row.data['measured_runtime'] ?? row.data['runtime']) {
+        final int seconds => Duration(seconds: seconds),
+        _ => null,
+      },
       waterTemp: row.data['water_temp'] as double?,
     );
   }
@@ -4550,15 +4550,14 @@ class DiveRepository {
     return rows.map((r) => r.read<String>('id')).toList();
   }
 
-  /// SQL expression mirroring [domain.Dive.effectiveRuntime]'s resolution
-  /// order in seconds: runtime, exit - entry (when positive), profile span,
-  /// bottom time.
+  /// SQL expression mirroring [domain.Dive.measuredRuntime]'s resolution
+  /// order in seconds: runtime, exit - entry (when positive), profile span.
   ///
   /// Delegates to the shared fragment rather than spelling the chain out a
   /// second time. This constant and the statistics aggregates have to agree
-  /// on what a dive's duration is, and two hand-written copies of a four-step
-  /// COALESCE are how they stop agreeing.
-  static final _effectiveRuntimeSql = effectiveRuntimeSecondsSql('d');
+  /// on what a dive's duration is, and two hand-written copies of a
+  /// three-step COALESCE are how they stop agreeing.
+  static final _measuredRuntimeSql = measuredRuntimeSecondsSql('d');
 
   /// Deterministic tie-break for the personal-record winners, matching the
   /// most-recent-first order [getAllDives] used before WS4: the old in-memory
@@ -4612,14 +4611,14 @@ class DiveRepository {
       'd.max_depth IS NOT NULL AND d.max_depth > 0',
       'd.max_depth DESC, $_recencyTieBreak',
     );
-    // Longest evaluates the effective-runtime expression (a correlated
+    // Longest evaluates the measured-runtime expression (a correlated
     // dive_profile_series subquery) once in a derived table and orders on
     // the alias, rather than paying for the subquery twice (WHERE + ORDER BY)
     // -- this is the dashboard hot path the PR is optimizing.
     final longestRow = await _db
         .customSelect(
           'SELECT id FROM ('
-          'SELECT d.id AS id, $_effectiveRuntimeSql AS er, '
+          'SELECT d.id AS id, $_measuredRuntimeSql AS er, '
           'COALESCE(d.entry_time, d.dive_date_time) AS recency, '
           'd.dive_number AS dn FROM dives d WHERE 1 = 1 $diverFilter'
           ') WHERE er > 0 ORDER BY er DESC, recency DESC, dn DESC LIMIT 1',
@@ -9878,9 +9877,6 @@ class DiveRecord {
     this.runtime,
     this.waterTemp,
   });
-
-  /// Best available runtime (runtime, then bottomTime).
-  Duration? get effectiveRuntime => runtime ?? bottomTime;
 }
 
 /// Information about dive numbering, including gaps

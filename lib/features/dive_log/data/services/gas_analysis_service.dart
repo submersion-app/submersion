@@ -317,7 +317,7 @@ class GasAnalysisService {
     );
 
     final diveEnd =
-        dive.effectiveRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
+        dive.measuredRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
     // Only a switch that says when a cylinder was breathed overrides a
     // recorded duration: not a stale id (#110), nor one after the dive.
     final hasGasSwitches = knownGasSwitches(

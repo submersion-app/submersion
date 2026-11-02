@@ -172,6 +172,54 @@ void main() {
     expect(await ids('finalStopExcursion > 3ft'), {'d2'});
   });
 
+  test('SAC reads the measured runtime, never a bottom time', () async {
+    Future<void> dive(
+      String id, {
+      int? bottomTime,
+      int? entry,
+      int? exit,
+    }) async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: id,
+              diverId: const Value('me'),
+              diveDateTime: now,
+              bottomTime: Value(bottomTime),
+              entryTime: Value(entry),
+              exitTime: Value(exit),
+              avgDepth: const Value(15),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'tank-$id',
+              diveId: id,
+              startPressure: const Value(200),
+              endPressure: const Value(140),
+            ),
+          );
+    }
+
+    // 60 bar at 15 m average: 50 min measured reads 0.48 bar/min, as d1 does,
+    // where its 30 min bottom time would read 0.8.
+    await dive(
+      'stamped',
+      bottomTime: 1800,
+      entry: now,
+      exit: now + const Duration(minutes: 50).inMilliseconds,
+    );
+    await dive('hand-logged', bottomTime: 1800);
+
+    expect(await ids('sac > 0.47 AND sac < 0.49'), {'d1', 'stamped'});
+    expect(await ids('sac:none'), {'d2', 'd3', 'd4', 'hand-logged'});
+  });
+
   test('SAC uses the Insights formula and the diver pressure unit', () async {
     expect(await ids('sac > 0.47'), {'d1'});
     expect(await ids('sac < 0.49'), {'d1'});

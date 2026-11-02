@@ -1,17 +1,22 @@
-/// SQL spellings of `Dive.effectiveRuntime`, for queries that must total dive
-/// durations without hydrating `Dive` object graphs.
+/// SQL spellings of `Dive.measuredRuntime` and `Dive.effectiveRuntime`, for
+/// queries that must read dive durations without hydrating `Dive` object
+/// graphs.
 ///
-/// The chain has four steps, in order: the explicit `runtime`, then
-/// `exit_time - entry_time`, then the span of the dive's profile samples,
-/// then `bottom_time`. Every aggregate that reports "total dive time" has to
-/// resolve all four, because a dive downloaded from a computer often carries
-/// no explicit `runtime` at all and is only measurable through its profile.
-/// A query that stops at `COALESCE(runtime, bottom_time)` silently reports
-/// those dives as zero.
+/// The measured chain has three steps, in order: the explicit `runtime`, then
+/// `exit_time - entry_time`, then the span of the dive's profile samples. A
+/// dive downloaded from a computer often carries no explicit `runtime` at all
+/// and is only measurable through its profile, so a query that reads the
+/// column alone misses it.
 ///
-/// The fragments live here, in one file, so the depth-distribution and
-/// dive-type aggregates cannot drift into two different answers for the same
-/// dive. Callers pass the table alias their statement uses for `dives`.
+/// Anything reported as a duration (totals, records, charts, SAC) reads
+/// [measuredRuntimeSecondsSql]: bottom time is derived from a depth threshold,
+/// so it never counts as runtime (issue #3304). [effectiveRuntimeSecondsSql]
+/// adds it as a fourth step, as an estimate of when a dive ended for a time
+/// window.
+///
+/// The fragments live here, in one file, so the aggregates cannot drift into
+/// two different answers for the same dive. Callers pass the table alias
+/// their statement uses for `dives`.
 library;
 
 import 'package:submersion/core/database/dive_source_stamp.dart';
@@ -89,10 +94,10 @@ String _supersededOriginalSql(String s) {
       'LIMIT 1)))';
 }
 
-/// The first three steps of the chain: a duration the dive actually
-/// measured, in seconds, or NULL. Bottom time is left out because it is
-/// derived from a depth threshold, so Insights' runtime (issue #3059) never
-/// reports one as a runtime.
+/// A duration the dive actually measured, in seconds, or NULL: the form of
+/// `Dive.measuredRuntime` that every report of a dive's length reads. Bottom
+/// time is left out because it is derived from a depth threshold, so it is
+/// never reported as a runtime (issues #3059, #3304).
 ///
 /// `COALESCE` short-circuits in SQLite, so the correlated profile subquery is
 /// only executed for the dives that actually reach that step. A dive with an
@@ -106,7 +111,8 @@ String measuredRuntimeSecondsSql(String alias) =>
 
 /// The whole `Dive.effectiveRuntime` chain as one scalar expression, in
 /// seconds, NULL only for a dive that carries no duration in any form: the
-/// [measuredRuntimeSecondsSql] steps, then `bottom_time`.
+/// [measuredRuntimeSecondsSql] steps, then `bottom_time`. An estimate for a
+/// time window, never a value to report as a runtime.
 String effectiveRuntimeSecondsSql(String alias) =>
     'COALESCE(${measuredRuntimeSecondsSql(alias)}, $alias.bottom_time)';
 

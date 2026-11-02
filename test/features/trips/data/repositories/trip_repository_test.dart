@@ -495,8 +495,8 @@ void main() {
         expect(stats.totalRuntime, equals(5400));
       });
 
-      test('getTripWithStats falls back to bottom time when runtime is '
-          'missing', () async {
+      test('getTripWithStats adds no time for a dive with only a bottom '
+          'time', () async {
         final trip = await repository.createTrip(
           createTestTrip(name: 'Mixed Trip'),
         );
@@ -505,7 +505,8 @@ void main() {
 
         final stats = await repository.getTripWithStats(trip.id);
 
-        expect(stats.totalRuntime, equals(5400));
+        expect(stats.diveCount, equals(2));
+        expect(stats.totalRuntime, equals(3000));
       });
 
       test('getAllTripsWithStats totals runtime rather than bottom '

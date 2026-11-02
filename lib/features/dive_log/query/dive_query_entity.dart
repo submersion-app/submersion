@@ -211,7 +211,7 @@ String _derived(String column) =>
 /// with no back-gas pressures, no drop to count (#3974), no runtime or no
 /// average depth, and on a CCR or SCR dive (issue #3673).
 final String kDiveSacSql =
-    '(CASE WHEN COALESCE({r}.runtime, {r}.bottom_time) > 0 '
+    '(CASE WHEN ${measuredRuntimeSecondsSql('{r}')} > 0 '
     'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';
 
 final QueryEntity diveQueryEntity = QueryEntity(
@@ -453,8 +453,14 @@ final QueryEntity diveQueryEntity = QueryEntity(
       kDiveSacSql,
       dimension: FieldDimension.pressureRate,
       sanity: (min: 0, max: 20),
-      // dive_sites: a dive with no water of its own reads its site's.
-      tables: ['dive_tanks', 'dive_sites'],
+      // dive_sites: a dive with no water of its own reads its site's. The
+      // measured runtime's profile step reads the rest (issue #3537).
+      tables: [
+        'dive_tanks',
+        'dive_sites',
+        'dive_profile_series',
+        'dive_data_sources',
+      ],
     ),
     QueryField(
       key: 'sacTrend',

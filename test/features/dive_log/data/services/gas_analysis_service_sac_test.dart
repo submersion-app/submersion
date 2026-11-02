@@ -129,7 +129,7 @@ void main() {
       expect(results.first.usageDuration?.inSeconds, greaterThan(0));
     });
 
-    test('falls back to bottomTime as last resort', () {
+    test('gives a dive with only a bottom time no SAC', () {
       final dive = makeDive(
         bottomTime: const Duration(minutes: 35),
         avgDepth: 20.0,
@@ -138,14 +138,12 @@ void main() {
         profile: const [],
       );
 
-      // With empty profile, calculateCylinderSac still runs using the
-      // effectiveRuntime fallback chain (bottomTime as last resort).
       final results = service.calculateCylinderSac(
         dive: dive,
         profile: dive.profile,
       );
 
-      expect(results, hasLength(1));
+      expect(results.where((r) => r.sacRate != null), isEmpty);
     });
 
     test('computes SAC from start/end pressures when the dive has no profile '

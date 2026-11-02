@@ -173,11 +173,11 @@ class PdfExportService {
                       units.formatDepth(dive.maxDepth),
                     ),
                   ),
-                if (dive.effectiveRuntime != null)
+                if (dive.measuredRuntime != null)
                   pw.Text(
                     l10n.pdf_labelValue(
                       l10n.pdf_duration,
-                      l10n.pdf_minutes('${dive.effectiveRuntime!.inMinutes}'),
+                      l10n.pdf_minutes('${dive.measuredRuntime!.inMinutes}'),
                     ),
                   ),
               ],

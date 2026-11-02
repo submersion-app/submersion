@@ -216,9 +216,9 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                           cellStyle,
                         ),
                         _buildCell(
-                          dive.effectiveRuntime != null
+                          dive.measuredRuntime != null
                               ? l10n.pdf_minutesCompact(
-                                  '${dive.effectiveRuntime!.inMinutes}',
+                                  '${dive.measuredRuntime!.inMinutes}',
                                 )
                               : '-',
                           cellStyle,

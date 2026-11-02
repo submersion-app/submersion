@@ -68,7 +68,7 @@ void main() {
       expect(dive.rmvFor(GasModel.real)!, closeTo(14.21, 0.1));
     });
 
-    test('falls back to bottomTime when no runtime source', () {
+    test('has no value for a dive with only a bottom time', () {
       final dive = _sacDive(
         bottomTime: const Duration(minutes: 30),
         avgDepth: 20.0,
@@ -82,9 +82,8 @@ void main() {
           ),
         ],
       );
-      // (200-50) * 12 / 30 / (20/10+1) = 1800 / 30 / 3 = 20.0 (ideal)
-      // With Z-factor: ≈ 18.77
-      expect(dive.rmvFor(GasModel.real)!, closeTo(19.02, 0.1));
+      // Dividing the whole dive's gas by a bottom time would read high.
+      expect(dive.rmvFor(GasModel.real), isNull);
     });
 
     // --- Null return cases ---
@@ -255,6 +254,15 @@ void main() {
 
     test('returns null when no time source available', () {
       final dive = _sacDive(tanks: const [_singleTank]);
+      expect(dive.sac, isNull);
+    });
+
+    test('has no value for a dive with only a bottom time', () {
+      final dive = _sacDive(
+        bottomTime: const Duration(minutes: 30),
+        avgDepth: 20.3,
+        tanks: const [_singleTank],
+      );
       expect(dive.sac, isNull);
     });
 

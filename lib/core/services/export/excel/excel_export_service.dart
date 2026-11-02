@@ -573,12 +573,12 @@ class ExcelExportService {
 
       final longestDive = dives.reduce(
         (a, b) =>
-            (a.effectiveRuntime?.inSeconds ?? 0) >
-                (b.effectiveRuntime?.inSeconds ?? 0)
+            (a.measuredRuntime?.inSeconds ?? 0) >
+                (b.measuredRuntime?.inSeconds ?? 0)
             ? a
             : b,
       );
-      final longestRuntime = longestDive.effectiveRuntime;
+      final longestRuntime = longestDive.measuredRuntime;
       if (longestRuntime != null) {
         addStat('Longest Dive', '${longestRuntime.inMinutes} min');
       }

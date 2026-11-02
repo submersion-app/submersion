@@ -201,7 +201,7 @@ void main() {
         Dive(
           id: 'now-1',
           dateTime: DateTime(year, 2, 1, 10),
-          bottomTime: const Duration(minutes: 40),
+          runtime: const Duration(minutes: 40),
           maxDepth: 28,
         ),
       );
@@ -209,7 +209,7 @@ void main() {
         Dive(
           id: 'prev-1',
           dateTime: DateTime(year - 1, 2, 1, 10),
-          bottomTime: const Duration(minutes: 30),
+          runtime: const Duration(minutes: 30),
           maxDepth: 18,
         ),
       );

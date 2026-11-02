@@ -104,13 +104,13 @@ class TripDivesTab extends ConsumerWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                        // Runtime with a bottom-time fallback, matching the
-                        // trip totals so these rows add up to the figure the
-                        // Overview tab reports (issue #889).
-                        if ((dive.runtime ?? dive.bottomTime) != null)
+                        // Measured runtime, matching the trip totals so these
+                        // rows add up to the figure the Overview tab reports
+                        // (issue #889).
+                        if (dive.measuredRuntime != null)
                           Text(
                             context.l10n.diveLog_sources_minutes(
-                              (dive.runtime ?? dive.bottomTime)!.inMinutes,
+                              dive.measuredRuntime!.inMinutes,
                             ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,

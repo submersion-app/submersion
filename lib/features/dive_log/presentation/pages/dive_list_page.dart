@@ -1208,7 +1208,10 @@ class DiveListTile extends ConsumerWidget {
     return switch (field) {
       DiveField.maxDepth => maxDepth,
       DiveField.bottomTime => duration,
-      DiveField.runtime => duration,
+      // [duration] falls back to a bottom time, which is no runtime, so it
+      // only stands in when there was nothing to extract from (issue #3304).
+      DiveField.runtime =>
+        fullDive == null && summary == null ? duration : null,
       DiveField.waterTemp => waterTemp,
       DiveField.ratingStars => rating,
       DiveField.isFavorite => isFavorite,

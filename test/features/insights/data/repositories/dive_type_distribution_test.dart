@@ -48,7 +48,7 @@ void main() {
         id: 'a',
         dateTime: DateTime(2026, 1, 1),
         diveTypeIds: const ['night', 'wreck'],
-        bottomTime: const Duration(minutes: 30),
+        runtime: const Duration(minutes: 30),
       ),
     );
     await diveRepo.createDive(
@@ -56,7 +56,7 @@ void main() {
         id: 'b',
         dateTime: DateTime(2026, 1, 2),
         diveTypeIds: const ['night'],
-        bottomTime: const Duration(minutes: 45),
+        runtime: const Duration(minutes: 45),
       ),
     );
 
@@ -68,11 +68,11 @@ void main() {
     expect(byLabel['wreck'], 30 * 60);
   });
 
-  test('totalDurationSeconds resolves the whole effectiveRuntime chain, not '
-      'just runtime and bottom_time', () async {
+  test('totalDurationSeconds resolves the whole measured runtime chain, and '
+      'adds no bottom time', () async {
     // Each dive below can only be measured at a different step of
-    // `Dive.effectiveRuntime`, so a query that stops at
-    // COALESCE(runtime, bottom_time) reports the middle two as zero.
+    // `Dive.measuredRuntime`, so a query that reads the runtime column alone
+    // reports the middle two as zero.
     await diveRepo.createDive(
       domain.Dive(
         id: 'explicit-runtime',
@@ -117,8 +117,8 @@ void main() {
     final dist = await stats.getDiveTypeDistribution();
     final byLabel = {for (final s in dist) s.label: s.totalDurationSeconds};
     // runtime wins over bottom_time (25, not 20), then exit - entry (40),
-    // then the profile span (30), then bottom_time (45).
-    expect(byLabel['night'], (25 + 40 + 30 + 45) * 60);
+    // then the profile span (30). The bottom-time-only dive adds nothing.
+    expect(byLabel['night'], (25 + 40 + 30) * 60);
   });
 
   test(

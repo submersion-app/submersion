@@ -31,9 +31,9 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
       _CompareRow(
         label: context.l10n.plannerCanvas_compare_runtime,
         planned: '${(outcome.runtimeSeconds / 60).round()}′',
-        actual: dive.effectiveRuntime == null
+        actual: dive.measuredRuntime == null
             ? '--'
-            : '${dive.effectiveRuntime!.inMinutes}′',
+            : '${dive.measuredRuntime!.inMinutes}′',
       ),
       _CompareRow(
         label: context.l10n.plannerCanvas_compare_maxDepth,

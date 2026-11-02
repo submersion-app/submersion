@@ -57,7 +57,7 @@ void main() {
     String? siteId,
     double? maxDepth,
     double? waterTemp,
-    int? bottomTimeSeconds,
+    int? runtimeSeconds,
     bool favorite = false,
   }) async {
     await db
@@ -76,7 +76,7 @@ void main() {
             siteId: Value(siteId),
             maxDepth: Value(maxDepth),
             waterTemp: Value(waterTemp),
-            bottomTime: Value(bottomTimeSeconds),
+            runtime: Value(runtimeSeconds),
             isFavorite: Value(favorite),
             createdAt: Value(now),
             updatedAt: Value(now),
@@ -91,14 +91,14 @@ void main() {
         date: DateTime(2024, 1, 10),
         maxDepth: 12,
         waterTemp: 26,
-        bottomTimeSeconds: 1800,
+        runtimeSeconds: 1800,
       );
       await insertDive(
         'deep',
         date: DateTime(2026, 5, 10),
         maxDepth: 44,
         waterTemp: 9,
-        bottomTimeSeconds: 3600,
+        runtimeSeconds: 3600,
       );
 
       final records = await repository.getRecords();
@@ -118,21 +118,21 @@ void main() {
         date: DateTime(2024, 1, 10),
         maxDepth: 60,
         waterTemp: 4,
-        bottomTimeSeconds: 7200,
+        runtimeSeconds: 7200,
       );
       await insertDive(
         'inRange',
         date: DateTime(2026, 6, 15),
         maxDepth: 30,
         waterTemp: 20,
-        bottomTimeSeconds: 2400,
+        runtimeSeconds: 2400,
       );
       await insertDive(
         'newer',
         date: DateTime(2026, 9, 1),
         maxDepth: 50,
         waterTemp: 8,
-        bottomTimeSeconds: 5400,
+        runtimeSeconds: 5400,
       );
 
       final records = await repository.getRecords(
@@ -185,7 +185,7 @@ void main() {
         date: DateTime(2026, 3, 1),
         maxDepth: 18,
         waterTemp: 24,
-        bottomTimeSeconds: 1800,
+        runtimeSeconds: 1800,
       );
 
       final records = await repository.getRecords(
@@ -210,7 +210,7 @@ void main() {
         diverId: 'me',
         maxDepth: 20,
         waterTemp: 22,
-        bottomTimeSeconds: 1800,
+        runtimeSeconds: 1800,
         favorite: true,
       );
       await insertDive(
@@ -219,7 +219,7 @@ void main() {
         diverId: 'me',
         maxDepth: 55,
         waterTemp: 6,
-        bottomTimeSeconds: 3600,
+        runtimeSeconds: 3600,
       );
       await insertDive(
         'theirsFavorite',
@@ -227,7 +227,7 @@ void main() {
         diverId: 'other',
         maxDepth: 70,
         waterTemp: 3,
-        bottomTimeSeconds: 5400,
+        runtimeSeconds: 5400,
         favorite: true,
       );
 
@@ -256,14 +256,14 @@ void main() {
           date: DateTime(2026, 3, 1),
           maxDepth: 20,
           waterTemp: 22,
-          bottomTimeSeconds: 1800,
+          runtimeSeconds: 1800,
         );
         await insertDive(
           'paired',
           date: DateTime(2026, 3, 2),
           maxDepth: 40,
           waterTemp: 10,
-          bottomTimeSeconds: 3600,
+          runtimeSeconds: 3600,
         );
         await db
             .into(db.buddies)

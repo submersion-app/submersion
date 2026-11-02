@@ -141,6 +141,48 @@ void main() {
     });
   });
 
+  group('DiveListTile Runtime stat', () {
+    Widget tile({Duration? runtime}) => testApp(
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => _TestSettingsNotifier(const AppSettings()),
+        ),
+        detailedCardConfigProvider.overrideWith(
+          (ref) => _TestCardConfigNotifier(
+            configWithSlot('stat1', DiveField.runtime),
+          ),
+        ),
+      ],
+      child: DiveListTile(
+        diveId: 'd1',
+        diveNumber: 7,
+        dateTime: DateTime(2024, 6, 1),
+        siteName: 'Reef',
+        // As DiveListItem passes it: the runtime, else the bottom time.
+        duration: runtime ?? const Duration(minutes: 37),
+        summary: DiveSummary(
+          id: 'd1',
+          dateTime: DateTime(2024, 6, 1),
+          runtime: runtime,
+          bottomTime: const Duration(minutes: 37),
+          sortTimestamp: 0,
+        ),
+      ),
+    );
+
+    testWidgets('shows the runtime of a dive that has one', (tester) async {
+      await tester.pumpWidget(tile(runtime: const Duration(minutes: 52)));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('52'), findsWidgets);
+    });
+
+    testWidgets('does not pass a bottom time off as a runtime', (tester) async {
+      await tester.pumpWidget(tile());
+      await tester.pumpAndSettle();
+      expect(find.textContaining('37'), findsNothing);
+    });
+  });
+
   group('DiveListTile dive number badge', () {
     testWidgets('large dive number stays on one line and scales to fit', (
       tester,

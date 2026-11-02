@@ -92,7 +92,9 @@ The rows, in order:
 > **Runtime** is the total time from entry to exit. Your SAC
 > ([Surface Air Consumption](glossary.md)) rate is calculated from runtime, so a
 > dive's gas-use figures are most accurate when both your gas pressures and your
-> entry and exit times (or runtime) are filled in.
+> entry and exit times (or runtime) are filled in. A dive with only a bottom time
+> has no runtime, so it shows no SAC or RMV and adds nothing to your total time or
+> longest dive. Fill in its runtime, or its entry and exit times, to count it.
 
 ### Automatic dive numbering
 

@@ -13,6 +13,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
@@ -669,7 +670,7 @@ class TripRepository {
       statsResult = await _db.customSelect('''
         SELECT
           COUNT(*) as dive_count,
-          COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) as total_runtime,
+          COALESCE(SUM(${measuredRuntimeSecondsSql('dives')}), 0) as total_runtime,
           MAX(max_depth) as max_depth,
           AVG(max_depth) as avg_depth
         FROM dives
@@ -775,7 +776,7 @@ class TripRepository {
         SELECT
           t.*,
           COUNT(DISTINCT d.id) AS dive_count,
-          COALESCE(SUM(COALESCE(d.runtime, d.bottom_time)), 0) AS total_runtime,
+          COALESCE(SUM(${measuredRuntimeSecondsSql('d')}), 0) AS total_runtime,
           MAX(d.max_depth) AS max_depth,
           AVG(d.avg_depth) AS avg_depth
         FROM trips t

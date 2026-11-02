@@ -5,6 +5,7 @@ library;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
@@ -92,6 +93,6 @@ String diveSacPressureSql(String dive) {
       'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
       "AND t3.tank_role = 'backGas')) "
       'ORDER BY t2.tank_order, t2.rowid LIMIT 1)) '
-      '/ (COALESCE($dive.runtime, $dive.bottom_time) / 60.0) '
+      '/ (${measuredRuntimeSecondsSql(dive)} / 60.0) '
       '/ ${diveAmbientBarSql(dive, '$dive.avg_depth')}) END)';
 }

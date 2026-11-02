@@ -26,10 +26,10 @@ void main() {
       );
     });
 
-    test('falls back to bottom time when nothing better exists', () {
+    test('prints a dash for a dive with only a bottom time (#3304)', () {
       expect(
         pdfDiveDurationMinutes(dive(bottomTime: const Duration(minutes: 50))),
-        '50',
+        '-',
       );
     });
 
@@ -39,7 +39,7 @@ void main() {
   });
 
   group('pdfTotalRuntime (#644)', () {
-    test('sums effective runtimes across dives', () {
+    test('sums measured runtimes across dives (#3304)', () {
       final dives = [
         Dive(
           id: 'a',
@@ -57,8 +57,8 @@ void main() {
       ];
       expect(
         pdfTotalRuntime(dives),
-        const Duration(minutes: 102),
-        reason: 'runtime (62) + bottomTime fallback (40), not 50 + 40',
+        const Duration(minutes: 62),
+        reason: 'the runtime (62), with no bottom time counted as one',
       );
     });
   });

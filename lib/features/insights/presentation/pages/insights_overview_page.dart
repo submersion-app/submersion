@@ -417,7 +417,7 @@ class _RecordsSection extends StatelessWidget {
       );
     }
     if (records.longestDive != null) {
-      final minutes = records.longestDive!.effectiveRuntime?.inMinutes ?? 0;
+      final minutes = records.longestDive!.runtime?.inMinutes ?? 0;
       rows.add(
         _RecordTile(
           icon: Icons.timer,

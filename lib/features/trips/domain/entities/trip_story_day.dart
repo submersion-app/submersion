@@ -13,12 +13,12 @@ enum TripStoryDayKind { past, today, future }
 ///
 /// Runtime (surface to surface) is what divers add up when they talk about
 /// how long they were in the water, and it is what the rest of the app sums
-/// (`COALESCE(runtime, bottom_time)` in the statistics and dive-log queries).
-/// Bottom time stays as the fallback so hand-logged dives that only carry one
-/// still contribute.
+/// (`measuredRuntimeSecondsSql` in the statistics and dive-log queries). A
+/// dive with only a bottom time measured no runtime, so it adds nothing
+/// (issue #3304).
 Duration diveDayRuntime(Iterable<Dive> dives) => dives.fold(
   Duration.zero,
-  (sum, dive) => sum + (dive.runtime ?? dive.bottomTime ?? Duration.zero),
+  (sum, dive) => sum + (dive.measuredRuntime ?? Duration.zero),
 );
 
 /// The deepest of [dives], or null when none logged a depth.

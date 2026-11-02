@@ -14,16 +14,17 @@ import 'package:submersion/features/certification_agencies/presentation/certific
 
 /// Minutes string for a logbook Duration field (#644).
 ///
-/// Uses [Dive.effectiveRuntime] (runtime, then exit-entry, then profile,
-/// then bottomTime), never bottomTime directly: the logbook Duration must
-/// show the total dive duration, which bottom time understates.
+/// Uses [Dive.measuredRuntime] (runtime, then exit-entry, then profile), never
+/// bottomTime: the logbook Duration must show the total dive duration, which
+/// bottom time understates.
 String pdfDiveDurationMinutes(Dive dive) =>
-    '${dive.effectiveRuntime?.inMinutes ?? '-'}';
+    '${dive.measuredRuntime?.inMinutes ?? '-'}';
 
-/// Sum of effective runtimes for summary and total rows (#644).
-Duration pdfTotalRuntime(List<Dive> dives) => dives
-    .where((d) => d.effectiveRuntime != null)
-    .fold<Duration>(Duration.zero, (sum, d) => sum + d.effectiveRuntime!);
+/// Sum of measured runtimes for summary and total rows (#644, #3304).
+Duration pdfTotalRuntime(List<Dive> dives) => dives.fold<Duration>(
+  Duration.zero,
+  (sum, d) => sum + (d.measuredRuntime ?? Duration.zero),
+);
 
 /// Deepest recorded depth in meters, or 0 when no dive records one.
 ///
