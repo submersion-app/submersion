@@ -220,4 +220,24 @@ void main() {
     expect((await trips.getTripById('roatan'))!.endDate, DateTime(2026, 1, 10));
     expect(find.textContaining('now runs'), findsNothing);
   });
+
+  testWidgets('an unchanged save reads the entry time the form shows', (
+    tester,
+  ) async {
+    await addTrip();
+    await dives.createDive(
+      Dive(
+        id: 'd',
+        dateTime: DateTime.utc(2026, 1, 7, 10),
+        entryTime: entry,
+        tripId: 'roatan',
+      ),
+    );
+    await pumpEditor(tester, diveId: 'd');
+
+    await save(tester);
+
+    expect((await trips.getTripById('roatan'))!.endDate, DateTime(2026, 1, 10));
+    expect(find.textContaining('now runs'), findsNothing);
+  });
 }

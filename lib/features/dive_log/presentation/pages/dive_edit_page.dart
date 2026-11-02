@@ -6658,7 +6658,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             tripId: _selectedTrip?.id,
             previousTripId: _existingDive?.tripId ?? _existingDive?.trip?.id,
             date: entryDateTime,
-            previousDate: _existingDive?.dateTime,
+            previousDate: _existingDive?.effectiveEntryTime,
           )) {
         try {
           final message = tripDateStretchMessage(
