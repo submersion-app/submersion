@@ -600,6 +600,15 @@ void main() {
       expect(marks(1000, 280), [0, 240, 480, 720, 960]);
     });
 
+    test('settles on the widest step when even that one collides', () {
+      double huge(int tick, {required bool isLast}) => 500;
+
+      expect(
+        sacTimeAxisMarks(totalSeconds: 60000, width: 100, labelWidth: huge),
+        [0, 240, 480, 720, 960],
+      );
+    });
+
     test('still returns marks when nothing fits', () {
       double huge(int tick, {required bool isLast}) => 500;
 
