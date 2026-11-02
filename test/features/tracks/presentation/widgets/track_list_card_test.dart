@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,6 +91,25 @@ void main() {
     expect(tester.widget<ListTile>(find.byType(ListTile)).onTap, isNull);
   });
 
+  testWidgets('a mouse over the tile inside gets the click cursor', (
+    tester,
+  ) async {
+    await pump(tester, highlighted: false);
+
+    final gesture = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+      pointer: 1,
+    );
+    addTearDown(gesture.removePointer);
+    await gesture.addPointer(location: tester.getCenter(find.text('r1.csv')));
+    await tester.pump();
+
+    expect(
+      RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+      SystemMouseCursors.click,
+    );
+  });
+
   group('selected state for assistive technology', () {
     Future<SemanticsNode> cardSemantics(
       WidgetTester tester, {
@@ -97,14 +117,14 @@ void main() {
       required bool picked,
     }) async {
       await pump(tester, highlighted: highlighted, picked: picked);
-      // The card's own InkWell, ahead of the tile's inner one.
+      // The card's own InkWell: the tile inside has no tap of its own.
       return tester.getSemantics(
-        find
-            .descendant(
-              of: find.byType(RecordListCard),
-              matching: find.byType(InkWell),
-            )
-            .first,
+        find.descendant(
+          of: find.byType(RecordListCard),
+          matching: find.byWidgetPredicate(
+            (w) => w is InkWell && w.onTap != null,
+          ),
+        ),
       );
     }
 
