@@ -1,0 +1,22 @@
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+
+/// The dive's annotations (#4109) that its Notes still link, in time order.
+/// Refreshed by the analysis-input tick, which the event table feeds, and by
+/// the dive itself (a Notes edit can orphan one). Its own provider, not a
+/// branch of the analysis: an annotation is the diver's, drawn whether or
+/// not the dive has an analysis to run.
+final diveAnnotationsProvider = FutureProvider.autoDispose
+    .family<List<ProfileEvent>, String>((ref, diveId) async {
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
+      );
+      final dive = await ref.watch(diveProvider(diveId).future);
+      final annotations = await ref
+          .watch(annotationRepositoryProvider)
+          .annotationsForDive(diveId);
+      return dropOrphanAnnotations(annotations, dive?.notes ?? '');
+    });

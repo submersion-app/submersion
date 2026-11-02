@@ -316,6 +316,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final void Function(int seconds, double? depthMeters, Offset globalPosition)?
   onSecondaryTapAt;
 
+  /// The annotation drawn with a halo and reported once through
+  /// [onAnnotationTap] when it changes, so the page can open its popup.
+  final String? focusedAnnotationId;
+
   /// Off for a read-only chart, whose zoom buttons would do nothing.
   final bool showZoomControls;
 
@@ -775,6 +779,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.annotationPlacement = false,
     this.onAnnotationPlaced,
     this.onSecondaryTapAt,
+    this.focusedAnnotationId,
     this.showZoomControls = true,
     this.showSac = false,
     this.markers,
@@ -5118,6 +5123,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   : units.convertDepth(_depthAtTimestamp(seconds.toDouble())),
               onTap: widget.onAnnotationTap ?? (_, _) {},
               interactive: !widget.annotationPlacement,
+              focusedId: widget.focusedAnnotationId,
             ),
           ),
         // Range-statistics handles. Topmost so a handle wins the pointer

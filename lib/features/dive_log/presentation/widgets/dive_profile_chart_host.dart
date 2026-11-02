@@ -23,6 +23,11 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/utils/profile_extent_sync.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cell_divergence_highlight.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
@@ -109,6 +114,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.tooltipPresentation = TooltipPresentation.inChart,
     this.onTooltipData,
     this.onSafetyFindingDetails,
+    this.annotationActions,
   });
 
   /// The hydrated dive: tanks and profile samples included. A dive loaded for
@@ -127,6 +133,11 @@ class DiveProfileChartHost extends ConsumerWidget {
   final TooltipPresentation tooltipPresentation;
 
   final void Function(List<TooltipRow>? rows)? onTooltipData;
+
+  /// Wires the chart's annotation callbacks (#4109): placement, the marker
+  /// popup and the right-click menu. Null for a host that only shows the
+  /// profile (the dashboard preview, a plan's logged dive).
+  final DiveDetailAnnotationActions? annotationActions;
 
   /// "Show me the details" on a safety finding's callout. Null hides the
   /// action, which is right wherever the safety section is not on screen to
@@ -352,6 +363,23 @@ class DiveProfileChartHost extends ConsumerWidget {
         ? selectedFinding
         : null;
 
+    final annotations = annotationActions;
+    final placement = annotations == null
+        ? null
+        : ref.watch(annotationPlacementProvider(diveId));
+    final focusedAnnotation = annotations == null
+        ? null
+        : ref.watch(annotationFocusProvider(diveId));
+    // The diver's annotations come from their own provider (#4109), not the
+    // analysis, so they draw whether or not the dive has an analysis.
+    final annotationEvents =
+        ref.watch(diveAnnotationsProvider(diveId)).valueOrNull ??
+        const <ProfileEvent>[];
+    final computerEvents = analysis?.events.where((e) => !e.isAnnotation);
+    final chartEvents = computerEvents == null && annotationEvents.isEmpty
+        ? null
+        : [...?computerEvents, ...annotationEvents];
+
     return MouseRegion(
       onExit: (_) {
         ref.read(profileTrackingIndexProvider(diveId).notifier).state = null;
@@ -371,7 +399,20 @@ class DiveProfileChartHost extends ConsumerWidget {
         labelCeilingAsCalculated:
             analysis?.computerStopsWithCalculatedCeiling ?? false,
         ascentRates: analysis?.ascentRates,
-        events: analysis?.events,
+        events: chartEvents,
+        annotationPlacement: placement != null,
+        onAnnotationPlaced: annotations?.place,
+        onAnnotationTap: annotations == null
+            ? null
+            : (annotation, at) {
+                if (focusedAnnotation != null) {
+                  ref.read(annotationFocusProvider(diveId).notifier).state =
+                      null;
+                }
+                annotations.onMarkerTap(annotation, at);
+              },
+        onSecondaryTapAt: annotations?.onSecondaryTap,
+        focusedAnnotationId: focusedAnnotation,
         ndlCurve: analysis?.ndlCurve,
         sacCurve: analysis?.smoothedSacCurve,
         environment: analysis?.environment ?? DiveEnvironment.standard,

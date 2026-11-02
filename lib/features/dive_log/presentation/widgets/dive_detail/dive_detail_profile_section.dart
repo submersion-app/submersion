@@ -14,6 +14,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipPresentation;
+import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
@@ -61,9 +64,14 @@ class DiveDetailProfileSection extends ConsumerWidget {
     required this.exportKey,
     required this.onSafetyFindingDetails,
     required this.onSetPrimarySource,
+    this.onOpenInNotes,
   });
 
   final String diveId;
+
+  /// "Open in Notes" on an annotation's popup (#4109): scrolls to the Notes
+  /// card and highlights the passage.
+  final ValueChanged<String>? onOpenInNotes;
 
   /// Repaint boundary key for "export profile as image".
   final GlobalKey exportKey;
@@ -84,6 +92,13 @@ class DiveDetailProfileSection extends ConsumerWidget {
         )
         ?.dive;
     if (dive == null) return const SizedBox.shrink();
+    final annotationActions = DiveDetailAnnotationActions(
+      ref: ref,
+      context: context,
+      dive: dive,
+      onOpenInNotes: onOpenInNotes,
+    );
+    final placement = ref.watch(annotationPlacementProvider(dive.id));
 
     // What follows a provider around the chart watches it in a widget of its
     // own. A watch here would hand the chart a new host each time it fired,
@@ -105,6 +120,10 @@ class DiveDetailProfileSection extends ConsumerWidget {
                 Row(
                   children: [
                     _RangeToggle(diveId: dive.id),
+                    _AnnotationPinButton(
+                      active: placement != null,
+                      onPressed: annotationActions.onPinPressed,
+                    ),
                     IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,
@@ -137,10 +156,22 @@ class DiveDetailProfileSection extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
+            if (placement != null) ...[
+              AnnotationPlacementBanner(
+                text: placement.isMove
+                    ? context.l10n.diveLog_annotation_banner_move
+                    : context.l10n.diveLog_annotation_banner_place,
+                onCancel: ref
+                    .read(annotationPlacementProvider(dive.id).notifier)
+                    .cancel,
+              ),
+              const SizedBox(height: 8),
+            ],
             // Chart with optional range selection overlay
             DiveProfileChartHost(
               dive: dive,
               exportKey: exportKey,
+              annotationActions: annotationActions,
               onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
               // fl_chart's own tooltip bubble (issue #2228 follow-up): this
               // is the exact pre-#2228 presentation for the embedded chart,
@@ -170,6 +201,31 @@ class DiveDetailProfileSection extends ConsumerWidget {
       MaterialPageRoute(
         builder: (context) => FullscreenProfilePage(diveId: diveId),
       ),
+    );
+  }
+}
+
+/// The toolbar's pin (#4109): starts placing an annotation, lit while the
+/// chart is in placement mode.
+class _AnnotationPinButton extends StatelessWidget {
+  const _AnnotationPinButton({required this.active, required this.onPressed});
+
+  final bool active;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return IconButton(
+      icon: Icon(active ? Icons.push_pin : Icons.push_pin_outlined),
+      tooltip: context.l10n.diveLog_annotation_add,
+      visualDensity: VisualDensity.compact,
+      isSelected: active,
+      style: IconButton.styleFrom(
+        backgroundColor: active ? colors.secondaryContainer : null,
+        foregroundColor: active ? colors.onSecondaryContainer : null,
+      ),
+      onPressed: onPressed,
     );
   }
 }
