@@ -56,7 +56,7 @@ void main() {
       expect(dive.rmvFor(GasModel.real)!, closeTo(14.21, 0.1));
     });
 
-    test('uses effectiveRuntime via entry/exit when runtime is null', () {
+    test('uses measuredRuntime via entry/exit when runtime is null', () {
       final dive = _sacDive(
         bottomTime: const Duration(minutes: 20),
         entryTime: DateTime(2024, 1, 1, 10, 0),
@@ -107,7 +107,7 @@ void main() {
       expect(dive.rmvFor(GasModel.real), isNull);
     });
 
-    test('returns null when effectiveRuntime is zero', () {
+    test('returns null when measuredRuntime is zero', () {
       final dive = _sacDive(
         bottomTime: Duration.zero,
         tanks: const [_singleTank],
@@ -239,7 +239,7 @@ void main() {
       expect(dive.sac!, closeTo(1.34, 0.1));
     });
 
-    test('uses effectiveRuntime via entry/exit when runtime is null', () {
+    test('uses measuredRuntime via entry/exit when runtime is null', () {
       final dive = _sacDive(
         bottomTime: const Duration(minutes: 20),
         entryTime: DateTime(2024, 1, 1, 10, 0),
@@ -280,7 +280,7 @@ void main() {
       expect(dive.sac, isNull);
     });
 
-    test('returns null when effectiveRuntime is zero', () {
+    test('returns null when measuredRuntime is zero', () {
       final dive = _sacDive(
         bottomTime: Duration.zero,
         tanks: const [_singleTank],

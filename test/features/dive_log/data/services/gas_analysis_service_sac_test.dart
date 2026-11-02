@@ -68,7 +68,7 @@ void main() {
   }
 
   group('calculateCylinderSac', () {
-    test('uses effectiveRuntime (explicit runtime) for diveEnd', () {
+    test('uses measuredRuntime (explicit runtime) for diveEnd', () {
       final dive = makeDive(
         runtime: const Duration(minutes: 42),
         bottomTime: const Duration(minutes: 35),
@@ -105,7 +105,7 @@ void main() {
       );
 
       expect(results, hasLength(1));
-      // effectiveRuntime falls back to exitTime-entryTime = 40 min
+      // measuredRuntime falls back to exitTime-entryTime = 40 min
       expect(results.first.usageDuration?.inMinutes, 40);
     });
 
@@ -124,8 +124,7 @@ void main() {
       );
 
       expect(results, hasLength(1));
-      // Falls back to profile-based runtime via calculateRuntimeFromProfile,
-      // then bottomTime if profile calc returns null
+      // Falls back to profile-based runtime via calculateRuntimeFromProfile
       expect(results.first.usageDuration?.inSeconds, greaterThan(0));
     });
 
@@ -384,10 +383,10 @@ void main() {
       expect(results.first.sacRate, isNull);
     });
 
-    test('uses profile timestamp when effectiveRuntime is null', () {
+    test('uses profile timestamp when measuredRuntime is null', () {
       // Dive with NO runtime, NO timestamps, NO bottomTime,
       // single-point profile so calculateRuntimeFromProfile returns null.
-      // effectiveRuntime will be null, diveEnd falls to profile.lastOrNull.
+      // measuredRuntime will be null, diveEnd falls to profile.lastOrNull.
       final dive = makeDive(
         avgDepth: 20.0,
         tanks: [makeTank(startPressure: 200, endPressure: 50, volume: 11.1)],

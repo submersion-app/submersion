@@ -73,8 +73,8 @@ void main() {
       expect(winners.warmestId, 'shallow-warm');
     });
 
-    test('longest uses the full effectiveRuntime order, including the '
-        'profile-span fallback', () async {
+    test('longest uses the full measuredRuntime order, including the '
+        'profile span', () async {
       // Explicit runtime: 50 minutes.
       await repository.createDive(
         domain.Dive(
