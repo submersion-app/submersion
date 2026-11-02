@@ -80,6 +80,7 @@ import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dar
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_date_stretch_message.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -6622,6 +6623,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         await rulesAfterCreate(subject: RuleSubject.dives, ids: [savedDiveId]);
       }
 
+      // A dive put on a trip, or moved to another day on one, stretches the
+      // trip to cover it (#3351), before navigation takes this page's context.
+      if (mounted &&
+          savedDiveId != null &&
+          diveSaveTouchesTrip(
+            tripId: _selectedTrip?.id,
+            previousTripId: _existingDive?.tripId ?? _existingDive?.trip?.id,
+            date: entryDateTime,
+            previousDate: _existingDive?.dateTime,
+          )) {
+        await _stretchTripToCover(savedDiveId, units);
+      }
+
       // Offer to log the dive for linked buddies (issue #2002). Runs before
       // navigation so the dialog has this page's context; the runner uses
       // the container so its snackbar and refresh outlive this State. A
@@ -6682,6 +6696,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (mounted) {
         setState(() => _isSaving = false);
       }
+    }
+  }
+
+  /// Stretches the saved dive's trip to cover it and says so. A failure is
+  /// reported but never undoes the dive save.
+  Future<void> _stretchTripToCover(String diveId, UnitFormatter units) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    try {
+      final stretches = await ref
+          .read(tripRepositoryProvider)
+          .stretchToCoverDives([diveId]);
+      final message = tripDateStretchMessage(l10n, units, stretches);
+      if (message != null) {
+        messenger.showSnackBar(SnackBar(content: Text(message)));
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to stretch the trip of dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.trips_dateStretch_failed)),
+      );
     }
   }
 
