@@ -30290,8 +30290,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count غوصات فيها أسطوانات تبدو كطقم مزدوج.',
-      one: '$count غوصة فيها أسطوانة تبدو كطقم مزدوج.',
+      other: '$count غوصة فيها أسطوانات تبدو كطقم مزدوج.',
+      many: '$count غوصة فيها أسطوانات تبدو كطقم مزدوج.',
+      few: '$count غوصات فيها أسطوانات تبدو كطقم مزدوج.',
+      two: 'غوصتان فيهما أسطوانات تبدو كطقم مزدوج.',
+      one: 'غوصة واحدة فيها أسطوانة تبدو كطقم مزدوج.',
     );
     return '$_temp0';
   }
@@ -30320,9 +30323,15 @@ class AppLocalizationsAr extends AppLocalizations {
       tanks,
       locale: localeName,
       other:
-          'تعيين دور $tanks أسطوانات في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
-      one:
           'تعيين دور $tanks أسطوانة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      many:
+          'تعيين دور $tanks أسطوانة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      few:
+          'تعيين دور $tanks أسطوانات في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      two:
+          'تعيين دور أسطوانتين في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      one:
+          'تعيين دور أسطوانة واحدة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
     );
     return '$_temp0';
   }
@@ -30332,8 +30341,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count غوصات',
-      one: '$count غوصة',
+      other: '$count غوصة',
+      many: '$count غوصة',
+      few: '$count غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
     );
     return '$_temp0';
   }
@@ -30349,8 +30361,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تم تعيين $count أسطوانات كطقم مزدوج',
-      one: 'تم تعيين $count أسطوانة كطقم مزدوج',
+      other: 'تم تعيين $count أسطوانة كطقم مزدوج',
+      many: 'تم تعيين $count أسطوانة كطقم مزدوج',
+      few: 'تم تعيين $count أسطوانات كطقم مزدوج',
+      two: 'تم تعيين أسطوانتين كطقم مزدوج',
+      one: 'تم تعيين أسطوانة واحدة كطقم مزدوج',
     );
     return '$_temp0';
   }
