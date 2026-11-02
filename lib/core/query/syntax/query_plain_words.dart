@@ -19,22 +19,34 @@ final RegExp _bareYear = RegExp(r'^\d{4}$');
 
 bool _isTerm(Token t) => t.kind == TokenKind.word || t.kind == TokenKind.number;
 
+bool _isYearText(String text) => _bareYear.hasMatch(asciiDigits(text));
+
 bool _isComma(Token t) => t.kind == TokenKind.symbol && t.text == ',';
 
-bool _isYear(Token t) =>
-    t.kind == TokenKind.number && _bareYear.hasMatch(t.text);
+bool _isYear(Token t) => _isTerm(t) && _isYearText(t.text);
 
-/// A dot written straight after [term]: `14. Oktober`, `2018. október 14.`.
-bool _closesTerm(Token dot, Token term) =>
-    dot.kind == TokenKind.word &&
-    dot.text == '.' &&
-    dot.offset == term.offset + term.length;
+/// What a number can end in, as its own token: `14. Oktober`,
+/// `2018. október 14.`, `1º de maio`.
+const Set<String> _numberMarks = {'.', 'º', '°'};
 
-/// A filler of the [language] can sit inside a date (`14 de octubre de 2018`).
+/// A mark written straight after [term], so it belongs to the term.
+bool _closesTerm(Token mark, Token term) =>
+    mark.kind == TokenKind.word &&
+    _numberMarks.contains(mark.text) &&
+    mark.offset == term.offset + term.length;
+
+/// The words that mean "of" inside a date (`14 de octubre de 2018`). Other
+/// fillers stay out: `30 en octubre 2018` is 30 in October, not 30 October.
 /// English has `of`, which the grammar reads.
+const Map<String, Set<String>> _dateJoiners = {
+  'es': {'de', 'del'},
+  'it': {'di', 'del'},
+  'pt': {'de'},
+};
+
 bool _joinsDate(Token t, String? language) =>
     t.kind == TokenKind.word &&
-    (_fillers[language]?.contains(t.text.toLowerCase()) ?? false);
+    (_dateJoiners[language]?.contains(t.text.toLowerCase()) ?? false);
 
 /// The date phrase starting at token [start] and how many tokens it spans, or
 /// null when none does. A lone year is not a phrase, because `2018` also finds
@@ -69,16 +81,16 @@ bool _joinsDate(Token t, String? language) =>
   ParseContext context, {
   required bool yearAlone,
 }) {
-  // A comma can sit before a date's year (`october 14, 2018`), and a filler of
-  // the language inside a date, so each is stepped over and counted but never
-  // read. Any other comma separates terms. The list ends in the end token,
-  // which is neither a term, a comma nor a filler, so the index stays in range.
+  // A comma can sit before a date's year (`october 14, 2018`), and a joining
+  // word inside a date, so each is stepped over and counted but never read. Any
+  // other comma separates terms. The list ends in the end token, which is
+  // neither a term, a comma nor a joining word, so the index stays in range.
   final words = <String>[];
   final spans = <int>[];
   var next = start;
   while (words.length < _longestDatePhrase && _isTerm(tokens[next])) {
     final term = tokens[next++];
-    words.add(asciiDigits(term.text));
+    words.add(term.text);
     if (_closesTerm(tokens[next], term)) next++;
     spans.add(next - start);
     if ((_isComma(tokens[next]) && _isYear(tokens[next + 1])) ||
@@ -88,7 +100,7 @@ bool _joinsDate(Token t, String? language) =>
   }
   for (var count = words.length; count > 0; count--) {
     final text = words.take(count).join(' ');
-    if (count == 1 && !yearAlone && _bareYear.hasMatch(text)) continue;
+    if (count == 1 && !yearAlone && _isYearText(text)) continue;
     final range = parseDateText(
       text,
       now: context.now,

@@ -32,7 +32,8 @@ class QueryEditorContext {
   final QueryLabels labels;
   final DateTime Function() now;
 
-  /// The app's language code, for the filler words of a plain sentence.
+  /// The app's language code, for the filler words and month names of a plain
+  /// sentence.
   final String? language;
 
   /// A parser for this moment: `last 7 days` is anchored on [now] when the

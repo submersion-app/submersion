@@ -9,6 +9,7 @@
 library;
 
 import 'package:submersion/core/query/syntax/date_month_names.dart';
+import 'package:submersion/core/text/ascii_digits.dart';
 
 typedef DateRange = ({DateTime? start, DateTime? end});
 
@@ -58,6 +59,7 @@ final RegExp _monthDayYear = RegExp(
   r'^([^\s\d]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s+(\d{4})$',
 );
 final RegExp _yearMonthDay = RegExp(r'^(\d{4})\s+([^\s\d]+)(?:\s+(\d{1,2}))?$');
+// Reads in every language: the marks mean nothing else.
 final RegExp _chineseDate = RegExp(
   r'^(\d{4})\s*年(?:\s*(\d{1,2})\s*月(?:\s*(\d{1,2})\s*[日号])?)?$',
 );
@@ -70,14 +72,14 @@ final RegExp _lastN = RegExp(
 final RegExp _since = RegExp(r'^since\s+(.+)$');
 final RegExp _before = RegExp(r'^before\s+(.+)$');
 
-/// The period [text] names, or null. English always reads; [language] adds
-/// the month names and date order of that app language.
+/// The period [text] names, or null. English and the Chinese date marks always
+/// read; [language] adds the month names and date order of that app language.
 DateRange? parseDateText(
   String text, {
   required DateTime now,
   String? language,
 }) {
-  final t = text
+  final t = asciiDigits(text)
       .trim()
       .toLowerCase()
       .replaceAll(RegExp(r'\s+'), ' ')

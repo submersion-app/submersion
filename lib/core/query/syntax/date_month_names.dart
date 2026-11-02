@@ -11,13 +11,12 @@ import 'package:submersion/core/text/fuzzy_match.dart';
 /// Hebrew attaches "in" to the month: `14 באוקטובר 2018`.
 const Map<String, String> _monthPrefixes = {'he': 'ב'};
 
-/// `dateTimeSymbolMap` builds every locale on each call, so it is called once.
-final Map<dynamic, dynamic> _symbols = dateTimeSymbolMap();
-
+/// Built once per language, since `dateTimeSymbolMap` builds every locale on
+/// each call and keeping its result would keep them all.
 final Map<String, Map<String, int>> _namesByLanguage = {};
 
 Map<String, int> _readNames(String language) {
-  final DateSymbols? symbols = _symbols[language];
+  final DateSymbols? symbols = dateTimeSymbolMap()[language];
   if (symbols == null) return const {};
   final prefix = _monthPrefixes[language] ?? '';
   final names = <String, int>{};

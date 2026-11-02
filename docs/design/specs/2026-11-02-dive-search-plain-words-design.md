@@ -177,12 +177,14 @@ Rules:
   5.2 it needs only the active language, and a saved search is unaffected.
   Another language's months stay plain words, and `out 2018` means October only
   to a diver using Portuguese.
-- Each language's own way of writing a date reads: a filler inside it
-  (`14 de octubre de 2018`, `14 ottobre del 2018`), a dot after the day
-  (`14. Oktober 2018`), `1er mai 2018`, the Hungarian year first
-  (`2018. október 14.`), the Chinese `2018年10月14日`, the Hebrew
-  `14 באוקטובר 2018`, and Arabic-Indic or full-width digits. A dot closing a date
-  belongs to it, so `october 2018.` leaves no stray `.` to search for.
+- Each language's own way of writing a date reads: the word for "of" inside it
+  (`14 de octubre de 2018`, `14 ottobre del 2018`), a dot or ordinal mark after
+  the day (`14. Oktober 2018`, `1º de maio de 2018`, `1er mai 2018`), the
+  Hungarian year first (`2018. október 14.`), the Chinese `2018年10月14日`, the
+  Hebrew `14 באוקטובר 2018`, and Arabic-Indic or full-width digits. Other fillers
+  stay out of a date: `30 en octubre 2018` is 30 in October, not 30 October. A
+  dot closing a date belongs to it, so `october 2018.` leaves no stray `.` to
+  search for.
 - A day the month does not have stays plain words: `31 april 2018` is the word
   `31` and April 2018.
 - A phrase's result is the same tree `date in ...` produces, so it validates,

@@ -253,6 +253,40 @@ void main() {
       );
     });
 
+    test('a filler that means "in" or "with" does not join a date', () {
+      for (final (text, language) in [
+        ('30 en octubre 2018', 'es'),
+        ('30 em outubro 2018', 'pt'),
+        ('30 en octobre 2018', 'fr'),
+      ]) {
+        expect(
+          read(text, language: language),
+          AndNode([word('30'), month(2018, 10)]),
+          reason: text,
+        );
+      }
+    });
+
+    test('the ordinal mark on the first of a month reads', () {
+      final may1 = ConditionNode(
+        FieldPath(['date']),
+        QueryOp.eq,
+        DateValue(DateTime(2018, 5, 1)),
+      );
+      expect(read('1º de maio de 2018', language: 'pt'), may1);
+      expect(read('1º de mayo de 2018', language: 'es'), may1);
+      expect(read('1° maggio 2018', language: 'it'), may1);
+    });
+
+    test('a comma before a year reads in any digits', () {
+      expect(read('أكتوبر 14, ٢٠١٨', language: 'ar'), october14);
+    });
+
+    test('a date field reads any digits', () {
+      expect(read('date in ٢٠١٨', language: 'ar'), year(2018));
+      expect(read('date = ٢٠١٨-١٠-١٤', language: 'ar'), october14);
+    });
+
     test('an English filler does not join a date', () {
       expect(
         read('october with 2018'),
