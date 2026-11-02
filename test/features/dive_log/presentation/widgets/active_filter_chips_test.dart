@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -357,6 +359,19 @@ void main() {
   });
 
   group('a date in the query (#3457)', () {
+    // The month label comes from intl, which reads a process global that
+    // only app.dart sets, so pin it here and put it back.
+    late String? previousLocale;
+
+    setUpAll(() => initializeDateFormatting('en'));
+
+    setUp(() {
+      previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
+    });
+
+    tearDown(() => Intl.defaultLocale = previousLocale);
+
     final date = ConditionNode(
       FieldPath(['date']),
       QueryOp.inList,
