@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
@@ -54,14 +53,17 @@ final storagePlatformCapabilitiesProvider =
         // - Android: app-specific external volumes only (internal/SD card);
         //   scoped storage rules out an arbitrary folder for the live DB
         supportsCustomFolder: true,
-        supportsICloud: Platform.isIOS || Platform.isMacOS,
+        supportsICloud: HostPlatform.isIOS || HostPlatform.isMacOS,
         // Single source of truth shared with
         // GoogleDriveStorageProvider.isAvailable(), so the two cannot
         // diverge: compile-time OAuth config on mobile/macOS, and on
         // Windows/Linux the Desktop-app client being compiled in.
         supportsGoogleDrive: GoogleDriveClientConfig.isSupportedOnThisPlatform,
-        isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
-        customFolderIsDeviceVolumeOnly: Platform.isAndroid,
+        isDesktop:
+            HostPlatform.isMacOS ||
+            HostPlatform.isWindows ||
+            HostPlatform.isLinux,
+        customFolderIsDeviceVolumeOnly: HostPlatform.isAndroid,
       );
     });
 

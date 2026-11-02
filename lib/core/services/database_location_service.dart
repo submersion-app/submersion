@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 
@@ -155,7 +156,7 @@ class DatabaseLocationService {
   /// unchanged; it exists purely so each worktree's dev run can point at a
   /// folder nothing else touches.
   Future<String> getDatabasePath() async {
-    final override = Platform.environment['SUBMERSION_DB_PATH'];
+    final override = HostPlatform.environment['SUBMERSION_DB_PATH'];
     if (override != null && override.isNotEmpty) {
       return override;
     }
@@ -195,7 +196,7 @@ class DatabaseLocationService {
 
   /// Check if we're running on a desktop platform
   bool get isDesktopPlatform =>
-      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+      HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
 
   /// Pick a custom folder for database storage
   ///
@@ -206,7 +207,7 @@ class DatabaseLocationService {
   /// bookmark data (iOS only), or null if cancelled.
   Future<FolderPickResultWithBookmark?> pickCustomFolder() async {
     // On iOS, use native picker to capture security-scoped URL
-    if (Platform.isIOS) {
+    if (HostPlatform.isIOS) {
       try {
         final result =
             await SecurityScopedBookmarkService.pickFolderWithSecurityScope();
@@ -229,7 +230,7 @@ class DatabaseLocationService {
     // The native volume query + platform gate are untestable in the host VM;
     // the selection/cancel logic lives in the unit-tested [resolveAndroidDbDir].
     // coverage:ignore-start
-    if (Platform.isAndroid) {
+    if (HostPlatform.isAndroid) {
       final dirs = await getExternalStorageDirectories();
       if (dirs == null || dirs.isEmpty) return null;
       final options = classifyExternalDirs(dirs.map((d) => d.path).toList());
@@ -273,7 +274,7 @@ class DatabaseLocationService {
       }
 
       // On iOS, use native security-scoped verification
-      if (Platform.isIOS) {
+      if (HostPlatform.isIOS) {
         final result = await SecurityScopedBookmarkService.verifyWriteAccess(
           folderPath,
         );

@@ -5,6 +5,8 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 /// Reads DER-encoded root CA certificates from the live Windows `ROOT`
 /// certificate store -- in both the current-user and local-machine contexts
 /// -- via the Win32 `crypt32` API.
@@ -30,7 +32,7 @@ import 'package:ffi/ffi.dart';
 /// compiles everywhere because `dart:ffi` is cross-platform and the
 /// `crypt32.dll` lookup is deferred behind the [Platform.isWindows] guard).
 List<Uint8List> readWindowsRootCertificates() {
-  if (!Platform.isWindows) return const [];
+  if (!HostPlatform.isWindows) return const [];
 
   // The crypt32 FFI path only loads and runs on Windows, so it cannot be
   // exercised by the non-Windows CI host; excluded from coverage. Verified

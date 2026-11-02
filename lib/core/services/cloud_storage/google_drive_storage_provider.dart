@@ -7,6 +7,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/desktop_oauth_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
@@ -39,8 +40,8 @@ class GoogleDriveStorageProvider
   static final _log = LoggerService.forClass(GoogleDriveStorageProvider);
 
   static GoogleDriveAuthenticator _defaultAuthenticator() => authenticatorFor(
-    isLoopbackPlatform: Platform.isWindows || Platform.isLinux,
-    isMacOS: Platform.isMacOS,
+    isLoopbackPlatform: HostPlatform.isWindows || HostPlatform.isLinux,
+    isMacOS: HostPlatform.isMacOS,
   );
 
   /// Picks the authenticator for a platform, without reading [Platform] --

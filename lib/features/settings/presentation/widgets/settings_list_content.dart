@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -132,7 +131,7 @@ class SettingsListContent extends ConsumerWidget {
     final diverCount = allDiversAsync.valueOrNull?.length ?? 0;
 
     final sections = settingsSections
-        .where((s) => s.id != 'dataSources' || Platform.isIOS)
+        .where((s) => s.id != 'dataSources' || HostPlatform.isIOS)
         .where((s) => s.id != 'sharedData' || diverCount >= 2)
         .toList();
 

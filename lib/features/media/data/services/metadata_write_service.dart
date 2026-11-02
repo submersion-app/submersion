@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
@@ -292,7 +291,8 @@ class MetadataWriteService {
 
   /// Check if metadata writing is supported on this platform.
   bool get isSupported {
-    var supported = Platform.isIOS || Platform.isMacOS || Platform.isAndroid;
+    var supported =
+        HostPlatform.isIOS || HostPlatform.isMacOS || HostPlatform.isAndroid;
     // The override is read inside an assert so it is compiled out of release
     // builds entirely: production behavior cannot be changed by assigning it,
     // whatever the analyzer's @visibleForTesting enforcement does or does not
@@ -308,9 +308,9 @@ class MetadataWriteService {
 
   /// Get supported file types for the current platform.
   List<String> get supportedTypes {
-    if (Platform.isIOS || Platform.isMacOS) {
+    if (HostPlatform.isIOS || HostPlatform.isMacOS) {
       return ['JPEG', 'HEIC', 'HEIF', 'PNG'];
-    } else if (Platform.isAndroid) {
+    } else if (HostPlatform.isAndroid) {
       return ['JPEG', 'PNG'];
     }
     return [];

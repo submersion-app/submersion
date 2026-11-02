@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -220,7 +220,7 @@ class SettingsMobileContent extends ConsumerWidget {
     final diverCount = allDiversAsync.valueOrNull?.length ?? 0;
 
     final sections = settingsSections
-        .where((s) => s.id != 'dataSources' || Platform.isIOS)
+        .where((s) => s.id != 'dataSources' || HostPlatform.isIOS)
         .where((s) => s.id != 'sharedData' || diverCount >= 2)
         .toList();
 

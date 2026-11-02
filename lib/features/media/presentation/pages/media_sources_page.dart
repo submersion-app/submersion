@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
@@ -162,7 +161,7 @@ class MediaSourcesPage extends ConsumerWidget {
                 // at 128 per app). Test suite runs on macOS hosts so this
                 // branch is unreachable; provider is unit-tested separately
                 // in media_resolver_providers_test.
-                if (Platform.isAndroid) ...[
+                if (HostPlatform.isAndroid) ...[
                   const Divider(height: 1),
                   Consumer(
                     builder: (context, ref, _) {

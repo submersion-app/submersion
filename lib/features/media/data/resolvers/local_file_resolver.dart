@@ -4,6 +4,7 @@ import 'dart:ui' show Size;
 
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
@@ -81,7 +82,7 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
        _onThumbnailDropped = onThumbnailDropped,
        _localDeviceId = localDeviceId,
        _deviceLabel = deviceLabel,
-       _readsContentUris = readsContentUris ?? (() => Platform.isAndroid),
+       _readsContentUris = readsContentUris ?? (() => HostPlatform.isAndroid),
        _findInLibrary = findInLibrary,
        _volumeOnline = (volumeStatus ?? VolumeStatus()).newExpiringProbe(
          ttl: volumeProbeTtl,
@@ -90,7 +91,7 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
        _gate = gate ?? MediaFetchGate(maxConcurrent: kLocalResolveConcurrency),
        _usesSecurityScopedBookmarks =
            usesSecurityScopedBookmarks ??
-           (() => Platform.isIOS || Platform.isMacOS);
+           (() => HostPlatform.isIOS || HostPlatform.isMacOS);
 
   final VideoThumbnailService? _videoThumbnails;
 
@@ -482,7 +483,9 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
     // it implied.
     if (item.isVideo &&
         _videoThumbnails != null &&
-        (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+        (HostPlatform.isMacOS ||
+            HostPlatform.isWindows ||
+            HostPlatform.isLinux)) {
       final maxDim = target.longestSide.round().clamp(1, 4096);
       final poster = await _videoThumbnails.posterFor(
         item,

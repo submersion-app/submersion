@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/app.dart' show resolveAppLocale;
 import 'package:submersion/app.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/sync/changeset_log/local_only_tombstone_gc.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
@@ -1838,7 +1839,7 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// True where "show me that folder" means something. Mobile file managers
   /// have no addressable folder concept to hand off to.
   bool get _canRevealBackupsFolder =>
-      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+      HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
 
   Future<void> _showBackupsFolder() async {
     final dir = _backupsDirectory;
@@ -1912,7 +1913,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       widget.closeAppOverride!();
       return;
     }
-    if (Platform.isIOS || Platform.isAndroid) {
+    if (HostPlatform.isIOS || HostPlatform.isAndroid) {
       SystemNavigator.pop();
     } else {
       exit(0);
@@ -1934,7 +1935,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       await LocalCacheDatabaseService.instance.close();
     } catch (_) {}
 
-    if (Platform.isIOS || Platform.isAndroid) {
+    if (HostPlatform.isIOS || HostPlatform.isAndroid) {
       SystemNavigator.pop();
     } else {
       exit(0);

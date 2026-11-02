@@ -4,6 +4,7 @@ export 'package:submersion/features/backup/presentation/providers/backup_setting
 import 'dart:async';
 import 'dart:io';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -658,7 +659,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
 
   /// On desktop (no WorkManager), periodically check if backup is due
   void _startDesktopTimerIfNeeded() {
-    if (Platform.isIOS || Platform.isAndroid) return;
+    if (HostPlatform.isIOS || HostPlatform.isAndroid) return;
 
     _desktopBackupTimer = Timer.periodic(
       const Duration(hours: 1),

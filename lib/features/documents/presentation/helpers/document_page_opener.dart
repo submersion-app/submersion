@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
@@ -59,11 +60,11 @@ Future<void> openDocumentPageExternally(
   await dir.create(recursive: true);
   final file = File(p.join(dir.path, p.basename(page.fileName)));
   await file.writeAsBytes(bytes);
-  if (Platform.isMacOS) {
+  if (HostPlatform.isMacOS) {
     await Process.run('open', [file.path]);
-  } else if (Platform.isWindows) {
+  } else if (HostPlatform.isWindows) {
     await Process.run('cmd', ['/c', 'start', '', file.path]);
-  } else if (Platform.isLinux) {
+  } else if (HostPlatform.isLinux) {
     await Process.run('xdg-open', [file.path]);
   } else {
     await SharePlus.instance.share(

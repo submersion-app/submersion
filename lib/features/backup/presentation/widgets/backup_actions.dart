@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion_saf/submersion_saf.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
@@ -127,11 +128,11 @@ Future<void> restoreFromFile(BuildContext context, WidgetRef ref) async {
 /// writing to across launches.
 Future<void> pickBackupFolder(BuildContext context, WidgetRef ref) async {
   final BackupFolderPick? picked;
-  if (Platform.isIOS) {
+  if (HostPlatform.isIOS) {
     // iOS: capture a security-scoped bookmark directly. A bare file_picker
     // path would lose its scope on the next launch.
     picked = await BackupBookmarkService.pickFolder();
-  } else if (Platform.isAndroid) {
+  } else if (HostPlatform.isAndroid) {
     // Android: pick a SAF tree (content:// URI). A file_picker path is
     // unwritable under scoped storage, so persist the URI + its display
     // name and skip the bookmark flow entirely. Native + platform-gated,
@@ -185,7 +186,7 @@ void saveBackupFile(BuildContext context, WidgetRef ref) {
       final fileName = _defaultFileName(encrypted);
       final notifier = ref.read(backupOperationProvider.notifier);
 
-      if (Platform.isAndroid) {
+      if (HostPlatform.isAndroid) {
         // Scoped storage: a file_picker path is unwritable, so take a SAF
         // tree and stream into it.
         // coverage:ignore-start

@@ -66,6 +66,7 @@ dependencies:
 
   # Networking
   http: ^1.2.2
+  web: ^1.1.0  # Browser APIs (navigator, OPFS) for the web build
   # In-app MCP server for agent access (Streamable HTTP on loopback).
   mcp_dart: ^2.4.3
   # HTTP-date parsing for Retry-After (all three RFC 7231 forms, pure Dart,

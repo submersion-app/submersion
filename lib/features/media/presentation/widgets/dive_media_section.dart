@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
@@ -33,12 +32,12 @@ import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 /// can't be exercised from `flutter test`.
 @visibleForTesting
 String showInOsFileManagerLabel() {
-  if (Platform.isMacOS) return 'Show in Finder';
+  if (HostPlatform.isMacOS) return 'Show in Finder';
   // coverage:ignore-start
   // Windows-only branch — test suite runs on macOS / Linux. On Linux the
   // `if (Platform.isWindows)` evaluates false and the function falls
   // through to 'Show in Files' (covered).
-  if (Platform.isWindows) {
+  if (HostPlatform.isWindows) {
     return 'Show in Explorer';
   }
   // coverage:ignore-end
@@ -266,7 +265,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     TapDownDetails details,
   ) async {
     if (item.sourceType != MediaSourceType.localFile) return;
-    if (!(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) return;
+    if (!HostPlatform.isDesktop) return;
 
     final selected = await showMenu<String>(
       context: context,

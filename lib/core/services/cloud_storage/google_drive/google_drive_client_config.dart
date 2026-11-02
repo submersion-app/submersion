@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart' show visibleForTesting;
+
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// OAuth client configuration for Google Drive sync.
 ///
@@ -78,5 +78,5 @@ class GoogleDriveClientConfig {
   /// true on iOS/macOS/Android (OAuth config is compile-time), and on
   /// Windows/Linux only when the Desktop-app client is compiled in.
   static bool get isSupportedOnThisPlatform =>
-      !(Platform.isWindows || Platform.isLinux) || hasDesktopClient;
+      !(HostPlatform.isWindows || HostPlatform.isLinux) || hasDesktopClient;
 }

@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 /// A Garmin dive computer mounted as a USB mass-storage volume.
 ///
 /// Garmin watches (Descent, etc.) do not use a libdivecomputer download
@@ -109,12 +111,13 @@ class GarminDeviceDetector {
 
   /// Candidate mounted-volume roots per platform.
   List<Directory> _defaultVolumeRoots() {
-    if (Platform.isMacOS) {
+    if (HostPlatform.isMacOS) {
       return _childDirs('/Volumes');
     }
-    if (Platform.isLinux) {
+    if (HostPlatform.isLinux) {
       final user =
-          Platform.environment['USER'] ?? Platform.environment['LOGNAME'];
+          HostPlatform.environment['USER'] ??
+          HostPlatform.environment['LOGNAME'];
       final roots = <Directory>[];
       if (user != null && user.isNotEmpty) {
         roots
@@ -124,7 +127,7 @@ class GarminDeviceDetector {
       roots.addAll(_childDirs('/media'));
       return roots;
     }
-    if (Platform.isWindows) {
+    if (HostPlatform.isWindows) {
       // Removable drives get a letter; skip C: (the system volume).
       return [
         for (var c = 'D'.codeUnitAt(0); c <= 'Z'.codeUnitAt(0); c++)

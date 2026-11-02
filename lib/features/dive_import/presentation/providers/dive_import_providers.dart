@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
@@ -25,7 +24,7 @@ import 'package:submersion/features/dive_import/presentation/widgets/imported_di
 /// nothing else, so a service built on a Mac could only ever report itself
 /// unsupported.
 final healthKitServiceProvider = Provider<HealthKitService?>((ref) {
-  if (!Platform.isIOS) {
+  if (!HostPlatform.isIOS) {
     return null;
   }
   return HealthKitService();

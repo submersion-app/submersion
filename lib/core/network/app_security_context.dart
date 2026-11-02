@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:submersion/core/network/embedded_ca_bundle.dart';
 import 'package:submersion/core/network/pem.dart';
 import 'package:submersion/core/network/windows_root_store.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 
 SecurityContext? _cached;
 bool _resolved = false;
@@ -23,7 +24,7 @@ bool _resolved = false;
 SecurityContext? appSecurityContext() {
   if (_resolved) return _cached;
   _resolved = true;
-  if (!Platform.isWindows) {
+  if (!HostPlatform.isWindows) {
     _cached = null;
     return _cached;
   }
@@ -113,7 +114,7 @@ int addWindowsTrustAnchors(
 /// reads the default context when it connects, so trust added here still
 /// reaches it.
 void trustAppRootsInDefaultContext() {
-  if (!Platform.isWindows) return;
+  if (!HostPlatform.isWindows) return;
   // Windows-only, like the native read in appSecurityContext.
   // coverage:ignore-start
   addWindowsTrustAnchors(

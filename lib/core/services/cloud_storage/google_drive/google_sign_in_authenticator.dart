@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
@@ -47,7 +46,7 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
     final serverClientId =
-        Platform.isAndroid &&
+        HostPlatform.isAndroid &&
             GoogleDriveClientConfig.androidServerClientId.isNotEmpty
         ? GoogleDriveClientConfig.androidServerClientId
         : null;

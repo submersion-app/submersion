@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:submersion_saf/submersion_saf.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
@@ -45,7 +44,7 @@ Future<void> showBackupCopySheet(
     onSaveToFolder: () async {
       // coverage:ignore-start
       try {
-        if (Platform.isAndroid) {
+        if (HostPlatform.isAndroid) {
           // Scoped storage: a file_picker path is unwritable, so take a SAF
           // tree and stream into it, as saveBackupFile does.
           final folder = await SubmersionSaf.pickFolder();

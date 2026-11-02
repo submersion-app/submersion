@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
@@ -167,7 +167,7 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     bool? requiresRuntimePermissions,
   }) : _service = service,
        _requiresRuntimePermissions =
-           requiresRuntimePermissions ?? Platform.isAndroid,
+           requiresRuntimePermissions ?? HostPlatform.isAndroid,
        super(const DiscoveryState()) {
     _discoveryCompleteSubscription = _service.discoveryComplete.listen((_) {
       state = state.copyWith(isScanning: false);

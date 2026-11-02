@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:submersion_transcoder/submersion_transcoder.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -40,7 +39,7 @@ Future<bool> shareMediaItems(
   anchor: anchor,
   // Only mobile systems stop an app's encoding when it leaves the screen;
   // a minimised desktop window keeps encoding.
-  systemStopsEncodes: Platform.isIOS || Platform.isAndroid,
+  systemStopsEncodes: HostPlatform.isIOS || HostPlatform.isAndroid,
   showVideoProgress: items.any((item) => videoMayNeedCorrection(ref, item)),
   prepare: (onProgress, cancel, backgroundEntries) => prepareShareFiles(
     ref,

@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/network/platform_http_client.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/maps/data/services/region_download_layer.dart';
 
@@ -209,7 +210,7 @@ class TileCacheService {
     // For macOS: use App Group container for sandbox compatibility.
     // ObjectBox requires special permissions that the App Group provides.
     // On other platforms, use the standard cache directory.
-    if (Platform.isMacOS) {
+    if (HostPlatform.isMacOS) {
       await FMTCObjectBoxBackend().initialise(
         macosApplicationGroup: _macosAppGroup,
       );

@@ -8,6 +8,7 @@ import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
@@ -22,7 +23,7 @@ import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 /// Where the sheet cannot take files the share helpers fall back to the same
 /// save dialog the `save*ToFile` helpers use, which is the destination a
 /// desktop user expects anyway.
-bool get canShareFiles => _canShareFilesOverride ?? !Platform.isLinux;
+bool get canShareFiles => _canShareFilesOverride ?? !HostPlatform.isLinux;
 
 bool? _canShareFilesOverride;
 

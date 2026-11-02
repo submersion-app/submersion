@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/dive_computer/presentation/navigation/dive_computer_location.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
@@ -784,7 +784,7 @@ class _ComputersSectionContent extends ConsumerWidget {
             error: (_, _) => const SizedBox.shrink(),
           ),
 
-          if (Platform.isIOS) ...[
+          if (HostPlatform.isIOS) ...[
             const SizedBox(height: 16),
             _buildSectionHeader(
               context,

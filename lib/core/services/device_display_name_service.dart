@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// What the host platform knows about this device's identity. Every field is
 /// nullable: platforms answer with whatever they have, and the composition in
@@ -128,12 +128,14 @@ class DeviceDisplayNameService {
     // Only the platforms that ship a handler are asked; everywhere else the
     // hostname is already the right answer and a channel call would just be a
     // MissingPluginException to swallow.
-    if (!Platform.isAndroid && !Platform.isIOS) return null;
+    if (!HostPlatform.isAndroid && !HostPlatform.isIOS) return null;
     final map = await _channel.invokeMapMethod<Object?, Object?>(
       'getDeviceIdentity',
     );
     return map == null ? null : NativeDeviceIdentity.fromChannel(map);
   }
 
-  static String _hostname() => Platform.localHostname;
+  // A browser has no hostname; the browser device name arrives with the
+  // connect-and-capabilities work.
+  static String _hostname() => HostPlatform.localHostname ?? '';
 }
