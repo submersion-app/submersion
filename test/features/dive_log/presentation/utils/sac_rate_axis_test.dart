@@ -6,16 +6,16 @@ void main() {
     const peaks = <double>[0.13, 0.9, 1, 3.1, 7, 9.99, 18, 45, 120, 1500];
 
     test('rounds up to whole steps that read easily', () {
-      expect(SacRateAxis.forPeak(20).ticks, [0, 10, 20]);
-      expect(SacRateAxis.forPeak(22).ticks, [0, 10, 20, 30]);
-      expect(SacRateAxis.forPeak(15).ticks, [0, 5, 10, 15]);
-      expect(SacRateAxis.forPeak(2).ticks, [0, 1, 2]);
+      expect(SacRateAxis.forPeak(20).ticks, [0, 5, 10, 15, 20]);
+      expect(SacRateAxis.forPeak(22).ticks, [0, 5, 10, 15, 20, 25]);
+      expect(SacRateAxis.forPeak(15).ticks, [0, 2, 4, 6, 8, 10, 12, 14, 16]);
+      expect(SacRateAxis.forPeak(2).ticks, [0, 0.5, 1, 1.5, 2]);
     });
 
     test('scales to psi/min, which runs in the tens', () {
       final axis = SacRateAxis.forPeak(29.3);
 
-      expect(axis.ticks, [0, 10, 20, 30]);
+      expect(axis.ticks, [0, 5, 10, 15, 20, 25, 30]);
       expect(axis.decimals, 0);
     });
 
@@ -26,10 +26,11 @@ void main() {
       expect(axis.decimals, 1);
     });
 
-    test('uses a half step under one', () {
+    test('steps in tenths under one', () {
       final axis = SacRateAxis.forPeak(0.7);
 
-      expect(axis.ticks, [0, 0.5, 1]);
+      expect(axis.top, closeTo(0.7, 1e-9));
+      expect(axis.ticks, hasLength(8));
       expect(axis.decimals, 1);
     });
 
@@ -39,9 +40,11 @@ void main() {
       }
     });
 
-    test('stays at three intervals or fewer', () {
+    test('keeps between four and eight intervals', () {
       for (final peak in peaks) {
-        expect(SacRateAxis.forPeak(peak).ticks.length, lessThanOrEqualTo(4));
+        final intervals = SacRateAxis.forPeak(peak).ticks.length - 1;
+
+        expect(intervals, inInclusiveRange(4, 8), reason: 'peak $peak');
       }
     });
 

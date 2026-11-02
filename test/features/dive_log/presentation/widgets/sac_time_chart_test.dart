@@ -261,7 +261,7 @@ void main() {
         rates: sacRates(lane: GasConsumptionLane.sac),
       );
 
-      expect(find.text('2 bar/min'), findsOneWidget);
+      expect(find.text('2.0 bar/min'), findsOneWidget);
     });
 
     testWidgets('follows the diver\'s units', (tester) async {
@@ -292,7 +292,14 @@ void main() {
         rates: sacRates(volumeFor: (id) => id == 'back' ? 10.0 : null),
       );
 
-      expect(find.text('2 bar/min'), findsOneWidget);
+      // The summary under the chart can read the same.
+      expect(
+        find.descendant(
+          of: find.byType(SacTimeColumns),
+          matching: find.text('2.0 bar/min'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a column reaches the value it reads on the axis', (
@@ -303,10 +310,21 @@ void main() {
         time: [sacSegment(0, 5, sacRate: 2.2), sacSegment(5, 10, sacRate: 1.1)],
       );
 
-      // 22 L/min on an axis that tops out at 30.
-      expect(find.text('30 L/min'), findsOneWidget);
-      expect(columnFactor(tester, 0), closeTo(22 / 30, 1e-9));
-      expect(columnFactor(tester, 1), closeTo(11 / 30, 1e-9));
+      // 22 L/min on an axis that tops out at 25.
+      expect(find.text('25 L/min'), findsOneWidget);
+      expect(columnFactor(tester, 0), closeTo(22 / 25, 1e-9));
+      expect(columnFactor(tester, 1), closeTo(11 / 25, 1e-9));
+    });
+
+    testWidgets('labels every line when they fit', (tester) async {
+      await pumpSacSegmentsView(
+        tester,
+        time: [sacSegment(0, 5, sacRate: 2.2), sacSegment(5, 10, sacRate: 1.1)],
+      );
+
+      for (final label in ['25 L/min', '20', '15']) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
     });
 
     testWidgets('the average line uses the same scale', (tester) async {
@@ -316,7 +334,7 @@ void main() {
       );
 
       final chart = tester.widget<SacTimeColumns>(find.byType(SacTimeColumns));
-      expect(chart.averageFactor, closeTo(16.5 / 30, 1e-9));
+      expect(chart.averageFactor, closeTo(16.5 / 25, 1e-9));
     });
 
     testWidgets('leaves the axis off a dive with no consumption', (
@@ -398,7 +416,7 @@ void main() {
         tallWindow(tester);
         await pumpSacSegmentsView(
           tester,
-          // 15 L/min, the peak that draws the most lines.
+          // 15 L/min rounds up to 16 in steps of 2, the most lines there are.
           time: [sacSegment(0, 5, sacRate: 1.5)],
           textScaler: TextScaler.linear(scale),
         );
@@ -421,7 +439,7 @@ void main() {
         textScaler: const TextScaler.linear(3),
       );
 
-      expect(find.text('15 L/min'), findsOneWidget);
+      expect(find.text('16 L/min'), findsOneWidget);
     });
   });
 

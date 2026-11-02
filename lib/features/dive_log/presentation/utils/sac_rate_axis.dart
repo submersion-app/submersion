@@ -5,7 +5,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/nice_step.dart';
 /// The rate scale of the Gas consumption by segment chart, in the units the
 /// diver reads, so its lines land on round numbers in psi/min as in L/min.
 class SacRateAxis {
-  static const int _maxIntervals = 3;
+  static const int _maxIntervals = 8;
 
   /// Allows for rounding in a peak that sits exactly on a line.
   static const double _tolerance = 1e-9;

@@ -97,7 +97,7 @@ class SacTimeColumns extends StatelessWidget {
   /// The plot itself, right of the rate axis and above the time axis.
   static const Key plotKey = ValueKey('sacTimeColumnsPlot');
 
-  static const double _chartHeight = 96;
+  static const double _chartHeight = 120;
   static const double _rateAxisGap = 6;
 
   /// The most of the chart's width the rate axis takes, however long its unit
