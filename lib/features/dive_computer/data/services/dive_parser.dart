@@ -222,48 +222,6 @@ class DiveParser {
     if (ratePerMin <= 12.0) return AscentRateSeverity.warning;
     return AscentRateSeverity.critical;
   }
-
-  /// Extract dive phases (descent, bottom, ascent).
-  DivePhases analyzeDivePhases(List<ProfileSample> profile) {
-    if (profile.isEmpty) {
-      return const DivePhases(descentEnd: 0, ascentStart: 0, bottomTime: 0);
-    }
-
-    // Find max depth point
-    int maxDepthIndex = 0;
-    double maxDepth = 0.0;
-    for (int i = 0; i < profile.length; i++) {
-      if (profile[i].depth > maxDepth) {
-        maxDepth = profile[i].depth;
-        maxDepthIndex = i;
-      }
-    }
-
-    // Find descent end (first point within 10% of max depth)
-    int descentEnd = 0;
-    final threshold = maxDepth * 0.9;
-    for (int i = 0; i < maxDepthIndex; i++) {
-      if (profile[i].depth >= threshold) {
-        descentEnd = profile[i].timeSeconds;
-        break;
-      }
-    }
-
-    // Find ascent start (last point within 10% of max depth)
-    int ascentStart = profile[maxDepthIndex].timeSeconds;
-    for (int i = profile.length - 1; i > maxDepthIndex; i--) {
-      if (profile[i].depth >= threshold) {
-        ascentStart = profile[i].timeSeconds;
-        break;
-      }
-    }
-
-    return DivePhases(
-      descentEnd: descentEnd,
-      ascentStart: ascentStart,
-      bottomTime: ascentStart - descentEnd,
-    );
-  }
 }
 
 /// Information about a detected safety stop.
@@ -299,17 +257,4 @@ enum AscentRateSeverity {
   safe, // < 9 m/min
   warning, // 9-12 m/min
   critical, // > 12 m/min
-}
-
-/// Information about dive phases.
-class DivePhases {
-  final int descentEnd; // seconds
-  final int ascentStart; // seconds
-  final int bottomTime; // seconds
-
-  const DivePhases({
-    required this.descentEnd,
-    required this.ascentStart,
-    required this.bottomTime,
-  });
 }
