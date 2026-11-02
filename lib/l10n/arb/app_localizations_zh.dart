@@ -25667,6 +25667,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_agentAccess_title => '代理访问';
 
   @override
+  String get settings_agentAccess_confirm_title => '允许此更改吗?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return '$client 想要更改您的潜水日志。';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient => '一个智能体想要更改您的潜水日志。';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind:$count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => '共享';
+
+  @override
+  String get settings_agentAccess_confirm_details => '显示所有更改';
+
+  @override
+  String get settings_agentAccess_confirm_allow => '允许';
+
+  @override
+  String get settings_agentAccess_confirm_deny => '拒绝';
+
+  @override
+  String get settings_agentAccess_confirm_none => '无';
+
+  @override
+  String get settings_agentAccess_confirm_create => '新建';
+
+  @override
+  String get settings_agentAccess_confirm_update => '更改';
+
+  @override
+  String get settings_agentAccess_confirm_delete => '删除';
+
+  @override
   String get settings_agentAccess_subtitle => '允许这台电脑上的 AI 代理读取和修改你的潜水日志';
 
   @override

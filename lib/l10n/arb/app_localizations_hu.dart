@@ -27052,6 +27052,49 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_agentAccess_title => 'Ügynökhozzáférés';
 
   @override
+  String get settings_agentAccess_confirm_title =>
+      'Engedélyezi ezt a módosítást?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return 'A(z) $client módosítani szeretné a merülési naplóját.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'Egy ügynök módosítani szeretné a merülési naplóját.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'Megosztott';
+
+  @override
+  String get settings_agentAccess_confirm_details =>
+      'Minden módosítás megjelenítése';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'Engedélyezés';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'Elutasítás';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'nincs';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'Új';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'Módosítás';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'Törlés';
+
+  @override
   String get settings_agentAccess_subtitle =>
       'Engedélyezd, hogy egy MI-ügynök ezen a számítógépen olvassa és módosítsa a merülési naplódat';
 

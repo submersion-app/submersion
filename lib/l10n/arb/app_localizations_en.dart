@@ -26723,6 +26723,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_agentAccess_title => 'Agent access';
 
   @override
+  String get settings_agentAccess_confirm_title => 'Allow this change?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return '$client wants to change your logbook.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'An agent wants to change your logbook.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'Shared';
+
+  @override
+  String get settings_agentAccess_confirm_details => 'Show every change';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'Allow';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'Deny';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'none';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'New';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'Change';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'Delete';
+
+  @override
   String get settings_agentAccess_subtitle =>
       'Let an AI agent on this computer read and change your logbook';
 

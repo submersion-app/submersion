@@ -27414,6 +27414,47 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_agentAccess_title => 'وصول الوكلاء';
 
   @override
+  String get settings_agentAccess_confirm_title => 'هل تسمح بهذا التغيير؟';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return 'يريد $client تغيير سجل غوصك.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'يريد وكيل تغيير سجل غوصك.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'مشترك';
+
+  @override
+  String get settings_agentAccess_confirm_details => 'عرض كل التغييرات';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'سماح';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'رفض';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'لا شيء';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'جديد';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'تغيير';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'حذف';
+
+  @override
   String get settings_agentAccess_subtitle =>
       'السماح لوكيل ذكاء اصطناعي على هذا الكمبيوتر بقراءة سجل غوصك وتعديله';
 

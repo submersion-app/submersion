@@ -43575,6 +43575,78 @@ abstract class AppLocalizations {
   /// **'Agent access'**
   String get settings_agentAccess_title;
 
+  /// No description provided for @settings_agentAccess_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow this change?'**
+  String get settings_agentAccess_confirm_title;
+
+  /// No description provided for @settings_agentAccess_confirm_client.
+  ///
+  /// In en, this message translates to:
+  /// **'{client} wants to change your logbook.'**
+  String settings_agentAccess_confirm_client(String client);
+
+  /// No description provided for @settings_agentAccess_confirm_unknownClient.
+  ///
+  /// In en, this message translates to:
+  /// **'An agent wants to change your logbook.'**
+  String get settings_agentAccess_confirm_unknownClient;
+
+  /// No description provided for @settings_agentAccess_confirm_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind}: {count}'**
+  String settings_agentAccess_confirm_count(String kind, int count);
+
+  /// No description provided for @settings_agentAccess_confirm_shared.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get settings_agentAccess_confirm_shared;
+
+  /// No description provided for @settings_agentAccess_confirm_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Show every change'**
+  String get settings_agentAccess_confirm_details;
+
+  /// No description provided for @settings_agentAccess_confirm_allow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get settings_agentAccess_confirm_allow;
+
+  /// No description provided for @settings_agentAccess_confirm_deny.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get settings_agentAccess_confirm_deny;
+
+  /// No description provided for @settings_agentAccess_confirm_none.
+  ///
+  /// In en, this message translates to:
+  /// **'none'**
+  String get settings_agentAccess_confirm_none;
+
+  /// No description provided for @settings_agentAccess_confirm_create.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get settings_agentAccess_confirm_create;
+
+  /// No description provided for @settings_agentAccess_confirm_update.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get settings_agentAccess_confirm_update;
+
+  /// No description provided for @settings_agentAccess_confirm_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get settings_agentAccess_confirm_delete;
+
   /// No description provided for @settings_agentAccess_subtitle.
   ///
   /// In en, this message translates to:
