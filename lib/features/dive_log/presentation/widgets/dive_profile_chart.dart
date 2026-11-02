@@ -303,6 +303,19 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final void Function(ProfileEvent annotation, Offset globalCenter)?
   onAnnotationTap;
 
+  /// Placement mode (#4109): a single-pointer release anywhere on the plot
+  /// places an annotation at the second under it, reported through
+  /// [onAnnotationPlaced] with the profile depth there (null without a
+  /// profile). Double-tap zoom and the pan are suspended meanwhile; the
+  /// dots stop opening their popup.
+  final bool annotationPlacement;
+  final void Function(int seconds, double? depthMeters)? onAnnotationPlaced;
+
+  /// A right-click (secondary mouse button) on the plot, with the second and
+  /// depth under it and the pointer's global position, for a context menu.
+  final void Function(int seconds, double? depthMeters, Offset globalPosition)?
+  onSecondaryTapAt;
+
   /// Off for a read-only chart, whose zoom buttons would do nothing.
   final bool showZoomControls;
 
@@ -759,6 +772,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showEvents = true,
     this.showAnnotations = true,
     this.onAnnotationTap,
+    this.annotationPlacement = false,
+    this.onAnnotationPlaced,
+    this.onSecondaryTapAt,
     this.showZoomControls = true,
     this.showSac = false,
     this.markers,
@@ -1294,6 +1310,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   Offset _tapDownPosition = Offset.zero;
   bool _tapMoved = false;
   bool _doubleTapArmed = false;
+
+  // A press of the secondary mouse button, reported on release as a
+  // right-click (#4109); it never counts as a tap or seeds a double-tap.
+  bool _secondaryDown = false;
+
+  // In placement mode (#4109) a gesture that ever had two pointers down (a
+  // pinch) places nothing when the last one lifts.
+  bool _placementSawSecondPointer = false;
 
   // Whether the right-axis metric selector strip is rendered this build.
   // Set in _buildChart alongside effectiveRightAxisMetric; a double-tap
@@ -2826,6 +2850,49 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return (index: best, onLeadIn: false);
   }
 
+  /// The second from the start of the dive under plot x [x], through the
+  /// current viewport: the same arithmetic [_hoverSelection] uses before it
+  /// snaps to a sample, clamped to the dive.
+  int _secondsAtLocalX(
+    double x,
+    Size box,
+    ({double left, double top, double right, double bottom}) insets,
+  ) {
+    final focal = chartFocalFraction(
+      Offset(x, 0),
+      box,
+      left: insets.left,
+      right: insets.right,
+      top: insets.top,
+      bottom: insets.bottom,
+    );
+    final totalMaxTime = widget.profile.isEmpty
+        ? 0
+        : widget.profile.map((p) => p.timestamp).reduce(math.max);
+    final t =
+        (_viewport.offsetX + focal.fx * _viewport.visibleWidth) * totalMaxTime;
+    return t.round().clamp(0, totalMaxTime);
+  }
+
+  /// Hands [report] the second and profile depth (metres, null without a
+  /// profile) under a plot position (#4109).
+  void _reportPlotPoint(
+    Offset localPos,
+    BoxConstraints constraints,
+    UnitFormatter units,
+    void Function(int seconds, double? depthMeters) report,
+  ) {
+    final seconds = _secondsAtLocalX(
+      localPos.dx,
+      constraints.biggest,
+      _plotInsets(constraints.maxWidth, units),
+    );
+    final depth = widget.profile.isEmpty
+        ? null
+        : _depthAtTimestamp(seconds.toDouble());
+    report(seconds, depth);
+  }
+
   /// Reports a selection to [DiveProfileChart.onPointSelected] and
   /// [DiveProfileChart.onTimeSelected]. [onLeadIn] marks the surface lead-in
   /// vertex, whose time is 0 rather than the first sample's.
@@ -3175,6 +3242,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 if (event.kind == PointerDeviceKind.touch) {
                   _touchPositions[event.pointer] = event.localPosition;
                 }
+                if (_activePointerCount == 1) {
+                  _placementSawSecondPointer = false;
+                  _secondaryDown =
+                      event.kind == PointerDeviceKind.mouse &&
+                      (event.buttons & kSecondaryMouseButton) != 0;
+                } else {
+                  _placementSawSecondPointer = true;
+                }
                 // Tap bookkeeping is kind-agnostic: a mouse double-click
                 // zooms exactly like a touch double-tap.
                 if (_activePointerCount == 1) {
@@ -3182,6 +3257,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   _tapMoved = false;
                   final lastUp = _lastTapUpStamp;
                   _doubleTapArmed =
+                      !_secondaryDown &&
+                      !widget.annotationPlacement &&
                       lastUp != null &&
                       event.timeStamp - lastUp < kDoubleTapTimeout &&
                       (event.localPosition - _lastTapUpPosition).distance <=
@@ -3212,6 +3289,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   _doubleTapArmed = false;
                 }
                 if (prev == null) return;
+                // Placing: a single pointer scrubs the readout to the spot
+                // and never pans the plot, so the release lands where the
+                // diver is looking (#4109).
+                if (widget.annotationPlacement && _activePointerCount == 1) {
+                  return;
+                }
                 final intent = chartDragIntent(
                   kind: _activePointerKind,
                   pointerCount: _activePointerCount,
@@ -3255,6 +3338,41 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         ? _beginPinch()
                         : _pinchPointers = const [];
                   }
+                }
+                if (_secondaryDown) {
+                  _secondaryDown = false;
+                  if (_activePointerCount == 0 && !_tapMoved) {
+                    _reportPlotPoint(
+                      event.localPosition,
+                      constraints,
+                      units,
+                      (seconds, depth) => widget.onSecondaryTapAt?.call(
+                        seconds,
+                        depth,
+                        event.position,
+                      ),
+                    );
+                  }
+                  return;
+                }
+                if (widget.annotationPlacement && _activePointerCount == 0) {
+                  // Any single-pointer release places, moved or not: a hold
+                  // fine-tunes with the readout and lifts where it should go.
+                  if (!_placementSawSecondPointer &&
+                      !_inRightAxisSelector(
+                        event.localPosition,
+                        constraints.biggest,
+                      )) {
+                    _reportPlotPoint(
+                      event.localPosition,
+                      constraints,
+                      units,
+                      (seconds, depth) =>
+                          widget.onAnnotationPlaced?.call(seconds, depth),
+                    );
+                  }
+                  _lastTapUpStamp = null;
+                  return;
                 }
                 if (_activePointerCount == 0 && !_tapMoved) {
                   if (_doubleTapArmed) {
@@ -4995,6 +5113,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   ? null
                   : units.convertDepth(_depthAtTimestamp(seconds.toDouble())),
               onTap: widget.onAnnotationTap ?? (_, _) {},
+              interactive: !widget.annotationPlacement,
             ),
           ),
         // Range-statistics handles. Topmost so a handle wins the pointer
