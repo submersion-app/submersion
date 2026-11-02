@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/core/services/storage/storage_inventory.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -25,10 +26,10 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 // invokes while the screen measures, so this provider caches no row that could
 // go stale, and the screen carries its own Recalculate action.
 final storageInventoryProvider = Provider<StorageInventory>((ref) {
-  // Memoized because the local cache database and the two thumbnail categories
-  // each resolve it, and it is a platform channel round trip that returns the
-  // same immutable path every time for the life of the process. The media
-  // cache rows go through mediaCacheRoot(), which carries its own memo.
+  // Memoized because the local cache database resolves it, and it is a platform
+  // channel round trip that returns the same immutable path every time for the
+  // life of the process. The media cache and thumbnail rows go through
+  // cacheLocation(), which carries its own memo.
   //
   // The MediaCacheStore itself is rebuilt per call on purpose: it captures the
   // LocalCacheDatabase at construction, and caching one across the session
@@ -41,6 +42,7 @@ final storageInventoryProvider = Provider<StorageInventory>((ref) {
     supportDirectory: resolveSupport,
     documentsDirectory: getApplicationDocumentsDirectory,
     temporaryDirectory: getTemporaryDirectory,
+    cacheLocation: cacheLocation,
     databasePath: () =>
         ref.read(databaseLocationServiceProvider).getDatabasePath(),
     backupsDirectoryPath: _resolveBackupsDirectoryPath,

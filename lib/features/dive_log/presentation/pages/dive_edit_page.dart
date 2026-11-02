@@ -30,6 +30,8 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
@@ -79,7 +81,12 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
+import 'package:submersion/features/trips/data/repositories/selection_trip_facts.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
+import 'package:submersion/features/trips/presentation/helpers/new_trip_from_selection.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_date_stretch_message.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
@@ -109,6 +116,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/conditions_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_gear_section.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_editing.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/annotation_time_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switch_time_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
@@ -180,6 +190,7 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
+part 'dive_edit_page_annotations.dart';
 part 'dive_edit_page_gas_switches.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
@@ -518,6 +529,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   // Existing dive for editing
   Dive? _existingDive;
+
+  /// Annotations linked in the notes since the page opened, written on save
+  /// (#4109).
+  List<PendingAnnotation> _pendingAnnotations = const [];
 
   /// Planned dive, awaiting its dive computer data (issue #2002). A planned
   /// dive holds no number; turning the switch off on an existing planned
@@ -2645,9 +2660,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       } else {
         context.go('/dives');
       }
+      final stretched = tripDateStretchMessage(
+        l10n,
+        units,
+        snapshot.tripDateStretches,
+      );
+      final applied = l10n.diveLog_bulkEdit_applied(ids.length);
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.diveLog_bulkEdit_applied(ids.length)),
+          content: Text(stretched == null ? applied : '$applied\n$stretched'),
           duration: const Duration(seconds: 5),
           // A SnackBar with an action defaults to persist: true, which makes the
           // auto-dismiss timer a no-op so the banner never hides on its own.
@@ -3308,12 +3329,33 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
 
     if (result == _createNewTripSentinel && mounted) {
-      final tripId = await context.push<String>('/trips/new');
+      final tripId = await newTripForDiveEdit(context, ref, _newTripFacts);
       if (tripId != null && mounted) {
         final trip = await ref.read(tripRepositoryProvider).getTripById(tripId);
         if (trip != null && mounted) _setTrip(trip);
       }
     }
+  }
+
+  /// What a trip created from this form learns from its dives (#3351): the
+  /// selected dives in bulk edit, else the dive as the form holds it, saved
+  /// or not.
+  Future<List<SelectionDiveFacts>> _newTripFacts() async {
+    if (widget.isBulk) return loadSelectionTripFacts(widget.bulkDiveIds!);
+    return [
+      SelectionDiveFacts(
+        diveId: '',
+        diveDateTime: DateTime.utc(
+          _entryDate.year,
+          _entryDate.month,
+          _entryDate.day,
+        ),
+        tripId: _selectedTrip?.id,
+        siteRegion: _selectedSite?.region,
+        siteCountry: _selectedSite?.country,
+        diveCenterName: _selectedDiveCenter?.name,
+      ),
+    ];
   }
 
   Future<void> _showDiveCenterPicker() async {
@@ -3489,6 +3531,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       notesPlaceholder: context.l10n.diveLog_edit_notesHint,
       sightingsChild: _sightingsChild(),
       tagsChild: _tagsChild(),
+      onAnnotate: widget.isBulk ? null : _requestAnnotation,
     );
   }
 
@@ -6398,6 +6441,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
       // Save using the notifier
       final notifier = ref.read(paginatedDiveListProvider.notifier);
+      // Read now: the stretch below runs even if the page goes away meanwhile.
+      final tripRepository = ref.read(tripRepositoryProvider);
+      final messenger = ScaffoldMessenger.of(context);
+      final l10n = context.l10n;
       String? savedDiveId;
       // A plan the diver just turned into a dive counts as logged by hand
       // for the logbook rules (#3513).
@@ -6465,6 +6512,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
       // After the dive and its cylinders, so the cylinder ids exist.
       await _saveGasSwitches(savedDiveId);
+      // After the notes, which the annotation rows are reconciled against.
+      await _reconcileAnnotations(savedDiveId);
 
       // Save sightings
       if (savedDiveId != null) {
@@ -6613,6 +6662,37 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           !widget.isBulk &&
           (!widget.isEditing || promotedPlan)) {
         await rulesAfterCreate(subject: RuleSubject.dives, ids: [savedDiveId]);
+      }
+
+      // A dive put on a trip, or moved to another day on one, stretches the
+      // trip to cover it (#3351).
+      if (savedDiveId != null &&
+          diveSaveTouchesTrip(
+            tripId: _selectedTrip?.id,
+            previousTripId: _existingDive?.tripId ?? _existingDive?.trip?.id,
+            date: entryDateTime,
+            previousDate: _existingDive?.effectiveEntryTime,
+          )) {
+        try {
+          final message = tripDateStretchMessage(
+            l10n,
+            units,
+            await tripRepository.stretchToCoverDives([savedDiveId]),
+          );
+          if (message != null) {
+            messenger.showSnackBar(SnackBar(content: Text(message)));
+          }
+        } catch (e, stackTrace) {
+          // Reported, but it never undoes the dive save.
+          _log.error(
+            'Failed to stretch the trip of dive $savedDiveId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.trips_dateStretch_failed)),
+          );
+        }
       }
 
       // Offer to log the dive for linked buddies (issue #2002). Runs before

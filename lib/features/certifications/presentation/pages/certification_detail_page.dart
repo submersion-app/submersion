@@ -596,6 +596,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                   icon: Icons.numbers,
                   label: context.l10n.certifications_detail_label_cardNumber,
                   value: certification.cardNumber!,
+                  copyable: true,
                 ),
             ],
           ),
@@ -713,6 +714,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                   label:
                       context.l10n.certifications_detail_label_instructorNumber,
                   value: certification.instructorNumber!,
+                  copyable: true,
                 ),
             ],
           ),

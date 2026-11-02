@@ -5390,6 +5390,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get notesEditor_action_numberedList => 'רשימה ממוספרת';
 
   @override
+  String get notesEditor_action_annotate => 'סימון';
+
+  @override
   String get notesEditor_action_preview => 'תצוגה מקדימה';
 
   @override
@@ -6865,9 +6868,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'קואורדינטות נמצאו מהכתובת';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard => 'הועתק ללוח';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'יובא \"$name\"';
   }
@@ -8208,6 +8208,81 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_section_notes => 'הערות';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'סימון חדש';
+
+  @override
+  String get diveLog_annotation_sheetTitle_editTime => 'שינוי הזמן';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return 'סימון \"$words\"';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'מה קרה';
+
+  @override
+  String get diveLog_annotation_words_required => 'ספרו מה קרה';
+
+  @override
+  String get diveLog_annotation_field_time => 'זמן מתחילת הצלילה';
+
+  @override
+  String get diveLog_annotation_time_invalid => 'הזינו דקות:שניות';
+
+  @override
+  String get diveLog_annotation_time_outsideDive => 'חייב להיות בתוך הצלילה';
+
+  @override
+  String get diveLog_annotation_pickOnProfile => 'או הקישו על הפרופיל כדי למקם';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'לצלילה זו אין פרופיל להצביע עליו. הזינו את הזמן במקום זאת.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'סימון';
+
+  @override
+  String get diveLog_annotation_action_add => 'הוספה';
+
+  @override
+  String get diveLog_annotation_add => 'הוספת סימון';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'הקישו על הפרופיל במקום שבו זה קרה. לחיצה ארוכה לכוונון עדין.';
+
+  @override
+  String get diveLog_annotation_banner_move =>
+      'הקישו על המקום החדש לסימון הזה.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'ביטול';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time בעומק $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'פתיחה בהערות';
+
+  @override
+  String get diveLog_annotation_popup_move => 'העברה';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'הסרה';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'סימון ב-$time';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'הסימון הוסר';
+
+  @override
   String get diveLog_edit_section_rating => 'דירוג';
 
   @override
@@ -8775,6 +8850,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'אירועים';
+
+  @override
+  String get diveLog_legend_label_annotations => 'סימונים';
 
   @override
   String get diveLog_legend_label_computedEvents => 'אירועים מחושבים';
@@ -10477,6 +10555,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_cylinders_gasUsed(String amount) {
     return 'גז שנוצל $amount';
+  }
+
+  @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'צריכה בלולאה $rate';
   }
 
   @override
@@ -13431,6 +13514,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileEvent_note => 'הערה';
 
   @override
+  String get enum_profileEvent_annotation => 'סימון';
+
+  @override
   String get enum_profileEvent_ppO2High => 'ppO2 גבוה';
 
   @override
@@ -13757,6 +13843,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'סטייג\'';
+
+  @override
+  String get enum_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get enum_tideState_rising => 'עולה';
@@ -26407,7 +26496,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים';
+      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה';
 
   @override
   String get settings_agentAccess_title => 'גישת סוכנים';
@@ -28467,7 +28556,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
+      'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, הגז שנוצל, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'חישובי גז';
@@ -29285,6 +29374,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_filterBar_clear => 'ניקוי מסנן';
 
   @override
+  String get insights_filterBar_allDives => 'כל הצלילות';
+
+  @override
+  String get insights_filterBar_customFilter => 'מסנן מותאם אישית';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'בחירת קבוצת צלילות';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'שמירת המסנן הנוכחי...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'ניהול שאילתות שמורות';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29318,6 +29422,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+
+  @override
+  String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'לדקה בלולאה, ללא זמן מעבר למעגל פתוח';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'ממוצע O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'ממוצע מדלל';
 
   @override
   String get insights_gas_sacRecords_empty => 'אין עדיין נתוני צריכה';
@@ -29403,7 +29523,89 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'בלונים תאומים שנרשמו כבלון אחד נספרים כשהשם מציין זאת (twin, double, D12, 2x12) או כשהבלון גדול מכל בלון יחיד נפוץ. הגדר סיידמאונט שמאל וסיידמאונט ימין לבלוני הצלילה כדי שתיספר כסיידמאונט.';
+      'צלילה נספרת כצמד בלונים על הגב כשתפקיד של בלון הוא צמד בלונים, וכסיידמאונט כשהבלונים שלה הם סיידמאונט שמאל וסיידמאונט ימין.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב־$count צלילות יש בלונים שנראים כמו צמד בלונים.',
+      two: 'בשתי צלילות יש בלונים שנראים כמו צמד בלונים.',
+      one: 'בצלילה אחת יש בלון שנראה כמו צמד בלונים.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'השם או הגודל שלהם מציינים twin, double, D12, 2x12 או $size ומעלה, אבל התפקיד שלהם הוא גז ראשי, ולכן הם נספרים כבלון יחיד.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'סמן כצמדי בלונים';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'סקור צלילות';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'התעלם';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'להגדיר את התפקיד לצמד בלונים?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'להגדיר את התפקיד של $tanks בלונים $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+      two:
+          'להגדיר את התפקיד של שני בלונים $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+      one:
+          'להגדיר את התפקיד של בלון אחד $dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב־$count צלילות',
+      two: 'בשתי צלילות',
+      one: 'בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'הגדר תפקיד';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'ביטול';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בלונים הוגדרו כצמד בלונים',
+      two: 'שני בלונים הוגדרו כצמד בלונים',
+      one: 'בלון אחד הוגדר כצמד בלונים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'לא ניתן היה להגדיר את התפקיד';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'נראה כמו צמד בלונים';
 
   @override
   String get insights_gas_tankConfig_empty => 'אין צלילות להצגה';
@@ -29859,6 +30061,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'סטייג\'';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get insights_geographic_appBar_title => 'גיאוגרפיה';
@@ -32680,6 +32885,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'הצג הכל';
+
+  @override
+  String get trips_dateStretch_failed =>
+      'הצלילה נשמרה, אך לא ניתן היה לעדכן את תאריכי הטיול';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip נמשך כעת $dates';
+  }
 
   @override
   String get trips_picker_alreadyPacked => 'כבר נארז';
@@ -41760,6 +41974,265 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'לחות';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key מתאים ליותר משורה אחת';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: התא הזה לקריאה בלבד';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'בטל שינוי';
+
+  @override
+  String get tableEditor_changeLog => 'יומן שינויים';
+
+  @override
+  String get settings_tableEditor_title => 'עורך הטבלה';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'עריכת צלילות, אתרים או מרכזים רבים בגיליון';
+
+  @override
+  String get tableEditor_title => 'עורך הטבלה';
+
+  @override
+  String get tableEditor_tab_dives => 'צלילות';
+
+  @override
+  String get tableEditor_tab_sites => 'אתרים';
+
+  @override
+  String get tableEditor_tab_centers => 'מרכזים';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'עורך הטבלה דורש חלון רחב יותר. פתח אותו בטאבלט או במחשב.';
+
+  @override
+  String get tableEditor_saveAll => 'שמור הכול';
+
+  @override
+  String get tableEditor_paste => 'הדבק';
+
+  @override
+  String get tableEditor_clearFilters => 'נקה מסננים';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count לא נשמרו',
+      one: '$count לא נשמר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'לשמור את השינויים?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תאים משתנים',
+      one: '$count תא משתנה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count דורשים טיפול ולא יישמרו',
+      one: '$count דורש טיפול ולא יישמר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מחליפים ערך קיים',
+      one: '$count מחליף ערך קיים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count השתנו במקום אחר מאז שערכת',
+      one: '$count השתנה במקום אחר מאז שערכת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'השורות שהודבקו הותאמו לפי מספר צלילה';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'השורות שהודבקו הותאמו לפי שם';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'השורות שהודבקו מוקמו לפי מיקום';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column לקריאה בלבד';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'אין שורה עבור $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key מוסתר על ידי המסנן';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שורות מעבר לסוף הגיליון',
+      one: '$count שורה מעבר לסוף הגיליון',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'אין עמודה בשם $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שינויים נשמרו',
+      one: '$count שינוי נשמר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed => 'דבר לא נשמר. תקן את השגיאה ונסה שוב.';
+
+  @override
+  String get tableEditor_undo => 'בטל';
+
+  @override
+  String get tableEditor_undoneAll => 'השינויים בוטלו';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return 'בוטלו $reverted מתוך $total שינויים';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'שמור הכול ופתח';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'בטל ופתח';
+
+  @override
+  String get tableEditor_open_stay => 'הישאר';
+
+  @override
+  String tableEditor_original(String value) {
+    return 'היה: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'ערך לא תקין';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'לא ברשימה';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'נדרשים קו רוחב וקו אורך';
+
+  @override
+  String get tableEditor_flag_scrubberNeedsType => 'נדרש סוג סקרבר';
+
+  @override
+  String get tableEditor_flag_changedElsewhere => 'השתנה במקום אחר מאז שערכת';
+
+  @override
+  String get tableEditor_multiChoice_done => 'סיום';
+
+  @override
+  String get tableEditor_libraryReadOnly =>
+      'אתר ספרייה: כאן ניתן לערוך רק הערות ודירוג';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'ניקוי קואורדינטה אחת מנקה את שתיהן';
+
+  @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שורות משקולות, ערוך אותן בצלילה',
+      one: '$count שורת משקולת, ערוך אותה בצלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'הגדרת אתר מגדירה גם את סוג המים, הכניסה, היציאה וסוגי הצלילה בצלילה';
+
+  @override
+  String get enum_diveField_excludedFromStats => 'לא נכלל בסטטיסטיקה';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'ללא סטט.';
+
+  @override
+  String get enum_diveField_excludedFromGasStats => 'לא נכלל בסטטיסטיקת גז';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'ללא סטט. גז';
+
+  @override
+  String get enum_diveField_windDirection => 'כיוון הרוח';
+
+  @override
+  String get enum_diveField_windDirection_short => 'כיוון רוח';
+
+  @override
+  String get enum_diveField_scrubberType => 'סוג סקרבר';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'סקרבר';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'משך סקרבר';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'דקות סקרבר';
+
+  @override
   String get enum_diveField_weatherDescription_short => 'מזג אוויר';
 
   @override
@@ -49457,6 +49930,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get common_action_copy => 'העתקה';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'הועתק ללוח';
 
   @override
   String get settings_appearance_customGradient_title =>
@@ -57731,6 +58207,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_label_libraryRestored => 'הספרייה שוחזרה מגיבוי';
+
+  @override
+  String get changeLog_label_tableEditor => 'עורך הטבלה';
 
   @override
   String get changeLog_label_reparse => 'צלילות נותחו מחדש';

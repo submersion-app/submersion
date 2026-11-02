@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_editing.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// A value derived from the dive profile, offered as a one-tap fill on a
@@ -49,6 +50,7 @@ class FormRow extends StatefulWidget {
     this.decoration,
     this.profileSuggestion,
     this.markdown = false,
+    this.onAnnotate,
   }) : assert(
          !markdown ||
              (suffixText == null &&
@@ -94,6 +96,7 @@ class FormRow extends StatefulWidget {
        maxLines = 1,
        alwaysEditing = false,
        markdown = false,
+       onAnnotate = null,
        validator = null,
        inputValidator = null,
        onChanged = null,
@@ -120,6 +123,7 @@ class FormRow extends StatefulWidget {
       maxLines = 1,
       alwaysEditing = false,
       markdown = false,
+      onAnnotate = null,
       validator = null,
       inputValidator = null,
       onChanged = null,
@@ -157,6 +161,7 @@ class FormRow extends StatefulWidget {
        maxLines = 1,
        alwaysEditing = false,
        markdown = false,
+       onAnnotate = null,
        validator = null,
        inputValidator = null,
        onChanged = null,
@@ -189,6 +194,7 @@ class FormRow extends StatefulWidget {
        maxLines = 1,
        alwaysEditing = false,
        markdown = false,
+       onAnnotate = null,
        validator = null,
        inputValidator = null,
        onChanged = null,
@@ -215,6 +221,7 @@ class FormRow extends StatefulWidget {
       maxLines = 1,
       alwaysEditing = false,
       markdown = false,
+      onAnnotate = null,
       validator = null,
       inputValidator = null,
       onChanged = null,
@@ -248,6 +255,11 @@ class FormRow extends StatefulWidget {
   /// A Markdown notes row (#3683): editing shows the notes editor with its
   /// formatting bar under the label, and the resting row shows plain words.
   final bool markdown;
+
+  /// Answers the notes editor's pin on a Markdown row (#4109); null hides
+  /// the pin.
+  final Future<AnnotationRequestResult?> Function(String selectedWords)?
+  onAnnotate;
   final String? Function(String?)? validator;
 
   /// A validator for what the diver types, as opposed to [validator], which
@@ -286,6 +298,19 @@ class _FormRowState extends State<FormRow> {
   /// being edited: focus loss must not rest it.
   bool _previewing = false;
 
+  /// A Markdown row whose annotation sheet is open (#4109) has handed focus
+  /// to the sheet; resting it would unmount the field the answer lands in.
+  bool _annotating = false;
+
+  Future<AnnotationRequestResult?> _annotate(String selectedWords) async {
+    _annotating = true;
+    try {
+      return await widget.onAnnotate!(selectedWords);
+    } finally {
+      _annotating = false;
+    }
+  }
+
   /// A row with a validator must keep its field mounted, or Form.validate()
   /// cannot see it.
   bool get _persistent => _alwaysMounted || _failsInputValidator;
@@ -309,7 +334,7 @@ class _FormRowState extends State<FormRow> {
         // because its text fails is edited in place. Count it as editing, or
         // fixing the text rests the row and unmounts the field mid-typing.
         if (!_editing) setState(() => _editing = true);
-      } else if (_previewing) {
+      } else if (_previewing || _annotating) {
         return;
       } else if (_editing || widget.inputValidator != null) {
         setState(() => _editing = false);
@@ -425,6 +450,7 @@ class _FormRowState extends State<FormRow> {
               style: Theme.of(context).textTheme.bodyMedium,
               decoration: widget.decoration ?? _bareDecoration(context),
               onPreviewChanged: (on) => _previewing = on,
+              onAnnotate: widget.onAnnotate == null ? null : _annotate,
             ),
           ],
         ),

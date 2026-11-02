@@ -3,7 +3,8 @@
 # Runs the XCTest target of the macOS app (macos/RunnerTests). They pin the
 # renderer override that keeps Intel Macs on Skia (#3531) against the pinned
 # Flutter version, so a Flutter bump that renames the overridden selector
-# fails here.
+# fails here. They also pin what arms the quit watchdog (#4115), which once
+# stopped running without anything failing.
 
 name: macOS Runner Tests
 

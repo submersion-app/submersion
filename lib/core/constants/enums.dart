@@ -292,6 +292,10 @@ enum WeightingFeedback {
 /// Tank role/purpose during a dive
 enum TankRole {
   backGas('Back Gas'),
+
+  /// A manifolded pair logged as one cylinder with the combined volume
+  /// (issue #3374).
+  twinSet('Twin Set'),
   stage('Stage'),
   deco('Deco'),
   bailout('Bailout'),
@@ -407,7 +411,10 @@ enum ProfileEventType {
   setpointChange('Setpoint Change', 'info'),
   bookmark('Bookmark', 'info'),
   alert('Alert', 'alert'),
-  note('Note', 'info');
+  note('Note', 'info'),
+  // A passage of the dive's Notes pinned to a time (#4109). Always
+  // user-authored; its words are the Notes link text, cached in description.
+  annotation('Annotation', 'info');
 
   final String displayName;
   final String defaultSeverity; // 'info', 'warning', 'alert'
@@ -454,6 +461,8 @@ enum ProfileEventType {
         return 'notification_important';
       case ProfileEventType.note:
         return 'note';
+      case ProfileEventType.annotation:
+        return 'push_pin';
     }
   }
 }

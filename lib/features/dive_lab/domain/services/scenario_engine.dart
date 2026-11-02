@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_lab/domain/services/scenario_plan_compi
 import 'package:submersion/features/dive_lab/domain/services/tank_schedule.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -512,7 +513,7 @@ class ScenarioEngine {
     );
     String? backId;
     for (final t in request.tanks) {
-      if (t.role == TankRole.backGas) {
+      if (backmountRoles.contains(t.role)) {
         backId = t.id;
         break;
       }

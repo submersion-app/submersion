@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
@@ -109,6 +110,7 @@ import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
@@ -131,6 +133,14 @@ typedef ConditionsCandidate = ({
   double latitude,
   double longitude,
 });
+
+/// `dives.weather_fetched_at` holds Unix seconds, where most columns here hold
+/// milliseconds (issue #4119), so every read and write goes through this pair.
+int? _weatherStamp(DateTime? fetchedAt) =>
+    fetchedAt == null ? null : fetchedAt.millisecondsSinceEpoch ~/ 1000;
+
+DateTime? _weatherStampTime(int? stamp) =>
+    stamp == null ? null : DateTime.fromMillisecondsSinceEpoch(stamp * 1000);
 
 class DiveRepository {
   /// The media dependencies drive the dive-deletion cascade
@@ -1265,7 +1275,7 @@ class DiveRepository {
                 ? Value(source.name)
                 : const Value.absent(),
             weatherFetchedAt: stampProvenance
-                ? Value(fetchedAt.millisecondsSinceEpoch)
+                ? Value(_weatherStamp(fetchedAt))
                 : const Value.absent(),
             updatedAt: Value(now),
           ),
@@ -2122,11 +2132,7 @@ class DiveRepository {
                 weatherDescription: Value(dive.weatherDescription),
                 weatherCode: Value(dive.weatherCode),
                 weatherSource: Value(dive.weatherSource?.name),
-                weatherFetchedAt: Value(
-                  dive.weatherFetchedAt != null
-                      ? dive.weatherFetchedAt!.millisecondsSinceEpoch ~/ 1000
-                      : null,
-                ),
+                weatherFetchedAt: Value(_weatherStamp(dive.weatherFetchedAt)),
                 // Surface interval and deco settings
                 surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
                 gradientFactorLow: Value(dive.gradientFactorLow),
@@ -2461,11 +2467,7 @@ class DiveRepository {
             weatherDescription: Value(dive.weatherDescription),
             weatherCode: Value(dive.weatherCode),
             weatherSource: Value(dive.weatherSource?.name),
-            weatherFetchedAt: Value(
-              dive.weatherFetchedAt != null
-                  ? dive.weatherFetchedAt!.millisecondsSinceEpoch ~/ 1000
-                  : null,
-            ),
+            weatherFetchedAt: Value(_weatherStamp(dive.weatherFetchedAt)),
             // Surface interval and deco settings
             surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
             gradientFactorLow: Value(dive.gradientFactorLow),
@@ -4877,9 +4879,7 @@ class DiveRepository {
               orElse: () => WeatherSource.manual,
             )
           : null,
-      weatherFetchedAt: row.weatherFetchedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.weatherFetchedAt! * 1000)
-          : null,
+      weatherFetchedAt: _weatherStampTime(row.weatherFetchedAt),
       tanks: tanks
           .map(
             (t) => domain.DiveTank(
@@ -5342,9 +5342,7 @@ class DiveRepository {
               orElse: () => WeatherSource.manual,
             )
           : null,
-      weatherFetchedAt: row.weatherFetchedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.weatherFetchedAt! * 1000)
-          : null,
+      weatherFetchedAt: _weatherStampTime(row.weatherFetchedAt),
       tanks: tankRows.map((t) {
         return domain.DiveTank(
           id: t.id,
@@ -5694,6 +5692,73 @@ class DiveRepository {
     return byDive;
   }
 
+  /// Weights for [diveIds] grouped by dive, for a sheet that shows many
+  /// dives at once (issue #3422). A dive with no weights has no entry.
+  Future<Map<String, List<domain.DiveWeight>>> getWeightsForDives(
+    List<String> diveIds, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async => {
+    for (final chunk in seriesIdChunks(diveIds, size: chunkSize))
+      ...await _weightsForDives(chunk),
+  };
+
+  /// The type of the weight row on [diverId]'s most recent dive that has one,
+  /// or null when they have none (issue #3422). Asks the log rather than a
+  /// sheet, since a sheet filtered to weightless dives holds no answer.
+  Future<WeightType?> latestWeightType(String? diverId) async {
+    final query =
+        _db.select(_db.diveWeights).join([
+            innerJoin(
+              _db.dives,
+              _db.dives.id.equalsExp(_db.diveWeights.diveId),
+            ),
+          ])
+          ..orderBy([OrderingTerm.desc(_db.dives.diveDateTime)])
+          ..limit(1);
+    if (diverId != null) query.where(_db.dives.diverId.equals(diverId));
+    final row = await query.getSingleOrNull();
+    return row == null
+        ? null
+        : _mapWeightRow(row.readTable(_db.diveWeights)).weightType;
+  }
+
+  /// Sets the amount of a dive's single weight row in place, keeping its id
+  /// (issue #3422). No rows: inserts one of [newRowType]. One row: updates
+  /// it, or deletes it (tombstoned) when [amountKg] is null. Two or more
+  /// rows: throws [StateError], since the cell cannot say which row it
+  /// means. No transaction, no notify: the caller owns those.
+  Future<void> setSingleWeightAmount(
+    String diveId,
+    double? amountKg, {
+    required WeightType newRowType,
+  }) async {
+    final existing = await _loadWeightsForDive(diveId);
+    if (existing.length > 1) {
+      throw StateError(
+        'Dive $diveId has ${existing.length} weight rows; '
+        'a single amount cannot choose one',
+      );
+    }
+    final List<domain.DiveWeight> desired;
+    if (amountKg == null) {
+      desired = const [];
+    } else if (existing.isEmpty) {
+      desired = [
+        domain.DiveWeight(
+          id: '',
+          diveId: diveId,
+          weightType: newRowType,
+          amountKg: amountKg,
+        ),
+      ];
+    } else {
+      desired = [existing.single.copyWith(amountKg: amountKg)];
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _writeWeightDiff(diveId, desired, now);
+    await _bumpDives([diveId], now);
+  }
+
   domain.DiveWeight _mapWeightRow(DiveWeight row) => domain.DiveWeight(
     id: row.id,
     diveId: row.diveId,
@@ -5993,7 +6058,15 @@ class DiveRepository {
   // Profile Event Operations
   // ============================================================================
 
-  /// Bulk insert profile events (for dive computer imports and analysis results)
+  /// Which of [ids] already name a profile event row, on any dive. A backup
+  /// restore carries each event's own id (#4109), and gives its new dive a
+  /// fresh one in place of any of these.
+  Future<Set<String>> existingProfileEventIds(Iterable<String> ids) =>
+      takenProfileEventIds(_db, ids);
+
+  /// Bulk insert profile events (for dive computer imports and analysis
+  /// results). Duplicate ids throw, so a write that must be all or nothing
+  /// fails loudly.
   Future<void> insertProfileEvents(List<ProfileEvent> events) async {
     if (events.isEmpty) return;
 
@@ -6003,11 +6076,8 @@ class DiveRepository {
       for (final event in events) {
         final id = event.id.isEmpty ? _uuid.v4() : event.id;
         diveIds.add(event.diveId);
-        // Drift's default conflict mode is `insertOrFail` — duplicate IDs
-        // throw. Callers are expected to pass unique IDs (either freshly
-        // generated via _uuid.v4() or from domain entities that assigned them);
-        // the `event.id.isEmpty ? _uuid.v4()` guard above covers the most
-        // common case where the caller hasn't assigned an ID yet.
+        // Drift's default conflict mode is `insertOrFail`: callers pass unique
+        // ids (fresh, or a domain entity's own).
         await _db
             .into(_db.diveProfileEvents)
             .insert(
@@ -8204,6 +8274,54 @@ class DiveRepository {
     return changed.length;
   }
 
+  /// Set the role of exactly the cylinders in [tankIds] to [role], as the
+  /// Gas page's twin set re-role offer does (issue #3374). Writes the role
+  /// and clears `role_source` through [_tankSpecsCompanion], so nothing
+  /// else on the row moves; marks each row and its dive pending for sync.
+  /// With [onlyFrom], a row whose role is no longer that one (a sync pull
+  /// since the caller chose it, say) is left alone. Owns its transaction,
+  /// Drift's table updates notify the dive streams, and the sync bus hears
+  /// of a change so auto-sync schedules it. Returns the number of rows
+  /// changed.
+  Future<int> setTankRoles(
+    List<String> tankIds,
+    TankRole role, {
+    TankRole? onlyFrom,
+  }) async {
+    if (tankIds.isEmpty) return 0;
+    final companion = _tankSpecsCompanion(
+      domain.DiveTank(id: '', role: role),
+      const {domain.TankSpecField.role},
+    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final changed = await _db.transaction(() async {
+      final rows =
+          await (_db.select(_db.diveTanks)..where(
+                (t) => onlyFrom == null
+                    ? t.id.isIn(tankIds)
+                    : t.id.isIn(tankIds) & t.tankRole.equals(onlyFrom.name),
+              ))
+              .get();
+      if (rows.isEmpty) return 0;
+      // One write per row, each marked pending in the same block: the row
+      // keeps a fresh clock, so a peer's older copy cannot undo the role.
+      for (final row in rows) {
+        await (_db.update(
+          _db.diveTanks,
+        )..where((t) => t.id.equals(row.id))).write(companion);
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+      await _bumpDives(rows.map((r) => r.diveId).toSet().toList(), now);
+      return rows.length;
+    });
+    if (changed > 0) SyncEventBus.notifyLocalChange();
+    return changed;
+  }
+
   /// Write [rows] back over the tanks with the same ids, restoring prior NULLs.
   ///
   /// The undo counterpart of [bulkUpdateTankSpecs]. It updates in place instead
@@ -8406,6 +8524,14 @@ class DiveRepository {
             _syncRepository,
             diveId,
             tripId: tripId,
+            now: now,
+          );
+        }
+        if (tripId != null) {
+          await stretchTripsToCoverDives(
+            _db,
+            _syncRepository,
+            diveIds,
             now: now,
           );
         }
@@ -8674,8 +8800,9 @@ class DiveRepository {
               entryLongitude: row.entryLongitude,
               exitLatitude: row.exitLatitude,
               exitLongitude: row.exitLongitude,
-              entryTime: row.entryTime,
-              exitTime: row.exitTime,
+              // See _mapRowToDataSource.
+              entryTime: row.entryTime?.toUtc(),
+              exitTime: row.exitTime?.toUtc(),
               maxAscentRate: row.maxAscentRate,
               maxDescentRate: row.maxDescentRate,
               surfaceInterval: row.surfaceInterval,
@@ -9646,8 +9773,11 @@ class DiveRepository {
       entryLongitude: row.entryLongitude,
       exitLatitude: row.exitLatitude,
       exitLongitude: row.exitLongitude,
-      entryTime: row.entryTime,
-      exitTime: row.exitTime,
+      // Written from a wall clock flagged UTC, as the dive's own times are, but
+      // a Drift dateTime() column reads back flagged local. toUtc restores the
+      // stored digits; passed on as is, they show shifted by the device's zone.
+      entryTime: row.entryTime?.toUtc(),
+      exitTime: row.exitTime?.toUtc(),
       maxAscentRate: row.maxAscentRate,
       maxDescentRate: row.maxDescentRate,
       surfaceInterval: row.surfaceInterval,

@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -2681,6 +2682,11 @@ class _MockTripRepository implements TripRepository {
   }) async => [];
 
   @override
+  Future<List<TripDateStretch>> stretchToCoverDives(
+    List<String> diveIds,
+  ) async => const [];
+
+  @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
 
   @override
@@ -2831,6 +2837,11 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   }) async => [];
 
   @override
+  Future<List<TripDateStretch>> stretchToCoverDives(
+    List<String> diveIds,
+  ) async => const [];
+
+  @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
 
   @override
@@ -2920,6 +2931,11 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
     String tripId, {
     String? diverId,
   }) async => [];
+
+  @override
+  Future<List<TripDateStretch>> stretchToCoverDives(
+    List<String> diveIds,
+  ) async => const [];
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
@@ -3103,6 +3119,11 @@ class _SlowTripRepository implements TripRepository {
   }) async => [];
 
   @override
+  Future<List<TripDateStretch>> stretchToCoverDives(
+    List<String> diveIds,
+  ) async => const [];
+
+  @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
 
   @override
@@ -3168,6 +3189,11 @@ class _ErrorTripRepository implements TripRepository {
     String tripId, {
     String? diverId,
   }) async => [];
+
+  @override
+  Future<List<TripDateStretch>> stretchToCoverDives(
+    List<String> diveIds,
+  ) async => const [];
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}

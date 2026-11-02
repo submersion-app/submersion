@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -289,9 +290,10 @@ class ReparseService {
       if (rewritesEvents) {
         // Tombstoned: a peer's import only upserts these, so a row removed
         // here without one would linger there beside its re-inserted copy.
+        // The diver's own events are not the parse's to replace (#4109).
         await _deleteAndTombstone(
           'diveProfileEvents',
-          await _idsOf(db.diveProfileEvents, diveId),
+          await nonUserEventIds(db, diveId),
           diveId: diveId,
         );
         if (rewritesSwitches) {
@@ -464,10 +466,18 @@ class ReparseService {
       );
     }
     if (entityType == 'diveProfileEvents') {
-      // The ids are every event on the dive (_idsOf), which is exactly what
-      // the dive scope covers on a peer. The re-inserted events are staged
-      // after this, so their clocks are newer and the scope keeps them.
+      // The ids are every event on the dive but the diver's own, which is
+      // exactly what the dive scope covers on a peer. The re-inserted events
+      // are staged after this, so their clocks are newer and the scope keeps
+      // them.
       await _sync.logScopedDeletion(EventScopeTombstone(diveId: diveId));
+      // The user events kept above must outlive that scope on peers too.
+      await restampUserEvents(
+        db: db,
+        sync: _sync,
+        diveId: diveId,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
     } else {
       await _sync.logDeletions(entityType: entityType, recordIds: ids);
     }

@@ -755,6 +755,29 @@ add(
     ),
 )
 
+# A twin set is the sidemount pair with both cylinders solid and an
+# isolation manifold joining the two valve bodies, so it reads apart from
+# either sidemount glyph at 24 px (issue #3374). Appended last: code points
+# are assigned in declaration order.
+def _twin_set():
+    left_x, right_x = 2.4, 13.8
+    manifold_y = SIDEMOUNT_Y - 2.4
+    left_cx = left_x + SIDEMOUNT_W / 2
+    right_cx = right_x + SIDEMOUNT_W / 2
+    return g(
+        _polys(_tank_pts(left_x, SIDEMOUNT_Y, SIDEMOUNT_W, SIDEMOUNT_H, 0.8, -1)),
+        _polys(_tank_pts(right_x, SIDEMOUNT_Y, SIDEMOUNT_W, SIDEMOUNT_H, 0.8, 1)),
+        bar((left_cx, manifold_y), (right_cx, manifold_y), 1.6),
+    )
+
+
+add(
+    "tank_twin_set",
+    "Twin Set",
+    "Two upright cylinders joined by a manifold, both solid.",
+    _twin_set(),
+)
+
 # Private Use Area code points, assigned in declaration order and never
 # renumbered: they are baked into the committed font and into
 # lib/core/icons/submersion_icons.dart.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -73,12 +74,20 @@ Future<void> showDiverSwitcherSheet(BuildContext context) {
                                   ).colorScheme.primary,
                                 )
                               : null,
-                          onTap: () {
+                          onTap: () async {
                             if (isActive) return;
-                            ref
-                                .read(currentDiverIdProvider.notifier)
-                                .setCurrentDiver(diver.id);
-                            Navigator.of(sheetContext).pop();
+                            final guard = ref.read(appExitGuardProvider);
+                            final current = ref.read(
+                              currentDiverIdProvider.notifier,
+                            );
+                            // This sheet opens from any page, and a switch
+                            // starts the table editor clean, so it asks as
+                            // leaving that page would.
+                            if (!await guard.mayLeave()) return;
+                            current.setCurrentDiver(diver.id);
+                            if (sheetContext.mounted) {
+                              Navigator.of(sheetContext).pop();
+                            }
                             messenger?.showSnackBar(
                               SnackBar(
                                 content: Text(

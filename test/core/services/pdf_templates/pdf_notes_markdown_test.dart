@@ -42,6 +42,44 @@ void main() {
     expect(text, isNot(contains('#')));
   });
 
+  test('an annotation link in the PDF reads words then time (#4109)', () async {
+    final bytes = await render(
+      notesMarkdownPdfBlocks(
+        'I [felt sick](annotation:a1) today.',
+        style: style,
+        annotationTimes: {'a1': '21:30'},
+      ),
+    );
+    final text = pdfVisibleText(bytes);
+    expect(text, contains('felt sick (21:30)'));
+    expect(text, isNot(contains('annotation:')));
+  });
+
+  test('a dangling annotation link in the PDF is bare words', () async {
+    final bytes = await render(
+      notesMarkdownPdfBlocks(
+        'I [felt sick](annotation:gone) today.',
+        style: style,
+        annotationTimes: {'a1': '21:30'},
+      ),
+    );
+    final text = pdfVisibleText(bytes);
+    expect(text, contains('felt sick today'));
+    expect(text, isNot(contains('(')));
+  });
+
+  test('the inline renderer appends the time too', () async {
+    final bytes = await render([
+      notesMarkdownPdfInline(
+        '[felt sick](annotation:a1)',
+        style: style,
+        maxLines: 2,
+        annotationTimes: {'a1': '21:30'},
+      ),
+    ]);
+    expect(pdfVisibleText(bytes), contains('felt sick (21:30)'));
+  });
+
   test('single line breaks survive', () async {
     final bytes = await render(
       notesMarkdownPdfBlocks('LineOne\nLineTwo', style: style),

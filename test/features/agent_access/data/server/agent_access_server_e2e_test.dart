@@ -9,19 +9,17 @@ import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
 import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/test_database.dart';
+import '../sql/sql_window_fixture.dart';
 
 const _token = 'e2e-token-0123456789-abcdefghijklmnopqrstuv';
 
@@ -54,7 +52,13 @@ class _EchoClientTool implements AgentTool {
 void main() {
   late AppDatabase db;
   late McpClient client;
+  late SqlWindowFixture sqlFixture;
   const t = 1700000000000;
+
+  setUpAll(() async {
+    sqlFixture = await SqlWindowFixture.create();
+  });
+  tearDownAll(() => sqlFixture.dispose());
 
   AgentToolRegistry registry() {
     final divers = DiverRepository();
@@ -69,11 +73,10 @@ void main() {
       ),
       divers: divers,
       settings: settings,
-      dives: DiveRepository(),
-      buddies: BuddyRepository(),
-      species: SpeciesRepository(),
-      media: MediaRepository(),
-      diveTypes: DiveTypeRepository(),
+      records: RecordRepositories(),
+      sql: SqlWindowRunner(
+        file: () async => SqlDatabaseFile(path: sqlFixture.path),
+      ),
     );
     return AgentToolRegistry(
       tools: [...standard.tools, _EchoClientTool()],
@@ -150,17 +153,41 @@ void main() {
       expect(info?.version, '9.9.9-test');
     });
 
-    test('lists the three tools and two resources', () async {
+    test('lists the read tools and three resources', () async {
       final tools = await client.listTools();
       expect(
         tools.tools.map((t) => t.name),
-        containsAll(['list_divers', 'query', 'get_records']),
+        containsAll([
+          'list_divers',
+          'query',
+          'get_records',
+          'list_records',
+          'sql_query',
+        ]),
       );
       final resources = await client.listResources();
       expect(
         resources.resources.map((r) => r.uri),
-        unorderedEquals(['submersion://query-language', 'submersion://units']),
+        unorderedEquals([
+          'submersion://query-language',
+          'submersion://units',
+          'submersion://schema',
+        ]),
       );
+    });
+
+    test('list_records over loopback', () async {
+      await db
+          .into(db.diveTanks)
+          .insert(DiveTanksCompanion.insert(id: 'tank-1', diveId: 'dive-20'));
+      final out = await client.callTool(
+        const CallToolRequest(
+          name: 'list_records',
+          arguments: {'entity': 'dive_tanks', 'parent_id': 'dive-20'},
+        ),
+      );
+      expect(out.isError, isFalse);
+      expect(out.structuredContent!['total'], 1);
     });
 
     test('query then get_records round trip', () async {
@@ -181,6 +208,44 @@ void main() {
       expect(records, hasLength(2));
       final text = (g.content.single as TextContent).text;
       expect(text, contains('"max_depth_m":20.0'));
+    });
+
+    test('sql_query over loopback, with a bound parameter', () async {
+      final r = await client.callTool(
+        const CallToolRequest(
+          name: 'sql_query',
+          arguments: {
+            'sql': 'SELECT ? AS answer',
+            'params': [42],
+          },
+        ),
+      );
+      expect(r.isError, isNot(true));
+      expect(r.structuredContent!['rows'], [
+        [42],
+      ]);
+    });
+
+    test('sql_query refuses a denied table with its code', () async {
+      final r = await client.callTool(
+        const CallToolRequest(
+          name: 'sql_query',
+          arguments: {'sql': 'SELECT * FROM connected_accounts'},
+        ),
+      );
+      expect(r.isError, true);
+      final text = (r.content.single as TextContent).text;
+      expect(text, contains('sql_refused'));
+      expect(text, contains('connected_accounts'));
+    });
+
+    test('reads the schema resource', () async {
+      final r = await client.readResource(
+        const ReadResourceRequest(uri: 'submersion://schema'),
+      );
+      final text = (r.contents.single as TextResourceContents).text;
+      expect(text, contains('## dives'));
+      expect(text, isNot(contains('connected_accounts')));
     });
 
     test('reads the query language resource', () async {

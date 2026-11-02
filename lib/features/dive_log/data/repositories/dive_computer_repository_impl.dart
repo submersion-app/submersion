@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/database/database.dart'
     show
@@ -1397,10 +1398,12 @@ class DiveComputerRepository {
     // beside the re-imported ones. importProfile stamps the fresh events
     // after this, so their clocks are newer and peers keep them.
     await _db.transaction(() async {
+      // The diver's own events are not the download's to replace (#4109).
       final deletedEvents =
           await (_db.delete(_db.diveProfileEvents)..where(
                 (t) =>
                     t.diveId.equals(diveId) &
+                    nonUserEvent(t) &
                     (sharedDive
                         ? t.computerId.equals(computerId)
                         : const Constant(true)),
@@ -1412,6 +1415,12 @@ class DiveComputerRepository {
             diveId: diveId,
             computerId: sharedDive ? computerId : null,
           ),
+        );
+        await restampUserEvents(
+          db: _db,
+          sync: _syncRepository,
+          diveId: diveId,
+          now: DateTime.now().millisecondsSinceEpoch,
         );
       }
     });

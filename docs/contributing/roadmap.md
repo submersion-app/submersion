@@ -46,7 +46,7 @@ request.
 | Dive type (20+ types) | Implemented | MVP | Recreational, tech, wreck, cave, night, etc. |
 | Runtime tracking | Implemented | v1.5 | Separate field for total runtime (entry→exit) |
 | Custom dive types (user-defined) | Implemented | v1.5 | Database-backed with management UI |
-| Auto bottom time calculation | Implemented | v1.5 | Calculate from dive profile (descent end → ascent start) |
+| Auto bottom time calculation | Implemented | v1.5 | Calculate from dive profile (surface departure → start of final ascent) |
 
 ---
 
