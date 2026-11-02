@@ -1,7 +1,5 @@
 # Auto-Connect for Known Dive Computers - Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Design reference:** `docs/design/specs/2026-10-14-auto-connect-known-dive-computer-design.md`
 
 **Goal:** While the diver is on the Dive Computers section of the Transfer tab
