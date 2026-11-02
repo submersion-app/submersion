@@ -47,6 +47,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_metric
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_metric_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_tick_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_line_builders.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_label.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
@@ -292,6 +294,14 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Whether to show event markers
   final bool showEvents;
+
+  /// Whether to draw annotations (#4109), independently of [showEvents].
+  final bool showAnnotations;
+
+  /// A tap on an annotation's dot, with the dot's global centre for the
+  /// popup to anchor to (#4109).
+  final void Function(ProfileEvent annotation, Offset globalCenter)?
+  onAnnotationTap;
 
   /// Off for a read-only chart, whose zoom buttons would do nothing.
   final bool showZoomControls;
@@ -747,6 +757,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showDecoStops = true,
     this.showAscentRateColors = false,
     this.showEvents = true,
+    this.showAnnotations = true,
+    this.onAnnotationTap,
     this.showZoomControls = true,
     this.showSac = false,
     this.markers,
@@ -846,6 +858,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showAscentRateColors = false;
   bool _showAscentRateLine = false;
   bool _showEvents = true;
+  bool _showAnnotations = true;
 
   /// Whether the app's own computed events are drawn (issue #1523). Synced
   /// from the legend provider in [build]; seeded off for dives that carry the
@@ -1680,6 +1693,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showDecoStops = widget.showDecoStops;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
+    _showAnnotations = widget.showAnnotations;
     _scheduleComputedEventsSeed();
     _zoomNotifier.addListener(_scheduleLegendMeasure);
   }
@@ -4344,7 +4358,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   highlightSpan,
                   widget.highlightRange?.color,
                 ),
-                if (_showEvents && widget.events != null)
+                if (widget.events != null && (_showEvents || _showAnnotations))
                   ..._buildEventVerticalLines(
                     colorScheme,
                     availableWidth: availableWidth,
@@ -4963,6 +4977,25 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           Positioned.fill(
             key: const ValueKey('safetyCalloutLayer'),
             child: safetyLayer(lane: false),
+          ),
+        // Annotation dots (#4109): on the depth curve at each annotation's
+        // time, tappable for the popup. A Listener layer, so it never
+        // contests the chart's own gestures or the range handles above it.
+        if (_showAnnotations && _annotations.isNotEmpty)
+          Positioned.fill(
+            key: const ValueKey('annotationMarkerLayer'),
+            child: AnnotationMarkerLayer(
+              annotations: _annotations,
+              insets: plotInsets,
+              visibleMinSeconds: visibleMinX,
+              visibleMaxSeconds: visibleMaxX,
+              visibleMinDepth: visibleMinDepth,
+              visibleMaxDepth: visibleMaxDepth,
+              depthAt: (seconds) => widget.profile.isEmpty
+                  ? null
+                  : units.convertDepth(_depthAtTimestamp(seconds.toDouble())),
+              onTap: widget.onAnnotationTap ?? (_, _) {},
+            ),
           ),
         // Range-statistics handles. Topmost so a handle wins the pointer
         // over the layers below it, and inside the chart so it shares the
@@ -7102,18 +7135,34 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final events = widget.events;
     if (events == null || events.isEmpty) return [];
 
+    // Annotations (#4109) have their own toggle and skip the severity and
+    // spacing rules below: a diver's own marker is never dropped for a
+    // computer event, and two close together keep both lines.
+    final annotations = _showAnnotations
+        ? [
+            for (final e in events)
+              if (e.isAnnotation) e,
+          ]
+        : const <ProfileEvent>[];
+    final computerEvents = _showEvents
+        ? [
+            for (final e in events)
+              if (!e.isAnnotation) e,
+          ]
+        : const <ProfileEvent>[];
+
     // Drop events attributed to a computer that's been toggled off (a null
     // computerId is treated as the primary computer, see _isComputerVisible),
     // and the app's own computed events when that legend toggle is off
     // (issue #1523).
-    final visibleEvents = events
+    final visibleEvents = computerEvents
         .where(
           (e) =>
               _isComputerVisible(e.computerId) &&
               (_showComputedEvents || e.source != EventSource.computed),
         )
         .toList();
-    if (visibleEvents.isEmpty) return [];
+    if (visibleEvents.isEmpty && annotations.isEmpty) return [];
 
     // Group events by timestamp, keeping only the most severe at each time.
     // On equal severity the computer's own event beats a computed one: it
@@ -7163,6 +7212,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         kept.add(event);
       }
     }
+    if (annotations.isNotEmpty) {
+      kept
+        ..addAll(annotations)
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    }
 
     // Collision-aware label placement for the events inside the visible
     // window: anchored below the profile depth at the event's time (free
@@ -7175,10 +7229,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final t = kept[i].timestamp.toDouble();
       if (t < visibleMinX || t > visibleMaxX) continue;
       final painter = TextPainter(
-        text: TextSpan(
-          text: kept[i].markerLabel(context.l10n),
-          style: labelStyle,
-        ),
+        text: TextSpan(text: _markerText(kept[i]), style: labelStyle),
         // Deliberately LTR regardless of locale: fl_chart's painter lays
         // vertical-line labels out with TextDirection.ltr
         // (axis_chart_painter.dart), and this measurement must match the
@@ -7224,7 +7275,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ) {
     final spec = label?.$1;
     final placement = label?.$2;
-    final color = _eventSeverityColor(event.severity, colorScheme);
+    final color = event.isAnnotation
+        ? ProfileMetricColors.annotation
+        : _eventSeverityColor(event.severity, colorScheme);
     // fl_chart lays the label out inside
     // Rect.fromLTRB(x - padding.right - textWidth, padding.top,
     //               x + padding.left, ...)
@@ -7243,8 +7296,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return VerticalLine(
       x: event.timestamp.toDouble(),
       color: color,
-      strokeWidth: 1,
-      dashArray: [3, 3],
+      // An annotation is a solid, slightly heavier line; the computer's
+      // events stay dashed.
+      strokeWidth: event.isAnnotation ? 1.5 : 1,
+      dashArray: event.isAnnotation ? null : [3, 3],
       label: VerticalLineLabel(
         show: placement?.showText ?? false,
         alignment: Alignment.topLeft,
@@ -7254,10 +7309,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           fontSize: 9,
           backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
         ),
-        labelResolver: (line) => event.markerLabel(context.l10n),
+        labelResolver: (line) => _markerText(event),
       ),
     );
   }
+
+  /// The marker's words: the passage for an annotation, the localized event
+  /// name (or the watch's own wording) for the rest.
+  String _markerText(ProfileEvent event) => event.isAnnotation
+      ? annotationMarkerLabel(event)
+      : event.markerLabel(context.l10n);
+
+  /// The annotations among the dive's events (#4109).
+  List<ProfileEvent> get _annotations => [
+    for (final e in widget.events ?? const <ProfileEvent>[])
+      if (e.isAnnotation) e,
+  ];
 
   /// Returns the color for an event based on its severity level.
   Color _eventSeverityColor(EventSeverity severity, ColorScheme colorScheme) {
