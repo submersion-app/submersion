@@ -146,10 +146,10 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
     final dive = widget.dive;
     final entrySec = dive.effectiveEntryTime.millisecondsSinceEpoch ~/ 1000;
     // effectiveRuntime, not bottomTime: runtime is surface-to-surface, which
-    // is the window the boat was out. bottomTime excludes descent and ascent,
-    // so on a deco dive it can fall short by twenty minutes or more, and it is
-    // null on plenty of imported dives - which collapsed the window to the
-    // entry instant plus the margin.
+    // is the window the boat was out. bottomTime stops at the start of the
+    // final ascent, so on a deco dive it can fall short by twenty minutes or
+    // more, and it is null on plenty of imported dives, which collapsed the
+    // window to the entry instant plus the margin.
     final exitSec = entrySec + (dive.effectiveRuntime?.inSeconds ?? 0);
     return bucketizeTrack(
       windowTrack(

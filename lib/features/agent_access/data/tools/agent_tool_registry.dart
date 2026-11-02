@@ -3,11 +3,14 @@ import 'package:submersion/features/agent_access/data/records/record_catalog.dar
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/resources/agent_resource.dart';
 import 'package:submersion/features/agent_access/data/resources/query_language_resource.dart';
+import 'package:submersion/features/agent_access/data/resources/schema_resource.dart';
 import 'package:submersion/features/agent_access/data/resources/units_resource.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/get_records_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/list_divers_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/list_records_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/query_tool.dart';
+import 'package:submersion/features/agent_access/data/tools/sql_query_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -38,12 +41,14 @@ class AgentToolRegistry {
     );
   }
 
-  /// The read surface of this version: profiles, query, and every record.
+  /// The read surface of this version: profiles, query, every record, and
+  /// the SQL window for whatever those miss.
   static AgentToolRegistry standard({
     required DiverContextLoader loader,
     required DiverRepository divers,
     required DiverSettingsRepository settings,
     required RecordRepositories records,
+    required SqlWindowRunner sql,
   }) {
     final catalog = RecordCatalog(records);
     return AgentToolRegistry(
@@ -52,10 +57,12 @@ class AgentToolRegistry {
         QueryTool(loader: loader, catalog: catalog),
         GetRecordsTool(loader: loader, catalog: catalog),
         ListRecordsTool(loader: loader, catalog: catalog),
+        SqlQueryTool(runner: sql),
       ],
       resources: [
         QueryLanguageResource(),
         UnitsResource(divers: divers, settings: settings),
+        SchemaResource(),
       ],
     );
   }

@@ -15,6 +15,12 @@ import 'package:submersion/core/constants/enums.dart';
 /// Smallest drop on open circuit, in bar, that can flag a cylinder.
 const double kBailoutMinOcDropBar = 20.0;
 
+/// Smallest loop drop, in bar, that counts on a cylinder not marked as loop
+/// gas. A cylinder filled warm loses pressure as it cools: an 11 L bailout
+/// loses about 13 bar in 5 C water without being touched, which over an hour
+/// would read as 2.5 L/min.
+const double kMinUnmarkedLoopDropBar = 20.0;
+
 /// Shortest total open-circuit time, in seconds, worth judging.
 const int kBailoutMinOcSeconds = 120;
 
@@ -94,7 +100,7 @@ List<BailoutEvidence<K>>? bailoutEvidence<K>({
 
   final out = <BailoutEvidence<K>>[];
   for (final key in candidates) {
-    final samples = _withoutDropouts(pressures[key] ?? const []);
+    final samples = withoutDropouts(pressures[key] ?? const []);
     if (samples.length < 2) continue;
     var loopDrop = 0.0;
     final ocDropByTarget = <K, double>{};
@@ -144,7 +150,7 @@ const double _kDropoutDipBar = 10.0;
 /// [samples] without transmitter dropouts: readings of zero or less, and an
 /// isolated sample far below both its neighbours. Either would otherwise
 /// count as a drop of the whole cylinder.
-List<TimelinePressure> _withoutDropouts(List<TimelinePressure> samples) {
+List<TimelinePressure> withoutDropouts(List<TimelinePressure> samples) {
   final positive = [
     for (final s in samples)
       if (s.bar > 0) s,

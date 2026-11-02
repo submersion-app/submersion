@@ -9,6 +9,7 @@ import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_denied_set.dart';
 import 'package:submersion/features/agent_access/data/tools/get_records_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/list_records_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
@@ -19,10 +20,10 @@ const kDiverA = 'diver-a';
 const kDiverB = 'diver-b';
 const kSeedTime = 1700000000000;
 
-/// Keys no document may carry: credentials, and values that belong to one
-/// device.
+/// Keys no document may carry: whatever the SQL window refuses, and values
+/// that belong to one device.
 final Set<String> kForbiddenDocumentKeys = {
-  ...changeLogCredentialColumns,
+  ...kSqlDeniedColumns,
   for (final keys in deviceLocalSyncColumns.values)
     for (final key in keys) changeLogSqlName(key),
 };

@@ -34,6 +34,7 @@ class _RecordingSimple extends PdfTemplateSimple {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    Map<String, Map<String, String>> annotationTimesByDive = const {},
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,

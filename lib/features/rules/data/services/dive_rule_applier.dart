@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/existing_row_ids.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_field_value.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
 
 /// Applies one dive action of a logbook rule (#3513) through the bulk edit
@@ -36,6 +38,7 @@ class DiveRuleApplier {
   final DiveRoleRepository _roles;
   final DiveRoleLinkRepository _roleLinks = DiveRoleLinkRepository();
   final TagRepository _tags = TagRepository();
+  final SyncRepository _sync = SyncRepository();
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -87,6 +90,16 @@ class DiveRuleApplier {
     if (changed.isEmpty) return AppliedAction.none;
     for (final chunk in ruleIdChunks(changed)) {
       await _dives.bulkUpdateFields(chunk, companion);
+    }
+    // A dive a rule puts on a trip stretches it, the same as by hand (#3351).
+    // Rule undo tracks dives and sites, so the Change Log is what reverts this.
+    if (companion.tripId.present && companion.tripId.value != null) {
+      await stretchTripsToCoverDives(
+        _db,
+        _sync,
+        changed,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
     }
     return AppliedAction([
       for (final id in changed)

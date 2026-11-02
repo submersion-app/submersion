@@ -47,6 +47,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_metric
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_metric_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_tick_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_line_builders.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_label.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
@@ -304,6 +306,28 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Whether to show event markers
   final bool showEvents;
+
+  /// A tap on an annotation's dot, with the dot's global centre for the
+  /// popup to anchor to (#4109).
+  final void Function(ProfileEvent annotation, Offset globalCenter)?
+  onAnnotationTap;
+
+  /// Placement mode (#4109): a single-pointer release anywhere on the plot
+  /// places an annotation at the second under it, reported through
+  /// [onAnnotationPlaced] with the profile depth there (null without a
+  /// profile). Double-tap zoom and the pan are suspended meanwhile; the
+  /// dots stop opening their popup.
+  final bool annotationPlacement;
+  final void Function(int seconds, double? depthMeters)? onAnnotationPlaced;
+
+  /// A right-click (secondary mouse button) on the plot, with the second and
+  /// depth under it and the pointer's global position, for a context menu.
+  final void Function(int seconds, double? depthMeters, Offset globalPosition)?
+  onSecondaryTapAt;
+
+  /// The annotation drawn with a halo and reported once through
+  /// [onAnnotationTap] when it changes, so the page can open its popup.
+  final String? focusedAnnotationId;
 
   /// Off for a read-only chart, whose zoom buttons would do nothing.
   final bool showZoomControls;
@@ -778,6 +802,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showDecoStops = true,
     this.showAscentRateColors = false,
     this.showEvents = true,
+    this.onAnnotationTap,
+    this.annotationPlacement = false,
+    this.onAnnotationPlaced,
+    this.onSecondaryTapAt,
+    this.focusedAnnotationId,
     this.showZoomControls = true,
     this.showSac = false,
     this.markers,
@@ -877,6 +906,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showAscentRateColors = false;
   bool _showAscentRateLine = false;
   bool _showEvents = true;
+  bool _showAnnotations = true;
 
   /// Whether the app's own computed events are drawn (issue #1523). Synced
   /// from the legend provider in [build]; seeded off for dives that carry the
@@ -1312,6 +1342,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   Offset _tapDownPosition = Offset.zero;
   bool _tapMoved = false;
   bool _doubleTapArmed = false;
+
+  // A press of the secondary mouse button, reported on release as a
+  // right-click (#4109); it never counts as a tap or seeds a double-tap.
+  bool _secondaryDown = false;
+
+  // In placement mode (#4109) a gesture that ever had two pointers down (a
+  // pinch) places nothing when the last one lifts.
+  bool _placementSawSecondPointer = false;
 
   // Whether the right-axis metric selector strip is rendered this build.
   // Set in _buildChart alongside effectiveRightAxisMetric; a double-tap
@@ -1860,12 +1898,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       1e-9,
       double.infinity,
     );
-    // visibleMinDepth/visibleMaxDepth are in the diver's display unit (see
-    // _totalMaxDepth), but _depthAtTimestamp reads DiveProfilePoint.depth
-    // directly, which is always meters -- converting here is what keeps an
-    // imperial-unit diver's playback cursor landing at the right height
-    // instead of a raw-meters value plotted against a feet-scaled range.
-    final depth = units.convertDepth(_depthAtTimestamp(timestamp.toDouble()));
+    final depth = _displayDepthAt(timestamp.toDouble(), units);
     final x = plotInsets.left + (timestamp - visibleMinX) / rangeX * plotWidth;
     final y = plotInsets.top + (depth - visibleMinDepth) / rangeY * plotHeight;
     return (cursorLocal: Offset(x, y), rows: rows);
@@ -1893,6 +1926,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   void _resetZoom() {
     _viewport = ChartViewport.reset;
+  }
+
+  /// Pans a zoomed plot so [seconds] sits mid-window, on the depth curve.
+  /// Returns whether the window moved.
+  bool _revealSeconds(
+    int seconds, {
+    required double totalMaxTime,
+    required double totalMaxDepth,
+    required UnitFormatter units,
+  }) {
+    if (totalMaxTime <= 0 || totalMaxDepth <= 0) return false;
+    final before = _viewport;
+    final depth = _displayDepthAt(seconds.toDouble(), units);
+    _viewport = before.centredOn(seconds / totalMaxTime, depth / totalMaxDepth);
+    return !_viewport.sameWindowAs(before);
   }
 
   /// Resolve a touch callback's touched spots to the profile's global
@@ -2841,6 +2889,49 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return (index: best, onLeadIn: false);
   }
 
+  /// The second from the start of the dive under plot x [x], through the
+  /// current viewport: the same arithmetic [_hoverSelection] uses before it
+  /// snaps to a sample, clamped to the dive.
+  int _secondsAtLocalX(
+    double x,
+    Size box,
+    ({double left, double top, double right, double bottom}) insets,
+  ) {
+    final focal = chartFocalFraction(
+      Offset(x, 0),
+      box,
+      left: insets.left,
+      right: insets.right,
+      top: insets.top,
+      bottom: insets.bottom,
+    );
+    final totalMaxTime = widget.profile.isEmpty
+        ? 0
+        : widget.profile.map((p) => p.timestamp).reduce(math.max);
+    final t =
+        (_viewport.offsetX + focal.fx * _viewport.visibleWidth) * totalMaxTime;
+    return t.round().clamp(0, totalMaxTime);
+  }
+
+  /// Hands [report] the second and profile depth (metres, null without a
+  /// profile) under a plot position (#4109).
+  void _reportPlotPoint(
+    Offset localPos,
+    BoxConstraints constraints,
+    UnitFormatter units,
+    void Function(int seconds, double? depthMeters) report,
+  ) {
+    final seconds = _secondsAtLocalX(
+      localPos.dx,
+      constraints.biggest,
+      _plotInsets(constraints.maxWidth, units),
+    );
+    final depth = widget.profile.isEmpty
+        ? null
+        : _depthAtTimestamp(seconds.toDouble());
+    report(seconds, depth);
+  }
+
   /// Overrides what [build] just synced from the legend, for
   /// [DiveProfileChart.depthAndPressureOnly]. Gas switch markers stay: they are
   /// the dive's other switches, which the picker places this one against.
@@ -2854,6 +2945,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAscentRateLine = false;
     _showEvents = false;
     _showComputedEvents = false;
+    _showAnnotations = false;
     _showMaxDepthMarkerLocal = false;
     _showPressureMarkersLocal = false;
     _showGasSwitchMarkers = true;
@@ -2947,6 +3039,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAscentRateLine = legendState.showAscentRateLine;
     _showEvents = legendState.showEvents;
     _showComputedEvents = legendState.showComputedEvents;
+    _showAnnotations = legendState.showAnnotations;
     // Issue #1523: the provider default is `true`, and for a dive that carries
     // the computer's own events the post-frame seed only flips it to `false`
     // after the first frame -- long enough to flash the computed markers. Until
@@ -3032,11 +3125,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasDecoStopCurve:
           widget.decoStopCurve != null && widget.decoStopCurve!.isNotEmpty,
       hasAscentRates: widget.ascentRates != null,
-      hasEvents: widget.events != null && widget.events!.isNotEmpty,
+      hasEvents: widget.events?.any((e) => !e.isAnnotation) ?? false,
       hasComputedEvents:
           widget.events?.any((e) => e.source == EventSource.computed) ?? false,
       hasImportedEvents:
           widget.events?.any((e) => e.source == EventSource.imported) ?? false,
+      hasAnnotations: _annotations.isNotEmpty,
       hasMaxDepthMarker: widget.showMaxDepthMarker && _hasMaxDepthMarker,
       hasPressureMarkers:
           widget.showPressureThresholdMarkers && _hasPressureMarkers,
@@ -3238,6 +3332,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 if (event.kind == PointerDeviceKind.touch) {
                   _touchPositions[event.pointer] = event.localPosition;
                 }
+                if (_activePointerCount == 1) {
+                  _placementSawSecondPointer = false;
+                  _secondaryDown =
+                      event.kind == PointerDeviceKind.mouse &&
+                      (event.buttons & kSecondaryMouseButton) != 0;
+                } else {
+                  _placementSawSecondPointer = true;
+                }
                 // Tap bookkeeping is kind-agnostic: a mouse double-click
                 // zooms exactly like a touch double-tap.
                 if (_activePointerCount == 1) {
@@ -3245,6 +3347,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   _tapMoved = false;
                   final lastUp = _lastTapUpStamp;
                   _doubleTapArmed =
+                      !_secondaryDown &&
+                      !widget.annotationPlacement &&
                       lastUp != null &&
                       event.timeStamp - lastUp < kDoubleTapTimeout &&
                       (event.localPosition - _lastTapUpPosition).distance <=
@@ -3275,6 +3379,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   _doubleTapArmed = false;
                 }
                 if (prev == null) return;
+                // Placing: a single pointer scrubs the readout to the spot
+                // and never pans the plot, so the release lands where the
+                // diver is looking (#4109).
+                if (widget.annotationPlacement && _activePointerCount == 1) {
+                  return;
+                }
                 final intent = chartDragIntent(
                   kind: _activePointerKind,
                   pointerCount: _activePointerCount,
@@ -3318,6 +3428,41 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         ? _beginPinch()
                         : _pinchPointers = const [];
                   }
+                }
+                if (_secondaryDown) {
+                  _secondaryDown = false;
+                  if (_activePointerCount == 0 && !_tapMoved) {
+                    _reportPlotPoint(
+                      event.localPosition,
+                      constraints,
+                      units,
+                      (seconds, depth) => widget.onSecondaryTapAt?.call(
+                        seconds,
+                        depth,
+                        event.position,
+                      ),
+                    );
+                  }
+                  return;
+                }
+                if (widget.annotationPlacement && _activePointerCount == 0) {
+                  // Any single-pointer release places, moved or not: a hold
+                  // fine-tunes with the readout and lifts where it should go.
+                  if (!_placementSawSecondPointer &&
+                      !_inRightAxisSelector(
+                        event.localPosition,
+                        constraints.biggest,
+                      )) {
+                    _reportPlotPoint(
+                      event.localPosition,
+                      constraints,
+                      units,
+                      (seconds, depth) =>
+                          widget.onAnnotationPlaced?.call(seconds, depth),
+                    );
+                  }
+                  _lastTapUpStamp = null;
+                  return;
                 }
                 if (_activePointerCount == 0 && !_tapMoved) {
                   if (_doubleTapArmed) {
@@ -4422,7 +4567,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   highlightSpan,
                   widget.highlightRange?.color,
                 ),
-                if (_showEvents && widget.events != null)
+                if (widget.events != null && (_showEvents || _showAnnotations))
                   ..._buildEventVerticalLines(
                     colorScheme,
                     availableWidth: availableWidth,
@@ -5016,6 +5161,36 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ),
               );
             },
+          ),
+        // Annotation dots (#4109): on the depth curve at each annotation's
+        // time, tappable for the popup. A Listener layer that lets every
+        // pointer through, so it never contests the chart below it. Below
+        // the safety lane, photo chips and range handles too, so a tap on
+        // one of those is that layer's alone and a dot never pokes through
+        // an open card.
+        if (_showAnnotations && _annotations.isNotEmpty)
+          Positioned.fill(
+            key: const ValueKey('annotationMarkerLayer'),
+            child: AnnotationMarkerLayer(
+              annotations: _annotations,
+              insets: plotInsets,
+              visibleMinSeconds: visibleMinX,
+              visibleMaxSeconds: visibleMaxX,
+              visibleMinDepth: visibleMinDepth,
+              visibleMaxDepth: visibleMaxDepth,
+              depthAt: (seconds) => widget.profile.isEmpty
+                  ? null
+                  : _displayDepthAt(seconds.toDouble(), units),
+              onTap: widget.onAnnotationTap ?? (_, _) {},
+              interactive: !widget.annotationPlacement,
+              focusedId: widget.focusedAnnotationId,
+              onReveal: (seconds) => _revealSeconds(
+                seconds,
+                totalMaxTime: totalMaxTime,
+                totalMaxDepth: totalMaxDepth,
+                units: units,
+              ),
+            ),
           ),
         // Safety findings lane: a widget layer like the photo markers,
         // occupying the extra bottom reservation added by _hasSafetyLane,
@@ -7178,6 +7353,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return a.depth + (b.depth - a.depth) * f;
   }
 
+  /// [_depthAtTimestamp] in the diver's display unit, the unit of the visible
+  /// depth window and of the chart's totals. The profile itself is always in
+  /// metres: plotted raw against a feet-scaled range, a cursor or a label
+  /// lands at the wrong height.
+  double _displayDepthAt(double timestamp, UnitFormatter units) =>
+      units.convertDepth(_depthAtTimestamp(timestamp));
+
   /// Minimum pixel spacing between event lines before the less severe of the
   /// pair is dropped entirely (line and label). At phone plot widths a few
   /// seconds is sub-pixel; drawing both just paints noise.
@@ -7196,18 +7378,34 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final events = widget.events;
     if (events == null || events.isEmpty) return [];
 
+    // Annotations (#4109) have their own toggle and skip the severity and
+    // spacing rules below: a diver's own marker is never dropped for a
+    // computer event, and two close together keep both lines.
+    final annotations = _showAnnotations
+        ? [
+            for (final e in events)
+              if (e.isAnnotation) e,
+          ]
+        : const <ProfileEvent>[];
+    final computerEvents = _showEvents
+        ? [
+            for (final e in events)
+              if (!e.isAnnotation) e,
+          ]
+        : const <ProfileEvent>[];
+
     // Drop events attributed to a computer that's been toggled off (a null
     // computerId is treated as the primary computer, see _isComputerVisible),
     // and the app's own computed events when that legend toggle is off
     // (issue #1523).
-    final visibleEvents = events
+    final visibleEvents = computerEvents
         .where(
           (e) =>
               _isComputerVisible(e.computerId) &&
               (_showComputedEvents || e.source != EventSource.computed),
         )
         .toList();
-    if (visibleEvents.isEmpty) return [];
+    if (visibleEvents.isEmpty && annotations.isEmpty) return [];
 
     // Group events by timestamp, keeping only the most severe at each time.
     // On equal severity the computer's own event beats a computed one: it
@@ -7257,6 +7455,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         kept.add(event);
       }
     }
+    if (annotations.isNotEmpty) {
+      kept
+        ..addAll(annotations)
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    }
 
     // Collision-aware label placement for the events inside the visible
     // window: anchored below the profile depth at the event's time (free
@@ -7269,21 +7472,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final t = kept[i].timestamp.toDouble();
       if (t < visibleMinX || t > visibleMaxX) continue;
       final painter = TextPainter(
-        text: TextSpan(
-          text: kept[i].markerLabel(context.l10n),
-          style: labelStyle,
-        ),
+        text: TextSpan(text: _markerText(kept[i]), style: labelStyle),
         // Deliberately LTR regardless of locale: fl_chart's painter lays
         // vertical-line labels out with TextDirection.ltr
         // (axis_chart_painter.dart), and this measurement must match the
         // width it will actually paint with.
         textDirection: TextDirection.ltr,
       )..layout();
-      final anchorY =
-          ((_depthAtTimestamp(t) - visibleMinDepth) / rangeY * plotH).clamp(
-            0.0,
-            plotH,
-          );
+      final depth = _displayDepthAt(t, units);
+      final anchorY = ((depth - visibleMinDepth) / rangeY * plotH).clamp(
+        0.0,
+        plotH,
+      );
       inWindow.add(i);
       specs.add(
         EventLabelSpec(
@@ -7318,7 +7518,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ) {
     final spec = label?.$1;
     final placement = label?.$2;
-    final color = _eventSeverityColor(event.severity, colorScheme);
+    final color = event.isAnnotation
+        ? ProfileMetricColors.annotation
+        : _eventSeverityColor(event.severity, colorScheme);
     // fl_chart lays the label out inside
     // Rect.fromLTRB(x - padding.right - textWidth, padding.top,
     //               x + padding.left, ...)
@@ -7337,21 +7539,48 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return VerticalLine(
       x: event.timestamp.toDouble(),
       color: color,
-      strokeWidth: 1,
-      dashArray: [3, 3],
+      // An annotation is a solid, slightly heavier line; the computer's
+      // events stay dashed.
+      strokeWidth: event.isAnnotation ? 1.5 : 1,
+      dashArray: event.isAnnotation ? null : [3, 3],
       label: VerticalLineLabel(
         show: placement?.showText ?? false,
         alignment: Alignment.topLeft,
         padding: padding,
         style: TextStyle(
-          color: color,
+          // The marker colour is too pale for small text on a light surface,
+          // and the words are what an annotation is for.
+          color: event.isAnnotation ? colorScheme.onSurface : color,
           fontSize: 9,
           backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
         ),
-        labelResolver: (line) => event.markerLabel(context.l10n),
+        labelResolver: (line) => _markerText(event),
       ),
     );
   }
+
+  /// The marker's words: the passage for an annotation, the localized event
+  /// name (or the watch's own wording) for the rest.
+  String _markerText(ProfileEvent event) => event.isAnnotation
+      ? annotationMarkerLabel(event)
+      : event.markerLabel(context.l10n);
+
+  /// The annotations among the dive's events (#4109), filtered once per
+  /// events list: the chart reads this several times per build.
+  List<ProfileEvent> get _annotations {
+    final events = widget.events;
+    if (!identical(events, _annotationsSource)) {
+      _annotationsSource = events;
+      _annotationsCache = [
+        for (final e in events ?? const <ProfileEvent>[])
+          if (e.isAnnotation) e,
+      ];
+    }
+    return _annotationsCache;
+  }
+
+  List<ProfileEvent>? _annotationsSource;
+  List<ProfileEvent> _annotationsCache = const [];
 
   /// Returns the color for an event based on its severity level.
   Color _eventSeverityColor(EventSeverity severity, ColorScheme colorScheme) {

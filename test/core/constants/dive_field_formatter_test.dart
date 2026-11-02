@@ -467,6 +467,11 @@ void main() {
         DiveField.importSource: 'Source',
         DiveField.diveTypeName: 'Recreational',
         DiveField.surfaceInterval: const Duration(minutes: 60),
+        DiveField.excludedFromStats: true,
+        DiveField.excludedFromGasStats: false,
+        DiveField.windDirection: 'North',
+        DiveField.scrubberType: 'ExtendAir',
+        DiveField.scrubberDuration: 180,
       };
 
       for (final field in DiveField.values) {

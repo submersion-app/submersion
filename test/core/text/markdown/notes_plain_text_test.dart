@@ -46,6 +46,13 @@ void main() {
       );
     });
 
+    test('an annotation link is its bare words (#4109)', () {
+      expect(
+        markdownToPlainText('I [felt sick](annotation:a1) today'),
+        'I felt sick today',
+      );
+    });
+
     test('a bare address shows once', () {
       expect(markdownToPlainText('https://s.test'), 'https://s.test');
     });

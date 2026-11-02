@@ -174,6 +174,14 @@ class ChartOptionsDialog extends StatelessWidget {
           isEnabled: legendState.showComputedEvents,
           onTap: legendNotifier.toggleComputedEvents,
         ),
+      if (config.hasAnnotations)
+        buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_annotations,
+          color: ProfileMetricColors.annotation,
+          isEnabled: legendState.showAnnotations,
+          onTap: legendNotifier.toggleAnnotations,
+        ),
       if (config.hasHeartRateData)
         buildToggleItem(
           context,

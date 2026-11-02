@@ -395,6 +395,103 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("no such test file: test/nope_test.dart", err)
 
+    def subset_list(self, *files):
+        path = os.path.join(self._temp.name, "selection.txt")
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("\r\n".join(files) + "\n\n")
+        return path
+
+    def test_subset_bundles_only_the_listed_files(self):
+        code, lines, _ = self.run_main(
+            "--subset",
+            self.subset_list(
+                "test/a/f00_test.dart",
+                "test/c/f01_test.dart",
+                "test/a/f02_test.dart",
+            ),
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(len(lines), 1)
+        self.assertTrue(lines[0].startswith("test/.bundles/bundle_"))
+        self.assertEqual(
+            sorted(self.covered(lines)),
+            ["test/a/f00_test.dart", "test/a/f02_test.dart", "test/c/f01_test.dart"],
+        )
+
+    def test_subset_keeps_the_run_alone_rules(self):
+        code, lines, _ = self.run_main(
+            "--subset",
+            self.subset_list("test/c/tagged_test.dart", "test/c/f00_test.dart"),
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(lines[-1], "test/c/tagged_test.dart")
+        self.assertEqual(
+            self.covered(lines[:-1]), ["test/c/f00_test.dart"]
+        )
+
+    def test_subset_packs_by_max_files(self):
+        code, lines, _ = self.run_main(
+            "--max-files", "2",
+            "--subset",
+            self.subset_list(
+                "test/a/f00_test.dart", "test/a/f01_test.dart", "test/a/f02_test.dart"
+            ),
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(len(self.covered(lines)), 3)
+
+    def test_subset_with_an_unknown_file_is_an_error(self):
+        code, _, err = self.run_main(
+            "--subset", self.subset_list("test/a/f00_test.dart", "test/nope_test.dart")
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("no such test file: test/nope_test.dart", err)
+
+    def test_subset_with_a_file_outside_the_test_root_is_an_error(self):
+        os.makedirs("testdata")
+        self.write(os.path.join("testdata", "f00_test.dart"), PLAIN)
+        code, _, err = self.run_main(
+            "--subset",
+            self.subset_list("test/a/f00_test.dart", "testdata/f00_test.dart"),
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("not under test/: testdata/f00_test.dart", err)
+
+    def test_subset_with_a_path_climbing_out_of_the_root_is_an_error(self):
+        os.makedirs("testdata")
+        self.write(os.path.join("testdata", "f00_test.dart"), PLAIN)
+        code, _, err = self.run_main(
+            "--subset", self.subset_list("test/../testdata/f00_test.dart")
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("not under test/: testdata/f00_test.dart", err)
+
+    def test_subset_with_an_empty_list_is_an_error(self):
+        path = self.subset_list()
+        code, _, err = self.run_main("--subset", path)
+        self.assertEqual(code, 2)
+        self.assertIn("%s lists no test files" % path, err)
+
+    def test_subset_with_a_missing_list_file_is_an_error(self):
+        code, _, err = self.run_main("--subset", "nope.txt")
+        self.assertEqual(code, 2)
+        self.assertIn("cannot read nope.txt", err)
+
+    def test_subset_with_an_empty_value_is_an_error(self):
+        code, lines, err = self.run_main("--subset", "")
+        self.assertEqual(code, 2)
+        self.assertEqual(lines, [])
+        self.assertIn("cannot read", err)
+
+    def test_subset_and_files_together_are_an_error(self):
+        code, _, err = self.run_main(
+            "--subset", self.subset_list("test/a/f00_test.dart"),
+            "--files", "test/a/f00_test.dart",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("--subset", err)
+
     def test_a_shard_outside_the_range_is_an_error(self):
         code, _, err = self.run_main("--shard", "3", "--total-shards", "3")
         self.assertEqual(code, 2)
