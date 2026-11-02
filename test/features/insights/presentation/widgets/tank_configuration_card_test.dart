@@ -4,13 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/tank_configuration_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -19,12 +22,17 @@ import '../recording_insights_repository.dart';
 
 /// Issue #3421: the Gas page's tank configuration card.
 void main() {
+  const noCandidates = (tankIds: <String>[], diveIds: <String>[]);
+
   Future<void> pumpCard(WidgetTester tester, TankConfigurationStats stats) {
     return tester
         .pumpWidget(
           ProviderScope(
             overrides: [
               tankConfigurationStatsProvider.overrideWith((ref) async => stats),
+              twinSetCandidatesProvider.overrideWith(
+                (ref) async => noCandidates,
+              ),
             ],
             child: const MaterialApp(
               locale: Locale('en'),
@@ -120,12 +128,58 @@ void main() {
     expect(find.textContaining('Twin Set'), findsOneWidget);
   });
 
+  testWidgets(
+    'shows the twin set note above the explanation when there are candidates',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tankConfigurationStatsProvider.overrideWith(
+              (ref) async => tenDives,
+            ),
+            twinSetCandidatesProvider.overrideWith(
+              (ref) async => (tankIds: ['t1', 't2'], diveIds: ['d1', 'd2']),
+            ),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(child: TankConfigurationCard()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final note = find.text(
+        '2 dives have cylinders that look like a twin set.',
+      );
+      expect(note, findsOneWidget);
+      expect(
+        tester.getTopLeft(note).dy,
+        lessThan(tester.getTopLeft(find.textContaining('role is Twin Set')).dy),
+      );
+    },
+  );
+
   Future<void> pumpWith(
     WidgetTester tester,
     Future<TankConfigurationStats> Function() load,
   ) => tester.pumpWidget(
     ProviderScope(
-      overrides: [tankConfigurationStatsProvider.overrideWith((ref) => load())],
+      overrides: [
+        tankConfigurationStatsProvider.overrideWith((ref) => load()),
+        twinSetCandidatesProvider.overrideWith((ref) async => noCandidates),
+      ],
       child: const MaterialApp(
         locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -193,6 +247,7 @@ void main() {
             insightsFilterProvider.overrideWith((ref) => insightsFilter),
             insightsRepositoryProvider.overrideWithValue(repository),
             tankConfigurationStatsProvider.overrideWith((ref) async => stats),
+            twinSetCandidatesProvider.overrideWith((ref) async => noCandidates),
           ],
         ),
       );

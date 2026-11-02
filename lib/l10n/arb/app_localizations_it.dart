@@ -30041,6 +30041,83 @@ class AppLocalizationsIt extends AppLocalizations {
       'Un\'immersione conta come bibombola quando una bombola ha il ruolo Bibombola, e come sidemount quando le sue bombole sono Sidemount sinistra e Sidemount destra.';
 
   @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni hanno bombole che sembrano un bibombola.',
+      one: '$count immersione ha una bombola che sembra un bibombola.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'Il nome o la dimensione indica twin, double, D12, 2x12 o $size e oltre, ma il ruolo è Gas principale, quindi contano come monobombola.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Segna come bibombola';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Rivedi immersioni';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Ignora';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'Impostare il ruolo su Bibombola?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'Impostare il ruolo di $tanks bombole in $dives su Bibombola? Le altre bombole di quelle immersioni non cambiano.',
+      one:
+          'Impostare il ruolo di $tanks bombola in $dives su Bibombola? Le altre bombole di quelle immersioni non cambiano.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Imposta ruolo';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Annulla';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bombole impostate su Bibombola',
+      one: '$count bombola impostata su Bibombola',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'Impossibile impostare il ruolo';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'Sembra un bibombola';
+
+  @override
   String get insights_gas_tankConfig_empty => 'Nessuna immersione da mostrare';
 
   @override

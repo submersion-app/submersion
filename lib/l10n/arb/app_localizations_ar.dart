@@ -30264,6 +30264,82 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُحتسب الغوصة كطقم مزدوج على الظهر عندما يكون دور إحدى الأسطوانات طقم مزدوج، وكتعليق جانبي عندما تكون أسطواناتها تعليق جانبي أيسر وتعليق جانبي أيمن.';
 
   @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات فيها أسطوانات تبدو كطقم مزدوج.',
+      one: '$count غوصة فيها أسطوانة تبدو كطقم مزدوج.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'تشير أسماؤها أو أحجامها إلى twin أو double أو D12 أو 2x12 أو $size فأكثر، لكن دورها غاز خلفي، لذا تُحتسب كأسطوانة مفردة.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'تعليم كطقم مزدوج';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'مراجعة الغوصات';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'تجاهل';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'تعيين الدور إلى طقم مزدوج؟';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'تعيين دور $tanks أسطوانات في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      one:
+          'تعيين دور $tanks أسطوانة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات',
+      one: '$count غوصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'تعيين الدور';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'إلغاء';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تعيين $count أسطوانات كطقم مزدوج',
+      one: 'تم تعيين $count أسطوانة كطقم مزدوج',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed => 'تعذر تعيين الدور';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'يبدو كطقم مزدوج';
+
+  @override
   String get insights_gas_tankConfig_empty => 'لا توجد غوصات لعرضها';
 
   @override

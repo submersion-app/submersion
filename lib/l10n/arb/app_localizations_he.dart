@@ -29257,6 +29257,83 @@ class AppLocalizationsHe extends AppLocalizations {
       'צלילה נספרת כצמד בלונים על הגב כשתפקיד של בלון הוא צמד בלונים, וכסיידמאונט כשהבלונים שלה הם סיידמאונט שמאל וסיידמאונט ימין.';
 
   @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count צלילות יש בלונים שנראים כמו צמד בלונים.',
+      one: 'בצלילה $count יש בלון שנראה כמו צמד בלונים.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'השם או הגודל שלהם מציינים twin, double, D12, 2x12 או $size ומעלה, אבל התפקיד שלהם הוא גז ראשי, ולכן הם נספרים כבלון יחיד.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'סמן כצמדי בלונים';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'סקור צלילות';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'התעלם';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'להגדיר את התפקיד לצמד בלונים?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'להגדיר את התפקיד של $tanks בלונים ב-$dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+      one:
+          'להגדיר את התפקיד של $tanks בלון ב-$dives לצמד בלונים? בלונים אחרים באותן צלילות לא ישתנו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'הגדר תפקיד';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'ביטול';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בלונים הוגדרו כצמד בלונים',
+      one: '$count בלון הוגדר כצמד בלונים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'לא ניתן היה להגדיר את התפקיד';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'נראה כמו צמד בלונים';
+
+  @override
   String get insights_gas_tankConfig_empty => 'אין צלילות להצגה';
 
   @override

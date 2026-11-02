@@ -30121,6 +30121,83 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une plongée compte comme bi-bouteille quand un bloc a le rôle Bi-bouteille, et comme sidemount quand ses blocs sont Sidemount gauche et Sidemount droit.';
 
   @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées ont des blocs qui ressemblent à un bi-bouteille.',
+      one: '$count plongée a un bloc qui ressemble à un bi-bouteille.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'Leur nom ou leur taille indique twin, double, D12, 2x12 ou $size et plus, mais leur rôle est Gaz dorsal, donc elles comptent comme mono-bouteille.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Marquer comme bi-bouteilles';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Voir les plongées';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Ignorer';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'Définir le rôle sur Bi-bouteille ?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'Définir le rôle de $tanks blocs sur $dives comme Bi-bouteille ? Les autres blocs de ces plongées ne changent pas.',
+      one:
+          'Définir le rôle de $tanks bloc sur $dives comme Bi-bouteille ? Les autres blocs de ces plongées ne changent pas.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '$count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Définir le rôle';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Annuler';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocs définis comme Bi-bouteille',
+      one: '$count bloc défini comme Bi-bouteille',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'Impossible de définir le rôle';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'Ressemble à un bi-bouteille';
+
+  @override
   String get insights_gas_tankConfig_empty => 'Aucune plongée à afficher';
 
   @override
