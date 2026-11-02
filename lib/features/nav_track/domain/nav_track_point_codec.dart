@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
@@ -93,7 +93,7 @@ Uint8List encodeNavTrackPoints(List<NavTrackPoint> points) {
         p.batteryVolts,
       ],
   ]);
-  return Uint8List.fromList(gzip.encode(utf8.encode(json)));
+  return PlatformZlib.gzip(utf8.encode(json));
 }
 
 /// Decodes a blob written by [encodeNavTrackPoints].
@@ -114,7 +114,7 @@ List<NavTrackPoint> decodeNavTrackPoints(Uint8List blob) {
   try {
     body = inflateBounded(
       blob,
-      decoder: gzip.decoder,
+      framing: ZlibFraming.gzip,
       maxBytes: kMaxNavTrackBodyBytes,
       maxBlobBytes: kMaxNavTrackBlobBytes,
     );

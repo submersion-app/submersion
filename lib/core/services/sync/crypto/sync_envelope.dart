@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -7,6 +6,7 @@ import 'package:cryptography/dart.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid_value.dart';
 
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
@@ -168,7 +168,7 @@ abstract final class SyncEnvelope {
       );
     }
     if ((flags & _flagGzip) != 0) {
-      // Bounded and chunked. gzip.decode is a single native call that has
+      // Bounded and chunked. A whole-body gunzip is a single call that has
       // already allocated the whole body by the time it returns, so a
       // length check after the fact buys nothing; the guard has to abort
       // from inside the inflate.
@@ -210,7 +210,7 @@ abstract final class SyncEnvelope {
     int minBytes,
     OffIsolateRunner runner,
   ) => runOffIsolate(
-    () => Uint8List.fromList(gzip.encode(plaintext)),
+    () => PlatformZlib.gzip(plaintext),
     bytes: plaintext.length,
     minBytes: minBytes,
     runner: runner,
@@ -261,7 +261,7 @@ abstract final class SyncEnvelope {
   ) => runOffIsolate(
     () => inflateBounded(
       payload,
-      decoder: gzip.decoder,
+      framing: ZlibFraming.gzip,
       maxBytes: maxBytes,
       maxBlobBytes: maxBytes,
     ),
