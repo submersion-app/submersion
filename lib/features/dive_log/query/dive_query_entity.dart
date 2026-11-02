@@ -16,6 +16,7 @@ import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/marine_life/query/sighting_text_search.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
 /// the ONLY place a dive filter axis is defined: the paginated list, its
@@ -219,7 +220,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
   table: 'dives',
   diverScopeColumn: 'diver_id',
   scopesHopsToDiver: true,
-  textSearchSql: const [
+  textSearchSql: [
     "unicode_lower({r}.notes) LIKE ? ESCAPE '\\'",
     "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
     "unicode_lower({r}.buddy) LIKE ? ESCAPE '\\'",
@@ -247,6 +248,30 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'EXISTS (SELECT 1 FROM dive_dive_types tddt JOIN dive_types tdty '
         'ON tdty.id = tddt.dive_type_id WHERE tddt.dive_id = {r}.id '
         "AND unicode_lower(tdty.name) LIKE ? ESCAPE '\\')",
+    // What a dive carries, so a brand or a trip finds it (#3457).
+    'EXISTS (SELECT 1 FROM equipment teq WHERE '
+        '${kDiveGearJoinSql.replaceAll('{to}', 'teq').replaceAll('{from}', '{r}')} '
+        "AND (unicode_lower(teq.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(teq.brand) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(teq.model) LIKE ? ESCAPE '\\'))",
+    'EXISTS (SELECT 1 FROM trips ttrp WHERE ttrp.id = {r}.trip_id '
+        "AND (unicode_lower(ttrp.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(ttrp.location) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(ttrp.resort_name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(ttrp.liveaboard_name) LIKE ? ESCAPE '\\'))",
+    'EXISTS (SELECT 1 FROM sightings tsgt JOIN species tspc '
+        'ON tspc.id = tsgt.species_id WHERE tsgt.dive_id = {r}.id '
+        "AND (unicode_lower(tspc.common_name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tspc.scientific_name) LIKE ? ESCAPE '\\'))",
+    'EXISTS (SELECT 1 FROM dive_courses tdcr JOIN courses tcrs '
+        'ON tcrs.id = tdcr.course_id WHERE tdcr.dive_id = {r}.id '
+        "AND (unicode_lower(tcrs.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tcrs.location) LIKE ? ESCAPE '\\'))",
+    "unicode_lower({r}.dive_computer_model) LIKE ? ESCAPE '\\'",
+    'EXISTS (SELECT 1 FROM dive_computers tcmp WHERE tcmp.id = {r}.computer_id '
+        "AND (unicode_lower(tcmp.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tcmp.manufacturer) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tcmp.model) LIKE ? ESCAPE '\\'))",
   ],
   textSearchTables: const [
     'dive_sites',
@@ -258,10 +283,20 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'dive_custom_fields',
     'dive_dive_types',
     'dive_types',
+    'equipment',
+    'dive_equipment',
+    'dive_tanks',
+    'trips',
+    'sightings',
+    'species',
+    'dive_courses',
+    'courses',
+    'dive_computers',
   ],
   textSearchExpansions: const [
     kDiveTypeTranslatedTextSearch,
     kDiveNumberTextSearch,
+    kSightingTranslatedTextSearch,
   ],
   fields: [
     QueryField(
