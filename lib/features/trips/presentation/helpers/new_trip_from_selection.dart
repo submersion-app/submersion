@@ -17,12 +17,42 @@ Future<String?> newTripFromSelection(
   WidgetRef ref,
   List<String> diveIds,
 ) async {
+  final facts = await loadSelectionTripFacts(diveIds);
+  if (facts.isEmpty || !context.mounted) return null;
+  final draft = await _draftFrom(context, ref, facts);
+  if (!context.mounted) return null;
+  final tripId = await context.push<String>('/trips/new', extra: draft);
+  if (tripId != null && context.mounted) context.push('/trips/$tripId');
+  return tripId;
+}
+
+/// Opens the new-trip form prefilled from [facts] for an edit in progress
+/// (issue #3351), the dive editor's or bulk edit's. The draft takes no dives:
+/// they join the trip when that edit saves, so backing out moves nothing.
+/// Returns the new trip's id, or null when nothing was saved.
+Future<String?> newTripForDiveEdit(
+  BuildContext context,
+  WidgetRef ref,
+  List<SelectionDiveFacts> facts,
+) async {
+  if (facts.isEmpty) return context.push<String>('/trips/new');
+  final draft = await _draftFrom(context, ref, facts);
+  if (!context.mounted) return null;
+  return context.push<String>(
+    '/trips/new',
+    extra: TripDraft(trip: draft.trip, diveIds: const []),
+  );
+}
+
+Future<TripDraft> _draftFrom(
+  BuildContext context,
+  WidgetRef ref,
+  List<SelectionDiveFacts> facts,
+) async {
   final l10n = context.l10n;
   final units = UnitFormatter(ref.read(settingsProvider));
-  final facts = await loadSelectionTripFacts(diveIds);
-  if (facts.isEmpty) return null;
   final trips = await ref.read(allTripsProvider.future);
-  final draft = buildTripDraft(
+  return buildTripDraft(
     facts,
     tripsById: {for (final t in trips) t.id: t},
     nameFor: (location, start) {
@@ -32,8 +62,4 @@ Future<String?> newTripFromSelection(
           : l10n.trips_fromSelection_name(location, monthYear);
     },
   );
-  if (!context.mounted) return null;
-  final tripId = await context.push<String>('/trips/new', extra: draft);
-  if (tripId != null && context.mounted) context.push('/trips/$tripId');
-  return tripId;
 }

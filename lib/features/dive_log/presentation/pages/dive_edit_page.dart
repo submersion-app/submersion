@@ -79,8 +79,11 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
+import 'package:submersion/features/trips/data/repositories/selection_trip_facts.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
+import 'package:submersion/features/trips/presentation/helpers/new_trip_from_selection.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_date_stretch_message.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -3316,12 +3319,35 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
 
     if (result == _createNewTripSentinel && mounted) {
-      final tripId = await context.push<String>('/trips/new');
+      final facts = await _newTripFacts();
+      if (!mounted) return;
+      final tripId = await newTripForDiveEdit(context, ref, facts);
       if (tripId != null && mounted) {
         final trip = await ref.read(tripRepositoryProvider).getTripById(tripId);
         if (trip != null && mounted) _setTrip(trip);
       }
     }
+  }
+
+  /// What a trip created from this form learns from its dives (#3351): the
+  /// selected dives in bulk edit, else the dive as the form holds it, saved
+  /// or not.
+  Future<List<SelectionDiveFacts>> _newTripFacts() async {
+    if (widget.isBulk) return loadSelectionTripFacts(widget.bulkDiveIds!);
+    return [
+      SelectionDiveFacts(
+        diveId: '',
+        diveDateTime: DateTime.utc(
+          _entryDate.year,
+          _entryDate.month,
+          _entryDate.day,
+        ),
+        tripId: _selectedTrip?.id,
+        siteRegion: _selectedSite?.region,
+        siteCountry: _selectedSite?.country,
+        diveCenterName: _selectedDiveCenter?.name,
+      ),
+    ];
   }
 
   Future<void> _showDiveCenterPicker() async {
