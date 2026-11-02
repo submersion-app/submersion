@@ -29,6 +29,7 @@ class TrendChartSection extends ConsumerWidget {
     this.rateFormatter,
     this.onDiveSelected,
     this.header,
+    this.pointLabel,
     this.secondarySeries = const [],
     this.footer,
   });
@@ -55,6 +56,9 @@ class TrendChartSection extends ConsumerWidget {
   /// Shown above the chart once the points have loaded, for a caller with
   /// figures that summarise it.
   final Widget? header;
+
+  /// Names [pointsAsync] in the tooltip beside [secondarySeries].
+  final String? pointLabel;
 
   /// Further lines on the chart's axes. The fitted line and rolling mean
   /// follow [pointsAsync] alone.
@@ -95,6 +99,7 @@ class TrendChartSection extends ConsumerWidget {
               DiveTrendChart(
                 chartId: chartId,
                 points: points,
+                pointLabel: pointLabel,
                 secondarySeries: secondarySeries,
                 dateFormat: ref.watch(dateFormatProvider),
                 onDiveSelected: onDiveSelected,

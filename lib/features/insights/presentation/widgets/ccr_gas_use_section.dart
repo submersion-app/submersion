@@ -38,6 +38,7 @@ class CcrGasUseSection extends ConsumerWidget {
         subtitle: l10n.insights_gas_ccrUse_subtitle,
         header: _averages(context, trend, units.formatRmv),
         pointsAsync: AsyncData(trend.o2),
+        pointLabel: l10n.insights_gas_tankRole_oxygenSupply,
         secondarySeries: [
           if (trend.diluent.isNotEmpty)
             TrendSeries(

@@ -90,6 +90,8 @@ void main() {
     expect(chart.points, hasLength(2));
     expect(chart.secondarySeries.single.points, hasLength(1));
     expect(chart.secondarySeries.single.color, isNot(chart.pointColor));
+    expect(chart.pointLabel, 'O₂ Supply');
+    expect(chart.secondarySeries.single.label, 'Diluent');
   });
 
   testWidgets('a diver with diluent data only still gets the card', (
