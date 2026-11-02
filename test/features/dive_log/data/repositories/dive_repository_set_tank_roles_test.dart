@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -114,6 +115,26 @@ void main() {
     expect((await tank('t2')).tankRole, 'deco');
     expect(await pending('diveTanks'), {'t1'});
   });
+
+  test(
+    'a change tells the sync coordinator once; no change stays quiet',
+    () async {
+      var events = 0;
+      final sub = SyncEventBus.changes.listen((_) => events++);
+      addTearDown(sub.cancel);
+      await insertDive('d1');
+      await insertTank('t1', 'd1', 0);
+      await insertTank('t2', 'd1', 1);
+
+      await repository.setTankRoles(['t1', 't2'], TankRole.twinSet);
+      await Future<void>.delayed(Duration.zero);
+      expect(events, 1);
+
+      await repository.setTankRoles(['missing'], TankRole.twinSet);
+      await Future<void>.delayed(Duration.zero);
+      expect(events, 1);
+    },
+  );
 
   test('an empty list changes nothing and returns 0', () async {
     await insertDive('d1');

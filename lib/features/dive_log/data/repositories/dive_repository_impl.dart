@@ -8210,8 +8210,9 @@ class DiveRepository {
   /// else on the row moves; marks each row and its dive pending for sync.
   /// With [onlyFrom], a row whose role is no longer that one (a sync pull
   /// since the caller chose it, say) is left alone. Owns its transaction,
-  /// and Drift's table updates notify the dive streams. Returns the number
-  /// of rows changed.
+  /// Drift's table updates notify the dive streams, and the sync bus hears
+  /// of a change so auto-sync schedules it. Returns the number of rows
+  /// changed.
   Future<int> setTankRoles(
     List<String> tankIds,
     TankRole role, {
@@ -8223,7 +8224,7 @@ class DiveRepository {
       const {domain.TankSpecField.role},
     );
     final now = DateTime.now().millisecondsSinceEpoch;
-    return _db.transaction(() async {
+    final changed = await _db.transaction(() async {
       final rows =
           await (_db.select(_db.diveTanks)..where(
                 (t) => onlyFrom == null
@@ -8247,6 +8248,8 @@ class DiveRepository {
       await _bumpDives(rows.map((r) => r.diveId).toSet().toList(), now);
       return rows.length;
     });
+    if (changed > 0) SyncEventBus.notifyLocalChange();
+    return changed;
   }
 
   /// Write [rows] back over the tanks with the same ids, restoring prior NULLs.

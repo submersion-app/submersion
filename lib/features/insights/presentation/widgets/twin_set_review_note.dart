@@ -20,14 +20,17 @@ const _log = LoggerService('TwinSetReviewNote');
 /// dives (the dive list on exactly those dives) and Dismiss (remembered per
 /// diver on this device).
 ///
-/// Renders nothing while the candidates load, when the load failed, when
-/// there are none, or once dismissed.
+/// Renders nothing while the candidates load or reload for another diver
+/// (a held value would name the previous diver's cylinders), when the load
+/// failed, when there are none, or once dismissed.
 class TwinSetReviewNote extends ConsumerWidget {
   const TwinSetReviewNote({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final candidates = ref.watch(twinSetCandidatesProvider).value;
+    final async = ref.watch(twinSetCandidatesProvider);
+    if (async.isReloading || async.hasError) return const SizedBox.shrink();
+    final candidates = async.value;
     if (candidates == null || candidates.tankIds.isEmpty) {
       return const SizedBox.shrink();
     }

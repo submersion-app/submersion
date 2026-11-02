@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -177,6 +179,41 @@ void main() {
     expect(diveRepository.tankIds, isNull);
     expect(find.text('Set role to Twin Set?'), findsNothing);
     expect(title, findsOneWidget);
+  });
+
+  testWidgets('hides while the candidates reload for another diver', (
+    tester,
+  ) async {
+    final candidates = _candidates();
+    final base = await overrides(candidates);
+    final neverForOther = Completer<TwinSetCandidates>();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base.where((o) => !identical(o, base[base.length - 2])),
+          twinSetCandidatesProvider.overrideWith((ref) {
+            final diverId = ref.watch(currentDiverIdProvider);
+            return diverId == _diverId
+                ? Future.value(candidates)
+                : neverForOther.future;
+          }),
+        ],
+        child: const SingleChildScrollView(child: TwinSetReviewNote()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(title, findsOneWidget);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TwinSetReviewNote)),
+    );
+    await container
+        .read(currentDiverIdProvider.notifier)
+        .setCurrentDiver('diver-2');
+    await tester.pump();
+
+    expect(title, findsNothing);
+    expect(find.text('Mark as twin sets'), findsNothing);
   });
 
   testWidgets('review opens the dive list with the candidate dive ids', (
