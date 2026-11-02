@@ -20,9 +20,10 @@ class InsightsFilterBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(insightsFilterProvider);
-    final loads =
-        ref.watch(savedQueryLoadsProvider(QuerySubject.dives.name)).value ??
-        const <SavedQueryLoad>[];
+    final loadsAsync = ref.watch(
+      savedQueryLoadsProvider(QuerySubject.dives.name),
+    );
+    final loads = loadsAsync.value ?? const <SavedQueryLoad>[];
     final statsAsync = ref.watch(filteredDiveStatisticsProvider);
     final countText = statsAsync.maybeWhen(
       data: (s) => context.l10n.insights_filterBar_diveCount(s.totalDives),
@@ -46,6 +47,8 @@ class InsightsFilterBar extends ConsumerWidget {
                   filter: filter,
                   active: activeSavedGroup(filter, loads),
                   loads: loads,
+                  // Failed counts as known: there is no group to wait for.
+                  loaded: loadsAsync.hasValue || loadsAsync.hasError,
                 ),
               ),
             ),

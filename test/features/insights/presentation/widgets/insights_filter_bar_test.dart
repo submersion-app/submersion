@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,6 +53,7 @@ void main() {
     WidgetTester tester, {
     DiveFilterState filter = const DiveFilterState(),
     List<SavedQueryLoad> saved = const [],
+    Future<List<SavedQueryLoad>> Function()? loadSaved,
     int count = 5,
     double width = 400,
     Future<void> Function(BuildContext, WidgetRef, QueryNode)? saver,
@@ -68,7 +71,9 @@ void main() {
               totalSites: 0,
             ),
           ),
-          savedQueryLoadsProvider('dives').overrideWith((ref) async => saved),
+          savedQueryLoadsProvider(
+            'dives',
+          ).overrideWith((ref) => loadSaved?.call() ?? Future.value(saved)),
           if (saver != null)
             diveSearchSaverProvider.overrideWith((ref) => saver),
         ],
@@ -161,6 +166,40 @@ void main() {
       expect(paragraph.didExceedMaxLines, false);
     });
 
+    testWidgets('names nothing until the saved groups have loaded', (
+      tester,
+    ) async {
+      await pumpBar(
+        tester,
+        filter: DiveFilterState(query: coldNode),
+        loadSaved: () => Completer<List<SavedQueryLoad>>().future,
+      );
+
+      expect(find.text('Custom filter'), findsNothing);
+
+      await openMenu(tester);
+
+      final save = tester.widget<PopupMenuItem<Object?>>(
+        find.ancestor(
+          of: find.text('Save current filter...'),
+          matching: find.byWidgetPredicate((w) => w is PopupMenuItem),
+        ),
+      );
+      expect(save.enabled, false);
+    });
+
+    testWidgets('still says Custom filter if the saved groups fail to load', (
+      tester,
+    ) async {
+      await pumpBar(
+        tester,
+        filter: DiveFilterState(query: coldNode),
+        loadSaved: () async => throw StateError('no database'),
+      );
+
+      expect(find.text('Custom filter'), findsOneWidget);
+    });
+
     testWidgets('a long group name fits a narrow pane', (tester) async {
       await pumpBar(
         tester,
@@ -191,6 +230,19 @@ void main() {
       final warm = tester.getTopLeft(find.text('Warm water'));
       expect(all.dy, lessThan(cold.dy));
       expect(cold.dy, lessThan(warm.dy));
+    });
+
+    testWidgets('marks the selected row for screen readers', (tester) async {
+      await pumpBar(tester, saved: [load('Cold water', coldNode)]);
+
+      await openMenu(tester);
+
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.selected == true,
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('picking a group replaces the whole Insights filter', (

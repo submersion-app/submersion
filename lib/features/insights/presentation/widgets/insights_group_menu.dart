@@ -22,6 +22,7 @@ class InsightsGroupMenu extends ConsumerWidget {
     required this.filter,
     required this.active,
     required this.loads,
+    required this.loaded,
   });
 
   final DiveFilterState filter;
@@ -29,6 +30,10 @@ class InsightsGroupMenu extends ConsumerWidget {
   /// The saved query [filter] is, if any.
   final SavedQueryLoad? active;
   final List<SavedQueryLoad> loads;
+
+  /// False until [loads] is known. Until then [filter] may well be a group,
+  /// so it is neither called custom nor offered for saving.
+  final bool loaded;
 
   void _setFilter(WidgetRef ref, DiveFilterState next) =>
       ref.read(insightsFilterProvider.notifier).state = next;
@@ -55,6 +60,8 @@ class InsightsGroupMenu extends ConsumerWidget {
     final filtered = filter.hasActiveFilters;
     final label = !filtered
         ? l10n.insights_filterBar_allDives
+        : !loaded
+        ? ''
         : active?.saved.name ?? l10n.insights_filterBar_customFilter;
 
     return PopupMenuButton<VoidCallback>(
@@ -78,7 +85,8 @@ class InsightsGroupMenu extends ConsumerWidget {
         PopupMenuItem<VoidCallback>(
           // Shown even with nothing to save, so a diver with no groups yet
           // can tell that they exist.
-          enabled: active == null && insightsFilterQuery(filter) != null,
+          enabled:
+              loaded && active == null && insightsFilterQuery(filter) != null,
           value: () => _save(context, ref),
           child: Text(l10n.insights_filterBar_saveCurrent),
         ),
@@ -115,20 +123,23 @@ class InsightsGroupMenu extends ConsumerWidget {
     Widget? problem,
   }) => PopupMenuItem<VoidCallback>(
     value: onTap,
-    child: Row(
-      children: [
-        SizedBox(
-          width: 32,
-          child: selected
-              ? const Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Icon(Icons.check, size: 18),
-                )
-              : null,
-        ),
-        Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-        if (problem != null) ...[const SizedBox(width: 8), problem],
-      ],
+    child: Semantics(
+      selected: selected,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 32,
+            child: selected
+                ? const Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Icon(Icons.check, size: 18),
+                  )
+                : null,
+          ),
+          Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+          if (problem != null) ...[const SizedBox(width: 8), problem],
+        ],
+      ),
     ),
   );
 
