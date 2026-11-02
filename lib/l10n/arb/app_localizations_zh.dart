@@ -28333,8 +28333,8 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       tanks,
       locale: localeName,
-      other: '将 $dives中 $tanks 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。',
-      one: '将 $dives中 $tanks 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。',
+      other: '将 $dives 中 $tanks 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。',
+      one: '将 $dives 中 $tanks 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。',
     );
     return '$_temp0';
   }

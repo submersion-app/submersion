@@ -8821,7 +8821,7 @@
   "insights_gas_twinSetReview_review": "查看潜水",
   "insights_gas_twinSetReview_dismiss": "忽略",
   "insights_gas_twinSetReview_confirmTitle": "将角色设为双瓶？",
-  "insights_gas_twinSetReview_confirmBody": "{tanks, plural, =1{将 {dives}中 {tanks} 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。} other{将 {dives}中 {tanks} 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。}}",
+  "insights_gas_twinSetReview_confirmBody": "{tanks, plural, =1{将 {dives} 中 {tanks} 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。} other{将 {dives} 中 {tanks} 个气瓶的角色设为双瓶？这些潜水的其他气瓶保持不变。}}",
   "insights_gas_twinSetReview_diveCount": "{count, plural, =1{{count} 次潜水} other{{count} 次潜水}}",
   "insights_gas_twinSetReview_confirm": "设置角色",
   "insights_gas_twinSetReview_cancel": "取消",

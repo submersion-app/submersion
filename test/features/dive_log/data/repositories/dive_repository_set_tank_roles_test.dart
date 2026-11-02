@@ -98,6 +98,23 @@ void main() {
     expect(await pending('dives'), {'d1'});
   });
 
+  test('onlyFrom leaves a row whose role has since changed', () async {
+    await insertDive('d1');
+    await insertTank('t1', 'd1', 0);
+    await insertTank('t2', 'd1', 1, role: 'deco');
+
+    final changed = await repository.setTankRoles(
+      ['t1', 't2'],
+      TankRole.twinSet,
+      onlyFrom: TankRole.backGas,
+    );
+
+    expect(changed, 1);
+    expect((await tank('t1')).tankRole, 'twinSet');
+    expect((await tank('t2')).tankRole, 'deco');
+    expect(await pending('diveTanks'), {'t1'});
+  });
+
   test('an empty list changes nothing and returns 0', () async {
     await insertDive('d1');
     await insertTank('t1', 'd1', 0);

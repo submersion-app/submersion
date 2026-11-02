@@ -118,9 +118,15 @@ class TwinSetReviewNote extends ConsumerWidget {
     if (confirmed != true || !context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     try {
+      // Only rows still at Back Gas: a role a peer changed since the note
+      // was built was a choice, and stands.
       final changed = await ref
           .read(diveRepositoryProvider)
-          .setTankRoles(candidates.tankIds, TankRole.twinSet);
+          .setTankRoles(
+            candidates.tankIds,
+            TankRole.twinSet,
+            onlyFrom: TankRole.backGas,
+          );
       if (!context.mounted) return;
       ref.invalidate(twinSetCandidatesProvider);
       ref.invalidate(tankConfigurationStatsProvider);

@@ -8193,9 +8193,15 @@ class DiveRepository {
   /// Gas page's twin set re-role offer does (issue #3374). Writes the role
   /// and clears `role_source` through [_tankSpecsCompanion], so nothing
   /// else on the row moves; marks each row and its dive pending for sync.
-  /// Owns its transaction, and Drift's table updates notify the dive
-  /// streams. Returns the number of rows changed.
-  Future<int> setTankRoles(List<String> tankIds, TankRole role) async {
+  /// With [onlyFrom], a row whose role is no longer that one (a sync pull
+  /// since the caller chose it, say) is left alone. Owns its transaction,
+  /// and Drift's table updates notify the dive streams. Returns the number
+  /// of rows changed.
+  Future<int> setTankRoles(
+    List<String> tankIds,
+    TankRole role, {
+    TankRole? onlyFrom,
+  }) async {
     if (tankIds.isEmpty) return 0;
     final companion = _tankSpecsCompanion(
       domain.DiveTank(id: '', role: role),
@@ -8203,9 +8209,13 @@ class DiveRepository {
     );
     final now = DateTime.now().millisecondsSinceEpoch;
     return _db.transaction(() async {
-      final rows = await (_db.select(
-        _db.diveTanks,
-      )..where((t) => t.id.isIn(tankIds))).get();
+      final rows =
+          await (_db.select(_db.diveTanks)..where(
+                (t) => onlyFrom == null
+                    ? t.id.isIn(tankIds)
+                    : t.id.isIn(tankIds) & t.tankRole.equals(onlyFrom.name),
+              ))
+              .get();
       if (rows.isEmpty) return 0;
       // One write per row, each marked pending in the same block: the row
       // keeps a fresh clock, so a peer's older copy cannot undo the role.

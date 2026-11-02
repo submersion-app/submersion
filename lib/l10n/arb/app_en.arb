@@ -17157,21 +17157,17 @@
   "insights_gas_tankConfig_note": "A dive counts as twin backmount when a cylinder's role is Twin Set, and as sidemount when its cylinders are Sidemount Left and Right.",
   "insights_gas_twinSetReview_title": "{count, plural, =1{{count} dive has a cylinder that looks like a twin set.} other{{count} dives have cylinders that look like a twin set.}}",
   "@insights_gas_twinSetReview_title": {
-      "description": "How many dives carry a Back Gas cylinder the retired twin set guess would have counted",
-      "placeholders": {
-          "count": {
-              "type": "int"
-          }
-      }
+    "description": "How many dives carry a Back Gas cylinder the retired twin set guess would have counted",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
   },
   "insights_gas_twinSetReview_body": "Their names or sizes say twin, double, D12, 2x12, or {size} and up, but their role is Back Gas, so they count as single backmount.",
   "@insights_gas_twinSetReview_body": {
-      "description": "Why those cylinders count as single backmount; size is the formatted minimum twin set volume, e.g. 20 L",
-      "placeholders": {
-          "size": {
-              "type": "String"
-          }
-      }
+    "description": "Why those cylinders count as single backmount; size is the formatted minimum twin set volume, e.g. 20 L",
+    "placeholders": {
+      "size": {"type": "String"}
+    }
   },
   "insights_gas_twinSetReview_mark": "Mark as twin sets",
   "insights_gas_twinSetReview_review": "Review dives",
@@ -17179,33 +17175,25 @@
   "insights_gas_twinSetReview_confirmTitle": "Set role to Twin Set?",
   "insights_gas_twinSetReview_confirmBody": "{tanks, plural, =1{Set the role of {tanks} cylinder on {dives} to Twin Set? Other cylinders on those dives are left alone.} other{Set the role of {tanks} cylinders on {dives} to Twin Set? Other cylinders on those dives are left alone.}}",
   "@insights_gas_twinSetReview_confirmBody": {
-      "description": "dives is the rendered insights_gas_twinSetReview_diveCount",
-      "placeholders": {
-          "tanks": {
-              "type": "int"
-          },
-          "dives": {
-              "type": "String"
-          }
-      }
+    "description": "dives is the rendered insights_gas_twinSetReview_diveCount",
+    "placeholders": {
+      "tanks": {"type": "int"},
+      "dives": {"type": "String"}
+    }
   },
   "insights_gas_twinSetReview_diveCount": "{count, plural, =1{{count} dive} other{{count} dives}}",
   "@insights_gas_twinSetReview_diveCount": {
-      "placeholders": {
-          "count": {
-              "type": "int"
-          }
-      }
+    "placeholders": {
+      "count": {"type": "int"}
+    }
   },
   "insights_gas_twinSetReview_confirm": "Set role",
   "insights_gas_twinSetReview_cancel": "Cancel",
   "insights_gas_twinSetReview_done": "{count, plural, =1{{count} cylinder set to Twin Set} other{{count} cylinders set to Twin Set}}",
   "@insights_gas_twinSetReview_done": {
-      "placeholders": {
-          "count": {
-              "type": "int"
-          }
-      }
+    "placeholders": {
+      "count": {"type": "int"}
+    }
   },
   "insights_gas_twinSetReview_failed": "Could not set the role",
   "insights_gas_twinSetReview_chart": "Looks like a twin set",

@@ -757,10 +757,15 @@ class InsightsRepository with InsightsChartDives {
   /// Requires tank volume data.
   ///
   /// Each cylinder stands for its own role, so rebreather dives keep their
-  /// diluent and oxygen rows here (issue #3673).
+  /// diluent and oxygen rows here (issue #3673). [roleKey] maps a stored
+  /// role name to the key its cylinders average under, so a caller can fold
+  /// roles into one group (back gas and twin set as one backmount rate,
+  /// issue #3374) and still get an average over cylinders, not over
+  /// averages. The identity by default.
   Future<Map<String, double>> getSacVolumeByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
+    String Function(String role)? roleKey,
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
@@ -817,7 +822,8 @@ class InsightsRepository with InsightsChartDives {
         final ambientBar = row.read<double>('ambient_bar');
         final sac = used / durationMin / ambientBar;
         if (sac > 0) {
-          sacsByRole.putIfAbsent(role, () => []).add(sac);
+          final key = roleKey == null ? role : roleKey(role);
+          sacsByRole.putIfAbsent(key, () => []).add(sac);
         }
       }
 

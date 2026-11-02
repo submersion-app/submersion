@@ -23,10 +23,17 @@ class _FakeDiveRepository extends Fake implements DiveRepository {
   List<String>? tankIds;
   TankRole? role;
 
+  TankRole? onlyFrom;
+
   @override
-  Future<int> setTankRoles(List<String> tankIds, TankRole role) async {
+  Future<int> setTankRoles(
+    List<String> tankIds,
+    TankRole role, {
+    TankRole? onlyFrom,
+  }) async {
     this.tankIds = tankIds;
     this.role = role;
+    this.onlyFrom = onlyFrom;
     return tankIds.length;
   }
 }
@@ -154,6 +161,7 @@ void main() {
 
       expect(diveRepository.tankIds, candidates.tankIds);
       expect(diveRepository.role, TankRole.twinSet);
+      expect(diveRepository.onlyFrom, TankRole.backGas);
       expect(find.text('15 cylinders set to Twin Set'), findsOneWidget);
     },
   );
