@@ -11054,12 +11054,6 @@ abstract class AppLocalizations {
   /// **'Coordinates found from address'**
   String get diveCenters_snackbar_coordinatesFound;
 
-  /// No description provided for @diveCenters_snackbar_copiedToClipboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Copied to clipboard'**
-  String get diveCenters_snackbar_copiedToClipboard;
-
   /// No description provided for @diveCenters_snackbar_imported.
   ///
   /// In en, this message translates to:
@@ -80066,6 +80060,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy'**
   String get common_action_copy;
+
+  /// No description provided for @common_snackbar_copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get common_snackbar_copiedToClipboard;
 
   /// Title of the dialog for picking a two-colour card gradient.
   ///

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+
+import '../../../../support/clipboard_recorder.dart';
 
 /// Pumps a single [DiveDetailRow] inside a deliberately narrow viewport so a
 /// long value is forced to compete with the label for horizontal space. This
@@ -35,6 +38,31 @@ Future<void> _pumpRow(
 
 void main() {
   group('DiveDetailRow', () {
+    testWidgets('a copyable row copies its value (issue #3362)', (
+      tester,
+    ) async {
+      final calls = recordClipboardCalls();
+      await tester.pumpWidget(
+        const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: DiveDetailRow(
+              label: 'Serial Number',
+              value: 'A7X-20419',
+              copyable: true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byTooltip('Copy'));
+      await tester.pump();
+
+      expect(copiedText(calls), 'A7X-20419');
+    });
+
     testWidgets('a long value wraps instead of overflowing a narrow row', (
       tester,
     ) async {

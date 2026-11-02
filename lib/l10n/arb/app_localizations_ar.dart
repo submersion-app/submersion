@@ -7111,9 +7111,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم العثور على الإحداثيات من العنوان';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard => 'تم النسخ إلى الحافظة';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'تم استيراد \"$name\"';
   }
@@ -51166,6 +51163,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get common_action_copy => 'نسخ';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'تم النسخ إلى الحافظة';
 
   @override
   String get settings_appearance_customGradient_title => 'تدرج مخصص';

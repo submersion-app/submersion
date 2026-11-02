@@ -7033,10 +7033,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Coordonnées trouvées depuis l\'adresse';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard =>
-      'Copié dans le presse-papiers';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '« $name » importé';
   }
@@ -50639,6 +50635,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get common_action_copy => 'Copier';
+
+  @override
+  String get common_snackbar_copiedToClipboard =>
+      'Copié dans le presse-papiers';
 
   @override
   String get settings_appearance_customGradient_title => 'Dégradé personnalisé';

@@ -75,6 +75,7 @@ class DiveComputerInfoCard extends StatelessWidget {
                 _InfoRow(
                   label: l10n.diveLog_detail_label_serialNumber,
                   value: computer.serialNumber!,
+                  copyable: true,
                 ),
               if (computer.firmwareVersion != null)
                 _InfoRow(
@@ -91,10 +92,15 @@ class DiveComputerInfoCard extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.copyable = false,
+  });
 
   final String label;
   final String value;
+  final bool copyable;
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +109,7 @@ class _InfoRow extends StatelessWidget {
       value: value,
       valueStyle: Theme.of(context).textTheme.bodyMedium,
       padding: const EdgeInsets.symmetric(vertical: 4),
+      copyable: copyable,
     );
   }
 }

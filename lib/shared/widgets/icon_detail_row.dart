@@ -18,6 +18,7 @@ class IconDetailRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.valueColor,
+    this.copyable = false,
   });
 
   final IconData icon;
@@ -27,27 +28,35 @@ class IconDetailRow extends StatelessWidget {
   /// Tints the value, e.g. an expiry date that has passed.
   final Color? valueColor;
 
+  /// Offers the value for copying, as [DetailRow.copyValue] describes.
+  final bool copyable;
+
   @override
   Widget build(BuildContext context) {
     final style = DefaultTextStyle.of(
       context,
     ).style.merge(Theme.of(context).textTheme.bodyMedium);
 
+    final row = DetailRow.text(
+      icon: icon,
+      label: label,
+      labelStyle: style,
+      value: value,
+      valueStyle: style.copyWith(
+        fontWeight: FontWeight.bold,
+        color: valueColor,
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      copyable: copyable,
+    );
+    // A copyable row reads as one node by itself, beside its copy button.
+    if (copyable) return row;
+
     // The row reads as one "label: value" node; the texts are not read again.
     return Semantics(
       label: '$label: $value',
       excludeSemantics: true,
-      child: DetailRow.text(
-        icon: icon,
-        label: label,
-        labelStyle: style,
-        value: value,
-        valueStyle: style.copyWith(
-          fontWeight: FontWeight.bold,
-          color: valueColor,
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 6),
-      ),
+      child: row,
     );
   }
 }

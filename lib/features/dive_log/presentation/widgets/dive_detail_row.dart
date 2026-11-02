@@ -15,6 +15,7 @@ class DiveDetailRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.sourceName,
+    this.copyable = false,
   });
 
   /// Leading, muted field name (e.g. "Dive Type").
@@ -26,10 +27,14 @@ class DiveDetailRow extends StatelessWidget {
   /// When non-null, an attribution badge is shown after the value.
   final String? sourceName;
 
+  /// Offers the value for copying, as [DetailRow.copyValue] describes.
+  final bool copyable;
+
   @override
   Widget build(BuildContext context) {
     return DetailRow(
       label: label,
+      copyValue: copyable ? value : null,
       value: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

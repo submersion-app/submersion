@@ -6650,9 +6650,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_snackbar_coordinatesFound => '已从地址获取坐标';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard => '已复制到剪贴板';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '已导入“$name”';
   }
@@ -47420,6 +47417,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get common_action_copy => '复制';
+
+  @override
+  String get common_snackbar_copiedToClipboard => '已复制到剪贴板';
 
   @override
   String get settings_appearance_customGradient_title => '自定义渐变';

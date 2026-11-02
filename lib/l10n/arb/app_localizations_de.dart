@@ -7019,10 +7019,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Koordinaten aus Adresse gefunden';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard =>
-      'In Zwischenablage kopiert';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '\"$name\" importiert';
   }
@@ -50409,6 +50405,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get common_action_copy => 'Kopieren';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'In Zwischenablage kopiert';
 
   @override
   String get settings_appearance_customGradient_title => 'Eigener Farbverlauf';

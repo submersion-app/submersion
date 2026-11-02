@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/detail_row/copyable_detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/render_detail_row.dart';
 
@@ -15,7 +16,9 @@ import 'package:submersion/shared/widgets/detail_row/render_detail_row.dart';
 /// the start, and wraps within the rest of the row.
 ///
 /// The row adds no semantics of its own: a caller that reads the row as
-/// one node, or makes it a button, wraps it as before.
+/// one node, or makes it a button, wraps it as before. The exception is a
+/// row with a [copyValue], which reads as one "label: value" node and needs
+/// no such wrapper: one would also swallow its copy button.
 class DetailRow extends StatefulWidget {
   const DetailRow({
     super.key,
@@ -27,9 +30,10 @@ class DetailRow extends StatefulWidget {
     this.iconGap = 12,
     this.iconColor,
     this.padding = const EdgeInsets.symmetric(vertical: 8),
+    this.copyValue,
   });
 
-  /// A row whose value is plain text.
+  /// A row whose value is plain text. A [copyable] row copies [value].
   DetailRow.text({
     Key? key,
     required String label,
@@ -43,6 +47,7 @@ class DetailRow extends StatefulWidget {
     double iconGap = 12,
     Color? iconColor,
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(vertical: 8),
+    bool copyable = false,
   }) : this(
          key: key,
          label: label,
@@ -58,6 +63,7 @@ class DetailRow extends StatefulWidget {
          iconGap: iconGap,
          iconColor: iconColor,
          padding: padding,
+         copyValue: copyable ? value : null,
        );
 
   /// The space between the label column and the value.
@@ -84,6 +90,10 @@ class DetailRow extends StatefulWidget {
   /// Defaults to the primary colour.
   final Color? iconColor;
   final EdgeInsetsGeometry padding;
+
+  /// When set, the row can be copied, for a value worth pasting elsewhere
+  /// such as a card or serial number (issue #3362). See [CopyableDetailRow].
+  final String? copyValue;
 
   @override
   State<DetailRow> createState() => _DetailRowState();
@@ -167,12 +177,16 @@ class _DetailRowState extends State<DetailRow> {
       ],
     );
 
-    return Padding(
+    final copyValue = widget.copyValue;
+    final row = Padding(
       padding: widget.padding,
       child: DetailRowLayout(
         label: labelCell,
         value: Padding(
-          padding: EdgeInsets.only(top: textTop),
+          padding: EdgeInsetsDirectional.only(
+            top: textTop,
+            end: copyValue == null ? 0 : CopyableDetailRow.buttonWidth,
+          ),
           child: widget.value,
         ),
         column: DetailRowGroup.maybeOf(context),
@@ -181,6 +195,15 @@ class _DetailRowState extends State<DetailRow> {
         gap: DetailRow.gap,
         maxLabelShare: DetailRow.maxLabelShare,
       ),
+    );
+    if (copyValue == null) return row;
+
+    final inset = widget.padding.resolve(Directionality.of(context));
+    return CopyableDetailRow(
+      copyValue: copyValue,
+      semanticsLabel: '${widget.label}: $copyValue',
+      buttonHeight: inset.top + firstLine + inset.bottom,
+      child: row,
     );
   }
 }
