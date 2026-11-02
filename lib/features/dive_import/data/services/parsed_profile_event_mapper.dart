@@ -30,12 +30,30 @@ List<ProfileEvent> profileEventsFromParsed({
     if (timestamp == null) continue;
     final value = m['value'] as double?;
     final description = m['description'] as String?;
+    // A file written by this app carries each row's id (#4109); any other
+    // file gets a fresh one.
+    final givenId = m['id'];
+    final id = givenId is String && givenId.isNotEmpty ? givenId : _uuid.v4();
     switch (eventTypeStr) {
+      case 'annotation':
+        final depth = m['depth'];
+        events.add(
+          ProfileEvent.annotation(
+            id: id,
+            diveId: diveId,
+            timestamp: timestamp,
+            depth: depth is num ? depth.toDouble() : null,
+            words: description ?? '',
+            createdAt: now,
+          ),
+        );
+        break;
+
       case 'setpointChange':
         if (value == null) continue;
         events.add(
           ProfileEvent.setpointChange(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             setpoint: value,
@@ -47,7 +65,7 @@ List<ProfileEvent> profileEventsFromParsed({
       case 'bookmark':
         events.add(
           ProfileEvent.bookmark(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             note: description,
@@ -61,7 +79,7 @@ List<ProfileEvent> profileEventsFromParsed({
       case 'safetyStopStart':
         events.add(
           ProfileEvent.safetyStop(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             // The parser does not emit depth on event elements; the same
@@ -78,7 +96,7 @@ List<ProfileEvent> profileEventsFromParsed({
       case 'decoStopStart':
         events.add(
           ProfileEvent.decoStop(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             depth: 0.0,
@@ -90,7 +108,7 @@ List<ProfileEvent> profileEventsFromParsed({
       case 'decoViolation':
         events.add(
           ProfileEvent.decoViolation(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             value: value,
@@ -108,7 +126,7 @@ List<ProfileEvent> profileEventsFromParsed({
         }
         events.add(
           ProfileEvent.ascentRateWarning(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             depth: 0.0,
@@ -126,7 +144,7 @@ List<ProfileEvent> profileEventsFromParsed({
         }
         events.add(
           ProfileEvent.ppO2High(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             value: value,
@@ -142,7 +160,7 @@ List<ProfileEvent> profileEventsFromParsed({
         }
         events.add(
           ProfileEvent.ppO2Low(
-            id: _uuid.v4(),
+            id: id,
             diveId: diveId,
             timestamp: timestamp,
             value: value,

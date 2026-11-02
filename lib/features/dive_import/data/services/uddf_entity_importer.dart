@@ -2966,9 +2966,13 @@ class UddfEntityImporter {
       final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
       // Parser-emitted profile events; persisted as ProfileEvents after the
-      // dive row is created.
-      final eventMaps = (diveData['events'] as List?)
-          ?.cast<Map<String, dynamic>>();
+      // dive row is created. SSRF and DL7 fill `events`, the UDDF path fills
+      // `profileEvents` (the app's own <profileevents> extension), the same
+      // two keys the resync writer reads. A restore that read only the first
+      // dropped every event a backup carried, annotations included (#4109).
+      final eventMaps =
+          ((diveData['events'] ?? diveData['profileEvents']) as List?)
+              ?.cast<Map<String, dynamic>>();
       final diveTypeIds = _resolveDiveTypeIds(
         (diveData['diveTypeIds'] as List?)?.cast<String>() ??
             [diveData['diveType'] as String? ?? 'recreational'],
@@ -3269,18 +3273,9 @@ class UddfEntityImporter {
         );
       }
 
-      // Persist profile events emitted by the parser. Currently supported (Slice C + C.2):
-      // setpointChange, bookmark, safetyStopStart, decoStopStart, decoViolation,
-      // ascentRateWarning, ppO2High, ppO2Low. Future slices may add more types as
-      // real SSRF exports surface additional event names.
-      //
-      // NOTE ON UDDF DIVERGENCE: SSRF's subsurface_xml_parser emits events under
-      // `diveData['events']` (read here). The UDDF path in
-      // `uddf_full_import_service.dart` emits events under
-      // `diveData['profileEvents']` — a pre-existing key mismatch. UDDF-side
-      // event persistence is intentionally out of scope for Slice C; when a
-      // future slice adds UDDF event import, unify the keys or add a second
-      // consumer block here.
+      // Persist profile events emitted by the parser, converted by the same
+      // mapper the resync writer uses; the types it does not know are skipped
+      // with a log line.
       if (eventMaps != null && eventMaps.isNotEmpty) {
         final events = profileEventsFromParsed(
           diveId: diveId,
