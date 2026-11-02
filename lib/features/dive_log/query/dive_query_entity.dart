@@ -56,6 +56,24 @@ final kDiveGearJoinSql =
     'WHERE dt.dive_id = {from}.id AND dt.equipment_id IS NOT NULL '
     'UNION ${tankRegulatorIdsOfDiveSql('{from}.id')})';
 
+const _gearWordMatchSql =
+    "SELECT teq.id FROM equipment teq WHERE unicode_lower(teq.name) LIKE ? "
+    "ESCAPE '\\' OR unicode_lower(teq.brand) LIKE ? ESCAPE '\\' "
+    "OR unicode_lower(teq.model) LIKE ? ESCAPE '\\'";
+
+/// A word that names gear a dive used: the same set as [kDiveGearJoinSql],
+/// walked from the matching gear to its dives, because that join is correlated
+/// and would read the equipment table once per dive.
+final kDiveGearTextSearchSql =
+    '{r}.id IN (SELECT tde.dive_id FROM dive_equipment tde '
+    'WHERE tde.equipment_id IN ($_gearWordMatchSql) '
+    'UNION SELECT tdt.dive_id FROM dive_tanks tdt '
+    'WHERE tdt.equipment_id IN ($_gearWordMatchSql) '
+    'UNION SELECT tdr.dive_id FROM dive_tanks tdr '
+    'WHERE tdr.regulator_equipment_id IN ($_gearWordMatchSql) '
+    'UNION SELECT dive_id FROM ($tankExtraRegulatorRowsSql) '
+    'WHERE regulator_id IN ($_gearWordMatchSql))';
+
 /// A dive's effective water type: its own, else its site's (issue #3196).
 /// The SQL twin of `Dive.effectiveWaterType`, matching the insights water
 /// type chart, so a dive at a salt-water site is found by `waterType:salt`
@@ -249,30 +267,29 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'EXISTS (SELECT 1 FROM dive_dive_types tddt JOIN dive_types tdty '
         'ON tdty.id = tddt.dive_type_id WHERE tddt.dive_id = {r}.id '
         "AND unicode_lower(tdty.name) LIKE ? ESCAPE '\\')",
-    // What a dive carries, so a brand or a trip finds it (#3457).
-    'EXISTS (SELECT 1 FROM equipment teq WHERE '
-        '${kDiveGearJoinSql.replaceAll('{to}', 'teq').replaceAll('{from}', '{r}')} '
-        "AND (unicode_lower(teq.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(teq.brand) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(teq.model) LIKE ? ESCAPE '\\'))",
-    'EXISTS (SELECT 1 FROM trips ttrp WHERE ttrp.id = {r}.trip_id '
-        "AND (unicode_lower(ttrp.name) LIKE ? ESCAPE '\\' "
+    // What a dive carries, so a brand or a trip finds it (#3457). Each of
+    // these reads its matches once rather than once per dive, which keeps a
+    // word that matches nothing cheap on a long log. A nullable key needs
+    // COALESCE: NOT (NULL) drops the dive from a negated word.
+    kDiveGearTextSearchSql,
+    "COALESCE({r}.trip_id, '') IN (SELECT ttrp.id FROM trips ttrp WHERE "
+        "unicode_lower(ttrp.name) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(ttrp.location) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(ttrp.resort_name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ttrp.liveaboard_name) LIKE ? ESCAPE '\\'))",
-    'EXISTS (SELECT 1 FROM sightings tsgt JOIN species tspc '
-        'ON tspc.id = tsgt.species_id WHERE tsgt.dive_id = {r}.id '
-        "AND (unicode_lower(tspc.common_name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(ttrp.liveaboard_name) LIKE ? ESCAPE '\\')",
+    '{r}.id IN (SELECT tsgt.dive_id FROM sightings tsgt WHERE tsgt.species_id '
+        'IN (SELECT tspc.id FROM species tspc WHERE '
+        "unicode_lower(tspc.common_name) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(tspc.scientific_name) LIKE ? ESCAPE '\\'))",
-    'EXISTS (SELECT 1 FROM dive_courses tdcr JOIN courses tcrs '
-        'ON tcrs.id = tdcr.course_id WHERE tdcr.dive_id = {r}.id '
-        "AND (unicode_lower(tcrs.name) LIKE ? ESCAPE '\\' "
+    '{r}.id IN (SELECT tdcr.dive_id FROM dive_courses tdcr WHERE tdcr.course_id '
+        'IN (SELECT tcrs.id FROM courses tcrs WHERE '
+        "unicode_lower(tcrs.name) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(tcrs.location) LIKE ? ESCAPE '\\'))",
     "unicode_lower({r}.dive_computer_model) LIKE ? ESCAPE '\\'",
-    'EXISTS (SELECT 1 FROM dive_computers tcmp WHERE tcmp.id = {r}.computer_id '
-        "AND (unicode_lower(tcmp.name) LIKE ? ESCAPE '\\' "
+    "COALESCE({r}.computer_id, '') IN (SELECT tcmp.id FROM dive_computers tcmp "
+        "WHERE unicode_lower(tcmp.name) LIKE ? ESCAPE '\\' "
         "OR unicode_lower(tcmp.manufacturer) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcmp.model) LIKE ? ESCAPE '\\'))",
+        "OR unicode_lower(tcmp.model) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const [
     'dive_sites',

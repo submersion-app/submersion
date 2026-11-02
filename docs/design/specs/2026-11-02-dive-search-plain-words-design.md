@@ -65,8 +65,11 @@ changes is how many ways a clue can be satisfied.
 
 ### 5.1 Records attached to the dive (new text search columns)
 
-Added to the dive entity's `textSearchSql`, each as an `EXISTS` over its link,
-matching with `unicode_lower(...) LIKE` as the other templates do:
+Added to the dive entity's `textSearchSql`, matching with
+`unicode_lower(...) LIKE` as the other templates do. Each reads its matches once
+per word with an uncorrelated `IN (SELECT ...)`, not once per dive: the first
+build used a correlated `EXISTS` and failed section 10's limit. A nullable key
+needs `COALESCE`, so that a negated word still keeps a dive with no link:
 
 | Record | Columns | Reached through |
 | --- | --- | --- |
@@ -289,6 +292,16 @@ Measure a three-word search over a 10,000 dive database before and after, and
 put the numbers in the PR. If the list query more than doubles or passes 150 ms
 on a desktop debug build, stop and bring the numbers back to the maintainer
 before going further.
+
+Measured on a 10,000 dive test database, median of five runs, under load:
+
+| Search | Count, before | Count, after | List, after |
+| --- | --- | --- | --- |
+| `site october 2018` | 56 ms | 79 ms | 5 ms |
+| `zzzz` (matches nothing) | 36 ms | 45 ms | 46 ms |
+| `site zzzz` | 56 ms | 70 ms | 73 ms |
+| `perdix wall drift` | 38 ms | 24 ms | 31 ms |
+| `dive wall nitrox` | 51 ms | 73 ms | 71 ms |
 
 ## 11. Left to the builder
 

@@ -124,6 +124,19 @@ void main() {
       expect(await found('scubapro'), ['tanked']);
     });
 
+    test('a second regulator on a tank counts', () async {
+      await insertDive('tanked');
+      await insertDive('other');
+      await insertGear('g1', name: 'Pony reg', brand: 'Poseidon');
+      await sql(
+        'INSERT INTO dive_tanks (id, dive_id, extra_regulator_ids) '
+        'VALUES (?, ?, ?)',
+        ['t1', 'tanked', '["g1"]'],
+      );
+
+      expect(await found('poseidon'), ['tanked']);
+    });
+
     test('a trip name, location, resort or boat finds the dive', () async {
       await sql(
         'INSERT INTO trips (id, name, start_date, end_date, location, '
@@ -229,6 +242,19 @@ void main() {
       await linkGear('with-gear', 'g1');
 
       expect(await found('not shearwater'), ['bare']);
+    });
+
+    test('a negated word keeps a dive with no trip or computer', () async {
+      await sql(
+        'INSERT INTO trips (id, name, start_date, end_date, created_at, '
+        'updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        ['trip', 'Lofoten', stamp, stamp, stamp, stamp],
+      );
+      await insertDive('on-trip', tripId: 'trip');
+      await insertDive('bare');
+
+      expect(await found('not lofoten'), ['bare']);
+      expect(await found('not perdix'), unorderedEquals(['on-trip', 'bare']));
     });
 
     test('a search reads every attached table, so a write refreshes it', () {
