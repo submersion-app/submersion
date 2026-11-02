@@ -353,6 +353,37 @@ void main() {
       ]);
     });
 
+    test('typed back, gives the duration back too', () async {
+      final e = await entity();
+
+      for (final type in ['Sofnolime', 'Divesorb']) {
+        final kept = e.reconcile(dive, [
+          draft('d1', DiveField.scrubberType, 'Sofnolime', type),
+          draft('d1', DiveField.scrubberDuration, 180, null),
+        ]);
+
+        expect(kept.last.value, 180, reason: type);
+        expect(kept.last.isUnchanged, isTrue, reason: type);
+      }
+    });
+
+    test('typed back, leaves a duration the diver blanked', () async {
+      final e = await entity();
+      final blanked = draft(
+        'd1',
+        DiveField.scrubberDuration,
+        180,
+        null,
+      ).copyWith(rawText: '');
+
+      final kept = e.reconcile(dive, [
+        draft('d1', DiveField.scrubberType, 'Sofnolime', 'Divesorb'),
+        blanked,
+      ]);
+
+      expect(kept.last, blanked);
+    });
+
     test('a retype discarded leaves a duration the diver cleared', () async {
       final e = await entity();
 

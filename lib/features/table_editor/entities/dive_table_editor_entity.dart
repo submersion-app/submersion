@@ -106,6 +106,17 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
         ),
       ];
     }
+    // A type typed back ends the clearing it brought. A duration the diver
+    // blanked has text behind it, and stays.
+    final retyped = drafts.any(
+      (d) => d.fieldName == DiveField.scrubberType.name && d.value != null,
+    );
+    if (retyped && duration.value == null && duration.rawText == null) {
+      return [
+        for (final d in drafts)
+          d == duration ? d.copyWith(value: d.original) : d,
+      ];
+    }
     final waiting = duration.value != null && !_hasScrubberType(entity, drafts);
     return [
       for (final d in drafts)
