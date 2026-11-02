@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart' show listEquals, visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/platform/compute/compute_jobs.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
@@ -3062,12 +3064,27 @@ class SyncDataSerializer {
     SyncData data, {
     @visibleForTesting int minBytes = kOffIsolateMinBytes,
     @visibleForTesting OffIsolateRunner runner = isolateRun,
-  }) => runOffIsolate(
-    () => checksumOf(data),
-    bytes: syncJsonWeight(data.toJson(), limit: minBytes),
-    minBytes: minBytes,
-    runner: runner,
-  );
+  }) {
+    if (HostPlatform.isWeb) return _checksumInWorker(data, minBytes: minBytes);
+    return runOffIsolate(
+      () => checksumOf(data),
+      bytes: syncJsonWeight(data.toJson(), limit: minBytes),
+      minBytes: minBytes,
+      runner: runner,
+    );
+  }
+
+  /// [checksumOf] with the hash in the compute worker. The JSON is encoded
+  /// here, since a Dart object cannot cross to a worker, and only the bytes
+  /// go over; the hex form matches [checksumOf].
+  static Future<String> _checksumInWorker(
+    SyncData data, {
+    required int minBytes,
+  }) async {
+    final json = Uint8List.fromList(utf8.encode(jsonEncode(data.toJson())));
+    final digest = await ComputeJobs.sha256(json, minBytes: minBytes);
+    return [for (final b in digest) b.toRadixString(16).padLeft(2, '0')].join();
+  }
 
   static String _sha256Hex(String data) =>
       sha256.convert(utf8.encode(data)).toString();

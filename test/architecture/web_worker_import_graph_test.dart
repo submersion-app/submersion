@@ -8,8 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// lacks. A conditional import resolves to its `dart.library.js_interop`
 /// branch, since that is the branch dart2js takes.
 void main() {
-  // The compute worker joins this list when it lands.
-  const workers = ['web/drift_worker.dart'];
+  const workers = ['web/drift_worker.dart', 'web/compute_worker.dart'];
 
   final conditional = RegExp(
     r'''^\s*(?:import|export)\s+['"]([^'"]+)['"]((?:\s*if\s*\([^)]*\)\s*['"][^'"]+['"])*)''',

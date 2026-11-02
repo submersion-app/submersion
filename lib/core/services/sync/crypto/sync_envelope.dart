@@ -6,6 +6,7 @@ import 'package:cryptography/dart.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid_value.dart';
 
+import 'package:submersion/core/platform/compute/compute_jobs.dart';
 import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
@@ -209,12 +210,7 @@ abstract final class SyncEnvelope {
     Uint8List plaintext,
     int minBytes,
     OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => PlatformZlib.gzip(plaintext),
-    bytes: plaintext.length,
-    minBytes: minBytes,
-    runner: runner,
-  );
+  ) => ComputeJobs.gzip(plaintext, minBytes: minBytes, runner: runner);
 
   static Future<SecretBox> _encryptedOffIsolate(
     List<int> payload,
@@ -223,17 +219,22 @@ abstract final class SyncEnvelope {
     List<int> aad,
     int minBytes,
     OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => DartAesGcm.with256bits().encrypt(
-      payload,
-      secretKey: SecretKeyData(key),
+  ) async {
+    final sealed = await ComputeJobs.aesGcmEncrypt(
+      key: _bytes(key),
+      nonce: _bytes(nonce),
+      plaintext: _bytes(payload),
+      aad: _bytes(aad),
+      minBytes: minBytes,
+      runner: runner,
+    );
+    final split = sealed.length - 16;
+    return SecretBox(
+      Uint8List.sublistView(sealed, 0, split),
       nonce: nonce,
-      aad: aad,
-    ),
-    bytes: payload.length,
-    minBytes: minBytes,
-    runner: runner,
-  );
+      mac: Mac(Uint8List.sublistView(sealed, split)),
+    );
+  }
 
   static Future<List<int>> _decryptedOffIsolate(
     SecretBox box,
@@ -241,33 +242,51 @@ abstract final class SyncEnvelope {
     List<int> aad,
     int minBytes,
     OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => DartAesGcm.with256bits().decrypt(
-      box,
-      secretKey: SecretKeyData(key),
-      aad: aad,
-    ),
-    bytes: box.cipherText.length,
+  ) => ComputeJobs.aesGcmDecrypt(
+    key: _bytes(key),
+    nonce: _bytes(box.nonce),
+    ciphertextWithMac: Uint8List.fromList([
+      ...box.cipherText,
+      ...box.mac.bytes,
+    ]),
+    aad: _bytes(aad),
     minBytes: minBytes,
-    isExpected: (e) => e is SecretBoxAuthenticationError,
     runner: runner,
   );
 
+  /// The bounded gunzip of `inflateBounded`, with the blob cap checked here
+  /// and the zlib errors translated to the same [BoundedInflateException]
+  /// messages, so the envelope reads the same whichever side runs it.
   static Future<Uint8List> _inflatedOffIsolate(
     List<int> payload,
     int maxBytes,
     int minBytes,
     OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => inflateBounded(
-      payload,
-      framing: ZlibFraming.gzip,
-      maxBytes: maxBytes,
-      maxBlobBytes: maxBytes,
-    ),
-    bytes: payload.length,
-    minBytes: minBytes,
-    isExpected: (e) => e is BoundedInflateException,
-    runner: runner,
-  );
+  ) async {
+    if (payload.length > maxBytes) {
+      throw BoundedInflateException(
+        'blob of ${payload.length} byte(s) exceeds the $maxBytes allowed',
+      );
+    }
+    try {
+      return await ComputeJobs.inflateBounded(
+        _bytes(payload),
+        maxBytes: maxBytes,
+        framing: ZlibFraming.gzip,
+        minBytes: minBytes,
+        runner: runner,
+      );
+    } on ZlibBoundExceeded {
+      throw BoundedInflateException(
+        'inflated body exceeds the $maxBytes byte(s) allowed',
+      );
+    } on ZlibFormatException catch (e) {
+      throw BoundedInflateException(
+        'not a valid compressed stream: ${e.message}',
+      );
+    }
+  }
+
+  static Uint8List _bytes(List<int> bytes) =>
+      bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
 }
