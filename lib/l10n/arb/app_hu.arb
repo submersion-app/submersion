@@ -17359,6 +17359,7 @@
   "web_forgetDevice_subtitle": "A merülések, a bejelentkezési adatok és az eszközazonosság eltávolítása ebből a böngészőből",
   "web_forgetDevice_confirm": "Elfelejtés",
   "web_forgetDevice_confirmBody": "Ez mindent eltávolít, amit a Submersion ebben a böngészőben tart: a merülésnaplót, a bejelentkezési adatokat és a jelmondatot, valamint ennek az eszköznek a szinkronizálási azonosságát. A merüléseid megmaradnak a szinkronizálási tárolóban és a többi eszközödön. Az oldal újratöltődik, tiszta lappal.",
+  "web_forgetDevice_failed": "Ez a böngésző megtartotta az adatbázist. Zárd be a többi Submersion lapot, és próbáld újra.",
   "web_downloadBackup_title": "Biztonsági mentés letöltése",
   "web_downloadBackup_subtitle": "A merülésnaplód másolata adatbázisfájlként, a böngésződ menti el",
   "demo_row_unavailable": "Demó módban nem érhető el",

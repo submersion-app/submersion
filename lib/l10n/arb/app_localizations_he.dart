@@ -57377,6 +57377,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'פעולה זו מסירה את כל מה ש-Submersion שומר בדפדפן זה: יומן הצלילות, פרטי הכניסה וביטוי הסיסמה, וזהות המכשיר הזה בסנכרון. הצלילות שלך נשארות במאגר הסנכרון ובמכשירים האחרים שלך. הדף נטען מחדש להתחלה נקייה.';
 
   @override
+  String get web_forgetDevice_failed =>
+      'הדפדפן הזה שמר את מסד הנתונים. סגרו לשוניות Submersion אחרות ונסו שוב.';
+
+  @override
   String get web_downloadBackup_title => 'הורד גיבוי';
 
   @override

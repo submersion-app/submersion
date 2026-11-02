@@ -55007,6 +55007,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '这将移除 Submersion 在此浏览器中保存的全部内容：潜水日志、登录信息和密码短语，以及此设备在同步中的身份。您的潜水记录仍保留在同步存储和其他设备上。页面将重新加载并重新开始。';
 
   @override
+  String get web_forgetDevice_failed => '此浏览器保留了数据库。请关闭其他 Submersion 标签页后重试。';
+
+  @override
   String get web_downloadBackup_title => '下载备份';
 
   @override

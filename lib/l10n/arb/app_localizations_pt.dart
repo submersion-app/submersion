@@ -58608,6 +58608,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Isto remove tudo o que o Submersion guarda neste navegador: o registo de mergulhos, os dados de acesso e a frase-passe, e a identidade deste dispositivo na sincronização. Os seus mergulhos ficam no armazenamento de sincronização e nos seus outros dispositivos. A página recarrega do zero.';
 
   @override
+  String get web_forgetDevice_failed =>
+      'Este navegador manteve o banco de dados. Feche as outras abas do Submersion e tente novamente.';
+
+  @override
   String get web_downloadBackup_title => 'Transferir uma cópia de segurança';
 
   @override

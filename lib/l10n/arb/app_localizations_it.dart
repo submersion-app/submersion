@@ -58622,6 +58622,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo rimuove tutto ciò che Submersion conserva in questo browser: il registro delle immersioni, i dati di accesso e la passphrase, e l\'identità di questo dispositivo nella sincronizzazione. Le tue immersioni restano nell\'archivio di sincronizzazione e sugli altri tuoi dispositivi. La pagina si ricarica da capo.';
 
   @override
+  String get web_forgetDevice_failed =>
+      'Questo browser ha conservato il database. Chiudi le altre schede di Submersion e riprova.';
+
+  @override
   String get web_downloadBackup_title => 'Scarica un backup';
 
   @override

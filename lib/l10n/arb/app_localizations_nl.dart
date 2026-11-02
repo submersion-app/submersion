@@ -58252,6 +58252,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit verwijdert alles wat Submersion in deze browser bewaart: het duiklogboek, de aanmeldgegevens en wachtwoordzin, en de identiteit van dit apparaat in de synchronisatie. Je duiken blijven in de synchronisatieopslag en op je andere apparaten. De pagina herlaadt met een schone start.';
 
   @override
+  String get web_forgetDevice_failed =>
+      'Deze browser heeft de database behouden. Sluit andere Submersion-tabbladen en probeer het opnieuw.';
+
+  @override
   String get web_downloadBackup_title => 'Back-up downloaden';
 
   @override

@@ -58490,6 +58490,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das entfernt alles, was Submersion in diesem Browser aufbewahrt: das Logbuch, die Anmeldedaten und Passphrase sowie die Identität dieses Geräts in der Synchronisation. Deine Tauchgänge bleiben im Sync-Speicher und auf deinen anderen Geräten. Die Seite lädt neu und beginnt von vorn.';
 
   @override
+  String get web_forgetDevice_failed =>
+      'Dieser Browser hat die Datenbank behalten. Schließe andere Submersion-Tabs und versuche es erneut.';
+
+  @override
   String get web_downloadBackup_title => 'Sicherung herunterladen';
 
   @override
