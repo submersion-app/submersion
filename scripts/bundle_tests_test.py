@@ -473,6 +473,17 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("%s lists no test files" % path, err)
 
+    def test_subset_with_a_missing_list_file_is_an_error(self):
+        code, _, err = self.run_main("--subset", "nope.txt")
+        self.assertEqual(code, 2)
+        self.assertIn("cannot read nope.txt", err)
+
+    def test_subset_with_an_empty_value_is_an_error(self):
+        code, lines, err = self.run_main("--subset", "")
+        self.assertEqual(code, 2)
+        self.assertEqual(lines, [])
+        self.assertIn("cannot read", err)
+
     def test_subset_and_files_together_are_an_error(self):
         code, _, err = self.run_main(
             "--subset", self.subset_list("test/a/f00_test.dart"),

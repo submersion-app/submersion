@@ -194,7 +194,7 @@ rm -rf "$root/test/.bundles"
 # --- Test 3: options, coverage and concurrency --------------------------------
 
 run_script "$tmp" TEST_CONCURRENCY=3 -- --coverage --reporter compact
-assert_contains has "$flutter_args" '--concurrency=3 --coverage --reporter compact test/.bundles/' \
+assert_contains has "$flutter_args" '--concurrency=3 --timeout=5m --coverage --reporter compact test/.bundles/' \
     'honours TEST_CONCURRENCY and passes options before the paths'
 if [ "$flutter_calls" -eq 1 ]; then
     pass 'a --coverage run is one call, so one report covers every bundle'
@@ -541,6 +541,22 @@ else
         "exit $run_status, $flutter_calls calls"
 fi
 rm -rf "$root/test/many" "$tmp/bin/python3"
+
+# --- Test 14: every run gets the longer test limit --------------------------
+#
+# Issue #4117: at load 35-55 a migration test reached the 2m limit in a bundle,
+# twice, and never as separate files, which blocked a push over nothing. The
+# script owns the bundling, so it owns the limit, for the suite as well.
+
+run_script "$tmp"
+assert_contains has "$flutter_args" '--timeout=5m' \
+    'the whole suite gets the longer test limit'
+
+run_script "$tmp" -- --timeout=1m
+case "$flutter_args" in
+    *'--timeout=5m '*'--timeout=1m'*) pass 'a timeout option from the caller wins' ;;
+    *) fail 'a timeout option from the caller wins' "$flutter_args" ;;
+esac
 
 rm -rf "$tmp"
 

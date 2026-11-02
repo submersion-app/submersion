@@ -13,7 +13,7 @@
 #   scripts/run_all_tests.sh [flutter test options...]
 #   scripts/run_all_tests.sh --coverage
 #   TEST_CONCURRENCY=8 scripts/run_all_tests.sh
-#   TEST_FILES_FROM=selection.txt scripts/run_all_tests.sh
+#   TEST_FILES_FROM="$PWD/selection.txt" scripts/run_all_tests.sh
 #
 # TEST_FILES_FROM names a file listing test paths, one per line: only those
 # run, bundled, with the same failure report. The pre-push hook hands a large
@@ -32,6 +32,12 @@
 # tests are excluded, as in the pre-push hook. It takes options only: to run
 # particular files, use `flutter test <paths>`. Exits non-zero if any test
 # fails, after naming the files that failed, did not compile or could not load.
+#
+# Each test gets 5 minutes, over the 2 in dart_test.yaml. On a machine at load
+# 35-55 a migration test that takes seconds alone reached 2 minutes in a bundle,
+# twice, and never as separate files, which blocked a push over nothing. Widget
+# tests keep the binding's limit, which this does not reach. A --timeout option
+# given to this script wins.
 #
 # Where the command line has a length limit (Git Bash on Windows, 8,191
 # characters), the bundles are rebuilt with more files each until their paths
@@ -266,12 +272,14 @@ report_failures() {
     fi
 }
 
+TEST_TIMEOUT=5m
 CALLER_OPTIONS=("$@")
 
 # Runs flutter test on the targets "$@", adding to the log. Returns its status.
 run_flutter() {
     flutter test --exclude-tags performance --concurrency="$CONCURRENCY" \
-        ${CALLER_OPTIONS[@]+"${CALLER_OPTIONS[@]}"} "$@" 2>&1 | tee -a "$LOG"
+        --timeout="$TEST_TIMEOUT" ${CALLER_OPTIONS[@]+"${CALLER_OPTIONS[@]}"} \
+        "$@" 2>&1 | tee -a "$LOG"
     return "${PIPESTATUS[0]}"
 }
 

@@ -1092,6 +1092,16 @@ run_hook "$tmp" TEST_BUDGET=soon TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
 assert_selected has "Ignoring invalid TEST_BUDGET='soon'" \
     'an invalid TEST_BUDGET is reported and ignored'
 
+# The pass summary must not claim tiers the budget dropped.
+run_hook_live "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000
+assert_selected has 'did not run locally' \
+    'a trimmed run says the dropped tiers did not run'
+assert_selected lacks 'Ranked selection' \
+    'a trimmed run does not claim the ranked selection ran'
+
+run_hook_live "$tmp" TEST_BUDGET=600 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'Ranked selection' 'an untrimmed run reports the ranked selection'
+
 # RUN_ALL_AFFECTED and TEST_BUDGET=0 are not capped, so the closing hint must
 # not say that the budget capped them.
 run_hook_live "$tmp" RUN_ALL_AFFECTED=1
@@ -1216,6 +1226,119 @@ else
         "exit $hook_status; flutter test args: '$flutter_test_args'"
 fi
 
+rm -rf "$tmp"
+
+# --- Test 18: a budget that drops every selected test says so ---------------
+#
+# A hub helper selects only its sample, the one change with no tier that always
+# runs, so a tight budget can leave nothing. The hook must report the budget,
+# not claim that no test imports the change.
+
+tmp="$(make_hub_fixture)"
+cd "$tmp/wt" || exit 1
+git reset -q --hard main
+printf '// changed on the branch\n' >> test/helpers/mock_providers.dart
+git add -A
+git commit -q -m 'change a hub helper'
+
+run_hook_live "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000
+if [ "$hook_status" -eq 0 ] && [ -z "$flutter_test_args" ]; then
+    pass 'a budget that drops every test runs nothing and lets the push through'
+else
+    fail 'a budget that drops every test runs nothing and lets the push through' \
+        "exit $hook_status; flutter test args: '$flutter_test_args'"
+fi
+assert_selected has 'sampled importers of hub files' \
+    'a budget that drops every test still says what it dropped'
+assert_selected has 'dropped every selected test' \
+    'a budget that drops every test gives that as the reason'
+assert_selected lacks 'directly import' \
+    'a budget that drops every test does not blame the imports'
+
+rm -rf "$tmp"
+
+# --- Test 19: separate files stay within the command line ------------------
+#
+# run_tests_batched closed a batch at 100 files, but paths here run to 107
+# characters, so 100 of them can reach 10,700 and overflow the 8,191 allowed on
+# Windows before any test runs. A batch now also closes at 8,000 characters.
+
+# Prints "<calls> <files> <most files in a call> <longest path list in a call>"
+# from the flutter test arguments on stdin.
+batch_shape() {
+    awk '
+        NF {
+            calls++
+            files_here = 0
+            chars_here = 0
+            for (i = 1; i <= NF; i++) {
+                if ($i ~ /_test\.dart$/) {
+                    files_here++
+                    chars_here += length($i) + 1
+                }
+            }
+            files += files_here
+            if (files_here > most) most = files_here
+            if (chars_here > longest) longest = chars_here
+        }
+        END { print calls + 0, files + 0, most + 0, longest + 0 }'
+}
+
+tmp="$(make_proximity_fixture \
+    'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart')"
+
+run_hook_live "$tmp"
+read -r plain_calls plain_files _ _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -eq 0 ] && [ "$plain_calls" -eq 1 ] && [ "$plain_files" -gt 3 ]; then
+    pass 'a short selection is one flutter test call'
+else
+    fail 'a short selection is one flutter test call' \
+        "exit $hook_status, $plain_calls calls, $plain_files files"
+fi
+
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=120
+read -r split_calls split_files _ split_longest <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -eq 0 ] && [ "$split_calls" -gt 1 ] \
+    && [ "$split_files" -eq "$plain_files" ] && [ "$split_longest" -le 120 ]; then
+    pass 'a batch closes before its paths pass the character limit'
+else
+    fail 'a batch closes before its paths pass the character limit' \
+        "exit $hook_status, $split_calls calls, $split_files of $plain_files files, longest $split_longest"
+fi
+
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=120 FLUTTER_TEST_FAIL=1
+read -r failing_calls _ _ _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -ne 0 ] && [ "$failing_calls" -eq "$split_calls" ]; then
+    pass 'a failing batch blocks the push after the later batches ran'
+else
+    fail 'a failing batch blocks the push after the later batches ran' \
+        "exit $hook_status, $failing_calls calls of $split_calls"
+fi
+
+# A single path over the limit still runs, alone, rather than looping or being
+# dropped.
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=1
+read -r lone_calls lone_files lone_most _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$lone_files" -eq "$plain_files" ] && [ "$lone_calls" -eq "$plain_files" ] \
+    && [ "$lone_most" -eq 1 ]; then
+    pass 'a path longer than the limit runs on its own'
+else
+    fail 'a path longer than the limit runs on its own' \
+        "$lone_calls calls, $lone_files of $plain_files files, at most $lone_most"
+fi
+rm -rf "$tmp"
+
+# The file cap stays. Every importer of the hub is well over 100 files, and the
+# fixture has no run_all_tests.sh, so they run as separate files.
+tmp="$(make_hub_fixture)"
+run_hook_live "$tmp" RUN_ALL_AFFECTED=1
+read -r hub_calls hub_files hub_most _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hub_calls" -gt 1 ] && [ "$hub_files" -gt 100 ] && [ "$hub_most" -le 100 ]; then
+    pass 'a batch still closes at 100 files'
+else
+    fail 'a batch still closes at 100 files' \
+        "$hub_calls calls, $hub_files files, at most $hub_most"
+fi
 rm -rf "$tmp"
 
 # --- Summary ---------------------------------------------------------------

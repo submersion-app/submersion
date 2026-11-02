@@ -503,13 +503,14 @@ on the mix, since database and migration tests stay slow however they load. At
 `-j 16`, an even sample of 522 files went from about 6 minutes to about 2, a real
 424-file push from 293 to 268 seconds, and 86 files took the same either way,
 but about 3 minutes in 40-file bundles, which is why the size follows the worker
-count. A bundled hook run raises the limit for plain tests from 2 to 5 minutes,
-because on a very busy machine a slow test can reach 2 minutes in a bundle. The
-same variable works by hand:
+count. `scripts/run_all_tests.sh` raises the limit for plain tests from 2 to 5
+minutes, because on a very busy machine a slow test can reach 2 minutes in a
+bundle. The same variable works by hand, with the list named by an absolute path:
 
 ```bash
-printf '%s\n' test/a_test.dart test/b_test.dart > /tmp/selection.txt
-TEST_FILES_FROM=/tmp/selection.txt scripts/run_all_tests.sh
+list="$(mktemp)"
+printf '%s\n' test/a_test.dart test/b_test.dart > "$list"
+TEST_FILES_FROM="$list" scripts/run_all_tests.sh
 ```
 
 ### The rule: put back what you replace
@@ -628,9 +629,9 @@ to a file that hundreds of tests import, it has run for over an hour. The hook
 therefore estimates the bundled run from the number of selected files, the
 per-file cost and the concurrency, and caps it at `TEST_BUDGET` seconds
 (default 600). The estimate is a rough guide, since the same push can take twice
-as long on a busy machine. Over the budget it drops whole tiers from the lowest signal up,
-the hub sample, the generated-l10n sample, the tests importing two or more
-changed files, then the same-area importers, until the estimate fits, and
+as long on a busy machine. Over the budget it drops whole tiers from the lowest
+signal up, the hub sample, the generated-l10n sample, the tests importing two or
+more changed files, then the same-area importers, until the estimate fits, and
 prints what it dropped. Changed tests, mirrored tests and the repo-wide guards
 always run. When the selection is at least half of the suite and the whole
 suite fits the budget, the whole suite runs instead, since bundled it costs
@@ -642,6 +643,7 @@ about the same and covers everything (issue #4117).
 | `TEST_FILE_SECONDS=X` | the bundled cost of one test file in CPU-seconds that the estimate uses |
 | `RUN_ALL_AFFECTED=1` | run every importer, ignoring the ranking and the budget |
 | `TEST_BUNDLE_MIN=N` | bundle a selection of at least N files (default 100) |
+| `RUN_ALL_TESTS_ARG_LIMIT=N` | the longest path list one `flutter test` call may carry, in characters (default 8000) |
 | `DRY_RUN=1` | print the selection and the budget decision without running anything |
 | `SKIP_TESTS=1` | skip the local test run; format, analyze and the l10n check still run |
 
