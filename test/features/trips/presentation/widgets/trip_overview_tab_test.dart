@@ -75,7 +75,7 @@ Future<void> pumpTab(
 
 /// The Prepare overview's summary card reads these; empty is enough here.
 List<Override> prepareOverrides() => [
-  tripChecklistProvider('trip-1').overrideWith((ref) async => const []),
+  tripChecklistAllItemsProvider('trip-1').overrideWith((ref) async => const []),
   tripGearProvider('trip-1').overrideWith((ref) async => const []),
   tripCylinderStatesProvider('trip-1').overrideWith((ref) async => const []),
   tripServiceAlertsProvider('trip-1').overrideWith((ref) async => const []),

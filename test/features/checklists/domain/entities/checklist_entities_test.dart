@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
@@ -11,7 +12,7 @@ void main() {
     TripChecklistItem item({DateTime? dueDate, bool isDone = false}) =>
         TripChecklistItem(
           id: 'i1',
-          tripId: 't1',
+          checklistId: 'c1',
           title: 'Service regulator',
           dueDate: dueDate,
           isDone: isDone,
@@ -131,7 +132,7 @@ void main() {
   group('TripChecklistSection', () {
     TripChecklistSection section({int sortOrder = 0}) => TripChecklistSection(
       id: 's1',
-      tripId: 't1',
+      checklistId: 'c1',
       title: 'Cells',
       sortOrder: sortOrder,
       createdAt: created,
@@ -148,6 +149,34 @@ void main() {
       final renamed = section().copyWith(title: 'O2 Cells');
       expect(renamed.title, 'O2 Cells');
       expect(renamed.id, 's1');
+      expect(renamed.sortOrder, 0);
+    });
+  });
+
+  group('TripChecklist', () {
+    TripChecklist checklist({int sortOrder = 0}) => TripChecklist(
+      id: 'c1',
+      tripId: 't1',
+      name: 'Dive equipment',
+      sortOrder: sortOrder,
+      createdAt: created,
+      updatedAt: created,
+    );
+
+    test('equatable compares every field', () {
+      expect(checklist(), equals(checklist()));
+      expect(
+        checklist(),
+        isNot(equals(checklist().copyWith(name: 'Clothing'))),
+      );
+      expect(checklist(), isNot(equals(checklist(sortOrder: 1))));
+    });
+
+    test('copyWith keeps unspecified fields', () {
+      final renamed = checklist().copyWith(name: 'Beach vacation');
+      expect(renamed.name, 'Beach vacation');
+      expect(renamed.id, 'c1');
+      expect(renamed.tripId, 't1');
       expect(renamed.sortOrder, 0);
     });
   });

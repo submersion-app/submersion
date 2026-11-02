@@ -5,6 +5,8 @@
 /// will actually write (issue #3025).
 library;
 
+import 'package:submersion/core/database/trip_checklist_default.dart';
+
 /// Wire keys this build renamed, as oldKey -> newKey per entity type.
 ///
 /// Payloads published by peers below schema 160, and backups written by
@@ -27,6 +29,24 @@ const Map<String, Map<String, String>> renamedWireKeys = {
   'diverSettings': {'sacUnit': 'gasConsumptionDisplay'},
 };
 
+/// The entities that named their trip directly until v336 (issue #3356).
+const Set<String> _tripKeyedChecklistEntities = {
+  'tripChecklistItems',
+  'tripChecklistSections',
+};
+
+/// The trip a checklist row from a peer below v336 names, or null for any
+/// other row. Such a row predates multiple checklists, so it belongs to its
+/// trip's default checklist, the one the migration backfills. The floor only
+/// stops OUR payloads reaching that peer: its own rows still arrive here, as
+/// does every base published before the update.
+String? legacyChecklistTripId(String entityType, Map<String, dynamic> data) {
+  if (!_tripKeyedChecklistEntities.contains(entityType)) return null;
+  if (data['checklistId'] != null) return null;
+  final tripId = data['tripId'];
+  return tripId is String ? tripId : null;
+}
+
 /// A pre-170 peer spells the gas-consumption display as a unit.
 const Map<String, String> _legacyGasConsumptionLanes = {
   'litersPerMin': 'rmv',
@@ -40,6 +60,11 @@ Map<String, dynamic> withCurrentWireKeys(
   String entityType,
   Map<String, dynamic> data,
 ) {
+  final legacyTripId = legacyChecklistTripId(entityType, data);
+  if (legacyTripId != null) {
+    return {...data, 'checklistId': defaultTripChecklistId(legacyTripId)}
+      ..remove('tripId');
+  }
   final renames = renamedWireKeys[entityType];
   if (renames == null) return data;
   Map<String, dynamic>? patched;

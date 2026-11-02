@@ -19,7 +19,7 @@ import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fo
 import 'package:submersion/features/trips/presentation/pages/trip_day_map_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
-import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
@@ -507,7 +507,7 @@ void main() {
     expect(find.byType(TripStoryHero), findsOneWidget);
     // One map, inside the day with a located dive.
     expect(find.byType(FlutterMap), findsOneWidget);
-    expect(find.byType(TripChecklistSection), findsNothing);
+    expect(find.byType(TripChecklistsPanel), findsNothing);
   });
 
   testWidgets('each day card gets only its own points', (tester) async {
