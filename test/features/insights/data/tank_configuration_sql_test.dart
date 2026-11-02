@@ -226,29 +226,35 @@ void main() {
       ], base: TankBaseConfiguration.sidemount);
     });
 
-    test('twin by a matched pair on one gas', () async {
+    test('twin by a twin set role', () async {
       await expectClassified('a', const [
-        _Tank('backGas', volume: 12),
-        _Tank('backGas', volume: 12),
+        _Tank('twinSet', volume: 24),
       ], base: TankBaseConfiguration.twinBackmount);
     });
 
-    test('twin by a single 22 L cylinder', () async {
+    test('a matched pair of back gas on one gas is single backmount', () async {
+      await expectClassified('a', const [
+        _Tank('backGas', volume: 12),
+        _Tank('backGas', volume: 12),
+      ], base: TankBaseConfiguration.singleBackmount);
+    });
+
+    test('a single 22 L back gas is single backmount', () async {
       await expectClassified('a', const [
         _Tank('backGas', volume: 22),
-      ], base: TankBaseConfiguration.twinBackmount);
+      ], base: TankBaseConfiguration.singleBackmount);
     });
 
-    test('twin by a D12 name', () async {
+    test('a D12 name is single backmount', () async {
       await expectClassified('a', const [
         _Tank('backGas', name: 'D12'),
-      ], base: TankBaseConfiguration.twinBackmount);
+      ], base: TankBaseConfiguration.singleBackmount);
     });
 
-    test('twin by a preset name', () async {
+    test('a twin preset name is single backmount', () async {
       await expectClassified('a', const [
         _Tank('backGas', preset: 'twin_12'),
-      ], base: TankBaseConfiguration.twinBackmount);
+      ], base: TankBaseConfiguration.singleBackmount);
     });
 
     test('single backmount', () async {
@@ -412,12 +418,14 @@ void main() {
     });
 
     test('tank names needing JSON escaping still classify', () async {
+      // The name no longer decides the base (issue #3374); it still has to
+      // survive the JSON round trip without failing the query.
       await expectClassified('a', const [
-        _Tank('backGas', name: 'Doppel "12"'),
+        _Tank('twinSet', name: 'Doppel "12"'),
       ], base: TankBaseConfiguration.twinBackmount);
       await expectClassified('b', const [
         _Tank('backGas', name: r'Tauchgerät\2x12'),
-      ], base: TankBaseConfiguration.twinBackmount);
+      ], base: TankBaseConfiguration.singleBackmount);
     });
   });
 

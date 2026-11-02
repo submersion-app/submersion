@@ -14061,6 +14061,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_twinSet => 'Bi-cilindro';
+
+  @override
   String get enum_tideState_rising => 'Enchente';
 
   @override
@@ -30165,7 +30168,84 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Bicilindros registrados como um único cilindro são contados quando o nome indica (twin, double, D12, 2x12) ou o cilindro é maior que qualquer monocilindro comum. Defina Sidemount Esquerdo e Sidemount Direito nos cilindros de um mergulho para que ele conte como sidemount.';
+      'Um mergulho conta como bicilindro quando um cilindro tem o papel Bi-cilindro, e como sidemount quando seus cilindros são Sidemount Esquerdo e Sidemount Direito.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos têm cilindros que parecem um bicilindro.',
+      one: '$count mergulho tem um cilindro que parece um bicilindro.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'O nome ou o tamanho indica twin, double, D12, 2x12 ou $size ou mais, mas o papel é Gás Principal, então contam como monocilindro.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Marcar como bicilindros';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Rever mergulhos';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Dispensar';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'Definir o papel como Bi-cilindro?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'Definir o papel de $tanks cilindros em $dives como Bi-cilindro? Os outros cilindros desses mergulhos não mudam.',
+      one:
+          'Definir o papel de $tanks cilindro em $dives como Bi-cilindro? Os outros cilindros desses mergulhos não mudam.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Definir papel';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Cancelar';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cilindros definidos como Bi-cilindro',
+      one: '$count cilindro definido como Bi-cilindro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'Não foi possível definir o papel';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'Parece um bicilindro';
 
   @override
   String get insights_gas_tankConfig_empty => 'Nenhum mergulho para mostrar';
@@ -30621,6 +30701,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'Stage';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'Bi-cilindro';
 
   @override
   String get insights_geographic_appBar_title => 'Geográfico';

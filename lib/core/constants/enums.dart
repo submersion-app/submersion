@@ -292,6 +292,10 @@ enum WeightingFeedback {
 /// Tank role/purpose during a dive
 enum TankRole {
   backGas('Back Gas'),
+
+  /// A manifolded pair logged as one cylinder with the combined volume
+  /// (issue #3374).
+  twinSet('Twin Set'),
   stage('Stage'),
   deco('Deco'),
   bailout('Bailout'),
