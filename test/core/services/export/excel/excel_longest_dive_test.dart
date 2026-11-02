@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// Issue #3304: the Statistics sheet's Longest Dive is a runtime, so a bottom
 /// time cannot win it.
 void main() {
-  Future<String?> longestDive(List<Dive> dives) async {
+  Future<xl.Excel> workbook(List<Dive> dives) async {
     final bytes = await ExcelExportService().generateExcelBytes(
       dives: dives,
       sites: const [],
@@ -18,7 +18,11 @@ void main() {
       volumeUnit: VolumeUnit.liters,
       dateFormat: DateFormatPreference.yyyymmdd,
     );
-    final sheet = xl.Excel.decodeBytes(bytes).tables['Statistics']!;
+    return xl.Excel.decodeBytes(bytes);
+  }
+
+  Future<String?> longestDive(List<Dive> dives) async {
+    final sheet = (await workbook(dives)).tables['Statistics']!;
     for (final row in sheet.rows) {
       if (row.first?.value?.toString() == 'Longest Dive') {
         return row[1]?.value?.toString();
@@ -45,4 +49,21 @@ void main() {
   test('no measured dive leaves the row out', () async {
     expect(await longestDive([handLogged]), isNull);
   });
+
+  test(
+    'the Dives sheet reports the runtime the Statistics sheet does',
+    () async {
+      final entry = DateTime.utc(2026, 7, 3, 10);
+      final stamped = Dive(
+        id: 'stamped',
+        dateTime: entry,
+        entryTime: entry,
+        exitTime: entry.add(const Duration(minutes: 40)),
+      );
+      final sheet = (await workbook([stamped])).tables['Dives']!;
+      final headers = [for (final c in sheet.rows.first) c?.value?.toString()];
+      final runtime = sheet.rows[1][headers.indexOf('Runtime (min)')];
+      expect(runtime?.value?.toString(), '40');
+    },
+  );
 }

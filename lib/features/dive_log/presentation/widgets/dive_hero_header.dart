@@ -58,17 +58,10 @@ class DiveHeroHeader extends ConsumerWidget {
     super.key,
   });
 
-  /// The dive's stored runtime, else its entry/exit span.
+  /// The runtime the dive measured, '--' when it measured none.
   static String formatRuntime(Dive dive) {
-    if (dive.runtime != null) {
-      return '${dive.runtime!.inMinutes} min';
-    }
-    // Calculate from entry/exit times if available
-    if (dive.entryTime != null && dive.exitTime != null) {
-      final calculated = dive.exitTime!.difference(dive.entryTime!);
-      return '${calculated.inMinutes} min';
-    }
-    return '--';
+    final runtime = dive.measuredRuntime;
+    return runtime != null ? '${runtime.inMinutes} min' : '--';
   }
 
   /// The dive's stored bottom time.

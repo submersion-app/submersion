@@ -312,10 +312,12 @@ class DiveRepository {
     'dive_data_sources',
   };
 
-  /// Fires when a dive's measured runtime can change with no write to `dives`.
-  /// For a provider on [watchDivesChanges] that reports a runtime.
+  /// Fires when a dive's measured runtime can change. Takes the place of
+  /// [watchDivesChanges] for a provider that reports a runtime: one tick over
+  /// the dive row and the [measuredRuntimeTickTables], so a write to both
+  /// reloads it once.
   Stream<void> watchMeasuredRuntimeChanges() =>
-      watchTables(measuredRuntimeTickTables);
+      watchTables({'dives', ...measuredRuntimeTickTables});
 
   /// The tables [getStatistics] and [getRecords] read, by SQL name, before
   /// any filter joins: the dives themselves, the `dive_sites` JOIN that names
@@ -4289,8 +4291,8 @@ class DiveRepository {
       for (final row in depthRows) {
         final bucket = row.read<int>('bucket');
         bucketCounts[bucket] = row.read<int>('count');
-        // NULL when every dive in the bucket is missing all four duration
-        // sources, which reads as zero minutes logged at that depth.
+        // NULL when no dive in the bucket measured a runtime, which reads as
+        // zero minutes logged at that depth.
         bucketDurationSeconds[bucket] =
             row.readNullable<int>('total_time') ?? 0;
       }

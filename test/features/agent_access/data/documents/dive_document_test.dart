@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/agent_access/data/documents/dive_document.dart';
+import 'package:submersion/features/agent_access/data/documents/dive_summary_document.dart';
 import 'package:submersion/features/agent_access/data/documents/media_document.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_lab/domain/entities/scenario_interventi
 import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -86,6 +88,22 @@ void main() {
       expect((samples.first as Map)['depth_m'], 0.0);
       final tail = diveProfileDocument(dive().profile, 1000, 500);
       expect((tail['samples'] as List), hasLength(200));
+    });
+
+    test('runtime_s is the measured runtime, as a dive summary reports', () {
+      final stamped = dive().copyWith(
+        profile: const [],
+        entryTime: taken,
+        exitTime: taken.add(const Duration(minutes: 40)),
+      );
+      expect(diveDocument(stamped)['runtime_s'], 2400);
+      expect(
+        diveDocument(stamped)['runtime_s'],
+        diveSummaryDocument(DiveSummary.fromDive(stamped))['runtime_s'],
+      );
+      final logged = dive().copyWith(profile: const []);
+      expect(diveDocument(logged)['runtime_s'], isNull);
+      expect(diveDocument(logged)['bottom_time_s'], 45 * 60);
     });
 
     test('child blocks stay out of the base document', () {

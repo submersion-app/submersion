@@ -221,6 +221,69 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('52'), findsNothing);
     });
+
+    Widget tileWithExtra(
+      DiveField extra, {
+      Duration? runtime,
+      Duration? bottomTime,
+    }) => testApp(
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => _TestSettingsNotifier(const AppSettings()),
+        ),
+        detailedCardConfigProvider.overrideWith(
+          (ref) => _TestCardConfigNotifier(
+            CardViewConfig.defaultDetailed().copyWith(
+              slots: const [
+                CardSlotConfig(slotId: 'stat1', field: DiveField.maxDepth),
+                CardSlotConfig(slotId: 'stat2', field: DiveField.waterTemp),
+              ],
+              extraFields: [extra],
+            ),
+          ),
+        ),
+      ],
+      child: DiveListTile(
+        diveId: 'd1',
+        diveNumber: 7,
+        dateTime: DateTime(2024, 6, 1),
+        siteName: 'Reef',
+        duration: runtime ?? bottomTime,
+        summary: DiveSummary(
+          id: 'd1',
+          dateTime: DateTime(2024, 6, 1),
+          runtime: runtime,
+          bottomTime: bottomTime,
+          sortTimestamp: 0,
+        ),
+      ),
+    );
+
+    testWidgets('an extra Runtime field does not show a bottom time', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        tileWithExtra(
+          DiveField.runtime,
+          bottomTime: const Duration(minutes: 37),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('37'), findsNothing);
+    });
+
+    testWidgets('an extra Bottom Time field does not show a runtime', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        tileWithExtra(
+          DiveField.bottomTime,
+          runtime: const Duration(minutes: 52),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('52'), findsNothing);
+    });
   });
 
   group('DiveListTile dive number badge', () {

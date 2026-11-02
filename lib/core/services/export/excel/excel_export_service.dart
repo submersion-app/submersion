@@ -297,7 +297,7 @@ class ExcelExportService {
         convertDepth(dive.maxDepth, depthUnit),
         convertDepth(dive.avgDepth, depthUnit),
         dive.bottomTime?.inMinutes ?? '',
-        dive.runtime?.inMinutes ?? '',
+        dive.measuredRuntime?.inMinutes ?? '',
         convertTemperature(dive.waterTemp, temperatureUnit),
         convertTemperature(dive.airTemp, temperatureUnit),
         dive.visibilityMeters?.toStringAsFixed(1) ?? '',

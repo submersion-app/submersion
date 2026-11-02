@@ -957,8 +957,8 @@ class InsightsRepository with InsightsChartDives {
           label: label,
           count: count,
           percentage: count / total * 100,
-          // NULL when no dive of this type carries a duration in any
-          // form, which reads as no time logged.
+          // NULL when no dive of this type measured a runtime, which reads
+          // as no time logged.
           totalDurationSeconds: row.readNullable<int>('total_time') ?? 0,
         );
       }).toList();

@@ -214,6 +214,13 @@ final String kDiveSacSql =
     '(CASE WHEN ${measuredRuntimeSecondsSql('{r}')} > 0 '
     'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';
 
+/// What the profile span step of `measuredRuntimeSecondsSql` reads beyond the
+/// dive row (issue #3537).
+const List<String> _measuredRuntimeTables = [
+  'dive_profile_series',
+  'dive_data_sources',
+];
+
 final QueryEntity diveQueryEntity = QueryEntity(
   subject: QuerySubject.dives,
   table: 'dives',
@@ -342,11 +349,13 @@ final QueryEntity diveQueryEntity = QueryEntity(
       dimension: FieldDimension.minutes,
       emptySql: '{r}.bottom_time IS NULL',
     ),
+    // What the dive measured, like the Runtime column and every total: never
+    // a bottom time (issue #3304).
     _num(
       'runtime',
-      '({r}.runtime / 60)',
+      '(${measuredRuntimeSecondsSql('{r}')} / 60)',
       dimension: FieldDimension.minutes,
-      emptySql: '{r}.runtime IS NULL',
+      tables: _measuredRuntimeTables,
     ),
     _num(
       'depth',
@@ -407,7 +416,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
       // The profile span fallback also reads the series history, which is
       // only written alongside a dive_profile_series row, so that tick
       // covers it (issue #3537).
-      tables: const ['dive_profile_series', 'dive_data_sources'],
+      tables: _measuredRuntimeTables,
     ),
     _num(
       'cnsEnd',
@@ -453,14 +462,8 @@ final QueryEntity diveQueryEntity = QueryEntity(
       kDiveSacSql,
       dimension: FieldDimension.pressureRate,
       sanity: (min: 0, max: 20),
-      // dive_sites: a dive with no water of its own reads its site's. The
-      // measured runtime's profile step reads the rest (issue #3537).
-      tables: [
-        'dive_tanks',
-        'dive_sites',
-        'dive_profile_series',
-        'dive_data_sources',
-      ],
+      // dive_sites: a dive with no water of its own reads its site's.
+      tables: ['dive_tanks', 'dive_sites', ..._measuredRuntimeTables],
     ),
     QueryField(
       key: 'sacTrend',

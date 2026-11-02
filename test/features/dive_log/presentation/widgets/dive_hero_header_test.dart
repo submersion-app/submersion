@@ -69,4 +69,39 @@ void main() {
     expect(find.text('52 min'), findsNothing);
     expect(find.text('2 findings'), findsOneWidget);
   });
+
+  group('formatRuntime', () {
+    final start = DateTime.utc(2026, 5, 1, 9);
+
+    test('reads a profile when nothing else measured the dive', () {
+      final sampled = Dive(
+        id: 'sampled',
+        dateTime: start,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 1200, depth: 0),
+        ],
+      );
+      expect(DiveHeroHeader.formatRuntime(sampled), '20 min');
+    });
+
+    test('ignores an exit that is not after the entry', () {
+      final backwards = Dive(
+        id: 'backwards',
+        dateTime: start,
+        entryTime: start.add(const Duration(hours: 1)),
+        exitTime: start,
+      );
+      expect(DiveHeroHeader.formatRuntime(backwards), '--');
+    });
+
+    test('never reports a bottom time', () {
+      final logged = Dive(
+        id: 'logged',
+        dateTime: start,
+        bottomTime: const Duration(minutes: 30),
+      );
+      expect(DiveHeroHeader.formatRuntime(logged), '--');
+    });
+  });
 }

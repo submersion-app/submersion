@@ -28,7 +28,7 @@ const _millisecondsPerSecond = 1000;
 /// `exit_time - entry_time` in seconds, or NULL when either endpoint is
 /// missing or the pair is not strictly increasing.
 ///
-/// Mirrors the guard `Dive.effectiveRuntime` applies before trusting the
+/// Mirrors the guard `Dive.measuredRuntime` applies before trusting the
 /// computed value: a zero or negative span means the timestamps are unusable,
 /// not that the dive lasted no time. The CAST truncates toward zero to match
 /// Dart's `Duration.inSeconds`; both operands are `IntColumn`s, so SQLite's

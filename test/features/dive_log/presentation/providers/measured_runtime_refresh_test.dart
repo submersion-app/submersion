@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show TableUpdate, UpdateKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
@@ -157,5 +158,85 @@ void main() {
 
     final after = await container.read(sitesWithCountsProvider.future);
     expect(after.single.longestDiveSeconds, _minutes * 60);
+  });
+
+  test('the trip list page follows a profile-only write', () async {
+    final container = makeContainer();
+    container.listen(tripListNotifierProvider, (_, _) {});
+    final notifier = container.read(tripListNotifierProvider.notifier);
+    await notifier.refresh();
+    final before = container.read(tripListNotifierProvider).value!;
+    expect(before.single.totalRuntime, 0);
+
+    await writeProfile();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    final after = container.read(tripListNotifierProvider).value!;
+    expect(after.single.totalRuntime, _minutes * 60);
+  });
+
+  test('a site page follows a profile-only write', () async {
+    const diverId = 'diver';
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('$diverId', 'Me', 0, 0)",
+    );
+    await db.customStatement("UPDATE dives SET diver_id = '$diverId'");
+    final container = ProviderContainer(
+      overrides: [
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
+      ],
+    );
+    addTearDown(container.dispose);
+    final provider = siteDiveStatisticsProvider(_site.id);
+    container.listen(provider, (_, _) {});
+    final before = await container.read(provider.future);
+    expect(before.longestDiveSeconds, isNull);
+
+    await writeProfile();
+
+    final after = await container.read(provider.future);
+    expect(after.longestDiveSeconds, _minutes * 60);
+  });
+
+  test('one tick follows the dive row and the series', () async {
+    var ticks = 0;
+    final sub = DiveRepository().watchMeasuredRuntimeChanges().listen(
+      (_) => ticks++,
+    );
+    addTearDown(sub.cancel);
+
+    db.notifyUpdates({const TableUpdate('dives', kind: UpdateKind.update)});
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+    expect(ticks, 1);
+
+    await writeProfile();
+    expect(ticks, 2);
+  });
+
+  test('the surface interval column follows a source write', () async {
+    final container = makeContainer();
+    var loads = 0;
+    container.listen(diveSurfaceIntervalsProvider, (_, next) {
+      if (next.hasValue && !next.isLoading) loads++;
+    });
+    await container.read(diveSurfaceIntervalsProvider.future);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    final before = loads;
+
+    db.notifyUpdates({
+      const TableUpdate('dive_data_sources', kind: UpdateKind.update),
+    });
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+    await container.read(diveSurfaceIntervalsProvider.future);
+
+    expect(loads, greaterThan(before));
   });
 }

@@ -17,6 +17,9 @@ class DiveSummary extends Equatable {
   final DateTime? entryTime;
   final double? maxDepth;
   final Duration? bottomTime;
+
+  /// What the dive measured ([Dive.measuredRuntime]), not the stored column:
+  /// null for a dive with only a bottom time.
   final Duration? runtime;
   final double? waterTemp;
   final int? rating;
