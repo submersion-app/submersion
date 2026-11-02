@@ -18,15 +18,14 @@ const Duration kAppExitCloseBudget = Duration(seconds: 8);
 /// takes longer than [budget].
 ///
 /// That totality is the whole point of the function existing. On macOS the
-/// inherited `FlutterAppDelegate.applicationShouldTerminate` returns
-/// `NSTerminateLater` and hands the decision to Dart; this handler is the only
-/// thing that can send the reply, and nothing on the native side re-checks. An
-/// unguarded throw, or a close that never returns, therefore left AppKit
-/// deferring forever: the window had already been dismissed, so the user saw
-/// the app quit while the process stayed alive. Reported against the Media
-/// section, whose local-file reads are the likeliest thing to be in flight at
-/// quit. `AppDelegate`'s watchdog is the backstop for the case this cannot
-/// reach, a main isolate too blocked to run any of these timers.
+/// inherited `FlutterAppDelegate.applicationShouldTerminate` answers
+/// `NSTerminateCancel`, hands the decision to Dart, and terminates only when
+/// this handler replies. A close that never returns therefore stranded the
+/// process: closing the window had already removed it, so the user saw the app
+/// quit while the process stayed alive. Reported against the Media section,
+/// whose local-file reads are the likeliest thing to be in flight at quit.
+/// `QuitWatchdog` is the native backstop for the case this cannot reach, a main
+/// isolate too blocked to run any of these timers.
 ///
 /// The two closes run sequentially and share one budget. Sequentially because
 /// racing two shutdown sequences is not worth the second it saves; one shared

@@ -72,3 +72,57 @@ class RendererDartProjectTests: XCTestCase {
   }
 
 }
+
+/// The quit watchdog once armed on a reply the engine had stopped returning,
+/// so it never ran and nothing noticed. These pin what arms it.
+class QuitWatchdogWiringTests: XCTestCase {
+
+  func testClosingTheLastWindowArmsTheWatchdogAndStillQuits() {
+    let asked = expectation(description: "terminate")
+    let delegate = AppDelegate()
+    delegate.quitWatchdog = QuitWatchdog(
+      answerTimeout: 0.01,
+      teardownTimeout: 60,
+      terminate: { asked.fulfill() },
+      forceExit: {}
+    )
+
+    XCTAssertTrue(delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared))
+
+    wait(for: [asked], timeout: 5)
+  }
+
+  func testTerminationArmsTheTeardownDeadline() {
+    let exited = expectation(description: "forceExit")
+    let delegate = AppDelegate()
+    delegate.quitWatchdog = QuitWatchdog(
+      answerTimeout: 60,
+      teardownTimeout: 0.01,
+      terminate: {},
+      forceExit: { exited.fulfill() }
+    )
+
+    delegate.applicationWillTerminate(
+      Notification(name: NSApplication.willTerminateNotification))
+
+    wait(for: [exited], timeout: 5)
+  }
+
+  /// A quit with the window up can be cancelled by Dart on purpose. Nothing may
+  /// be counting down against it.
+  func testAQuitRequestAloneArmsNothing() {
+    let fired = expectation(description: "watchdog")
+    fired.isInverted = true
+    let delegate = AppDelegate()
+    delegate.quitWatchdog = QuitWatchdog(
+      answerTimeout: 0.01,
+      teardownTimeout: 0.01,
+      terminate: { fired.fulfill() },
+      forceExit: { fired.fulfill() }
+    )
+
+    _ = delegate.applicationShouldTerminate(NSApplication.shared)
+
+    wait(for: [fired], timeout: 0.2)
+  }
+}
