@@ -49,11 +49,14 @@ void main() {
       final container = makeContainer();
       addTearDown(container.dispose);
 
+      final checklist = await container
+          .read(tripChecklistsRepositoryProvider)
+          .createChecklist(tripId: trip.id, name: 'Checklist');
       final repo = container.read(tripChecklistRepositoryProvider);
       final created = await repo.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Check insurance',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -63,21 +66,23 @@ void main() {
       await repo.createItem(
         TripChecklistItem(
           id: '',
-          tripId: trip.id,
+          checklistId: checklist.id,
           title: 'Book nitrox',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       );
 
-      final items = await container.read(tripChecklistProvider(trip.id).future);
+      final items = await container.read(
+        tripChecklistProvider(checklist.id).future,
+      );
       expect(items, hasLength(2));
 
-      final progress = await container.read(
-        tripChecklistProgressProvider(trip.id).future,
+      final combined = await container.read(
+        tripChecklistCombinedProgressProvider(trip.id).future,
       );
-      expect(progress.done, 1);
-      expect(progress.total, 2);
+      expect(combined.done, 1);
+      expect(combined.total, 2);
     },
   );
 
@@ -142,12 +147,15 @@ void main() {
         );
 
     Future<void> addItem(ProviderContainer c, String tripId) async {
+      final checklist = await c
+          .read(tripChecklistsRepositoryProvider)
+          .createChecklist(tripId: tripId, name: 'Checklist');
       await c
           .read(tripChecklistRepositoryProvider)
           .createItem(
             TripChecklistItem(
               id: '',
-              tripId: tripId,
+              checklistId: checklist.id,
               title: 'Pack regs',
               createdAt: DateTime.now(),
               updatedAt: DateTime.now(),

@@ -1271,7 +1271,6 @@
   "certifications_wallet_tooltip_moreOptions": "Weitere Optionen",
   "certifications_wallet_tooltip_share": "Zertifizierung teilen",
   "certifications_wallet_tooltip_sort": "Sortieren",
-  "checklists_section_title": "Checkliste",
   "checklists_progress": "{done} von {total} Aufgaben erledigt",
   "checklists_empty_upcoming": "Planen Sie Ihre Reise - fügen Sie Aufgaben hinzu oder wenden Sie eine Vorlage an",
   "checklists_empty_past": "Keine Checklisteneinträge",
@@ -1310,7 +1309,6 @@
   "checklists_applySheet_title": "Vorlage anwenden",
   "checklists_applySheet_empty": "Noch keine Vorlagen vorhanden. Erstellen Sie sie in den Einstellungen.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 Eintrag} other{{count} Einträge}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{1 Eintrag wird hinzugefügt} other{{added} Einträge werden hinzugefügt}}, {skipped, plural, =0{keine Duplikate übersprungen} =1{1 Duplikat übersprungen} other{{skipped} Duplikate übersprungen}}.",
   "checklists_apply_success": "{count, plural, =0{Keine neuen Einträge hinzugefügt} =1{1 Eintrag hinzugefügt} other{{count} Einträge hinzugefügt}}",
   "checklists_apply_templateGone": "Vorlage existiert nicht mehr",
   "checklists_saveTemplate_title": "Als Vorlage speichern",
@@ -17505,6 +17503,40 @@
   "demo_enter_confirm_body_firstRun": "Dabei wird ein Beispiel-Logbuch ({size}) heruntergeladen, mit dem du die App erkunden kannst. Beende den Demomodus, sobald du dein eigenes beginnen möchtest.",
   "demo_enter_changed_body": "Das Beispiel-Logbuch wurde aktualisiert und ist jetzt {size} groß. Herunterladen?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "Checkliste hinzufügen",
+  "checklists_delete_confirm": "Löschen",
+  "checklists_delete_content": "\"{name}\" löschen? Ihre Abschnitte und Einträge werden ebenfalls entfernt.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "Checkliste löschen",
+  "checklists_menu_delete": "Löschen...",
+  "checklists_menu_rename": "Umbenennen...",
+  "checklists_nameLabel": "Checklistenname",
+  "checklists_nameRequired": "Name ist erforderlich",
+  "checklists_newChecklist_title": "Neue Checkliste",
+  "checklists_menu_newChecklist": "Neue Checkliste...",
+  "checklists_noChecklists_past": "Keine Checklisten",
+  "checklists_noChecklists_upcoming": "Noch keine Checklisten - fügen Sie eine hinzu, um mit der Planung zu beginnen",
+  "checklists_renameChecklist_title": "Checkliste umbenennen",
+  "checklists_replaceTemplate_confirm": "Ersetzen",
+  "checklists_replaceTemplate_content": "Alle aktuellen Einträge von \"{checklistName}\" durch die Einträge aus \"{templateName}\" ersetzen? Dies kann nicht rückgängig gemacht werden.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "Checklisteninhalt ersetzen",
+  "settings_conflict_ref_tripChecklist": "Checkliste",
   "changeLog_title": "Änderungsprotokoll",
   "changeLog_settings_subtitle": "Sehen, was sich geändert hat, und es zurücksetzen",
   "changeLog_empty_title": "Noch keine Änderungen",

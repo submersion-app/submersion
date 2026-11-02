@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -10,9 +12,11 @@ import '../../../../helpers/test_database.dart';
 
 void main() {
   late TripChecklistRepository repository;
+  late TripChecklistsRepository checklistsRepository;
   late ChecklistTemplateRepository templateRepository;
   late TripRepository tripRepository;
   late Trip testTrip;
+  late TripChecklist testChecklist;
 
   final tripStart = DateTime(2026, 9, 10);
 
@@ -28,9 +32,12 @@ void main() {
     DateTime? dueDate,
   }) async => TripChecklistItem(
     id: '',
-    tripId: testTrip.id,
+    checklistId: testChecklist.id,
     title: title,
-    sectionId: await repository.findOrCreateSectionId(testTrip.id, category),
+    sectionId: await repository.findOrCreateSectionId(
+      testChecklist.id,
+      category,
+    ),
     dueDate: dueDate,
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
@@ -40,13 +47,14 @@ void main() {
   /// assertions that used to read `item.category` directly.
   Future<String?> sectionTitleOf(TripChecklistItem item) async {
     if (item.sectionId == null) return null;
-    final sections = await repository.getSectionsForTrip(testTrip.id);
+    final sections = await repository.getSectionsForChecklist(testChecklist.id);
     return sections.firstWhere((s) => s.id == item.sectionId).title;
   }
 
   setUp(() async {
     await setUpTestDatabase();
     repository = TripChecklistRepository();
+    checklistsRepository = TripChecklistsRepository();
     templateRepository = ChecklistTemplateRepository();
     tripRepository = TripRepository();
     // Parent trip satisfies the FK constraint (foreign_keys = ON in tests).
@@ -60,6 +68,10 @@ void main() {
         updatedAt: DateTime.now(),
       ),
     );
+    testChecklist = await checklistsRepository.createChecklist(
+      tripId: testTrip.id,
+      name: 'Checklist',
+    );
   });
 
   tearDown(() async {
@@ -70,25 +82,25 @@ void main() {
     test('create, read ordered, update, toggle, delete', () async {
       final a = await repository.createItem(await item(title: 'A'));
       await repository.createItem(await item(title: 'B', category: 'Gear'));
-      var items = await repository.getByTripId(testTrip.id);
+      var items = await repository.getByChecklistId(testChecklist.id);
       expect(items.map((i) => i.title).toList(), ['A', 'B']);
 
       await repository.updateItem(a.copyWith(notes: 'annual service'));
-      items = await repository.getByTripId(testTrip.id);
+      items = await repository.getByChecklistId(testChecklist.id);
       expect(items.first.notes, 'annual service');
 
       await repository.toggleDone(a.id, isDone: true);
-      items = await repository.getByTripId(testTrip.id);
+      items = await repository.getByChecklistId(testChecklist.id);
       expect(items.first.isDone, isTrue);
       expect(items.first.completedAt, isNotNull);
 
       await repository.toggleDone(a.id, isDone: false);
-      items = await repository.getByTripId(testTrip.id);
+      items = await repository.getByChecklistId(testChecklist.id);
       expect(items.first.isDone, isFalse);
       expect(items.first.completedAt, isNull);
 
       await repository.deleteItem(a.id);
-      expect(await repository.getByTripId(testTrip.id), hasLength(1));
+      expect(await repository.getByChecklistId(testChecklist.id), hasLength(1));
     });
   });
 
@@ -134,12 +146,13 @@ void main() {
     test('copies items resolving offsets to absolute due dates', () async {
       final result = await repository.applyTemplate(
         templateId: template.id,
+        checklistId: testChecklist.id,
         trip: testTrip,
       );
       expect(result.added, 2);
       expect(result.skipped, 0);
 
-      final items = await repository.getByTripId(testTrip.id);
+      final items = await repository.getByChecklistId(testChecklist.id);
       expect(items, hasLength(2));
       final flights = items.firstWhere((i) => i.title == 'Book flights');
       expect(flights.dueDate, tripStart.subtract(const Duration(days: 60)));
@@ -149,26 +162,37 @@ void main() {
     });
 
     test('re-apply skips items with matching title and category', () async {
-      await repository.applyTemplate(templateId: template.id, trip: testTrip);
+      await repository.applyTemplate(
+        templateId: template.id,
+        checklistId: testChecklist.id,
+        trip: testTrip,
+      );
       final second = await repository.applyTemplate(
         templateId: template.id,
+        checklistId: testChecklist.id,
         trip: testTrip,
       );
       expect(second.added, 0);
       expect(second.skipped, 2);
-      expect(await repository.getByTripId(testTrip.id), hasLength(2));
+      expect(await repository.getByChecklistId(testChecklist.id), hasLength(2));
       // A fully-skipped re-apply must not create duplicate (or any new)
       // sections as a side effect of resolving each skipped item's section.
-      final sections = await repository.getSectionsForTrip(testTrip.id);
+      final sections = await repository.getSectionsForChecklist(
+        testChecklist.id,
+      );
       expect(sections.map((s) => s.title).toSet(), {'Bookings', 'Gear'});
     });
 
     test('throws StateError when template does not exist', () async {
       await expectLater(
-        repository.applyTemplate(templateId: 'missing', trip: testTrip),
+        repository.applyTemplate(
+          templateId: 'missing',
+          checklistId: testChecklist.id,
+          trip: testTrip,
+        ),
         throwsStateError,
       );
-      expect(await repository.getByTripId(testTrip.id), isEmpty);
+      expect(await repository.getByChecklistId(testChecklist.id), isEmpty);
     });
 
     test(
@@ -206,11 +230,12 @@ void main() {
 
         final result = await repository.applyTemplate(
           templateId: pipeTemplate.id,
+          checklistId: testChecklist.id,
           trip: testTrip,
         );
         expect(result.added, 1);
         expect(result.skipped, 0);
-        final items = await repository.getByTripId(testTrip.id);
+        final items = await repository.getByChecklistId(testChecklist.id);
         final match = items.where((i) => i.title == 'A|B').toList();
         expect(match, hasLength(1));
         expect(await sectionTitleOf(match.single), 'C');
@@ -246,6 +271,7 @@ void main() {
 
         final result = await repository.applyTemplate(
           templateId: nullCategoryTemplate.id,
+          checklistId: testChecklist.id,
           trip: testTrip,
         );
         // Both resolve to sectionId null, so the (title, sectionId) tuple
@@ -290,13 +316,16 @@ void main() {
 
       final result = await repository.applyTemplate(
         templateId: sharedSectionTemplate.id,
+        checklistId: testChecklist.id,
         trip: testTrip,
       );
 
       expect(result.added, 2);
-      final sections = await repository.getSectionsForTrip(testTrip.id);
+      final sections = await repository.getSectionsForChecklist(
+        testChecklist.id,
+      );
       expect(sections.where((s) => s.title == 'Documents'), hasLength(1));
-      final items = await repository.getByTripId(testTrip.id);
+      final items = await repository.getByChecklistId(testChecklist.id);
       final passport = items.firstWhere((i) => i.title == 'Passport');
       final visa = items.firstWhere((i) => i.title == 'Visa');
       expect(passport.sectionId, visa.sectionId);
@@ -310,12 +339,81 @@ void main() {
         );
         final result = await repository.applyTemplate(
           templateId: template.id,
+          checklistId: testChecklist.id,
           trip: testTrip,
         );
         expect(result.added, 1);
         expect(result.skipped, 1);
       },
     );
+  });
+
+  group('replaceWithTemplate', () {
+    test('drops the checklist\'s existing items and sections, then applies '
+        'the new template fresh', () async {
+      final oldSection = await repository.createSection(
+        checklistId: testChecklist.id,
+        title: 'Old gear',
+      );
+      await repository.createItem(
+        TripChecklistItem(
+          id: '',
+          checklistId: testChecklist.id,
+          title: 'Old mask',
+          sectionId: oldSection.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      final newTemplate = await templateRepository.createTemplate(
+        ChecklistTemplate(
+          id: '',
+          name: 'Clothing',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await templateRepository.saveItems(newTemplate.id, [
+        ChecklistTemplateItem(
+          id: '',
+          templateId: newTemplate.id,
+          title: 'Swimsuit',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      final result = await repository.replaceWithTemplate(
+        templateId: newTemplate.id,
+        checklistId: testChecklist.id,
+        trip: testTrip,
+      );
+
+      expect(result.added, 1);
+      final items = await repository.getByChecklistId(testChecklist.id);
+      expect(items.map((i) => i.title).toList(), ['Swimsuit']);
+      final sections = await repository.getSectionsForChecklist(
+        testChecklist.id,
+      );
+      expect(sections, isEmpty, reason: 'the old section is dropped too');
+    });
+
+    test('throws StateError when the template does not exist, leaving the '
+        'checklist untouched', () async {
+      await repository.createItem(await item(title: 'Keep me'));
+
+      await expectLater(
+        repository.replaceWithTemplate(
+          templateId: 'missing',
+          checklistId: testChecklist.id,
+          trip: testTrip,
+        ),
+        throwsStateError,
+      );
+      final items = await repository.getByChecklistId(testChecklist.id);
+      expect(items.map((i) => i.title).toList(), ['Keep me']);
+    });
   });
 
   group('saveAsTemplate', () {
@@ -330,7 +428,7 @@ void main() {
       await repository.createItem(await item(title: 'Pack wetsuit'));
 
       final tpl = await repository.saveAsTemplate(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         tripStartDate: testTrip.startDate,
         name: 'My prep',
       );
@@ -352,7 +450,7 @@ void main() {
       );
 
       final tpl = await repository.saveAsTemplate(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         tripStartDate: testTrip.startDate,
         name: 'My prep',
       );
@@ -363,14 +461,27 @@ void main() {
   });
 
   group('progress and cascade', () {
-    test('getProgress counts done vs total', () async {
-      final a = await repository.createItem(await item(title: 'A'));
-      await repository.createItem(await item(title: 'B'));
-      await repository.toggleDone(a.id, isDone: true);
-      final progress = await repository.getProgress(testTrip.id);
-      expect(progress.done, 1);
-      expect(progress.total, 2);
-    });
+    test(
+      'getAllItemsForTrip reads checklist by checklist, in list order',
+      () async {
+        final second = await checklistsRepository.createChecklist(
+          tripId: testTrip.id,
+          name: 'Clothing',
+        );
+        await repository.createItem(
+          (await item(title: 'Shirt')).copyWith(checklistId: second.id),
+        );
+        await repository.createItem(await item(title: 'Mask'));
+        await repository.createItem(await item(title: 'Fins'));
+        await checklistsRepository.reorderChecklists(testTrip.id, [
+          second.id,
+          testChecklist.id,
+        ]);
+
+        final items = await repository.getAllItemsForTrip(testTrip.id);
+        expect(items.map((i) => i.title).toList(), ['Shirt', 'Mask', 'Fins']);
+      },
+    );
 
     test('getProgressForTrips batches counts and omits empty trips', () async {
       final other = await tripRepository.createTrip(
@@ -382,6 +493,10 @@ void main() {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
+      );
+      final otherChecklist = await checklistsRepository.createChecklist(
+        tripId: other.id,
+        name: 'Checklist',
       );
       final empty = await tripRepository.createTrip(
         Trip(
@@ -400,7 +515,7 @@ void main() {
       await repository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: other.id,
+          checklistId: otherChecklist.id,
           title: 'Passport',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -420,73 +535,110 @@ void main() {
       expect(progress.containsKey(empty.id), isFalse);
     });
 
+    test('getProgressForTrips sums across several checklists of one trip '
+        '(issue #3356)', () async {
+      final secondChecklist = await checklistsRepository.createChecklist(
+        tripId: testTrip.id,
+        name: 'Clothing',
+      );
+      final a = await repository.createItem(await item(title: 'A'));
+      await repository.toggleDone(a.id, isDone: true);
+      await repository.createItem(
+        TripChecklistItem(
+          id: '',
+          checklistId: secondChecklist.id,
+          title: 'Jacket',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      final progress = await repository.getProgressForTrips([testTrip.id]);
+      expect(progress[testTrip.id], (done: 1, total: 2));
+    });
+
     test('getProgressForTrips on an empty id list is a no-op', () async {
       expect(await repository.getProgressForTrips([]), isEmpty);
     });
 
-    test('deleteByTripId removes all items and sections', () async {
+    test('getAllItemsForTrip returns items across every checklist of the '
+        'trip (issue #3356)', () async {
+      final secondChecklist = await checklistsRepository.createChecklist(
+        tripId: testTrip.id,
+        name: 'Clothing',
+      );
       await repository.createItem(await item(title: 'A'));
-      await repository.createItem(await item(title: 'B'));
-      await repository.createSection(tripId: testTrip.id, title: 'Gear');
-      await repository.deleteByTripId(testTrip.id);
-      expect(await repository.getByTripId(testTrip.id), isEmpty);
-      expect(await repository.getSectionsForTrip(testTrip.id), isEmpty);
-    });
+      await repository.createItem(
+        TripChecklistItem(
+          id: '',
+          checklistId: secondChecklist.id,
+          title: 'Jacket',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
 
-    test(
-      'deleteByTripId removes sections even when there are no items',
-      () async {
-        await repository.createSection(tripId: testTrip.id, title: 'Gear');
-        await repository.deleteByTripId(testTrip.id);
-        expect(await repository.getSectionsForTrip(testTrip.id), isEmpty);
-      },
-    );
+      final items = await repository.getAllItemsForTrip(testTrip.id);
+      expect(items.map((i) => i.title).toSet(), {'A', 'Jacket'});
+    });
   });
 
   group('sections', () {
-    test('createSection appends at the end of the trip order', () async {
+    test('createSection appends at the end of the checklist order', () async {
       final a = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Assembly',
       );
       final b = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Cells',
       );
       expect(a.sortOrder, 0);
       expect(b.sortOrder, 1);
-      final sections = await repository.getSectionsForTrip(testTrip.id);
+      final sections = await repository.getSectionsForChecklist(
+        testChecklist.id,
+      );
       expect(sections.map((s) => s.title).toList(), ['Assembly', 'Cells']);
     });
 
     test('renameSection updates the title only', () async {
       final section = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Assembly',
       );
       await repository.renameSection(section.id, 'Assembly checks');
-      final sections = await repository.getSectionsForTrip(testTrip.id);
+      final sections = await repository.getSectionsForChecklist(
+        testChecklist.id,
+      );
       expect(sections.single.title, 'Assembly checks');
       expect(sections.single.id, section.id);
     });
 
     test('reorderSections persists the new order', () async {
-      final a = await repository.createSection(tripId: testTrip.id, title: 'A');
-      final b = await repository.createSection(tripId: testTrip.id, title: 'B');
-      await repository.reorderSections(testTrip.id, [b.id, a.id]);
-      final sections = await repository.getSectionsForTrip(testTrip.id);
+      final a = await repository.createSection(
+        checklistId: testChecklist.id,
+        title: 'A',
+      );
+      final b = await repository.createSection(
+        checklistId: testChecklist.id,
+        title: 'B',
+      );
+      await repository.reorderSections(testChecklist.id, [b.id, a.id]);
+      final sections = await repository.getSectionsForChecklist(
+        testChecklist.id,
+      );
       expect(sections.map((s) => s.title).toList(), ['B', 'A']);
     });
 
     test('moveItem reorders items within the same section', () async {
       final section = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Cells',
       );
       final a = await repository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: testTrip.id,
+          checklistId: testChecklist.id,
           title: 'Cell 1',
           sectionId: section.id,
           createdAt: DateTime.now(),
@@ -496,7 +648,7 @@ void main() {
       final b = await repository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: testTrip.id,
+          checklistId: testChecklist.id,
           title: 'Cell 2',
           sectionId: section.id,
           createdAt: DateTime.now(),
@@ -505,30 +657,30 @@ void main() {
       );
 
       await repository.moveItem(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         itemId: b.id,
         targetSectionId: section.id,
         orderedIds: [b.id, a.id],
       );
 
-      final items = await repository.getByTripId(testTrip.id);
+      final items = await repository.getByChecklistId(testChecklist.id);
       expect(items.map((i) => i.id).toList(), [b.id, a.id]);
       expect(items.every((i) => i.sectionId == section.id), isTrue);
     });
 
     test('moveItem reassigns an item to a different section', () async {
       final cells = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Cells',
       );
       final bottles = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Bottles',
       );
       final cellItem = await repository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: testTrip.id,
+          checklistId: testChecklist.id,
           title: 'Cell 1',
           sectionId: cells.id,
           createdAt: DateTime.now(),
@@ -538,7 +690,7 @@ void main() {
       final bottleItem = await repository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: testTrip.id,
+          checklistId: testChecklist.id,
           title: 'Bottle 1',
           sectionId: bottles.id,
           createdAt: DateTime.now(),
@@ -547,13 +699,13 @@ void main() {
       );
 
       await repository.moveItem(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         itemId: cellItem.id,
         targetSectionId: bottles.id,
         orderedIds: [bottleItem.id, cellItem.id],
       );
 
-      final items = await repository.getByTripId(testTrip.id);
+      final items = await repository.getByChecklistId(testChecklist.id);
       final moved = items.firstWhere((i) => i.id == cellItem.id);
       expect(moved.sectionId, bottles.id);
       expect(items.map((i) => i.id).toList(), [bottleItem.id, cellItem.id]);
@@ -561,13 +713,13 @@ void main() {
 
     test('deleteSection without a target deletes its items too', () async {
       final section = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Assembly',
       );
       await repository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: testTrip.id,
+          checklistId: testChecklist.id,
           title: 'Check O-rings',
           sectionId: section.id,
           createdAt: DateTime.now(),
@@ -577,24 +729,27 @@ void main() {
 
       await repository.deleteSection(section.id);
 
-      expect(await repository.getSectionsForTrip(testTrip.id), isEmpty);
-      expect(await repository.getByTripId(testTrip.id), isEmpty);
+      expect(
+        await repository.getSectionsForChecklist(testChecklist.id),
+        isEmpty,
+      );
+      expect(await repository.getByChecklistId(testChecklist.id), isEmpty);
     });
 
     test('deleteSection with moveItemsToSectionId reassigns items instead of '
         'deleting them', () async {
       final assembly = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Assembly',
       );
       final cells = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Cells',
       );
       final created = await repository.createItem(
         TripChecklistItem(
           id: '',
-          tripId: testTrip.id,
+          checklistId: testChecklist.id,
           title: 'Check O-rings',
           sectionId: assembly.id,
           createdAt: DateTime.now(),
@@ -607,9 +762,11 @@ void main() {
         moveItemsToSectionId: cells.id,
       );
 
-      final sections = await repository.getSectionsForTrip(testTrip.id);
+      final sections = await repository.getSectionsForChecklist(
+        testChecklist.id,
+      );
       expect(sections.map((s) => s.id), [cells.id]);
-      final survivors = await repository.getByTripId(testTrip.id);
+      final survivors = await repository.getByChecklistId(testChecklist.id);
       expect(survivors.single.id, created.id);
       expect(survivors.single.sectionId, cells.id);
     });
@@ -618,29 +775,47 @@ void main() {
       'findOrCreateSectionId matches an existing title case-insensitively',
       () async {
         final created = await repository.createSection(
-          tripId: testTrip.id,
+          checklistId: testChecklist.id,
           title: 'Cells',
         );
         final resolved = await repository.findOrCreateSectionId(
-          testTrip.id,
+          testChecklist.id,
           'cells',
         );
         expect(resolved, created.id);
-        expect(await repository.getSectionsForTrip(testTrip.id), hasLength(1));
+        expect(
+          await repository.getSectionsForChecklist(testChecklist.id),
+          hasLength(1),
+        );
       },
     );
 
     test('findOrCreateSectionId returns null for blank input', () async {
-      expect(await repository.findOrCreateSectionId(testTrip.id, null), isNull);
-      expect(await repository.findOrCreateSectionId(testTrip.id, '  '), isNull);
-      expect(await repository.getSectionsForTrip(testTrip.id), isEmpty);
+      expect(
+        await repository.findOrCreateSectionId(testChecklist.id, null),
+        isNull,
+      );
+      expect(
+        await repository.findOrCreateSectionId(testChecklist.id, '  '),
+        isNull,
+      );
+      expect(
+        await repository.getSectionsForChecklist(testChecklist.id),
+        isEmpty,
+      );
     });
 
     test('applyTemplate places a new section after the highest sortOrder, '
         'not at the section count, once a section was deleted', () async {
-      await repository.createSection(tripId: testTrip.id, title: 'A');
-      final b = await repository.createSection(tripId: testTrip.id, title: 'B');
-      final c = await repository.createSection(tripId: testTrip.id, title: 'C');
+      await repository.createSection(checklistId: testChecklist.id, title: 'A');
+      final b = await repository.createSection(
+        checklistId: testChecklist.id,
+        title: 'B',
+      );
+      final c = await repository.createSection(
+        checklistId: testChecklist.id,
+        title: 'C',
+      );
       await repository.deleteSection(b.id);
       expect(c.sortOrder, 2);
 
@@ -667,16 +842,22 @@ void main() {
         ),
       ]);
 
-      await repository.applyTemplate(templateId: template.id, trip: testTrip);
+      await repository.applyTemplate(
+        templateId: template.id,
+        checklistId: testChecklist.id,
+        trip: testTrip,
+      );
 
-      final sections = await repository.getSectionsForTrip(testTrip.id);
+      final sections = await repository.getSectionsForChecklist(
+        testChecklist.id,
+      );
       expect(sections.map((s) => s.title), ['A', 'C', 'Documents']);
       expect(sections.map((s) => s.sortOrder).toSet(), hasLength(3));
     });
 
     test('moveItem rewrites only the rows whose position changes', () async {
       final section = await repository.createSection(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         title: 'Gear',
       );
       final created = <TripChecklistItem>[];
@@ -685,7 +866,7 @@ void main() {
           await repository.createItem(
             TripChecklistItem(
               id: '',
-              tripId: testTrip.id,
+              checklistId: testChecklist.id,
               title: title,
               sectionId: section.id,
               createdAt: DateTime.now(),
@@ -694,19 +875,19 @@ void main() {
           ),
         );
       }
-      final before = await repository.getByTripId(testTrip.id);
+      final before = await repository.getByChecklistId(testChecklist.id);
       final third = before.firstWhere((i) => i.title == 'Three');
       await Future<void>.delayed(const Duration(milliseconds: 5));
 
       // Swap the first two; the third keeps its position.
       await repository.moveItem(
-        tripId: testTrip.id,
+        checklistId: testChecklist.id,
         itemId: created[1].id,
         targetSectionId: section.id,
         orderedIds: [created[1].id, created[0].id, created[2].id],
       );
 
-      final after = await repository.getByTripId(testTrip.id);
+      final after = await repository.getByChecklistId(testChecklist.id);
       expect(after.map((i) => i.title), ['Two', 'One', 'Three']);
       expect(
         after.firstWhere((i) => i.title == 'Three').updatedAt,

@@ -748,5 +748,21 @@ extension RungsFromV231 on AppDatabase {
     // _assertNavTracksSchema.
     if (from < 335) await _assertNavTrackScaleFactorColumn();
     if (from < 335) await reportProgress();
+
+    // v336: trip_checklists, splitting one trip's single flat checklist
+    // into several named ones (issue #3356). Backfills a default checklist
+    // for every trip with existing sections/items; re-asserted in
+    // beforeOpen. Raises minimumCompatibleSchemaVersion to 336 (see
+    // database.dart): trip_id becomes checklist_id on both child tables.
+    //
+    // The v297 step runs first, idempotently, for a database stamped v297 or
+    // later without that rung ever truly running. Converting its trip_id
+    // first would strand it, since the v297 step only migrates FROM trip_id.
+    // The beforeOpen backstops already run the two in this order.
+    if (from < 336) {
+      await _assertAndBackfillTripChecklistSections();
+      await _assertAndBackfillTripChecklists();
+    }
+    if (from < 336) await reportProgress();
   }
 }

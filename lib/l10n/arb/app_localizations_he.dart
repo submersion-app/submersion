@@ -4665,9 +4665,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'מיון';
 
   @override
-  String get checklists_section_title => 'רשימת משימות';
-
-  @override
   String checklists_progress(int done, int total) {
     return '$done מתוך $total משימות הושלמו';
   }
@@ -4678,6 +4675,62 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get checklists_empty_past => 'אין פריטים ברשימת המשימות';
+
+  @override
+  String get checklists_addChecklist => 'הוסף רשימת משימות';
+
+  @override
+  String get checklists_noChecklists_upcoming =>
+      'אין עדיין רשימות משימות - הוסף אחת כדי להתחיל לתכנן';
+
+  @override
+  String get checklists_noChecklists_past => 'אין רשימות משימות';
+
+  @override
+  String get checklists_nameLabel => 'שם רשימת המשימות';
+
+  @override
+  String get checklists_nameRequired => 'שם נדרש';
+
+  @override
+  String get checklists_newChecklist_title => 'רשימת משימות חדשה';
+
+  @override
+  String get checklists_menu_newChecklist => 'רשימת משימות חדשה...';
+
+  @override
+  String get checklists_renameChecklist_title => 'שינוי שם רשימת המשימות';
+
+  @override
+  String get checklists_menu_rename => 'שינוי שם...';
+
+  @override
+  String get checklists_menu_delete => 'מחיקה...';
+
+  @override
+  String get checklists_delete_title => 'מחיקת רשימת משימות';
+
+  @override
+  String checklists_delete_content(String name) {
+    return 'למחוק את \"$name\"? גם הקטעים והפריטים שלה יימחקו.';
+  }
+
+  @override
+  String get checklists_delete_confirm => 'מחיקה';
+
+  @override
+  String get checklists_replaceTemplate_title => 'החלפת תוכן רשימת המשימות';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return 'להחליף את כל הפריטים הנוכחיים של \"$checklistName\" בפריטים מ-\"$templateName\"? לא ניתן לבטל פעולה זו.';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => 'החלפה';
 
   @override
   String get checklists_addItem => 'הוסף פריט';
@@ -4765,24 +4818,6 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'פריט אחד',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: '$added פריטים יתווספו',
-      one: 'פריט אחד יתווסף',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '$skipped כפילויות ידולגו',
-      one: 'כפילות אחת תדולג',
-      zero: 'לא ידולגו כפילויות',
-    );
-    return '$_temp0, $_temp1.';
   }
 
   @override
@@ -25845,6 +25880,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
       'קטע בתבנית רשימת משימות';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => 'רשימת משימות';
 
   @override
   String get settings_conflict_ref_tripChecklistSection => 'קטע ברשימת משימות';

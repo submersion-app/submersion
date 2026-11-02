@@ -1245,7 +1245,6 @@
   "certifications_wallet_tooltip_moreOptions": "Mais opções",
   "certifications_wallet_tooltip_share": "Compartilhar certificação",
   "certifications_wallet_tooltip_sort": "Ordenar",
-  "checklists_section_title": "Lista de Verificação",
   "checklists_progress": "{done} de {total} tarefas concluídas",
   "checklists_empty_upcoming": "Planeje sua viagem - adicione tarefas ou aplique um modelo",
   "checklists_empty_past": "Nenhum item na lista de verificação",
@@ -1284,7 +1283,6 @@
   "checklists_applySheet_title": "Aplicar modelo",
   "checklists_applySheet_empty": "Ainda não há modelos. Crie-os em Configurações.",
   "checklists_applySheet_itemCount": "{count, plural, =1{{count} item} other{{count} itens}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{{added} item será adicionado} other{{added} itens serão adicionados}}, {skipped, plural, =0{nenhuma duplicata ignorada} =1{{skipped} duplicata ignorada} other{{skipped} duplicatas ignoradas}}.",
   "checklists_apply_success": "{count, plural, =0{Nenhum item novo adicionado} =1{{count} item adicionado} other{{count} itens adicionados}}",
   "checklists_apply_templateGone": "O modelo não existe mais",
   "checklists_saveTemplate_title": "Salvar como modelo",
@@ -17380,6 +17378,40 @@
   "demo_enter_confirm_body_firstRun": "Será transferido um diário de exemplo ({size}) para explorar a aplicação. Saia do modo de demonstração quando quiser começar o seu.",
   "demo_enter_changed_body": "O diário de exemplo foi atualizado e tem agora {size}. Transferi-lo?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "Adicionar lista de verificação",
+  "checklists_delete_confirm": "Excluir",
+  "checklists_delete_content": "Excluir \"{name}\"? Suas seções e itens também serão removidos.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "Excluir Lista de Verificação",
+  "checklists_menu_delete": "Excluir...",
+  "checklists_menu_rename": "Mudar o nome...",
+  "checklists_nameLabel": "Nome da lista de verificação",
+  "checklists_nameRequired": "O nome é obrigatório",
+  "checklists_newChecklist_title": "Nova lista de verificação",
+  "checklists_menu_newChecklist": "Nova lista de verificação...",
+  "checklists_noChecklists_past": "Nenhuma lista de verificação",
+  "checklists_noChecklists_upcoming": "Ainda não há listas de verificação - adicione uma para começar a planejar",
+  "checklists_renameChecklist_title": "Renomear lista de verificação",
+  "checklists_replaceTemplate_confirm": "Substituir",
+  "checklists_replaceTemplate_content": "Substituir todos os itens atuais de \"{checklistName}\" pelos itens de \"{templateName}\"? Esta ação não pode ser desfeita.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "Substituir conteúdo da lista de verificação",
+  "settings_conflict_ref_tripChecklist": "Lista de Verificação",
   "changeLog_title": "Registo de alterações",
   "changeLog_settings_subtitle": "Veja o que mudou e reponha",
   "changeLog_empty_title": "Ainda sem alterações",

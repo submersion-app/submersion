@@ -119,6 +119,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_checklistTemplate;
     case 'preDiveChecklistTemplates':
       return l10n.settings_conflict_ref_preDiveChecklistTemplate;
+    case 'tripChecklists':
+      return l10n.settings_conflict_ref_tripChecklist;
     case 'tripChecklistSections':
       return l10n.settings_conflict_ref_tripChecklistSection;
     case 'checklistTemplateSections':

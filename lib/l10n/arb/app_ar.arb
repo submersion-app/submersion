@@ -1245,7 +1245,6 @@
   "certifications_wallet_tooltip_moreOptions": "خيارات إضافية",
   "certifications_wallet_tooltip_share": "مشاركة الشهادة",
   "certifications_wallet_tooltip_sort": "ترتيب",
-  "checklists_section_title": "قائمة التحقق",
   "checklists_progress": "تم إنجاز {done} من {total} من المهام",
   "checklists_empty_upcoming": "خطط لرحلتك - أضف مهامًا أو طبّق قالبًا",
   "checklists_empty_past": "لا توجد عناصر في قائمة التحقق",
@@ -1284,7 +1283,6 @@
   "checklists_applySheet_title": "تطبيق القالب",
   "checklists_applySheet_empty": "لا توجد قوالب بعد. يمكنك إنشاؤها من الإعدادات.",
   "checklists_applySheet_itemCount": "{count, plural, =1{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{سيتم إضافة عنصر واحد} two{سيتم إضافة عنصرين} few{سيتم إضافة {added} عناصر} many{سيتم إضافة {added} عنصرًا} other{سيتم إضافة {added} عنصر}}، {skipped, plural, =0{دون تخطي أي عناصر مكررة} =1{مع تخطي عنصر مكرر واحد} two{مع تخطي عنصرين مكررين} few{مع تخطي {skipped} عناصر مكررة} many{مع تخطي {skipped} عنصرًا مكررًا} other{مع تخطي {skipped} عنصر مكرر}}.",
   "checklists_apply_success": "{count, plural, =0{لم تتم إضافة أي عناصر جديدة} =1{تمت إضافة عنصر واحد} two{تمت إضافة عنصرين} few{تمت إضافة {count} عناصر} many{تمت إضافة {count} عنصرًا} other{تمت إضافة {count} عنصر}}",
   "checklists_apply_templateGone": "القالب لم يعد موجودًا",
   "checklists_saveTemplate_title": "حفظ كقالب",
@@ -17380,6 +17378,40 @@
   "demo_enter_confirm_body_firstRun": "سيتم تنزيل سجل تجريبي ({size}) لاستكشاف التطبيق. اخرج من الوضع التجريبي متى كنت مستعدًا لبدء سجلك الخاص.",
   "demo_enter_changed_body": "تم تحديث السجل التجريبي وأصبح حجمه الآن {size}. هل تريد تنزيله؟",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "إضافة قائمة تحقق",
+  "checklists_delete_confirm": "حذف",
+  "checklists_delete_content": "هل تريد حذف \"{name}\"؟ ستُحذف أقسامها وعناصرها أيضًا.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "حذف قائمة التحقق",
+  "checklists_menu_delete": "حذف...",
+  "checklists_menu_rename": "إعادة التسمية...",
+  "checklists_nameLabel": "اسم قائمة التحقق",
+  "checklists_nameRequired": "الاسم مطلوب",
+  "checklists_newChecklist_title": "قائمة تحقق جديدة",
+  "checklists_menu_newChecklist": "قائمة تحقق جديدة...",
+  "checklists_noChecklists_past": "لا توجد قوائم تحقق",
+  "checklists_noChecklists_upcoming": "لا توجد قوائم تحقق بعد - أضف واحدة لبدء التخطيط",
+  "checklists_renameChecklist_title": "إعادة تسمية قائمة التحقق",
+  "checklists_replaceTemplate_confirm": "استبدال",
+  "checklists_replaceTemplate_content": "استبدال جميع العناصر الحالية في \"{checklistName}\" بعناصر \"{templateName}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "استبدال محتوى قائمة التحقق",
+  "settings_conflict_ref_tripChecklist": "قائمة التحقق",
   "changeLog_title": "سجل التغييرات",
   "changeLog_settings_subtitle": "اعرف ما تغير وأعده كما كان",
   "changeLog_empty_title": "لا توجد تغييرات بعد",

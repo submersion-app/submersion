@@ -33,7 +33,7 @@ void main() {
 
   TripChecklistItem todo(String id, {bool done = false}) => TripChecklistItem(
     id: id,
-    tripId: 't1',
+    checklistId: 'c1',
     title: id,
     isDone: done,
     createdAt: DateTime(2026, 1, 1),
@@ -60,7 +60,9 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          tripChecklistProvider('t1').overrideWith((ref) async => checklist),
+          tripChecklistAllItemsProvider(
+            't1',
+          ).overrideWith((ref) async => checklist),
           tripGearProvider('t1').overrideWith((ref) async => const []),
           tripCylinderStatesProvider(
             't1',

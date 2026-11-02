@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
@@ -141,6 +142,51 @@ void main() {
     );
   });
 
+  test('tripChecklists round-trips fetchRecord/fetchRecords/upsertRecord/'
+      'recordIdsFor/deleteRecord (issue #3356)', () async {
+    final trip = await TripRepository().createTrip(
+      Trip(
+        id: '',
+        name: 'Red Sea',
+        startDate: DateTime(2026, 9, 10),
+        endDate: DateTime(2026, 9, 17),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    final created = await TripChecklistsRepository().createChecklist(
+      tripId: trip.id,
+      name: 'Dive equipment',
+    );
+
+    final fetched = await serializer.fetchRecord('tripChecklists', created.id);
+    expect(fetched, isNotNull);
+    expect(fetched!['name'], 'Dive equipment');
+
+    final batch = await serializer.fetchRecords('tripChecklists', [
+      created.id,
+      'absent-id',
+    ]);
+    expect(batch.keys.toSet(), {created.id});
+
+    expect(
+      await serializer.recordIdsFor('tripChecklists'),
+      contains(created.id),
+    );
+
+    await serializer.upsertRecord('tripChecklists', {
+      ...fetched,
+      'name': 'Renamed',
+    });
+    expect(
+      (await serializer.fetchRecord('tripChecklists', created.id))?['name'],
+      'Renamed',
+    );
+
+    await serializer.deleteRecord('tripChecklists', created.id);
+    expect(await serializer.fetchRecord('tripChecklists', created.id), isNull);
+  });
+
   test('tripChecklistItems round-trips fetchRecord/fetchRecords/upsertRecord/'
       'recordIdsFor/deleteRecord', () async {
     final trip = await TripRepository().createTrip(
@@ -153,10 +199,14 @@ void main() {
         updatedAt: DateTime.now(),
       ),
     );
+    final checklist = await TripChecklistsRepository().createChecklist(
+      tripId: trip.id,
+      name: 'Checklist',
+    );
     final created = await TripChecklistRepository().createItem(
       domain.TripChecklistItem(
         id: '',
-        tripId: trip.id,
+        checklistId: checklist.id,
         title: 'Book flights',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),

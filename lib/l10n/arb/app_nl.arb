@@ -1245,7 +1245,6 @@
   "certifications_wallet_tooltip_moreOptions": "Meer opties",
   "certifications_wallet_tooltip_share": "Certificering delen",
   "certifications_wallet_tooltip_sort": "Sorteren",
-  "checklists_section_title": "Checklist",
   "checklists_progress": "{done} van {total} taken voltooid",
   "checklists_empty_upcoming": "Plan je reis - voeg taken toe of pas een sjabloon toe",
   "checklists_empty_past": "Geen checklist-items",
@@ -1284,7 +1283,6 @@
   "checklists_applySheet_title": "Sjabloon toepassen",
   "checklists_applySheet_empty": "Nog geen sjablonen. Maak ze aan in Instellingen.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 item} other{{count} items}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{1 item wordt toegevoegd} other{{added} items worden toegevoegd}}, {skipped, plural, =0{geen duplicaten overgeslagen} =1{1 duplicaat overgeslagen} other{{skipped} duplicaten overgeslagen}}.",
   "checklists_apply_success": "{count, plural, =0{Geen nieuwe items toegevoegd} =1{1 item toegevoegd} other{{count} items toegevoegd}}",
   "checklists_apply_templateGone": "Sjabloon bestaat niet meer",
   "checklists_saveTemplate_title": "Opslaan als sjabloon",
@@ -17380,6 +17378,40 @@
   "demo_enter_confirm_body_firstRun": "Er wordt een voorbeeldlogboek ({size}) gedownload om de app mee te verkennen. Sluit de demomodus af zodra je met je eigen logboek wilt beginnen.",
   "demo_enter_changed_body": "Het voorbeeldlogboek is bijgewerkt en is nu {size}. Downloaden?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "Checklist toevoegen",
+  "checklists_delete_confirm": "Verwijderen",
+  "checklists_delete_content": "\"{name}\" verwijderen? De bijbehorende secties en items worden ook verwijderd.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "Checklist verwijderen",
+  "checklists_menu_delete": "Verwijderen...",
+  "checklists_menu_rename": "Naam wijzigen...",
+  "checklists_nameLabel": "Checklistnaam",
+  "checklists_nameRequired": "Naam is verplicht",
+  "checklists_newChecklist_title": "Nieuwe checklist",
+  "checklists_menu_newChecklist": "Nieuwe checklist...",
+  "checklists_noChecklists_past": "Geen checklists",
+  "checklists_noChecklists_upcoming": "Nog geen checklists - voeg er een toe om te beginnen met plannen",
+  "checklists_renameChecklist_title": "Checklist hernoemen",
+  "checklists_replaceTemplate_confirm": "Vervangen",
+  "checklists_replaceTemplate_content": "Alle huidige items van \"{checklistName}\" vervangen door de items uit \"{templateName}\"? Dit kan niet ongedaan worden gemaakt.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "Checklistinhoud vervangen",
+  "settings_conflict_ref_tripChecklist": "Checklist",
   "changeLog_title": "Wijzigingslogboek",
   "changeLog_settings_subtitle": "Bekijk wat er is gewijzigd en zet het terug",
   "changeLog_empty_title": "Nog geen wijzigingen",

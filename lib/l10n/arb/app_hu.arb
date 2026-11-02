@@ -1245,7 +1245,6 @@
   "certifications_wallet_tooltip_moreOptions": "További lehetőségek",
   "certifications_wallet_tooltip_share": "Tanúsítvány megosztása",
   "certifications_wallet_tooltip_sort": "Rendezés",
-  "checklists_section_title": "Ellenőrzőlista",
   "checklists_progress": "{done}/{total} tétel kész",
   "checklists_empty_upcoming": "Tervezze meg útját - adjon hozzá tételeket, vagy alkalmazzon sablont",
   "checklists_empty_past": "Nincsenek ellenőrzőlista-tételek",
@@ -1284,7 +1283,6 @@
   "checklists_applySheet_title": "Sablon alkalmazása",
   "checklists_applySheet_empty": "Még nincsenek sablonok. Hozza létre őket a Beállításokban.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 tétel} other{{count} tétel}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{1 tétel kerül hozzáadásra} other{{added} tétel kerül hozzáadásra}}, {skipped, plural, =0{nincs kihagyott duplikátum} =1{1 duplikátum kihagyva} other{{skipped} duplikátum kihagyva}}.",
   "checklists_apply_success": "{count, plural, =0{Nem került új tétel hozzáadásra} =1{1 tétel hozzáadva} other{{count} tétel hozzáadva}}",
   "checklists_apply_templateGone": "A sablon már nem létezik",
   "checklists_saveTemplate_title": "Mentés sablonként",
@@ -17380,6 +17378,40 @@
   "demo_enter_confirm_body_firstRun": "Ez letölt egy mintanaplót ({size}), amellyel körülnézhetsz az alkalmazásban. Lépj ki a demó módból, amikor a sajátodat szeretnéd elkezdeni.",
   "demo_enter_changed_body": "A mintanapló frissült, és most {size} méretű. Letöltöd?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "Ellenőrzőlista hozzáadása",
+  "checklists_delete_confirm": "Törlés",
+  "checklists_delete_content": "Törli a(z) \"{name}\" listát? A szakaszai és tételei is törlődnek.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "Ellenőrzőlista törlése",
+  "checklists_menu_delete": "Törlés...",
+  "checklists_menu_rename": "Átnevezés...",
+  "checklists_nameLabel": "Ellenőrzőlista neve",
+  "checklists_nameRequired": "A név megadása kötelező",
+  "checklists_newChecklist_title": "Új ellenőrzőlista",
+  "checklists_menu_newChecklist": "Új ellenőrzőlista...",
+  "checklists_noChecklists_past": "Nincsenek ellenőrzőlisták",
+  "checklists_noChecklists_upcoming": "Még nincs ellenőrzőlista - adjon hozzá egyet a tervezés megkezdéséhez",
+  "checklists_renameChecklist_title": "Ellenőrzőlista átnevezése",
+  "checklists_replaceTemplate_confirm": "Csere",
+  "checklists_replaceTemplate_content": "Lecseréli a(z) \"{checklistName}\" összes jelenlegi tételét a(z) \"{templateName}\" tételeire? Ez nem vonható vissza.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "Ellenőrzőlista tartalmának cseréje",
+  "settings_conflict_ref_tripChecklist": "Ellenőrzőlista",
   "changeLog_title": "Változásnapló",
   "changeLog_settings_subtitle": "Nézze meg, mi változott, és állítsa vissza",
   "changeLog_empty_title": "Még nincsenek változások",

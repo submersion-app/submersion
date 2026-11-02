@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -28,13 +29,13 @@ void main() {
       final now = DateTime.now();
       final item = TripChecklistItem(
         id: 'i1',
-        tripId: 't1',
+        checklistId: 'c1',
         title: 'Service regulator',
         createdAt: now,
         updatedAt: now,
       );
 
-      await expectLater(repository.getByTripId('t1'), throwsA(anything));
+      await expectLater(repository.getByChecklistId('c1'), throwsA(anything));
       await expectLater(repository.createItem(item), throwsA(anything));
       await expectLater(repository.updateItem(item), throwsA(anything));
       await expectLater(
@@ -42,16 +43,30 @@ void main() {
         throwsA(anything),
       );
       await expectLater(repository.deleteItem('i1'), throwsA(anything));
-      await expectLater(repository.deleteByTripId('t1'), throwsA(anything));
+      await expectLater(repository.getAllItemsForTrip('t1'), throwsA(anything));
       await expectLater(
         repository.saveAsTemplate(
-          tripId: 't1',
+          checklistId: 'c1',
           tripStartDate: now,
           name: 'My prep',
         ),
         throwsA(anything),
       );
-      await expectLater(repository.getProgress('t1'), throwsA(anything));
+      await expectLater(
+        repository.replaceWithTemplate(
+          templateId: 'tpl1',
+          checklistId: 'c1',
+          trip: Trip(
+            id: 't1',
+            name: 'Red Sea',
+            startDate: now,
+            endDate: now,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ),
+        throwsA(anything),
+      );
     });
   });
 }

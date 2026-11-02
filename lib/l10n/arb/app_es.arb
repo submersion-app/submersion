@@ -1245,7 +1245,6 @@
   "certifications_wallet_tooltip_moreOptions": "Más opciones",
   "certifications_wallet_tooltip_share": "Compartir certificación",
   "certifications_wallet_tooltip_sort": "Ordenar",
-  "checklists_section_title": "Lista de verificación",
   "checklists_progress": "{done} de {total} tareas completadas",
   "checklists_empty_upcoming": "Planifica tu viaje: agrega tareas o aplica una plantilla",
   "checklists_empty_past": "No hay elementos en la lista de verificación",
@@ -1284,7 +1283,6 @@
   "checklists_applySheet_title": "Aplicar plantilla",
   "checklists_applySheet_empty": "Aún no hay plantillas. Créalas en Ajustes.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 elemento} other{{count} elementos}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{Se agregará 1 elemento} other{Se agregarán {added} elementos}}, {skipped, plural, =0{no se omitirán duplicados} =1{se omitirá 1 duplicado} other{se omitirán {skipped} duplicados}}.",
   "checklists_apply_success": "{count, plural, =0{No se agregaron elementos nuevos} =1{Se agregó 1 elemento} other{Se agregaron {count} elementos}}",
   "checklists_apply_templateGone": "La plantilla ya no existe",
   "checklists_saveTemplate_title": "Guardar como plantilla",
@@ -17380,6 +17378,40 @@
   "demo_enter_confirm_body_firstRun": "Se descargará un diario de ejemplo ({size}) para explorar la aplicación. Sal del modo demo cuando quieras empezar el tuyo.",
   "demo_enter_changed_body": "El diario de ejemplo se ha actualizado y ahora ocupa {size}. ¿Descargarlo?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "Agregar lista de verificación",
+  "checklists_delete_confirm": "Eliminar",
+  "checklists_delete_content": "¿Eliminar \"{name}\"? Sus secciones y elementos también se eliminarán.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "Eliminar lista de verificación",
+  "checklists_menu_delete": "Eliminar...",
+  "checklists_menu_rename": "Cambiar nombre...",
+  "checklists_nameLabel": "Nombre de la lista de verificación",
+  "checklists_nameRequired": "El nombre es obligatorio",
+  "checklists_newChecklist_title": "Nueva lista de verificación",
+  "checklists_menu_newChecklist": "Nueva lista de verificación...",
+  "checklists_noChecklists_past": "No hay listas de verificación",
+  "checklists_noChecklists_upcoming": "Aún no hay listas de verificación: agrega una para empezar a planificar",
+  "checklists_renameChecklist_title": "Cambiar nombre de la lista de verificación",
+  "checklists_replaceTemplate_confirm": "Sustituir",
+  "checklists_replaceTemplate_content": "¿Reemplazar todos los elementos actuales de \"{checklistName}\" con los elementos de \"{templateName}\"? Esta acción no se puede deshacer.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "Reemplazar contenido de la lista de verificación",
+  "settings_conflict_ref_tripChecklist": "Lista de verificación",
   "changeLog_title": "Registro de cambios",
   "changeLog_settings_subtitle": "Mira qué cambió y restáuralo",
   "changeLog_empty_title": "Aún no hay cambios",

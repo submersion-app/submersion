@@ -1245,7 +1245,6 @@
   "certifications_wallet_tooltip_moreOptions": "Plus d'options",
   "certifications_wallet_tooltip_share": "Partager la certification",
   "certifications_wallet_tooltip_sort": "Trier",
-  "checklists_section_title": "Liste de contrôle",
   "checklists_progress": "{done} sur {total} tâches effectuées",
   "checklists_empty_upcoming": "Planifiez votre voyage - ajoutez des tâches ou appliquez un modèle",
   "checklists_empty_past": "Aucun élément de liste de contrôle",
@@ -1284,7 +1283,6 @@
   "checklists_applySheet_title": "Appliquer un modèle",
   "checklists_applySheet_empty": "Aucun modèle pour l'instant. Créez-en dans les Paramètres.",
   "checklists_applySheet_itemCount": "{count, plural, =1{{count} élément} other{{count} éléments}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{{added} élément sera ajouté} other{{added} éléments seront ajoutés}}, {skipped, plural, =0{aucun doublon ignoré} =1{{skipped} doublon ignoré} other{{skipped} doublons ignorés}}.",
   "checklists_apply_success": "{count, plural, =0{Aucun nouvel élément ajouté} =1{{count} élément ajouté} other{{count} éléments ajoutés}}",
   "checklists_apply_templateGone": "Le modèle n'existe plus",
   "checklists_saveTemplate_title": "Enregistrer comme modèle",
@@ -17380,6 +17378,40 @@
   "demo_enter_confirm_body_firstRun": "Un carnet d'exemple ({size}) sera téléchargé pour découvrir l'application. Quittez le mode démo dès que vous voulez commencer le vôtre.",
   "demo_enter_changed_body": "Le carnet d'exemple a été mis à jour et fait maintenant {size}. Le télécharger ?",
   "common_byteSize": "{value} {unit, select, B{o} KB{Ko} MB{Mo} GB{Go} TB{To} other{{unit}}}",
+  "checklists_addChecklist": "Ajouter une liste de contrôle",
+  "checklists_delete_confirm": "Supprimer",
+  "checklists_delete_content": "Supprimer « {name} » ? Ses sections et éléments seront également supprimés.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "Supprimer la liste de contrôle",
+  "checklists_menu_delete": "Supprimer...",
+  "checklists_menu_rename": "Renommer...",
+  "checklists_nameLabel": "Nom de la liste de contrôle",
+  "checklists_nameRequired": "Le nom est requis",
+  "checklists_newChecklist_title": "Nouvelle liste de contrôle",
+  "checklists_menu_newChecklist": "Nouvelle liste de contrôle...",
+  "checklists_noChecklists_past": "Aucune liste de contrôle",
+  "checklists_noChecklists_upcoming": "Aucune liste de contrôle pour le moment - ajoutez-en une pour commencer à planifier",
+  "checklists_renameChecklist_title": "Renommer la liste de contrôle",
+  "checklists_replaceTemplate_confirm": "Remplacer",
+  "checklists_replaceTemplate_content": "Remplacer tous les éléments actuels de « {checklistName} » par les éléments de « {templateName} » ? Cette action est irréversible.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "Remplacer le contenu de la liste de contrôle",
+  "settings_conflict_ref_tripChecklist": "Liste de contrôle",
   "changeLog_title": "Journal des modifications",
   "changeLog_settings_subtitle": "Voyez ce qui a changé et rétablissez-le",
   "changeLog_empty_title": "Aucune modification pour l'instant",

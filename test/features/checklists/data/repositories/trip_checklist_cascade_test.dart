@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
@@ -26,6 +27,7 @@ void main() {
       'days, and checklist items, and tombstones all of them', () async {
     final tripRepository = TripRepository();
     final checklistRepository = TripChecklistRepository();
+    final checklistsRepository = TripChecklistsRepository();
     final liveaboardRepository = LiveaboardDetailsRepository();
     final itineraryRepository = ItineraryDayRepository();
 
@@ -39,10 +41,14 @@ void main() {
         updatedAt: DateTime.now(),
       ),
     );
+    final checklist = await checklistsRepository.createChecklist(
+      tripId: trip.id,
+      name: 'Checklist',
+    );
     final item = await checklistRepository.createItem(
       TripChecklistItem(
         id: '',
-        tripId: trip.id,
+        checklistId: checklist.id,
         title: 'Pack fins',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -76,7 +82,8 @@ void main() {
 
     // Every child record is gone (FK would also have blocked the trip
     // delete otherwise, since the cascades run before the trip row does).
-    expect(await checklistRepository.getByTripId(trip.id), isEmpty);
+    expect(await checklistRepository.getAllItemsForTrip(trip.id), isEmpty);
+    expect(await checklistsRepository.getChecklistsForTrip(trip.id), isEmpty);
     expect(await liveaboardRepository.getByTripId(trip.id), isNull);
     expect(await itineraryRepository.getByTripId(trip.id), isEmpty);
     expect(await tripRepository.getTripById(trip.id), isNull);
@@ -94,6 +101,7 @@ void main() {
     }
 
     expect(await recordIdsFor('tripChecklistItems'), contains(item.id));
+    expect(await recordIdsFor('tripChecklists'), contains(checklist.id));
     expect(await recordIdsFor('liveaboardDetails'), contains(liveaboard.id));
     expect(await recordIdsFor('itineraryDays'), contains(itineraryDayId));
     expect(await recordIdsFor('trips'), contains(trip.id));
@@ -116,6 +124,7 @@ void main() {
 
     const childEntityTypes = [
       'tripChecklistItems',
+      'tripChecklists',
       'liveaboardDetails',
       'itineraryDays',
     ];
@@ -125,7 +134,7 @@ void main() {
 
     // No trip with this id exists; every child cascade
     // (LiveaboardDetailsRepository/ItineraryDayRepository/
-    // TripChecklistRepository.deleteByTripId) queries by tripId first and
+    // TripChecklistsRepository.deleteAllForTrip) queries by tripId first and
     // returns early on an empty result, so none of them should write a
     // tombstone for a record that never existed. (The outer trip-level
     // logDeletion is unconditional and pre-existing behavior -- not

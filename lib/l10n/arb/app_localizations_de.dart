@@ -4773,9 +4773,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'Sortieren';
 
   @override
-  String get checklists_section_title => 'Checkliste';
-
-  @override
   String checklists_progress(int done, int total) {
     return '$done von $total Aufgaben erledigt';
   }
@@ -4786,6 +4783,62 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get checklists_empty_past => 'Keine Checklisteneinträge';
+
+  @override
+  String get checklists_addChecklist => 'Checkliste hinzufügen';
+
+  @override
+  String get checklists_noChecklists_upcoming =>
+      'Noch keine Checklisten - fügen Sie eine hinzu, um mit der Planung zu beginnen';
+
+  @override
+  String get checklists_noChecklists_past => 'Keine Checklisten';
+
+  @override
+  String get checklists_nameLabel => 'Checklistenname';
+
+  @override
+  String get checklists_nameRequired => 'Name ist erforderlich';
+
+  @override
+  String get checklists_newChecklist_title => 'Neue Checkliste';
+
+  @override
+  String get checklists_menu_newChecklist => 'Neue Checkliste...';
+
+  @override
+  String get checklists_renameChecklist_title => 'Checkliste umbenennen';
+
+  @override
+  String get checklists_menu_rename => 'Umbenennen...';
+
+  @override
+  String get checklists_menu_delete => 'Löschen...';
+
+  @override
+  String get checklists_delete_title => 'Checkliste löschen';
+
+  @override
+  String checklists_delete_content(String name) {
+    return '\"$name\" löschen? Ihre Abschnitte und Einträge werden ebenfalls entfernt.';
+  }
+
+  @override
+  String get checklists_delete_confirm => 'Löschen';
+
+  @override
+  String get checklists_replaceTemplate_title => 'Checklisteninhalt ersetzen';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return 'Alle aktuellen Einträge von \"$checklistName\" durch die Einträge aus \"$templateName\" ersetzen? Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => 'Ersetzen';
 
   @override
   String get checklists_addItem => 'Eintrag hinzufügen';
@@ -4876,24 +4929,6 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '1 Eintrag',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: '$added Einträge werden hinzugefügt',
-      one: '1 Eintrag wird hinzugefügt',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '$skipped Duplikate übersprungen',
-      one: '1 Duplikat übersprungen',
-      zero: 'keine Duplikate übersprungen',
-    );
-    return '$_temp0, $_temp1.';
   }
 
   @override
@@ -26461,6 +26496,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
       'Abschnitt einer Checklistenvorlage';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => 'Checkliste';
 
   @override
   String get settings_conflict_ref_tripChecklistSection =>

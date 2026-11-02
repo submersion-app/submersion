@@ -64,6 +64,9 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
+    // Multiple checklists per trip (v336, issue #3356), the parent of
+    // tripChecklistSections/tripChecklistItems below.
+    'tripChecklists': (table: 'trip_checklists', pk: 'id'),
     // Section tables for checklists/pre-dive (v297-300, issue #3360), fully
     // wired for sync (SyncData, mergeOrder, parentRefs, conflict_reference
     // labels) alongside their item tables.
@@ -968,6 +971,15 @@ class SyncRepository {
     (
       entityType: 'tankPressureSeries',
       table: 'tank_pressure_series',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    // The trip_id->checklist_id migration (v336, issue #3356) clears hlc on
+    // the sections and items it re-points, listed below, and leaves each new
+    // default checklist unstamped, as the legacy sync apply does.
+    (
+      entityType: 'tripChecklists',
+      table: 'trip_checklists',
       timestamp: 'updated_at',
       filter: null,
     ),

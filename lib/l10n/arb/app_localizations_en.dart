@@ -4700,9 +4700,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'Sort';
 
   @override
-  String get checklists_section_title => 'Checklist';
-
-  @override
   String checklists_progress(int done, int total) {
     return '$done of $total to-dos done';
   }
@@ -4713,6 +4710,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checklists_empty_past => 'No checklist items';
+
+  @override
+  String get checklists_addChecklist => 'Add checklist';
+
+  @override
+  String get checklists_noChecklists_upcoming =>
+      'No checklists yet - add one to start planning';
+
+  @override
+  String get checklists_noChecklists_past => 'No checklists';
+
+  @override
+  String get checklists_nameLabel => 'Checklist name';
+
+  @override
+  String get checklists_nameRequired => 'Name is required';
+
+  @override
+  String get checklists_newChecklist_title => 'New checklist';
+
+  @override
+  String get checklists_menu_newChecklist => 'New checklist...';
+
+  @override
+  String get checklists_renameChecklist_title => 'Rename checklist';
+
+  @override
+  String get checklists_menu_rename => 'Rename...';
+
+  @override
+  String get checklists_menu_delete => 'Delete...';
+
+  @override
+  String get checklists_delete_title => 'Delete checklist';
+
+  @override
+  String checklists_delete_content(String name) {
+    return 'Delete \"$name\"? Its sections and items are removed too.';
+  }
+
+  @override
+  String get checklists_delete_confirm => 'Delete';
+
+  @override
+  String get checklists_replaceTemplate_title => 'Replace checklist content';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return 'Replace all current items of \"$checklistName\" with the items from \"$templateName\"? This cannot be undone.';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => 'Replace';
 
   @override
   String get checklists_addItem => 'Add item';
@@ -4802,24 +4855,6 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 item',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: '$added items will be added',
-      one: '1 item will be added',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '$skipped duplicates skipped',
-      one: '1 duplicate skipped',
-      zero: 'no duplicates skipped',
-    );
-    return '$_temp0, $_temp1.';
   }
 
   @override
@@ -26065,6 +26100,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
       'Checklist template section';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => 'Checklist';
 
   @override
   String get settings_conflict_ref_tripChecklistSection => 'Checklist section';

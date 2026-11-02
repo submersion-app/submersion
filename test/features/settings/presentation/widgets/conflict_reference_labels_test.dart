@@ -75,6 +75,7 @@ void main() {
       'preDiveSessions': 'Pre-dive checklist run',
       'checklistTemplates': 'Checklist template',
       'preDiveChecklistTemplates': 'Pre-dive checklist template',
+      'tripChecklists': 'Checklist',
       'tripChecklistSections': 'Checklist section',
       'checklistTemplateSections': 'Checklist template section',
       'preDiveChecklistTemplateSections': 'Pre-dive checklist template section',

@@ -59,7 +59,10 @@ void main() {
         )
         .get();
     final indexNames = indexes.map((r) => r.read<String>('name')).toSet();
-    expect(indexNames, contains('idx_trip_checklist_items_trip_id'));
+    // Not idx_trip_checklist_items_trip_id: v332 (#3356) replaced
+    // trip_checklist_items.trip_id with checklist_id, and this index along
+    // with it.
+    expect(indexNames, contains('idx_trip_checklist_items_checklist_id'));
     expect(indexNames, contains('idx_checklist_template_items_template_id'));
   });
 

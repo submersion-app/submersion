@@ -57,6 +57,7 @@ import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/tag_fill_copy_merge.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
@@ -1594,6 +1595,11 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (
+            type: 'tripChecklists',
+            records: data.tripChecklists,
+            hasUpdatedAt: true,
+          ),
+          (
             type: 'tripChecklistSections',
             records: data.tripChecklistSections,
             hasUpdatedAt: true,
@@ -2945,6 +2951,7 @@ class SyncService {
     'checklistTemplates': true,
     'checklistTemplateSections': true,
     'checklistTemplateItems': true,
+    'tripChecklists': true,
     'tripChecklistSections': true,
     'tripChecklistItems': true,
     'preDiveChecklistTemplates': true,
@@ -3553,11 +3560,12 @@ class SyncService {
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
       (field: 'sectionId', parent: 'checklistTemplateSections', nullable: true),
     ],
+    'tripChecklists': [(field: 'tripId', parent: 'trips', nullable: false)],
     'tripChecklistSections': [
-      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'checklistId', parent: 'tripChecklists', nullable: false),
     ],
     'tripChecklistItems': [
-      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'checklistId', parent: 'tripChecklists', nullable: false),
       (field: 'sectionId', parent: 'tripChecklistSections', nullable: true),
     ],
     'preDiveChecklistTemplateSections': [
@@ -3859,8 +3867,11 @@ class SyncService {
         // (e.g. a photo whose dive was deleted keeps the photo, sans dive link).
         var recordToApply = withoutDeviceLocalColumns(entityType, record);
         var droppedByParent = false;
+        // Under the current names: a checklist row from below v336 names its
+        // default checklist only once the legacy key is mapped.
+        final currentKeys = withCurrentWireKeys(entityType, record);
         for (final ref in entityParentRefs) {
-          final parentId = record[ref.field];
+          final parentId = currentKeys[ref.field];
           if (parentId is String &&
               (allTombstones[ref.parent]?.containsKey(parentId) ?? false) &&
               // A parent being revived in this same payload is NOT gone; keep

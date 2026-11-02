@@ -472,12 +472,11 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_checklist_template_items_template_id '
         'ON checklist_template_items(template_id)',
   ),
-  (
-    name: 'idx_trip_checklist_items_trip_id',
-    ddl:
-        'CREATE INDEX IF NOT EXISTS idx_trip_checklist_items_trip_id '
-        'ON trip_checklist_items(trip_id)',
-  ),
+  // idx_trip_checklist_items_trip_id retired: trip_checklist_items.trip_id
+  // was replaced by checklist_id (issue #3356). The replacement index is
+  // created by TripChecklistMigrations._assertAndBackfillTripChecklists,
+  // alongside the trip_id -> checklist_id column migration it also owns,
+  // rather than here.
   (
     name: 'idx_dive_plan_tanks_plan_id',
     ddl:

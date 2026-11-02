@@ -38,7 +38,10 @@ void main() {
   });
 
   test('the column is additive, so the sync floor does not move', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 308);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(308),
+    );
   });
 
   test(

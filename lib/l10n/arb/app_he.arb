@@ -1245,7 +1245,6 @@
   "certifications_wallet_tooltip_moreOptions": "אפשרויות נוספות",
   "certifications_wallet_tooltip_share": "שתף הסמכה",
   "certifications_wallet_tooltip_sort": "מיון",
-  "checklists_section_title": "רשימת משימות",
   "checklists_progress": "{done} מתוך {total} משימות הושלמו",
   "checklists_empty_upcoming": "תכנן את הטיול שלך - הוסף משימות או החל תבנית",
   "checklists_empty_past": "אין פריטים ברשימת המשימות",
@@ -1284,7 +1283,6 @@
   "checklists_applySheet_title": "החלת תבנית",
   "checklists_applySheet_empty": "עדיין אין תבניות. ניתן ליצור אותן בהגדרות.",
   "checklists_applySheet_itemCount": "{count, plural, =1{פריט אחד} other{{count} פריטים}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{פריט אחד יתווסף} other{{added} פריטים יתווספו}}, {skipped, plural, =0{לא ידולגו כפילויות} =1{כפילות אחת תדולג} other{{skipped} כפילויות ידולגו}}.",
   "checklists_apply_success": "{count, plural, =0{לא נוספו פריטים חדשים} =1{פריט אחד נוסף} other{{count} פריטים נוספו}}",
   "checklists_apply_templateGone": "התבנית כבר לא קיימת",
   "checklists_saveTemplate_title": "שמירה כתבנית",
@@ -17380,6 +17378,40 @@
   "demo_enter_confirm_body_firstRun": "פעולה זו תוריד יומן דוגמה ({size}) כדי להכיר את האפליקציה. צאו ממצב ההדגמה כשתהיו מוכנים להתחיל יומן משלכם.",
   "demo_enter_changed_body": "יומן הדוגמה עודכן וגודלו כעת {size}. להוריד אותו?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "הוסף רשימת משימות",
+  "checklists_delete_confirm": "מחיקה",
+  "checklists_delete_content": "למחוק את \"{name}\"? גם הקטעים והפריטים שלה יימחקו.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "מחיקת רשימת משימות",
+  "checklists_menu_delete": "מחיקה...",
+  "checklists_menu_rename": "שינוי שם...",
+  "checklists_nameLabel": "שם רשימת המשימות",
+  "checklists_nameRequired": "שם נדרש",
+  "checklists_newChecklist_title": "רשימת משימות חדשה",
+  "checklists_menu_newChecklist": "רשימת משימות חדשה...",
+  "checklists_noChecklists_past": "אין רשימות משימות",
+  "checklists_noChecklists_upcoming": "אין עדיין רשימות משימות - הוסף אחת כדי להתחיל לתכנן",
+  "checklists_renameChecklist_title": "שינוי שם רשימת המשימות",
+  "checklists_replaceTemplate_confirm": "החלפה",
+  "checklists_replaceTemplate_content": "להחליף את כל הפריטים הנוכחיים של \"{checklistName}\" בפריטים מ-\"{templateName}\"? לא ניתן לבטל פעולה זו.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "החלפת תוכן רשימת המשימות",
+  "settings_conflict_ref_tripChecklist": "רשימת משימות",
   "changeLog_title": "יומן שינויים",
   "changeLog_settings_subtitle": "ראו מה השתנה והחזירו אותו",
   "changeLog_empty_title": "עדיין אין שינויים",

@@ -1,12 +1,13 @@
 import 'package:equatable/equatable.dart';
 
-/// A visual grouping header for a trip's checklist items (issue #3360).
-/// Unlike the free-text `category` it replaces, a section is a row with its
-/// own identity: it can be created empty, renamed once instead of per item,
-/// and reordered independently of the items inside it.
+/// A visual grouping header for one checklist's items (issue #3360, scoped
+/// to a single checklist since issue #3356). Unlike the free-text `category`
+/// it replaces, a section is a row with its own identity: it can be created
+/// empty, renamed once instead of per item, and reordered independently of
+/// the items inside it.
 class TripChecklistSection extends Equatable {
   final String id;
-  final String tripId;
+  final String checklistId;
   final String title;
   final int sortOrder;
   final DateTime createdAt;
@@ -14,7 +15,7 @@ class TripChecklistSection extends Equatable {
 
   const TripChecklistSection({
     required this.id,
-    required this.tripId,
+    required this.checklistId,
     required this.title,
     this.sortOrder = 0,
     required this.createdAt,
@@ -23,7 +24,7 @@ class TripChecklistSection extends Equatable {
 
   TripChecklistSection copyWith({
     String? id,
-    String? tripId,
+    String? checklistId,
     String? title,
     int? sortOrder,
     DateTime? createdAt,
@@ -31,7 +32,7 @@ class TripChecklistSection extends Equatable {
   }) {
     return TripChecklistSection(
       id: id ?? this.id,
-      tripId: tripId ?? this.tripId,
+      checklistId: checklistId ?? this.checklistId,
       title: title ?? this.title,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
@@ -42,7 +43,7 @@ class TripChecklistSection extends Equatable {
   @override
   List<Object?> get props => [
     id,
-    tripId,
+    checklistId,
     title,
     sortOrder,
     createdAt,

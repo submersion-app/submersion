@@ -20,7 +20,9 @@ class UpcomingTripBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final progressAsync = ref.watch(tripChecklistProgressProvider(trip.id));
+    final progressAsync = ref.watch(
+      tripChecklistCombinedProgressProvider(trip.id),
+    );
     final progress = progressAsync.value;
     final serviceAlerts =
         ref.watch(tripServiceAlertsProvider(trip.id)).value ?? const [];

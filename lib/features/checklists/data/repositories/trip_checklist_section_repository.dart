@@ -8,10 +8,11 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
     as domain;
 
-/// Section CRUD for trip checklists (issue #3360), split out of
-/// [TripChecklistRepository] to keep that file under the project's
-/// 800-line cap. [TripChecklistRepository]'s own section methods are thin
-/// forwarders to this class, so its public API is unchanged for callers.
+/// Section CRUD for a trip checklist (issue #3360, scoped to a single
+/// checklist since issue #3356), split out of [TripChecklistRepository] to
+/// keep that file under the project's 800-line cap.
+/// [TripChecklistRepository]'s own section methods are thin forwarders to
+/// this class.
 class TripChecklistSectionRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
@@ -20,31 +21,31 @@ class TripChecklistSectionRepository {
   Stream<void> watchTripChecklistSectionChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.tripChecklistSections));
 
-  Future<List<domain.TripChecklistSection>> getSectionsForTrip(
-    String tripId,
+  Future<List<domain.TripChecklistSection>> getSectionsForChecklist(
+    String checklistId,
   ) async {
     final rows =
         await (_db.select(_db.tripChecklistSections)
-              ..where((s) => s.tripId.equals(tripId))
+              ..where((s) => s.checklistId.equals(checklistId))
               ..orderBy([(s) => OrderingTerm.asc(s.sortOrder)]))
             .get();
     return rows.map(_mapSectionRow).toList();
   }
 
-  /// Creates an empty section at the end of the trip's section order.
+  /// Creates an empty section at the end of the checklist's section order.
   Future<domain.TripChecklistSection> createSection({
-    required String tripId,
+    required String checklistId,
     required String title,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
-    final sortOrder = await _nextSectionSortOrder(tripId);
+    final sortOrder = await _nextSectionSortOrder(checklistId);
     await _db
         .into(_db.tripChecklistSections)
         .insert(
           TripChecklistSectionsCompanion(
             id: Value(id),
-            tripId: Value(tripId),
+            checklistId: Value(checklistId),
             title: Value(title),
             sortOrder: Value(sortOrder),
             createdAt: Value(now),
@@ -59,7 +60,7 @@ class TripChecklistSectionRepository {
     SyncEventBus.notifyLocalChange();
     return domain.TripChecklistSection(
       id: id,
-      tripId: tripId,
+      checklistId: checklistId,
       title: title,
       sortOrder: sortOrder,
       createdAt: DateTime.fromMillisecondsSinceEpoch(now),
@@ -86,22 +87,28 @@ class TripChecklistSectionRepository {
   }
 
   /// Persists a new section order. [orderedIds] must list every section of
-  /// the trip exactly once; sort order is the list position.
+  /// the checklist exactly once; sort order is the list position.
   ///
   /// Only sections whose position changes are written and queued for sync,
   /// the same reasoning as TripChecklistRepository.moveItem.
-  Future<void> reorderSections(String tripId, List<String> orderedIds) async {
+  Future<void> reorderSections(
+    String checklistId,
+    List<String> orderedIds,
+  ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final changedIds = await _db.transaction(() async {
       final sortOrderById = {
-        for (final s in await getSectionsForTrip(tripId)) s.id: s.sortOrder,
+        for (final s in await getSectionsForChecklist(checklistId))
+          s.id: s.sortOrder,
       };
       final changed = <String>[];
       for (var i = 0; i < orderedIds.length; i++) {
         final current = sortOrderById[orderedIds[i]];
         if (current == null || current == i) continue;
         await (_db.update(_db.tripChecklistSections)..where(
-              (s) => s.id.equals(orderedIds[i]) & s.tripId.equals(tripId),
+              (s) =>
+                  s.id.equals(orderedIds[i]) &
+                  s.checklistId.equals(checklistId),
             ))
             .write(
               TripChecklistSectionsCompanion(
@@ -179,21 +186,28 @@ class TripChecklistSectionRepository {
     SyncEventBus.notifyLocalChange();
   }
 
-  /// Resolves [title] to an existing section of [tripId] (case-insensitive,
-  /// matching the grouping fold the UI has always used), or creates one.
-  /// Null or blank resolves to no section. Used by the item editor's
-  /// section picker and by `applyTemplate`, so re-applying a template is
-  /// idempotent against sections exactly as it already is against items.
-  Future<String?> findOrCreateSectionId(String tripId, String? title) async {
+  /// Resolves [title] to an existing section of [checklistId]
+  /// (case-insensitive, matching the grouping fold the UI has always used),
+  /// or creates one. Null or blank resolves to no section. Used by the item
+  /// editor's section picker and by `applyTemplate`, so re-applying a
+  /// template is idempotent against sections exactly as it already is
+  /// against items.
+  Future<String?> findOrCreateSectionId(
+    String checklistId,
+    String? title,
+  ) async {
     final trimmed = title?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
-    final existing = await getSectionsForTrip(tripId);
+    final existing = await getSectionsForChecklist(checklistId);
     for (final section in existing) {
       if (section.title.toLowerCase() == trimmed.toLowerCase()) {
         return section.id;
       }
     }
-    final created = await createSection(tripId: tripId, title: trimmed);
+    final created = await createSection(
+      checklistId: checklistId,
+      title: trimmed,
+    );
     return created.id;
   }
 
@@ -219,7 +233,7 @@ class TripChecklistSectionRepository {
   /// bookkeeping [createSection] does (that must wait until the caller's
   /// outer transaction commits).
   Future<domain.TripChecklistSection> createSectionRow(
-    String tripId,
+    String checklistId,
     String title,
     int sortOrder,
   ) async {
@@ -230,7 +244,7 @@ class TripChecklistSectionRepository {
         .insert(
           TripChecklistSectionsCompanion(
             id: Value(id),
-            tripId: Value(tripId),
+            checklistId: Value(checklistId),
             title: Value(title),
             sortOrder: Value(sortOrder),
             createdAt: Value(now),
@@ -239,7 +253,7 @@ class TripChecklistSectionRepository {
         );
     return domain.TripChecklistSection(
       id: id,
-      tripId: tripId,
+      checklistId: checklistId,
       title: title,
       sortOrder: sortOrder,
       createdAt: DateTime.fromMillisecondsSinceEpoch(now),
@@ -247,12 +261,12 @@ class TripChecklistSectionRepository {
     );
   }
 
-  Future<int> _nextSectionSortOrder(String tripId) async {
+  Future<int> _nextSectionSortOrder(String checklistId) async {
     final row = await _db
         .customSelect(
           'SELECT COALESCE(MAX(sort_order), -1) + 1 AS next '
-          'FROM trip_checklist_sections WHERE trip_id = ?',
-          variables: [Variable.withString(tripId)],
+          'FROM trip_checklist_sections WHERE checklist_id = ?',
+          variables: [Variable.withString(checklistId)],
         )
         .getSingle();
     return row.read<int>('next');
@@ -261,7 +275,7 @@ class TripChecklistSectionRepository {
   domain.TripChecklistSection _mapSectionRow(TripChecklistSectionRow row) =>
       domain.TripChecklistSection(
         id: row.id,
-        tripId: row.tripId,
+        checklistId: row.checklistId,
         title: row.title,
         sortOrder: row.sortOrder,
         createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),

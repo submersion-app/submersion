@@ -1245,7 +1245,6 @@
   "certifications_wallet_tooltip_moreOptions": "Altre opzioni",
   "certifications_wallet_tooltip_share": "Condividi certificazione",
   "certifications_wallet_tooltip_sort": "Ordina",
-  "checklists_section_title": "Lista di controllo",
   "checklists_progress": "{done} di {total} attività completate",
   "checklists_empty_upcoming": "Pianifica il tuo viaggio: aggiungi attività o applica un modello",
   "checklists_empty_past": "Nessun elemento nella lista di controllo",
@@ -1284,7 +1283,6 @@
   "checklists_applySheet_title": "Applica modello",
   "checklists_applySheet_empty": "Nessun modello disponibile. Creane uno nelle Impostazioni.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 elemento} other{{count} elementi}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{Verrà aggiunto 1 elemento} other{Verranno aggiunti {added} elementi}}, {skipped, plural, =0{nessun duplicato ignorato} =1{1 duplicato ignorato} other{{skipped} duplicati ignorati}}.",
   "checklists_apply_success": "{count, plural, =0{Nessun nuovo elemento aggiunto} =1{1 elemento aggiunto} other{{count} elementi aggiunti}}",
   "checklists_apply_templateGone": "Il modello non esiste più",
   "checklists_saveTemplate_title": "Salva come modello",
@@ -17380,6 +17378,40 @@
   "demo_enter_confirm_body_firstRun": "Verrà scaricato un logbook di esempio ({size}) per esplorare l'app. Esci dalla modalità demo quando vuoi iniziare il tuo.",
   "demo_enter_changed_body": "Il logbook di esempio è stato aggiornato e ora occupa {size}. Scaricarlo?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "Aggiungi lista di controllo",
+  "checklists_delete_confirm": "Elimina",
+  "checklists_delete_content": "Eliminare \"{name}\"? Anche le sue sezioni e i suoi elementi verranno eliminati.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "Elimina lista di controllo",
+  "checklists_menu_delete": "Elimina...",
+  "checklists_menu_rename": "Rinomina...",
+  "checklists_nameLabel": "Nome della lista di controllo",
+  "checklists_nameRequired": "Il nome è obbligatorio",
+  "checklists_newChecklist_title": "Nuova lista di controllo",
+  "checklists_menu_newChecklist": "Nuova lista di controllo...",
+  "checklists_noChecklists_past": "Nessuna lista di controllo",
+  "checklists_noChecklists_upcoming": "Ancora nessuna lista di controllo - aggiungine una per iniziare a pianificare",
+  "checklists_renameChecklist_title": "Rinomina lista di controllo",
+  "checklists_replaceTemplate_confirm": "Sostituisci",
+  "checklists_replaceTemplate_content": "Sostituire tutti gli elementi attuali di \"{checklistName}\" con gli elementi di \"{templateName}\"? Questa operazione non può essere annullata.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "Sostituisci il contenuto della lista di controllo",
+  "settings_conflict_ref_tripChecklist": "Lista di controllo",
   "changeLog_title": "Registro modifiche",
   "changeLog_settings_subtitle": "Scopri cosa è cambiato e ripristinalo",
   "changeLog_empty_title": "Ancora nessuna modifica",

@@ -4786,9 +4786,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'Trier';
 
   @override
-  String get checklists_section_title => 'Liste de contrôle';
-
-  @override
   String checklists_progress(int done, int total) {
     return '$done sur $total tâches effectuées';
   }
@@ -4799,6 +4796,64 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get checklists_empty_past => 'Aucun élément de liste de contrôle';
+
+  @override
+  String get checklists_addChecklist => 'Ajouter une liste de contrôle';
+
+  @override
+  String get checklists_noChecklists_upcoming =>
+      'Aucune liste de contrôle pour le moment - ajoutez-en une pour commencer à planifier';
+
+  @override
+  String get checklists_noChecklists_past => 'Aucune liste de contrôle';
+
+  @override
+  String get checklists_nameLabel => 'Nom de la liste de contrôle';
+
+  @override
+  String get checklists_nameRequired => 'Le nom est requis';
+
+  @override
+  String get checklists_newChecklist_title => 'Nouvelle liste de contrôle';
+
+  @override
+  String get checklists_menu_newChecklist => 'Nouvelle liste de contrôle...';
+
+  @override
+  String get checklists_renameChecklist_title =>
+      'Renommer la liste de contrôle';
+
+  @override
+  String get checklists_menu_rename => 'Renommer...';
+
+  @override
+  String get checklists_menu_delete => 'Supprimer...';
+
+  @override
+  String get checklists_delete_title => 'Supprimer la liste de contrôle';
+
+  @override
+  String checklists_delete_content(String name) {
+    return 'Supprimer « $name » ? Ses sections et éléments seront également supprimés.';
+  }
+
+  @override
+  String get checklists_delete_confirm => 'Supprimer';
+
+  @override
+  String get checklists_replaceTemplate_title =>
+      'Remplacer le contenu de la liste de contrôle';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return 'Remplacer tous les éléments actuels de « $checklistName » par les éléments de « $templateName » ? Cette action est irréversible.';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => 'Remplacer';
 
   @override
   String get checklists_addItem => 'Ajouter un élément';
@@ -4888,24 +4943,6 @@ class AppLocalizationsFr extends AppLocalizations {
       one: '$count élément',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: '$added éléments seront ajoutés',
-      one: '$added élément sera ajouté',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '$skipped doublons ignorés',
-      one: '$skipped doublon ignoré',
-      zero: 'aucun doublon ignoré',
-    );
-    return '$_temp0, $_temp1.';
   }
 
   @override
@@ -26588,6 +26625,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
       'Section du modèle de liste de contrôle';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => 'Liste de contrôle';
 
   @override
   String get settings_conflict_ref_tripChecklistSection =>

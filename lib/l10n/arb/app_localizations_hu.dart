@@ -4751,9 +4751,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'Rendezés';
 
   @override
-  String get checklists_section_title => 'Ellenőrzőlista';
-
-  @override
   String checklists_progress(int done, int total) {
     return '$done/$total tétel kész';
   }
@@ -4764,6 +4761,63 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get checklists_empty_past => 'Nincsenek ellenőrzőlista-tételek';
+
+  @override
+  String get checklists_addChecklist => 'Ellenőrzőlista hozzáadása';
+
+  @override
+  String get checklists_noChecklists_upcoming =>
+      'Még nincs ellenőrzőlista - adjon hozzá egyet a tervezés megkezdéséhez';
+
+  @override
+  String get checklists_noChecklists_past => 'Nincsenek ellenőrzőlisták';
+
+  @override
+  String get checklists_nameLabel => 'Ellenőrzőlista neve';
+
+  @override
+  String get checklists_nameRequired => 'A név megadása kötelező';
+
+  @override
+  String get checklists_newChecklist_title => 'Új ellenőrzőlista';
+
+  @override
+  String get checklists_menu_newChecklist => 'Új ellenőrzőlista...';
+
+  @override
+  String get checklists_renameChecklist_title => 'Ellenőrzőlista átnevezése';
+
+  @override
+  String get checklists_menu_rename => 'Átnevezés...';
+
+  @override
+  String get checklists_menu_delete => 'Törlés...';
+
+  @override
+  String get checklists_delete_title => 'Ellenőrzőlista törlése';
+
+  @override
+  String checklists_delete_content(String name) {
+    return 'Törli a(z) \"$name\" listát? A szakaszai és tételei is törlődnek.';
+  }
+
+  @override
+  String get checklists_delete_confirm => 'Törlés';
+
+  @override
+  String get checklists_replaceTemplate_title =>
+      'Ellenőrzőlista tartalmának cseréje';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return 'Lecseréli a(z) \"$checklistName\" összes jelenlegi tételét a(z) \"$templateName\" tételeire? Ez nem vonható vissza.';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => 'Csere';
 
   @override
   String get checklists_addItem => 'Tétel hozzáadása';
@@ -4853,24 +4907,6 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '1 tétel',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: '$added tétel kerül hozzáadásra',
-      one: '1 tétel kerül hozzáadásra',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '$skipped duplikátum kihagyva',
-      one: '1 duplikátum kihagyva',
-      zero: 'nincs kihagyott duplikátum',
-    );
-    return '$_temp0, $_temp1.';
   }
 
   @override
@@ -26386,6 +26422,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
       'Ellenőrzőlista sablon szakasza';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => 'Ellenőrzőlista';
 
   @override
   String get settings_conflict_ref_tripChecklistSection =>

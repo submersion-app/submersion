@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
@@ -98,7 +98,7 @@ class _ChecklistTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          TripChecklistSection(trip: trip),
+          TripChecklistsPanel(trip: trip),
         ],
       ),
     );

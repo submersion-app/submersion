@@ -2938,7 +2938,6 @@
       }
     }
   },
-  "checklists_section_title": "Checklist",
   "checklists_progress": "{done} of {total} to-dos done",
   "@checklists_progress": {
     "placeholders": {
@@ -2952,6 +2951,39 @@
   },
   "checklists_empty_upcoming": "Plan your trip - add to-dos or apply a template",
   "checklists_empty_past": "No checklist items",
+  "checklists_addChecklist": "Add checklist",
+  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
+  "checklists_noChecklists_past": "No checklists",
+  "checklists_nameLabel": "Checklist name",
+  "checklists_nameRequired": "Name is required",
+  "checklists_newChecklist_title": "New checklist",
+  "checklists_menu_newChecklist": "New checklist...",
+  "checklists_renameChecklist_title": "Rename checklist",
+  "checklists_menu_rename": "Rename...",
+  "checklists_menu_delete": "Delete...",
+  "checklists_delete_title": "Delete checklist",
+  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_confirm": "Delete",
+  "checklists_replaceTemplate_title": "Replace checklist content",
+  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_confirm": "Replace",
   "checklists_addItem": "Add item",
   "checklists_item_titleLabel": "Title",
   "checklists_item_titleRequired": "Title is required",
@@ -2990,17 +3022,6 @@
   "@checklists_applySheet_itemCount": {
     "placeholders": {
       "count": {
-        "type": "int"
-      }
-    }
-  },
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{1 item will be added} other{{added} items will be added}}, {skipped, plural, =0{no duplicates skipped} =1{1 duplicate skipped} other{{skipped} duplicates skipped}}.",
-  "@checklists_applySheet_confirmAppend": {
-    "placeholders": {
-      "added": {
-        "type": "int"
-      },
-      "skipped": {
         "type": "int"
       }
     }
@@ -15367,6 +15388,7 @@
   "settings_conflict_ref_preDiveSession": "Pre-dive checklist run",
   "settings_conflict_ref_preDiveSessionSection": "Pre-dive checklist section",
   "settings_conflict_ref_checklistTemplateSection": "Checklist template section",
+  "settings_conflict_ref_tripChecklist": "Checklist",
   "settings_conflict_ref_tripChecklistSection": "Checklist section",
   "settings_conflict_ref_regulator": "Regulator",
   "settings_conflict_ref_relatedDive": "Related dive",

@@ -4850,9 +4850,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'ترتيب';
 
   @override
-  String get checklists_section_title => 'قائمة التحقق';
-
-  @override
   String checklists_progress(int done, int total) {
     return 'تم إنجاز $done من $total من المهام';
   }
@@ -4863,6 +4860,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get checklists_empty_past => 'لا توجد عناصر في قائمة التحقق';
+
+  @override
+  String get checklists_addChecklist => 'إضافة قائمة تحقق';
+
+  @override
+  String get checklists_noChecklists_upcoming =>
+      'لا توجد قوائم تحقق بعد - أضف واحدة لبدء التخطيط';
+
+  @override
+  String get checklists_noChecklists_past => 'لا توجد قوائم تحقق';
+
+  @override
+  String get checklists_nameLabel => 'اسم قائمة التحقق';
+
+  @override
+  String get checklists_nameRequired => 'الاسم مطلوب';
+
+  @override
+  String get checklists_newChecklist_title => 'قائمة تحقق جديدة';
+
+  @override
+  String get checklists_menu_newChecklist => 'قائمة تحقق جديدة...';
+
+  @override
+  String get checklists_renameChecklist_title => 'إعادة تسمية قائمة التحقق';
+
+  @override
+  String get checklists_menu_rename => 'إعادة التسمية...';
+
+  @override
+  String get checklists_menu_delete => 'حذف...';
+
+  @override
+  String get checklists_delete_title => 'حذف قائمة التحقق';
+
+  @override
+  String checklists_delete_content(String name) {
+    return 'هل تريد حذف \"$name\"؟ ستُحذف أقسامها وعناصرها أيضًا.';
+  }
+
+  @override
+  String get checklists_delete_confirm => 'حذف';
+
+  @override
+  String get checklists_replaceTemplate_title => 'استبدال محتوى قائمة التحقق';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return 'استبدال جميع العناصر الحالية في \"$checklistName\" بعناصر \"$templateName\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => 'استبدال';
 
   @override
   String get checklists_addItem => 'إضافة عنصر';
@@ -4962,30 +5015,6 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'عنصر واحد',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: 'سيتم إضافة $added عنصر',
-      many: 'سيتم إضافة $added عنصرًا',
-      few: 'سيتم إضافة $added عناصر',
-      two: 'سيتم إضافة عنصرين',
-      one: 'سيتم إضافة عنصر واحد',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: 'مع تخطي $skipped عنصر مكرر',
-      many: 'مع تخطي $skipped عنصرًا مكررًا',
-      few: 'مع تخطي $skipped عناصر مكررة',
-      two: 'مع تخطي عنصرين مكررين',
-      one: 'مع تخطي عنصر مكرر واحد',
-      zero: 'دون تخطي أي عناصر مكررة',
-    );
-    return '$_temp0، $_temp1.';
   }
 
   @override
@@ -26741,6 +26770,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
       'قسم من قالب قائمة التحقق';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => 'قائمة التحقق';
 
   @override
   String get settings_conflict_ref_tripChecklistSection =>

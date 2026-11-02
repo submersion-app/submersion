@@ -4772,9 +4772,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'Ordenar';
 
   @override
-  String get checklists_section_title => 'Lista de Verificação';
-
-  @override
   String checklists_progress(int done, int total) {
     return '$done de $total tarefas concluídas';
   }
@@ -4785,6 +4782,64 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get checklists_empty_past => 'Nenhum item na lista de verificação';
+
+  @override
+  String get checklists_addChecklist => 'Adicionar lista de verificação';
+
+  @override
+  String get checklists_noChecklists_upcoming =>
+      'Ainda não há listas de verificação - adicione uma para começar a planejar';
+
+  @override
+  String get checklists_noChecklists_past => 'Nenhuma lista de verificação';
+
+  @override
+  String get checklists_nameLabel => 'Nome da lista de verificação';
+
+  @override
+  String get checklists_nameRequired => 'O nome é obrigatório';
+
+  @override
+  String get checklists_newChecklist_title => 'Nova lista de verificação';
+
+  @override
+  String get checklists_menu_newChecklist => 'Nova lista de verificação...';
+
+  @override
+  String get checklists_renameChecklist_title =>
+      'Renomear lista de verificação';
+
+  @override
+  String get checklists_menu_rename => 'Mudar o nome...';
+
+  @override
+  String get checklists_menu_delete => 'Excluir...';
+
+  @override
+  String get checklists_delete_title => 'Excluir Lista de Verificação';
+
+  @override
+  String checklists_delete_content(String name) {
+    return 'Excluir \"$name\"? Suas seções e itens também serão removidos.';
+  }
+
+  @override
+  String get checklists_delete_confirm => 'Excluir';
+
+  @override
+  String get checklists_replaceTemplate_title =>
+      'Substituir conteúdo da lista de verificação';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return 'Substituir todos os itens atuais de \"$checklistName\" pelos itens de \"$templateName\"? Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => 'Substituir';
 
   @override
   String get checklists_addItem => 'Adicionar item';
@@ -4873,24 +4928,6 @@ class AppLocalizationsPt extends AppLocalizations {
       one: '$count item',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: '$added itens serão adicionados',
-      one: '$added item será adicionado',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '$skipped duplicatas ignoradas',
-      one: '$skipped duplicata ignorada',
-      zero: 'nenhuma duplicata ignorada',
-    );
-    return '$_temp0, $_temp1.';
   }
 
   @override
@@ -26506,6 +26543,9 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_ref_checklistTemplateSection =>
       'Seção do modelo de lista de verificação';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => 'Lista de Verificação';
 
   @override
   String get settings_conflict_ref_tripChecklistSection =>

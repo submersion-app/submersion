@@ -131,6 +131,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'transmitters': ChangeLogClass.tracked,
   'trip_checklist_items': ChangeLogClass.tracked,
   'trip_checklist_sections': ChangeLogClass.tracked,
+  'trip_checklists': ChangeLogClass.tracked,
   'trip_cylinder_events': ChangeLogClass.tracked,
   'trip_cylinders': ChangeLogClass.tracked,
   'trip_equipment': ChangeLogClass.tracked,
@@ -387,13 +388,14 @@ const Map<String, ChangeLogParent> changeLogParents = {
   ),
   'tide_records': ChangeLogParent(rootTable: 'dives', column: 'dive_id'),
   'trip_checklist_items': ChangeLogParent(
-    rootTable: 'trips',
-    column: 'trip_id',
+    rootTable: 'trip_checklists',
+    column: 'checklist_id',
   ),
   'trip_checklist_sections': ChangeLogParent(
-    rootTable: 'trips',
-    column: 'trip_id',
+    rootTable: 'trip_checklists',
+    column: 'checklist_id',
   ),
+  'trip_checklists': ChangeLogParent(rootTable: 'trips', column: 'trip_id'),
   'trip_cylinder_events': ChangeLogParent(
     rootTable: 'trip_cylinders',
     column: 'trip_cylinder_id',

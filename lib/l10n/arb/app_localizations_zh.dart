@@ -4498,9 +4498,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => '排序';
 
   @override
-  String get checklists_section_title => '清单';
-
-  @override
   String checklists_progress(int done, int total) {
     return '已完成 $done/$total 项待办';
   }
@@ -4510,6 +4507,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get checklists_empty_past => '暂无清单事项';
+
+  @override
+  String get checklists_addChecklist => '添加清单';
+
+  @override
+  String get checklists_noChecklists_upcoming => '还没有清单 - 添加一个开始规划';
+
+  @override
+  String get checklists_noChecklists_past => '暂无清单';
+
+  @override
+  String get checklists_nameLabel => '清单名称';
+
+  @override
+  String get checklists_nameRequired => '名称为必填项';
+
+  @override
+  String get checklists_newChecklist_title => '新清单';
+
+  @override
+  String get checklists_menu_newChecklist => '新清单…';
+
+  @override
+  String get checklists_renameChecklist_title => '重命名清单';
+
+  @override
+  String get checklists_menu_rename => '重命名…';
+
+  @override
+  String get checklists_menu_delete => '删除…';
+
+  @override
+  String get checklists_delete_title => '删除清单';
+
+  @override
+  String checklists_delete_content(String name) {
+    return '删除“$name”？其分区和事项也会被一并删除。';
+  }
+
+  @override
+  String get checklists_delete_confirm => '删除';
+
+  @override
+  String get checklists_replaceTemplate_title => '替换清单内容';
+
+  @override
+  String checklists_replaceTemplate_content(
+    String checklistName,
+    String templateName,
+  ) {
+    return '将“$checklistName”的所有当前事项替换为“$templateName”中的事项？此操作无法撤销。';
+  }
+
+  @override
+  String get checklists_replaceTemplate_confirm => '更换';
 
   @override
   String get checklists_addItem => '添加事项';
@@ -4594,24 +4646,6 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '1 项事项',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: '将添加 $added 项事项',
-      one: '将添加 1 项事项',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '跳过 $skipped 项重复',
-      one: '跳过 1 项重复',
-      zero: '不跳过任何重复项',
-    );
-    return '$_temp0，$_temp1。';
   }
 
   @override
@@ -25028,6 +25062,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_checklistTemplateSection => '清单模板的分区';
+
+  @override
+  String get settings_conflict_ref_tripChecklist => '清单';
 
   @override
   String get settings_conflict_ref_tripChecklistSection => '清单的分区';

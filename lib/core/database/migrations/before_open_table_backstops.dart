@@ -129,5 +129,10 @@ extension TableBackstopsFromV217 on AppDatabase {
 
     // v326 backstop: the media_people table and its indexes (idempotent).
     await _assertMediaPeopleSchema();
+
+    // v336 backstop: trip_checklists and the checklist_id backfill+drop of
+    // trip_id on trip_checklist_sections/trip_checklist_items (idempotent;
+    // issue #3356).
+    await _assertAndBackfillTripChecklists();
   }
 }
