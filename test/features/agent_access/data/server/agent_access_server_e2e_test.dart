@@ -12,7 +12,10 @@ import 'package:submersion/features/agent_access/data/server/mcp_server_builder.
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
+import 'package:submersion/features/agent_access/data/writes/agent_write_services.dart';
+import 'package:submersion/features/agent_access/data/writes/write_plan_store.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
+import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
@@ -30,6 +33,11 @@ Map<String, Object?> payload(CallToolResult r) =>
     r.structuredContent ??
     (jsonDecode((r.content.single as TextContent).text) as Map)
         .cast<String, Object?>();
+
+class _Allow implements WriteConfirmer {
+  @override
+  Future<bool> confirm(WriteConfirmation request) async => true;
+}
 
 /// Echoes the client name the server put in the tool context.
 class _EchoClientTool implements AgentTool {
@@ -53,6 +61,7 @@ void main() {
   late AppDatabase db;
   late McpClient client;
   late SqlWindowFixture sqlFixture;
+  final plans = WritePlanStore();
   const t = 1700000000000;
 
   setUpAll(() async {
@@ -76,6 +85,13 @@ void main() {
       records: RecordRepositories(),
       sql: SqlWindowRunner(
         file: () async => SqlDatabaseFile(path: sqlFixture.path),
+      ),
+      writes: AgentWriteServices(
+        records: RecordRepositories(),
+        plans: plans,
+        confirmer: _Allow(),
+        confirmEnabled: () => true,
+        afterDiveWrites: (_) {},
       ),
     );
     return AgentToolRegistry(
@@ -174,6 +190,75 @@ void main() {
           'submersion://schema',
         ]),
       );
+    });
+
+    test('a change previews, applies and reverts over loopback', () async {
+      Future<Map<String, Object?>> call(
+        String tool,
+        Map<String, dynamic> arguments,
+      ) async {
+        final out = await client.callTool(
+          CallToolRequest(name: tool, arguments: arguments),
+        );
+        expect(out.isError, isFalse, reason: '$tool: ${payload(out)}');
+        return payload(out);
+      }
+
+      Future<Object?> depth() async {
+        final out = await call('get_records', {
+          'entity': 'dives',
+          'ids': ['dive-20'],
+        });
+        return ((out['records']! as List).single as Map)['max_depth_m'];
+      }
+
+      final plan = await call('preview_changes', {
+        'label': 'Correct the depth',
+        'operations': [
+          {
+            'op': 'update',
+            'entity': 'dives',
+            'id': 'dive-20',
+            'fields': {'max_depth_m': 22.5},
+          },
+        ],
+      });
+      expect(plan['applicable'], isTrue);
+      expect(await depth(), 20.0);
+
+      final applied = await call('apply_changes', {'plan_id': plan['plan_id']});
+      expect(await depth(), 22.5);
+
+      final operation = (applied['operations']! as List).single as Map;
+      await call('revert_operation', {
+        'operation_id': operation['operation_id'],
+      });
+      expect(await depth(), 20.0);
+    });
+
+    test('every write tool refuses in demo mode', () async {
+      DemoModeGate.instance.debugActive = true;
+      addTearDown(() => DemoModeGate.instance.debugActive = false);
+
+      for (final (tool, arguments) in [
+        (
+          'preview_changes',
+          <String, dynamic>{
+            'label': 'x',
+            'operations': [
+              {'op': 'delete', 'entity': 'dives', 'id': 'dive-20'},
+            ],
+          },
+        ),
+        ('apply_changes', <String, dynamic>{'plan_id': 'p'}),
+        ('revert_operation', <String, dynamic>{'operation_id': 'o'}),
+      ]) {
+        final out = await client.callTool(
+          CallToolRequest(name: tool, arguments: arguments),
+        );
+        expect(out.isError, isTrue, reason: tool);
+        expect(payload(out)['error'], 'demo_mode', reason: tool);
+      }
     });
 
     test('list_records over loopback', () async {

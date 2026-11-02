@@ -7,6 +7,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/window_fullscreen.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan_store.dart';
 import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/agent_access/presentation/widgets/agent_write_confirm_dialog.dart';
@@ -20,14 +22,16 @@ final agentWritePlanStoreProvider = Provider<WritePlanStore>(
   (ref) => WritePlanStore(),
 );
 
-/// The table for each entity, for the dialog's wording.
-final agentWriteConfirmerProvider =
-    Provider.family<WriteConfirmer, Map<String, String>>(
-      (ref, entityTables) => AppWriteConfirmer(
-        context: () => rootNavigatorKey.currentContext,
-        entityTables: entityTables,
-      ),
-    );
+/// One confirmer for the app, so requests from any session queue together.
+final agentWriteConfirmerProvider = Provider<WriteConfirmer>(
+  (ref) => AppWriteConfirmer(
+    context: () => rootNavigatorKey.currentContext,
+    entityTables: {
+      for (final entry in WriteCatalog(RecordRepositories()).all)
+        entry.name: entry.table,
+    },
+  ),
+);
 
 /// Shows [AgentWriteConfirmDialog] over whatever the diver is doing. One
 /// request at a time, so a second agent call waits for the first answer.

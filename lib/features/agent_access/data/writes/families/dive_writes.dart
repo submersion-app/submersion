@@ -17,11 +17,10 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 /// the diver's own bulk edit does: the site's values snap on, a tank keeps no
 /// link into a trip the dive left, and sync hears once.
 class DiveWrites implements WritableEntry {
-  DiveWrites(this._r)
-    : _edits = BulkDiveEditService(_r.dives, _r.buddies, _r.species);
+  DiveWrites(this._r);
 
   final RecordRepositories _r;
-  final BulkDiveEditService _edits;
+  late final _edits = BulkDiveEditService(_r.dives, _r.buddies, _r.species);
 
   @override
   String get name => 'dives';
