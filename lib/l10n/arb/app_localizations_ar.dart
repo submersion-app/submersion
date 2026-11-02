@@ -14235,6 +14235,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tankRole_stage => 'أسطوانة مرحلية';
 
   @override
+  String get enum_tankRole_twinSet => 'طقم مزدوج';
+
+  @override
   String get enum_tideState_rising => 'مد';
 
   @override
@@ -30410,7 +30413,98 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'تُحتسب الأسطوانات المزدوجة المسجلة كأسطوانة واحدة عندما يدل الاسم على ذلك (twin، double، D12، 2x12) أو عندما تكون الأسطوانة أكبر من أي أسطوانة مفردة شائعة. عيّن تعليق جانبي أيسر وتعليق جانبي أيمن لأسطوانات الغوصة لتُحتسب كتعليق جانبي.';
+      'تُحتسب الغوصة كطقم مزدوج على الظهر عندما يكون دور إحدى الأسطوانات طقم مزدوج، وكتعليق جانبي عندما تكون أسطواناتها تعليق جانبي أيسر وتعليق جانبي أيمن.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة فيها أسطوانات تبدو كطقم مزدوج.',
+      many: '$count غوصة فيها أسطوانات تبدو كطقم مزدوج.',
+      few: '$count غوصات فيها أسطوانات تبدو كطقم مزدوج.',
+      two: 'غوصتان فيهما أسطوانات تبدو كطقم مزدوج.',
+      one: 'غوصة واحدة فيها أسطوانة تبدو كطقم مزدوج.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'تشير أسماؤها أو أحجامها إلى twin أو double أو D12 أو 2x12 أو $size فأكثر، لكن دورها غاز خلفي، لذا تُحتسب كأسطوانة مفردة.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'تعليم كطقم مزدوج';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'مراجعة الغوصات';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'تجاهل';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'تعيين الدور إلى طقم مزدوج؟';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'تعيين دور $tanks أسطوانة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      many:
+          'تعيين دور $tanks أسطوانة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      few:
+          'تعيين دور $tanks أسطوانات في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      two:
+          'تعيين دور أسطوانتين في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+      one:
+          'تعيين دور أسطوانة واحدة في $dives إلى طقم مزدوج؟ الأسطوانات الأخرى في تلك الغوصات لن تتغير.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة',
+      many: '$count غوصة',
+      few: '$count غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'تعيين الدور';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'إلغاء';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تعيين $count أسطوانة كطقم مزدوج',
+      many: 'تم تعيين $count أسطوانة كطقم مزدوج',
+      few: 'تم تعيين $count أسطوانات كطقم مزدوج',
+      two: 'تم تعيين أسطوانتين كطقم مزدوج',
+      one: 'تم تعيين أسطوانة واحدة كطقم مزدوج',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed => 'تعذر تعيين الدور';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'يبدو كطقم مزدوج';
 
   @override
   String get insights_gas_tankConfig_empty => 'لا توجد غوصات لعرضها';
@@ -30878,6 +30972,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'أسطوانة مرحلية';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'طقم مزدوج';
 
   @override
   String get insights_geographic_appBar_title => 'جغرافي';

@@ -144,6 +144,31 @@ void main() {
     );
   });
 
+  testWidgets('consumption by role labels a twin set (#3374)', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          sacByTankRoleProvider.overrideWith(
+            (ref) async => const {'twinSet': 15.0, 'backGas': 14.0},
+          ),
+        ].cast(),
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: InsightsGasPage(embedded: true)),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Twin Set'), findsOneWidget);
+    expect(find.text('twinSet'), findsNothing);
+  });
+
   // A dive breathing air from its back gas and nitrox from a deco tank
   // counts under both, so the gas-mix shares are not parts of a whole and
   // must not be drawn as a pie (issue #3048).

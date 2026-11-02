@@ -102,9 +102,9 @@ void main() {
     await insertDive('single-shallow', depth: 10);
     await insertTank('single-shallow', 0, 'backGas');
 
+    // A twin set is its role, never two Back Gas rows (issue #3374).
     await insertDive('twin');
-    await insertTank('twin', 0, 'backGas');
-    await insertTank('twin', 1, 'backGas');
+    await insertTank('twin', 0, 'twinSet');
 
     await insertDive('sidemount');
     await insertTank('sidemount', 0, 'sidemountLeft');
@@ -121,8 +121,8 @@ void main() {
     await insertTank('deco', 0, 'backGas');
     await insertTank('deco', 1, 'deco', o2: 50);
 
-    // Consolidated: read alone the second recording's cylinders would make
-    // this a twin set with a stage. Only the primary's count.
+    // Consolidated: read alone the second recording's cylinders would add
+    // a stage. Only the primary's count.
     await insertDive('consolidated');
     await insertPrimarySource('consolidated', 'primary');
     await insertTank('consolidated', 0, 'backGas', computerId: 'primary');

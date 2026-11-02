@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_colors.dart';
@@ -15,6 +14,7 @@ import 'package:submersion/features/dive_lab/presentation/providers/lab_buoyancy
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_table.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_runtime_table.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -113,7 +113,7 @@ class LabDeltaPanel extends ConsumerWidget {
           units: units,
           tankName: tankName,
           backGasTankId: inputs.tanks
-              .where((t) => t.role == TankRole.backGas)
+              .where((t) => backmountRoles.contains(t.role))
               .firstOrNull
               ?.id,
         ),
