@@ -316,6 +316,22 @@ class TransmitterRepository {
     await _rescanAffectedDives([normalized, ?previous]);
   }
 
+  /// Writes [entry] onto [unclaimed]'s row, replacing the key [entry] edits
+  /// if it has one (issue #3367). The row is kept rather than replaced: its
+  /// id derives from the serial, so a peer downloading the same serial still
+  /// lands on it. A clash with any third entry refuses before anything is
+  /// written.
+  Future<Transmitter> takeOverKey(
+    Transmitter entry,
+    Transmitter unclaimed,
+  ) async {
+    final adopted = _normalized(entry).copyWith(id: unclaimed.id);
+    await _checkConflicts(adopted, ignoring: entry.id);
+    if (await getById(entry.id) != null) await delete(entry.id);
+    await update(adopted);
+    return adopted;
+  }
+
   Future<void> delete(String id) async {
     // Read before the row goes: its dives are rescanned by its key.
     final previous = await getById(id);
@@ -533,11 +549,11 @@ class TransmitterRepository {
     );
   }
 
-  Future<void> _checkConflicts(Transmitter t) async {
+  Future<void> _checkConflicts(Transmitter t, {String? ignoring}) async {
     final siblings = await getForDiver(t.diverId);
     final serial = normalizeTransmitterSerial(t.transmitterSerial);
     for (final other in siblings) {
-      if (other.id == t.id) continue;
+      if (other.id == t.id || other.id == ignoring) continue;
       // The sibling may have been stored raw by a sync payload, so compare
       // canonical forms rather than trusting write-time normalization.
       final serialClash =
