@@ -9,11 +9,14 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
 
+/// The SQL form of `backmountRoles`: back gas or a twin set (issue #3374).
+const String _backmountRolesSql = "('backGas', 'twinSet')";
+
 /// The consumption volume of the `dive_tanks` row aliased [tank], in
 /// liters: its own volume, else the volume of the first other cylinder of
-/// the dive that forms a matched pair with it (both sidemount, or both
-/// back gas on the same gas). NULL when neither is known. Mirrors
-/// `consumptionVolume`.
+/// the dive that forms a matched pair with it (both sidemount, both twin
+/// set, or both back gas on the same gas). NULL when neither is known.
+/// Mirrors `consumptionVolume`.
 String consumptionVolumeSql(String tank) {
   final partner = '${tank}_partner';
   return '(CASE WHEN $tank.volume > 0 THEN $tank.volume ELSE ('
@@ -22,6 +25,7 @@ String consumptionVolumeSql(String tank) {
       'AND $partner.volume > 0 '
       'AND (($tank.tank_role IN $_sidemountRolesSql '
       'AND $partner.tank_role IN $_sidemountRolesSql) '
+      "OR ($tank.tank_role = 'twinSet' AND $partner.tank_role = 'twinSet') "
       "OR ($tank.tank_role = 'backGas' "
       "AND $partner.tank_role = 'backGas' "
       'AND ABS($partner.o2_percent - $tank.o2_percent) '
@@ -47,11 +51,11 @@ String diveAmbientBarSql(String dive, String depth) =>
     '${diveEffectiveWaterTypeSql(dive)})';
 
 /// SAC in bar per minute at the surface of the `dives` row aliased [dive]:
-/// the reference cylinder's drop (the first back gas, else the first
-/// cylinder, as `Dive.sacReferenceTank` picks it) plus every other breathed
-/// cylinder's drop converted to the reference by volume, or one to one
-/// when a size is missing and the two are a matched pair (both sidemount,
-/// or both back gas on the same gas). A reference that did not fall adds
+/// the reference cylinder's drop (the first backmount gas, back gas or twin
+/// set, else the first cylinder, as `Dive.sacReferenceTank` picks it) plus
+/// every other breathed cylinder's drop converted to the reference by
+/// volume, or one to one when a size is missing and the two are a matched
+/// pair (both sidemount, both twin set, or both back gas on the same gas). A reference that did not fall adds
 /// zero, since only breathed cylinders are summed (#3974). NULL on a
 /// rebreather dive, whose cylinders do not drain with the diver's breathing
 /// (issue #3673), when the reference has no pressures logged, since it must
@@ -65,6 +69,7 @@ String diveSacPressureSql(String dive) {
       'sac_t.start_pressure - sac_t.end_pressure AS pressure_drop, '
       '${consumptionVolumeSql('sac_t')} AS volume, '
       'sac_t.tank_role IN $_sidemountRolesSql AS sidemount, '
+      "sac_t.tank_role = 'twinSet' AS twin_set, "
       "sac_t.tank_role = 'backGas' AS back_gas, "
       'sac_t.o2_percent AS o2, sac_t.he_percent AS he '
       'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id AND $where)';
@@ -80,6 +85,7 @@ String diveSacPressureSql(String dive) {
       'WHEN sac_c.volume > 0 AND sac_r.volume > 0 '
       'THEN sac_c.volume / sac_r.volume '
       'WHEN sac_c.sidemount AND sac_r.sidemount THEN 1.0 '
+      'WHEN sac_c.twin_set AND sac_r.twin_set THEN 1.0 '
       'WHEN sac_c.back_gas AND sac_r.back_gas '
       'AND ABS(sac_c.o2 - sac_r.o2) <= $sameGasTolerancePct '
       'AND ABS(sac_c.he - sac_r.he) <= $sameGasTolerancePct THEN 1.0 '
@@ -88,9 +94,9 @@ String diveSacPressureSql(String dive) {
       'ON sac_r.id = ('
       'SELECT t2.id FROM dive_tanks t2 '
       'WHERE t2.dive_id = $dive.id '
-      "AND (t2.tank_role = 'backGas' OR NOT EXISTS ("
+      'AND (t2.tank_role IN $_backmountRolesSql OR NOT EXISTS ('
       'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
-      "AND t3.tank_role = 'backGas')) "
+      'AND t3.tank_role IN $_backmountRolesSql)) '
       'ORDER BY t2.tank_order, t2.rowid LIMIT 1)) '
       '/ (COALESCE($dive.runtime, $dive.bottom_time) / 60.0) '
       '/ ${diveAmbientBarSql(dive, '$dive.avg_depth')}) END)';

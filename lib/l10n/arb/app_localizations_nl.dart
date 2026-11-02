@@ -13966,6 +13966,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_tankRole_stage => 'Stagefles';
 
   @override
+  String get enum_tankRole_twinSet => 'Dubbelset';
+
+  @override
   String get enum_tideState_rising => 'Opkomend';
 
   @override
@@ -29972,7 +29975,84 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Dubbelsets die als één fles zijn vastgelegd tellen mee als de naam het zegt (twin, double, D12, 2x12) of de fles groter is dan elke gangbare enkele fles. Stel Sidemount links en Sidemount rechts in op de flessen van een duik om hem als sidemount te laten tellen.';
+      'Een duik telt als dubbelset wanneer een fles de rol Dubbelset heeft, en als sidemount wanneer zijn flessen Sidemount links en Sidemount rechts zijn.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken hebben flessen die op een dubbelset lijken.',
+      one: '$count duik heeft een fles die op een dubbelset lijkt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'Hun naam of maat zegt twin, double, D12, 2x12 of $size en meer, maar hun rol is Hoofdgas, dus tellen ze als enkele fles.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Markeren als dubbelsets';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Duiken bekijken';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Negeren';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'Rol op Dubbelset zetten?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'De rol van $tanks flessen op $dives op Dubbelset zetten? Andere flessen van die duiken blijven ongewijzigd.',
+      one:
+          'De rol van $tanks fles op $dives op Dubbelset zetten? Andere flessen van die duiken blijven ongewijzigd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Rol instellen';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Annuleren';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen op Dubbelset gezet',
+      one: '$count fles op Dubbelset gezet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'De rol kon niet worden ingesteld';
+
+  @override
+  String get insights_gas_twinSetReview_chart => 'Lijkt op een dubbelset';
 
   @override
   String get insights_gas_tankConfig_empty => 'Geen duiken om te tonen';
@@ -30425,6 +30505,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'Stagefles';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'Dubbelset';
 
   @override
   String get insights_geographic_appBar_title => 'Geografisch';

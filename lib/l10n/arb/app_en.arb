@@ -8244,6 +8244,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount Left",
   "enum_tankRole_sidemountRight": "Sidemount Right",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_twinSet": "Twin Set",
   "enum_tideState_rising": "Rising",
   "enum_tideState_falling": "Falling",
   "enum_tideState_slackHigh": "High Tide (Slack)",
@@ -17222,7 +17223,49 @@
       "percent": {"type": "String"}
     }
   },
-  "insights_gas_tankConfig_note": "Twin sets logged as one cylinder are counted when the name says so (twin, double, D12, 2x12) or the cylinder is larger than any common single tank. Set Sidemount Left and Right on a dive's tanks for it to count as sidemount.",
+  "insights_gas_tankConfig_note": "A dive counts as twin backmount when a cylinder's role is Twin Set, and as sidemount when its cylinders are Sidemount Left and Right.",
+  "insights_gas_twinSetReview_title": "{count, plural, =1{{count} dive has a cylinder that looks like a twin set.} other{{count} dives have cylinders that look like a twin set.}}",
+  "@insights_gas_twinSetReview_title": {
+    "description": "How many dives carry a Back Gas cylinder the retired twin set guess would have counted",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "insights_gas_twinSetReview_body": "Their names or sizes say twin, double, D12, 2x12, or {size} and up, but their role is Back Gas, so they count as single backmount.",
+  "@insights_gas_twinSetReview_body": {
+    "description": "Why those cylinders count as single backmount; size is the formatted minimum twin set volume, e.g. 20 L",
+    "placeholders": {
+      "size": {"type": "String"}
+    }
+  },
+  "insights_gas_twinSetReview_mark": "Mark as twin sets",
+  "insights_gas_twinSetReview_review": "Review dives",
+  "insights_gas_twinSetReview_dismiss": "Dismiss",
+  "insights_gas_twinSetReview_confirmTitle": "Set role to Twin Set?",
+  "insights_gas_twinSetReview_confirmBody": "{tanks, plural, =1{Set the role of {tanks} cylinder on {dives} to Twin Set? Other cylinders on those dives are left alone.} other{Set the role of {tanks} cylinders on {dives} to Twin Set? Other cylinders on those dives are left alone.}}",
+  "@insights_gas_twinSetReview_confirmBody": {
+    "description": "dives is the rendered insights_gas_twinSetReview_diveCount",
+    "placeholders": {
+      "tanks": {"type": "int"},
+      "dives": {"type": "String"}
+    }
+  },
+  "insights_gas_twinSetReview_diveCount": "{count, plural, =1{{count} dive} other{{count} dives}}",
+  "@insights_gas_twinSetReview_diveCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "insights_gas_twinSetReview_confirm": "Set role",
+  "insights_gas_twinSetReview_cancel": "Cancel",
+  "insights_gas_twinSetReview_done": "{count, plural, =1{{count} cylinder set to Twin Set} other{{count} cylinders set to Twin Set}}",
+  "@insights_gas_twinSetReview_done": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "insights_gas_twinSetReview_failed": "Could not set the role",
+  "insights_gas_twinSetReview_chart": "Looks like a twin set",
   "insights_gas_tankConfig_empty": "No dives to show",
   "insights_gas_tankConfig_error": "Unable to load tank configuration",
   "insights_focus_title": "Dive focus",
@@ -17452,6 +17495,7 @@
   "insights_gas_tankRole_sidemountLeft": "Sidemount L",
   "insights_gas_tankRole_sidemountRight": "Sidemount R",
   "insights_gas_tankRole_stage": "Stage",
+  "insights_gas_tankRole_twinSet": "Twin Set",
   "insights_geographic_appBar_title": "Geographic",
   "insights_geographic_countries_empty": "No countries visited",
   "insights_geographic_countries_error": "Failed to load country data",

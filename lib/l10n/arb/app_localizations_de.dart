@@ -14057,6 +14057,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_tankRole_stage => 'Stageflasche';
 
   @override
+  String get enum_tankRole_twinSet => 'Doppelgerät';
+
+  @override
   String get enum_tideState_rising => 'Auflaufend';
 
   @override
@@ -30115,7 +30118,87 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_note =>
-      'Als eine Flasche erfasste Doppelgeräte werden erkannt, wenn der Name es sagt (Doppel, twin, D12, 2x12) oder die Flasche größer als jede übliche Einzelflasche ist. Setzen Sie Sidemount Links und Sidemount Rechts bei den Flaschen eines Tauchgangs, damit er als Sidemount zählt.';
+      'Ein Tauchgang zählt als Doppelgerät, wenn eine Flasche die Rolle Doppelgerät hat, und als Sidemount, wenn seine Flaschen Sidemount Links und Sidemount Rechts sind.';
+
+  @override
+  String insights_gas_twinSetReview_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge haben Flaschen, die wie ein Doppelgerät aussehen.',
+      one:
+          '$count Tauchgang hat eine Flasche, die wie ein Doppelgerät aussieht.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_body(String size) {
+    return 'Ihr Name oder ihre Größe sagt twin, double, D12, 2x12 oder ab $size, aber ihre Rolle ist Rückengas, daher zählen sie als Einzelgerät.';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_mark => 'Als Doppelgeräte markieren';
+
+  @override
+  String get insights_gas_twinSetReview_review => 'Tauchgänge ansehen';
+
+  @override
+  String get insights_gas_twinSetReview_dismiss => 'Ausblenden';
+
+  @override
+  String get insights_gas_twinSetReview_confirmTitle =>
+      'Rolle auf Doppelgerät setzen?';
+
+  @override
+  String insights_gas_twinSetReview_confirmBody(int tanks, String dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      tanks,
+      locale: localeName,
+      other:
+          'Die Rolle von $tanks Flaschen bei $dives auf Doppelgerät setzen? Andere Flaschen dieser Tauchgänge bleiben unverändert.',
+      one:
+          'Die Rolle von $tanks Flasche bei $dives auf Doppelgerät setzen? Andere Flaschen dieser Tauchgänge bleiben unverändert.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_gas_twinSetReview_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgängen',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_confirm => 'Rolle setzen';
+
+  @override
+  String get insights_gas_twinSetReview_cancel => 'Abbrechen';
+
+  @override
+  String insights_gas_twinSetReview_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Flaschen auf Doppelgerät gesetzt',
+      one: '$count Flasche auf Doppelgerät gesetzt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_gas_twinSetReview_failed =>
+      'Die Rolle konnte nicht gesetzt werden';
+
+  @override
+  String get insights_gas_twinSetReview_chart =>
+      'Sieht wie ein Doppelgerät aus';
 
   @override
   String get insights_gas_tankConfig_empty => 'Keine Tauchgänge vorhanden';
@@ -30571,6 +30654,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_gas_tankRole_stage => 'Stage';
+
+  @override
+  String get insights_gas_tankRole_twinSet => 'Doppelgerät';
 
   @override
   String get insights_geographic_appBar_title => 'Geografie';

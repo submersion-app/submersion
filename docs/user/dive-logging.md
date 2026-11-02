@@ -197,6 +197,7 @@ your working ppO₂ limit, 1.4 by default) and **MND** for the mix.
 | Role | Typical use |
 |------|-------------|
 | **Back Gas** | Your main cylinder(s). |
+| **Twin Set** | A manifolded pair worn on the back, logged as one cylinder with the combined volume. |
 | **Stage** | A cylinder carried for part of the dive. |
 | **Deco** | A decompression gas. |
 | **Bailout** | An emergency open-circuit cylinder on a rebreather dive. |
