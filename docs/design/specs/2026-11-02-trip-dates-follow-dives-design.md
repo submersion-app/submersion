@@ -159,9 +159,9 @@ Change Log records the trip row, so that revert already exists.
 
 ### Refreshing the UI
 
-After a stretch the trip list, `tripByIdProvider`, `tripWithStatsProvider` and
-`allTripsProvider` hold old dates. A small helper invalidates them for the stretched
-trip ids, called from the bulk save, its undo and the dive editor.
+No code is needed. The trip list notifier and every trip provider subscribe to
+`watchTripsChanges()`, so a write through Drift's `update` on `trips` refreshes them.
+The stretch and its undo must use that, not a `customUpdate` without `updates:`.
 
 ## Edge cases
 
