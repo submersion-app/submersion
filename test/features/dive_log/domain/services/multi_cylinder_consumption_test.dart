@@ -43,4 +43,24 @@ void main() {
       );
     });
   });
+
+  group('twin set (issue #3374)', () {
+    DiveTank tank(TankRole role, {double o2 = 21}) => DiveTank(
+      id: role.name,
+      role: role,
+      gasMix: GasMix(o2: o2),
+    );
+
+    test('two twin set rows are a matched pair whatever their gas', () {
+      expect(
+        isMatchedPair(tank(TankRole.twinSet), tank(TankRole.twinSet, o2: 32)),
+        isTrue,
+      );
+    });
+
+    test('a twin set is the SAC reference ahead of a stage', () {
+      final twin = tank(TankRole.twinSet);
+      expect(sacReferenceTankOf([tank(TankRole.stage), twin]), same(twin));
+    });
+  });
 }

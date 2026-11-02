@@ -23,6 +23,8 @@ The edit form is divided into collapsible sections. Only the **Name** field is r
 | **Region** | Autocomplete suggests regions already used for the same country; fuzzy matching is enabled so partial names surface near-matches. |
 | **City**, **Island**, **Body of Water** | More location detail, all optional. |
 
+**Look up from coordinates**, under Body of Water, finds the country, region, city and body of water for the site's coordinates. One press fills whatever is blank and offers to replace any value that differs, such as a name in another language. Nothing is stored until you save the site. The button needs coordinates, which you add in the Location section below.
+
 ### Location (GPS coordinates)
 
 Two quick-capture buttons are provided:

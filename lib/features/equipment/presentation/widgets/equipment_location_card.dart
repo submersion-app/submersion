@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
@@ -39,6 +41,10 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
         const <String, EquipmentLocation>{};
     final latest = moves.isEmpty ? null : moves.first;
     final current = latest == null ? null : places[latest.locationId];
+    final buddyId = current?.buddyId;
+    final buddy = buddyId == null
+        ? null
+        : ref.watch(buddyByIdProvider(buddyId)).value;
     final shown = _showAll ? moves : moves.take(_recentCount).toList();
 
     return Card(
@@ -72,7 +78,11 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
               key: const ValueKey('equipment_location_current'),
               contentPadding: EdgeInsets.zero,
               leading: Icon(current?.kind.icon ?? Icons.location_off_outlined),
-              title: Text(current?.name ?? l10n.equipment_location_none),
+              title: Text(
+                buddy != null
+                    ? l10n.equipment_location_withBuddy(buddy.name)
+                    : current?.name ?? l10n.equipment_location_none,
+              ),
               subtitle: current == null
                   ? null
                   : Text(
@@ -83,6 +93,10 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
                         if (latest.note.isNotEmpty) latest.note,
                       ].join('\n'),
                     ),
+              trailing: buddy == null ? null : const Icon(Icons.chevron_right),
+              onTap: buddy == null
+                  ? null
+                  : () => context.push('/buddies/${buddy.id}'),
             ),
             if (moves.isNotEmpty) const Divider(),
             for (final m in shown) _historyRow(context, m, places, units),

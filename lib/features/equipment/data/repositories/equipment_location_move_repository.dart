@@ -9,6 +9,14 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/data/equipment_location_sql.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
 
+/// Items going to one place at one time, for
+/// [EquipmentLocationMoveRepository.recordMoveGroups].
+typedef MoveGroup = ({
+  List<String> equipmentIds,
+  String? locationId,
+  DateTime movedAt,
+});
+
 /// Each item's location log (v268). Writes never touch the `equipment` row
 /// (#1769: a child change does not re-stamp its parent); each move carries
 /// its own clock.
@@ -65,6 +73,42 @@ class EquipmentLocationMoveRepository {
     required DateTime movedAt,
     String note = '',
   }) async {
+    final written = await _writeMoves(
+      equipmentIds: equipmentIds,
+      locationId: locationId,
+      movedAt: movedAt,
+      note: note,
+    );
+    if (written.isNotEmpty) SyncEventBus.notifyLocalChange();
+    return written;
+  }
+
+  /// Writes [groups], which stand or fall together: gear going to several
+  /// places in one action. Sync hears once, after the commit, because a
+  /// notify from inside the transaction can wake a sync that reads too early.
+  Future<void> recordMoveGroups(
+    List<MoveGroup> groups, {
+    String note = '',
+  }) async {
+    await _db.transaction(() async {
+      for (final group in groups) {
+        await _writeMoves(
+          equipmentIds: group.equipmentIds,
+          locationId: group.locationId,
+          movedAt: group.movedAt,
+          note: note,
+        );
+      }
+    });
+    if (groups.isNotEmpty) SyncEventBus.notifyLocalChange();
+  }
+
+  Future<List<EquipmentLocationMove>> _writeMoves({
+    required Iterable<String> equipmentIds,
+    required String? locationId,
+    required DateTime movedAt,
+    required String note,
+  }) async {
     final ids = equipmentIds.toSet().toList();
     if (ids.isEmpty) return const [];
     final trimmedNote = note.trim();
@@ -86,7 +130,6 @@ class EquipmentLocationMoveRepository {
         await _markPending(r.id.value, now);
       }
     });
-    SyncEventBus.notifyLocalChange();
     return [
       for (final r in rows)
         EquipmentLocationMove(

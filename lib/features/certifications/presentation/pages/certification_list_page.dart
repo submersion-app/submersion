@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -23,7 +24,6 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/certifications/query/certification_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
-import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
@@ -133,15 +133,11 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
               tooltip: context.l10n.certifications_list_tooltip_walletView,
               onPressed: () => context.push('/certifications/wallet'),
             ),
-            IconButton(
-              icon: const Icon(Icons.search, size: 20),
+            EntitySearchAction(
+              subject: QuerySubject.certifications,
+              active: ref.watch(certificationQueryProvider) != null,
               tooltip: context.l10n.certifications_list_tooltip_search,
-              onPressed: () {
-                showSearch(
-                  context: context,
-                  delegate: CertificationSearchDelegate(),
-                );
-              },
+              compact: true,
             ),
             QueryFilterAction(
               provider: certificationQueryProvider,

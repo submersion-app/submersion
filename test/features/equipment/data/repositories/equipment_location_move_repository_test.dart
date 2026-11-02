@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 
@@ -272,5 +273,54 @@ void main() {
     await item('wantedCell', parent: 'reg', status: 'wanted');
     await item('cell', parent: 'reg');
     expect((await moves.partsOf(['reg'])).keys.toSet(), {'cell'});
+  });
+
+  group('recordMoveGroups (issue #3790)', () {
+    setUp(() async {
+      await item('a');
+      await item('b');
+      await place('p');
+      await place('q');
+    });
+
+    test('writes every group', () async {
+      await moves.recordMoveGroups([
+        (equipmentIds: ['a'], locationId: 'p', movedAt: DateTime(2026)),
+        (equipmentIds: ['b'], locationId: 'q', movedAt: DateTime(2026, 2)),
+      ], note: ' back ');
+
+      final a = (await moves.getMovesFor('a')).single;
+      final b = (await moves.getMovesFor('b')).single;
+      expect(a.locationId, 'p');
+      expect(a.note, 'back');
+      expect(b.locationId, 'q');
+      expect(b.movedAt, DateTime(2026, 2));
+    });
+
+    test('a group that fails takes back the groups before it', () async {
+      await expectLater(
+        moves.recordMoveGroups([
+          (equipmentIds: ['a'], locationId: 'p', movedAt: DateTime(2026)),
+          (equipmentIds: ['b'], locationId: 'missing', movedAt: DateTime(2026)),
+        ]),
+        throwsA(anything),
+      );
+
+      expect(await moves.getMovesFor('a'), isEmpty);
+    });
+
+    test('tells sync once, after the commit', () async {
+      var events = 0;
+      final subscription = SyncEventBus.changes.listen((_) => events++);
+      addTearDown(subscription.cancel);
+
+      await moves.recordMoveGroups([
+        (equipmentIds: ['a'], locationId: 'p', movedAt: DateTime(2026)),
+        (equipmentIds: ['b'], locationId: 'q', movedAt: DateTime(2026)),
+      ]);
+      await pumpEventQueue();
+
+      expect(events, 1);
+    });
   });
 }

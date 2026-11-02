@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
@@ -78,11 +77,29 @@ DiveTank _startingTank(
   List<DiveTank> tanks,
   List<GasSwitchWithTank> sortedSwitches,
   int diveStart,
-) {
-  final first = sortedSwitches.firstOrNull;
+) => startingTankOf(
+  tanks: tanks,
+  switches: sortedSwitches.map((s) => s.gasSwitch),
+  diveStart: diveStart,
+)!;
+
+/// The cylinder the dive starts on, by the [_startingTank] rule, from bare
+/// switches in any order: one naming a cylinder not in [tanks] is ignored.
+/// Null when there are no cylinders.
+DiveTank? startingTankOf({
+  required List<DiveTank> tanks,
+  required Iterable<GasSwitch> switches,
+  required int diveStart,
+}) {
+  if (tanks.isEmpty) return null;
+  final tankIds = {for (final t in tanks) t.id};
+  final first = switches
+      .where((s) => tankIds.contains(s.tankId))
+      .sorted((a, b) => a.timestamp.compareTo(b.timestamp))
+      .firstOrNull;
   if (first != null &&
-      first.gasSwitch.timestamp <= diveStart + startingSwitchGraceSeconds) {
-    return tanks.firstWhere((t) => t.id == first.gasSwitch.tankId);
+      first.timestamp <= diveStart + startingSwitchGraceSeconds) {
+    return tanks.firstWhere((t) => t.id == first.tankId);
   }
   return sacReferenceTankOf(tanks)!;
 }
@@ -108,9 +125,10 @@ List<TankUsageWindow> tankUsageWindows({
 
   if (knownSwitches.isEmpty) {
     // Without switches only the primary gas is known to span the dive: the
-    // back gas, or either cylinder of a sidemount pair. A stage's window
-    // is unknown, and the whole dive would understate its rate.
-    if (tank.role != TankRole.backGas && !sidemountRoles.contains(tank.role)) {
+    // backmount gas, or either cylinder of a sidemount pair. A stage's
+    // window is unknown, and the whole dive would understate its rate.
+    if (!backmountRoles.contains(tank.role) &&
+        !sidemountRoles.contains(tank.role)) {
       return const [];
     }
     return [(start: diveStart, end: diveEnd)];

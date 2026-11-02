@@ -32,6 +32,7 @@ class ExportBottomSheet extends StatefulWidget {
       context: context,
       // Lets the sheet rise above the keyboard while the note is typed.
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => ExportBottomSheet(
         onSaveToFile: (note) {
           Navigator.of(context).pop();

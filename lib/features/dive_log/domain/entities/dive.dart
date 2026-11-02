@@ -172,6 +172,12 @@ class Dive extends Equatable {
   /// whose gas number is unrepresentative. Implied by [excludedFromStats];
   /// the implication is applied in SQL by DiveStatsScope, not stored here.
   final bool excludedFromGasStats;
+
+  /// The diver has saved a change to this dive's gas switches (issue #32),
+  /// so a re-parse and a file resync leave the switch list alone. Set only
+  /// by the gas switch writer; saving a dive never rewrites it. Carried by
+  /// the UDDF backup so a restored dive keeps its list.
+  final bool gasSwitchesEdited;
   final List<Tag> tags;
 
   // Dive mode (v1.5) - OC, CCR, or SCR
@@ -301,6 +307,7 @@ class Dive extends Equatable {
     this.isFavorite = false,
     this.excludedFromStats = false,
     this.excludedFromGasStats = false,
+    this.gasSwitchesEdited = false,
     this.tags = const [],
     // CCR/SCR fields (v1.5)
     this.diveMode = DiveMode.oc,
@@ -752,6 +759,7 @@ class Dive extends Equatable {
     bool? isFavorite,
     bool? excludedFromStats,
     bool? excludedFromGasStats,
+    bool? gasSwitchesEdited,
     List<Tag>? tags,
     // CCR/SCR fields
     DiveMode? diveMode,
@@ -858,6 +866,7 @@ class Dive extends Equatable {
       isFavorite: isFavorite ?? this.isFavorite,
       excludedFromStats: excludedFromStats ?? this.excludedFromStats,
       excludedFromGasStats: excludedFromGasStats ?? this.excludedFromGasStats,
+      gasSwitchesEdited: gasSwitchesEdited ?? this.gasSwitchesEdited,
       tags: tags ?? this.tags,
       // CCR/SCR fields
       diveMode: diveMode ?? this.diveMode,
@@ -966,6 +975,7 @@ class Dive extends Equatable {
     isFavorite,
     excludedFromStats,
     excludedFromGasStats,
+    gasSwitchesEdited,
     tags,
     // CCR/SCR fields
     diveMode,

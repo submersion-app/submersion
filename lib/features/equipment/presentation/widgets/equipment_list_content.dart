@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
@@ -24,7 +27,6 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -41,7 +43,6 @@ import 'package:submersion/shared/widgets/master_detail/list_position_restorer.d
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -484,6 +485,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                   actionsBuilder: _buildHeaderActions,
                   subtitle: equipmentListCountLabel(context, ref),
                 ),
+              _buildSearchHeader(),
               if (filter.hasActiveFilters)
                 _buildActiveFiltersBar(context, filter),
               Expanded(child: buildContent()),
@@ -508,15 +510,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     subtitle: equipmentListCountLabel(context, ref),
                   ),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.search),
+                    EntitySearchAction(
+                      subject: QuerySubject.equipment,
+                      active: ref.watch(equipmentFilterProvider).query != null,
                       tooltip: context.l10n.equipment_list_searchTooltip,
-                      onPressed: () {
-                        showSearch(
-                          context: context,
-                          delegate: EquipmentSearchDelegate(context.l10n),
-                        );
-                      },
                     ),
                     _buildFilterAction(context, filter),
                     IconButton(
@@ -566,6 +563,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 ),
           body: Column(
             children: [
+              _buildSearchHeader(),
               if (filter.hasActiveFilters)
                 _buildActiveFiltersBar(context, filter),
               Expanded(child: buildContent()),
@@ -869,6 +867,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 equipmentAsync.value ?? const <EquipmentItem>[],
                 SelectionBarShell.pane,
               ),
+            _buildSearchHeader(),
             if (filter.hasActiveFilters)
               _buildActiveFiltersBar(context, filter),
             Expanded(
@@ -966,16 +965,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     required bool dense,
   }) {
     return [
-      equipmentHeaderIconButton(
-        icon: const Icon(Icons.search, size: 20),
+      EntitySearchAction(
+        subject: QuerySubject.equipment,
+        active: ref.watch(equipmentFilterProvider).query != null,
         tooltip: context.l10n.equipment_list_searchTooltip,
-        dense: dense,
-        onPressed: () {
-          showSearch(
-            context: context,
-            delegate: EquipmentSearchDelegate(context.l10n),
-          );
-        },
+        compact: true,
       ),
       _buildFilterAction(
         context,
@@ -1042,6 +1036,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       ),
     );
   }
+
+  /// The search row (#3882): the equipment query, which the filter sheet's
+  /// query section also edits.
+  Widget _buildSearchHeader() => EntitySearchHeader(
+    subject: QuerySubject.equipment,
+    root: equipmentQueryEntity,
+    query: ref.watch(equipmentFilterProvider).query,
+    onChanged: (query) {
+      final notifier = ref.read(equipmentFilterProvider.notifier);
+      // Read at write time, so a change made during the debounce survives.
+      notifier.state = notifier.state.copyWith(
+        query: query,
+        clearQuery: query == null,
+      );
+    },
+  );
 
   /// The top-bar entry point to the filter panel, badged while anything is
   /// narrowed -- the same affordance the dive and site lists use.
@@ -1764,125 +1774,6 @@ class EquipmentListTile extends ConsumerWidget {
     }
 
     return typeLabel;
-  }
-}
-
-/// Search delegate for equipment
-class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
-  EquipmentSearchDelegate(this._l10n);
-
-  final AppLocalizations _l10n;
-
-  @override
-  String get searchFieldLabel => _l10n.equipment_search_fieldLabel;
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          tooltip: _l10n.equipment_search_clearTooltip,
-          onPressed: () => query = '',
-        ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      tooltip: _l10n.equipment_search_backTooltip,
-      onPressed: () => close(context, null),
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return _buildSearchResults(context);
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _l10n.equipment_search_hint,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return _buildSearchResults(context);
-  }
-
-  Widget _buildSearchResults(BuildContext context) {
-    return DebouncedSearchResults<EquipmentItem>(
-      query: query,
-      watchProvider: (ref, q) => ref.watch(equipmentSearchProvider(q)),
-      dataBuilder: (context, equipment) {
-        // A Consumer for the ref the labels need: they are computed across
-        // the results, so two identical hits can be told apart (#1549).
-        return Consumer(
-          builder: (context, ref, _) {
-            final labels = equipmentRowLabelsOf(context, ref, equipment);
-            return ListView.builder(
-              itemCount: equipment.length,
-              itemBuilder: (context, index) {
-                final item = equipment[index];
-                return EquipmentListTile(
-                  item: item,
-                  label: labels[item.id],
-                  // Opened over the search rather than in place of it, so back
-                  // from the detail returns to these results (#3377).
-                  onTap: () => context.push('/equipment/${item.id}'),
-                );
-              },
-            );
-          },
-        );
-      },
-      emptyBuilder: (context, query) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.search_off,
-                size: 64,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _l10n.equipment_search_noResults(query),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      errorBuilder: (context, error) {
-        return Center(child: Text(_l10n.equipment_list_errorLoading(error)));
-      },
-    );
   }
 }
 

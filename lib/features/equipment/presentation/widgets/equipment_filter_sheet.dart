@@ -30,6 +30,7 @@ Future<void> showEquipmentFilterSheet(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => EquipmentFilterSheet(ref: ref),
   );
 }

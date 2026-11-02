@@ -615,6 +615,9 @@ class _FailingRunner extends QueryIdSetRunner {
   _FailingRunner(super.db);
 
   @override
-  Future<Set<String>> ids(CompiledQuery compiled, {QueryScope? scope}) =>
-      Future.error(StateError('query failed'));
+  Future<Set<String>> ids(
+    CompiledQuery compiled, {
+    QueryScope? scope,
+    QueryCte? cte,
+  }) => Future.error(StateError('query failed'));
 }

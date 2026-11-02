@@ -19,6 +19,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 extension TankRoleDisplay on TankRole {
   String localizedName(AppLocalizations l10n) => switch (this) {
     TankRole.backGas => l10n.enum_tankRole_backGas,
+    TankRole.twinSet => l10n.enum_tankRole_twinSet,
     TankRole.stage => l10n.enum_tankRole_stage,
     TankRole.deco => l10n.enum_tankRole_deco,
     TankRole.bailout => l10n.enum_tankRole_bailout,
@@ -35,6 +36,7 @@ extension TankRoleDisplay on TankRole {
   /// the label beside the icon tells those apart.
   IconData get icon => switch (this) {
     TankRole.backGas => SubmersionIcons.tankBackGas,
+    TankRole.twinSet => SubmersionIcons.tankTwinSet,
     TankRole.sidemountLeft => SubmersionIcons.tankSidemountLeft,
     TankRole.sidemountRight => SubmersionIcons.tankSidemountRight,
     TankRole.stage ||

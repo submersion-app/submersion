@@ -46,7 +46,6 @@ void main() {
     isGettingLocation: false,
     onUseMyLocation: () {},
     onPickFromMap: () {},
-    onLookupFromCoordinates: null,
     units: const UnitFormatter(AppSettings()),
   );
 

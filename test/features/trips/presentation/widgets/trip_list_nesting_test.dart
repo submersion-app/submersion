@@ -129,7 +129,7 @@ void main() {
       (ref) => _TestTripTableConfigNotifier(),
     ),
     for (final t in known ?? all)
-      tripChecklistProgressProvider(
+      tripChecklistCombinedProgressProvider(
         t.id,
       ).overrideWith((ref) async => (done: 0, total: 0)),
   ];

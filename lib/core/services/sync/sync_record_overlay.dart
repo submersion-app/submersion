@@ -69,6 +69,11 @@ Map<String, dynamic> overlayOntoLocal(
   // An older peer's legacy spelling is moved to the current name first, or
   // the merged map would carry both and the apply-path rename would keep the
   // local value under the current name, dropping the peer's edit (#3025).
+  // A checklist row from below v336 names only its trip, and items never
+  // move between checklists, so the link this device holds stands.
+  if (legacyChecklistTripId(entityType, remote) != null) {
+    remote = {...remote}..remove('tripId');
+  }
   remote = withCurrentWireKeys(entityType, remote);
   final merged = {...local, ...remote};
   if (entityType == 'serviceSchedules' &&

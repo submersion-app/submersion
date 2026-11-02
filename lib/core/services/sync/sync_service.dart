@@ -8,6 +8,7 @@ import 'package:drift/drift.dart' show TableUpdate, Variable;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
+import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
@@ -57,6 +58,7 @@ import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/tag_fill_copy_merge.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
@@ -1444,27 +1446,32 @@ class SyncService {
           remotePayload,
           localLastSync,
         );
-        await _moveLegacyComputerTissueScalars();
+        await _repairLegacyPeerRows();
         return result;
       }),
     );
   }
 
+  /// Runs the data rungs over what was just applied, because this database
+  /// ran them before those rows arrived, or never ran them if it is new. Each
+  /// reads only rows still in the old shape, so it is a cheap no-op once every
+  /// peer is current, and each leaves the sync stamp alone, as its rung does:
+  /// the sending peer makes the same change when it upgrades.
+  ///
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
   /// dive's computer tissue snapshot, with the dive's own columns empty
-  /// (issue #2555). This database ran the v318 rung before that row
-  /// arrived, so run the same move over what was just applied: it reads
-  /// only snapshots that still name one of those keys, so it is a cheap
-  /// no-op once every peer is on v318. Leaves the sync stamp alone, as the
-  /// rung does: the sending peer makes the same move when it upgrades.
-  Future<void> _moveLegacyComputerTissueScalars() async {
+  /// (issue #2555). One below v337 publishes `weather_fetched_at` in
+  /// milliseconds, as does a sync store written before it (issue #4119).
+  Future<void> _repairLegacyPeerRows() async {
     try {
-      await moveComputerTissueScalars(DatabaseService.instance.database);
+      final db = DatabaseService.instance.database;
+      await repairWeatherFetchedAtSeconds(db);
+      await moveComputerTissueScalars(db);
     } catch (e, st) {
-      // The applied rows are already in place; losing this move costs only
+      // The applied rows are already in place; losing this repair costs only
       // the old values, never the sync.
       _log.warning(
-        'Moving legacy computer tissue values failed (non-fatal)',
+        'Repairing rows from an older peer failed (non-fatal)',
         error: e,
         stackTrace: st,
       );
@@ -1591,6 +1598,11 @@ class SyncService {
           (
             type: 'checklistTemplateItems',
             records: data.checklistTemplateItems,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'tripChecklists',
+            records: data.tripChecklists,
             hasUpdatedAt: true,
           ),
           (
@@ -2327,7 +2339,7 @@ class SyncService {
     } finally {
       await client?.dispose();
     }
-    await _moveLegacyComputerTissueScalars();
+    await _repairLegacyPeerRows();
     progress.done();
     _log.info(
       'Peer base applied in ${stopwatch.elapsed.inSeconds}s: '
@@ -2945,6 +2957,7 @@ class SyncService {
     'checklistTemplates': true,
     'checklistTemplateSections': true,
     'checklistTemplateItems': true,
+    'tripChecklists': true,
     'tripChecklistSections': true,
     'tripChecklistItems': true,
     'preDiveChecklistTemplates': true,
@@ -3503,9 +3516,11 @@ class SyncService {
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
     // v331: the saved center behind a Dive center place (issue #3623).
-    // Cleared, not skipped: the place outlives its center.
+    // Cleared, not skipped: the place outlives its center. So too its buddy
+    // (v334, issue #3790).
     'equipmentLocations': [
       (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+      (field: 'buddyId', parent: 'buddies', nullable: true),
     ],
     // v268: an item's location log. The place reference is cleared, not
     // skipped, when the place is gone: the move then reads "No location".
@@ -3553,11 +3568,12 @@ class SyncService {
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
       (field: 'sectionId', parent: 'checklistTemplateSections', nullable: true),
     ],
+    'tripChecklists': [(field: 'tripId', parent: 'trips', nullable: false)],
     'tripChecklistSections': [
-      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'checklistId', parent: 'tripChecklists', nullable: false),
     ],
     'tripChecklistItems': [
-      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'checklistId', parent: 'tripChecklists', nullable: false),
       (field: 'sectionId', parent: 'tripChecklistSections', nullable: true),
     ],
     'preDiveChecklistTemplateSections': [
@@ -3859,8 +3875,11 @@ class SyncService {
         // (e.g. a photo whose dive was deleted keeps the photo, sans dive link).
         var recordToApply = withoutDeviceLocalColumns(entityType, record);
         var droppedByParent = false;
+        // Under the current names: a checklist row from below v336 names its
+        // default checklist only once the legacy key is mapped.
+        final currentKeys = withCurrentWireKeys(entityType, record);
         for (final ref in entityParentRefs) {
-          final parentId = record[ref.field];
+          final parentId = currentKeys[ref.field];
           if (parentId is String &&
               (allTombstones[ref.parent]?.containsKey(parentId) ?? false) &&
               // A parent being revived in this same payload is NOT gone; keep

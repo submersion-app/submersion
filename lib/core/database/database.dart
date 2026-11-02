@@ -216,6 +216,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripItineraryDays,
     TripDayWeather,
     ChecklistTemplates,
+    // Multiple checklists per trip (v336, issue #3356)
+    TripChecklists,
     // Checklist sections (v297-298, issue #3360)
     TripChecklistSections,
     TripChecklistItems,
@@ -309,7 +311,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 332;
+  static const int currentSchemaVersion = 337;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -452,7 +454,18 @@ class AppDatabase extends _$AppDatabase {
   /// breaking. Peers below 308 are held until they update. Their own
   /// payloads still arrive here and decode cleanly: a concrete value is a
   /// valid override in the nullable columns.
-  static const int minimumCompatibleSchemaVersion = 308;
+  ///
+  /// Raised 308 -> 336 by multiple checklists per trip (#3356): v336
+  /// renames the synced columns trip_checklist_sections.trip_id and
+  /// trip_checklist_items.trip_id to checklist_id (now a reference to the
+  /// new trip_checklists row rather than the trip directly), which the
+  /// first rule above classifies as breaking the same way the v160 and
+  /// v170 column renames did. Peers below 336 are held until they update.
+  /// Their own payloads still arrive here, along with every base published
+  /// before the update: withCurrentWireKeys points a tripId-shaped row at
+  /// its trip's default checklist, and the serializer creates that
+  /// checklist when this device does not hold it yet.
+  static const int minimumCompatibleSchemaVersion = 336;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1515,6 +1528,22 @@ class AppDatabase extends _$AppDatabase {
     // v332: the per-device change log tables (issue #3922). Local only and
     // never synced, so the floor does not move.
     332,
+    // v333: dives.gas_switches_edited (issue #32). A defaulted column an
+    // older peer omits, so the compatibility floor does not move.
+    333,
+    // v334: equipment_locations.buddy_id, the buddy a Person place stands
+    // for (issue #3790).
+    334,
+    // v335: nav_tracks.scale_factor, a track's size against the map
+    // (issue #3823). A new defaulted column, so the floor does not move.
+    335,
+    // v336: trip_checklists, splitting one trip's single flat checklist
+    // into several named ones (issue #3356).
+    336,
+    // v337: dives.weather_fetched_at back to seconds where the bulk conditions
+    // fill wrote milliseconds (issue #4119). Data only, so the floor does not
+    // move.
+    337,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

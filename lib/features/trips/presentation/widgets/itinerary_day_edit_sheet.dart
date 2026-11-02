@@ -25,6 +25,7 @@ Future<void> showItineraryDayEditSheet({
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => _ItineraryDayEditSheet(
       day: day,
       tripId: tripId,

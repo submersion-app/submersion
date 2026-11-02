@@ -600,11 +600,22 @@ void main() {
             ),
           );
       await db
+          .into(db.tripChecklists)
+          .insert(
+            TripChecklistsCompanion.insert(
+              id: 'tc-a',
+              tripId: 'trip-a',
+              name: 'Checklist',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
           .into(db.tripChecklistSections)
           .insert(
             TripChecklistSectionsCompanion.insert(
               id: 'tcs-a',
-              tripId: 'trip-a',
+              checklistId: 'tc-a',
               title: 'Documents',
               createdAt: stale,
               updatedAt: stale,
@@ -615,7 +626,7 @@ void main() {
           .insert(
             TripChecklistItemsCompanion.insert(
               id: 'tci-a',
-              tripId: 'trip-a',
+              checklistId: 'tc-a',
               title: 'Passport',
               createdAt: stale,
               updatedAt: stale,
@@ -636,6 +647,7 @@ void main() {
             ),
           );
       return [
+        ('trip_checklists', 'tripChecklists', 'tc-a'),
         ('trip_checklist_sections', 'tripChecklistSections', 'tcs-a'),
         ('trip_checklist_items', 'tripChecklistItems', 'tci-a'),
         ('trip_day_weather', 'tripDayWeather', 'tdw-a'),
@@ -975,8 +987,7 @@ void main() {
       'liveaboard_detail_records.trip_id',
       'pre_dive_checklist_template_items.template_id',
       'pre_dive_checklist_template_sections.template_id',
-      'trip_checklist_items.trip_id',
-      'trip_checklist_sections.trip_id',
+      'trip_checklists.trip_id',
       'trip_day_weather.trip_id',
       'trip_cylinders.trip_id',
       'trip_itinerary_days.trip_id',
