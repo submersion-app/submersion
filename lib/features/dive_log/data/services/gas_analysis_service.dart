@@ -166,7 +166,9 @@ class GasAnalysisService {
   /// Calculate SAC segments using depth-phase segmentation.
   ///
   /// Automatically detects dive phases: descent, bottom, ascent, safety stop.
-  /// A hold inside one of [decoStops] is a deco stop, not a safety stop.
+  /// A hold inside one of [decoStops], or on a sample [ndlCurve] reads as in
+  /// deco, is a deco stop, not a safety stop. The curve catches the short stops
+  /// that are too brief to be a window.
   List<SacSegment>? calculatePhaseSegments({
     required List<DiveProfilePoint> profile,
     required List<DiveTank> tanks,
@@ -174,6 +176,7 @@ class GasAnalysisService {
     List<GasSwitchWithTank>? gasSwitches,
     DiveEnvironment environment = DiveEnvironment.standard,
     List<DecoStopWindow> decoStops = const [],
+    List<int> ndlCurve = const [],
   }) {
     if (profile.length < 10) return null;
 
@@ -189,7 +192,8 @@ class GasAnalysisService {
       final timestamp = profile[i].timestamp;
       var phase = _classifyPhase(profile, i, maxDepth);
       if (phase == DivePhase.safetyStop &&
-          decoStops.any((w) => timestamp >= w.start && timestamp <= w.end)) {
+          (decoStops.any((w) => timestamp >= w.start && timestamp <= w.end) ||
+              isDecoSample(profile, ndlCurve, i))) {
         phase = DivePhase.deco;
       }
       phasePoints.add((timestamp: timestamp, phase: phase));

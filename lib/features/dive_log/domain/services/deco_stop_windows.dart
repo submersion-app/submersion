@@ -51,9 +51,22 @@ typedef DecoStopWindow = ({int start, int end});
   );
 }
 
-/// Whether the diver reached [stop] with decompression still to do. What the
-/// computer recorded outranks the curve: some computers run a safety stop
-/// after light deco, and the curve can be the app's own model.
+/// Whether the sample at [index] reads as in deco. What the computer recorded
+/// outranks [ndlCurve], which can be the app's own model.
+bool isDecoSample(
+  List<DiveProfilePoint> profile,
+  List<int> ndlCurve,
+  int index,
+) {
+  final decoType = profile[index].decoType;
+  if (decoType == kDecoTypeDecoStop) return true;
+  if (decoType == kDecoTypeSafetyStop) return false;
+  return index < ndlCurve.length && ndlCurve[index] < 0;
+}
+
+/// Whether the diver reached [stop] with decompression still to do. Some
+/// computers run a safety stop after light deco, so one anywhere in the hold
+/// keeps it unless the computer called the arrival itself a deco stop.
 bool _owedOnArrival(
   DecoStopWindow stop,
   List<DiveProfilePoint> profile,
@@ -61,13 +74,12 @@ bool _owedOnArrival(
 ) {
   final arrival = profile.indexWhere((p) => p.timestamp == stop.start);
   if (arrival < 0) return false;
-  if (profile[arrival].decoType == kDecoTypeDecoStop) return true;
-  final computerSafetyStop = profile.any(
-    (p) =>
-        p.timestamp >= stop.start &&
-        p.timestamp <= stop.end &&
-        p.decoType == kDecoTypeSafetyStop,
-  );
-  if (computerSafetyStop) return false;
-  return arrival < ndlCurve.length && ndlCurve[arrival] < 0;
+  final computerSafetyStop = profile
+      .skip(arrival)
+      .takeWhile((p) => p.timestamp <= stop.end)
+      .any((p) => p.decoType == kDecoTypeSafetyStop);
+  if (computerSafetyStop && profile[arrival].decoType != kDecoTypeDecoStop) {
+    return false;
+  }
+  return isDecoSample(profile, ndlCurve, arrival);
 }

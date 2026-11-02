@@ -142,6 +142,7 @@ final phaseSegmentsProvider =
         gasSwitches: inputs.gasSwitches.isEmpty ? null : inputs.gasSwitches,
         environment: inputs.environment,
         decoStops: analysis?.decoStopWindows ?? const [],
+        ndlCurve: analysis?.ndlCurve ?? const [],
       );
     });
 

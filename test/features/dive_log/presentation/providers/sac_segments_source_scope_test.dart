@@ -220,6 +220,31 @@ void main() {
     expect(phases, isNot(contains(DivePhase.safetyStop)));
   });
 
+  test('phases read the analysis\'s NDL curve (#4079)', () async {
+    // 20 minutes at 20 m, then 6 minutes held at 5 m, all of it owing deco.
+    final points = [
+      for (var t = 0; t <= 1200; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 20),
+      for (var t = 1210; t <= 1570; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 5),
+    ];
+
+    final segments = await container(
+      sources: [source('a', 'primary-dc', isPrimary: true)],
+      profiles: const {},
+      switches: const [],
+      profile: points,
+      analysis: ProfileAnalysis.empty().copyWith(
+        ndlCurve: List.filled(points.length, -1),
+      ),
+    ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
+
+    expect(
+      segments!.map((s) => s.phase),
+      isNot(contains(DivePhase.safetyStop)),
+    );
+  });
+
   test('gas rows ignore another computer\'s switches', () async {
     final segments = await container(
       sources: twoComputers,

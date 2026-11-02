@@ -102,6 +102,17 @@ void main() {
       );
     });
 
+    test('loses it on the path that only carries cell millivolts', () {
+      final withMillivolts = [
+        for (final p in profile) p.copyWith(o2SensorMv1: 11),
+      ];
+
+      final (result, _) = overlayComputerDecoData(base, withMillivolts);
+
+      expect(result.o2CellMvCurves, isNotNull);
+      expect(safetyStops(result), isEmpty);
+    });
+
     test('reports the stop it removed as a deco stop window', () {
       final stops = safetyStops(base);
 
@@ -112,7 +123,7 @@ void main() {
       ]);
     });
 
-    test("keeps a safety stop the computer logged as an event", () {
+    test('keeps a safety stop the computer logged as an event', () {
       final recorded = ProfileEvent.safetyStop(
         id: 'recorded',
         diveId: 'dive',

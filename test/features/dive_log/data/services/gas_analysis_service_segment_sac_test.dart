@@ -684,6 +684,33 @@ void main() {
         expect(result, isNot(contains(DivePhase.safetyStop)));
       });
 
+      test('is a deco stop on a sample the NDL curve reads as in deco', () {
+        // Too short to be a window: a minute at 5 m, sampled every 2 seconds.
+        final short = <DiveProfilePoint>[
+          for (var t = 0; t < 600; t += 2)
+            DiveProfilePoint(timestamp: t, depth: 30),
+          for (var t = 600; t <= 660; t += 2)
+            DiveProfilePoint(timestamp: t, depth: 5),
+          for (var t = 662; t <= 720; t += 2)
+            DiveProfilePoint(timestamp: t, depth: 0),
+        ];
+        List<DivePhase?> shortPhases(List<int> ndlCurve) => service
+            .calculatePhaseSegments(
+              profile: short,
+              tanks: const [tank],
+              tankPressures: {'t1': linearPressure('t1', 200, 80, 720)},
+              ndlCurve: ndlCurve,
+            )!
+            .map((s) => s.phase)
+            .toList();
+
+        expect(shortPhases(const []), contains(DivePhase.safetyStop));
+        expect(
+          shortPhases(List.filled(short.length, -1)),
+          isNot(contains(DivePhase.safetyStop)),
+        );
+      });
+
       test('stays a safety stop outside every window', () {
         final result = phases(const [(start: 0, end: 300)]);
 
