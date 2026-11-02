@@ -421,5 +421,45 @@ class MainTest(unittest.TestCase):
         self.assertIn("--total-shards must be at least 1", err)
 
 
+class DiscoverExcludeTest(unittest.TestCase):
+    """--exclude-dir keeps a directory's tests out of every bundle: the
+    browser suite under test/web is @TestOn('browser'), which a VM shard
+    would only skip (issue #4121)."""
+
+    def test_an_excluded_directory_is_skipped_entirely(self):
+        with tempfile.TemporaryDirectory() as root:
+            for name in ("a/x_test.dart", "web/y_test.dart", "web/deep/z_test.dart"):
+                path = os.path.join(root, *name.split("/"))
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w", encoding="utf-8") as handle:
+                    handle.write(PLAIN)
+            found = bundler.discover(
+                root,
+                os.path.join(root, ".bundles"),
+                exclude_dirs=[os.path.join(root, "web")],
+            )
+            self.assertEqual(
+                [os.path.relpath(path, root) for path in found],
+                [os.path.join("a", "x_test.dart")],
+            )
+
+    def test_the_flag_is_repeatable(self):
+        with tempfile.TemporaryDirectory() as root:
+            for name in ("a/x_test.dart", "b/y_test.dart", "c/z_test.dart"):
+                path = os.path.join(root, *name.split("/"))
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w", encoding="utf-8") as handle:
+                    handle.write(PLAIN)
+            found = bundler.discover(
+                root,
+                os.path.join(root, ".bundles"),
+                exclude_dirs=[os.path.join(root, "a"), os.path.join(root, "c")],
+            )
+            self.assertEqual(
+                [os.path.relpath(path, root) for path in found],
+                [os.path.join("b", "y_test.dart")],
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

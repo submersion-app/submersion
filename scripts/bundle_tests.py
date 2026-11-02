@@ -60,13 +60,15 @@ def read_text(path):
         return handle.read()
 
 
-def discover(root, out_dir):
-    """Every *_test.dart under root, as sorted posix paths, skipping out_dir."""
-    skip = to_posix(out_dir)
+def discover(root, out_dir, exclude_dirs=()):
+    """Every *_test.dart under root, as sorted posix paths, skipping out_dir
+    and every directory in exclude_dirs (the browser suite, which a VM
+    shard could only skip)."""
+    skipped = [to_posix(out_dir)] + [to_posix(path) for path in exclude_dirs]
     found = []
     for directory, subdirs, names in os.walk(root):
         here = to_posix(directory)
-        if here == skip or here.startswith(skip + "/"):
+        if any(here == skip or here.startswith(skip + "/") for skip in skipped):
             subdirs[:] = []
             continue
         subdirs.sort()
@@ -273,7 +275,7 @@ def select(args, parser):
             "bundle": True,
         }]
     units = build_units(
-        discover(TEST_ROOT, args.out), read_text, args.max_files
+        discover(TEST_ROOT, args.out, args.exclude_dir), read_text, args.max_files
     )
     if args.containing:
         wanted = to_posix(args.containing)
@@ -294,6 +296,13 @@ def main(argv=None):
     parser.add_argument("--total-shards", type=int, default=1)
     parser.add_argument("--out", default=DEFAULT_OUT)
     parser.add_argument("--max-files", type=int, default=DEFAULT_MAX_FILES)
+    parser.add_argument(
+        "--exclude-dir",
+        action="append",
+        default=[],
+        metavar="DIR",
+        help="leave every test file under this directory out (repeatable)",
+    )
     parser.add_argument(
         "--containing",
         metavar="TEST_FILE",

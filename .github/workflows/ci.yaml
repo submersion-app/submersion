@@ -464,6 +464,7 @@ jobs:
           # guard below pass the shard without running anything.
           python3 scripts/bundle_tests.py \
             --shard "${{ matrix.shard }}" --total-shards "${TOTAL_SHARDS}" \
+            --exclude-dir test/web \
             > bundle-paths.txt
           mapfile -t paths < bundle-paths.txt
           echo "Shard ${{ matrix.shard }}/${TOTAL_SHARDS}: ${#paths[@]} entrypoints"
@@ -909,6 +910,185 @@ jobs:
           files: coverage/scripts.xml
           flags: scripts
           fail_ci_if_error: false
+
+  # The browser app (issue #4121): a release web build with the hosting
+  # files, checked by scripts/check_web_bundle.py, and its Dockerfile built
+  # once per run so it cannot rot. Nothing is pushed or published; the
+  # bundle is an artifact the smoke job serves.
+  web-build:
+    name: Web Build
+    needs: [changes, codegen]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
+
+      - name: Build the web bundle
+        run: scripts/build_web.sh
+
+      - name: Build the hosting image (never pushed)
+        run: docker build -f build/web/Dockerfile -t submersion-web:ci build/web
+
+      - name: Upload the web bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-bundle
+          path: build/web
+          if-no-files-found: error
+          retention-days: 5
+
+  # The browser suite (issue #4121): test/web in Chrome against two MinIO
+  # stores, one admitting every origin and one admitting only another
+  # site, so the S3 round trip and the CORS diagnoser run for real. A
+  # `services:` entry cannot pass the `server /data` command the minio
+  # image needs, so a step starts the two containers and waits on their
+  # health endpoints.
+  web-tests:
+    name: Web Tests (Chrome)
+    needs: [changes, codegen]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_BUCKET: submersion-test
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Start MinIO, open to every origin and refusing this one
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
+            -e MINIO_API_CORS_ALLOW_ORIGIN='*' \
+            minio/minio:latest server /data
+          docker run -d --name minio-nocors -p 9001:9000 \
+            -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
+            -e MINIO_API_CORS_ALLOW_ORIGIN='https://example.invalid' \
+            minio/minio:latest server /data
+          for port in 9000 9001; do
+            for attempt in $(seq 1 30); do
+              if curl -sf "http://localhost:$port/minio/health/live" > /dev/null; then
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                echo "::error::MinIO on port $port did not come up"
+                docker logs minio minio-nocors || true
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
+      - name: Create the bucket on both stores
+        run: |
+          curl -sSfL https://dl.min.io/client/mc/release/linux-amd64/mc \
+            -o "$RUNNER_TEMP/mc"
+          chmod +x "$RUNNER_TEMP/mc"
+          "$RUNNER_TEMP/mc" alias set open http://localhost:9000 \
+            "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+          "$RUNNER_TEMP/mc" alias set nocors http://localhost:9001 \
+            "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+          "$RUNNER_TEMP/mc" mb --ignore-existing "open/$MINIO_BUCKET"
+          "$RUNNER_TEMP/mc" mb --ignore-existing "nocors/$MINIO_BUCKET"
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
+
+      - name: Stage sqlite3.wasm and the workers for the browser tests
+        run: |
+          scripts/web/fetch_sqlite3_wasm.sh
+          scripts/web/compile_workers.sh
+
+      - name: Seed the sync library
+        # A flutter test run as a tool (tool/seed_sync_library_test.dart):
+        # two divers, a site, a buddy and five dives, published under the
+        # device id seed-device for the round trip to pull.
+        run: |
+          flutter test tool/seed_sync_library_test.dart \
+            --file-reporter "json:$RUNNER_TEMP/seed-report.json" \
+            --dart-define=MINIO_ENDPOINT=http://localhost:9000 \
+            --dart-define=MINIO_BUCKET="$MINIO_BUCKET" \
+            --dart-define=MINIO_ACCESS_KEY="$MINIO_ROOT_USER" \
+            --dart-define=MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
+
+      - name: Run the browser suite
+        run: |
+          flutter test --platform chrome test/web \
+            --file-reporter "json:$RUNNER_TEMP/web-report.json" \
+            --dart-define=MINIO_ENDPOINT=http://localhost:9000 \
+            --dart-define=MINIO_NOCORS_ENDPOINT=http://localhost:9001 \
+            --dart-define=MINIO_BUCKET="$MINIO_BUCKET" \
+            --dart-define=MINIO_ACCESS_KEY="$MINIO_ROOT_USER" \
+            --dart-define=MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
+          # A skipped test exits 0: the store tests skip without their
+          # defines, so a job that lost them would pass with nothing run.
+          python3 scripts/check_no_skipped_tests.py \
+            "$RUNNER_TEMP/seed-report.json" "$RUNNER_TEMP/web-report.json"
 
   # Platform-agnostic integration tests (#2940). They exercise Dart code, the
   # bundled SQLCipher and the desktop UI, none of which needs macOS, so they
@@ -1885,6 +2065,8 @@ jobs:
       - test
       - timezone-tests
       - script-tests
+      - web-build
+      - web-tests
       - integration-test
       - integration-test-macos
       - fastlane-bundles

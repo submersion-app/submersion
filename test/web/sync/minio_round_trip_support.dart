@@ -22,6 +22,7 @@ const List<String> kSeededDiveIds = [
 ];
 
 const String _endpoint = String.fromEnvironment('MINIO_ENDPOINT');
+const String _noCorsEndpoint = String.fromEnvironment('MINIO_NOCORS_ENDPOINT');
 const String _bucket = String.fromEnvironment('MINIO_BUCKET');
 const String _accessKey = String.fromEnvironment('MINIO_ACCESS_KEY');
 const String _secretKey = String.fromEnvironment('MINIO_SECRET_KEY');
@@ -31,6 +32,21 @@ S3Config? minioConfigFromEnvironment() => _endpoint.isEmpty
     ? null
     : S3Config(
         endpoint: _endpoint,
+        bucket: _bucket,
+        accessKeyId: _accessKey,
+        secretAccessKey: _secretKey,
+      );
+
+/// The skip reason of the test that needs a second store refusing this
+/// site's origin.
+const String minioNoCorsSkipReason = 'MINIO_NOCORS_ENDPOINT not set';
+
+/// The same store served a second time with a CORS rule that names some
+/// other site, or null when `MINIO_NOCORS_ENDPOINT` was not given.
+S3Config? minioNoCorsConfigFromEnvironment() => _noCorsEndpoint.isEmpty
+    ? null
+    : S3Config(
+        endpoint: _noCorsEndpoint,
         bucket: _bucket,
         accessKeyId: _accessKey,
         secretAccessKey: _secretKey,

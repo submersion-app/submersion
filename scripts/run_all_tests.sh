@@ -82,7 +82,10 @@ bundle_suite() {
     local list line
     ENTRYPOINTS=()
     rm -rf "$BUNDLE_DIR"
+    # test/web is the browser suite (@TestOn('browser')): a VM run could
+    # only skip it. It runs with `flutter test --platform chrome test/web`.
     list="$(python3 scripts/bundle_tests.py --total-shards 1 \
+        --exclude-dir test/web \
         --max-files "$1" --out "$BUNDLE_DIR" 2>/dev/null || true)"
     [ -n "$list" ] || return 0
     # A native Windows python3 under Git Bash ends each line with CRLF.
