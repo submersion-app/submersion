@@ -8,20 +8,20 @@ import 'package:submersion/features/trips/presentation/pages/trip_day_map_page.d
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/today_anchored_scroll_view.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_checklist_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_hero_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
-/// The assembled trip story, one plain scroll (#2845): hero, stat strip, the
-/// cylinders line while under way, and one chapter per day, each with its
-/// own map. While the trip is under way it opens at today: today's chapter is
+/// The assembled trip story, one plain scroll (#2845): the hero card with the
+/// trip's stats (#4106), the cylinders line while under way, and one chapter
+/// per day, each with its own map. While the trip is under way it opens at today: today's chapter is
 /// the scroll's anchor, with the hero and earlier days above it.
 class TripStoryView extends ConsumerWidget {
   /// Marks the sliver that opens at the top of the view on a trip under way.
@@ -72,10 +72,10 @@ class TripStoryView extends ConsumerWidget {
     return ids.length;
   }
 
-  /// One day chapter: its header, then its card (the day's own map, dives,
-  /// photos, sightings). Every day gets the same header, surface days
-  /// included; theirs simply has no body under it. Today's header carries its
-  /// own Today chip.
+  /// One day chapter: its card, opening with the day's header over its own
+  /// map, then dives, photos and sightings. Every day gets the same header,
+  /// surface days included; theirs simply has no body under it. Today's
+  /// header carries its own Today chip.
   Widget _dayChapter(
     BuildContext context,
     int index,
@@ -87,28 +87,22 @@ class TripStoryView extends ConsumerWidget {
     // how the two came apart: it silently found nothing and every badge
     // disappeared.
     final stored = storedWeather[tripDayMillis(day.date)];
-    return Column(
+    // Ordinary scrolling content: nothing on the story is pinned (#2845). The
+    // card opens with the day's own header (#4106); its 8px bottom inset is
+    // the gap between consecutive chapters. The card gets the day's own map
+    // points.
+    return Padding(
       key: ValueKey(day.date),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Ordinary scrolling content: nothing on the story is pinned (#2845).
-        TripStoryDayHeader(day: day, storedWeather: stored?.toStoryWeather()),
-        // Its 8px bottom inset is the gap between consecutive chapters; the
-        // headings carry a surfaceContainer tint, so the page-surface gap
-        // reads as air between one chapter's card and the next chapter's
-        // tinted band. The card gets the day's own map points.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: TripStoryDayCard(
-            key: ValueKey(day.date),
-            day: day,
-            tripId: story.trip.id,
-            mapPoints: story.mapGeometry.pointsForDay(index),
-            onExpandMap: (day, points) =>
-                showTripDayMapPage(context, day: day, points: points),
-          ),
-        ),
-      ],
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: TripStoryDayCard(
+        key: ValueKey(day.date),
+        day: day,
+        tripId: story.trip.id,
+        storedWeather: stored?.toStoryWeather(),
+        mapPoints: story.mapGeometry.pointsForDay(index),
+        onExpandMap: (day, points) =>
+            showTripDayMapPage(context, day: day, points: points),
+      ),
     );
   }
 
@@ -140,12 +134,28 @@ class TripStoryView extends ConsumerWidget {
       SliverPadding(
         padding: const EdgeInsets.all(16),
         sliver: SliverToBoxAdapter(
-          child: TripStoryHero(story: story, onScanForDives: onScanForDives),
+          child: TripHeroCard(
+            story: story,
+            stats: stats,
+            siteCount: _siteCount,
+          ),
         ),
       ),
-      SliverToBoxAdapter(
-        child: TripStatStrip(stats: stats, siteCount: _siteCount),
-      ),
+      // The hero's companions, as ordinary content under the card: the
+      // checklist while the trip is still ahead, the prompt to find dives
+      // when the story has nothing to tell.
+      if (trip.isUpcoming && !story.checklist.isEmpty)
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          sliver: SliverToBoxAdapter(child: TripChecklistCard(story: story)),
+        ),
+      if (story.isEmpty)
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          sliver: SliverToBoxAdapter(
+            child: TripStoryEmptyState(onScanForDives: onScanForDives),
+          ),
+        ),
     ];
     // The cards that matter while the trip is under way: what is left in the
     // cylinders, and how long until the no-fly window before the flight home.

@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
@@ -19,14 +21,28 @@ import 'package:submersion/features/trips/presentation/widgets/day/day_format.da
 import 'package:submersion/features/trips/presentation/widgets/day/today_card_shape.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// One day chapter of the trip story: the day's own map when it has points
-/// (#2845), the summary band, the dive rows, photos and sightings.
+/// One day chapter of the trip story (#2845): the day's header over its own
+/// map when it has points, the day summary (stats, rhythm bar, conditions),
+/// then the dive rows, photos and sightings, all in one card (#4106). The
+/// header sits in the map's fade the way the dive detail header does; a day
+/// with no map points leads with the header on the plain card, and a surface
+/// day is nothing but that header.
 class TripStoryDayCard extends ConsumerStatefulWidget {
+  /// How much of the day's map shows above the header row. The backdrop fade
+  /// turns opaque under the row, so the row stays readable while the pins
+  /// above it stay tappable.
+  static const double mapPeekHeight = 120;
+
   final TripStoryDay day;
   final String tripId;
+
+  /// Weather stored for this day, passed down by the story view from one
+  /// per-trip read. Null when nothing is stored yet.
+  final TripStoryDayWeather? storedWeather;
 
   /// The day's map points (`TripStoryMapGeometry.pointsForDay`); none hides
   /// the map.
@@ -40,6 +56,7 @@ class TripStoryDayCard extends ConsumerStatefulWidget {
     super.key,
     required this.day,
     required this.tripId,
+    this.storedWeather,
     this.mapPoints = const [],
     this.onExpandMap,
   });
@@ -87,11 +104,9 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
     final diveTypeListVisibilityPredicate =
         watchDiveTypeListVisibilityPredicate(ref);
 
-    // The day title, subtitle, and Planned chip live in the sticky
-    // TripStoryDayHeader above this card; the card is body-only. A day with
-    // nothing to show would produce an empty card, so skip it entirely. A
-    // surface day has nothing by definition and takes the same exit: its
-    // header is the whole chapter.
+    // The card is the whole chapter: the header row leads it, over the
+    // day's map when there is one. A day with nothing else to show (a
+    // surface day, a planned day with no plan) is just that row.
     final historySite = TripStoryDayPlan.historySite(day);
     final hasHistory =
         historySite != null &&
@@ -102,15 +117,12 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                 0) >
             0;
     final hasPlan = TripStoryDayPlan.hasContent(day, hasHistory: hasHistory);
+    final hasMap = widget.mapPoints.isNotEmpty;
     final hasBody =
-        widget.mapPoints.isNotEmpty ||
         day.dives.isNotEmpty ||
         day.media.isNotEmpty ||
         day.sightings.isNotEmpty ||
         hasPlan;
-    if (!hasBody) {
-      return const SizedBox.shrink();
-    }
 
     // Today's card carries the header's emphasis down its edge; a day ahead
     // keeps the quiet outline that marks it as only a plan.
@@ -122,24 +134,26 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
       ),
       TripStoryDayKind.past => null,
     };
-    return Card(
-      shape: shape,
-      child: Opacity(
-        opacity: _isPlanned ? 0.85 : 1,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          // Three zones with deliberate visual weight: a tinted day-at-a-glance
-          // band (stats + rhythm), the untinted dive rows as the dominant
-          // middle, and captioned photo/species clusters at the tail. Gaps
-          // follow the grouping: tight inside a zone, 16 between zones.
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+
+    final header = TripStoryDayHeader(
+      day: day,
+      storedWeather: widget.storedWeather,
+    );
+    // With a map the header sits in its fade: the backdrop fills the stack,
+    // which the padded header sizes, so the map runs mapPeekHeight above the
+    // row and the fade is opaque under it. Scaled text grows the row and the
+    // stack with it rather than pushing the row out of the opaque band.
+    final Widget top = hasMap
+        ? Stack(
             children: [
-              if (widget.mapPoints.isNotEmpty) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: SizedBox(
-                    height: 180,
+              // Resolved under the Card, so the fade ends in the colour the
+              // card actually paints.
+              Positioned.fill(
+                child: Builder(
+                  builder: (context) => HeaderMapBackdrop(
+                    fadeColor: backdropColorOf(context),
+                    // The pins above the header row stay tappable.
+                    passesPointerThrough: true,
                     child: TripDayMap(
                       day: day,
                       points: widget.mapPoints,
@@ -154,104 +168,137 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-              ],
-              // The plan reads first: what the day was meant to be, then
-              // what it became.
-              if (hasPlan) ...[
-                TripStoryDayPlan(
-                  day: day,
-                  units: units,
-                  hasHistory: hasHistory,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  16,
+                  TripStoryDayCard.mapPeekHeight,
+                  16,
+                  0,
                 ),
-                if (day.dives.isNotEmpty) const SizedBox(height: 12),
-              ],
-              if (day.dives.isNotEmpty) ...[
-                _DaySummaryBand(day: day, units: units),
-                const SizedBox(height: 12),
-                ...day.dives.mapIndexed(
-                  (index, dive) => KeyedSubtree(
-                    key: _rowKeys.putIfAbsent(dive.id, GlobalKey.new),
-                    child: DiveListItem(
-                      summary: DiveSummary.fromDive(dive),
-                      diveTypeLabelResolver: diveTypeLabelResolver,
-                      diveTypeShortLabelResolver: diveTypeShortLabelResolver,
-                      diveTypeListVisibilityPredicate:
-                          diveTypeListVisibilityPredicate,
-                      // Pass the story's Dive so the configurable card can
-                      // resolve fields absent from the summary (tanks, SAC,
-                      // buddies, weights). Its profile is empty unless the
-                      // dive's row needed its samples (issue #3831).
-                      fullDive: dive,
-                      diveNumber: dive.diveNumber ?? index + 1,
-                      isHighlighted: dive.id == _highlightedDiveId,
-                      onTap: () {
-                        if (_highlightedDiveId == dive.id) {
-                          setState(() => _highlightedDiveId = null);
-                        }
-                        context.push('/dives/${dive.id}');
-                      },
-                    ),
-                  ),
-                ),
-              ],
-              if (day.media.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _SectionCaption(text: context.l10n.trips_photos_sectionTitle),
-                const SizedBox(height: 6),
-                _PhotoStrip(
-                  tripId: tripId,
-                  media: day.media,
-                  totalCount: day.mediaCount,
-                ),
-              ],
-              if (day.sightings.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _SectionCaption(
-                  text: context.l10n.trips_detail_stat_speciesSeen,
-                ),
-                const SizedBox(height: 6),
-                _SightingChips(day: day),
-              ],
+                child: header,
+              ),
             ],
-          ),
+          )
+        : Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: header,
+          );
+
+    return Card(
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
+      child: Opacity(
+        opacity: _isPlanned ? 0.85 : 1,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            top,
+            // Three zones with deliberate visual weight: the day summary
+            // (stats, rhythm, conditions) under the header, the dive rows as
+            // the dominant middle, and captioned photo/species clusters at
+            // the tail. Gaps follow the grouping: tight inside a zone, 16
+            // between zones.
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, hasBody ? 12 : 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // The plan reads first: what the day was meant to be, then
+                  // what it became.
+                  if (hasPlan) ...[
+                    TripStoryDayPlan(
+                      day: day,
+                      units: units,
+                      hasHistory: hasHistory,
+                    ),
+                    if (day.dives.isNotEmpty) const SizedBox(height: 12),
+                  ],
+                  if (day.dives.isNotEmpty) ...[
+                    _DaySummary(day: day, units: units),
+                    const SizedBox(height: 12),
+                    ...day.dives.mapIndexed(
+                      (index, dive) => KeyedSubtree(
+                        key: _rowKeys.putIfAbsent(dive.id, GlobalKey.new),
+                        child: DiveListItem(
+                          summary: DiveSummary.fromDive(dive),
+                          diveTypeLabelResolver: diveTypeLabelResolver,
+                          diveTypeShortLabelResolver:
+                              diveTypeShortLabelResolver,
+                          diveTypeListVisibilityPredicate:
+                              diveTypeListVisibilityPredicate,
+                          // Pass the story's Dive so the configurable card
+                          // can resolve fields absent from the summary
+                          // (tanks, SAC, buddies, weights). Its profile is
+                          // empty unless the dive's row needed its samples
+                          // (issue #3831).
+                          fullDive: dive,
+                          diveNumber: dive.diveNumber ?? index + 1,
+                          isHighlighted: dive.id == _highlightedDiveId,
+                          onTap: () {
+                            if (_highlightedDiveId == dive.id) {
+                              setState(() => _highlightedDiveId = null);
+                            }
+                            context.push('/dives/${dive.id}');
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (day.media.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _SectionCaption(
+                      text: context.l10n.trips_photos_sectionTitle,
+                    ),
+                    const SizedBox(height: 6),
+                    _PhotoStrip(
+                      tripId: tripId,
+                      media: day.media,
+                      totalCount: day.mediaCount,
+                    ),
+                  ],
+                  if (day.sightings.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _SectionCaption(
+                      text: context.l10n.trips_detail_stat_speciesSeen,
+                    ),
+                    const SizedBox(height: 6),
+                    _SightingChips(day: day),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// The day-at-a-glance cluster: stat strip plus 24h rhythm bar, visually
-/// bounded by a subtle tint so it reads as one summary unit above the dive
-/// rows rather than as loose siblings of them.
-class _DaySummaryBand extends StatelessWidget {
+/// The day-at-a-glance cluster: stat strip, 24h rhythm bar and conditions,
+/// grouped by spacing alone under the header so the card's top reads as one
+/// hero rather than a tinted box inside a card (#4106).
+class _DaySummary extends StatelessWidget {
   final TripStoryDay day;
   final UnitFormatter units;
 
-  const _DaySummaryBand({required this.day, required this.units});
+  const _DaySummary({required this.day, required this.units});
 
   @override
   Widget build(BuildContext context) {
     final conditions = DayConditions.fromDives(day.dives);
-    return Container(
-      key: const Key('day-summary-band'),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _DayStatStrip(day: day, units: units),
-          const SizedBox(height: 10),
-          DayRhythmBar(dives: day.dives),
-          if (!conditions.isEmpty) ...[
-            const SizedBox(height: 8),
-            DayConditionsLine(conditions: conditions, units: units),
-          ],
+    return Column(
+      key: const Key('day-summary'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _DayStatStrip(day: day, units: units),
+        const SizedBox(height: 10),
+        DayRhythmBar(dives: day.dives),
+        if (!conditions.isEmpty) ...[
+          const SizedBox(height: 8),
+          DayConditionsLine(conditions: conditions, units: units),
         ],
-      ),
+      ],
     );
   }
 }

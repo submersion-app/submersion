@@ -79,21 +79,45 @@ void main() {
     expect(find.text('Sites visited'), findsNothing);
   });
 
-  testWidgets('stat strip renders as a tinted band', (tester) async {
-    // The tint visually welds the strip to the map above it, bounding the
-    // trip-summary region instead of floating the numbers on the page surface.
+  testWidgets('stat strip paints no band of its own', (tester) async {
+    // It is the bottom row of the hero card (#4106): the card's backdrop
+    // shows through, so a tint here would print a grey bar across the fade.
     final stats = TripWithStats(trip: _trip(), diveCount: 14);
     await pumpStrip(tester, stats);
 
-    final container = tester.widget<Container>(
-      find
-          .descendant(
-            of: find.byType(TripStatStrip),
-            matching: find.byType(Container),
-          )
-          .first,
+    expect(
+      find.descendant(
+        of: find.byType(TripStatStrip),
+        matching: find.byWidgetPredicate(
+          (w) => w is Container && (w.color != null || w.decoration != null),
+        ),
+      ),
+      findsNothing,
     );
-    final context = tester.element(find.byType(TripStatStrip));
-    expect(container.color, Theme.of(context).colorScheme.surfaceContainerLow);
+  });
+
+  testWidgets('a foreground colour reaches values and labels', (tester) async {
+    final stats = TripWithStats(trip: _trip(), diveCount: 14);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides.cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TripStatStrip(stats: stats, color: Colors.white),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.widget<Text>(find.text('14')).style?.color, Colors.white);
+    expect(
+      tester.widget<Text>(find.text('Total Dives')).style?.color,
+      Colors.white.withValues(alpha: 0.85),
+    );
   });
 }
