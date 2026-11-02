@@ -247,8 +247,8 @@ therefore the id; the next connection is a new device, which is correct.
 The device name on native comes from a platform channel or the hostname.
 Neither exists in a browser. The web variant of the display-name service
 derives "Chrome on Windows", "Safari on macOS", "Firefox on Linux" from the
-user agent's client hints, with "Browser" as the fallback. The user can
-rename it in Settings as they can any device.
+user agent, with "Browser" as the fallback. The name is derived, not
+editable: the app has no device rename today, for any device.
 
 Two tabs of the same site share one browser database and one device id.
 Drift serialises database access across tabs. Publishing gets a Web Locks
