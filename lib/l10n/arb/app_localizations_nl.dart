@@ -6971,10 +6971,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Coördinaten gevonden via adres';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard =>
-      'Gekopieerd naar klembord';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '\"$name\" geïmporteerd';
   }
@@ -50586,6 +50582,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get common_action_copy => 'Kopiëren';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'Gekopieerd naar klembord';
 
   @override
   String get settings_appearance_customGradient_title =>

@@ -6996,9 +6996,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Koordináták megtalálva a címből';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard => 'Vágólapra másolva';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'Importálva: \"$name\"';
   }
@@ -50622,6 +50619,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get common_action_copy => 'Másolás';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'Vágólapra másolva';
 
   @override
   String get settings_appearance_customGradient_title => 'Egyéni színátmenet';

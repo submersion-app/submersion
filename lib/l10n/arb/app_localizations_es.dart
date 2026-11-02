@@ -7019,10 +7019,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Coordenadas encontradas desde dirección';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard =>
-      'Copiado al portapapeles';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'Importado \"$name\"';
   }
@@ -50949,6 +50945,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get common_action_copy => 'Copiar';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'Copiado al portapapeles';
 
   @override
   String get settings_appearance_customGradient_title =>

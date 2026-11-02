@@ -7014,9 +7014,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Coordinate trovate dall\'indirizzo';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard => 'Copiato negli appunti';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'Importato \"$name\"';
   }
@@ -50914,6 +50911,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get common_action_copy => 'Copia';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'Copiato negli appunti';
 
   @override
   String get settings_appearance_customGradient_title =>

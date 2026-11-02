@@ -6865,9 +6865,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'קואורדינטות נמצאו מהכתובת';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard => 'הועתק ללוח';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'יובא \"$name\"';
   }
@@ -49840,6 +49837,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get common_action_copy => 'העתקה';
+
+  @override
+  String get common_snackbar_copiedToClipboard => 'הועתק ללוח';
 
   @override
   String get settings_appearance_customGradient_title =>
