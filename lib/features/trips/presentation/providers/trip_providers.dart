@@ -111,6 +111,9 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
   // The per-trip stats aggregate the trip's dives, so a merge or a bulk delete
   // changes them without the trips table being written (issue #958).
   ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchMeasuredRuntimeChanges(),
+  );
   return repository.getAllTripsWithStats(diverId: validatedDiverId);
 });
 
@@ -263,6 +266,7 @@ final tripWithStatsProvider = FutureProvider.family<TripWithStats, String>((
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
 
   ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+  ref.invalidateSelfWhen(diveRepository.watchMeasuredRuntimeChanges());
   ref.invalidateSelfWhen(repository.watchTripsChanges());
 
   return repository.getTripWithStats(tripId, diverId: diverId);
@@ -315,6 +319,8 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   // buddy names, and a rename or a synced buddy link never restamps the dive
   // row (#1769, #3039).
   ref.invalidateSelfWhen(diveRepository.watchDivesChangesWithBuddyLinks());
+  // The day rows' runtime, to match the trip total above them.
+  ref.invalidateSelfWhen(diveRepository.watchMeasuredRuntimeChanges());
   // And a side trip linked or unlinked (issue #3658).
   ref.invalidateSelfWhen(tripRepository.watchTripsChanges());
 
@@ -385,8 +391,13 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
         .read(diveRepositoryProvider)
         .watchDivesChanges()
         .listen((_) => _silentReload());
+    final runtimeChangeSub = _ref
+        .read(diveRepositoryProvider)
+        .watchMeasuredRuntimeChanges()
+        .listen((_) => _silentReload());
     _ref.onDispose(tripsChangeSub.cancel);
     _ref.onDispose(divesChangeSub.cancel);
+    _ref.onDispose(runtimeChangeSub.cancel);
   }
 
   Future<void> _initializeAndLoad() async {

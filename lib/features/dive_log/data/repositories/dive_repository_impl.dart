@@ -242,16 +242,15 @@ class DiveRepository {
   /// pressures, gas switches, equipment and media, none of which the list
   /// reads, and every one of which would reload the whole list for nothing.
   ///
-  /// One known gap, taken on purpose. `dive_profile_series` and
-  /// `dive_profile_events` appear in the query's `readsFrom` because the
-  /// decompression filter joins them (see [decoSignalCondition]), so with that
-  /// filter active a profile write can change which dives match. The summary's
-  /// measured runtime reads `dive_profile_series` too, for a dive with neither
-  /// a stored runtime nor an exit time. They are left out because a profile
-  /// import writes thousands of sample rows and would otherwise reload the
-  /// whole list behind every one of them, to correct a filter most sessions
-  /// never switch on and a rare kind of dive. This is no worse than the
-  /// dives-only tick it replaces.
+  /// One known gap, taken on purpose. `dive_profile_events` appears in the
+  /// query's `readsFrom` because the decompression filter joins it (see
+  /// [decoSignalCondition]), so with that filter active an event write can
+  /// change which dives match. It is left out because a profile import writes
+  /// many event rows and would otherwise reload the whole list behind them, to
+  /// correct a filter most sessions never switch on. This is no worse than the
+  /// dives-only tick it replaces. The series and source tables are in the
+  /// tick: a row's Runtime reads them ([measuredRuntimeTickTables]), and a
+  /// series is one packed row per recording, not one per sample.
   Stream<void> watchDiveListChanges() => _db
       .tableUpdates(TableUpdateQuery.allOf(_diveListTables))
       .debounce(changeTickDebounce);
@@ -296,12 +295,31 @@ class DiveRepository {
     ]),
   );
 
+  /// What a dive's measured runtime reads beyond its own row, by SQL name: the
+  /// profile span step of `measuredRuntimeSecondsSql`. A sync pull or a profile
+  /// edit writes these without touching `dives`, so anything reporting a
+  /// runtime ticks on them too (issue #3304).
+  static const Set<String> measuredRuntimeTickTables = {
+    'dive_profile_series',
+    'dive_data_sources',
+  };
+
+  /// Fires when a dive's measured runtime can change with no write to `dives`.
+  /// For a provider on [watchDivesChanges] that reports a runtime.
+  Stream<void> watchMeasuredRuntimeChanges() =>
+      watchTables(measuredRuntimeTickTables);
+
   /// The tables [getStatistics] and [getRecords] read, by SQL name, before
-  /// any filter joins: the dives themselves and the `dive_sites` JOIN that
-  /// names Most Visited Sites and each record's site. A provider built on
-  /// either query ticks on all of these plus the filter's own tables, so a
-  /// site rename (a `dive_sites`-only write) refreshes the names it shows.
-  static const Set<String> statisticsTickTables = {'dives', 'dive_sites'};
+  /// any filter joins: the dives themselves, the `dive_sites` JOIN that names
+  /// Most Visited Sites and each record's site, and what a measured runtime
+  /// reads. A provider built on either query ticks on all of these plus the
+  /// filter's own tables, so a site rename (a `dive_sites`-only write)
+  /// refreshes the names it shows.
+  static const Set<String> statisticsTickTables = {
+    'dives',
+    'dive_sites',
+    ...measuredRuntimeTickTables,
+  };
 
   /// The tables a dive comparison reads, by SQL name: the dive and its site
   /// for the label, the series and source rows for the profile. Narrower than
@@ -330,6 +348,8 @@ class DiveRepository {
     'dive_tags',
     'tags',
     'dive_dive_types',
+    // The row's Runtime.
+    ...measuredRuntimeTickTables,
   };
 
   List<TableUpdateQuery> get _diveListTables => [
