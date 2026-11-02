@@ -58,7 +58,7 @@ class _DiveEditorTabState extends ConsumerState<DiveEditorTab> {
     final entity = entityAsync.value;
     final rows = _lastRows = rowsAsync.value ?? _lastRows;
     if (entity == null || rows == null) {
-      return const Center(child: CircularProgressIndicator());
+      return _SheetPending(failed: entityAsync.hasError || rowsAsync.hasError);
     }
     final units = ref.watch(unitFormatterProvider);
     final prefs = ref.watch(queryUnitPrefsProvider);
@@ -148,11 +148,12 @@ class _SiteEditorTabState extends ConsumerState<SiteEditorTab> {
   @override
   Widget build(BuildContext context) {
     final onOpenRecord = widget.onOpenRecord;
-    final entity = ref.watch(tableEditorSiteEntityProvider).value;
-    final rows = _lastRows =
-        ref.watch(tableEditorSitesProvider).value ?? _lastRows;
+    final entityAsync = ref.watch(tableEditorSiteEntityProvider);
+    final rowsAsync = ref.watch(tableEditorSitesProvider);
+    final entity = entityAsync.value;
+    final rows = _lastRows = rowsAsync.value ?? _lastRows;
     if (entity == null || rows == null) {
-      return const Center(child: CircularProgressIndicator());
+      return _SheetPending(failed: entityAsync.hasError || rowsAsync.hasError);
     }
     return _QueryTab<SiteWithCount, SiteField>(
       tab: TableEditorTab.sites,
@@ -182,9 +183,9 @@ class _CenterEditorTabState extends ConsumerState<CenterEditorTab> {
   Widget build(BuildContext context) {
     final onOpenRecord = widget.onOpenRecord;
     final entity = ref.watch(tableEditorCenterEntityProvider);
-    final rows = _lastRows =
-        ref.watch(tableEditorCentersProvider).value ?? _lastRows;
-    if (rows == null) return const Center(child: CircularProgressIndicator());
+    final rowsAsync = ref.watch(tableEditorCentersProvider);
+    final rows = _lastRows = rowsAsync.value ?? _lastRows;
+    if (rows == null) return _SheetPending(failed: rowsAsync.hasError);
     return _QueryTab<DiveCenterRow, DiveCenterField>(
       tab: TableEditorTab.centers,
       entity: entity,
@@ -196,6 +197,20 @@ class _CenterEditorTabState extends ConsumerState<CenterEditorTab> {
       onOpenRecord: onOpenRecord,
     );
   }
+}
+
+/// In place of a sheet with nothing to show yet: a spinner, or word of a load
+/// that failed, which no amount of waiting would end.
+class _SheetPending extends StatelessWidget {
+  final bool failed;
+  const _SheetPending({required this.failed});
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: failed
+        ? Text(context.l10n.common_error_tryAgain)
+        : const CircularProgressIndicator(),
+  );
 }
 
 /// A tab whose filter is a bare query with the generic column menus.
@@ -263,13 +278,18 @@ class _QueryTab<T, F extends EntityField> extends ConsumerWidget {
           if (root.field(key)?.type == FieldType.bool) {
             return const <EntityTableMenuAction>[];
           }
-          final value = entity.adapter.extractValue(field, row);
           return entityColumnCellMenuItems(
             l10n: l10n,
             root: root,
             fieldKey: key,
-            value: value,
-            valueLabel: entity.adapter.formatValue(field, value, units),
+            // The stored value, which is what the query compares; the table
+            // shows a note as plain text, which no stored note may match.
+            value: entity.columnFor(field)?.valueOf(row),
+            valueLabel: entity.adapter.formatValue(
+              field,
+              entity.adapter.extractValue(field, row),
+              units,
+            ),
             query: query,
             onChanged: setQuery,
           );

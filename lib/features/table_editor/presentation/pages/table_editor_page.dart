@@ -24,6 +24,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/features/table_editor/presentation/widgets/save_summary_dialog.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/forms/discard_dialog.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
@@ -97,18 +98,18 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   }
 
   bool _hasDrafts(TableEditorTab tab) =>
-      !ref.read(tableEditorDraftsProvider(tab)).isEmpty;
+      !ref.read(tableEditorDraftsNotifierProvider(tab)).isEmpty;
 
   bool get _anyDrafts => TableEditorTab.values.any(_hasDrafts);
 
   /// A cell left open holds typing no draft shows yet.
   bool get _anyOpenCell => TableEditorTab.values.any(
-    (tab) => ref.read(tableEditorDraftsProvider(tab)).editing != null,
+    (tab) => ref.read(tableEditorDraftsNotifierProvider(tab)).editing != null,
   );
 
   void _clearDrafts(TableEditorTab tab) {
     _lastPaste.remove(tab);
-    ref.read(tableEditorDraftsProvider(tab).notifier).clear();
+    ref.read(tableEditorDraftsNotifierProvider(tab).notifier).clear();
   }
 
   /// Closes any open cell and waits for what it held to land as a draft: a
@@ -116,32 +117,11 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   Future<void> _closeOpenCells() async {
     if (!_anyOpenCell) return;
     for (final tab in TableEditorTab.values) {
-      ref.read(tableEditorDraftsProvider(tab).notifier).setEditing(null);
+      ref
+          .read(tableEditorDraftsNotifierProvider(tab).notifier)
+          .setEditing(null);
     }
     await WidgetsBinding.instance.endOfFrame;
-  }
-
-  /// The same dialog the edit forms show; true means discard.
-  Future<bool> _confirmDiscard() async {
-    final l10n = context.l10n;
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.forms_discard_title),
-        content: Text(l10n.forms_discard_body),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.forms_discard_keepEditing),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.forms_discard_discard),
-          ),
-        ],
-      ),
-    );
-    return discard == true;
   }
 
   Future<void> _handlePop(bool didPop) async {
@@ -160,7 +140,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   Future<bool> _confirmLeaving() async {
     await _closeOpenCells();
     if (!mounted) return true;
-    if (_anyDrafts && !await _confirmDiscard()) return false;
+    if (_anyDrafts && !await showDiscardDialog(context)) return false;
     if (!mounted) return true;
     // Here, not after the pop: the page's teardown is no time to change state.
     for (final tab in TableEditorTab.values) {
@@ -174,12 +154,13 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   /// that may land as one, go back and ask.
   Future<void> _onTabTap(int index) async {
     final from = TableEditorTab.values[_settled];
-    final open = ref.read(tableEditorDraftsProvider(from)).editing != null;
+    final open =
+        ref.read(tableEditorDraftsNotifierProvider(from)).editing != null;
     if (index == _settled || (!open && !_hasDrafts(from))) return;
     _tabs.index = _settled;
     await _closeOpenCells();
     if (!mounted) return;
-    if (_hasDrafts(from) && !await _confirmDiscard()) return;
+    if (_hasDrafts(from) && !await showDiscardDialog(context)) return;
     if (!mounted) return;
     _clearDrafts(from);
     _tabs.animateTo(index);
@@ -201,7 +182,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       route: (id) => '/dives/$id',
       refresh: () {
         if (!mounted) return;
-        ref.read(diveListNotifierProvider.notifier).refresh();
+        ref.read(diveListNotifierProvider.notifier).reloadQuietly();
         ref.invalidate(tableEditorWeightsProvider);
       },
       hiddenKeys: () {
@@ -311,7 +292,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         }
       },
       paste: () async {
-        final drafts = ref.read(tableEditorDraftsProvider(tab));
+        final drafts = ref.read(tableEditorDraftsNotifierProvider(tab));
         final selected = drafts.editing ?? drafts.selected;
         if (selected == null) return;
         final text = await readClipboardText();
@@ -335,7 +316,9 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
           l10n: l10n,
           hiddenKeys: hiddenKeys(),
         );
-        final notifier = ref.read(tableEditorDraftsProvider(tab).notifier);
+        final notifier = ref.read(
+          tableEditorDraftsNotifierProvider(tab).notifier,
+        );
         notifier.setEditing(null);
         final extra = applyPastePlan<T, F>(
           plan: plan,
@@ -344,7 +327,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
           units: ref.read(unitFormatterProvider),
           l10n: l10n,
           notifier: notifier,
-          existing: ref.read(tableEditorDraftsProvider(tab)),
+          existing: ref.read(tableEditorDraftsNotifierProvider(tab)),
         );
         final skipped = [...plan.skipped, ...extra];
         setState(
@@ -358,7 +341,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         // Skips wait for the save summary, which a paste that left nothing
         // to save never reaches: Save all stays off.
         if (skipped.isNotEmpty &&
-            ref.read(tableEditorDraftsProvider(tab)).saveable.isEmpty) {
+            ref.read(tableEditorDraftsNotifierProvider(tab)).saveable.isEmpty) {
           final lines = [
             for (final s in skipped.take(5))
               pasteSkipLine(
@@ -425,11 +408,16 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    // Watched before the width gate, so narrowing the window (a tablet
-    // turned to portrait) keeps every tab's drafts alive.
-    final drafts = ref.watch(tableEditorDraftsProvider(_tab));
+    final drafts = ref.watch(tableEditorDraftsNotifierProvider(_tab));
+    // Every tab, since any of them can hold the page back from being left.
     for (final tab in TableEditorTab.values) {
-      ref.watch(tableEditorDraftsProvider(tab));
+      ref.watch(tableEditorDraftsNotifierProvider(tab));
+      // A paste with nothing left on the sheet is no part of the next save.
+      ref.listen(tableEditorDraftsNotifierProvider(tab), (previous, next) {
+        if (next.isEmpty && !(previous?.isEmpty ?? true)) {
+          _lastPaste.remove(tab);
+        }
+      });
     }
     if (!ResponsiveBreakpoints.isDesktop(context)) {
       // The same guard as the wide view: drafts survive the narrowing and

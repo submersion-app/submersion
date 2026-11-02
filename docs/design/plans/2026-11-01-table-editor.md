@@ -657,7 +657,7 @@ List<EntityTableMenuAction> entityColumnCellMenuItems({required AppLocalizations
 
 ```dart
 enum TableEditorTab { dives, sites, centers }
-final tableEditorDraftsProvider = StateNotifierProvider.family<TableDraftsNotifier, TableDraftState, TableEditorTab>(...);
+final tableEditorDraftsNotifierProvider = StateNotifierProvider.family<TableDraftsNotifier, TableDraftState, TableEditorTab>(...);
 final tableEditorDiveFilterProvider = StateProvider<DiveFilterState>((ref) => const DiveFilterState());
 final tableEditorSiteQueryProvider = StateProvider<QueryNode?>((ref) => null);
 final tableEditorCenterQueryProvider = StateProvider<QueryNode?>((ref) => null);

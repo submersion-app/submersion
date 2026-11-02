@@ -81,6 +81,10 @@ class TableEditorColumn<T, F extends EntityField> {
   /// it to the entity's adapter.
   final String Function(Object value, UnitFormatter units)? displayValue;
 
+  /// A value the record cannot go without: a blank cell is refused rather
+  /// than clearing it.
+  final bool isRequired;
+
   TableEditorColumn({
     required this.field,
     required this.kind,
@@ -92,6 +96,7 @@ class TableEditorColumn<T, F extends EntityField> {
     String? Function(UnitFormatter units)? unitSymbol,
     String? Function(T entity, AppLocalizations l10n)? readOnlyReason,
     this.displayValue,
+    this.isRequired = false,
   }) : editText = editText ?? ((_, _) => ''),
        choices = choices ?? ((_) => const []),
        isEditable = isEditable ?? ((_) => true),

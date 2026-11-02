@@ -79,6 +79,21 @@ void main() {
     },
   );
 
+  test('getWeightsForDives reaches every dive across its chunks', () async {
+    for (final id in ['d1', 'd2', 'd3']) {
+      await seed(id);
+      await diveRepo.bulkAddWeights([id], [weight(3)]);
+    }
+
+    final byDive = await diveRepo.getWeightsForDives([
+      'd1',
+      'd2',
+      'd3',
+    ], chunkSize: 2);
+
+    expect(byDive.keys, unorderedEquals(['d1', 'd2', 'd3']));
+  });
+
   test(
     'WeightAmountOp inserts one row of the given type on a dive with none',
     () async {

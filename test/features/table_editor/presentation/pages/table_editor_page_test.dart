@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/app/app_exit_guard.dart';
@@ -65,6 +65,45 @@ class _HeldSave extends TableEditorSaveService {
   }
 }
 
+/// A save that finds every draft moved, to [current] when given, or to what
+/// the draft itself says.
+class _StaleSave extends TableEditorSaveService {
+  final Object? current;
+  final bool toDraftValue;
+  _StaleSave.to(this.current) : toDraftValue = false;
+  _StaleSave.toDraftValue() : current = null, toDraftValue = true;
+
+  @override
+  Future<TableEditorSaveResult> save<T, F extends EntityField>({
+    required TableEditorEntity<T, F> entity,
+    required List<TableDraft> drafts,
+  }) async => TableEditorSaveResult(
+    operationId: null,
+    saved: 0,
+    changedElsewhere: [
+      for (final d in drafts) StaleDraft(d, toDraftValue ? d.value : current),
+    ],
+  );
+}
+
+/// Counts the reloads a save asks of the dive list.
+class _DiveList extends StateNotifier<AsyncValue<List<Dive>>>
+    implements DiveListNotifier {
+  _DiveList() : super(const AsyncValue.data([]));
+
+  var fullReloads = 0;
+  var quietReloads = 0;
+
+  @override
+  Future<void> refresh() async => fullReloads++;
+
+  @override
+  Future<void> reloadQuietly() async => quietReloads++;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// The Table editor page (#3422): tabs, the width gate, Save all with its
 /// summary and Undo, and the guards around leaving with drafts.
 void main() {
@@ -101,6 +140,9 @@ void main() {
     TableEditorSaveService? saveService,
     AppExitGuard? exitGuard,
     List<DiveField> extraDiveColumns = const [],
+    List<SiteField> extraSiteColumns = const [],
+    AsyncValue<List<Dive>>? divesValue,
+    DiveListNotifier? diveList,
   }) async {
     // The width gate reads MediaQuery, which follows the view, not the
     // test surface.
@@ -156,7 +198,11 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
-          tableEditorDivesProvider.overrideWithValue(AsyncValue.data(dives)),
+          tableEditorDivesProvider.overrideWithValue(
+            divesValue ?? AsyncValue.data(dives),
+          ),
+          if (diveList != null)
+            diveListNotifierProvider.overrideWith((ref) => diveList),
           tableEditorDiveEntityProvider.overrideWithValue(
             AsyncValue.data(entity),
           ),
@@ -200,6 +246,8 @@ void main() {
                     field: SiteField.siteName,
                     isPinned: true,
                   ),
+                  for (final field in extraSiteColumns)
+                    EntityTableColumnConfig(field: field),
                 ],
               ),
               SiteFieldAdapter.instance.fieldFromName,
@@ -241,6 +289,18 @@ void main() {
     expect(find.text(l10n.tableEditor_tab_centers), findsOneWidget);
     expect(find.text(vis(15)), findsOneWidget);
     expect(find.text(vis(20)), findsOneWidget);
+  });
+
+  testWidgets('rows that failed to load say so rather than spin', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      divesValue: AsyncValue.error(StateError('no rows'), StackTrace.empty),
+    );
+
+    expect(find.text(l10n.common_error_tryAgain), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('a narrow window shows only the wider screen message', (
@@ -615,7 +675,9 @@ void main() {
       await pumpPage(tester);
       await draftVisibility(tester, '12');
       ProviderScope.containerOf(tester.element(find.byType(TableEditorPage)))
-          .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+          .read(
+            tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier,
+          )
           .setEditing(const CellPosition('d2', 'visibility'));
       await tester.pump();
       await tester.enterText(find.byType(TextField), '9');
@@ -685,7 +747,9 @@ void main() {
     ) async {
       await pumpPage(tester);
       ProviderScope.containerOf(tester.element(find.byType(TableEditorPage)))
-          .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+          .read(
+            tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier,
+          )
           .setSelected(const CellPosition('gone', 'visibility'));
       await tester.pump();
 
@@ -703,7 +767,7 @@ void main() {
       await pumpPage(tester, extraDiveColumns: const [DiveField.isFavorite]);
       final notifier = ProviderScope.containerOf(
         tester.element(find.byType(TableEditorPage)),
-      ).read(tableEditorDraftsProvider(TableEditorTab.dives).notifier);
+      ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier);
       notifier.setEditing(const CellPosition('d1', 'isFavorite'));
       await tester.pumpAndSettle();
 
@@ -750,6 +814,112 @@ void main() {
       expect(find.text(l10n.tableEditor_summary_matching_number), findsNothing);
     });
 
+    testWidgets('a paste whose drafts were all discarded stays out of the '
+        'summary', (tester) async {
+      mockClipboard('2\t12\n');
+      await pumpPage(tester);
+      await selectCell(tester);
+      await tester.tap(find.byTooltip(l10n.tableEditor_paste));
+      await tester.pumpAndSettle();
+      ProviderScope.containerOf(tester.element(find.byType(TableEditorPage)))
+          .read(
+            tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier,
+          )
+          .remove('d2', 'visibility');
+      await tester.pump();
+
+      await draftVisibility(tester, '11');
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.tableEditor_summary_matching_number), findsNothing);
+    });
+
+    testWidgets('a save reloads the dive list quietly', (tester) async {
+      final list = _DiveList();
+      await pumpPage(tester, diveList: list);
+      await draftVisibility(tester, '12');
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+      await tester.tap(saveAllButton().last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(list.fullReloads, 0);
+      expect(list.quietReloads, 1);
+    });
+
+    group('a draft a save left out', () {
+      Future<TableDraft?> saveAgainst(
+        WidgetTester tester,
+        TableEditorSaveService service,
+      ) async {
+        await pumpPage(tester, saveService: service);
+        await draftVisibility(tester, '12');
+        await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        await tester.pump();
+        await tester.tap(saveAllButton());
+        await tester.pumpAndSettle();
+        await tester.tap(saveAllButton().last);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump(const Duration(seconds: 6));
+        return ProviderScope.containerOf(
+              tester.element(find.byType(TableEditorPage)),
+            )
+            .read(tableEditorDraftsNotifierProvider(TableEditorTab.dives))
+            .at('d1', 'visibility');
+      }
+
+      testWidgets('is flagged when the store says something else', (
+        tester,
+      ) async {
+        final left = await saveAgainst(tester, _StaleSave.to(30.0));
+
+        expect(left?.flag, TableDraftFlag.changedElsewhere);
+        expect(left?.original, 30.0);
+      });
+
+      testWidgets('goes when the store already says the same', (tester) async {
+        final left = await saveAgainst(tester, _StaleSave.toDraftValue());
+
+        expect(left, isNull);
+      });
+    });
+
+    testWidgets('a cell\'s filter compares what is stored, not what shows', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        extraSiteColumns: const [SiteField.notes],
+        sites: const [
+          SiteWithDiveCount(
+            site: DiveSite(id: 's1', name: 'Reef', notes: 'Great **wreck**'),
+            diveCount: 3,
+          ),
+        ],
+      );
+      await tester.tap(find.text(l10n.tableEditor_tab_sites));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Great wreck'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.tableMode_cell_only('Great wreck')));
+      await tester.pumpAndSettle();
+
+      final rule =
+          ProviderScope.containerOf(
+                tester.element(find.byType(TableEditorPage)),
+              ).read(tableEditorSiteQueryProvider)!
+              as ConditionNode;
+      expect(rule.value, const StringValue('Great **wreck**'));
+    });
+
     testWidgets('a cell edited while a save runs keeps its newer draft, and '
         'Save all waits', (tester) async {
       final held = _HeldSave();
@@ -768,7 +938,7 @@ void main() {
         tester.element(find.byType(TableEditorPage)),
       );
       final notifier = container.read(
-        tableEditorDraftsProvider(TableEditorTab.dives).notifier,
+        tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier,
       );
       const newer = TableDraft(
         entityId: 'd1',
@@ -784,7 +954,7 @@ void main() {
 
       expect(
         container
-            .read(tableEditorDraftsProvider(TableEditorTab.dives))
+            .read(tableEditorDraftsNotifierProvider(TableEditorTab.dives))
             .at('d1', 'visibility'),
         newer,
       );

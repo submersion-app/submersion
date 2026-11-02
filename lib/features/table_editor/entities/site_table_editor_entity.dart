@@ -140,20 +140,15 @@ class SiteTableEditorEntity
     List<TableDraft> drafts,
     String fieldName,
   ) {
-    final rest = super.afterDiscard(entity, drafts, fieldName);
-    if (fieldName != SiteField.latitude.name &&
-        fieldName != SiteField.longitude.name) {
-      return rest;
-    }
     // A position cleared as a pair comes back as a pair: the other half's
     // clear would otherwise bring this one straight back.
-    final wasClear = drafts.any(
-      (d) => d.fieldName == fieldName && d.value == null,
+    final clearedHalf = drafts.any(
+      (d) => d.fieldName == fieldName && _isCoordinate(d) && d.value == null,
     );
-    return reconcile(entity, [
-      for (final d in rest)
-        if (!wasClear || !_isCoordinate(d) || d.value != null) d,
-    ]);
+    return super.afterDiscard(entity, [
+      for (final d in drafts)
+        if (!clearedHalf || !_isCoordinate(d) || d.value != null) d,
+    ], fieldName);
   }
 
   TableDraft _clearDraft(SiteWithCount e, SiteField f, double current) =>

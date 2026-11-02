@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/providers/provider.dart';
@@ -39,10 +41,21 @@ import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 enum TableEditorTab { dives, sites, centers }
 
+/// What a provider built from [parts] answers while one of them has nothing
+/// yet: that part's error, so a failed load reads as failed, or loading.
+AsyncValue<T> _waitingOn<T>(List<AsyncValue<Object?>> parts) {
+  for (final part in parts) {
+    if (!part.hasValue && part.hasError) {
+      return AsyncValue.error(part.error!, part.stackTrace ?? StackTrace.empty);
+    }
+  }
+  return AsyncValue<T>.loading();
+}
+
 /// Not autoDispose: a tab's sheet is torn down when the diver switches tab
 /// or narrows the window, and its drafts must outlive that. The page clears
 /// them when it is left.
-final tableEditorDraftsProvider =
+final tableEditorDraftsNotifierProvider =
     StateNotifierProvider.family<
       TableDraftsNotifier,
       TableDraftState,
@@ -169,10 +182,20 @@ final tableEditorListedDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
 /// the weight cell needs the row count and the single row's amount.
 final tableEditorWeightsProvider =
     FutureProvider<Map<String, List<DiveWeight>>>((ref) async {
-      final dives = ref.watch(tableEditorListedDivesProvider).value ?? const [];
+      final listed = ref.watch(tableEditorListedDivesProvider);
       final repository = ref.watch(diveRepositoryProvider);
-      // Weight rows change under a save, an undo or a sync pull.
-      ref.invalidateSelfWhen(repository.watchDivesChanges());
+      // Weight rows change under a save, an undo or a sync pull, and a pull
+      // can change one without touching its dive.
+      ref.invalidateSelfWhen(
+        repository.watchTables(const {'dives', 'dive_weights'}),
+      );
+      // A list on its way names no dives, and answering for none would read
+      // as every dive being weightless. Waiting keeps the last answer until
+      // the list lands and runs this again.
+      if (listed.isLoading && !listed.hasValue) {
+        return Completer<Map<String, List<DiveWeight>>>().future;
+      }
+      final dives = listed.value ?? const [];
       if (dives.isEmpty) return const {};
       return repository.getWeightsForDives([for (final d in dives) d.id]);
     });
@@ -184,7 +207,7 @@ final tableEditorWeightsProvider =
 final tableEditorDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
   final listed = ref.watch(tableEditorListedDivesProvider);
   final weights = ref.watch(tableEditorWeightsProvider);
-  if (!weights.hasValue) return const AsyncValue.loading();
+  if (!weights.hasValue) return _waitingOn([weights]);
   final byDive = weights.value ?? const <String, List<DiveWeight>>{};
   return listed.whenData(
     (dives) => [
@@ -266,13 +289,8 @@ final tableEditorDiveEntityProvider =
       final trips = ref.watch(allTripsProvider);
       final computers = ref.watch(allDiveComputersProvider);
       final weightType = ref.watch(tableEditorNewWeightTypeProvider);
-      if (!sites.hasValue ||
-          !centers.hasValue ||
-          !trips.hasValue ||
-          !computers.hasValue ||
-          !weightType.hasValue) {
-        return const AsyncValue.loading();
-      }
+      final parts = [sites, centers, trips, computers, weightType];
+      if (parts.any((part) => !part.hasValue)) return _waitingOn(parts);
       final models = {
         for (final c in computers.value ?? const [])
           if (c.model case final model? when model.isNotEmpty) model,
@@ -307,7 +325,7 @@ final tableEditorDiveEntityProvider =
 final tableEditorSiteEntityProvider =
     Provider<AsyncValue<SiteTableEditorEntity>>((ref) {
       final editable = ref.watch(tableEditorEditableLibrarySitesProvider);
-      if (!editable.hasValue) return const AsyncValue.loading();
+      if (!editable.hasValue) return _waitingOn([editable]);
       return AsyncValue.data(
         SiteTableEditorEntity(
           repo: ref.watch(siteRepositoryProvider),

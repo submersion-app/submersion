@@ -43,16 +43,16 @@ abstract class TableEditorEntity<T, F extends EntityField> {
   /// pair. The default keeps them as they are.
   List<TableDraft> reconcile(T entity, List<TableDraft> drafts) => drafts;
 
-  /// The drafts a record keeps once the diver discards [fieldName]. The
-  /// default keeps the others as they are.
+  /// The drafts a record keeps once the diver discards [fieldName], reconciled
+  /// again, since one may have depended on the draft that went.
   List<TableDraft> afterDiscard(
     T entity,
     List<TableDraft> drafts,
     String fieldName,
-  ) => [
+  ) => reconcile(entity, [
     for (final d in drafts)
       if (d.fieldName != fieldName) d,
-  ];
+  ]);
 
   /// Fresh rows for the stale check, by id.
   Future<List<T>> reload(List<String> ids);

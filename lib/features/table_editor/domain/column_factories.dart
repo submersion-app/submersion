@@ -33,6 +33,7 @@ TableEditorColumn<T, F> textColumn<T, F extends EntityField>(
   },
   isEditable: isEditable,
   readOnlyReason: readOnlyReason,
+  isRequired: required,
 );
 
 /// A number typed in the diver's unit and stored converted. [toDisplay] and
@@ -92,6 +93,7 @@ TableEditorColumn<T, F> plainNumberColumn<T, F extends EntityField>(
 TableEditorColumn<T, F> integerColumn<T, F extends EntityField>(
   F field,
   int? Function(T entity) get, {
+  String? symbol,
   int? min,
   int? max,
   Editable<T>? isEditable,
@@ -102,6 +104,7 @@ TableEditorColumn<T, F> integerColumn<T, F extends EntityField>(
   valueOf: get,
   editText: (e, _) => get(e)?.toString() ?? '',
   parse: (text, _, _) => parseIntegerCell(text, min: min, max: max),
+  unitSymbol: (_) => symbol,
   isEditable: isEditable,
   readOnlyReason: readOnlyReason,
   // An int reads as itself; the adapter may expect another type (a
@@ -144,12 +147,14 @@ TableEditorColumn<T, F> toggleColumn<T, F extends EntityField>(
   readOnlyReason: readOnlyReason,
 );
 
-/// One value of an enum, stored by its name.
+/// One value of an enum, stored by its name. With [required], a blank cell
+/// is refused and the pulldown offers none (a dive always has a mode).
 TableEditorColumn<T, F> choiceColumn<T, F extends EntityField, E extends Enum>(
   F field,
   E? Function(T entity) get,
   List<E> values,
   String Function(E value, AppLocalizations l10n) label, {
+  bool required = false,
   Editable<T>? isEditable,
   ReadOnlyReason<T>? readOnlyReason,
 }) {
@@ -161,9 +166,15 @@ TableEditorColumn<T, F> choiceColumn<T, F extends EntityField, E extends Enum>(
     kind: CellEditorKind.choice,
     valueOf: (e) => get(e)?.name,
     choices: options,
-    parse: (text, _, l) => parseChoiceCell(text, options(l)),
+    parse: (text, _, l) => switch (parseChoiceCell(text, options(l))) {
+      CellParsed(value: null) when required => const CellRejected(
+        TableDraftFlag.unknownValue,
+      ),
+      final r => r,
+    },
     isEditable: isEditable,
     readOnlyReason: readOnlyReason,
+    isRequired: required,
   );
 }
 

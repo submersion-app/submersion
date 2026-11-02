@@ -100,6 +100,34 @@ void main() {
     });
   });
 
+  test(
+    'reloadQuietly picks up a write and never shows the list as loading',
+    () async {
+      final diver = await setUpCurrentDiver();
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final seen = <AsyncValue<List<Dive>>>[];
+      final sub = container.listen(
+        diveListNotifierProvider,
+        (_, next) => seen.add(next),
+      );
+      addTearDown(sub.close);
+      while (container.read(diveListNotifierProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      seen.clear();
+      await diveRepo.createDive(_makeDive(diverId: diver.id, notes: 'Written'));
+
+      await container.read(diveListNotifierProvider.notifier).reloadQuietly();
+
+      expect(seen.where((s) => s.isLoading), isEmpty);
+      expect(
+        container.read(diveListNotifierProvider).value?.map((d) => d.notes),
+        contains('Written'),
+      );
+    },
+  );
+
   // A dives tick costs what changed rather than the whole logbook (#3815).
   group('DiveListNotifier incremental refresh', () {
     late Diver diver;

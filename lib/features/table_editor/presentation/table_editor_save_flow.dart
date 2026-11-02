@@ -35,8 +35,8 @@ class TableEditorSaveFlow {
     bool confirm = true,
   }) async {
     final l10n = context.l10n;
-    final notifier = ref.read(tableEditorDraftsProvider(tab).notifier);
-    final drafts = ref.read(tableEditorDraftsProvider(tab));
+    final notifier = ref.read(tableEditorDraftsNotifierProvider(tab).notifier);
+    final drafts = ref.read(tableEditorDraftsNotifierProvider(tab));
     if (drafts.isEmpty) return false;
     // The page can go while the save runs and the snackbar outlives it, so
     // nothing after the awaits below reads through ref.
@@ -81,11 +81,16 @@ class TableEditorSaveFlow {
     for (final s in result.changedElsewhere) {
       if (notifier.draftAt(s.draft.position) != s.draft) continue;
       notifier.rebase(s.draft.entityId, s.draft.fieldName, s.current);
-      notifier.flag(
-        s.draft.entityId,
-        s.draft.fieldName,
-        TableDraftFlag.changedElsewhere,
-      );
+      // The store already says what the draft says: nothing to ask about.
+      if (notifier.draftAt(s.draft.position)?.isUnchanged ?? false) {
+        notifier.remove(s.draft.entityId, s.draft.fieldName);
+      } else {
+        notifier.flag(
+          s.draft.entityId,
+          s.draft.fieldName,
+          TableDraftFlag.changedElsewhere,
+        );
+      }
     }
     refresh();
     final operationId = result.operationId;

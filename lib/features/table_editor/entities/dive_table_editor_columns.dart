@@ -90,6 +90,7 @@ List<DiveEditorColumn> diveEditorColumns({
   integerColumn(
     DiveField.surfaceInterval,
     (d) => d.surfaceInterval?.inMinutes,
+    symbol: 'min',
     min: 0,
   ),
   integerColumn(
@@ -154,6 +155,7 @@ List<DiveEditorColumn> diveEditorColumns({
     (d) => d.diveMode,
     DiveMode.values,
     (v, l) => v.localizedName(l),
+    required: true,
   ),
   _setpoint(DiveField.setpointLow, (d) => d.setpointLow),
   _setpoint(DiveField.setpointHigh, (d) => d.setpointHigh),
@@ -170,6 +172,7 @@ List<DiveEditorColumn> diveEditorColumns({
   integerColumn(
     DiveField.scrubberDuration,
     (d) => d.scrubber?.ratedMinutes,
+    symbol: 'min',
     min: 0,
   ),
   textColumn(DiveField.notes, (d) => d.notes.isEmpty ? null : d.notes),

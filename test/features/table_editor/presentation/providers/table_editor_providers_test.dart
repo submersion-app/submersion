@@ -1,10 +1,13 @@
 import 'dart:ui' show Locale;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/database/database.dart'
+    show DiveWeightsCompanion;
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -69,10 +72,12 @@ void main() {
     addTearDown(container.dispose);
 
     container
-        .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+        .read(tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier)
         .setSelected(null);
     expect(
-      container.read(tableEditorDraftsProvider(TableEditorTab.sites)).isEmpty,
+      container
+          .read(tableEditorDraftsNotifierProvider(TableEditorTab.sites))
+          .isEmpty,
       isTrue,
     );
   });
@@ -112,7 +117,7 @@ void main() {
     addTearDown(container.dispose);
     diver.setCurrentDiver('a');
     container
-        .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+        .read(tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier)
         .put(
           const TableDraft(
             entityId: 'd1',
@@ -122,14 +127,18 @@ void main() {
           ),
         );
     expect(
-      container.read(tableEditorDraftsProvider(TableEditorTab.dives)).count,
+      container
+          .read(tableEditorDraftsNotifierProvider(TableEditorTab.dives))
+          .count,
       1,
     );
 
     diver.setCurrentDiver('b');
 
     expect(
-      container.read(tableEditorDraftsProvider(TableEditorTab.dives)).isEmpty,
+      container
+          .read(tableEditorDraftsNotifierProvider(TableEditorTab.dives))
+          .isEmpty,
       isTrue,
     );
   });
@@ -139,6 +148,169 @@ void main() {
 /// dives arrive with their weight rows merged, and every tab's descriptor
 /// resolves once its lists are in.
 void providerIntegration() {
+  group('the sheet\'s weights', () {
+    Future<void> settleOn(bool Function() done) async {
+      for (var i = 0; i < 100 && !done(); i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(done(), isTrue, reason: 'never settled');
+    }
+
+    final dive = domain.Dive(
+      id: 'd1',
+      diverId: 'me',
+      dateTime: DateTime(2026, 1, 1),
+      notes: '',
+    );
+
+    test('a list reload leaves every dive its weights', () async {
+      final db = await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+      await insertDiver(db, 'me');
+      final repo = DiveRepository();
+      await repo.createDive(dive);
+      await repo.bulkAddWeights(
+        ['d1'],
+        const [
+          domain.DiveWeight(
+            id: '',
+            diveId: '',
+            weightType: WeightType.belt,
+            amountKg: 5,
+          ),
+        ],
+      );
+      final listed = StateProvider<AsyncValue<List<domain.Dive>>>(
+        (ref) => AsyncValue.data([dive]),
+      );
+      final diver = MockCurrentDiverIdNotifier();
+      await diver.setCurrentDiver('me');
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith((ref) => diver),
+          tableEditorListedDivesProvider.overrideWith(
+            (ref) => ref.watch(listed),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final rows = <int>[];
+      final sub = container.listen(tableEditorDivesProvider, (_, next) {
+        if (next.value case final dives?) rows.add(dives.single.weights.length);
+      });
+      addTearDown(sub.close);
+      await settleOn(() => rows.contains(1));
+      rows.clear();
+
+      container.read(listed.notifier).state = const AsyncValue.loading();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      container.read(listed.notifier).state = AsyncValue.data([dive]);
+      await settleOn(() => rows.isNotEmpty);
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+
+      expect(rows, everyElement(1));
+    });
+
+    test('a weight row that changes on its own reaches the sheet', () async {
+      final db = await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+      await insertDiver(db, 'me');
+      final repo = DiveRepository();
+      await repo.createDive(dive);
+      final diver = MockCurrentDiverIdNotifier();
+      await diver.setCurrentDiver('me');
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith((ref) => diver),
+          tableEditorListedDivesProvider.overrideWithValue(
+            AsyncValue.data([dive]),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(tableEditorWeightsProvider, (_, _) {});
+      addTearDown(sub.close);
+      await settleOn(() => container.read(tableEditorWeightsProvider).hasValue);
+
+      // As a sync pull lands one: the row alone, the dive untouched.
+      await db
+          .into(db.diveWeights)
+          .insert(
+            const DiveWeightsCompanion(
+              id: Value('w1'),
+              diveId: Value('d1'),
+              weightType: Value('belt'),
+              amountKg: Value(7),
+              createdAt: Value(0),
+            ),
+          );
+
+      await settleOn(
+        () => container
+            .read(tableEditorWeightsProvider)
+            .requireValue
+            .containsKey('d1'),
+      );
+    });
+  });
+
+  group('a load that fails reads as failed, not as still loading', () {
+    ProviderContainer containerWith(List<dynamic> overrides) {
+      final diver = MockCurrentDiverIdNotifier();
+      final container = ProviderContainer(
+        retry: (_, _) => null,
+        overrides: [
+          currentDiverIdProvider.overrideWith((ref) => diver),
+          ...overrides.cast(),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    test('the weights behind the rows', () async {
+      final container = containerWith([
+        tableEditorListedDivesProvider.overrideWithValue(
+          const AsyncValue.data(<domain.Dive>[]),
+        ),
+        tableEditorWeightsProvider.overrideWith(
+          (ref) async => throw StateError('no weights'),
+        ),
+      ]);
+      final sub = container.listen(tableEditorDivesProvider, (_, _) {});
+      addTearDown(sub.close);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(container.read(tableEditorDivesProvider).hasError, isTrue);
+    });
+
+    test('a pick list behind the dive descriptor', () async {
+      final container = containerWith([
+        tableEditorNewWeightTypeProvider.overrideWith(
+          (ref) async => throw StateError('no type'),
+        ),
+      ]);
+      final sub = container.listen(tableEditorDiveEntityProvider, (_, _) {});
+      addTearDown(sub.close);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(container.read(tableEditorDiveEntityProvider).hasError, isTrue);
+    });
+
+    test('the library rights behind the site descriptor', () async {
+      final container = containerWith([
+        tableEditorEditableLibrarySitesProvider.overrideWith(
+          (ref) async => throw StateError('no rights'),
+        ),
+      ]);
+      final sub = container.listen(tableEditorSiteEntityProvider, (_, _) {});
+      addTearDown(sub.close);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(container.read(tableEditorSiteEntityProvider).hasError, isTrue);
+    });
+  });
+
   test('the real providers load rows, weights and descriptors', () async {
     final db = await setUpTestDatabase();
     addTearDown(tearDownTestDatabase);

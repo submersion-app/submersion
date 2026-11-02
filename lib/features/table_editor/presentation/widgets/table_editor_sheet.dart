@@ -51,8 +51,10 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(configProvider);
     final configNotifier = ref.read(configProvider.notifier);
-    final drafts = ref.watch(tableEditorDraftsProvider(tab));
-    final draftsNotifier = ref.read(tableEditorDraftsProvider(tab).notifier);
+    final drafts = ref.watch(tableEditorDraftsNotifierProvider(tab));
+    final draftsNotifier = ref.read(
+      tableEditorDraftsNotifierProvider(tab).notifier,
+    );
     final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
     final colors = Theme.of(context).colorScheme;
@@ -378,6 +380,7 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
       initialChoice: current is String ? current : null,
       initialSelection: current is List ? current.cast<String>() : const [],
       doneLabel: l10n.tableEditor_multiChoice_done,
+      allowsBlank: !column.isRequired,
       onCancel: () => notifier.setEditing(null),
       onTeardown: (text, value) {
         // A paste or another commit may have changed this cell's draft since

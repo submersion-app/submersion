@@ -393,6 +393,10 @@ authoritative where the body above differs.
 - **Leaving by the sidebar.** The sidebar leaves with `go`, which no PopScope
   sees, so the route's `onExit` asks the same question through `AppExitGuard`.
   A back that has already asked finds nothing left to ask about.
+- **Changing diver.** A switch starts every tab clean, so no draft can reach
+  another profile's records. The switcher opens from any page (Cmd+Shift+D),
+  so it asks through `AppExitGuard` first, as does creating a diver, which
+  switches to them; a diver kept out of it stays created.
 - **Paste, as built.** A header can name the key in any column, not only the
   first, and a blank line leaves a keyed block keyed. A key word needs a real
   column label beside it to count as a header, since "No" is also a toggle

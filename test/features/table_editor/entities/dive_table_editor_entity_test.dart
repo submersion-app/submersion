@@ -282,6 +282,50 @@ void main() {
     );
   });
 
+  test('discarding the type sends a duration back to waiting', () async {
+    final e = await entity();
+    final bare = domain.Dive(id: 'd1', dateTime: DateTime(2026), notes: '');
+
+    final left = e.afterDiscard(bare, [
+      draft('d1', DiveField.scrubberDuration, null, 180),
+      draft('d1', DiveField.scrubberType, null, 'Sofnolime'),
+    ], DiveField.scrubberType.name);
+
+    expect(left.single.fieldName, DiveField.scrubberDuration.name);
+    expect(left.single.flag, TableDraftFlag.needsScrubberType);
+  });
+
+  test('a dive always has a mode, so a blank one is refused', () async {
+    final e = await entity();
+    const units = UnitFormatter(AppSettings());
+    final l10n = AppLocalizationsEn();
+    final mode = e.columnFor(DiveField.diveMode)!;
+
+    expect(mode.isRequired, isTrue);
+    expect(
+      mode.parse('', units, l10n),
+      isA<CellRejected>().having(
+        (r) => r.flag,
+        'flag',
+        TableDraftFlag.unknownValue,
+      ),
+    );
+    expect((mode.parse('ccr', units, l10n) as CellParsed).value, 'ccr');
+
+    final water = e.columnFor(DiveField.waterType)!;
+    expect(water.isRequired, isFalse);
+    expect((water.parse('', units, l10n) as CellParsed).value, isNull);
+  });
+
+  test('a column typed in minutes says so in its header', () async {
+    final e = await entity();
+    const units = UnitFormatter(AppSettings());
+
+    expect(e.columnFor(DiveField.surfaceInterval)!.unitSymbol(units), 'min');
+    expect(e.columnFor(DiveField.scrubberDuration)!.unitSymbol(units), 'min');
+    expect(e.columnFor(DiveField.ratingStars)!.unitSymbol(units), isNull);
+  });
+
   test('computer model is picked from the diver\'s computers', () {
     final e = DiveTableEditorEntity(
       diveRepo: diveRepo,

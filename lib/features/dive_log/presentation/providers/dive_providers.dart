@@ -612,6 +612,10 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _loadDives();
   }
 
+  /// [_silentReload] for a caller that has just written, so the list stays on
+  /// screen and the reload costs what the write changed.
+  Future<void> reloadQuietly() => _silentReload();
+
   /// Invalidate trip providers for a dive
   void _invalidateRelatedProviders(domain.Dive dive) {
     // Invalidate trip stats if dive has a trip (check both tripId and trip object)

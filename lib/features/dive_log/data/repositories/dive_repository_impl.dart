@@ -5682,8 +5682,12 @@ class DiveRepository {
   /// Weights for [diveIds] grouped by dive, for a sheet that shows many
   /// dives at once (issue #3422). A dive with no weights has no entry.
   Future<Map<String, List<domain.DiveWeight>>> getWeightsForDives(
-    List<String> diveIds,
-  ) => _weightsForDives(diveIds);
+    List<String> diveIds, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async => {
+    for (final chunk in seriesIdChunks(diveIds, size: chunkSize))
+      ...await _weightsForDives(chunk),
+  };
 
   /// The type of the weight row on [diverId]'s most recent dive that has one,
   /// or null when they have none (issue #3422). Asks the log rather than a

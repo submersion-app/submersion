@@ -138,9 +138,9 @@ void main() {
       );
 
   TableDraft? draftOf(WidgetTester tester, String id, DiveField f) =>
-      containerOf(
-        tester,
-      ).read(tableEditorDraftsProvider(TableEditorTab.dives)).at(id, f.name);
+      containerOf(tester)
+          .read(tableEditorDraftsNotifierProvider(TableEditorTab.dives))
+          .at(id, f.name);
 
   // The visibility column formats through the diver's distance unit.
   String vis(double metres) =>
@@ -176,7 +176,7 @@ void main() {
     expect(draftOf(tester, 'd1', DiveField.visibility)?.value, 12.0);
     final state = containerOf(
       tester,
-    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives));
     expect(state.editing, CellPosition('d2', DiveField.visibility.name));
     expect(find.byType(TextField), findsOneWidget);
     expect(find.text(vis(12)), findsOneWidget);
@@ -251,7 +251,7 @@ void main() {
 
     final state = containerOf(
       tester,
-    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives));
     expect(state.editing, CellPosition('d1', DiveField.visibility.name));
   });
 
@@ -267,7 +267,7 @@ void main() {
 
     final state = containerOf(
       tester,
-    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives));
     expect(state.at('d2', DiveField.totalWeight.name)?.value, 5.0);
     expect(state.editing, isNull);
     expect(find.byType(TextField), findsNothing);
@@ -291,7 +291,7 @@ void main() {
     expect(find.byType(Checkbox), findsNothing);
     final state = containerOf(
       tester,
-    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives));
     expect(state.forEntity('d1').single.value, isTrue);
   });
 
@@ -305,7 +305,7 @@ void main() {
     expect(draftOf(tester, 'd1', DiveField.visibility)?.value, 12.0);
     final state = containerOf(
       tester,
-    ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+    ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives));
     expect(state.editing, CellPosition('d2', DiveField.visibility.name));
   });
 
@@ -342,7 +342,9 @@ void main() {
         ),
       );
       containerOf(tester)
-          .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+          .read(
+            tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier,
+          )
           .put(
             TableDraft(
               entityId: 'd1',
@@ -385,6 +387,39 @@ void main() {
       expect(find.text('Salt Water'), findsOneWidget);
     });
 
+    List<String> offered(WidgetTester tester) => tester
+        .widget<DropdownMenu<String?>>(find.byType(DropdownMenu<String?>))
+        .dropdownMenuEntries
+        .map((e) => e.label)
+        .toList();
+
+    testWidgets('a list that may be empty offers a blank entry', (
+      tester,
+    ) async {
+      await pumpSheet(tester, sheetConfig: choiceConfig);
+      await tapCell(tester, find.text('--').first);
+
+      expect(offered(tester), contains(''));
+    });
+
+    testWidgets('a list that may not be empty offers none', (tester) async {
+      await pumpSheet(
+        tester,
+        sheetConfig: EntityTableViewConfig<DiveField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: DiveField.diveNumber,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: DiveField.diveMode),
+          ],
+        ),
+      );
+      await tapCell(tester, find.text('OC').first);
+
+      expect(offered(tester), isNot(contains('')));
+    });
+
     testWidgets('Tab commits and moves to the next editable cell', (
       tester,
     ) async {
@@ -397,14 +432,14 @@ void main() {
       expect(draftOf(tester, 'd1', DiveField.visibility)?.value, 12.0);
       final state = containerOf(
         tester,
-      ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+      ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives));
       expect(state.editing, CellPosition('d1', DiveField.waterType.name));
       expect(find.byType(DropdownMenu<String?>), findsOneWidget);
     });
 
     TableDraftsNotifier notifierOf(WidgetTester tester) => containerOf(
       tester,
-    ).read(tableEditorDraftsProvider(TableEditorTab.dives).notifier);
+    ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier);
 
     final salty = d1.copyWith(waterType: WaterType.salt);
     final waterCell = CellPosition('d1', DiveField.waterType.name);
@@ -547,7 +582,7 @@ void main() {
 
       final state = containerOf(
         tester,
-      ).read(tableEditorDraftsProvider(TableEditorTab.dives));
+      ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives));
       expect(state.selected, CellPosition('d2', DiveField.visibility.name));
     });
 
@@ -574,7 +609,7 @@ void main() {
       expect(
         containerOf(
           tester,
-        ).read(tableEditorDraftsProvider(TableEditorTab.dives)).editing,
+        ).read(tableEditorDraftsNotifierProvider(TableEditorTab.dives)).editing,
         waterCell,
       );
     });

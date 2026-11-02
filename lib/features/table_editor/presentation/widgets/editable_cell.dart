@@ -20,6 +20,9 @@ class EditableCell extends StatefulWidget {
   final String? initialChoice;
   final List<String> initialSelection;
   final String doneLabel;
+
+  /// Whether a pulldown offers an empty entry, to clear the cell.
+  final bool allowsBlank;
   final void Function(String text, CellMove move) onCommitText;
   final void Function(Object? value, CellMove move) onCommitValue;
   final VoidCallback onCancel;
@@ -41,6 +44,7 @@ class EditableCell extends StatefulWidget {
     this.initialChoice,
     this.initialSelection = const [],
     this.doneLabel = '',
+    this.allowsBlank = true,
     this.onTeardown,
   });
 
@@ -255,7 +259,8 @@ class _EditableCellState extends State<EditableCell> {
               border: OutlineInputBorder(),
             ),
             dropdownMenuEntries: [
-              const DropdownMenuEntry<String?>(value: null, label: ''),
+              if (widget.allowsBlank)
+                const DropdownMenuEntry<String?>(value: null, label: ''),
               for (final o in widget.choices)
                 DropdownMenuEntry<String?>(value: o.value, label: o.label),
             ],
