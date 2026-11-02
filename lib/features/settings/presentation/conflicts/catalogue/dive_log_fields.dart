@@ -684,7 +684,7 @@ final Map<String, ConflictField> diveLogFields = {
   ),
   'weatherFetchedAt': ConflictField(
     (l) => l.settings_conflict_field_weatherFetchedAt,
-    FieldKind.dateTime,
+    FieldKind.epochSeconds,
   ),
   'weatherSource': ConflictField(
     (l) => l.settings_conflict_field_weatherSource,

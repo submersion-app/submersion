@@ -754,4 +754,13 @@ extension DiveMigrations on AppDatabase {
         )
     ''');
   }
+
+  /// v337: [repairWeatherFetchedAtSeconds] (issue #4119). Guarded on the column,
+  /// as the other helpers are, for migration fixtures that build only part of
+  /// the schema.
+  Future<void> _repairWeatherFetchedAtSeconds() async {
+    if (await _columnExists('dives', 'weather_fetched_at')) {
+      await repairWeatherFetchedAtSeconds(this);
+    }
+  }
 }

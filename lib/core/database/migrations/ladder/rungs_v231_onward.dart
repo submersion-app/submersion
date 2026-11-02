@@ -770,6 +770,12 @@ extension RungsFromV231 on AppDatabase {
     }
     if (from < 336) await reportProgress();
 
+    // v337: dives.weather_fetched_at holds seconds again where the bulk
+    // conditions fill wrote milliseconds (issue #4119). Data only, so the
+    // compatibility floor does not move.
+    if (from < 337) await _repairWeatherFetchedAtSeconds();
+    if (from < 337) await reportProgress();
+
     // v338: incidents.observation_id, the gear check-in behind a near-miss
     // (issue #3062). Column only, no backfill: nothing says which existing
     // report goes with which check-in. Re-asserted in beforeOpen.

@@ -1540,6 +1540,10 @@ class AppDatabase extends _$AppDatabase {
     // v336: trip_checklists, splitting one trip's single flat checklist
     // into several named ones (issue #3356).
     336,
+    // v337: dives.weather_fetched_at back to seconds where the bulk conditions
+    // fill wrote milliseconds (issue #4119). Data only, so the floor does not
+    // move.
+    337,
     // v338: incidents.observation_id, the gear check-in behind a near-miss
     // (issue #3062).
     338,
