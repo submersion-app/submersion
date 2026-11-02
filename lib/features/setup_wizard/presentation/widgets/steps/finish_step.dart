@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/setup_wizard/data/setup_apply_service.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
@@ -79,12 +80,16 @@ class _FinishStepState extends ConsumerState<FinishStep> {
     final theme = Theme.of(context);
     final l10n = context.l10n;
 
+    // A browser has no Bluetooth or USB download (issue #4121), so the
+    // card that would lead there is left out rather than shown to fail.
+    final caps = ref.watch(deviceCapabilitiesProvider);
     final features = <(IconData, String, String)>[
-      (
-        Icons.watch,
-        l10n.setup_finish_feature_diveComputer,
-        kSetupFinishFeatureRoutes[0],
-      ),
+      if (caps.diveComputerDownload)
+        (
+          Icons.watch,
+          l10n.setup_finish_feature_diveComputer,
+          kSetupFinishFeatureRoutes[0],
+        ),
       (
         Icons.file_upload,
         l10n.setup_finish_feature_import,

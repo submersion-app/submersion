@@ -22,6 +22,10 @@ Widget _stubStep(SetUpStep step, SetUpStepNavigation navigation) => Column(
     Text('stub ${step.name} ${navigation.host.name}'),
     TextButton(onPressed: navigation.onNext, child: const Text('stub next')),
     TextButton(onPressed: navigation.onBack, child: const Text('stub back')),
+    TextButton(
+      onPressed: navigation.onNotNow,
+      child: const Text('stub not now'),
+    ),
     if (navigation.onNoLibrary != null)
       TextButton(
         onPressed: navigation.onNoLibrary,
@@ -87,6 +91,46 @@ void main() {
       SetupPath.fresh,
     );
     expect(find.text('Create Your Profile'), findsOneWidget);
+    expect(find.text('stub account firstRun'), findsNothing);
+  });
+
+  testWidgets('the first step offers no way back, and the same step later '
+      'on the fresh path does', (tester) async {
+    TextButton back() =>
+        tester.widget<TextButton>(find.widgetWithText(TextButton, 'stub back'));
+
+    await pumpPage(tester);
+    expect(find.text('stub account firstRun'), findsOneWidget);
+    expect(back().onPressed, isNull);
+
+    await tester.tap(find.text('stub no library'));
+    await pumpWizard(tester);
+    await tester.enterText(find.byType(TextFormField), 'Eric');
+    await pumpWizard(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Next'));
+    await pumpWizard(tester); // units
+    await tester.tap(find.widgetWithText(FilledButton, 'Next'));
+    await pumpWizard(tester); // the connect step
+    expect(find.text('stub account firstRun'), findsOneWidget);
+    expect(back().onPressed, isNotNull);
+  });
+
+  testWidgets('Not now on the connect step reaches Finish: a browser has no '
+      'backups step after sync to land on', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.text('stub no library'));
+    await pumpWizard(tester);
+    await tester.enterText(find.byType(TextFormField), 'Eric');
+    await pumpWizard(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Next'));
+    await pumpWizard(tester); // units
+    await tester.tap(find.widgetWithText(FilledButton, 'Next'));
+    await pumpWizard(tester); // the connect step
+    expect(find.text('stub account firstRun'), findsOneWidget);
+
+    await tester.tap(find.text('stub not now'));
+    await pumpWizard(tester);
+    expect(find.text("You're all set"), findsOneWidget);
     expect(find.text('stub account firstRun'), findsNothing);
   });
 }

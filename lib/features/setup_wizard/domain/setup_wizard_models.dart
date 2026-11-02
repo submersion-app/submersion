@@ -118,7 +118,6 @@ class SetupWizardDraft {
   }
 }
 
-/// Computes the ordered step list for the current draft state.
 /// Whether a shared step offers to start without a sync store: natively the
 /// sync step on the existing-data path; in a browser the connect step it
 /// opens on as well (issue #4121). Once the user took the offer the path is
@@ -130,19 +129,33 @@ bool offersNoLibrary(SetupWizardDraft draft, SetupStepId id) {
       (draft.browser && id == SetupStepId.setUpAccount);
 }
 
+/// The two Set up this device steps a browser keeps (issue #4121): it has
+/// no files to back up on a schedule and no photo library to sync.
+const kBrowserSetUpWizardSteps = [
+  SetupStepId.setUpAccount,
+  SetupStepId.setUpSync,
+];
+
+/// Computes the ordered step list for the current draft state.
 List<SetupStepId> computeSteps(SetupWizardDraft draft) {
   final steps = _stepsForPath(draft);
-  if (!draft.browser || draft.mode != SetupWizardMode.firstRun) return steps;
-  // A browser's first run has no welcome fork and no existing-data choice
-  // before it: it opens on the connect step, and "Continue without a sync
-  // store" takes the fresh path from there (issue #4121).
+  if (!draft.browser) return steps;
+  // A browser drops the backups and photos steps in every mode, and its
+  // first run has no welcome fork and no existing-data choice before it: it
+  // opens on the connect step, and "Continue without a sync store" takes the
+  // fresh path from there (issue #4121).
+  final firstRun = draft.mode == SetupWizardMode.firstRun;
   final trimmed = [
     for (final step in steps)
-      if (step != SetupStepId.welcomeFork && step != SetupStepId.existingChoice)
+      if (kBrowserSetUpWizardSteps.contains(step) ||
+          !(kSetUpWizardSteps.contains(step) ||
+              (firstRun &&
+                  (step == SetupStepId.welcomeFork ||
+                      step == SetupStepId.existingChoice))))
         step,
   ];
   return trimmed.isEmpty
-      ? const [...kSetUpWizardSteps, SetupStepId.finish]
+      ? const [...kBrowserSetUpWizardSteps, SetupStepId.finish]
       : trimmed;
 }
 

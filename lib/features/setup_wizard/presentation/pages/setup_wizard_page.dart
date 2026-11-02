@@ -98,11 +98,13 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
     });
   }
 
-  void _goTo(SetupStepId id) {
-    final index = computeSteps(
-      ref.read(setupWizardProvider(widget.mode)),
-    ).indexOf(id);
-    if (index >= 0) _animateTo(index);
+  /// The step after [id] in the current list, when there is one: the list
+  /// differs by mode and in a browser (issue #4121), so a jump names the
+  /// step it skips, never the one it lands on.
+  void _goToAfter(SetupStepId id) {
+    final steps = computeSteps(ref.read(setupWizardProvider(widget.mode)));
+    final index = steps.indexOf(id);
+    if (index >= 0 && index < steps.length - 1) _animateTo(index + 1);
   }
 
   /// How a shared step leaves itself in the wizard: Not now moves on (step
@@ -120,9 +122,10 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
           ? SetUpHost.firstRun
           : SetUpHost.assistant,
       onNext: _advance,
-      onBack: _back,
+      // A browser's first run opens on this step: nothing comes before it.
+      onBack: _currentIndex > 0 ? _back : null,
       onNotNow: id == SetupStepId.setUpAccount
-          ? () => _goTo(SetupStepId.setUpBackups)
+          ? () => _goToAfter(SetupStepId.setUpSync)
           : _advance,
       onSkip: id == SetupStepId.setUpPhotos ? _advance : null,
       onNoLibrary: noLibrary

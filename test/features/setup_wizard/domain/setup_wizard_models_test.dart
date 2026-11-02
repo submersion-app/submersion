@@ -179,6 +179,11 @@ void main() {
   });
 
   group('computeSteps in a browser (#4121)', () {
+    // A browser has no automatic backups (no files, no background work) and
+    // no photo library to sync, so those two shared steps are gone in every
+    // mode; a first run also has no welcome fork and no existing-data choice.
+    const browserSteps = [SetupStepId.setUpAccount, SetupStepId.setUpSync];
+
     test('a first run opens on the connect step', () {
       const draft = SetupWizardDraft(
         mode: SetupWizardMode.firstRun,
@@ -186,7 +191,7 @@ void main() {
         path: SetupPath.existingData,
         source: ExistingDataSource.cloudSync,
       );
-      expect(computeSteps(draft), [...kSetUpWizardSteps, SetupStepId.finish]);
+      expect(computeSteps(draft), [...browserSteps, SetupStepId.finish]);
     });
 
     test('continue without a sync store runs profile, units, the steps '
@@ -199,7 +204,7 @@ void main() {
       expect(computeSteps(draft), [
         SetupStepId.profile,
         SetupStepId.units,
-        ...kSetUpWizardSteps,
+        ...browserSteps,
         SetupStepId.finish,
       ]);
     });
@@ -209,17 +214,37 @@ void main() {
         mode: SetupWizardMode.firstRun,
         browser: true,
       );
-      expect(computeSteps(draft), [...kSetUpWizardSteps, SetupStepId.finish]);
+      expect(computeSteps(draft), [...browserSteps, SetupStepId.finish]);
     });
 
-    test('the settings assistant is unchanged', () {
+    test('the backups and photos steps never show in a browser', () {
+      for (final mode in SetupWizardMode.values) {
+        final draft = SetupWizardDraft(
+          mode: mode,
+          browser: true,
+          path: SetupPath.fresh,
+        );
+        expect(
+          computeSteps(draft),
+          isNot(contains(SetupStepId.setUpBackups)),
+          reason: '$mode',
+        );
+        expect(
+          computeSteps(draft),
+          isNot(contains(SetupStepId.setUpPhotos)),
+          reason: '$mode',
+        );
+      }
+    });
+
+    test('the settings assistant keeps units and the connect steps', () {
       const draft = SetupWizardDraft(
         mode: SetupWizardMode.settings,
         browser: true,
       );
       expect(computeSteps(draft), [
         SetupStepId.units,
-        ...kSetUpWizardSteps,
+        ...browserSteps,
         SetupStepId.finish,
       ]);
     });
