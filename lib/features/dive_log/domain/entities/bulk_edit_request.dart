@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/database/database.dart' show DivesCompanion;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     show BuddyWithRole;
@@ -125,6 +126,19 @@ class WeightsOp extends BulkCollectionOp {
   final BulkCollectionMode mode; // add | replace
   final List<DiveWeight> weights;
   const WeightsOp({required this.mode, required this.weights});
+}
+
+/// One dive's single weight row, set in place (issue #3422): the table
+/// editor's weight cell. [amountKg] null drops the row; a dive with no row
+/// gets one of [newRowType]. Applied per dive, so a dive with two or more
+/// rows throws rather than guess which one the cell meant.
+class WeightAmountOp extends BulkCollectionOp {
+  final double? amountKg;
+  final WeightType newRowType;
+  const WeightAmountOp({
+    required this.amountKg,
+    this.newRowType = WeightType.belt,
+  });
 }
 
 class SightingsOp extends BulkCollectionOp {

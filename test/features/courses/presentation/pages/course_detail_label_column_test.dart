@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -11,6 +12,7 @@ import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
 import '../../../../helpers/detail_row_finders.dart';
+import '../../../../support/clipboard_recorder.dart';
 
 /// The course Details card puts each value right beside its label, on one
 /// column as wide as the longest label rather than a fixed 100 px (#3678).
@@ -37,9 +39,7 @@ void main() {
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
 
-  testWidgets('a label wider than 100 px stays on one line beside its value', (
-    tester,
-  ) async {
+  Future<void> pumpPage(WidgetTester tester, Course course) async {
     final router = GoRouter(
       initialLocation: '/courses/${course.id}',
       routes: [
@@ -67,6 +67,37 @@ void main() {
       ),
     );
     await pumpFrames(tester);
+  }
+
+  testWidgets('the instructor number copies, the name does not (issue #3362)', (
+    tester,
+  ) async {
+    final calls = recordClipboardCalls();
+    await pumpPage(
+      tester,
+      course.copyWith(instructorName: 'Sam Rivera', instructorNumber: '484921'),
+    );
+
+    expect(find.byTooltip('Copy'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: detailRowFor('Instructor #'),
+        matching: find.byTooltip('Copy'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byTooltip('Copy'));
+    await pumpFrames(tester);
+
+    expect(copiedText(calls), '484921');
+    expect(find.byType(SnackBar), findsOneWidget);
+  });
+
+  testWidgets('a label wider than 100 px stays on one line beside its value', (
+    tester,
+  ) async {
+    await pumpPage(tester, course);
 
     final label = find.text('Start Date');
     // One line: as tall as "Agency", which fits in 100 px. The old fixed

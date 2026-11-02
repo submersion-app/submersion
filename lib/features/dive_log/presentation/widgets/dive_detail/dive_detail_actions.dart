@@ -16,6 +16,7 @@ class DiveDetailActions {
     required this.addPhotos,
     required this.addDocument,
     required this.openDocument,
+    this.openAnnotation,
   });
 
   final void Function(String readingId) setPrimarySource;
@@ -25,4 +26,8 @@ class DiveDetailActions {
   final void Function(Dive dive) addPhotos;
   final void Function(Dive dive) addDocument;
   final void Function(MediaItem item) openDocument;
+
+  /// A tap on an annotation link in the Notes card (#4109): scrolls to the
+  /// profile and opens the marker's popup.
+  final void Function(String annotationId)? openAnnotation;
 }

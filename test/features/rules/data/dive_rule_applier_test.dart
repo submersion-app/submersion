@@ -56,6 +56,41 @@ void main() {
     expect(row.read<String>('water_type'), 'salt');
   });
 
+  group('setting a trip (issue #3351)', () {
+    setUp(() async {
+      await db.customStatement(
+        "INSERT INTO trips (id, name, start_date, end_date, created_at, "
+        "updated_at) VALUES ('t', 'Roatan', "
+        '${DateTime(2020, 3, 5).millisecondsSinceEpoch}, '
+        '${DateTime(2020, 3, 10).millisecondsSinceEpoch}, 1, 1)',
+      );
+      await db.customStatement(
+        'UPDATE dives SET dive_date_time = '
+        "${DateTime.utc(2020, 3, 14, 9).millisecondsSinceEpoch} "
+        "WHERE id = 'd20'",
+      );
+    });
+
+    Future<int> endDate() async =>
+        (await db
+                .customSelect("SELECT end_date FROM trips WHERE id = 't'")
+                .getSingle())
+            .read<int>('end_date');
+
+    test('a rule that sets a trip stretches it', () async {
+      const a = SetDiveFieldAction(BulkField.trip, {'tripId': 't'});
+      await applier.apply(ruleOf(RuleSubject.dives, a), a, ['d20']);
+      expect(await endDate(), DateTime(2020, 3, 14).millisecondsSinceEpoch);
+    });
+
+    test('a rule that clears a trip stretches nothing', () async {
+      await db.customStatement("UPDATE dives SET trip_id = 't'");
+      const a = SetDiveFieldAction(BulkField.trip, {'tripId': null});
+      await applier.apply(ruleOf(RuleSubject.dives, a), a, ['d20']);
+      expect(await endDate(), DateTime(2020, 3, 10).millisecondsSinceEpoch);
+    });
+  });
+
   test('setting the value a dive already holds records nothing', () async {
     const a = SetDiveFieldAction(BulkField.waterType, {'waterType': 'fresh'});
     final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, ['d20']);

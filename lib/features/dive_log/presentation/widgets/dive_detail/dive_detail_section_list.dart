@@ -69,6 +69,7 @@ class DiveDetailSectionList extends ConsumerWidget {
     required this.dive,
     required this.profileSection,
     required this.safetyReviewKey,
+    this.notesKey,
     required this.retention,
     required this.actions,
   });
@@ -81,6 +82,9 @@ class DiveDetailSectionList extends ConsumerWidget {
 
   /// Lets the page scroll to the safety review from a chart callout.
   final GlobalKey safetyReviewKey;
+
+  /// Marks the Notes card so the page can scroll to it (#4109).
+  final GlobalKey? notesKey;
 
   final DiveDetailAnalysisRetention retention;
   final DiveDetailActions actions;
@@ -97,8 +101,7 @@ class DiveDetailSectionList extends ConsumerWidget {
     // Visible sections in configured order, minus gauge-hidden ones.
     final visible = [
       for (final section in sections)
-        if (section.visible && !(dive.isGauge && section.id.hiddenInGaugeMode))
-          section.id,
+        if (section.shownFor(gauge: dive.isGauge)) section.id,
     ];
     final visibleIds = visible.toSet();
     final unfolded = {
@@ -283,7 +286,11 @@ class DiveDetailSectionList extends ConsumerWidget {
         if (dive.tags.isEmpty) return null;
         return DiveTagsSection(dive: dive);
       case DiveDetailSectionId.notes:
-        return DiveNotesSection(dive: dive);
+        return DiveNotesSection(
+          key: notesKey,
+          dive: dive,
+          onAnnotationTap: actions.openAnnotation,
+        );
       case DiveDetailSectionId.documents:
         return DocumentsSection(
           owner: DocumentOwner(DocumentOwnerKind.dive, dive.id),

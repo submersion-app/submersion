@@ -96,13 +96,27 @@ void main() {
       String? computer, {
       Hlc? hlc,
       int createdAt = 0,
+      String source = 'imported',
     }) => {
       'id': 'e',
       'diveId': dive,
       'computerId': computer,
       'hlc': hlc?.toString(),
       'createdAt': createdAt,
+      'source': source,
     };
+
+    test('never covers an incoming user event', () {
+      const older = Hlc(999, 0, 'b');
+      expect(
+        coverage.covers(event('d1', 'c1', hlc: older, source: 'user')),
+        isFalse,
+      );
+      expect(
+        coverage.covers(event('d2', null, createdAt: 999, source: 'user')),
+        isFalse,
+      );
+    });
 
     test('a computer scope covers only that computer', () {
       const older = Hlc(999, 0, 'b');

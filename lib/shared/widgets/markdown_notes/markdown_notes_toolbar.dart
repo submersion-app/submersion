@@ -19,6 +19,7 @@ class MarkdownNotesToolbar extends StatelessWidget {
     required this.onBulletList,
     required this.onNumberedList,
     required this.onPreviewChanged,
+    this.onAnnotate,
   });
 
   final bool previewing;
@@ -28,6 +29,10 @@ class MarkdownNotesToolbar extends StatelessWidget {
   final VoidCallback onBulletList;
   final VoidCallback onNumberedList;
   final ValueChanged<bool> onPreviewChanged;
+
+  /// Pins the selection to a time in the dive (#4109). The button shows only
+  /// where a page can answer it: the dive edit page, not every notes field.
+  final VoidCallback? onAnnotate;
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +86,12 @@ class MarkdownNotesToolbar extends StatelessWidget {
                     l10n.notesEditor_action_numberedList,
                     onNumberedList,
                   ),
+                  if (onAnnotate != null)
+                    action(
+                      Icons.push_pin_outlined,
+                      l10n.notesEditor_action_annotate,
+                      onAnnotate!,
+                    ),
                 ],
               ),
             ),

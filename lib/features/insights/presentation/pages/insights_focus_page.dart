@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/insights/presentation/widgets/focus/focus_results.dart';
 import 'package:submersion/features/insights/presentation/widgets/focus/focus_sentence.dart';
-import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
-import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Pick a group of dives by one metric, see them, and see what they share
@@ -34,19 +33,9 @@ class InsightsFocusPage extends StatelessWidget {
       ],
     );
     if (embedded) return content;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.insights_focus_title),
-        actions: const [InsightsFilterAction()],
-      ),
-      // Expanded is required: content is a CustomScrollView, and a
-      // Column would otherwise hand it unbounded height.
-      body: const Column(
-        children: [
-          InsightsFilterBar(),
-          Expanded(child: content),
-        ],
-      ),
+    return InsightsFilteredScaffold(
+      title: context.l10n.insights_focus_title,
+      body: content,
     );
   }
 }

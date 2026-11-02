@@ -44,6 +44,10 @@ class ProfileLegendState {
   /// that carries imported events so a computer download shows just the
   /// computer's events by default (issue #1523).
   final bool showComputedEvents;
+
+  /// Whether the diver's annotations are drawn (#4109). Independent of
+  /// [showEvents], so hiding the computer's events keeps the diver's own.
+  final bool showAnnotations;
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
   final bool showGasSwitchMarkers;
@@ -130,6 +134,7 @@ class ProfileLegendState {
     this.showAscentRateLine = false,
     this.showEvents = true,
     this.showComputedEvents = true,
+    this.showAnnotations = true,
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
     this.showGasSwitchMarkers = true,
@@ -228,6 +233,7 @@ class ProfileLegendState {
     bool? showAscentRateLine,
     bool? showEvents,
     bool? showComputedEvents,
+    bool? showAnnotations,
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
     bool? showGasSwitchMarkers,
@@ -274,6 +280,7 @@ class ProfileLegendState {
       showAscentRateLine: showAscentRateLine ?? this.showAscentRateLine,
       showEvents: showEvents ?? this.showEvents,
       showComputedEvents: showComputedEvents ?? this.showComputedEvents,
+      showAnnotations: showAnnotations ?? this.showAnnotations,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
       showGasSwitchMarkers: showGasSwitchMarkers ?? this.showGasSwitchMarkers,
@@ -325,6 +332,7 @@ class ProfileLegendState {
           showAscentRateLine == other.showAscentRateLine &&
           showEvents == other.showEvents &&
           showComputedEvents == other.showComputedEvents &&
+          showAnnotations == other.showAnnotations &&
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
           showGasSwitchMarkers == other.showGasSwitchMarkers &&
@@ -370,6 +378,7 @@ class ProfileLegendState {
     showAscentRateLine,
     showEvents,
     showComputedEvents,
+    showAnnotations,
     showMaxDepthMarker,
     showPressureMarkers,
     showGasSwitchMarkers,
@@ -579,6 +588,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleEvents() {
     state = state.copyWith(showEvents: !state.showEvents);
+  }
+
+  void toggleAnnotations() {
+    state = state.copyWith(showAnnotations: !state.showAnnotations);
   }
 
   /// Records that the user has explicitly set the computed-events toggle, so

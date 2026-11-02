@@ -1,6 +1,7 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/core/services/export/pdf/pdf_annotation_times.dart';
 import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -49,6 +50,7 @@ class PdfCourseExportService {
     // Load signatures for all training dives in one read
     final diveSignatures = await SignatureStorageService()
         .getSignaturesForDives([for (final dive in trainingDives) dive.id]);
+    final annotationTimesByDive = await annotationTimesForPdf(trainingDives);
 
     // Calculate summary statistics
     final totalRuntime = pdfTotalRuntime(trainingDives);
@@ -199,6 +201,7 @@ class PdfCourseExportService {
                   localDates,
                   units,
                   l10n,
+                  annotationTimesByDive[dive.id] ?? const {},
                 ),
               ),
             ],
@@ -300,6 +303,7 @@ class PdfCourseExportService {
     PdfDateFormatter dates,
     UnitFormatter units,
     AppLocalizations l10n,
+    Map<String, String> annotationTimes,
   ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 15),
@@ -369,6 +373,7 @@ class PdfCourseExportService {
               dive.notes,
               style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
               maxLines: 3,
+              annotationTimes: annotationTimes,
             ),
           ],
           if (signatures != null && signatures.isNotEmpty) ...[

@@ -8,6 +8,9 @@ enum AgentToolErrorCode {
   unknownDiver,
   notFound,
   tooManyIds,
+  sqlRefused,
+  sqlError,
+  sqlBusy,
   internal;
 
   /// The snake_case name carried in tool error payloads.
@@ -20,6 +23,9 @@ enum AgentToolErrorCode {
     unknownDiver => 'unknown_diver',
     notFound => 'not_found',
     tooManyIds => 'too_many_ids',
+    sqlRefused => 'sql_refused',
+    sqlError => 'sql_error',
+    sqlBusy => 'sql_busy',
     internal => 'internal',
   };
 }

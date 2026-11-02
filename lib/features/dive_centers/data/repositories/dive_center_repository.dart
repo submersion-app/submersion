@@ -12,6 +12,7 @@ import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
@@ -61,6 +62,26 @@ class DiveCenterRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dive center by id: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The dive centers with [ids], in no set order; an id with none is passed
+  /// over.
+  Future<List<domain.DiveCenter>> getDiveCentersByIds(List<String> ids) async {
+    try {
+      return [
+        for (final chunk in seriesIdChunks(ids))
+          ...(await (_db.select(
+            _db.diveCenters,
+          )..where((t) => t.id.isIn(chunk))).map(_mapRowToDiveCenter).get()),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get ${ids.length} dive centers by id',
         error: e,
         stackTrace: stackTrace,
       );

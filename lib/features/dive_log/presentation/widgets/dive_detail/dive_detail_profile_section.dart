@@ -14,6 +14,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipPresentation;
+import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
@@ -61,9 +64,14 @@ class DiveDetailProfileSection extends ConsumerWidget {
     required this.exportKey,
     required this.onSafetyFindingDetails,
     required this.onSetPrimarySource,
+    this.onOpenInNotes,
   });
 
   final String diveId;
+
+  /// "Open in Notes" on an annotation's popup (#4109): scrolls to the Notes
+  /// card and highlights the passage.
+  final ValueChanged<String>? onOpenInNotes;
 
   /// Repaint boundary key for "export profile as image".
   final GlobalKey exportKey;
@@ -84,6 +92,13 @@ class DiveDetailProfileSection extends ConsumerWidget {
         )
         ?.dive;
     if (dive == null) return const SizedBox.shrink();
+    final annotationActions = DiveDetailAnnotationActions(
+      ref: ref,
+      context: context,
+      dive: dive,
+      onOpenInNotes: onOpenInNotes,
+    );
+    final placement = ref.watch(annotationPlacementProvider(dive.id));
 
     // What follows a provider around the chart watches it in a widget of its
     // own. A watch here would hand the chart a new host each time it fired,
@@ -105,6 +120,10 @@ class DiveDetailProfileSection extends ConsumerWidget {
                 Row(
                   children: [
                     _RangeToggle(diveId: dive.id),
+                    AnnotationPinButton(
+                      active: placement != null,
+                      onPressed: annotationActions.onPinPressed,
+                    ),
                     IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,
@@ -137,10 +156,20 @@ class DiveDetailProfileSection extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
+            if (placement != null) ...[
+              AnnotationPlacementBanner(
+                moving: placement.isMove,
+                onCancel: ref
+                    .read(annotationPlacementProvider(dive.id).notifier)
+                    .cancel,
+              ),
+              const SizedBox(height: 8),
+            ],
             // Chart with optional range selection overlay
             DiveProfileChartHost(
               dive: dive,
               exportKey: exportKey,
+              annotationActions: annotationActions,
               onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
               // fl_chart's own tooltip bubble (issue #2228 follow-up): this
               // is the exact pre-#2228 presentation for the embedded chart,
@@ -168,7 +197,8 @@ class DiveDetailProfileSection extends ConsumerWidget {
     // bar painted under a supposedly fullscreen chart (#811).
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) => FullscreenProfilePage(diveId: diveId),
+        builder: (context) =>
+            FullscreenProfilePage(diveId: diveId, onOpenInNotes: onOpenInNotes),
       ),
     );
   }

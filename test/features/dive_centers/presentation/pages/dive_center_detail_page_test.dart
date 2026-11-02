@@ -15,6 +15,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../support/clipboard_recorder.dart';
 
 void main() {
   group('DiveCenterDetailPage desktop redirect', () {
@@ -233,6 +234,47 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(find.byType(MarkdownNotesView), findsOneWidget);
     expect(find.text('Ask for Ana'), findsOneWidget);
+  });
+
+  testWidgets('a long press on a contact row copies it, with a message', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(600, 2000);
+    addTearDown(tester.view.reset);
+    final calls = recordClipboardCalls();
+    final center = DiveCenter(
+      id: 'center-contact',
+      name: 'Reef Divers',
+      phone: '+599 717 0000',
+      notes: '',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          diveCenterByIdProvider(center.id).overrideWith((ref) async => center),
+          diveCenterDiveCountProvider(center.id).overrideWith((ref) async => 0),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: DiveCenterDetailPage(centerId: center.id),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.longPress(find.text('+599 717 0000'));
+    await tester.pump();
+
+    expect(copiedText(calls), '+599 717 0000');
+    expect(find.text('Copied to clipboard'), findsOneWidget);
   });
 
   group('DiveCenterDetailPage map section', () {

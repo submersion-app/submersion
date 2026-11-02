@@ -53,7 +53,7 @@ More settings in this section:
 | Setting | What it does | Default |
 |---------|--------------|---------|
 | **Gas consumption** | Show **SAC** (pressure drop per minute, works with any logged pressures), **RMV** (volume per minute at the surface, needs a tank volume), or **Both** | Both |
-| **Gas calculations** | **Real gas** accounts for compressibility (a 12 L cylinder at 200 bar holds about 2317 L); **Ideal gas** matches hand calculation and dive tables (2400 L). Affects RMV, gas statistics, the planner and the gas calculators. | Real gas |
+| **Gas calculations** | **Real gas** accounts for compressibility (a 12 L cylinder at 200 bar holds about 2317 L); **Ideal gas** matches hand calculation and dive tables (2400 L). Affects RMV, gas used, gas statistics, the planner and the gas calculators. | Real gas |
 | **Water type** | The default water type for the planner | Salt water |
 | **Default Currency** | For prices and costs | USD |
 | **Visibility scale** | How visibility you measured is described: **Tropical**, **Temperate**, **Cold water / Inland**, or **Custom** | Tropical |

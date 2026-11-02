@@ -1,0 +1,160 @@
+import 'package:markdown/markdown.dart' as md;
+
+import 'package:submersion/core/text/markdown/notes_markdown.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+
+/// The link scheme that ties a passage of a dive's Notes to an annotation
+/// event (#4109): `[words](annotation:<event id>)`. The id is the only
+/// coupling between the two tables, so moving an annotation never touches
+/// the text.
+const String annotationLinkScheme = 'annotation';
+
+final RegExp _schemePrefix = RegExp(
+  '^$annotationLinkScheme:',
+  caseSensitive: false,
+);
+
+/// The annotation id an [href] names, or null for any other address, a
+/// missing one, or one with an empty id.
+String? annotationIdFromHref(String? href) {
+  if (href == null) return null;
+  final match = _schemePrefix.firstMatch(href);
+  if (match == null) return null;
+  final id = href.substring(match.end);
+  return id.isEmpty ? null : id;
+}
+
+/// The Markdown for an annotation link. Brackets in the words are escaped
+/// so the link text starts and ends where the selection did, and so is a
+/// last backslash, which would otherwise escape the closing bracket. What
+/// the words already escape (a selection is Markdown source) stays as it is.
+String annotationLinkMarkdown(String words, String id) {
+  final text = words.replaceAllMapped(
+    _linkTextEscapes,
+    (m) => m[0]!.length == 2 ? m[0]! : '\\${m[0]}',
+  );
+  return '[$text]($annotationLinkScheme:$id)';
+}
+
+final RegExp _linkTextEscapes = RegExp(r'\\[\s\S]|\\$|[\[\]]');
+
+/// Annotation id to the plain words of the first link in [notes] that names
+/// it. Inline emphasis inside the link is dropped, so `[**free** flow]`
+/// gives `free flow`.
+Map<String, String> annotationWordsInNotes(String notes) {
+  if (notes.isEmpty) return const {};
+  final words = <String, String>{};
+  void visit(List<md.Node> nodes) {
+    for (final node in nodes) {
+      if (node is! md.Element) continue;
+      final id = switch (node.tag) {
+        'a' => annotationIdFromHref(node.attributes['href']),
+        'img' => annotationIdFromHref(node.attributes['src']),
+        _ => null,
+      };
+      if (id != null) {
+        words.putIfAbsent(
+          id,
+          () => node.tag == 'img'
+              ? (node.attributes['alt'] ?? '')
+              : node.textContent,
+        );
+        continue;
+      }
+      visit(node.children ?? const []);
+    }
+  }
+
+  visit(parseNotesMarkdown(notes));
+  return words;
+}
+
+/// Whether [notes] can hold an annotation link at all, for skipping a read
+/// on a dive that cannot have one.
+bool mayLinkAnnotations(String notes) => _schemeInText.hasMatch(notes);
+
+final RegExp _schemeInText = RegExp(
+  '$annotationLinkScheme:',
+  caseSensitive: false,
+);
+
+/// The ids every annotation link in [notes] names.
+Set<String> annotationIdsInNotes(String notes) =>
+    annotationWordsInNotes(notes).keys.toSet();
+
+/// A link's text as written in Notes, with its escaped pairs. The two
+/// alternatives never overlap: if a backslash could be read both ways, a
+/// failed match would try every combination, doubling for each backslash.
+const String _linkText = r'(?:\\[\s\S]|[^\]\\])*';
+
+/// Any annotation link as written in Notes, whatever its id, which is the
+/// first group.
+final annotationLinkPattern = RegExp(
+  r'\['
+  '$_linkText'
+  r'\]\('
+  '$annotationLinkScheme:'
+  r'([^)\s]*)\)',
+  caseSensitive: false,
+);
+
+/// [notes] with each annotation link's id replaced by its entry in [ids]. A
+/// link to any other id is left as it is.
+String renameAnnotationLinks(String notes, Map<String, String> ids) {
+  if (ids.isEmpty) return notes;
+  return notes.replaceAllMapped(annotationLinkPattern, (m) {
+    final link = m[0]!;
+    final id = m[1]!;
+    final renamed = ids[id];
+    if (renamed == null) return link;
+    return '${link.substring(0, link.length - id.length - 1)}$renamed)';
+  });
+}
+
+/// [notes] with every `[words](annotation:id)` turned back into `words`.
+/// Other text is untouched; an absent [id] returns the input unchanged.
+String unlinkAnnotation(String notes, String id) {
+  final escapedId = RegExp.escape(id);
+  // Case-insensitive on the scheme, like [annotationIdFromHref], so a
+  // hand-edited `Annotation:` link is unlinked the way it was recognised.
+  final link = RegExp(
+    r'\[('
+    '$_linkText'
+    r')\]\('
+    '$annotationLinkScheme:$escapedId'
+    r'\)',
+    caseSensitive: false,
+  );
+  if (!link.hasMatch(notes)) return notes;
+  return notes.replaceAllMapped(
+    link,
+    (m) => m.group(1)!.replaceAll(r'\]', ']').replaceAll(r'\[', '['),
+  );
+}
+
+/// Annotation id to its time as `m:ss`, for the Notes view and the PDF.
+Map<String, String> annotationTimesOf(List<ProfileEvent> annotations) => {
+  for (final a in annotations) a.id: formatMinutesSeconds(a.timestamp),
+};
+
+/// [events] without the annotations whose id no link in [notes] names. A
+/// computer's events pass through untouched, in their original order.
+List<ProfileEvent> dropOrphanAnnotations(
+  List<ProfileEvent> events,
+  String notes,
+) {
+  if (!events.any((e) => e.isAnnotation)) return events;
+  final linked = annotationIdsInNotes(notes);
+  return [
+    for (final e in events)
+      if (!e.isAnnotation || linked.contains(e.id)) e,
+  ];
+}
+
+/// The latest second an annotation may fall on when the dive says [known]
+/// about its length (the profile's last sample or the runtime, in seconds).
+/// A dive that says nothing takes any time within a day, so a diver can
+/// still pin a passage of a dive logged with no duration yet.
+int annotationTimeCap(int? known) =>
+    known != null && known > 0 ? known : 24 * 3600;

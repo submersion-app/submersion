@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
 import 'package:submersion/features/tags/presentation/tag_dives_navigation.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -56,14 +60,24 @@ class DiveTagsSection extends ConsumerWidget {
   }
 }
 
-/// The Notes card.
-class DiveNotesSection extends StatelessWidget {
-  const DiveNotesSection({super.key, required this.dive});
+/// The Notes card. A passage linked to an annotation (#4109) draws with a
+/// pin and the annotation's time, jumps to the profile when tapped, and
+/// lights up when the profile's popup opened it.
+class DiveNotesSection extends ConsumerWidget {
+  const DiveNotesSection({super.key, required this.dive, this.onAnnotationTap});
 
   final Dive dive;
 
+  /// Scrolls to the profile and opens the annotation's popup.
+  final ValueChanged<String>? onAnnotationTap;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // `.value` keeps the pins and times through a reload after a write.
+    final annotations =
+        ref.watch(diveAnnotationsProvider(dive.id)).value ??
+        const <ProfileEvent>[];
+    final highlighted = ref.watch(annotationNotesHighlightProvider(dive.id));
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -76,7 +90,12 @@ class DiveNotesSection extends StatelessWidget {
             ),
             const Divider(),
             if (dive.notes.isNotEmpty)
-              MarkdownNotesView(dive.notes)
+              MarkdownNotesView(
+                dive.notes,
+                annotationTimes: annotationTimesOf(annotations),
+                onAnnotationTap: onAnnotationTap,
+                highlightedAnnotationId: highlighted,
+              )
             else
               Text(
                 context.l10n.diveLog_detail_noNotes,

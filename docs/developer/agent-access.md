@@ -31,8 +31,9 @@ Everything is under `lib/features/agent_access/`:
 | `data/records/` | The record catalogue: scopes, the reader, the repository bundle |
 | `data/records/families/` | One file per family of entities, each returning its catalogue entries |
 | `data/documents/` | JSON mappers per family, metric with unit-named keys, and `document_dates.dart` |
-| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, and the registry |
-| `data/resources/` | `submersion://query-language` and `submersion://units` |
+| `data/sql/` | The SQL window: the denied set, the bytecode guard, the worker and its runner |
+| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, and the registry |
+| `data/resources/` | `submersion://query-language`, `submersion://units` and `submersion://schema` |
 | `data/server/` | The loopback listener, the bearer check, and the adapter onto `mcp_dart` |
 | `presentation/providers/` | Settings notifier, token store, status stream, lifecycle controller |
 | `presentation/pages/`, `presentation/widgets/` | The settings page, status card and client snippets |
@@ -129,6 +130,66 @@ so the compiled SQL runs unchanged, the answer is right for any profile, and a
 read tool writes nothing. It is why `awaitServiceStatusIfRead` is not used
 here: that provider can only answer for the active diver.
 
+## The SQL window
+
+`sql_query` runs one statement on a connection of its own, opened read-only
+with `PRAGMA query_only` on a worker isolate and closed when the call ends.
+Nothing holds a handle between calls, so a restore, a storage move or an
+encryption change needs no handling: the runner reads the path and key on each
+call. The runner is a static on the controller rather than part of the
+per-request server, because its busy flag has to outlast a request and a scope
+rebuild, as a statement that cannot be stopped does.
+
+Read-only says nothing about credentials, so a statement is inspected before
+it steps. The bundled SQLite is built with `OMIT_AUTHORIZATION` and
+`OMIT_PROGRESS_CALLBACK`, so there is no authorizer to ask. `EXPLAIN` is the
+engine's view that remains: by then views, CTEs and subqueries have been
+flattened, so every read shows up as an `OpenRead` of a root page, and
+`SqlReadCatalog` maps root pages through `sqlite_schema`. `inspectSqlProgram`
+fails closed:
+
+- An unknown root, a root in another database and any virtual table refuse.
+  That last one covers `pragma_*` and `json_each`, because `VOpen` carries only
+  a pointer and they cannot be told apart.
+- A denied column refuses at its `Column` step, and an index holding one
+  refuses when it opens, because a seek compares the value with no `Column`
+  step at all.
+- `ATTACH`, `BEGIN` and `PRAGMA` all report read-only, so `sqlLeadingKeyword`
+  allows only `SELECT`, `WITH` and `VALUES`. It is the only text check, and it
+  is an allowlist. Never add a check that looks for a table name in the text.
+
+Classifying a table: a table the change log policy excludes must go in
+`kSqlDeniedTables` or `kSqlReadableExcludedTables`, and a test fails until it
+does. A table the policy does not know is refused at runtime. A new credential
+column goes in `changeLogCredentialColumns`, which the window reads too. A
+column the log should keep recording but an agent should not see goes in
+`kSqlDeniedColumns` directly, as `manifest_url` does: a private feed's URL can
+carry an access token.
+
+`submersion://schema` comes from the live schema, so it cannot drift. Its notes
+come from the comments in `lib/core/database/tables/`, because Drift keeps no
+descriptions at runtime. After changing a table, run
+`dart run tool/generate_sql_column_notes.dart`; a test fails until the
+generated file matches.
+
+SQLite builds a value inside its own step, so only its own limit can bound the
+memory; the result size cap applies later and protects the reply, not the
+process. `sql_value_limit.dart` sets `SQLITE_LIMIT_LENGTH` through
+`sqlite3_limit`, bound directly because the package does not bind it. That
+works where the library exports the symbol, as on macOS. The package's Linux
+build exports only the functions it binds, so there the call answers false and
+a statement can still build a value of up to a gigabyte. The Windows build marks
+every API function `dllexport`, so it should work there, but nobody has run it.
+
+A statement that stays inside one native step cannot be stopped: `Isolate.kill`
+acts only when the step returns. The call answers with `still_running`, and
+later calls answer `sql_busy` until the worker ends. Until then the statement
+costs more than its thread: it holds a read snapshot, so the WAL cannot reset
+past it, a recursive `UNION` or a sort keeps growing its temporary storage, and
+on Windows its open file can block a restore or a storage move.
+`sqlite3_interrupt` through FFI would fix this, but it needs a test on all three
+desktop platforms and CI runs Linux only.
+
 ## Security rules and their tests
 
 All four hold on every request and each has a test in
@@ -157,6 +218,9 @@ token through a function.
 | `unknown_diver` | `diver_id` names no profile on this device |
 | `not_found` | No such tool or record |
 | `too_many_ids` | More ids than `get_records` accepts in one call |
+| `sql_refused` | `sql_query` would read something denied, or is not one read-only statement; names the table or column |
+| `sql_error` | SQLite rejected the statement, with its message |
+| `sql_busy` | An earlier `sql_query` statement is still running and cannot be stopped |
 | `internal` | Anything else; the exception type only, never a message that could leak data |
 
 Arguments the schema itself rejects (a wrong type, an unknown property, a
@@ -179,7 +243,7 @@ The server factory runs per MCP session, and per request on the stateless
 ## Roadmap
 
 The remaining PRs, all behind the debug-mode gate until the last one: the
-read-only SQL window with the generated schema resource; the write core (`preview_changes`,
+write core (`preview_changes`,
 `apply_changes`, `revert_operation`, the confirmation dialog, change log
 source `agent`); write coverage per entity family with a guard test; then
 the gate removal, user documentation and release note.

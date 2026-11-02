@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/gc/cloud_usage_measure.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -59,6 +60,8 @@ void main() {
     );
     root = await Directory.systemTemp.createTemp('verify_runner');
     useFakePathProvider(_TempPathProvider(root.path));
+    resetCacheLocationForTesting();
+    addTearDown(resetCacheLocationForTesting);
     store = InMemoryMediaObjectStore();
     writeMarker('store-1');
   });

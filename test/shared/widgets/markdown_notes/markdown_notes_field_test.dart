@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/shared/widgets/markdown_notes/markdown_editing.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
@@ -30,6 +31,7 @@ void main() {
     String text = '',
     GlobalKey<FormState>? formKey,
     FormFieldValidator<String>? validator,
+    Future<AnnotationRequestResult?> Function(String selectedWords)? onAnnotate,
   }) async {
     controller.text = text;
     final field = MarkdownNotesField(
@@ -39,6 +41,7 @@ void main() {
       validator: validator,
       onChanged: changes.add,
       onPreviewChanged: previews.add,
+      onAnnotate: onAnnotate,
     );
     await tester.pumpWidget(
       testApp(
@@ -68,6 +71,56 @@ void main() {
     }
     expect(find.text('Preview'), findsOneWidget);
     expect(find.byTooltip('Underline'), findsNothing);
+    // The pin appears only where a page can answer it (#4109).
+    expect(find.byIcon(Icons.push_pin_outlined), findsNothing);
+  });
+
+  group('annotate (#4109)', () {
+    testWidgets('the pin button asks the page and applies the link', (
+      tester,
+    ) async {
+      String? seen;
+      await pump(
+        tester,
+        text: 'I felt sick today',
+        onAnnotate: (sel) async {
+          seen = sel;
+          return (id: 'a1', words: null);
+        },
+      );
+      select(7, 11);
+      await tester.tap(find.byTooltip('Annotate'));
+      await tester.pumpAndSettle();
+      expect(seen, 'sick');
+      expect(controller.text, 'I felt [sick](annotation:a1) today');
+      expect(changes, isNotEmpty);
+    });
+
+    testWidgets('with nothing selected it passes empty words and inserts '
+        'the page\'s', (tester) async {
+      String? seen;
+      await pump(
+        tester,
+        text: 'First.',
+        onAnnotate: (sel) async {
+          seen = sel;
+          return (id: 'a1', words: 'Octo free-flowed');
+        },
+      );
+      controller.selection = const TextSelection.collapsed(offset: 6);
+      await tester.tap(find.byTooltip('Annotate'));
+      await tester.pumpAndSettle();
+      expect(seen, '');
+      expect(controller.text, 'First.\n[Octo free-flowed](annotation:a1)');
+    });
+
+    testWidgets('a cancelled request changes nothing', (tester) async {
+      await pump(tester, text: 'I felt sick', onAnnotate: (_) async => null);
+      select(7, 11);
+      await tester.tap(find.byTooltip('Annotate'));
+      await tester.pumpAndSettle();
+      expect(controller.text, 'I felt sick');
+    });
   });
 
   testWidgets('Bold wraps the selection and reports the change', (

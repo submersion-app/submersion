@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/scratch_sweep.dart';
 
 void main() {
@@ -9,12 +10,14 @@ void main() {
     late Directory root;
     late Directory temp;
     late Directory support;
+    late Directory osCache;
     final now = DateTime.utc(2026, 8, 31, 12);
 
     setUp(() async {
       root = await Directory.systemTemp.createTemp('scratch_sweep_test');
       temp = Directory(p.join(root.path, 'temp'));
       support = Directory(p.join(root.path, 'support'));
+      osCache = Directory(p.join(root.path, 'os_cache'));
       await temp.create(recursive: true);
       await support.create(recursive: true);
     });
@@ -23,12 +26,20 @@ void main() {
       if (root.existsSync()) await root.delete(recursive: true);
     });
 
+    CacheLocation location({bool phone = false}) => CacheLocation(
+      regenerableBase: Directory(
+        p.join(phone ? osCache.path : support.path, 'Submersion'),
+      ),
+      supportBase: Directory(p.join(support.path, 'Submersion')),
+      osManagesCaches: phone,
+    );
+
     // Ages come from the modification time alone here, so a test can
     // backdate a file with setLastModified; the default also weighs the time
     // the file was created (see the last test).
-    StorageScratchSweep build() => StorageScratchSweep(
+    StorageScratchSweep build({bool phone = false}) => StorageScratchSweep(
       temporaryDirectory: () async => temp,
-      supportDirectory: () async => support,
+      cacheLocation: () async => location(phone: phone),
       touchedAt: (stat) => stat.modified,
     );
 
@@ -259,11 +270,58 @@ void main() {
 
       final report = await StorageScratchSweep(
         temporaryDirectory: () async => temp,
-        supportDirectory: () async => support,
+        cacheLocation: () async => location(),
       ).run(now: DateTime.now());
 
       expect(staged.existsSync(), isTrue);
       expect(report.filesDeleted, 0);
+    });
+
+    group('on a phone', () {
+      String inOsCache(String directory, String name) =>
+          p.join(osCache.path, 'Submersion', directory, name);
+
+      test('sweeps old thumbnails in the OS cache directory', () async {
+        final oldVideo = await write(
+          inOsCache('video_thumbnails', 'old.img'),
+          10,
+          const Duration(days: 31),
+        );
+        final oldPdf = await write(
+          inOsCache('pdf_thumbnails', 'old.jpg'),
+          10,
+          const Duration(days: 31),
+        );
+        final fresh = await write(
+          inOsCache('video_thumbnails', 'fresh.img'),
+          10,
+          const Duration(days: 1),
+        );
+
+        await build(phone: true).run(now: now);
+
+        expect(oldVideo.existsSync(), isFalse);
+        expect(oldPdf.existsSync(), isFalse);
+        expect(fresh.existsSync(), isTrue);
+      });
+
+      test('sweeps staging and transcode in application support', () async {
+        final stagedFile = await write(
+          staging('stale.bin'),
+          10,
+          const Duration(days: 2),
+        );
+        final transcoded = await write(
+          transcode('stale.mp4'),
+          10,
+          const Duration(days: 8),
+        );
+
+        await build(phone: true).run(now: now);
+
+        expect(stagedFile.existsSync(), isFalse);
+        expect(transcoded.existsSync(), isFalse);
+      });
     });
   });
 }

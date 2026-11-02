@@ -352,9 +352,9 @@ void main() {
     // The reviewer's worked example. The stored dive was imported with an
     // ft/m depth bug, so the fixed parse reports a depth that scores 0; the
     // whole remaining margin is the duration weight, and it is only there if
-    // like is compared with like. The stored bottom time excludes ascent and
-    // stops, so scoring the candidate's total time against it spends the
-    // margin on a difference that is not a disagreement at all.
+    // like is compared with like. The stored bottom time excludes the ascent
+    // and its shallow stops, so scoring the candidate's total time against it
+    // spends the margin on a difference that is not a disagreement at all.
     final dateTime = DateTime(2026, 9, 1, 9);
     final diveId = await seedDiveWithSource(
       dateTime: dateTime,

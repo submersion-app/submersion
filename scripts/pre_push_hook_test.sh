@@ -170,6 +170,31 @@ run_hook_refline() {
     dart_args="$(cat "$tmp/dart.log" 2>/dev/null || true)"
 }
 
+# As run_hook, but WITHOUT DRY_RUN, so the hook runs its selected tests
+# through the stubbed flutter. Sets the same variables as run_hook.
+run_hook_live() {
+    tmp="$1"
+    shift
+
+    cd "$tmp/wt" || exit 1
+    : > "$tmp/cwd.log"
+    : > "$tmp/dart.log"
+    : > "$tmp/flutter_test.log"
+    : > "$tmp/flutter_test.log.bundles"
+
+    printf 'refs/heads/feature %s refs/heads/feature %s\n' \
+        "$(git rev-parse HEAD)" "$ZERO" > "$tmp/refline"
+
+    hook_output="$(env "$@" PATH="$tmp/bin:$PATH" CWD_LOG="$tmp/cwd.log" \
+        DART_LOG="$tmp/dart.log" FLUTTER_TEST_LOG="$tmp/flutter_test.log" \
+        /bin/bash "$tmp/main/hooks/pre-push" < "$tmp/refline" 2>&1)"
+    hook_status=$?
+
+    dart_args="$(cat "$tmp/dart.log" 2>/dev/null || true)"
+    flutter_test_args="$(cat "$tmp/flutter_test.log" 2>/dev/null || true)"
+    bundles_during_run="$(head -1 "$tmp/flutter_test.log.bundles" 2>/dev/null || true)"
+}
+
 # Assert that the DRY_RUN test list does (or does not) contain a path.
 # $1 = 'has' | 'lacks', $2 = path, $3 = test name
 assert_selected() {
@@ -644,6 +669,9 @@ make_full_run_fixture() {
         printf "import 'package:flutter_test/flutter_test.dart';\n\nvoid main() {\n  test('%s', () {});\n}\n" \
             "$name" > "test/${name}_test.dart"
     done
+    # The mirrored test for lib/sample.dart, so the branch change selects it.
+    printf "import 'package:flutter_test/flutter_test.dart';\nimport 'package:submersion/sample.dart';\n\nvoid main() {\n  test('sample', () {});\n}\n" \
+        > test/sample_test.dart
     cp "$REPO_ROOT/scripts/bundle_tests.py" scripts/bundle_tests.py
     cp "$REPO_ROOT/scripts/run_all_tests.sh" scripts/run_all_tests.sh
     cp "$REPO_ROOT/scripts/test_concurrency.sh" scripts/test_concurrency.sh
@@ -993,6 +1021,324 @@ else
     fail 'RUN_ALL_AFFECTED=1 runs every hub importer' "selected $selected_hub of 280"
 fi
 
+# --- Test 15: the time budget trims the lowest-signal tiers first ----------
+#
+# Issue #4117: the scoped run had no ceiling, so after a merge from main or a
+# hub change it ran for over an hour and the only remedy was SKIP_TESTS=1.
+# The hook now estimates the bundled run (files x TEST_FILE_SECONDS /
+# concurrency) and, over TEST_BUDGET seconds, drops tiers from the lowest
+# signal up: hub sample, l10n sample, multi-hit importers, same-area
+# importers. Changed tests, mirrored tests and repo-wide guards always run.
+
+tmp="$(make_proximity_fixture \
+    'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart lib/l10n/arb/app_localizations.dart')"
+run_hook "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000
+
+assert_selected has 'test/features/alpha/presentation/pages/alpha_page_test.dart' \
+    'over budget, still runs the mirrored test (tier 2)'
+assert_selected has 'test/architecture/sample_guard_test.dart' \
+    'over budget, still runs the repo-wide guards (tier 5)'
+assert_selected lacks 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'over budget, drops the tests importing two or more changed files (tier 4)'
+if [ "$(count_selected 'test/features/gamma/l10n_')" -eq 0 ]; then
+    pass 'over budget, drops the generated-l10n sample'
+else
+    fail 'over budget, drops the generated-l10n sample' "$hook_output"
+fi
+assert_selected has 'TEST_BUDGET' 'says the selection was trimmed to the budget'
+assert_selected has 'two or more changed files' 'names each tier it dropped'
+
+run_hook "$tmp" TEST_BUDGET=0 TEST_FILE_SECONDS=100000
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'TEST_BUDGET=0 turns the budget off'
+
+run_hook "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000 RUN_ALL_AFFECTED=1
+assert_selected has 'test/features/beta/presentation/pages/beta_only_far_test.dart' \
+    'RUN_ALL_AFFECTED=1 runs every importer regardless of the budget'
+
+# A tier is only dropped while the estimate is still over budget: with a
+# budget that one dropped tier satisfies, the next tier stays. Each file
+# costs 1 second at concurrency 1, so the budget is a file count. The
+# selection here is 3 fixed files (mirrored, 2 architecture guards), 3 marked
+# guards, 1 multi-hit and 40 l10n files: 47 in all, 7 without the l10n sample.
+run_hook "$tmp" TEST_BUDGET=10 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'stops dropping tiers once the estimate fits the budget'
+if [ "$(count_selected 'test/features/gamma/l10n_')" -eq 0 ]; then
+    pass 'drops the l10n sample before the multi-hit importers'
+else
+    fail 'drops the l10n sample before the multi-hit importers' "$hook_output"
+fi
+
+run_hook "$tmp" TEST_BUDGET=600 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'within budget nothing is dropped'
+assert_selected lacks 'dropped' 'within budget nothing is reported dropped'
+
+# TEST_BUDGET=2^64+1 wraps to 1 in shell arithmetic, which would trim this
+# selection. It must clamp as the other knobs do.
+run_hook "$tmp" TEST_BUDGET=18446744073709551617 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected lacks 'dropped' 'an oversized TEST_BUDGET is clamped, not wrapped'
+
+# 2^63 wraps negative, which read as "no cap" and turned the budget off.
+run_hook "$tmp" TEST_BUDGET=9223372036854775808 TEST_FILE_SECONDS=100000 TEST_CONCURRENCY=1
+assert_selected has 'dropped' 'a TEST_BUDGET past 2^63 still caps the run'
+
+run_hook "$tmp" TEST_BUDGET=000 TEST_FILE_SECONDS=100000
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'TEST_BUDGET turns the budget off when zero in any spelling'
+
+run_hook "$tmp" TEST_BUDGET=soon TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has "Ignoring invalid TEST_BUDGET='soon'" \
+    'an invalid TEST_BUDGET is reported and ignored'
+
+# The pass summary must not claim tiers the budget dropped.
+run_hook_live "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000
+assert_selected has 'did not run locally' \
+    'a trimmed run says the dropped tiers did not run'
+assert_selected lacks 'Ranked selection' \
+    'a trimmed run does not claim the ranked selection ran'
+
+run_hook_live "$tmp" TEST_BUDGET=600 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'Ranked selection' 'an untrimmed run reports the ranked selection'
+
+# RUN_ALL_AFFECTED and TEST_BUDGET=0 are not capped, so the closing hint must
+# not say that the budget capped them.
+run_hook_live "$tmp" RUN_ALL_AFFECTED=1
+assert_selected lacks 'caps the run' 'an uncapped run does not claim a cap'
+assert_selected has 'ignoring TEST_BUDGET' 'the hint says RUN_ALL_AFFECTED ignores the budget'
+
+# --- Test 16: a selection that is most of the suite runs the whole suite ----
+#
+# The whole suite bundled costs about the same as a selection covering most
+# of it, and covers everything, so the hook runs the suite instead when the
+# selection reaches half of the test files and the suite fits the budget.
+# This fixture has 69 test files; the l10n sample plus the guards is 45.
+# The whole suite runs through scripts/run_all_tests.sh, so the pushed tree
+# must have it.
+
+mkdir -p "$tmp/wt/scripts"
+cp "$REPO_ROOT/scripts/run_all_tests.sh" "$tmp/wt/scripts/run_all_tests.sh"
+run_hook "$tmp" TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'whole suite' \
+    'announces the whole suite when the selection is most of it'
+
+run_hook "$tmp" TEST_BUDGET=20 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected lacks 'whole suite' \
+    'does not run the whole suite when it would not fit the budget'
+
+rm -rf "$tmp"
+
+tmp="$(make_proximity_fixture \
+    'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart')"
+mkdir -p "$tmp/wt/scripts"
+cp "$REPO_ROOT/scripts/run_all_tests.sh" "$tmp/wt/scripts/run_all_tests.sh"
+run_hook "$tmp" TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected lacks 'whole suite' \
+    'a small selection runs on its own, not as the whole suite'
+rm -rf "$tmp"
+
+# --- Test 17: a large selection runs bundled, a small one does not ----------
+#
+# Measured at -j 16 (issue #4117): 86 files tied, while 424 to 522 files gained
+# 9% to 3x depending on the mix, so bundling starts at 100 files. The fixture's
+# selection is one file, so TEST_BUNDLE_MIN brings the threshold down.
+
+tmp="$(make_full_run_fixture)"
+run_hook_live "$tmp"
+
+case "$flutter_test_args" in
+    *bundle_*)
+        fail 'a selection under the threshold runs as separate files' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+    *'test/sample_test.dart'*)
+        pass 'a selection under the threshold runs as separate files'
+        ;;
+    *)
+        fail 'a selection under the threshold runs as separate files' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+
+run_hook_live "$tmp" TEST_BUNDLE_MIN=1
+
+case "$flutter_test_args" in
+    *'test/.bundles/'*'/bundle_'*)
+        pass 'the scoped selection runs as generated bundles'
+        ;;
+    *)
+        fail 'the scoped selection runs as generated bundles' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+# Issue #4117: at load 35-55 a migration test reached the 2m limit in a bundle,
+# twice, and never as separate files, which blocked a push over nothing.
+case "$flutter_test_args" in
+    *'--timeout=5m'*)
+        pass 'a bundled selection gets the longer test limit'
+        ;;
+    *)
+        fail 'a bundled selection gets the longer test limit' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+if [ "$hook_status" -eq 0 ]; then
+    pass 'a passing bundled selection lets the push through'
+else
+    fail 'a passing bundled selection lets the push through' "exit $hook_status: $hook_output"
+fi
+if [ ! -e "$tmp/wt/test/.bundles" ]; then
+    pass 'the selection bundles are removed after the run'
+else
+    fail 'the selection bundles are removed after the run' \
+        "left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
+fi
+
+run_hook_live "$tmp" FLUTTER_TEST_FAIL=1 TEST_BUNDLE_MIN=1
+if [ "$hook_status" -ne 0 ]; then
+    pass 'a failing bundled selection blocks the push'
+else
+    fail 'a failing bundled selection blocks the push' "exit 0: $hook_output"
+fi
+assert_selected has 'Failing test files' 'a failing selection names the failing files'
+
+# A branch cut before run_all_tests.sh learned TEST_FILES_FROM gets the
+# per-file run it always had.
+sed -i.bak '/TEST_FILES_FROM/d' "$tmp/wt/scripts/run_all_tests.sh" && rm -f "$tmp/wt/scripts/run_all_tests.sh.bak"
+run_hook_live "$tmp" TEST_BUNDLE_MIN=1
+if [ "$hook_status" -eq 0 ] && [ -n "$flutter_test_args" ]; then
+    case "$flutter_test_args" in
+        *bundle_*)
+            fail 'a branch whose script cannot take a selection runs the files plainly' \
+                "flutter was invoked as: $flutter_test_args"
+            ;;
+        *'test/sample_test.dart'*)
+            pass 'a branch whose script cannot take a selection runs the files plainly'
+            ;;
+        *)
+            fail 'a branch whose script cannot take a selection runs the files plainly' \
+                "flutter was invoked as: $flutter_test_args"
+            ;;
+    esac
+else
+    fail 'a branch whose script cannot take a selection runs the files plainly' \
+        "exit $hook_status; flutter test args: '$flutter_test_args'"
+fi
+
+rm -rf "$tmp"
+
+# --- Test 18: a budget that drops every selected test says so ---------------
+#
+# A hub helper selects only its sample, the one change with no tier that always
+# runs, so a tight budget can leave nothing. The hook must report the budget,
+# not claim that no test imports the change.
+
+tmp="$(make_hub_fixture)"
+cd "$tmp/wt" || exit 1
+git reset -q --hard main
+printf '// changed on the branch\n' >> test/helpers/mock_providers.dart
+git add -A
+git commit -q -m 'change a hub helper'
+
+run_hook_live "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000
+if [ "$hook_status" -eq 0 ] && [ -z "$flutter_test_args" ]; then
+    pass 'a budget that drops every test runs nothing and lets the push through'
+else
+    fail 'a budget that drops every test runs nothing and lets the push through' \
+        "exit $hook_status; flutter test args: '$flutter_test_args'"
+fi
+assert_selected has 'sampled importers of hub files' \
+    'a budget that drops every test still says what it dropped'
+assert_selected has 'dropped every selected test' \
+    'a budget that drops every test gives that as the reason'
+assert_selected lacks 'directly import' \
+    'a budget that drops every test does not blame the imports'
+
+rm -rf "$tmp"
+
+# --- Test 19: separate files stay within the command line ------------------
+#
+# run_tests_batched closed a batch at 100 files, but paths here run to 107
+# characters, so 100 of them can reach 10,700 and overflow the 8,191 allowed on
+# Windows before any test runs. A batch now also closes at 8,000 characters.
+
+# Prints "<calls> <files> <most files in a call> <longest path list in a call>"
+# from the flutter test arguments on stdin.
+batch_shape() {
+    awk '
+        NF {
+            calls++
+            files_here = 0
+            chars_here = 0
+            for (i = 1; i <= NF; i++) {
+                if ($i ~ /_test\.dart$/) {
+                    files_here++
+                    chars_here += length($i) + 1
+                }
+            }
+            files += files_here
+            if (files_here > most) most = files_here
+            if (chars_here > longest) longest = chars_here
+        }
+        END { print calls + 0, files + 0, most + 0, longest + 0 }'
+}
+
+tmp="$(make_proximity_fixture \
+    'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart')"
+
+run_hook_live "$tmp"
+read -r plain_calls plain_files _ _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -eq 0 ] && [ "$plain_calls" -eq 1 ] && [ "$plain_files" -gt 3 ]; then
+    pass 'a short selection is one flutter test call'
+else
+    fail 'a short selection is one flutter test call' \
+        "exit $hook_status, $plain_calls calls, $plain_files files"
+fi
+
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=120
+read -r split_calls split_files _ split_longest <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -eq 0 ] && [ "$split_calls" -gt 1 ] \
+    && [ "$split_files" -eq "$plain_files" ] && [ "$split_longest" -le 120 ]; then
+    pass 'a batch closes before its paths pass the character limit'
+else
+    fail 'a batch closes before its paths pass the character limit' \
+        "exit $hook_status, $split_calls calls, $split_files of $plain_files files, longest $split_longest"
+fi
+
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=120 FLUTTER_TEST_FAIL=1
+read -r failing_calls _ _ _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -ne 0 ] && [ "$failing_calls" -eq "$split_calls" ]; then
+    pass 'a failing batch blocks the push after the later batches ran'
+else
+    fail 'a failing batch blocks the push after the later batches ran' \
+        "exit $hook_status, $failing_calls calls of $split_calls"
+fi
+
+# A single path over the limit still runs, alone, rather than looping or being
+# dropped.
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=1
+read -r lone_calls lone_files lone_most _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$lone_files" -eq "$plain_files" ] && [ "$lone_calls" -eq "$plain_files" ] \
+    && [ "$lone_most" -eq 1 ]; then
+    pass 'a path longer than the limit runs on its own'
+else
+    fail 'a path longer than the limit runs on its own' \
+        "$lone_calls calls, $lone_files of $plain_files files, at most $lone_most"
+fi
+rm -rf "$tmp"
+
+# The file cap stays. Every importer of the hub is well over 100 files, and the
+# fixture has no run_all_tests.sh, so they run as separate files.
+tmp="$(make_hub_fixture)"
+run_hook_live "$tmp" RUN_ALL_AFFECTED=1
+read -r hub_calls hub_files hub_most _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hub_calls" -gt 1 ] && [ "$hub_files" -gt 100 ] && [ "$hub_most" -le 100 ]; then
+    pass 'a batch still closes at 100 files'
+else
+    fail 'a batch still closes at 100 files' \
+        "$hub_calls calls, $hub_files files, at most $hub_most"
+fi
 rm -rf "$tmp"
 
 # --- Summary ---------------------------------------------------------------
