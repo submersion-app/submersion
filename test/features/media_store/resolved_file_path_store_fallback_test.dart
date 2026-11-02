@@ -206,6 +206,36 @@ void main() {
     );
   });
 
+  test('a store that fails to start reaches its reader', () async {
+    final failing = ProviderContainer(
+      // The default retry, cut to one attempt: it needs a listener to run.
+      retry: (attempt, _) => attempt == 0 ? Duration.zero : null,
+      overrides: [
+        mediaStoreRuntimeProvider.overrideWith(
+          (ref) async => throw Exception('store unavailable'),
+        ),
+      ],
+    );
+    addTearDown(failing.dispose);
+
+    await expectLater(
+      failing
+          .read(
+            resolvedFilePathProvider(
+              videoItem(hash: 'f' * 64, localPath: '/nope.mp4'),
+            ).future,
+          )
+          .timeout(const Duration(seconds: 5)),
+      throwsA(
+        isA<Exception>().having(
+          (e) => '$e',
+          'message',
+          contains('store unavailable'),
+        ),
+      ),
+    );
+  });
+
   testWidgets('a running app asks again each time it opens a video', (
     tester,
   ) async {

@@ -165,7 +165,9 @@ Future<String?> _resolveFilePath(Ref ref, MediaItem item) async {
 
   // Media store fallback: play from the cached (or freshly downloaded)
   // original. The viewer's loading state covers the download.
-  final runtime = await ref.read(mediaStoreRuntimeProvider.future);
+  // Watched rather than read: a runtime that failed to build retries only
+  // while something listens, so a read could wait on it forever.
+  final runtime = await ref.watch(mediaStoreRuntimeProvider.future);
   final data = await runtime?.resolver.tryResolveRemote(item, thumbnail: false);
   if (data is FileData) return data.file.path;
   return null;
