@@ -295,6 +295,76 @@ void main() {
     expect(left.single.flag, TableDraftFlag.needsScrubberType);
   });
 
+  group('a cleared scrubber type', () {
+    final dive = domain.Dive(
+      id: 'd1',
+      dateTime: DateTime(2026),
+      notes: '',
+      scrubber: const domain.ScrubberInfo(type: 'Sofnolime', ratedMinutes: 180),
+    );
+
+    test('takes the duration with it, as a draft the sheet shows', () async {
+      final e = await entity();
+      final cleared = draft('d1', DiveField.scrubberType, 'Sofnolime', null);
+
+      expect(e.reconcile(dive, [cleared]).map((d) => (d.fieldName, d.value)), [
+        (DiveField.scrubberType.name, null),
+        (DiveField.scrubberDuration.name, null),
+      ]);
+      expect(e.reconcile(dive, [cleared]).last.original, 180);
+    });
+
+    test('has nothing to take from a scrubber with no duration', () async {
+      final e = await entity();
+      final typed = dive.copyWith(
+        scrubber: const domain.ScrubberInfo(type: 'Sofnolime'),
+      );
+
+      expect(
+        e.reconcile(typed, [
+          draft('d1', DiveField.scrubberType, 'Sofnolime', null),
+        ]),
+        hasLength(1),
+      );
+    });
+
+    test('discarded, brings the duration back with it', () async {
+      final e = await entity();
+
+      final left = e.afterDiscard(dive, [
+        draft('d1', DiveField.scrubberType, 'Sofnolime', null),
+        draft('d1', DiveField.scrubberDuration, 180, null),
+      ], DiveField.scrubberType.name);
+
+      expect(left, isEmpty);
+    });
+
+    test('keeps the duration cleared while it stands', () async {
+      final e = await entity();
+
+      final left = e.afterDiscard(dive, [
+        draft('d1', DiveField.scrubberType, 'Sofnolime', null),
+        draft('d1', DiveField.scrubberDuration, 180, null),
+      ], DiveField.scrubberDuration.name);
+
+      expect(left.map((d) => d.fieldName), [
+        DiveField.scrubberType.name,
+        DiveField.scrubberDuration.name,
+      ]);
+    });
+
+    test('a retype discarded leaves a duration the diver cleared', () async {
+      final e = await entity();
+
+      final left = e.afterDiscard(dive, [
+        draft('d1', DiveField.scrubberType, 'Sofnolime', 'Divesorb'),
+        draft('d1', DiveField.scrubberDuration, 180, null),
+      ], DiveField.scrubberType.name);
+
+      expect(left.single.fieldName, DiveField.scrubberDuration.name);
+    });
+  });
+
   test('clearing a scrubber type clears its duration too', () async {
     final e = await entity();
     await diveRepo.createDive(

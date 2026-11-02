@@ -209,6 +209,15 @@ void main() {
     ]);
   });
 
+  test('cells past the end of the header are reported as truncated', () {
+    final p = plan('Count\tName\n9\tx\tz\t!');
+
+    expect(p.cells.map((c) => c.text), ['9', 'x']);
+    expect(p.skipped.map((s) => (s.reason, s.count)), [
+      (PasteSkipReason.truncated, 2),
+    ]);
+  });
+
   test('one label beside an unknown value is data', () {
     // "Boat" is a column label and an entry method: a row of values must fill.
     final p = plan('Name\tGiant stride\nShore\tBackroll', selectedColumn: 0);

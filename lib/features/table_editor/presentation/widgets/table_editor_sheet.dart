@@ -386,11 +386,8 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
         // A paste or another commit may have changed this cell's draft since
         // the editor was built; what was typed then stands down.
         if (!notifier.mounted || notifier.draftAt(position) != draft) return;
-        final typed =
-            column.kind == CellEditorKind.text ||
-            column.kind == CellEditorKind.number ||
-            column.kind == CellEditorKind.integer;
-        commit(typed ? fromText(text) : fromValue(value), CellMove.none);
+        final next = column.kind.isTyped ? fromText(text) : fromValue(value);
+        commit(next, CellMove.none);
       },
       onCommitText: (text, m) {
         // The text is a view of the stored value, rounded for a converted

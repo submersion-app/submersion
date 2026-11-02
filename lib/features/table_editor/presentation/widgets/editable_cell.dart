@@ -68,10 +68,7 @@ class _EditableCellState extends State<EditableCell> {
   /// disposal that follows never commits a second time.
   bool _done = false;
 
-  bool get _isText =>
-      widget.kind == CellEditorKind.text ||
-      widget.kind == CellEditorKind.number ||
-      widget.kind == CellEditorKind.integer;
+  bool get _isText => widget.kind.isTyped;
 
   @override
   void initState() {

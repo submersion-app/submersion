@@ -403,7 +403,8 @@ authoritative where the body above differs.
   value. Two labels make a header among columns the sheet does not know, which
   are reported, but one does not: "Boat" is a label and an entry method. A key
   a hidden row shares with one on the sheet is ambiguous, not a match.
-- **Scrubber pair.** Clearing a type clears its duration, and a duration whose
+- **Scrubber pair.** Clearing a type clears its duration, as a draft the sheet
+  shows, which discarding the type brings back. A duration whose
   type went since it was drafted is left out as changed elsewhere. Type and
   duration are linked in the stale check.
 - **Saving.** Once a save is writing it cannot be called off, so leaving,

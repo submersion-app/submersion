@@ -277,6 +277,15 @@ PastePlan<F> planPaste<F extends EntityField>({
   if (truncatedRows > 0) {
     skipped.add(PasteSkip(PasteSkipReason.truncated, count: truncatedRows));
   }
+  // Past the header's last cell there is no label to say where a cell goes.
+  if (hadHeader && block.columnCount > first.length) {
+    skipped.add(
+      PasteSkip(
+        PasteSkipReason.truncated,
+        count: block.columnCount - first.length,
+      ),
+    );
+  }
   return PastePlan(
     matching: matching,
     hadHeader: hadHeader,

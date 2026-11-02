@@ -232,7 +232,10 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       tableEditorCenterConfigProvider,
       route: (id) => '/dive-centers/$id',
       refresh: () {
-        if (mounted) ref.invalidate(diveCenterListNotifierProvider);
+        // Invalidating would build a new list, which starts with no rows.
+        if (mounted) {
+          ref.read(diveCenterListNotifierProvider.notifier).reloadQuietly();
+        }
       },
       hiddenKeys: () {
         final all = ref.read(diveCenterListNotifierProvider).value ?? const [];

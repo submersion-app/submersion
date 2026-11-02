@@ -82,14 +82,30 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
     return entity.scrubber != null;
   }
 
+  static bool _isClearedType(TableDraft d) =>
+      d.fieldName == DiveField.scrubberType.name && d.value == null;
+
   /// A dive shows a scrubber only when it has a type, so a duration without
-  /// one would save, report saved, and read back as nothing.
+  /// one would save, report saved, and read back as nothing, and clearing the
+  /// type clears the duration beside it.
   @override
   List<TableDraft> reconcile(Dive entity, List<TableDraft> drafts) {
     final duration = drafts.firstWhereOrNull(
       (d) => d.fieldName == DiveField.scrubberDuration.name,
     );
-    if (duration == null) return drafts;
+    if (duration == null) {
+      final minutes = entity.scrubber?.ratedMinutes;
+      if (minutes == null || !drafts.any(_isClearedType)) return drafts;
+      return [
+        ...drafts,
+        TableDraft(
+          entityId: entity.id,
+          fieldName: DiveField.scrubberDuration.name,
+          original: minutes,
+          value: null,
+        ),
+      ];
+    }
     final waiting = duration.value != null && !_hasScrubberType(entity, drafts);
     return [
       for (final d in drafts)
@@ -102,6 +118,24 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
         else
           d,
     ];
+  }
+
+  @override
+  List<TableDraft> afterDiscard(
+    Dive entity,
+    List<TableDraft> drafts,
+    String fieldName,
+  ) {
+    // A duration cleared with its type comes back with it.
+    final backTogether =
+        fieldName == DiveField.scrubberType.name && drafts.any(_isClearedType);
+    return super.afterDiscard(entity, [
+      for (final d in drafts)
+        if (!backTogether ||
+            d.fieldName != DiveField.scrubberDuration.name ||
+            d.value != null)
+          d,
+    ], fieldName);
   }
 
   /// The type a duration stood on may have gone since it was drafted.
@@ -138,8 +172,8 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
   BulkEditRequest? _requestFor(String diveId, Map<DiveField, Object?> v) {
     final enabled = <BulkField>{
       for (final f in v.keys) ?_bulkFieldOf[f],
-      // A scrubber is its type: a duration left behind reads back as nothing,
-      // then returns under whatever type comes next.
+      // Reconcile drafts this, but a duration can arrive after the draft: left
+      // behind it reads back as nothing, then returns under the next type.
       if (v.containsKey(DiveField.scrubberType) &&
           v[DiveField.scrubberType] == null)
         BulkField.scrubberDuration,

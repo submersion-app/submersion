@@ -13,7 +13,11 @@ enum CellEditorKind {
   choice,
   multiChoice,
   toggle,
-  reference,
+  reference;
+
+  /// Whether the cell holds typed text for the column to parse, rather than a
+  /// value picked from it.
+  bool get isTyped => this == text || this == number || this == integer;
 }
 
 /// One entry of a list column: the stored value and the label shown for it.

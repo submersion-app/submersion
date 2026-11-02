@@ -41,15 +41,14 @@ class TableEditorSaveFlow {
     final drafts = ref.read(tableEditorDraftsNotifierProvider(tab));
     if (drafts.isEmpty) return false;
     // The page can go while the save runs and the snackbar outlives it, so
-    // nothing after the awaits below reads through ref.
+    // nothing after the write below reads through ref.
     final service = ref.read(tableEditorSaveServiceProvider);
     final changeLog = ref.read(changeLogRepositoryProvider);
     final revert = ref.read(changeLogRevertServiceProvider);
-    final saveable = drafts.saveable;
     final summary = SaveSummary.from(
       drafts.all,
       lastPaste: lastPaste,
-      notes: entity.summaryNotes(saveable, l10n),
+      notes: entity.summaryNotes(drafts.saveable, l10n),
     );
     if (confirm) {
       final go = await showSaveSummaryDialog(
@@ -60,6 +59,9 @@ class TableEditorSaveFlow {
       );
       if (!go || !context.mounted) return false;
     }
+    // Read now: the summary is modal, not the shortcuts behind it, so a diver
+    // switch can discard these drafts while it is open.
+    final saveable = ref.read(tableEditorDraftsNotifierProvider(tab)).saveable;
     if (saveable.isEmpty) return false;
     final messenger = ScaffoldMessenger.of(context);
     final TableEditorSaveResult result;

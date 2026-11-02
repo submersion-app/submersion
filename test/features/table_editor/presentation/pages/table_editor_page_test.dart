@@ -9,7 +9,10 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -45,6 +48,20 @@ class _Config<F extends EntityField> extends EntityTableConfigNotifier<F> {
     : super(defaultConfig: config, fieldFromName: fromName) {
     state = config;
   }
+}
+
+/// The center list, counting how it is asked to reload.
+class _CenterList extends StateNotifier<AsyncValue<List<DiveCenter>>>
+    implements DiveCenterListNotifier {
+  _CenterList() : super(const AsyncValue.data([]));
+
+  var quietReloads = 0;
+
+  @override
+  Future<void> reloadQuietly() async => quietReloads++;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// A save held open until the test lets it finish.
@@ -143,6 +160,8 @@ void main() {
     List<SiteField> extraSiteColumns = const [],
     AsyncValue<List<Dive>>? divesValue,
     DiveListNotifier? diveList,
+    List<DiveCenterRow> centers = const [],
+    DiveCenterListNotifier? centerList,
   }) async {
     // The width gate reads MediaQuery, which follows the view, not the
     // test surface.
@@ -216,8 +235,10 @@ void main() {
             ),
           ),
           tableEditorCentersProvider.overrideWithValue(
-            const AsyncValue.data([]),
+            AsyncValue.data(centers),
           ),
+          if (centerList != null)
+            diveCenterListNotifierProvider.overrideWith((ref) => centerList),
           diveSurfaceIntervalsProvider.overrideWith(
             (ref) async => const <String, Duration?>{},
           ),
@@ -959,6 +980,63 @@ void main() {
         newer,
       );
       await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('a draft discarded under the summary is not saved', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      await draftVisibility(tester, '12');
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+
+      ProviderScope.containerOf(tester.element(find.byType(TableEditorPage)))
+          .read(
+            tableEditorDraftsNotifierProvider(TableEditorTab.dives).notifier,
+          )
+          .clear();
+      await tester.tap(saveAllButton().last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      final kept = await diveRepo.getDivesByIdsWithoutSamples(['d1']);
+      expect(kept.single.visibilityMeters, 15);
+    });
+
+    testWidgets('a center save keeps the list, so the tab stays in hand', (
+      tester,
+    ) async {
+      final center = await DiveCenterRepository().createDiveCenter(
+        DiveCenter(
+          id: 'c1',
+          name: 'Shop',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      final list = _CenterList();
+      await pumpPage(
+        tester,
+        centers: [(center: center, diveCount: 0)],
+        centerList: list,
+      );
+      await tester.tap(find.text(l10n.tableEditor_tab_centers));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Shop'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byType(TextField), 'Shop two');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      await tester.tap(saveAllButton());
+      await tester.pumpAndSettle();
+      await tester.tap(saveAllButton().last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(list.quietReloads, 1);
     });
 
     group('while a save writes', () {
