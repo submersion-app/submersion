@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// SAC calculation result for a single cylinder/tank.
@@ -54,10 +56,25 @@ class CylinderSac extends Equatable {
       ? startPressure! - endPressure!
       : null;
 
-  /// Total gas used in liters (if tankVolume known)
-  double? get gasUsedLiters => gasUsedBar != null && tankVolume != null
-      ? gasUsedBar! * tankVolume!
-      : null;
+  /// Equation of state behind [gasUsedLiters], the one the rates here used.
+  final GasModel gasModel;
+
+  /// Total gas used in liters (if tankVolume known), under [gasModel], so it
+  /// agrees with [loopRate] and [rmv] (issue #828).
+  double? get gasUsedLiters {
+    final start = startPressure;
+    final end = endPressure;
+    final volume = tankVolume;
+    if (start == null || end == null || volume == null) return null;
+    double litersAt(double pressureBar) => gasVolume(
+      tankSizeLiters: volume,
+      pressureBar: pressureBar,
+      o2Percent: gasMix.o2,
+      hePercent: gasMix.he,
+      model: gasModel,
+    );
+    return litersAt(start) - litersAt(end);
+  }
 
   /// Duration this tank was actively used
   final Duration? usageDuration;
@@ -81,6 +98,7 @@ class CylinderSac extends Equatable {
     this.loopRate,
     this.startPressure,
     this.endPressure,
+    this.gasModel = GasModel.ideal,
     this.usageDuration,
     this.avgDepthDuringUse,
     this.hasTimeSeriesData = false,
@@ -116,6 +134,7 @@ class CylinderSac extends Equatable {
     double? loopRate,
     double? startPressure,
     double? endPressure,
+    GasModel? gasModel,
     Duration? usageDuration,
     double? avgDepthDuringUse,
     bool? hasTimeSeriesData,
@@ -131,6 +150,7 @@ class CylinderSac extends Equatable {
       loopRate: loopRate ?? this.loopRate,
       startPressure: startPressure ?? this.startPressure,
       endPressure: endPressure ?? this.endPressure,
+      gasModel: gasModel ?? this.gasModel,
       usageDuration: usageDuration ?? this.usageDuration,
       avgDepthDuringUse: avgDepthDuringUse ?? this.avgDepthDuringUse,
       hasTimeSeriesData: hasTimeSeriesData ?? this.hasTimeSeriesData,
@@ -149,6 +169,7 @@ class CylinderSac extends Equatable {
     loopRate,
     startPressure,
     endPressure,
+    gasModel,
     usageDuration,
     avgDepthDuringUse,
     hasTimeSeriesData,

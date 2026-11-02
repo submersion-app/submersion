@@ -450,6 +450,7 @@ class GasAnalysisService {
           sacRate: sacRate,
           startPressure: tank.startPressure,
           endPressure: tank.endPressure,
+          gasModel: gasModel,
           usageDuration: Duration(seconds: usageSeconds),
           avgDepthDuringUse: avgDepthDuringUse,
           hasTimeSeriesData: hasTsData,
@@ -517,6 +518,7 @@ class GasAnalysisService {
           loopRate: cylinder.loopRate,
           startPressure: start,
           endPressure: end,
+          gasModel: gasModel,
           usageDuration: Duration(
             seconds: cylinder.bailoutStartBar != null
                 ? windows.breathedSeconds

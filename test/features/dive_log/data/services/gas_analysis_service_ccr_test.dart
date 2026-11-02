@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -173,6 +174,49 @@ void main() {
       expect(rows.single.startPressure, 200);
       expect(rows.single.endPressure, 150);
       expect(rows.single.hasTimeSeriesData, isTrue);
+    });
+  });
+
+  group('Gas used follows the gas model', () {
+    double volumeAt(double bar, double litres, double o2) => gasVolume(
+      tankSizeLiters: litres,
+      pressureBar: bar,
+      o2Percent: o2,
+      model: GasModel.real,
+    );
+
+    test('on a CCR dive, so the loop line adds up', () {
+      final rows = const GasAnalysisService(
+        gasModel: GasModel.real,
+      ).calculateCylinderSac(dive: _dive(), profile: const []);
+      final right = _row(rows, 'right');
+      expect(
+        right.gasUsedLiters,
+        closeTo(volumeAt(216, 7, 21) - volumeAt(163, 7, 21), 1e-9),
+      );
+      expect(right.loopRate! * 60, closeTo(right.gasUsedLiters!, 1e-9));
+      final o2 = _row(rows, 'o2');
+      expect(o2.loopRate! * 60, closeTo(o2.gasUsedLiters!, 1e-9));
+    });
+
+    test('on an open-circuit dive', () {
+      final rows = const GasAnalysisService(gasModel: GasModel.real)
+          .calculateCylinderSac(
+            dive: _dive(diveMode: DiveMode.oc),
+            profile: const [],
+          );
+      expect(
+        _row(rows, 'right').gasUsedLiters,
+        closeTo(volumeAt(216, 7, 21) - volumeAt(163, 7, 21), 1e-9),
+      );
+    });
+
+    test('and the ideal model stays bar times volume', () {
+      final rows = _service.calculateCylinderSac(
+        dive: _dive(diveMode: DiveMode.oc),
+        profile: const [],
+      );
+      expect(_row(rows, 'right').gasUsedLiters, closeTo(53 * 7, 1e-9));
     });
   });
 

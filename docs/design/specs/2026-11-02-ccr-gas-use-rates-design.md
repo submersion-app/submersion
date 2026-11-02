@@ -79,6 +79,12 @@ every dive.
    The feature follows the existing timeline, so the card always agrees with the
    profile.
 
+7. "Gas used" on the Cylinders card follows the diver's gas model on every dive,
+   not only CCR ones. It was always plain bar times litres while the rates
+   followed the model, which a loop rate beside it made visible: at the default
+   real-gas setting 371 L over 60 minutes read as 5.4 L/min. This changes the
+   figure on open-circuit dives too, and is what #828 set out to do.
+
 ## Calls made while writing this
 
 These were not discussed; check them while reading.
