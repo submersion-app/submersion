@@ -57664,6 +57664,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get web_cors_copied => 'Rule copied';
 
   @override
+  String get web_storage_title => 'Browser storage';
+
+  @override
+  String get web_storage_opfs =>
+      'Browser file storage. Your dives stay in this browser until you forget this device.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Browser database (slower). Your dives stay in this browser until you forget this device.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'Nothing is saved after this tab closes. This browser gives the site no lasting storage; sync before you leave.';
+
+  @override
+  String get web_forgetDevice_title => 'Forget this device';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'Remove the dives, sign-in details and device identity from this browser';
+
+  @override
+  String get web_forgetDevice_confirm => 'Forget';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'This removes everything Submersion keeps in this browser: the dive log, the sign-in details and passphrase, and this device\'s identity in sync. Your dives stay in the sync store and on your other devices. The page reloads to a fresh start.';
+
+  @override
   String get demo_row_unavailable => 'Unavailable in demo mode';
 
   @override

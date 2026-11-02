@@ -59351,6 +59351,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String get web_cors_copied => 'تم نسخ القاعدة';
 
   @override
+  String get web_storage_title => 'تخزين المتصفح';
+
+  @override
+  String get web_storage_opfs =>
+      'تخزين ملفات المتصفح. تبقى غوصاتك في هذا المتصفح حتى تنسى هذا الجهاز.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'قاعدة بيانات المتصفح (أبطأ). تبقى غوصاتك في هذا المتصفح حتى تنسى هذا الجهاز.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'لا يُحفظ شيء بعد إغلاق علامة التبويب هذه. لا يمنح هذا المتصفح الموقع تخزينًا دائمًا؛ زامن قبل المغادرة.';
+
+  @override
+  String get web_forgetDevice_title => 'نسيان هذا الجهاز';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'إزالة الغوصات وبيانات تسجيل الدخول وهوية الجهاز من هذا المتصفح';
+
+  @override
+  String get web_forgetDevice_confirm => 'نسيان';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'يزيل هذا كل ما يحتفظ به Submersion في هذا المتصفح: سجل الغوص، وبيانات تسجيل الدخول وعبارة المرور، وهوية هذا الجهاز في المزامنة. تبقى غوصاتك في مخزن المزامنة وعلى أجهزتك الأخرى. تُعاد تحميل الصفحة لبداية جديدة.';
+
+  @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';
 
   @override

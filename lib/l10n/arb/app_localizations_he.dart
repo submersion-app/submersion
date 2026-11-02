@@ -57348,6 +57348,35 @@ class AppLocalizationsHe extends AppLocalizations {
   String get web_cors_copied => 'הכלל הועתק';
 
   @override
+  String get web_storage_title => 'אחסון הדפדפן';
+
+  @override
+  String get web_storage_opfs =>
+      'אחסון קבצים של הדפדפן. הצלילות שלך נשארות בדפדפן זה עד שתשכח את המכשיר הזה.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'מסד נתונים של הדפדפן (איטי יותר). הצלילות שלך נשארות בדפדפן זה עד שתשכח את המכשיר הזה.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'דבר אינו נשמר לאחר סגירת הכרטיסייה. דפדפן זה אינו מעניק לאתר אחסון קבוע; סנכרן לפני שתעזוב.';
+
+  @override
+  String get web_forgetDevice_title => 'שכח מכשיר זה';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'הסר את הצלילות, פרטי הכניסה וזהות המכשיר מדפדפן זה';
+
+  @override
+  String get web_forgetDevice_confirm => 'שכח';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'פעולה זו מסירה את כל מה ש-Submersion שומר בדפדפן זה: יומן הצלילות, פרטי הכניסה וביטוי הסיסמה, וזהות המכשיר הזה בסנכרון. הצלילות שלך נשארות במאגר הסנכרון ובמכשירים האחרים שלך. הדף נטען מחדש להתחלה נקייה.';
+
+  @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';
 
   @override

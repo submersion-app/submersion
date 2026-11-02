@@ -58258,6 +58258,35 @@ class AppLocalizationsHu extends AppLocalizations {
   String get web_cors_copied => 'Szabály kimásolva';
 
   @override
+  String get web_storage_title => 'Böngészőtároló';
+
+  @override
+  String get web_storage_opfs =>
+      'Böngésző fájltárolója. A merüléseid ebben a böngészőben maradnak, amíg el nem felejted ezt az eszközt.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Böngésző-adatbázis (lassabb). A merüléseid ebben a böngészőben maradnak, amíg el nem felejted ezt az eszközt.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'A lap bezárása után semmi sem marad meg. Ez a böngésző nem ad tartós tárhelyet az oldalnak; szinkronizálj, mielőtt elmész.';
+
+  @override
+  String get web_forgetDevice_title => 'Eszköz elfelejtése';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'A merülések, a bejelentkezési adatok és az eszközazonosság eltávolítása ebből a böngészőből';
+
+  @override
+  String get web_forgetDevice_confirm => 'Elfelejtés';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'Ez mindent eltávolít, amit a Submersion ebben a böngészőben tart: a merülésnaplót, a bejelentkezési adatokat és a jelmondatot, valamint ennek az eszköznek a szinkronizálási azonosságát. A merüléseid megmaradnak a szinkronizálási tárolóban és a többi eszközödön. Az oldal újratöltődik, tiszta lappal.';
+
+  @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';
 
   @override

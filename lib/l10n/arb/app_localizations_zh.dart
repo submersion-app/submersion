@@ -54981,6 +54981,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get web_cors_copied => '规则已复制';
 
   @override
+  String get web_storage_title => '浏览器存储';
+
+  @override
+  String get web_storage_opfs => '浏览器文件存储。您的潜水记录会保存在此浏览器中，直到您忘记此设备。';
+
+  @override
+  String get web_storage_indexedDb => '浏览器数据库（较慢）。您的潜水记录会保存在此浏览器中，直到您忘记此设备。';
+
+  @override
+  String get web_storage_memoryWarning =>
+      '关闭此标签页后不会保存任何内容。此浏览器未向本站提供持久存储；离开前请先同步。';
+
+  @override
+  String get web_forgetDevice_title => '忘记此设备';
+
+  @override
+  String get web_forgetDevice_subtitle => '从此浏览器中移除潜水记录、登录信息和设备身份';
+
+  @override
+  String get web_forgetDevice_confirm => '忘记';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      '这将移除 Submersion 在此浏览器中保存的全部内容：潜水日志、登录信息和密码短语，以及此设备在同步中的身份。您的潜水记录仍保留在同步存储和其他设备上。页面将重新加载并重新开始。';
+
+  @override
   String get demo_row_unavailable => '演示模式下不可用';
 
   @override

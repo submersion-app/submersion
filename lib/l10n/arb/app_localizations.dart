@@ -92452,6 +92452,54 @@ abstract class AppLocalizations {
   /// **'Rule copied'**
   String get web_cors_copied;
 
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Browser storage'**
+  String get web_storage_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Browser file storage. Your dives stay in this browser until you forget this device.'**
+  String get web_storage_opfs;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Browser database (slower). Your dives stay in this browser until you forget this device.'**
+  String get web_storage_indexedDb;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is saved after this tab closes. This browser gives the site no lasting storage; sync before you leave.'**
+  String get web_storage_memoryWarning;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Forget this device'**
+  String get web_forgetDevice_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the dives, sign-in details and device identity from this browser'**
+  String get web_forgetDevice_subtitle;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Forget'**
+  String get web_forgetDevice_confirm;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This removes everything Submersion keeps in this browser: the dive log, the sign-in details and passphrase, and this device\'s identity in sync. Your dives stay in the sync store and on your other devices. The page reloads to a fresh start.'**
+  String get web_forgetDevice_confirmBody;
+
   /// Demo mode (issue #3708)
   ///
   /// In en, this message translates to:

@@ -58579,6 +58579,35 @@ class AppLocalizationsPt extends AppLocalizations {
   String get web_cors_copied => 'Regra copiada';
 
   @override
+  String get web_storage_title => 'Armazenamento do navegador';
+
+  @override
+  String get web_storage_opfs =>
+      'Armazenamento de ficheiros do navegador. Os seus mergulhos ficam neste navegador até esquecer este dispositivo.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Base de dados do navegador (mais lenta). Os seus mergulhos ficam neste navegador até esquecer este dispositivo.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'Nada é guardado depois de fechar este separador. Este navegador não dá ao site armazenamento duradouro; sincronize antes de sair.';
+
+  @override
+  String get web_forgetDevice_title => 'Esquecer este dispositivo';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'Remover os mergulhos, os dados de acesso e a identidade do dispositivo deste navegador';
+
+  @override
+  String get web_forgetDevice_confirm => 'Esquecer';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'Isto remove tudo o que o Submersion guarda neste navegador: o registo de mergulhos, os dados de acesso e a frase-passe, e a identidade deste dispositivo na sincronização. Os seus mergulhos ficam no armazenamento de sincronização e nos seus outros dispositivos. A página recarrega do zero.';
+
+  @override
   String get demo_row_unavailable => 'Indisponível no modo de demonstração';
 
   @override

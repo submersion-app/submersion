@@ -58718,6 +58718,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get web_cors_copied => 'Règle copiée';
 
   @override
+  String get web_storage_title => 'Stockage du navigateur';
+
+  @override
+  String get web_storage_opfs =>
+      'Stockage de fichiers du navigateur. Vos plongées restent dans ce navigateur jusqu\'à ce que vous oubliiez cet appareil.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Base de données du navigateur (plus lente). Vos plongées restent dans ce navigateur jusqu\'à ce que vous oubliiez cet appareil.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'Rien n\'est conservé après la fermeture de cet onglet. Ce navigateur n\'offre au site aucun stockage durable ; synchronisez avant de partir.';
+
+  @override
+  String get web_forgetDevice_title => 'Oublier cet appareil';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'Supprimer les plongées, les identifiants et l\'identité de l\'appareil de ce navigateur';
+
+  @override
+  String get web_forgetDevice_confirm => 'Oublier';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'Cela supprime tout ce que Submersion conserve dans ce navigateur : le carnet de plongées, les identifiants et la phrase secrète, et l\'identité de cet appareil dans la synchronisation. Vos plongées restent dans l\'espace de synchronisation et sur vos autres appareils. La page se recharge pour repartir de zéro.';
+
+  @override
   String get demo_row_unavailable => 'Indisponible en mode démo';
 
   @override

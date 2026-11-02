@@ -58223,6 +58223,35 @@ class AppLocalizationsNl extends AppLocalizations {
   String get web_cors_copied => 'Regel gekopieerd';
 
   @override
+  String get web_storage_title => 'Browseropslag';
+
+  @override
+  String get web_storage_opfs =>
+      'Bestandsopslag van de browser. Je duiken blijven in deze browser tot je dit apparaat vergeet.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Browserdatabase (trager). Je duiken blijven in deze browser tot je dit apparaat vergeet.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'Er wordt niets bewaard nadat dit tabblad sluit. Deze browser geeft de site geen blijvende opslag; synchroniseer voordat je weggaat.';
+
+  @override
+  String get web_forgetDevice_title => 'Dit apparaat vergeten';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'Verwijder de duiken, aanmeldgegevens en apparaatidentiteit uit deze browser';
+
+  @override
+  String get web_forgetDevice_confirm => 'Vergeten';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'Dit verwijdert alles wat Submersion in deze browser bewaart: het duiklogboek, de aanmeldgegevens en wachtwoordzin, en de identiteit van dit apparaat in de synchronisatie. Je duiken blijven in de synchronisatieopslag en op je andere apparaten. De pagina herlaadt met een schone start.';
+
+  @override
   String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
 
   @override
