@@ -201,7 +201,8 @@ Future<List<SiteDocument>> dropUnverifiedAll(
             retiredKeys: retiredKeys,
           ),
       ]);
-  if (pairs.length < _parallelFrom) return run(pairs);
+  // A browser has no isolates to spread the chunks over.
+  if (pairs.length < _parallelFrom || HostPlatform.isWeb) return run(pairs);
   final workers = HostPlatform.numberOfProcessors.clamp(2, 8);
   final size = (pairs.length / workers).ceil();
   final parts = [

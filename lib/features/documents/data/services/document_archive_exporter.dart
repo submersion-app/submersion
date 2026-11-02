@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/export/zip/zip_crypto_writer.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
@@ -93,4 +94,7 @@ Future<EncodedZipEntry> _encode(
   Uint8List password,
   Uint8List data,
   Uint8List seed,
-) => Isolate.run(() => encodeZipCryptoEntry(password, data, seed));
+) => HostPlatform.isWeb
+    // A browser has no isolates; the encode shares the main thread there.
+    ? Future.sync(() => encodeZipCryptoEntry(password, data, seed))
+    : Isolate.run(() => encodeZipCryptoEntry(password, data, seed));
