@@ -809,7 +809,7 @@ class DiveReimportService {
   ) async {
     if (ids.isEmpty) return const {};
     final taken = <String>{};
-    // In chunks: a long dive's events can outnumber SQLite's variables.
+    // In chunks, like the repositories' other id lookups (series_id_chunks).
     for (final chunk in seriesIdChunks(ids)) {
       final rows =
           await (db.selectOnly(db.diveProfileEvents)
