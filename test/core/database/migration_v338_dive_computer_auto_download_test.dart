@@ -5,9 +5,9 @@ import 'package:submersion/core/database/database.dart';
 
 /// Schema v338: dive_computers gains auto_download_disabled (issue #3361),
 /// the per-device opt-out from the passive auto-connect scan. Every
-/// existing computer stays included in auto-download. Renumbered from v332,
-/// which upstream claimed first for issue #3922 (the per-device change log
-/// tables).
+/// existing computer stays included in auto-download. Renumbered from v332
+/// and v333, which upstream claimed first for issues #3922 (the per-device
+/// change log tables) and #32 (dives.gas_switches_edited).
 void main() {
   NativeDatabase dbAt(
     int version, {
@@ -35,7 +35,7 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(338));
     expect(AppDatabase.migrationVersions, contains(338));
     expect(
-      AppDatabase.migrationStepCount(332),
+      AppDatabase.migrationStepCount(337),
       AppDatabase.migrationStepCount(338) + 1,
     );
   });
