@@ -66,4 +66,29 @@ void main() {
       expect(runtime?.value?.toString(), '40');
     },
   );
+
+  test('a dive measured by its profile can be the longest dive', () async {
+    final entry = DateTime.utc(2026, 7, 3, 10);
+    // The export reads the list form of a dive, which carries no samples.
+    final sampled = Dive(
+      id: 'sampled',
+      dateTime: entry,
+      profileSpan: const Duration(minutes: 90),
+    );
+    final timed = Dive(
+      id: 'timed',
+      dateTime: entry,
+      runtime: const Duration(minutes: 40),
+    );
+    final book = await workbook([timed, sampled]);
+    final sheet = book.tables['Dives']!;
+    final headers = [for (final c in sheet.rows.first) c?.value?.toString()];
+    final runtimes = [
+      for (final row in sheet.rows.skip(1))
+        row[headers.indexOf('Runtime (min)')]?.value?.toString(),
+    ];
+
+    expect(runtimes, contains('90'));
+    expect(await longestDive([timed, sampled]), contains('90'));
+  });
 }

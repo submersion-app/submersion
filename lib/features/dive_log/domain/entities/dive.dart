@@ -48,6 +48,11 @@ class Dive extends Equatable {
   final List<DiveTank> tanks;
   final List<DiveProfilePoint> profile;
 
+  /// How long the recorded profile lasts, for a dive read without its samples:
+  /// a list read leaves [profile] empty and fills this for a dive only its
+  /// samples can measure. Read, never stored.
+  final Duration? profileSpan;
+
   /// The gear on this dive, one link per junction row with the item and
   /// where it came from (issue #1487). [equipment] is the flat view.
   final List<GearLink> gear;
@@ -260,6 +265,7 @@ class Dive extends Equatable {
     this.tripId,
     this.tanks = const [],
     this.profile = const [],
+    this.profileSpan,
     this.gear = const [],
     this.notes = '',
     this.photoIds = const [],
@@ -453,7 +459,8 @@ class Dive extends Equatable {
   /// Fallback chain:
   /// 1. runtime (explicit, from dive computer/import)
   /// 2. exitTime - entryTime (computed from timestamps)
-  /// 3. calculateRuntimeFromProfile() (from profile data)
+  /// 3. calculateRuntimeFromProfile() (from profile data), else [profileSpan]
+  ///    for a dive read without its samples
   Duration? get measuredRuntime {
     if (runtime != null) return runtime;
 
@@ -462,7 +469,7 @@ class Dive extends Equatable {
       if (!computed.isNegative && computed > Duration.zero) return computed;
     }
 
-    return calculateRuntimeFromProfile();
+    return calculateRuntimeFromProfile() ?? profileSpan;
   }
 
   /// [measuredRuntime], else [bottomTime]: an estimate of how long the dive
@@ -718,6 +725,7 @@ class Dive extends Equatable {
     String? tripId,
     List<DiveTank>? tanks,
     List<DiveProfilePoint>? profile,
+    Duration? profileSpan,
     List<GearLink>? gear,
     String? notes,
     List<String>? photoIds,
@@ -825,6 +833,7 @@ class Dive extends Equatable {
       tripId: tripId ?? this.tripId,
       tanks: tanks ?? this.tanks,
       profile: profile ?? this.profile,
+      profileSpan: profileSpan ?? this.profileSpan,
       gear: gear ?? this.gear,
       notes: notes ?? this.notes,
       photoIds: photoIds ?? this.photoIds,
@@ -934,6 +943,7 @@ class Dive extends Equatable {
     tripId,
     tanks,
     profile,
+    profileSpan,
     gear,
     notes,
     photoIds,

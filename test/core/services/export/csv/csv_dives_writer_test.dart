@@ -108,6 +108,14 @@ void main() {
       bottomTime: const Duration(minutes: 30),
     );
     expect(row(logged)['Runtime (min)'], '');
+
+    // The export reads the list form of a dive, which carries no samples.
+    final sampled = Dive(
+      id: 'sampled',
+      dateTime: entry,
+      profileSpan: const Duration(minutes: 20),
+    );
+    expect(row(sampled)['Runtime (min)'], '20');
   });
 
   test('a measured dive writes no range beside its measurement (#3226)', () {

@@ -284,6 +284,8 @@ class DiveRepository {
     'dive_custom_fields',
     'dive_buddies',
     'buddies',
+    // The profile span of a dive only its samples can measure.
+    ...measuredRuntimeTickTables,
   };
 
   /// Fires on a write to any of [diveHydrationTables], so a holder of hydrated
@@ -649,8 +651,9 @@ class DiveRepository {
   /// the one per dive [_mapRowToDive] costs.
   ///
   /// No sample is read, so `profile` stays empty and what [_mapRowToDive]
-  /// derives from samples stays missing. Weights are left to the callers that
-  /// show them, through [weightsByDive].
+  /// derives from samples stays missing, apart from `profileSpan`, which keeps
+  /// [domain.Dive.measuredRuntime] the same on both. Weights are left to the
+  /// callers that show them, through [weightsByDive].
   Future<List<domain.Dive>> _mapRowsWithPreloadedData(
     List<Dive> rows, {
     Map<String, List<domain.DiveWeight>> weightsByDive = const {},
@@ -813,6 +816,8 @@ class DiveRepository {
     // (issue #626). Scalar buddy/diveMaster remain the fallback.
     final buddiesByDive = await _buddyRepository.getBuddiesForDives(diveIds);
 
+    final profileSpans = await _profileSpansFor(rows);
+
     return rows
         .map(
           (row) => _mapRowToDiveWithPreloadedData(
@@ -834,9 +839,45 @@ class DiveRepository {
             customFields: customFieldsByDive[row.id] ?? [],
             buddies: buddiesByDive[row.id] ?? const [],
             weights: weightsByDive[row.id] ?? const [],
+            profileSpan: profileSpans[row.id],
           ),
         )
         .toList();
+  }
+
+  /// The profile span of each of [rows] that only its samples can measure: no
+  /// runtime and no exit after the entry, the steps of
+  /// `measuredRuntimeSecondsSql` before the span. Most logs have none, and then
+  /// this runs no statement.
+  Future<Map<String, Duration>> _profileSpansFor(List<Dive> rows) async {
+    final ids = [
+      for (final row in rows)
+        if (row.runtime == null &&
+            (row.entryTime == null ||
+                row.exitTime == null ||
+                row.exitTime! <= row.entryTime!))
+          row.id,
+    ];
+    final spans = <String, Duration>{};
+    for (final chunk in seriesIdChunks(ids)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final result = await _db
+          .customSelect(
+            "SELECT d.id, ${profileSpanSecondsSql('d')} AS profile_span "
+            'FROM dives d WHERE d.id IN ($placeholders)',
+            variables: [for (final id in chunk) Variable<String>(id)],
+            readsFrom: {_db.dives, _db.diveProfileSeries},
+          )
+          .get();
+      for (final row in result) {
+        final span = row.readNullable<int>('profile_span');
+        // Matches Dive.calculateRuntimeFromProfile: null unless positive.
+        if (span != null && span > 0) {
+          spans[row.read<String>('id')] = Duration(seconds: span);
+        }
+      }
+    }
+    return spans;
   }
 
   /// Get a single dive by ID
@@ -4717,6 +4758,7 @@ class DiveRepository {
     List<domain.DiveCustomField> customFields = const [],
     List<domain.BuddyWithRole> buddies = const [],
     List<domain.DiveWeight> weights = const [],
+    Duration? profileSpan,
   }) {
     // Map site if exists
     final domainSite = site == null ? null : mapDiveSiteRow(site);
@@ -4789,6 +4831,7 @@ class DiveRepository {
           ? Duration(seconds: row.bottomTime!)
           : null,
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
+      profileSpan: profileSpan,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       entryLocation: row.entryLatitude != null && row.entryLongitude != null
