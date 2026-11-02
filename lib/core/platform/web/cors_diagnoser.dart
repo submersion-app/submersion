@@ -110,7 +110,8 @@ bool isOpaqueBrowserFailure(Object error) {
       final message = current.message;
       if (message.contains('XMLHttpRequest error') ||
           message.contains('Failed to fetch') ||
-          message.contains('NetworkError')) {
+          message.contains('NetworkError') ||
+          message.contains('Load failed')) {
         return true;
       }
     }
@@ -124,11 +125,14 @@ bool isOpaqueBrowserFailure(Object error) {
 bool isPrivateHost(String host) {
   final h = host.toLowerCase();
   if (h.isEmpty || h == 'localhost' || h == '::1') return true;
+  // IPv6: unique local (fc00::/7) and link local (fe80::/10).
+  if (h.contains(':')) return RegExp(r'^(f[cd]|fe[89ab])').hasMatch(h);
   if (!h.contains('.')) return true;
   for (final suffix in [
     '.local',
     '.lan',
     '.home',
+    '.home.arpa',
     '.internal',
     '.localdomain',
   ]) {

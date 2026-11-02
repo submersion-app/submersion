@@ -45,7 +45,10 @@ void main() {
   setUp(() async => setUpTestDatabase());
   tearDown(() async => tearDownTestDatabase());
 
-  Future<ProviderContainer> pumpPage(WidgetTester tester) async {
+  Future<ProviderContainer> pumpPage(
+    WidgetTester tester, {
+    SetupWizardMode mode = SetupWizardMode.firstRun,
+  }) async {
     late ProviderContainer container;
     await tester.pumpWidget(
       testApp(
@@ -56,10 +59,7 @@ void main() {
         child: Builder(
           builder: (context) {
             container = ProviderScope.containerOf(context);
-            return const SetupWizardPage(
-              mode: SetupWizardMode.firstRun,
-              setUpStepBody: _stubStep,
-            );
+            return SetupWizardPage(mode: mode, setUpStepBody: _stubStep);
           },
         ),
       ),
@@ -92,6 +92,17 @@ void main() {
     );
     expect(find.text('Create Your Profile'), findsOneWidget);
     expect(find.text('stub account firstRun'), findsNothing);
+  });
+
+  testWidgets('the assistant from Settings drops the same steps as a first '
+      'run: the draft says browser whatever the mode', (tester) async {
+    final container = await pumpPage(tester, mode: SetupWizardMode.settings);
+    final steps = computeSteps(
+      container.read(setupWizardProvider(SetupWizardMode.settings)),
+    );
+    expect(steps, isNot(contains(SetupStepId.setUpBackups)));
+    expect(steps, isNot(contains(SetupStepId.setUpPhotos)));
+    expect(steps, contains(SetupStepId.setUpAccount));
   });
 
   testWidgets('the first step offers no way back, and the same step later '

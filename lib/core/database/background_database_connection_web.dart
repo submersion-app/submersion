@@ -119,7 +119,6 @@ class BackgroundDatabaseConnection {
     }
   }
 
-  /// Nothing to wait for: a browser connection owns no worker isolate.
   /// Deletes every stored copy of the database at [path], in whichever
   /// browser storage drift put it (OPFS or IndexedDB), through drift's own
   /// probe, and throws when a copy is still there afterwards: Forget this
@@ -148,6 +147,7 @@ class BackgroundDatabaseConnection {
     }
   }
 
+  /// Nothing to wait for: a browser connection owns no worker isolate.
   Future<bool> awaitWorkerShutdown({
     required Duration timeout,
     required bool killIfStuck,

@@ -181,4 +181,18 @@ void main() {
       );
     });
   });
+
+  test('WebKit names the same opaque failure differently', () {
+    expect(
+      isOpaqueBrowserFailure(http.ClientException('TypeError: Load failed')),
+      isTrue,
+    );
+  });
+
+  test('private hosts include IPv6 local ranges and home.arpa', () {
+    expect(isPrivateHost('nas.home.arpa'), isTrue);
+    expect(isPrivateHost('fd00::10'), isTrue);
+    expect(isPrivateHost('fe80::1'), isTrue);
+    expect(isPrivateHost('2606:4700::1111'), isFalse);
+  });
 }

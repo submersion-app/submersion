@@ -49,7 +49,18 @@ class _GoogleWebClientIdDialogState
       _saving = true;
       _errorText = null;
     });
-    await ref.read(googleWebClientIdStoreProvider).write(clientId);
+    try {
+      await ref.read(googleWebClientIdStoreProvider).write(clientId);
+    } catch (e) {
+      // Browser storage can refuse a write; the dialog stays usable.
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _errorText = '$e';
+        });
+      }
+      return;
+    }
     if (!mounted) return;
     Navigator.of(context).pop(true);
   }

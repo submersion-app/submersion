@@ -177,12 +177,15 @@ without the `MINIO_*` defines. To run them locally against MinIO:
 ```bash
 docker run -d --name minio -p 9000:9000 \
   -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
-  -e MINIO_API_CORS_ALLOW_ORIGIN='*' minio/minio:latest server /data
+  -e MINIO_API_CORS_ALLOW_ORIGIN='*' \
+  pgsty/minio:RELEASE.2026-08-04T00-00-00Z server /data
 docker run -d --name minio-nocors -p 9001:9000 \
   -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
-  -e MINIO_API_CORS_ALLOW_ORIGIN='https://example.invalid' minio/minio:latest server /data
-mc alias set open http://localhost:9000 minioadmin minioadmin
-mc mb open/submersion-test
+  -e MINIO_API_CORS_ALLOW_ORIGIN='https://example.invalid' \
+  pgsty/minio:RELEASE.2026-08-04T00-00-00Z server /data
+AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin \
+  AWS_DEFAULT_REGION=us-east-1 \
+  aws --endpoint-url http://localhost:9000 s3 mb s3://submersion-test
 ```
 
 Seed the library the round trip pulls (two divers, a site, a buddy, five

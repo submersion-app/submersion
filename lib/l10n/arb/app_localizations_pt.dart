@@ -59402,6 +59402,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este navegador manteve o banco de dados. Feche as outras abas do Submersion e tente novamente.';
 
   @override
+  String get web_downloadBackup_failed => 'Não foi possível criar o backup.';
+
+  @override
   String get web_downloadBackup_title => 'Transferir uma cópia de segurança';
 
   @override

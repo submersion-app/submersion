@@ -24,10 +24,12 @@ class SetupWizardNotifier extends StateNotifier<SetupWizardDraft> {
   }
 
   /// A browser's first run opens on the connect step: the existing-data
-  /// path with cloud sync chosen, no fork before it (issue #4121).
+  /// path with cloud sync chosen, no fork before it (issue #4121). The draft
+  /// says browser in every mode, since the assistant in Settings drops the
+  /// same steps.
   static SetupWizardDraft _initialDraft(Ref ref, SetupWizardMode mode) {
-    if (mode == SetupWizardMode.firstRun &&
-        ref.read(deviceCapabilitiesProvider).isBrowser) {
+    final browser = ref.read(deviceCapabilitiesProvider).isBrowser;
+    if (browser && mode == SetupWizardMode.firstRun) {
       return SetupWizardDraft(
         mode: mode,
         browser: true,
@@ -35,7 +37,7 @@ class SetupWizardNotifier extends StateNotifier<SetupWizardDraft> {
         source: ExistingDataSource.cloudSync,
       );
     }
-    return SetupWizardDraft(mode: mode);
+    return SetupWizardDraft(mode: mode, browser: browser);
   }
 
   void choosePath(SetupPath path) => state = state.copyWith(path: path);

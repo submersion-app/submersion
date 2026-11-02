@@ -59544,6 +59544,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce navigateur a conservé la base de données. Fermez les autres onglets Submersion et réessayez.';
 
   @override
+  String get web_downloadBackup_failed => 'Impossible de créer la sauvegarde.';
+
+  @override
   String get web_downloadBackup_title => 'Télécharger une sauvegarde';
 
   @override

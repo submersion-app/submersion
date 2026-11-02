@@ -55,7 +55,7 @@ class _BackupDownloadTileState extends ConsumerState<BackupDownloadTile> {
 
   Future<void> _download() async {
     final messenger = ScaffoldMessenger.maybeOf(context);
-    final failed = context.l10n.settings_cloudSync_message_syncFailed;
+    final failed = context.l10n.web_downloadBackup_failed;
     setState(() => _busy = true);
     try {
       final bytes = await (widget.readImage ?? _readLive)();

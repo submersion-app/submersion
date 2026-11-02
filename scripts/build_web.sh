@@ -5,7 +5,8 @@
 # Fetches the pinned sqlite3.wasm, compiles the browser workers, runs the
 # Flutter web build without a service worker (a self-hoster who replaces
 # the files must not have last release's bundle served from the browser's
-# cache), drops the worker sources and the compiler sidecars that `flutter
+# cache) and with the engine loaded from the bundle, not from Google's CDN
+# (a self-hosted site must work where gstatic.com does not), drops the worker sources and the compiler sidecars that `flutter
 # build web` copies out of web/, adds the hosting files, and checks the
 # bundle.
 #
@@ -19,7 +20,7 @@ cd "$REPO_ROOT"
 
 scripts/web/fetch_sqlite3_wasm.sh
 scripts/web/compile_workers.sh
-flutter build web --release --pwa-strategy=none "$@"
+flutter build web --release --pwa-strategy=none --no-web-resources-cdn "$@"
 
 # flutter build web writes flutter_service_worker.js whatever the PWA
 # strategy; with none, flutter_bootstrap.js calls load() with no service

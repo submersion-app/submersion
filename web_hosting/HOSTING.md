@@ -127,7 +127,10 @@ Google Cloud project, created once; the guide walks through it.
   profile could read it. **Forget this device**, in Settings, Cloud Sync,
   wipes the database, the credentials and the device identity.
 - **The site is static.** There is no server code, no account and no data
-  at the host: everything travels between the browser and the user's store.
+  at the host: dive data travels only between the browser and the user's
+  store. The page does load two things from Google: its sign-in script, which
+  the Google Drive support brings in on every visit, and fallback fonts for
+  characters the app's own fonts lack. Neither carries dive data.
 - **The Google client id is public by design.** A web client id has no
   secret; restricting it to this site's address in Google Cloud is what
   protects it.
@@ -135,11 +138,12 @@ Google Cloud project, created once; the guide walks through it.
 ## Updating
 
 Replace the files with the next release's bundle. There is no service
-worker, and the hosting files mark the entry files (`index.html`,
-`flutter_bootstrap.js`, `main.dart.js` and `version.json`) `no-cache`, so a
-browser revalidates them on the next load and picks the new bundle up at
-once; the rest of the bundle may stay cached until those files point
-elsewhere. On a host that cannot set headers (GitHub Pages, an S3 website
+worker, and the hosting files mark everything that keeps its name across
+releases `no-cache`: `index.html`, `flutter_bootstrap.js`, `main.dart.js`,
+`version.json`, the two workers and `sqlite3.wasm`. A browser revalidates
+them on the next load and picks the new bundle up at once, which matters
+because the app, its workers and the SQLite module must all come from one
+release. On a host that cannot set headers (GitHub Pages, an S3 website
 endpoint) a returning visitor may keep last release's files until their
 browser revalidates on its own; a hard reload fetches the new ones. The
 app shows its version in Settings, About.

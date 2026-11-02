@@ -79,7 +79,7 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
 
   late final TabController _controller = TabController(
     length: _sections.length,
-    initialIndex: _sections.indexOf(widget.selected).clamp(0, _sections.length),
+    initialIndex: math.max(0, _sections.indexOf(widget.selected)),
     vsync: this,
   );
 

@@ -192,11 +192,15 @@ Each ruling ends with what it costs if it turns out wrong.
 - **Final review**: Back is hidden on a browser's first step, where nothing comes before it (found in the screenshot pass): the set up steps' `onBack` is nullable and the wizard passes it only past the first step. Cost if wrong: none
 - **Final review**: the smoke helper types keys rather than using Playwright's `fill`, which dropped the value of every other field of the connect form, since a Flutter text field is a DOM input only while it holds focus. Cost if wrong: none
 - **Final review**: main's SQL read tool arrived mid-build with `dart:ffi`, `dart:isolate` and native SQLite on the path the browser compiles. The constants and result types stay in `sql_window.dart`, the execution, catalog and value limit move to `_io` files, and `sql_window_worker.dart` is a facade whose web half refuses, since a page cannot bind the listener that would call it. Main's runner and tool are otherwise unchanged. Cost if wrong: none; the seam guard and the web build check it
+- **Final review**: MinIO's community image and binaries were withdrawn (Docker Hub has no repository, dl.min.io answers 410), so `web-tests` and `web-smoke` run `pgsty/minio` pinned by digest, the community fork from before its rename to Silo, and create the bucket with the runners' AWS CLI, since `mc` went too. Fidelity to the server the design assumed outweighs freshness for a throwaway test store. Cost if wrong: one image line, if the fork disappears
+- **Final review**: a review of the finished branch found the Settings assistant never marked as a browser, Forget leaving the local cache database, the workers and sqlite3.wasm cacheable across releases, the engine loading from gstatic.com, WebKit's fetch failure text unrecognised, and the update check running in a browser. Each is fixed; the request log and a real press of Forget in Chromium confirmed the last and the second. Cost if wrong: none
 - **Final review**: the Google renewal in a browser closes the client it built when the account read throws, and the OAuth client is told to close its transport, which it leaves open by default. Cost if wrong: none
 
 ### Deferred minors
 
-- Pin the MinIO image tag in ci.yaml instead of latest.
 - Dispose the bootstrap semantics handle in addTearDown: impossible as asked, since the framework checks handles before tear-downs run, so the test disposes it in its body.
 - A .dockerignore beside web_hosting/Dockerfile.
+- google_sign_in_web loads Google's sign-in script on every visit, also for a user who never connects Google Drive. It comes from the plugin's registration; deferring it needs a change there. The hosting guide says so.
+- The Google client id cannot be corrected once stored, short of Forget this device: a well-formed id from the wrong project keeps failing with Remember on. It needs a Change client id row, which is a design choice.
+- A failed Forget leaves the tab on a closed database until the retry or a reload; pressing Forget again works, since each step tolerates what the last run did.
 - The scanned logs migration calls path_provider in a browser and logs one MissingPluginException line at startup. It fails soft and moves nothing, so it is noise rather than a fault; gating it on the capability would quiet it.

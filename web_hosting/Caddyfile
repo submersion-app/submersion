@@ -14,9 +14,11 @@ dive.example.com {
 		Cross-Origin-Opener-Policy "same-origin"
 		Cross-Origin-Embedder-Policy "credentialless"
 	}
-	# The entry files are revalidated on every load, so a replaced bundle
-	# is picked up at once.
-	@entry path /index.html /flutter_bootstrap.js /main.dart.js /version.json
+	# These keep their names across releases, and the app, its workers and
+	# the SQLite module must all come from one release, so they are
+	# revalidated on every load. The bare / is listed because headers apply
+	# before try_files rewrites it.
+	@entry path / /index.html /flutter_bootstrap.js /main.dart.js /version.json /drift_worker.js /compute_worker.js /sqlite3.wasm
 	header @entry Cache-Control "no-cache"
 	try_files {path} /index.html
 	file_server

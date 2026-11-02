@@ -17546,6 +17546,7 @@
   "web_forgetDevice_confirm": "忘记",
   "web_forgetDevice_confirmBody": "这将移除 Submersion 在此浏览器中保存的全部内容：潜水日志、登录信息和密码短语，以及此设备在同步中的身份。您的潜水记录仍保留在同步存储和其他设备上。页面将重新加载并重新开始。",
   "web_forgetDevice_failed": "此浏览器保留了数据库。请关闭其他 Submersion 标签页后重试。",
+  "web_downloadBackup_failed": "无法创建备份。",
   "web_downloadBackup_title": "下载备份",
   "web_downloadBackup_subtitle": "将潜水日志的副本保存为数据库文件，由浏览器下载",
   "demo_row_unavailable": "演示模式下不可用",

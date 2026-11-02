@@ -144,15 +144,17 @@ List<SetupStepId> computeSteps(SetupWizardDraft draft) {
   // first run has no welcome fork and no existing-data choice before it: it
   // opens on the connect step, and "Continue without a sync store" takes the
   // fresh path from there (issue #4121).
-  final firstRun = draft.mode == SetupWizardMode.firstRun;
+  final dropped = {
+    SetupStepId.setUpBackups,
+    SetupStepId.setUpPhotos,
+    if (draft.mode == SetupWizardMode.firstRun) ...[
+      SetupStepId.welcomeFork,
+      SetupStepId.existingChoice,
+    ],
+  };
   final trimmed = [
     for (final step in steps)
-      if (kBrowserSetUpWizardSteps.contains(step) ||
-          !(kSetUpWizardSteps.contains(step) ||
-              (firstRun &&
-                  (step == SetupStepId.welcomeFork ||
-                      step == SetupStepId.existingChoice))))
-        step,
+      if (!dropped.contains(step)) step,
   ];
   return trimmed.isEmpty
       ? const [...kBrowserSetUpWizardSteps, SetupStepId.finish]

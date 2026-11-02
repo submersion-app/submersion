@@ -93730,6 +93730,12 @@ abstract class AppLocalizations {
   /// Web app (issue #4121)
   ///
   /// In en, this message translates to:
+  /// **'The backup could not be created.'**
+  String get web_downloadBackup_failed;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
   /// **'Download a backup'**
   String get web_downloadBackup_title;
 

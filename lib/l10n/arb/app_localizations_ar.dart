@@ -60207,6 +60207,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتفظ هذا المتصفح بقاعدة البيانات. أغلق علامات تبويب Submersion الأخرى وحاول مرة أخرى.';
 
   @override
+  String get web_downloadBackup_failed => 'تعذّر إنشاء النسخة الاحتياطية.';
+
+  @override
   String get web_downloadBackup_title => 'تنزيل نسخة احتياطية';
 
   @override

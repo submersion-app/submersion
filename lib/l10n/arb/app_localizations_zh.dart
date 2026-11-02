@@ -55769,6 +55769,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get web_forgetDevice_failed => '此浏览器保留了数据库。请关闭其他 Submersion 标签页后重试。';
 
   @override
+  String get web_downloadBackup_failed => '无法创建备份。';
+
+  @override
   String get web_downloadBackup_title => '下载备份';
 
   @override

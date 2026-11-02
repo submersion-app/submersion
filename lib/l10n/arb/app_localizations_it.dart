@@ -59417,6 +59417,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo browser ha conservato il database. Chiudi le altre schede di Submersion e riprova.';
 
   @override
+  String get web_downloadBackup_failed => 'Impossibile creare il backup.';
+
+  @override
   String get web_downloadBackup_title => 'Scarica un backup';
 
   @override

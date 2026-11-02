@@ -9,9 +9,18 @@
 /*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
-# The entry files are revalidated on every load, so a replaced bundle is
-# picked up at once.
+# These keep their names across releases, and the app, its workers and the
+# SQLite module must all come from one release, so they are revalidated on
+# every load and a replaced bundle is picked up at once.
+/
+  Cache-Control: no-cache
 /index.html
+  Cache-Control: no-cache
+/drift_worker.js
+  Cache-Control: no-cache
+/compute_worker.js
+  Cache-Control: no-cache
+/sqlite3.wasm
   Cache-Control: no-cache
 /flutter_bootstrap.js
   Cache-Control: no-cache

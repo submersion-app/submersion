@@ -59456,6 +59456,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este navegador conservó la base de datos. Cierra las otras pestañas de Submersion e inténtalo de nuevo.';
 
   @override
+  String get web_downloadBackup_failed =>
+      'No se pudo crear la copia de seguridad.';
+
+  @override
   String get web_downloadBackup_title => 'Descargar una copia de seguridad';
 
   @override

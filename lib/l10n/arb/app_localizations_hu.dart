@@ -59082,6 +59082,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez a böngésző megtartotta az adatbázist. Zárd be a többi Submersion lapot, és próbáld újra.';
 
   @override
+  String get web_downloadBackup_failed =>
+      'A biztonsági mentés nem hozható létre.';
+
+  @override
   String get web_downloadBackup_title => 'Biztonsági mentés letöltése';
 
   @override

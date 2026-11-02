@@ -212,8 +212,8 @@ def connect_to_store(page):
     button(page, exact("Check connection")).click()
     page.wait_for_timeout(3000)
     button(page, exact("Save")).click()
-    # The session store is page memory; a reload later needs the credentials
-    # kept, which is what the switch does.
+    # The session store is page memory, so an accidental reload would lose
+    # the store; the switch keeps the run independent of that.
     page.get_by_role("switch", name=re.compile(r"^Remember on this device")).first.click()
     page.wait_for_timeout(500)
 
@@ -249,8 +249,8 @@ def edit_first_dive(page, rows, note):
 
 
 def sync_now(page):
-    """The app routes by URL fragment, so the query stays ahead of the hash;
-    the credentials survive the reload because Remember was turned on."""
+    """The app routes by URL fragment, so the query stays ahead of the
+    hash. Only the hash changes here, so this navigates without a reload."""
     page.goto(BASE_URL + "/?a11y=1#/settings/cloud-sync", wait_until="load")
     button(page, exact("Sync Now")).click(timeout=STEP_TIMEOUT_MS)
 

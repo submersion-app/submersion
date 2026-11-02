@@ -58478,6 +58478,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This browser kept the database. Close other Submersion tabs and try again.';
 
   @override
+  String get web_downloadBackup_failed => 'The backup could not be created.';
+
+  @override
   String get web_downloadBackup_title => 'Download a backup';
 
   @override

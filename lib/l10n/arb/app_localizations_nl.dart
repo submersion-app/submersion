@@ -59041,6 +59041,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze browser heeft de database behouden. Sluit andere Submersion-tabbladen en probeer het opnieuw.';
 
   @override
+  String get web_downloadBackup_failed => 'De back-up kon niet worden gemaakt.';
+
+  @override
   String get web_downloadBackup_title => 'Back-up downloaden';
 
   @override

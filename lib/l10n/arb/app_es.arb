@@ -17546,6 +17546,7 @@
   "web_forgetDevice_confirm": "Olvidar",
   "web_forgetDevice_confirmBody": "Esto elimina todo lo que Submersion guarda en este navegador: el registro de inmersiones, los datos de acceso y la frase de contraseña, y la identidad de este dispositivo en la sincronización. Tus inmersiones permanecen en el almacén de sincronización y en tus otros dispositivos. La página se recarga desde cero.",
   "web_forgetDevice_failed": "Este navegador conservó la base de datos. Cierra las otras pestañas de Submersion e inténtalo de nuevo.",
+  "web_downloadBackup_failed": "No se pudo crear la copia de seguridad.",
   "web_downloadBackup_title": "Descargar una copia de seguridad",
   "web_downloadBackup_subtitle": "Una copia de tu registro de inmersiones como archivo de base de datos, guardada por tu navegador",
   "demo_row_unavailable": "No disponible en el modo demo",

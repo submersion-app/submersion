@@ -23,8 +23,6 @@ class WebForgetDeviceService {
 
   static const _log = LoggerService('WebForgetDevice');
 
-  /// The origin private file system entries the app owns: drift's database
-  /// directory and the sync temp files.
   /// The sync temp files' directory in the origin's private file system.
   static const String syncTempEntry = 'submersion-sync-tmp';
 
@@ -44,9 +42,10 @@ class WebForgetDeviceService {
   Future<void> forget() =>
       SyncCoordinator.join(() => withCrossTabLock(kSyncCrossTabLock, _wipe));
 
-  /// Every step runs whatever the ones before it did: a step that fails
-  /// (a database still busy, say) must not leave the rest in place, and
-  /// the reload drops whatever was still open.
+  /// Every step runs whatever the ones before it did, so a step that fails
+  /// (a database still busy, say) does not leave the rest in place; the one
+  /// exception is [deleteDatabase], whose failure stops the wipe before the
+  /// reload, as it documents.
   Future<void> _wipe() async {
     await _step('disable sync', disableSync);
     await _step('clear secure storage', clearSecureStorage);

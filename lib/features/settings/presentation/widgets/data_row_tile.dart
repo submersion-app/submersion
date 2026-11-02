@@ -98,11 +98,9 @@ class DataRowTile extends StatelessWidget {
           ? null
           : const Icon(Icons.chevron_right),
       // In the desktop detail pane when it can show the page (#3467).
-      onTap: onTap ?? (target == null ? null : () => _open(context, target)),
+      onTap:
+          onTap ??
+          (target == null ? null : () => context.pushSettingsPage(target)),
     );
-  }
-
-  static void _open(BuildContext context, String route) {
-    context.pushSettingsPage(route);
   }
 }
