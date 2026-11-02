@@ -79,6 +79,16 @@ class SacRateDisplay {
       ? units.formatRmv(value)
       : units.formatSac(value);
 
+  /// A [comparable] value in the units [formatComparable] writes it in.
+  double displayComparable(double value, {required Iterable<String?> among}) =>
+      among.every(readsInVolume)
+      ? units.convertRmv(value)
+      : units.convertSac(value);
+
+  /// The unit [formatComparable] writes for entries on [among].
+  String comparableUnit(Iterable<String?> among) =>
+      among.every(readsInVolume) ? units.rmvSymbol : units.sacSymbol;
+
   /// The duration-weighted mean of [segments], as a [comparable] value among
   /// [among], which defaults to their own cylinders. Each stretch converts
   /// with its own cylinder, since a phase can span a gas switch.

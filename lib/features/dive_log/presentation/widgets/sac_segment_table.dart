@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_colors.dart';
 
 /// One line of a [SacSegmentTable].
 class SacSegmentTableRow {
@@ -7,6 +8,10 @@ class SacSegmentTableRow {
 
   /// Length of the bar behind the label as a share of the widest, 0 to 1.
   final double barFactor;
+
+  /// What this row is drawn in elsewhere, as a key to the chart. Null gives a
+  /// plain bar and no swatch.
+  final Color? color;
 
   /// The rate as shown, with no unit when it matches the column heading.
   final String rate;
@@ -23,6 +28,7 @@ class SacSegmentTableRow {
     required this.label,
     this.icon,
     required this.barFactor,
+    this.color,
     required this.rate,
     required this.depth,
     required this.duration,
@@ -154,6 +160,7 @@ class _LabelCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final color = row.color;
     return Semantics(
       container: true,
       excludeSemantics: true,
@@ -171,7 +178,9 @@ class _LabelCell extends StatelessWidget {
                 heightFactor: 0.8,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
+                    color: color == null
+                        ? theme.colorScheme.primaryContainer
+                        : SacSegmentColors.barFill(color, theme),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -182,6 +191,18 @@ class _LabelCell extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (color != null) ...[
+                    SizedBox.square(
+                      dimension: 8,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
                   if (row.icon != null) ...[
                     Icon(row.icon, size: 14),
                     const SizedBox(width: 4),
