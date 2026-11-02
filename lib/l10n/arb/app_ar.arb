@@ -3133,7 +3133,7 @@
   "diveLog_refine_summaryCount": "{count, plural, =1{عامل واحد} two{عاملان} few{{count} عوامل} many{{count} عاملًا} other{{count} عامل}}",
   "diveLog_refine_showDives": "{count, plural, =1{عرض غوصة واحدة} two{عرض غوصتين} few{عرض {count} غوصات} many{عرض {count} غوصة} other{عرض {count} غوصة}}",
   "diveLog_refine_showDivesNoCount": "عرض الغوصات",
-  "diveLog_search_fieldHint": "ابحث، أو جرّب depth > 30m",
+  "diveLog_search_fieldHint": "موقع، زميل، معدات أو تاريخ",
   "diveLog_search_refineTooltip": "تحسين البحث",
   "diveLog_search_closeTooltip": "إغلاق البحث",
   "diveLog_search_scopeWithin": "ضمن عوامل التصفية",

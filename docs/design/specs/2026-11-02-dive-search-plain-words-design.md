@@ -252,9 +252,9 @@ holds in light and dark. Word chips keep today's look:
 - Only the dive list's chips change (`activeDiveFilterChips`, which Connections
   shares). The record lists that use `entityQueryChips` keep their labels.
 
-**Discovery.** The field hint becomes "Search site, buddy, gear or date",
-translated, and short enough for a 390 px phone (the current hint was tightened
-for that reason). The "Try" chips gain `last year`.
+**Discovery.** The field hint becomes "Site, buddy, gear or date", translated,
+and short enough for a 390 px phone (the current hint was tightened for that
+reason). Languages whose words will not fit drop gear. The "Try" chips gain `last year`.
 
 **User guide.** `docs/user/dive-logging.md` section "Search" describes what plain
 words now reach.

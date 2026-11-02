@@ -9791,7 +9791,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'הצגת צלילות';
 
   @override
-  String get diveLog_search_fieldHint => 'חיפוש, או נסו depth > 30m';
+  String get diveLog_search_fieldHint => 'אתר, שותף, ציוד או תאריך';
 
   @override
   String get diveLog_search_refineTooltip => 'צמצום';

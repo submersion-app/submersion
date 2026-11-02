@@ -10014,7 +10014,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'Mostra immersioni';
 
   @override
-  String get diveLog_search_fieldHint => 'Cerca o prova depth > 30m';
+  String get diveLog_search_fieldHint => 'Sito, compagno o data';
 
   @override
   String get diveLog_search_refineTooltip => 'Affina';
