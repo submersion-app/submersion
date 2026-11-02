@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_web_client_id_store.dart';
 
 /// OAuth client configuration for Google Drive sync.
 ///
@@ -75,8 +76,25 @@ class GoogleDriveClientConfig {
   ///
   /// Single source of truth for both [GoogleDriveStorageProvider.isAvailable]
   /// and the `supportsGoogleDrive` capability flag, so the two cannot drift:
-  /// true on iOS/macOS/Android (OAuth config is compile-time), and on
-  /// Windows/Linux only when the Desktop-app client is compiled in.
-  static bool get isSupportedOnThisPlatform =>
-      !(HostPlatform.isWindows || HostPlatform.isLinux) || hasDesktopClient;
+  /// true on iOS/macOS/Android (OAuth config is compile-time), on
+  /// Windows/Linux only when the Desktop-app client is compiled in, and in a
+  /// browser on any OS, where the user supplies a web client id of their
+  /// own ([webClientId], issue #4121).
+  static bool get isSupportedOnThisPlatform => supportedOn(
+    web: HostPlatform.isWeb,
+    loopbackPlatform: HostPlatform.isWindows || HostPlatform.isLinux,
+    hasDesktopClient: hasDesktopClient,
+  );
+
+  /// The rule behind [isSupportedOnThisPlatform], testable on any host.
+  @visibleForTesting
+  static bool supportedOn({
+    required bool web,
+    required bool loopbackPlatform,
+    required bool hasDesktopClient,
+  }) => web || !loopbackPlatform || hasDesktopClient;
+
+  /// The client id a browser signs in with, or null until the user has
+  /// entered one.
+  static Future<String?> webClientId() => GoogleWebClientIdStore().read();
 }

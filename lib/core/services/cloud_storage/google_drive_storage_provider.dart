@@ -40,6 +40,7 @@ class GoogleDriveStorageProvider
   static final _log = LoggerService.forClass(GoogleDriveStorageProvider);
 
   static GoogleDriveAuthenticator _defaultAuthenticator() => authenticatorFor(
+    isWeb: HostPlatform.isWeb,
     isLoopbackPlatform: HostPlatform.isWindows || HostPlatform.isLinux,
     isMacOS: HostPlatform.isMacOS,
   );
@@ -52,9 +53,14 @@ class GoogleDriveStorageProvider
   /// [KeychainGatedAuthenticator] measures that and decides.
   @visibleForTesting
   static GoogleDriveAuthenticator authenticatorFor({
+    bool isWeb = false,
     required bool isLoopbackPlatform,
     required bool isMacOS,
   }) {
+    // A page cannot open the loopback listener, whatever OS the browser
+    // reports: google_sign_in's web implementation does the sign-in
+    // (issue #4121).
+    if (isWeb) return GoogleSignInAuthenticator();
     if (isLoopbackPlatform) return DesktopOAuthAuthenticator();
     if (isMacOS) return KeychainGatedAuthenticator();
     return GoogleSignInAuthenticator();

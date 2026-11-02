@@ -2,6 +2,12 @@ import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 
+/// A browser has no Google client id to sign in with yet (issue #4121);
+/// the sign-in dialog asks for one before this can be reached by hand.
+const String googleDriveWebClientIdMissing =
+    'Google Drive in a browser needs a Google client id. Choose Google Drive '
+    'again and enter the client id of your own Google Cloud project.';
+
 /// The sign-in is gone and a silent refresh found no grant to replace it.
 CloudStorageException driveSignInExpired(Object cause) =>
     CloudAccessRefusedException(

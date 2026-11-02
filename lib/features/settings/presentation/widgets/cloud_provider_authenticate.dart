@@ -41,11 +41,15 @@ Future<void> authenticateWithBrowserWait(
   CloudProviderType provider, {
   Future<void> Function()? signIn,
   @visibleForTesting bool? debugForceBrowserWait,
+  // A web page reporting a desktop OS has no loopback flow to wait for
+  // (issue #4121).
+  bool isBrowser = false,
 }) async {
   final authenticate = signIn ?? cloudProvider.authenticate;
   final needsDialog =
       debugForceBrowserWait ??
-      (provider == CloudProviderType.googledrive &&
+      (!isBrowser &&
+          provider == CloudProviderType.googledrive &&
           (HostPlatform.isWindows || HostPlatform.isLinux));
   if (!needsDialog) {
     await authenticate();

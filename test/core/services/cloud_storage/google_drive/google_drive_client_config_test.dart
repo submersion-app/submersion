@@ -54,4 +54,47 @@ void main() {
       );
     });
   });
+
+  group('supportedOn (#4121)', () {
+    test('a browser offers Drive whatever OS it runs on', () {
+      expect(
+        GoogleDriveClientConfig.supportedOn(
+          web: true,
+          loopbackPlatform: true,
+          hasDesktopClient: false,
+        ),
+        isTrue,
+      );
+    });
+
+    test('a native loopback platform still needs the desktop client', () {
+      expect(
+        GoogleDriveClientConfig.supportedOn(
+          web: false,
+          loopbackPlatform: true,
+          hasDesktopClient: false,
+        ),
+        isFalse,
+      );
+      expect(
+        GoogleDriveClientConfig.supportedOn(
+          web: false,
+          loopbackPlatform: true,
+          hasDesktopClient: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('phones and Macs never needed it', () {
+      expect(
+        GoogleDriveClientConfig.supportedOn(
+          web: false,
+          loopbackPlatform: false,
+          hasDesktopClient: false,
+        ),
+        isTrue,
+      );
+    });
+  });
 }

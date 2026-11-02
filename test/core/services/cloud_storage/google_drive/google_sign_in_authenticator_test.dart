@@ -615,6 +615,43 @@ void main() {
       expect(await auth.attemptSilentAuth(), isTrue);
     });
   });
+
+  group('in a browser (#4121)', () {
+    const clientId = '433819313354-abc123def.apps.googleusercontent.com';
+
+    test('initialize carries the stored web client id', () async {
+      final web = GoogleSignInAuthenticator(
+        isWeb: true,
+        webClientId: () async => clientId,
+      );
+      platform.lightweightResult = _FakePlatform.resultsFor('a@b.c');
+      expect(await web.attemptSilentAuth(), isTrue);
+      expect(platform.initCalls.single.clientId, clientId);
+      expect(platform.initCalls.single.serverClientId, isNull);
+    });
+
+    test(
+      'with no client id the sign-in fails before the SDK is touched',
+      () async {
+        final web = GoogleSignInAuthenticator(
+          isWeb: true,
+          webClientId: () async => null,
+        );
+        await expectLater(
+          web.authenticate(),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.toString(),
+              'message',
+              contains('client id'),
+            ),
+          ),
+        );
+        expect(platform.initCalls, isEmpty);
+        expect(await web.attemptSilentAuth(), isFalse);
+      },
+    );
+  });
 }
 
 /// Platform whose init() throws, to exercise attemptSilentAuth's catch.

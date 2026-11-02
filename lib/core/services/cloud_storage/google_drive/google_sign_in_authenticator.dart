@@ -8,6 +8,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_errors.dart';
 import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
@@ -21,9 +22,20 @@ import 'package:submersion/core/services/logger_service.dart';
 /// after every restart. See [GoogleDriveAuthenticator.attemptSilentAuth] for
 /// where the pre-opt-in guarantee actually lives.
 class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
+  /// [isWeb] and [webClientId] are seams for tests; production reads the
+  /// host platform and the stored client id (issue #4121).
+  GoogleSignInAuthenticator({
+    bool? isWeb,
+    Future<String?> Function()? webClientId,
+  }) : _isWeb = isWeb ?? HostPlatform.isWeb,
+       _webClientId = webClientId ?? GoogleDriveClientConfig.webClientId;
+
   static final _log = LoggerService.forClass(GoogleSignInAuthenticator);
 
   static const _scopes = [drive.DriveApi.driveAppdataScope];
+
+  final bool _isWeb;
+  final Future<String?> Function() _webClientId;
 
   // Use the shared instance; configuration is provided per-call via scope
   // hints.
@@ -45,6 +57,17 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
 
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
+    if (_isWeb) {
+      // A page signs in with the user's own web client; the compiled-in
+      // desktop and Android clients do not apply (issue #4121).
+      final clientId = await _webClientId();
+      if (clientId == null) {
+        throw const CloudStorageException(googleDriveWebClientIdMissing);
+      }
+      await _googleSignIn.initialize(clientId: clientId);
+      _initialized = true;
+      return;
+    }
     final serverClientId =
         HostPlatform.isAndroid &&
             GoogleDriveClientConfig.androidServerClientId.isNotEmpty
