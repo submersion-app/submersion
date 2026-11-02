@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/formatters/tank_configuration_labels.dart';
@@ -117,6 +119,11 @@ class AppQueryLabels implements QueryLabels {
         return _context.certificationCatalog.agency(value).localizedName(_l10n);
       case 'query_species_category':
         return byName(SpeciesCategory.values)?.localizedName(_l10n) ?? value;
+      case 'query_documents_type':
+        return documentTypeLabel(_l10n, DocumentType.fromStorage(value));
+      // As the saved plans list heads them.
+      case 'query_divePlans_mode':
+        return value.toUpperCase();
       case 'query_certifications_level':
         return _context.certificationCatalog.level(value).localizedName(_l10n);
       default:

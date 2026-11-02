@@ -28,6 +28,7 @@ Future<void> showLabSavedScenariosSheet(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => LabSavedScenariosSheet(diveId: diveId),
   );
 }

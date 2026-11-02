@@ -17,6 +17,7 @@ Future<void> showSiteEditHistorySheet(
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   builder: (_) => SiteEditHistorySheet(site: site),
 );
 

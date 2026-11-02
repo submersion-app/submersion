@@ -13,6 +13,7 @@ Future<String?> showTemplatePickerSheet({required BuildContext context}) {
   return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => const _TemplatePickerSheet(),
   );
 }

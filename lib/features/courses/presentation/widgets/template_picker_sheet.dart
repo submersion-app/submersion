@@ -9,6 +9,7 @@ Future<CourseTemplate?> showTemplatePickerSheet(BuildContext context) {
   return showModalBottomSheet<CourseTemplate>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => const _TemplatePickerSheet(),
   );
 }

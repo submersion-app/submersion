@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
@@ -36,7 +37,8 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/courses/domain/models/course_filter_state.dart';
 import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
 import 'package:submersion/features/courses/query/course_query_entity.dart';
-import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/courses/presentation/providers/course_list_count_provider.dart';
@@ -176,7 +178,8 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   );
 
   /// The list body with the query's chips above it (#2365).
-  Widget _withQueryChips(Widget child) => QueryChipsFrame(
+  Widget _withQueryChips(Widget child) => EntitySearchFrame(
+    subject: QuerySubject.courses,
     root: courseQueryEntity,
     query: ref.watch(courseFilterProvider).query,
     onChanged: _setQuery,
@@ -266,6 +269,10 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                         icon: const Icon(Icons.sort),
                         tooltip: context.l10n.courses_action_sort,
                         onPressed: () => _showSortSheet(context),
+                      ),
+                      EntitySearchAction(
+                        subject: QuerySubject.courses,
+                        active: ref.watch(courseFilterProvider).query != null,
                       ),
                       QueryFilterButton(
                         active: ref.watch(courseFilterProvider).query != null,
@@ -584,6 +591,11 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
               tooltip: context.l10n.courses_action_sort,
               onPressed: () => _showSortSheet(context),
             ),
+          EntitySearchAction(
+            subject: QuerySubject.courses,
+            active: ref.watch(courseFilterProvider).query != null,
+            compact: true,
+          ),
           QueryFilterButton(
             active: ref.watch(courseFilterProvider).query != null,
             onPressed: _openQueryFilter,

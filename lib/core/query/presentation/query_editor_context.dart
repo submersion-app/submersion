@@ -42,12 +42,13 @@ class QueryEditorContext {
   QueryPrinter get printer => QueryPrinter(registry, root, prefs);
 
   QueryEditorContext copyWith({
+    QueryEntity? root,
     UnitPrefs? prefs,
     NameResolver? names,
     QueryLabels? labels,
   }) => QueryEditorContext(
     registry: registry,
-    root: root,
+    root: root ?? this.root,
     prefs: prefs ?? this.prefs,
     names: names ?? this.names,
     labels: labels ?? this.labels,

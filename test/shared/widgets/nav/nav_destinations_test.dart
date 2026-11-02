@@ -12,7 +12,7 @@ void main() {
     });
 
     test('has exactly 16 entries (15 routable + more sentinel)', () {
-      expect(kNavDestinations.length, 16);
+      expect(kNavDestinations.length, 17);
     });
 
     test('exactly two entries are pinned (dashboard and more)', () {
@@ -33,7 +33,7 @@ void main() {
       }
     });
 
-    test('contains the expected 15 routable ids plus more sentinel', () {
+    test('contains the expected 16 routable ids plus more sentinel', () {
       expect(kNavDestinations.map((d) => d.id).toList(), [
         'dashboard',
         'dives',
@@ -49,6 +49,7 @@ void main() {
         'planning',
         'transfer',
         'tracks',
+        'search',
         'settings',
         'more',
       ]);
@@ -157,12 +158,13 @@ void main() {
         'planning',
         'transfer',
         'tracks',
+        'search',
         'settings',
       ]);
     });
 
     test('has exactly 14 entries', () {
-      expect(movableNavIds.length, 14);
+      expect(movableNavIds.length, 15);
     });
 
     test('Connections lives in Insights, not in the nav', () {

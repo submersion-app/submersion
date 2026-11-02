@@ -2455,6 +2455,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'חיפוש צלילות';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'חיפוש בכול';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'שאל על הצלילות שלך';
 
   @override
@@ -3113,6 +3116,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_action_shareDives => 'שתף צלילות';
 
   @override
+  String get buddies_action_lendGear => 'השאלת ציוד';
+
+  @override
+  String buddies_gear_title(String name) {
+    return 'ציוד אצל $name';
+  }
+
+  @override
+  String get buddies_gear_returned => 'הוחזר';
+
+  @override
+  String get buddies_gear_allReturned => 'הכול הוחזר';
+
+  @override
   String get buddies_action_sort => 'מיין';
 
   @override
@@ -3523,14 +3540,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_picker_tapToAdd => 'לחץ על \'הוסף\' כדי לבחור חברי צוללים';
-
-  @override
-  String get buddies_search_hint => 'חפש לפי שם, דוא\"ל או טלפון';
-
-  @override
-  String buddies_search_noResults(Object query) {
-    return 'לא נמצאו חברי צוללים עבור \"$query\"';
-  }
 
   @override
   String get buddies_section_certifications => 'הסמכות';
@@ -4574,21 +4583,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => 'בחר הסמכות';
-
-  @override
-  String get certifications_search_empty_hint =>
-      'חיפוש לפי שם, ארגון או מספר כרטיס';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return 'לא נמצאו הסמכות עבור \"$query\"';
-  }
-
-  @override
-  String get certifications_search_tooltip_back => 'חזרה';
-
-  @override
-  String get certifications_search_tooltip_clear => 'נקה חיפוש';
 
   @override
   String certifications_share_error_card(Object error) {
@@ -6816,14 +6810,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_picker_nearYourLocation => 'ליד המיקום שלך';
 
   @override
-  String diveCenters_search_noResults(Object query) {
-    return 'אין תוצאות עבור \"$query\"';
-  }
-
-  @override
-  String get diveCenters_search_prompt => 'חפש מרכזי צלילה';
-
-  @override
   String get diveCenters_tag_closed => 'סגור';
 
   @override
@@ -7914,6 +7900,28 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_edit_gasSwitches_duplicateError =>
       'קיימת החלפה אחרת בזמן הזה';
+
+  @override
+  String get diveLog_edit_gasSwitches_startedDropping => 'התחיל לרדת ב-';
+
+  @override
+  String diveLog_edit_gasSwitches_useTime(String time) {
+    return 'השתמש ב-$time';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickOnProfile => 'בחירה בפרופיל';
+
+  @override
+  String get diveLog_edit_gasSwitches_pickTitle => 'הגדרת זמן החלפה';
+
+  @override
+  String diveLog_edit_gasSwitches_pickReadout(String time, String depth) {
+    return '$time ב-$depth';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickConfirm => 'הגדרת זמן';
 
   @override
   String diveLog_edit_gasSwitches_removedWithTank(int count) {
@@ -9804,6 +9812,35 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'חפשו בכול, או נסו depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'ניקוי החיפוש';
+
+  @override
+  String get globalSearch_prompt =>
+      'מצאו צלילות, אתרים, טיולים, ציוד, שותפים, מסמכים ועוד';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'אין תוצאות עבור \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed => 'החיפוש נכשל. נסו שוב.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'הצג הכול ($count)';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'מסלולי GPS';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'מסלולים תת-ימיים';
 
   @override
   String diveLog_ask_row(String text) {
@@ -12068,20 +12105,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_refresh_nothing => 'לאף אתר אין קואורדינטות לבדיקה.';
-
-  @override
-  String get diveSites_list_search_backTooltip => 'חזרה';
-
-  @override
-  String get diveSites_list_search_clearTooltip => 'נקה חיפוש';
-
-  @override
-  String get diveSites_list_search_emptyHint => 'חפש לפי שם אתר, מדינה או אזור';
-
-  @override
-  String diveSites_list_search_error(Object error) {
-    return 'שגיאה: $error';
-  }
 
   @override
   String diveSites_list_search_noResults(Object query) {
@@ -16049,6 +16072,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_location_picker_newPlace => 'מקום חדש';
 
   @override
+  String get equipment_location_picker_lendToBuddy => 'השאלה לחבר צוללים';
+
+  @override
+  String get equipment_location_pickBuddy_title => 'בחירת חבר צוללים';
+
+  @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16129,6 +16158,45 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'פריט אחד הועבר',
     );
     return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'החזרת $count פריטים',
+      one: 'החזרת פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_to(String place) {
+    return 'חזרה אל $place';
+  }
+
+  @override
+  String get equipment_location_return_eachToOwn =>
+      'כל פריט חוזר למקום שבו היה';
+
+  @override
+  String get equipment_location_return_confirm => 'סימון כהוחזר';
+
+  @override
+  String equipment_location_returned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים הוחזרו',
+      one: 'פריט אחד הוחזר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_withBuddy(String name) {
+    return 'אצל $name';
   }
 
   @override
@@ -16259,6 +16327,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_locations_savedCenterNone => 'ללא';
+
+  @override
+  String get equipment_locations_buddyLabel => 'חבר צוללים';
+
+  @override
+  String get equipment_locations_buddyNone => 'ללא';
+
+  @override
+  String get equipment_locations_buddyClear => 'הסר חבר צוללים';
 
   @override
   String get equipment_locations_savedCenterClear => 'הסר מרכז צלילה שמור';
@@ -16401,23 +16478,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_retypeOther_undone => 'שינוי הסוג בוטל';
-
-  @override
-  String get equipment_search_backTooltip => 'חזרה';
-
-  @override
-  String get equipment_search_clearTooltip => 'נקה חיפוש';
-
-  @override
-  String get equipment_search_fieldLabel => 'חפש ציוד...';
-
-  @override
-  String get equipment_search_hint => 'חפש לפי שם, מותג, דגם או מספר סידורי';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return 'לא נמצא ציוד עבור \"$query\"';
-  }
 
   @override
   String get equipment_serviceDialog_addButton => 'הוסף';
@@ -18384,9 +18444,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'ביטול';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip => 'נקה חיפוש';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return 'מינים מותאמים אישית ($count)';
   }
@@ -18594,9 +18651,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_searchHint => 'חיפוש מינים שראית';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => 'ניקוי החיפוש';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip => 'ניהול הקטלוג';
@@ -20203,6 +20257,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get nav_trips => 'טיולים';
+
+  @override
+  String get nav_search => 'חיפוש';
 
   @override
   String plannerCanvas_bailout_available(String liters) {
@@ -32658,26 +32715,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_picker_suggestedUse => 'השתמש';
-
-  @override
-  String get trips_search_empty_hint => 'חיפוש לפי שם, מיקום או אתר נופש';
-
-  @override
-  String get trips_search_fieldLabel => 'חיפוש טיולים...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return 'לא נמצאו טיולים עבור \"$query\"';
-  }
-
-  @override
-  String get trips_search_error => 'לא ניתן לחפש בטיולים.';
-
-  @override
-  String get trips_search_tooltip_back => 'חזרה';
-
-  @override
-  String get trips_search_tooltip_clear => 'נקה חיפוש';
 
   @override
   String get trips_summary_header_subtitle =>
@@ -54559,6 +54596,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_customFields_value => 'ערך';
 
   @override
+  String get query_divePlans_date => 'תאריך';
+
+  @override
+  String get query_divePlans_depth => 'עומק מרבי';
+
+  @override
+  String get query_divePlans_mode => 'מצב';
+
+  @override
+  String get query_divePlans_name => 'שם';
+
+  @override
+  String get query_divePlans_notes => 'הערות';
+
+  @override
+  String get query_divePlans_runtime => 'משך כולל';
+
+  @override
+  String get query_divePlans_site => 'אתר';
+
+  @override
   String get query_diveTypes_builtIn => 'מובנה';
 
   @override
@@ -54793,10 +54851,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_entity_customFields => 'שדות מותאמים אישית';
 
   @override
+  String get query_entity_divePlans => 'תוכניות שמורות';
+
+  @override
   String get query_entity_diveTypes => 'סוגי צלילה';
 
   @override
   String get query_entity_dives => 'צלילות';
+
+  @override
+  String get query_entity_documents => 'מסמכים';
 
   @override
   String get query_entity_equipment => 'ציוד';
@@ -54805,13 +54869,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_entity_equipmentAttributes => 'מאפייני ציוד';
 
   @override
+  String get query_entity_equipmentSets => 'סטי ציוד';
+
+  @override
   String get query_entity_findings => 'ממצאי בטיחות';
 
   @override
   String get query_findings_rule => 'כלל';
 
   @override
+  String get query_entity_gpsTracks => 'מסלולי GPS';
+
+  @override
   String get query_entity_media => 'מדיה';
+
+  @override
+  String get query_entity_navTracks => 'מסלולים תת-ימיים';
 
   @override
   String get query_entity_sightings => 'תצפיות';
@@ -54848,6 +54921,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => 'ערך טקסט';
+
+  @override
+  String get query_equipmentSets_default => 'ברירת מחדל';
+
+  @override
+  String get query_equipmentSets_description => 'תיאור';
+
+  @override
+  String get query_equipmentSets_itemCount => 'מספר פריטים';
+
+  @override
+  String get query_equipmentSets_items => 'פריטים';
+
+  @override
+  String get query_equipmentSets_name => 'שם';
 
   @override
   String get query_equipment_active => 'פעיל';
@@ -54908,6 +54996,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => 'סינון';
+
+  @override
+  String get query_gpsTracks_date => 'תאריך';
+
+  @override
+  String get query_gpsTracks_deviceName => 'מכשיר';
+
+  @override
+  String get query_gpsTracks_duration => 'משך';
+
+  @override
+  String get query_gpsTracks_file => 'קובץ';
+
+  @override
+  String get query_gpsTracks_name => 'שם';
+
+  @override
+  String get query_gpsTracks_source => 'מקור';
 
   @override
   String get query_list_noMatch => 'אין תוצאות התואמות לשאילתה זו';
@@ -55148,6 +55254,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_op_inList => 'אחד מ';
 
   @override
+  String get query_navTracks_date => 'תאריך';
+
+  @override
+  String get query_navTracks_depth => 'עומק מרבי';
+
+  @override
+  String get query_navTracks_deviceName => 'מכשיר';
+
+  @override
+  String get query_navTracks_distance => 'מרחק';
+
+  @override
+  String get query_navTracks_dive => 'צלילה';
+
+  @override
+  String get query_navTracks_duration => 'משך';
+
+  @override
+  String get query_navTracks_equipment => 'ציוד';
+
+  @override
+  String get query_navTracks_file => 'קובץ';
+
+  @override
+  String get query_navTracks_name => 'שם';
+
+  @override
+  String get query_navTracks_site => 'אתר';
+
+  @override
+  String get query_navTracks_source => 'מקור';
+
+  @override
   String get query_op_between => 'בין';
 
   @override
@@ -55173,6 +55312,57 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => 'אחד מהתנאים';
+
+  @override
+  String get query_documents_buddy => 'שותף';
+
+  @override
+  String get query_documents_center => 'מרכז צלילה';
+
+  @override
+  String get query_documents_certification => 'הסמכה';
+
+  @override
+  String get query_documents_course => 'קורס';
+
+  @override
+  String get query_documents_dive => 'צלילה';
+
+  @override
+  String get query_documents_equipment => 'ציוד';
+
+  @override
+  String get query_documents_expiryDate => 'תאריך תפוגה';
+
+  @override
+  String get query_documents_issueDate => 'תאריך הנפקה';
+
+  @override
+  String get query_documents_issuer => 'מנפיק';
+
+  @override
+  String get query_documents_notes => 'הערות';
+
+  @override
+  String get query_documents_primary => 'ראשי';
+
+  @override
+  String get query_documents_referenceNumber => 'מספר אסמכתה';
+
+  @override
+  String get query_documents_site => 'אתר';
+
+  @override
+  String get query_documents_tags => 'תגיות';
+
+  @override
+  String get query_documents_title => 'כותרת';
+
+  @override
+  String get query_documents_trip => 'טיול';
+
+  @override
+  String get query_documents_type => 'סוג';
 
   @override
   String get query_editor_addCondition => 'הוספת תנאי';
@@ -57777,4 +57967,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_storage_label => 'יומן שינויים';
+
+  @override
+  String search_everywhere(String text) {
+    return 'חיפוש \"$text\" בכל מקום';
+  }
+
+  @override
+  String get search_fieldHint => 'חפשו, או הקלידו שאילתה';
+
+  @override
+  String get search_closeTooltip => 'סגירת החיפוש';
+
+  @override
+  String get search_openTooltip => 'חיפוש';
 }

@@ -41,6 +41,7 @@ Future<List<DiveRole>?> showDiveRoleSelector(
   return showModalBottomSheet<List<DiveRole>>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (ctx) => _DiveRoleSelectorSheet(
       title: title,
       roles: shownRoles,

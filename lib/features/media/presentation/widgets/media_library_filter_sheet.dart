@@ -26,6 +26,7 @@ Future<void> showMediaLibraryFilterSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => const MediaLibraryFilterSheet(),
   );
 }
