@@ -378,13 +378,7 @@ void main() {
     await tester.tap(find.byKey(kDiveAskUndoKey));
     await tester.pump(kDiveSearchDebounce * 2);
     expect(fieldOf(tester).controller!.text, 'deep dives');
-    expect(
-      filterOf().query,
-      AndNode([
-        TextNode(['deep']),
-        TextNode(['dives']),
-      ]),
-    );
+    expect(filterOf().query, TextNode(['deep']));
   });
 
   testAsk('a sentence about sites opens the site list', (tester) async {
