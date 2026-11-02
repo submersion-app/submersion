@@ -207,6 +207,45 @@ void main() {
     expect(find.text('Unable to load tank configuration'), findsOneWidget);
   });
 
+  testWidgets('the twin set note shows even when the filter leaves no dives', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          tankConfigurationStatsProvider.overrideWith(
+            (ref) async => TankConfigurationStats.empty,
+          ),
+          twinSetCandidatesProvider.overrideWith(
+            (ref) async => (tankIds: ['t1'], diveIds: ['d1']),
+          ),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(child: TankConfigurationCard()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No dives to show'), findsOneWidget);
+    expect(
+      find.text('1 dive has a cylinder that looks like a twin set.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('empty stats show the empty state', (tester) async {
     await pumpCard(tester, TankConfigurationStats.empty);
 

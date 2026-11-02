@@ -22,8 +22,9 @@ extension InsightsRepositoryTwinSetCandidates on InsightsRepository {
             '''
         SELECT t.id AS tank_id, d.id AS dive_id
         FROM dive_tanks t JOIN dives d ON d.id = t.dive_id
-        WHERE $kTwinSetCandidateFunction(
-          t.tank_role, t.tank_name, t.preset_name, t.volume) = 1
+        WHERE t.tank_role = 'backGas'
+          AND $kTwinSetCandidateFunction(
+            t.tank_role, t.tank_name, t.preset_name, t.volume) = 1
         $diverFilter
         ORDER BY d.dive_date_time, t.tank_order, t.rowid
         ''',

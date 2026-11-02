@@ -35,10 +35,18 @@ class TankConfigurationCard extends ConsumerWidget {
       title: l10n.insights_gas_tankConfig_title,
       subtitle: l10n.insights_gas_tankConfig_subtitle,
       child: statsAsync.when(
+        // The re-role note reads the whole logbook, not the Insights
+        // filter, so it stays above an empty state the filter produced.
         data: (stats) => stats.totalDives == 0
-            ? StatEmptyState(
-                icon: MdiIcons.divingScubaTank,
-                message: l10n.insights_gas_tankConfig_empty,
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const TwinSetReviewNote(),
+                  StatEmptyState(
+                    icon: MdiIcons.divingScubaTank,
+                    message: l10n.insights_gas_tankConfig_empty,
+                  ),
+                ],
               )
             : _content(context, ref, stats),
         loading: () => const SizedBox(
