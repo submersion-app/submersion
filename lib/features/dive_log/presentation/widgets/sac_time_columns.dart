@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_colors.dart';
 
 /// One stretch of the dive in [SacTimeColumns].
 class SacTimeColumn {
@@ -15,7 +14,7 @@ class SacTimeColumn {
   /// Height as a share of the chart, 0 to 1.
   final double heightFactor;
 
-  /// Drawn at full strength when selected. Null uses the theme's primary.
+  /// The column's fill. Null uses the theme's primary.
   final Color? color;
 
   /// What a screen reader announces for this column.
@@ -108,6 +107,9 @@ class SacTimeColumns extends StatelessWidget {
   /// Shortest a column draws, so a near-zero rate still has a target and a
   /// mark.
   static const double _minHeightFactor = 0.03;
+
+  /// Marks the selected column, since every column is at full color.
+  static const double _selectedOutlineWidth = 1.5;
 
   final List<SacTimeColumn> columns;
 
@@ -249,7 +251,14 @@ class SacTimeColumns extends StatelessWidget {
                           ),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: _columnColor(i, theme),
+                              color:
+                                  columns[i].color ?? theme.colorScheme.primary,
+                              border: i == activeIndex
+                                  ? Border.all(
+                                      color: theme.colorScheme.onSurface,
+                                      width: _selectedOutlineWidth,
+                                    )
+                                  : null,
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(2),
                               ),
@@ -274,11 +283,6 @@ class SacTimeColumns extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _columnColor(int index, ThemeData theme) {
-    final hue = columns[index].color ?? theme.colorScheme.primary;
-    return index == activeIndex ? hue : SacSegmentColors.idle(hue, theme);
   }
 }
 

@@ -50,41 +50,20 @@ void main() {
         );
 
         test('stand out with no hue on ${preset.id} ${brightness.name}', () {
-          final idle = SacSegmentColors.idle(scheme.primary, theme);
+          expect(contrastRatio(scheme.primary, card), greaterThan(1.4));
+        });
 
-          expect(contrastRatio(idle, card), greaterThan(1.4));
-          expect(contrastRatio(scheme.primary, idle), greaterThan(1.2));
+        test('outline the selection on ${preset.id} ${brightness.name}', () {
+          expect(contrastRatio(scheme.onSurface, card), greaterThan(3));
         });
 
         for (final MapEntry(key: name, value: (hue, mode)) in hues.entries) {
           if (mode != brightness) continue;
 
           test('$name stands out on ${preset.id} ${brightness.name}', () {
-            final idle = SacSegmentColors.idle(hue, theme);
-
-            expect(contrastRatio(idle, card), greaterThan(1.4));
-            expect(contrastRatio(hue, idle), greaterThan(1.2));
-          });
-
-          test('$name keeps a row label readable on ${preset.id} '
-              '${brightness.name}', () {
-            final bar = SacSegmentColors.barFill(hue, theme);
-
-            expect(contrastRatio(scheme.onSurface, bar), greaterThan(4.5));
-            expect(contrastRatio(bar, card), greaterThan(1.1));
+            expect(contrastRatio(hue, card), greaterThan(1.4));
           });
         }
-      }
-    }
-
-    for (final preset in AppThemeRegistry.presets) {
-      for (final brightness in Brightness.values) {
-        test('resolve to opaque on ${preset.id} ${brightness.name}', () {
-          final theme = AppThemeRegistry.resolveTheme(preset, brightness);
-
-          expect(SacSegmentColors.idle(Colors.blue, theme).a, 1.0);
-          expect(SacSegmentColors.barFill(Colors.blue, theme).a, 1.0);
-        });
       }
     }
 
@@ -98,41 +77,55 @@ void main() {
       }
     });
 
-    Color columnColor(WidgetTester tester, int index) {
+    BoxDecoration columnDecoration(WidgetTester tester, int index) {
       final boxes = tester.widgetList<DecoratedBox>(
         find.descendant(
           of: find.byKey(SacTimeColumns.plotKey),
           matching: find.byType(DecoratedBox),
         ),
       );
-      return (boxes.elementAt(index).decoration as BoxDecoration).color!;
+      return boxes.elementAt(index).decoration as BoxDecoration;
     }
+
+    Color columnColor(WidgetTester tester, int index) =>
+        columnDecoration(tester, index).color!;
+
+    Finder rowBars() => find.descendant(
+      of: find.descendant(
+        of: find.byType(SacSegmentTable),
+        matching: find.byType(FractionallySizedBox),
+      ),
+      matching: find.byType(DecoratedBox),
+    );
 
     testWidgets('a column takes the color of the phase it mostly falls in', (
       tester,
     ) async {
       await pumpSacSegmentsView(tester);
-      final theme = Theme.of(tester.element(find.byType(SacTimeColumns)));
-      Color idle(DivePhase phase) => SacSegmentColors.idle(
-        SacSegmentColors.forPhase(phase, theme.brightness),
-        theme,
-      );
+      final brightness = Theme.of(
+        tester.element(find.byType(SacTimeColumns)),
+      ).brightness;
+      Color hue(DivePhase phase) =>
+          SacSegmentColors.forPhase(phase, brightness);
 
-      expect(columnColor(tester, 0), idle(DivePhase.bottom));
-      expect(columnColor(tester, 1), idle(DivePhase.bottom));
-      expect(columnColor(tester, 3), idle(DivePhase.safetyStop));
+      expect(columnColor(tester, 0), hue(DivePhase.bottom));
+      expect(columnColor(tester, 1), hue(DivePhase.bottom));
+      expect(columnColor(tester, 3), hue(DivePhase.safetyStop));
     });
 
-    testWidgets('the selected column draws at full strength', (tester) async {
+    testWidgets('only the selected column is outlined', (tester) async {
       await pumpSacSegmentsView(tester, selectedTimestamp: 7 * 60);
       final scheme = Theme.of(
         tester.element(find.byType(SacTimeColumns)),
       ).colorScheme;
 
+      final selected = columnDecoration(tester, 1);
+      expect((selected.border! as Border).top.color, scheme.onSurface);
       expect(
-        columnColor(tester, 1),
+        selected.color,
         SacSegmentColors.forPhase(DivePhase.bottom, scheme.brightness),
       );
+      expect(columnDecoration(tester, 0).border, isNull);
     });
 
     testWidgets('columns stay on the primary color with no phase data', (
@@ -141,9 +134,41 @@ void main() {
       await pumpSacSegmentsView(tester, phases: const []);
       final theme = Theme.of(tester.element(find.byType(SacTimeColumns)));
 
+      expect(columnColor(tester, 0), theme.colorScheme.primary);
+    });
+
+    testWidgets('a phase row bar wears its full color under the label', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester, gases: const []);
+      final brightness = Theme.of(
+        tester.element(find.byType(SacTimeColumns)),
+      ).brightness;
+
+      final bar = rowBars().first;
       expect(
-        columnColor(tester, 0),
-        SacSegmentColors.idle(theme.colorScheme.primary, theme),
+        (tester.widget<DecoratedBox>(bar).decoration as BoxDecoration).color,
+        SacSegmentColors.forPhase(DivePhase.descent, brightness),
+      );
+      expect(
+        tester.getRect(bar).top,
+        greaterThanOrEqualTo(tester.getRect(find.text('Descent')).bottom),
+      );
+    });
+
+    testWidgets('a row with no color of its own gets a primary bar', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester, phases: const []);
+      final scheme = Theme.of(
+        tester.element(find.byType(SacTimeColumns)),
+      ).colorScheme;
+
+      expect(
+        (tester.widget<DecoratedBox>(rowBars().first).decoration
+                as BoxDecoration)
+            .color,
+        scheme.primary,
       );
     });
 
