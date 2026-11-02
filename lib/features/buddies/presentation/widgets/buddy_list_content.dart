@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
 import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
@@ -40,12 +41,12 @@ import 'package:submersion/features/buddies/presentation/widgets/compact_buddy_l
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
-import 'package:submersion/features/buddies/presentation/widgets/buddy_search_delegate.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
-import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
@@ -503,7 +504,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       ref.read(buddyQueryProvider.notifier).state = query;
 
   /// The list body with the query's chips above it (#2365).
-  Widget _withQueryChips(Widget child) => QueryChipsFrame(
+  Widget _withQueryChips(Widget child) => EntitySearchFrame(
+    subject: QuerySubject.buddies,
     root: buddyQueryEntity,
     query: ref.watch(buddyQueryProvider),
     onChanged: _setQuery,
@@ -595,15 +597,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                   ),
                   actions: [
                     const SwapWithBuddyButton(),
-                    IconButton(
-                      icon: const Icon(Icons.search),
+                    EntitySearchAction(
+                      subject: QuerySubject.buddies,
+                      active: ref.watch(buddyQueryProvider) != null,
                       tooltip: context.l10n.buddies_action_search,
-                      onPressed: () {
-                        showSearch(
-                          context: context,
-                          delegate: BuddySearchDelegate(ref),
-                        );
-                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.sort),
@@ -824,12 +821,11 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
             ),
           ),
           const SwapWithBuddyButton(iconSize: 20),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
+          EntitySearchAction(
+            subject: QuerySubject.buddies,
+            active: ref.watch(buddyQueryProvider) != null,
             tooltip: context.l10n.buddies_action_search,
-            onPressed: () {
-              showSearch(context: context, delegate: BuddySearchDelegate(ref));
-            },
+            compact: true,
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),

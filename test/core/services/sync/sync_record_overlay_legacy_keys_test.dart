@@ -25,6 +25,15 @@ void main() {
     expect(merged, {'id': 's1', 'gasConsumptionDisplay': 'litersPerMin'});
   });
 
+  test("a pre-v336 checklist row keeps the local row's checklist", () {
+    final merged = overlayOntoLocal(
+      'tripChecklistItems',
+      {'id': 'i1', 'tripId': 'trip1', 'title': 'Renamed'},
+      {'id': 'i1', 'checklistId': 'c1', 'title': 'Mask'},
+    );
+    expect(merged, {'id': 'i1', 'checklistId': 'c1', 'title': 'Renamed'});
+  });
+
   test('a row new here keeps its legacy spelling for the apply path', () {
     final remote = {'id': 'r1', 'serviceType': 'repair'};
     expect(overlayOntoLocal('serviceRecords', remote, null), same(remote));

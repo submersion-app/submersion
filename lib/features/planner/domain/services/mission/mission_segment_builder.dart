@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -237,7 +237,7 @@ class MissionSegmentBuilder {
   DiveTank? _bottomTank(domain.DivePlan plan) {
     if (plan.tanks.isEmpty) return null;
     for (final tank in plan.tanks) {
-      if (tank.role == TankRole.backGas) return tank;
+      if (backmountRoles.contains(tank.role)) return tank;
     }
     return plan.tanks.first;
   }

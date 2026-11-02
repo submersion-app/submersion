@@ -20,12 +20,9 @@ Species _species({
   required String id,
   required String name,
   bool isBuiltIn = false,
-}) => Species(
-  id: id,
-  commonName: name,
-  category: SpeciesCategory.fish,
-  isBuiltIn: isBuiltIn,
-);
+  SpeciesCategory category = SpeciesCategory.fish,
+}) =>
+    Species(id: id, commonName: name, category: category, isBuiltIn: isBuiltIn);
 
 /// Mutable source for the contract test's filter step.
 final _visibleSpeciesProvider = StateProvider<List<Species>>((ref) => const []);
@@ -261,6 +258,41 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Bbb fish'), findsOneWidget);
     expect(find.text('Aaa fish'), findsNothing);
+  });
+
+  testWidgets('the category chip is shared state, so a handoff can clear it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        species: [
+          _species(id: 's1', name: 'Aaa fish'),
+          _species(
+            id: 's2',
+            name: 'Bbb coral',
+            category: SpeciesCategory.coral,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilterChip, 'Fish'));
+    await tester.pumpAndSettle();
+    expect(find.text('Aaa fish'), findsOneWidget);
+    expect(find.text('Bbb coral'), findsNothing);
+
+    // Global search's See all clears the chip from outside the page (#3882).
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SpeciesManagePage)),
+    );
+    expect(
+      container.read(speciesCatalogCategoryProvider),
+      SpeciesCategory.fish,
+    );
+    container.read(speciesCatalogCategoryProvider.notifier).state = null;
+    await tester.pumpAndSettle();
+    expect(find.text('Bbb coral'), findsOneWidget);
   });
 }
 

@@ -31,7 +31,10 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(311));
     expect(AppDatabase.migrationStepCount(310), greaterThanOrEqualTo(1));
     // Additive tables: the floor stays where v308 put it.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 308);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(308),
+    );
   });
 
   test('upgrading from v310 creates trip_shares and site_shares', () async {

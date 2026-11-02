@@ -18,6 +18,7 @@ Future<MissionWho?> showBuddyPickerSheet(BuildContext context) {
   return showModalBottomSheet<MissionWho>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => const _BuddyPickerSheet(),
   );
 }

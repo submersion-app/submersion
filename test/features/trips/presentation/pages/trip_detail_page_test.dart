@@ -22,11 +22,8 @@ import 'package:submersion/features/trips/presentation/pages/trip_detail_page.da
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
-import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
-import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
-    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
-import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
@@ -61,13 +58,11 @@ List<Override> _tabOverrides(String tripId) => [
     tripId,
   ).overrideWith((ref) async => const <ScrubberMargin>[]),
   tripFillForecastProvider(tripId).overrideWith((ref) async => null),
-  tripChecklistProvider(
-    tripId,
-  ).overrideWith((ref) async => const <TripChecklistItem>[]),
-  tripChecklistSectionsProvider(
-    tripId,
-  ).overrideWith((ref) async => const <domain.TripChecklistSection>[]),
-  tripChecklistProgressProvider(
+  // A trip with no checklists yet (issue #3356): the panel renders its
+  // empty state, so no per-checklist item/section override is needed.
+  tripChecklistsProvider(tripId).overrideWith((ref) async => const []),
+  tripChecklistAllItemsProvider(tripId).overrideWith((ref) async => const []),
+  tripChecklistCombinedProgressProvider(
     tripId,
   ).overrideWith((ref) async => (done: 0, total: 0)),
 ];
@@ -163,7 +158,7 @@ void main() {
       await tester.tap(find.widgetWithText(Tab, 'Checklist'));
       await tester.pumpAndSettle();
       expect(find.text('Pre-dive checklist'), findsOneWidget);
-      expect(find.byType(TripChecklistSection), findsOneWidget);
+      expect(find.byType(TripChecklistsPanel), findsOneWidget);
     });
 
     testWidgets('should display trip name in app bar', (tester) async {

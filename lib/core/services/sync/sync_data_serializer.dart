@@ -16,6 +16,7 @@ import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
@@ -311,6 +312,7 @@ class SyncData {
   final List<Map<String, dynamic>> checklistTemplates;
   final List<Map<String, dynamic>> checklistTemplateSections;
   final List<Map<String, dynamic>> checklistTemplateItems;
+  final List<Map<String, dynamic>> tripChecklists;
   final List<Map<String, dynamic>> tripChecklistSections;
   final List<Map<String, dynamic>> tripChecklistItems;
   final List<Map<String, dynamic>> preDiveChecklistTemplates;
@@ -457,6 +459,7 @@ class SyncData {
     this.checklistTemplates = const [],
     this.checklistTemplateSections = const [],
     this.checklistTemplateItems = const [],
+    this.tripChecklists = const [],
     this.tripChecklistSections = const [],
     this.tripChecklistItems = const [],
     this.preDiveChecklistTemplates = const [],
@@ -591,6 +594,7 @@ class SyncData {
     'checklistTemplates': checklistTemplates,
     'checklistTemplateSections': checklistTemplateSections,
     'checklistTemplateItems': checklistTemplateItems,
+    'tripChecklists': tripChecklists,
     'tripChecklistSections': tripChecklistSections,
     'tripChecklistItems': tripChecklistItems,
     'preDiveChecklistTemplates': preDiveChecklistTemplates,
@@ -732,6 +736,7 @@ class SyncData {
       checklistTemplates: _parseList(json['checklistTemplates']),
       checklistTemplateSections: _parseList(json['checklistTemplateSections']),
       checklistTemplateItems: _parseList(json['checklistTemplateItems']),
+      tripChecklists: _parseList(json['tripChecklists']),
       tripChecklistSections: _parseList(json['tripChecklistSections']),
       tripChecklistItems: _parseList(json['tripChecklistItems']),
       preDiveChecklistTemplates: _parseList(json['preDiveChecklistTemplates']),
@@ -1258,6 +1263,7 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    (key: 'tripChecklists', table: _db.tripChecklists, blob: false, full: null),
     (
       key: 'tripChecklistSections',
       table: _db.tripChecklistSections,
@@ -2587,6 +2593,10 @@ class SyncDataSerializer {
         'checklistTemplateItems',
         () => _exportChecklistTemplateItems(hlcSince),
       ),
+      tripChecklists: await _safeExport(
+        'tripChecklists',
+        () => _exportTripChecklists(hlcSince),
+      ),
       tripChecklistSections: await _safeExport(
         'tripChecklistSections',
         () => _exportTripChecklistSections(hlcSince),
@@ -3479,6 +3489,11 @@ class SyncDataSerializer {
           _db.checklistTemplateItems,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'tripChecklists':
+        final row = await (_db.select(
+          _db.tripChecklists,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'tripChecklistSections':
         final row = await (_db.select(
           _db.tripChecklistSections,
@@ -4122,6 +4137,11 @@ class SyncDataSerializer {
       case 'checklistTemplateItems':
         final rows = await (_db.select(
           _db.checklistTemplateItems,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'tripChecklists':
+        final rows = await (_db.select(
+          _db.tripChecklists,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'tripChecklistSections':
@@ -5212,6 +5232,7 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
+    await _ensureLegacyDefaultChecklists(entityType, [data]);
     data = _withoutUnsetNulls(
       entityType,
       withCurrentWireKeys(
@@ -5545,6 +5566,13 @@ class SyncDataSerializer {
             .into(_db.checklistTemplateItems)
             .insertOnConflictUpdate(
               ChecklistTemplateItem.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'tripChecklists':
+        await _db
+            .into(_db.tripChecklists)
+            .insertOnConflictUpdate(
+              TripChecklistRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'tripChecklistSections':
@@ -6263,6 +6291,7 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
+    await _ensureLegacyDefaultChecklists(entityType, records);
     records = await _withLocalForOmitted(
       entityType,
       await _withDeviceLocalFromHere(entityType, [
@@ -6754,6 +6783,16 @@ class SyncDataSerializer {
                 .map(
                   (r) => ChecklistTemplateItem.fromJson(r).toCompanion(false),
                 )
+                .toList(),
+          ),
+        );
+        return;
+      case 'tripChecklists':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tripChecklists,
+            records
+                .map((r) => TripChecklistRow.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -7973,6 +8012,8 @@ class SyncDataSerializer {
         );
       case 'checklistTemplateItems':
         return plain(_db.checklistTemplateItems, _db.checklistTemplateItems.id);
+      case 'tripChecklists':
+        return plain(_db.tripChecklists, _db.tripChecklists.id);
       case 'tripChecklistSections':
         return plain(_db.tripChecklistSections, _db.tripChecklistSections.id);
       case 'tripChecklistItems':
@@ -8529,6 +8570,8 @@ class SyncDataSerializer {
         return _db.checklistTemplateSections;
       case 'checklistTemplateItems':
         return _db.checklistTemplateItems;
+      case 'tripChecklists':
+        return _db.tripChecklists;
       case 'tripChecklistSections':
         return _db.tripChecklistSections;
       case 'tripChecklistItems':
@@ -9016,6 +9059,11 @@ class SyncDataSerializer {
       case 'checklistTemplateItems':
         await (_db.delete(
           _db.checklistTemplateItems,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripChecklists':
+        await (_db.delete(
+          _db.tripChecklists,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tripChecklistSections':
@@ -10154,6 +10202,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.checklistTemplateItems);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportTripChecklists(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.tripChecklists);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -11557,6 +11616,35 @@ class SyncDataSerializer {
       filled.add(values == null ? record : {...record, ...values});
     }
     return filled;
+  }
+
+  /// Issue #3356. A checklist row from a peer below v336 lands in its trip's
+  /// default checklist ([withCurrentWireKeys]), which this device may not
+  /// hold: the trip may have had nothing to migrate here, or be new here.
+  /// The row is created unstamped, like the migration's own, so the next sync
+  /// publishes it, and its id is deterministic, so every device that creates
+  /// it creates the same row.
+  Future<void> _ensureLegacyDefaultChecklists(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    final tripIds = {
+      for (final record in records) ?legacyChecklistTripId(entityType, record),
+    };
+    if (tripIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.batch(
+      (b) => b.insertAll(_db.tripChecklists, [
+        for (final tripId in tripIds)
+          TripChecklistsCompanion.insert(
+            id: defaultTripChecklistId(tripId),
+            tripId: tripId,
+            name: kDefaultTripChecklistName,
+            createdAt: now,
+            updatedAt: now,
+          ),
+      ], mode: InsertMode.insertOrIgnore),
+    );
   }
 
   /// Fills each key [records] omit from the row this device already holds

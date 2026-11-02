@@ -15,6 +15,7 @@ Future<void> showFollowDiveSheet(BuildContext context) {
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => const FollowDiveSheet(),
   );
 }

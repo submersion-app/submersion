@@ -66,7 +66,9 @@ final tripStoryProvider = FutureProvider.family<TripStory, String>((
   }
   final dives = await ref.watch(divesForTripProvider(tripId).future);
   final itineraryDays = await ref.watch(itineraryDaysProvider(tripId).future);
-  final checklistItems = await ref.watch(tripChecklistProvider(tripId).future);
+  final checklistItems = await ref.watch(
+    tripChecklistAllItemsProvider(tripId).future,
+  );
 
   // Media and sightings are best-effort enrichments: read their current value
   // synchronously rather than awaiting (an errored provider future never

@@ -41,6 +41,7 @@ void main() {
       'created_at',
       'updated_at',
       'dive_center_id',
+      'buddy_id',
       'hlc',
     });
     expect(await columnsOf(db, 'equipment_location_moves'), {
@@ -72,6 +73,7 @@ void main() {
           rawDb.execute('CREATE TABLE divers (id TEXT PRIMARY KEY)');
           rawDb.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
           rawDb.execute('CREATE TABLE dive_centers (id TEXT PRIMARY KEY)');
+          rawDb.execute('CREATE TABLE buddies (id TEXT PRIMARY KEY)');
           rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
           rawDb.execute(
             'CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY)',

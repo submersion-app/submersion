@@ -160,6 +160,7 @@ Purpose of tank during dive.
 | Value | Display Name | Description |
 |-------|--------------|-------------|
 | `backGas` | Back Gas | Primary breathing gas |
+| `twinSet` | Twin Set | A manifolded pair logged as one cylinder (issue #3374) |
 | `stage` | Stage | Carried stage bottle |
 | `deco` | Deco | Decompression gas |
 | `bailout` | Bailout | CCR bailout |

@@ -4,9 +4,9 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_catalog_tile.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_category_chips.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -20,6 +20,7 @@ import 'package:submersion/shared/widgets/fab_clearance.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/marine_life/query/species_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
@@ -31,9 +32,6 @@ class SpeciesManagePage extends ConsumerStatefulWidget {
 }
 
 class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
-  String _searchQuery = '';
-  SpeciesCategory? _selectedCategory;
-
   /// Owns the bulk-selection state machine for this page.
   final SelectionController _selection = SelectionController();
 
@@ -70,16 +68,21 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
     _sightingCounts =
         ref.watch(speciesSightingCountsProvider).value ?? const {};
     _tagCounts = ref.watch(speciesTagCountsProvider).value ?? const {};
+    final category = ref.watch(speciesCatalogCategoryProvider);
 
     final selectableIds = _visibleSpecies(
       speciesAsync.value ?? const [],
+      category,
     ).where(_isSelectable).map((s) => s.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _selection.pruneToSettled(
           speciesAsync,
-          (rows) => _visibleSpecies(rows).where(_isSelectable).map((s) => s.id),
+          (rows) => _visibleSpecies(
+            rows,
+            category,
+          ).where(_isSelectable).map((s) => s.id),
         );
       }
     });
@@ -148,11 +151,20 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                 ),
           body: Column(
             children: [
-              _buildSearchBar(),
+              EntitySearchHeader(
+                subject: QuerySubject.species,
+                root: speciesQueryEntity,
+                query: ref.watch(speciesCatalogQueryProvider),
+                onChanged: (q) =>
+                    ref.read(speciesCatalogQueryProvider.notifier).state = q,
+                hintText: context.l10n.marineLife_speciesManage_searchHint,
+                alwaysShown: true,
+              ),
               SpeciesCategoryChips(
-                selected: _selectedCategory,
+                selected: category,
                 onSelected: (category) =>
-                    setState(() => _selectedCategory = category),
+                    ref.read(speciesCatalogCategoryProvider.notifier).state =
+                        category,
               ),
               Expanded(
                 child: QueryChipsFrame(
@@ -170,7 +182,8 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                         ),
                       ),
                     ),
-                    data: (allSpecies) => _buildSpeciesList(allSpecies),
+                    data: (allSpecies) =>
+                        _buildSpeciesList(allSpecies, category),
                   ),
                 ),
               ),
@@ -181,59 +194,22 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: context.l10n.marineLife_speciesManage_searchHint,
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          isDense: true,
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  tooltip:
-                      context.l10n.marineLife_speciesManage_clearSearchTooltip,
-                  onPressed: () => setState(() => _searchQuery = ''),
-                )
-              : null,
-        ),
-        onChanged: (value) => setState(() => _searchQuery = value),
-      ),
-    );
-  }
-
   /// Species matching the active search query and category filter.
   ///
   /// Shared by the list and by the pruning in [build] so the selection can
   /// never hold a species the filter has hidden.
-  List<Species> _visibleSpecies(List<Species> allSpecies) {
-    var filtered = allSpecies;
-
-    if (_searchQuery.isNotEmpty) {
-      final l10n = context.l10n;
-      final query = _searchQuery.toLowerCase();
-      filtered = filtered.where((s) {
-        // Built-in rows render their translated name, so the diver's query
-        // has to match that as well as the English column the database
-        // stores -- otherwise searching in your own language finds nothing.
-        return s.commonName.toLowerCase().contains(query) ||
-            s.localizedCommonName(l10n).toLowerCase().contains(query) ||
-            (s.scientificName?.toLowerCase().contains(query) ?? false) ||
-            (s.taxonomyClass?.toLowerCase().contains(query) ?? false);
-      }).toList();
-    }
-
-    if (_selectedCategory != null) {
-      filtered = filtered
-          .where((s) => s.category == _selectedCategory)
-          .toList();
-    }
-    return filtered;
+  List<Species> _visibleSpecies(
+    List<Species> allSpecies,
+    SpeciesCategory? category,
+  ) {
+    if (category == null) return allSpecies;
+    return allSpecies.where((s) => s.category == category).toList();
   }
 
-  Widget _buildSpeciesList(List<Species> allSpecies) {
+  Widget _buildSpeciesList(
+    List<Species> allSpecies,
+    SpeciesCategory? category,
+  ) {
     // A query that hid the whole catalog is not an empty catalog.
     if (allSpecies.isEmpty && ref.watch(speciesCatalogQueryProvider) != null) {
       return QueryNoMatchState(
@@ -241,7 +217,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
             ref.read(speciesCatalogQueryProvider.notifier).state = null,
       );
     }
-    final filtered = _visibleSpecies(allSpecies);
+    final filtered = _visibleSpecies(allSpecies, category);
 
     if (filtered.isEmpty) {
       return Center(
@@ -293,7 +269,8 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
   }
 
   Widget _buildSpeciesTile(Species species, {required bool isCustom}) {
-    return ListTile(
+    return SpeciesCatalogTile(
+      species: species,
       leading: SelectionLeading(
         isSelectionMode: _isSelectionMode,
         isChecked: _selectedIds.contains(species.id),
@@ -301,18 +278,8 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
         // deleteSpecies refuses, so neither gets a checkbox.
         isSelectable: _isSelectable(species),
         onChanged: (_) => _selection.toggle(species.id),
-        child: Icon(
-          iconForSpeciesCategory(species.category),
-          color: _getCategoryColor(species.category),
-        ),
+        child: SpeciesCatalogIcon(species.category),
       ),
-      title: Text(species.localizedCommonName(context.l10n)),
-      subtitle: species.scientificName != null
-          ? Text(
-              species.scientificName!,
-              style: const TextStyle(fontStyle: FontStyle.italic),
-            )
-          : Text(species.category.localizedName(context.l10n)),
       // Per-row actions yield to selection mode. Leaving the trash here would
       // put a one-tap delete beside the checkbox while the bulk delete sits
       // deliberately behind the selection bar's overflow -- two contradictory
@@ -526,29 +493,6 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
           );
         }
       }
-    }
-  }
-
-  Color _getCategoryColor(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Colors.blue;
-      case SpeciesCategory.shark:
-        return Colors.blueGrey;
-      case SpeciesCategory.ray:
-        return Colors.indigo;
-      case SpeciesCategory.mammal:
-        return Colors.teal;
-      case SpeciesCategory.turtle:
-        return Colors.green;
-      case SpeciesCategory.invertebrate:
-        return Colors.orange;
-      case SpeciesCategory.coral:
-        return Colors.pink;
-      case SpeciesCategory.plant:
-        return Colors.lightGreen;
-      case SpeciesCategory.other:
-        return Colors.grey;
     }
   }
 }
