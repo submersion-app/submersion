@@ -58,6 +58,10 @@ extension _GasSwitchEditing on _DiveEditPageState {
 
   Widget? _buildGasSwitchesChild(UnitFormatter units) {
     if (!_gasSwitchesVisible) return null;
+    final diveId = widget.diveId;
+    final profile = _existingDive?.profile ?? const <DiveProfilePoint>[];
+    // .value keeps the last result through a reload, so the chips stay put
+    // while a pressure write is read back.
     return GasSwitchesEditor(
       switches: _gasSwitches,
       tanks: _tanks,
@@ -69,7 +73,51 @@ extension _GasSwitchEditing on _DiveEditPageState {
       onRemove: _removeGasSwitch,
       onAdd: _addGasSwitch,
       onTimeSettled: _onGasSwitchTimeSettled,
+      breathStarts: diveId == null
+          ? const {}
+          : ref.watch(cylinderBreathStartsProvider(diveId)).value ?? const {},
+      onPickTime: canPickOnProfile(profile)
+          ? (sw) => _pickGasSwitchTime(sw, profile, units)
+          : null,
     );
+  }
+
+  /// Picks [sw]'s time on the profile. A picked time is the same edit as a
+  /// typed one followed by leaving the field.
+  Future<void> _pickGasSwitchTime(
+    GasSwitch sw,
+    List<DiveProfilePoint> profile,
+    UnitFormatter units,
+  ) async {
+    final diveId = widget.diveId;
+    final recorded = diveId == null
+        ? null
+        : ref.read(tankPressuresProvider(diveId)).value;
+    final seconds = await showGasSwitchTimeSheet(
+      context,
+      profile: profile,
+      initialSeconds: sw.timestamp,
+      units: units,
+      tanks: _tanks,
+      tankId: sw.tankId,
+      tankPressures: {for (final tank in _tanks) tank.id: ?recorded?[tank.id]},
+      gasSwitches: [
+        for (final other in _gasSwitches)
+          if (other.id != sw.id)
+            if (_tanks.where((t) => t.id == other.tankId).firstOrNull
+                case final tank?)
+              GasSwitchWithTank(
+                gasSwitch: other,
+                tankName: tank.name ?? '',
+                gasMix: tank.gasMix.name,
+                o2Fraction: tank.gasMix.o2 / 100,
+                heFraction: tank.gasMix.he / 100,
+              ),
+      ],
+    );
+    if (!mounted || seconds == null || seconds == sw.timestamp) return;
+    _onGasSwitchChanged(sw.copyWith(timestamp: seconds), GasSwitchField.time);
+    _onGasSwitchTimeSettled(sw.id);
   }
 
   /// A time field was left: now the row takes its place in time order,
