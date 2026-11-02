@@ -27,6 +27,7 @@ Future<void> showChecklistItemEditSheet({
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => _ChecklistItemEditSheet(
       tripId: tripId,
       item: item,

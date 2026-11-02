@@ -34,6 +34,7 @@ Future<void> showLendGearFlow(
   final items = await showModalBottomSheet<List<EquipmentItem>>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (sheetContext) => DraggableScrollableSheet(
       initialChildSize: 0.7,
       minChildSize: 0.5,

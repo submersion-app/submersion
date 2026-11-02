@@ -25,6 +25,7 @@ Future<RequirementDraft?> showAddRequirementSheet(
   return showModalBottomSheet<RequirementDraft>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => _AddRequirementSheet(existing: existing),
   );
 }

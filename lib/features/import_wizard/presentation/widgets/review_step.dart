@@ -261,6 +261,7 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
       // sheet's own body still scrolls internally as a second line of
       // defense once content exceeds even the full screen.
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _ImportOptionsSheet(
         notifier: widget.notifier,
         existingTags: widget.existingTags,

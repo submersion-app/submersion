@@ -78,6 +78,7 @@ Future<void> showQueryFilterSheet(
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   builder: (_) => QueryFilterSheet(
     subject: subject,
     root: root,

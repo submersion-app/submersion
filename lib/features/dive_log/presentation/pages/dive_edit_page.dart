@@ -3287,6 +3287,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -3319,6 +3320,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -4526,6 +4528,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -4568,6 +4571,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -4693,6 +4697,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -4728,6 +4733,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -5779,6 +5785,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final preset = await showModalBottomSheet<WeightPreset>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) => DraggableScrollableSheet(
         initialChildSize: 0.6,
         minChildSize: 0.4,
@@ -6015,6 +6022,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -6049,6 +6057,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => EditSightingSheet(
         sighting: sighting,
         onSave: (updatedSighting) {

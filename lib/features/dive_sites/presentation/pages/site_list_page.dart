@@ -166,6 +166,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
+                useSafeArea: true,
                 builder: (_) => SiteFilterSheet(ref: ref),
               );
             },

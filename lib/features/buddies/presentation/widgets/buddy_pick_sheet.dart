@@ -12,6 +12,7 @@ Future<Buddy?> showBuddyPickSheet(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet<Buddy>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) =>
         const FractionallySizedBox(heightFactor: 0.8, child: _BuddyPick()),
   );

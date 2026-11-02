@@ -13,6 +13,7 @@ Future<void> showApplyTemplateSheet({
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => _ApplyTemplateSheet(trip: trip),
   );
 }

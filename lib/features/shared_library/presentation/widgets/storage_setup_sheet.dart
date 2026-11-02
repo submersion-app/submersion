@@ -13,6 +13,7 @@ Future<void> showStorageSetupSheet(
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   builder: (sheetContext) => DraggableScrollableSheet(
     expand: false,
     initialChildSize: 0.85,

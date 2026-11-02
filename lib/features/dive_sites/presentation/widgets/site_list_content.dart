@@ -952,6 +952,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
+                          useSafeArea: true,
                           builder: (context) => SiteFilterSheet(ref: ref),
                         );
                       },
@@ -1257,6 +1258,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
+                useSafeArea: true,
                 builder: (context) => SiteFilterSheet(ref: ref),
               );
             },
