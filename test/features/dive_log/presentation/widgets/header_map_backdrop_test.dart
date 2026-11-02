@@ -125,6 +125,8 @@ void main() {
       1.0,
     ]);
     expect(gradient.colors.first, _fade.withValues(alpha: 0));
+    expect(gradient.colors[1], _fade.withValues(alpha: 0.22));
+    expect(gradient.colors[2], _fade.withValues(alpha: 0.78));
     expect(gradient.colors.sublist(3), [_fade, _fade]);
   });
 

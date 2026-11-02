@@ -43,7 +43,7 @@ class TripStoryDayCard extends ConsumerStatefulWidget {
   /// (`HeaderMapBackdrop.fadeStart`): the pins sit on real map, and the fade
   /// runs down to the header row instead of washing the map from its first
   /// pixel.
-  static const double mapFadeStart = 0.45;
+  static const double mapFadeStart = 0.4;
 
   /// The bottom of the map stack the header row and the fade's heavy end
   /// cover (`TripDayMap.bottomInset`), so a day's pins and the attribution

@@ -63,6 +63,9 @@ class HeaderMapBackdrop extends StatelessWidget {
         // a start past the opaque point collapses them onto it.
         final start = fadeStart < opaqueFrom ? fadeStart : opaqueFrom;
         double step(double t) => start + t * (opaqueFrom - start);
+        // From a clear start the steps trace a smoothstep curve: any sudden
+        // change of slope shows as a line across the map.
+        final alphas = fadeStart > 0 ? (0.0, 0.22, 0.78) : (0.3, 0.6, 0.85);
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -81,9 +84,9 @@ class HeaderMapBackdrop extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     stops: [start, step(0.3), step(0.7), opaqueFrom, 1.0],
                     colors: [
-                      fadeColor.withValues(alpha: fadeStart > 0 ? 0 : 0.3),
-                      fadeColor.withValues(alpha: 0.6),
-                      fadeColor.withValues(alpha: 0.85),
+                      fadeColor.withValues(alpha: alphas.$1),
+                      fadeColor.withValues(alpha: alphas.$2),
+                      fadeColor.withValues(alpha: alphas.$3),
                       fadeColor,
                       fadeColor,
                     ],
