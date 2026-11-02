@@ -144,9 +144,10 @@ class _TracksPageState extends ConsumerState<TracksPage> {
     if (ref.read(section).selectedId == item.selectionKey) {
       ref.read(section.notifier).deselect();
     }
+    forgetOpenedTrack(ref, item);
   }
 
-  void _open(TrackListItem item) => context.push(trackLocationOf(item));
+  void _open(TrackListItem item) => openTrack(context, ref, item);
 
   void _select(TrackListItem item) => ref
       .read(mapListSelectionProvider(kTracksSectionKey).notifier)

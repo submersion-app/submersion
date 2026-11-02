@@ -13,6 +13,7 @@ Dive row(String id) => Dive(
   isFavorite: false,
   excludedFromStats: false,
   excludedFromGasStats: false,
+  gasSwitchesEdited: false,
   diveMode: 'oc',
   cnsStart: 0,
   isPlanned: false,

@@ -134,6 +134,9 @@ const List<_FillGroup> _groups = [
   // harder error to notice (the sequential merge's rule).
   _FillGroup(['excluded_from_stats'], holds: _Holds.flag),
   _FillGroup(['excluded_from_gas_stats'], holds: _Holds.flag),
+  // A switch list the diver edited stays theirs on the merged dive (issue
+  // #32): a re-parse of either source then leaves the switches alone.
+  _FillGroup(['gas_switches_edited'], holds: _Holds.flag),
 ];
 
 /// Every dives column a consolidation leaves as the target has it, and why.

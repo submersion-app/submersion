@@ -39,6 +39,7 @@ Future<FieldPick?> showQueryFieldPicker(
 }) => showModalBottomSheet<FieldPick>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   builder: (_) =>
       _FieldPickerSheet(editor: editor, strings: strings, hopsUsed: hopsUsed),
 );

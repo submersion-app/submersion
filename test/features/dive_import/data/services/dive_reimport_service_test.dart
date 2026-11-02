@@ -300,6 +300,48 @@ void main() {
     expect(switches.every((s) => s.tankId == 'tank-a'), isTrue);
   });
 
+  test('an edited switch list survives the resync (#32)', () async {
+    final diveId = await seedDive(notes: '', buddy: '');
+    await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
+      const DivesCompanion(gasSwitchesEdited: Value(true)),
+    );
+    await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+    await db
+        .into(db.gasSwitches)
+        .insert(
+          GasSwitchesCompanion.insert(
+            id: 'gs-old',
+            diveId: diveId,
+            tankId: 'tank-a',
+            timestamp: 0,
+            createdAt: 0,
+          ),
+        );
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'order': 0, 'startPressure': 200.0},
+        ],
+        'gasSwitches': [
+          {'timestamp': 0, 'tankIndex': 0},
+          {'timestamp': 600, 'tankIndex': 0},
+        ],
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final switches = await (db.select(
+      db.gasSwitches,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    expect(switches.map((s) => s.id), ['gs-old']);
+    final tombstones = await (db.select(
+      db.deletionLog,
+    )..where((t) => t.entityType.equals('gasSwitches'))).get();
+    expect(tombstones, isEmpty);
+  });
+
   test(
     'preserves existing gas switches when diveData has no gasSwitches key',
     () async {

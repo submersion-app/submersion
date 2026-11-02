@@ -12,6 +12,7 @@ enum DemoSealedFeature {
   export,
   share,
   databaseFile,
+  agentAccess,
 }
 
 /// Thrown by a sealed engine method called while demo mode is active.

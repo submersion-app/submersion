@@ -57,6 +57,12 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
   /// dropped.
   final List<String>? initialFilePaths;
 
+  /// Replaces the Gallery tab's search of [startTime] to [endTime] on a
+  /// platform with a photo library, for a caller that knows better than a
+  /// date range. It is passed whether the page is still open, so it can stop
+  /// work nobody is waiting for.
+  final Future<List<AssetInfo>> Function(bool Function() isActive)? loadAssets;
+
   const PhotoPickerPage({
     super.key,
     required this.startTime,
@@ -65,6 +71,7 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
     this.onSelectionConfirmed,
     this.target,
     this.initialFilePaths,
+    this.loadAssets,
   });
 
   @override
@@ -190,10 +197,10 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
     }
 
     // Mobile: Query gallery by date range
-    final assets = await service.getAssetsInDateRange(
-      widget.startTime,
-      widget.endTime,
-    );
+    final loadAssets = widget.loadAssets;
+    final assets = loadAssets != null
+        ? await loadAssets(() => mounted)
+        : await service.getAssetsInDateRange(widget.startTime, widget.endTime);
     if (mounted) {
       setState(() => _assets = assets);
     }
@@ -793,7 +800,8 @@ class _PlaceholderTab extends StatelessWidget {
 ///
 /// Returns the list of selected [AssetInfo] objects, or null if cancelled.
 /// [initialFilePaths] opens it on the Files tab with those files staged; see
-/// [PhotoPickerPage.initialFilePaths].
+/// [PhotoPickerPage.initialFilePaths]. [loadAssets] replaces the Gallery
+/// tab's date range search; see [PhotoPickerPage.loadAssets].
 Future<List<AssetInfo>?> showPhotoPicker({
   required BuildContext context,
   required DateTime diveStartTime,
@@ -802,6 +810,7 @@ Future<List<AssetInfo>?> showPhotoPicker({
   Duration buffer = const Duration(minutes: 30),
   MediaAttachTarget? target,
   List<String>? initialFilePaths,
+  Future<List<AssetInfo>> Function(bool Function() isActive)? loadAssets,
 }) {
   // Nothing comes in while demo mode is on (#3708): the note, not a picker.
   if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
@@ -819,6 +828,7 @@ Future<List<AssetInfo>?> showPhotoPicker({
         alreadyLinkedIds: alreadyLinkedIds,
         target: target,
         initialFilePaths: initialFilePaths,
+        loadAssets: loadAssets,
       ),
     ),
   );

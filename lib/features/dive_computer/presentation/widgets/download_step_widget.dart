@@ -734,6 +734,17 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     if (state.errorCode == 'discovery_stalled') {
       return l10n.diveComputer_download_discoveryStalled;
     }
+    // Windows names the step a BLE connect broke at (issue #4094), so the
+    // ones a diver can act on get advice instead of a generic failure.
+    if (state.errorCode == 'ble_device_not_found') {
+      return l10n.diveComputer_download_bleDeviceNotFound;
+    }
+    if (state.errorCode == 'pairing_required') {
+      return l10n.diveComputer_download_blePairingRequired;
+    }
+    if (state.errorCode == 'device_unreachable') {
+      return l10n.diveComputer_download_bleUnreachable;
+    }
     if (state.errorCode == 'connect_failed' && state.errorMessage != null) {
       return l10n.diveComputer_download_serialConnectFailedWithDetails(
         state.errorMessage!,

@@ -57,6 +57,7 @@ Future<NavTrackEquipmentChoice> pickNavTrackEquipment(
   final result = await showModalBottomSheet<Object?>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (sheetContext) => DraggableScrollableSheet(
       initialChildSize: 0.7,
       minChildSize: 0.5,

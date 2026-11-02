@@ -10,6 +10,7 @@ import 'package:submersion/core/router/nav_shortcut_pages.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/features/agent_access/presentation/pages/agent_access_page.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_card_preview_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_swap_page.dart';
@@ -204,7 +205,9 @@ import 'package:submersion/features/planning/presentation/widgets/planning_discl
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
+import 'package:submersion/features/global_search/presentation/pages/global_search_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
+import 'package:submersion/core/router/global_search_location.dart';
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/router/media_documents_locations.dart';
 import 'package:submersion/core/router/training_locations.dart';
@@ -1500,6 +1503,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const DataToolsPage(),
               ),
               GoRoute(
+                path: 'agent-access',
+                name: 'agentAccess',
+                builder: (context, state) => const AgentAccessPage(),
+              ),
+              GoRoute(
                 path: 'storage-usage',
                 name: 'storageUsage',
                 builder: (context, state) => const StorageUsagePage(),
@@ -2140,6 +2148,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ),
               ),
             ],
+          ),
+
+          // Global search (#3882): a nav destination, inside the shell, so
+          // the rail and bottom bar stay up beside it.
+          GoRoute(
+            path: kGlobalSearchLocation,
+            name: 'globalSearch',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const GlobalSearchPage(),
+            ),
           ),
 
           // Species: the seen-species page, with the catalog manager, the

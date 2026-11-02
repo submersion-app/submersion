@@ -11,6 +11,7 @@ import 'package:submersion/features/gps_log/presentation/providers/gps_log_provi
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/tracks/domain/tracks_query.dart';
+import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_map_pane.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_overview_map.dart';
@@ -116,6 +117,63 @@ void main() {
       find.byType(PolylineLayer<String>),
     );
     expect(layer.polylines.last.hitValue, 'gps:t1');
+  });
+
+  testWidgets('opening a track from its info card marks it last opened '
+      '(#4024)', (tester) async {
+    const size = Size(1400, 900);
+    final track = _track('t1', 20.0);
+    final base = await getBaseOverrides();
+    await tester.binding.setSurfaceSize(size);
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final router = GoRouter(
+      initialLocation: '/tracks/map',
+      routes: [
+        GoRoute(path: '/tracks/map', builder: (_, _) => const TracksMapPage()),
+        GoRoute(
+          path: '/tracks/gps/:id',
+          builder: (_, _) => const Scaffold(body: Text('GPS-DETAIL')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          gpsTracksProvider.overrideWith((ref) async => [track]),
+          allNavTracksProvider.overrideWith((ref) async => const []),
+          gpsTrackGeometryProvider((
+            track.id,
+            TrackLod.thumbnail,
+          )).overrideWith((ref) async => track.points),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(size: size),
+            child: child!,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TracksMapPage)),
+    );
+    container
+        .read(mapListSelectionProvider(kTracksSectionKey).notifier)
+        .select('gps:t1');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('View details'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('GPS-DETAIL'), findsOneWidget);
+    expect(container.read(highlightedTrackKeyProvider), 'gps:t1');
   });
 
   testWidgets('shows a spinner while loading, not the empty state', (

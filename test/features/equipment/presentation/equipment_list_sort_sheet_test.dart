@@ -49,11 +49,15 @@ void main() {
     WidgetTester tester, {
     bool showGrouping = true,
     EquipmentArrangement? stored,
+    // Tall enough by default that the grouping controls and every sort field
+    // fit, so the tests read what the sheet offers rather than how it
+    // scrolls.
+    Size size = const Size(800, 1600),
+    double topInset = 0,
   }) async {
-    // Tall enough that the grouping controls and every sort field fit, so
-    // the tests read what the sheet offers rather than how it scrolls.
-    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
+    tester.view.padding = FakeViewPadding(top: topInset);
     addTearDown(tester.view.reset);
 
     fake = _FakeSettingsRepository()..stored = stored;
@@ -91,6 +95,22 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('stays below the status bar on a short phone', (tester) async {
+    // Issue #4081: the sheet is scroll controlled, so on a phone whose
+    // screen is shorter than its content it rises to the top edge. Without
+    // the route's safe area the header sat under the clock and signal icons.
+    await pumpSheet(tester, size: const Size(390, 600), topInset: 47);
+
+    expect(
+      tester.getTopLeft(find.byType(BottomSheet)).dy,
+      greaterThanOrEqualTo(47),
+    );
+    expect(
+      tester.getTopLeft(find.text('Sort Equipment')).dy,
+      greaterThanOrEqualTo(47),
+    );
+  });
 
   testWidgets('offers the shared grouping controls above the sort fields', (
     tester,

@@ -492,6 +492,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
         await showModalBottomSheet<(BlenderInvoiceExportFormat, Rect?)>(
           context: context,
           isScrollControlled: true,
+          useSafeArea: true,
           builder: (context) => const BlenderInvoiceExportSheet(),
         );
     if (choice == null) return;
@@ -850,6 +851,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     final edited = await showModalBottomSheet<BlenderLineEdit>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => BlenderLineEditSheet(fill: fill),
     );
     if (edited == null) return;

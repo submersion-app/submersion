@@ -83,6 +83,7 @@ class SpeciesPhotoImportHelper {
             final review = await MediaImportView.importResolved(
               service: ref.read(mediaImportServiceProvider),
               diveRepository: ref.read(diveRepositoryProvider),
+              photoPickerService: ref.read(photoPickerServiceProvider),
               assets: assets,
               targets: targets,
             );

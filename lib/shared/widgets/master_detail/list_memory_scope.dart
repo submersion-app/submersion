@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
@@ -44,6 +45,7 @@ class ListMemoryScope extends ConsumerWidget {
     (highlightedDiveCenterIdProvider, RecordListSection.diveCenters),
     (highlightedCertificationIdProvider, RecordListSection.certifications),
     (highlightedCourseIdProvider, RecordListSection.courses),
+    (highlightedTrackKeyProvider, RecordListSection.tracks),
   ];
 
   @override

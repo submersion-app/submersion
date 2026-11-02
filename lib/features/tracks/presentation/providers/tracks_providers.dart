@@ -14,6 +14,12 @@ final trackKindFilterProvider = StateProvider<TrackKindFilter>(
   (ref) => TrackKindFilter.all,
 );
 
+/// The track last opened, by its [TrackListItem.selectionKey] (issue #4024).
+/// Set before pushing its detail page and read back by [TracksListPane] so
+/// that row stays highlighted once the diver returns, mirroring the dive
+/// list's `highlightedDiveIdProvider`.
+final highlightedTrackKeyProvider = StateProvider<String?>((ref) => null);
+
 /// GPS and underwater tracks as one filtered list, newest first.
 ///
 /// `allNavTracksProvider` reads without points, so no row decodes a blob to

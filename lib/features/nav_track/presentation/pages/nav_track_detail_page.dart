@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,16 +22,17 @@ import 'package:submersion/features/maps/presentation/widgets/submersion_tile_la
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
-import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_correction_card.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/tracks/domain/track_list_item.dart';
+import 'package:submersion/features/tracks/presentation/track_item_location.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -158,7 +160,9 @@ class NavTrackDetailPage extends ConsumerWidget {
     );
     if (confirmed != true) return;
     await ref.read(navTrackRepositoryProvider).delete(route.id);
-    if (context.mounted) context.pop();
+    if (!context.mounted) return;
+    forgetOpenedTrack(ref, UnderwaterTrackItem(route));
+    context.pop();
   }
 
   Future<void> _chooseDive(
@@ -171,25 +175,47 @@ class NavTrackDetailPage extends ConsumerWidget {
       routeStartSeconds: route.startTime ~/ 1000,
       dives: dives,
     );
-    // Pre-selects the sole time-overlapping dive (#2394: one used to be
-    // linked silently instead of offered as a choice), so confirming it is a
-    // single tap rather than hunting it down in the proximity-sorted list
-    // below. Computed from the [dives] already fetched above.
-    final suggestedDiveId = NavTrackMatcher.soleCandidateFor(
-      routeStartSeconds: route.startTime ~/ 1000,
-      routeEndSeconds: route.endTime ~/ 1000,
-      dives: dives,
-    )?.id;
+    final linkedId = route.diveId;
+    // "Change dive" (#4023) always shows the dive it is changing from, even
+    // one that dropped out of the nearest list once closer dives were logged.
+    final linkedOutsideNearest =
+        linkedId == null || nearest.any((dive) => dive.id == linkedId)
+        ? null
+        : dives.where((dive) => dive.id == linkedId).firstOrNull;
+    // Pre-selects the dive it is already linked to. Otherwise the sole
+    // time-overlapping dive (#2394: one used to be linked silently instead of
+    // offered as a choice), so confirming it is a single tap rather than
+    // hunting it down in the proximity-sorted list below. Computed from the
+    // [dives] already fetched above.
+    final selectedDiveId =
+        linkedId ??
+        NavTrackMatcher.soleCandidateFor(
+          routeStartSeconds: route.startTime ~/ 1000,
+          routeEndSeconds: route.endTime ~/ 1000,
+          dives: dives,
+        )?.id;
     if (!context.mounted) return;
     final chosen = await showNavTrackDiveChoiceSheet(
       context,
-      dives: nearest,
-      selectedDiveId: suggestedDiveId,
+      dives: [?linkedOutsideNearest, ...nearest],
+      selectedDiveId: selectedDiveId,
     );
-    if (chosen == null) return;
-    await ref
-        .read(navTrackRepositoryProvider)
-        .link(route.id, chosen.id, linkMode: NavTrackLinkMode.manual);
+    if (chosen == null || chosen.id == linkedId) return;
+    final repository = ref.read(navTrackRepositoryProvider);
+    if (linkedId == null) {
+      await repository.link(
+        route.id,
+        chosen.id,
+        linkMode: NavTrackLinkMode.manual,
+      );
+    } else {
+      await repository.relink(
+        route.id,
+        fromDiveId: linkedId,
+        toDiveId: chosen.id,
+        linkMode: NavTrackLinkMode.manual,
+      );
+    }
   }
 
   /// Opens the same site picker the import review page uses and, on a
@@ -237,16 +263,6 @@ class NavTrackDetailPage extends ConsumerWidget {
         );
   }
 
-  String _correctionStatus(AppLocalizations l10n, NavTrack route) {
-    return switch (route.endMode) {
-      NavTrackEndMode.none => l10n.navTrack_detail_correctionStatus_none,
-      NavTrackEndMode.sameAsStart =>
-        l10n.navTrack_detail_correctionStatus_sameAsStart,
-      NavTrackEndMode.point => l10n.navTrack_detail_correctionStatus_point,
-      NavTrackEndMode.gpsFix => l10n.navTrack_detail_correctionStatus_gpsFix,
-    };
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final routeAsync = ref.watch(navTrackByIdProvider(trackId));
@@ -267,12 +283,11 @@ class NavTrackDetailPage extends ConsumerWidget {
         }
         final stats = NavTrackStats.of(route.points);
         return Scaffold(
+          // No title in the toolbar row (#4022): a long track name no
+          // longer competes with four icons/menu items for space on a
+          // narrow window. It instead opens the body as its own
+          // emphasized card, the same box _StatsCard uses right below it.
           appBar: AppBar(
-            title: Text(
-              route.name ??
-                  route.sourceRef ??
-                  l10n.navTrack_detail_defaultTrackTitle,
-            ),
             actions: [
               IconButton(
                 key: const ValueKey('nav-track-align'),
@@ -335,6 +350,13 @@ class NavTrackDetailPage extends ConsumerWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              _TitleCard(
+                title:
+                    route.name ??
+                    route.sourceRef ??
+                    l10n.navTrack_detail_defaultTrackTitle,
+              ),
+              const SizedBox(height: 16),
               _StatsCard(route: route, stats: stats, units: units),
               const SizedBox(height: 16),
               _LinkCard(
@@ -352,18 +374,7 @@ class NavTrackDetailPage extends ConsumerWidget {
                 onChangeDevice: () => _changeDevice(context, ref, route),
               ),
               const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.tune, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(_correctionStatus(l10n, route))),
-                    ],
-                  ),
-                ),
-              ),
+              NavTrackCorrectionCard(route: route),
               const SizedBox(height: 16),
               SizedBox(
                 height: 220,
@@ -402,29 +413,8 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
   final _controller = MapController();
   late TrackCamera _camera = _cameraFor(widget.route);
 
-  /// Fits the whole drawn route rather than a fixed zoom on the anchor
-  /// alone: centering on only the start point left most of a long route
-  /// off-screen. TrackCamera (shared with the Tracks overview map) falls
-  /// back to a centre and zoom for a route crossing the antimeridian, which
-  /// a raw LatLngBounds.fromPoints cannot express at all (flutter_map
-  /// asserts east <= 180). The anchor at a fixed zoom covers the rare route
-  /// with fewer than two drawable points.
-  static TrackCamera _cameraFor(NavTrack route) {
-    final drawn = navTrackDrawnPoints(route);
-    final fitted = drawn.length >= 2
-        ? TrackCamera.forLatLngs(
-            drawn,
-            padding: const EdgeInsets.all(32),
-            maxZoom: 17,
-          )
-        : null;
-    final anchor = route.anchor!;
-    return fitted ??
-        TrackCamera(
-          center: LatLng(anchor.latitude, anchor.longitude),
-          zoom: 15,
-        );
-  }
+  static TrackCamera _cameraFor(NavTrack route) =>
+      navTrackCamera(route, padding: const EdgeInsets.all(32), maxZoom: 17);
 
   /// What the drawn route's extent depends on. Everything else (a rename,
   /// a dive link) leaves the diver's own pan and zoom alone.
@@ -434,6 +424,7 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
     route.endPoint,
     route.trustFraction,
     route.headingOffsetDeg,
+    route.scaleFactor,
     route.points.length,
   );
 
@@ -486,6 +477,37 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
             child: MapCornerControls(controller: _controller),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The track's name (or source file, or a default), as the first, most
+/// prominent card in the body (#4022) rather than the AppBar title: with
+/// the three action icons and the overflow menu, a long name had no room
+/// left in the toolbar row. Styled like [_StatsCard]'s box, just with
+/// emphasized text, mirroring the equipment set detail page's header card.
+class _TitleCard extends StatelessWidget {
+  const _TitleCard({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        // Restores what AppBar.title gives its text, lost by moving the
+        // title out of the AppBar (#4022): the heading landmark, and the
+        // route name where AppBar sets one.
+        child: Semantics(
+          header: true,
+          namesRoute: switch (defaultTargetPlatform) {
+            TargetPlatform.iOS || TargetPlatform.macOS => null,
+            _ => true,
+          },
+          child: Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        ),
       ),
     );
   }
@@ -580,6 +602,9 @@ class _LinkCard extends ConsumerWidget {
   const _LinkCard({required this.route, required this.onChooseDive});
 
   final NavTrack route;
+
+  /// Picks the dive, or a different one once one is linked (#4023):
+  /// [NavTrackDetailPage._chooseDive] moves an existing link.
   final VoidCallback onChooseDive;
 
   @override
@@ -597,10 +622,16 @@ class _LinkCard extends ConsumerWidget {
     }
     final dive = ref.watch(diveProvider(diveId)).value;
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: ListTile(
         key: const ValueKey('nav-track-linked-dive'),
         leading: const Icon(Icons.link),
         title: Text(navTrackDiveLabel(l10n, diveId, dive)),
+        subtitle: TileSubtitleAction(
+          actionKey: const ValueKey('nav-track-change-dive'),
+          onPressed: onChooseDive,
+          label: l10n.navTrack_detail_menuChangeDive,
+        ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/dives/$diveId'),
       ),
@@ -635,6 +666,7 @@ class _SiteCard extends ConsumerWidget {
           ? l10n.navTrack_detail_chooseSite
           : l10n.navTrack_detail_menuChangeSite,
       onAction: onChangeSite,
+      onTap: siteId == null ? null : () => context.push('/sites/$siteId'),
     );
   }
 }
@@ -675,6 +707,9 @@ class _EquipmentCard extends ConsumerWidget {
           ? l10n.navTrack_detail_menuChangeDevice
           : l10n.navTrack_detail_chooseDevice,
       onAction: onChangeDevice,
+      onTap: equipmentId == null
+          ? null
+          : () => context.push('/equipment/$equipmentId'),
     );
   }
 }
@@ -693,6 +728,7 @@ class _ActionCard extends StatelessWidget {
     required this.actionLabel,
     required this.onAction,
     this.actionKey,
+    this.onTap,
   });
 
   final IconData icon;
@@ -701,9 +737,15 @@ class _ActionCard extends StatelessWidget {
   final VoidCallback onAction;
   final Key? actionKey;
 
+  /// Opens whatever this card is about (the site, the equipment item);
+  /// null when there is nothing to open yet (#4023), matching the "no dive
+  /// linked" state of [_LinkCard], which has no `onTap` either.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),
@@ -712,6 +754,8 @@ class _ActionCard extends StatelessWidget {
           onPressed: onAction,
           label: actionLabel,
         ),
+        trailing: onTap == null ? null : const Icon(Icons.chevron_right),
+        onTap: onTap,
       ),
     );
   }

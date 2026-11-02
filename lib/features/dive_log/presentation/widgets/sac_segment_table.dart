@@ -5,8 +5,12 @@ class SacSegmentTableRow {
   final String label;
   final IconData? icon;
 
-  /// Length of the bar behind the label as a share of the widest, 0 to 1.
+  /// Length of the bar under the label as a share of the widest, 0 to 1.
   final double barFactor;
+
+  /// What this row is drawn in elsewhere, as a key to the chart. Null gives a
+  /// plain bar and no swatch.
+  final Color? color;
 
   /// The rate as shown, with no unit when it matches the column heading.
   final String rate;
@@ -23,6 +27,7 @@ class SacSegmentTableRow {
     required this.label,
     this.icon,
     required this.barFactor,
+    this.color,
     required this.rate,
     required this.depth,
     required this.duration,
@@ -141,6 +146,11 @@ class SacSegmentTable extends StatelessWidget {
 }
 
 class _LabelCell extends StatelessWidget {
+  /// The bar runs under the label rather than behind it, so it can wear its
+  /// full color and the label still reads on every theme.
+  static const double _barHeight = 4;
+  static const double _barInset = 2;
+
   final SacSegmentTableRow row;
   final double minHeight;
   final double inset;
@@ -154,6 +164,7 @@ class _LabelCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final color = row.color;
     return Semantics(
       container: true,
       excludeSemantics: true,
@@ -164,24 +175,42 @@ class _LabelCell extends StatelessWidget {
         child: Stack(
           alignment: AlignmentDirectional.centerStart,
           children: [
-            Positioned.fill(
+            PositionedDirectional(
+              start: 0,
+              end: 0,
+              bottom: _barInset,
+              height: _barHeight,
               child: FractionallySizedBox(
                 alignment: AlignmentDirectional.centerStart,
                 widthFactor: row.barFactor.clamp(0.0, 1.0),
-                heightFactor: 0.8,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(4),
+                    color: color ?? theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
             ),
             Padding(
-              padding: EdgeInsetsDirectional.only(start: inset),
+              padding: EdgeInsetsDirectional.only(
+                start: inset,
+                bottom: _barInset + _barHeight + 1,
+              ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (color != null) ...[
+                    SizedBox.square(
+                      dimension: 8,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
                   if (row.icon != null) ...[
                     Icon(row.icon, size: 14),
                     const SizedBox(width: 4),

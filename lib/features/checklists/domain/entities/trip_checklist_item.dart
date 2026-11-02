@@ -1,9 +1,10 @@
 import 'package:equatable/equatable.dart';
 
-/// Per-trip checklist item (copied from a template or added ad hoc)
+/// Checklist item (copied from a template or added ad hoc), belonging to one
+/// of a trip's checklists (issue #3356).
 class TripChecklistItem extends Equatable {
   final String id;
-  final String tripId;
+  final String checklistId;
   final String title;
 
   /// The section this item is grouped under, if any (issue #3360). Replaces
@@ -21,7 +22,7 @@ class TripChecklistItem extends Equatable {
 
   const TripChecklistItem({
     required this.id,
-    required this.tripId,
+    required this.checklistId,
     required this.title,
     this.sectionId,
     this.notes = '',
@@ -46,7 +47,7 @@ class TripChecklistItem extends Equatable {
 
   TripChecklistItem copyWith({
     String? id,
-    String? tripId,
+    String? checklistId,
     String? title,
     Object? sectionId = _undefined,
     String? notes,
@@ -59,7 +60,7 @@ class TripChecklistItem extends Equatable {
   }) {
     return TripChecklistItem(
       id: id ?? this.id,
-      tripId: tripId ?? this.tripId,
+      checklistId: checklistId ?? this.checklistId,
       title: title ?? this.title,
       sectionId: sectionId == _undefined
           ? this.sectionId
@@ -79,7 +80,7 @@ class TripChecklistItem extends Equatable {
   @override
   List<Object?> get props => [
     id,
-    tripId,
+    checklistId,
     title,
     sectionId,
     notes,

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/utils/minutes_seconds.dart';
+
 /// Represents a gas switch event during a dive.
 ///
 /// Tracks when the diver switched to a different tank/gas mix.
@@ -41,12 +43,8 @@ class GasSwitch extends Equatable {
   bool appliesTo(String computer) =>
       computerId == null || computerId == computer;
 
-  /// Timestamp formatted as MM:SS
-  String get timestampFormatted {
-    final minutes = timestamp ~/ 60;
-    final seconds = timestamp % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  }
+  /// Timestamp formatted as m:ss, the shape the switch editor reads back.
+  String get timestampFormatted => formatMinutesSeconds(timestamp);
 
   /// Depth formatted with unit
   String depthFormatted({bool metric = true}) {
@@ -68,13 +66,14 @@ class GasSwitch extends Equatable {
     DateTime? createdAt,
     String? computerId,
     bool clearComputerId = false,
+    bool clearDepth = false,
   }) {
     return GasSwitch(
       id: id ?? this.id,
       diveId: diveId ?? this.diveId,
       timestamp: timestamp ?? this.timestamp,
       tankId: tankId ?? this.tankId,
-      depth: depth ?? this.depth,
+      depth: clearDepth ? null : (depth ?? this.depth),
       createdAt: createdAt ?? this.createdAt,
       computerId: clearComputerId ? null : (computerId ?? this.computerId),
     );

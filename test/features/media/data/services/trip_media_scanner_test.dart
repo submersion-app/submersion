@@ -9,6 +9,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 
 /// Helper to create an AssetInfo for testing.
 AssetInfo _testAsset(
@@ -49,10 +50,12 @@ class _StubPhotoPicker implements PhotoPickerService {
   _StubPhotoPicker({
     this.permission = PhotoPermissionStatus.authorized,
     List<AssetInfo>? assets,
+    this.metadata = const {},
   }) : _assets = assets ?? const [];
 
   final PhotoPermissionStatus permission;
   final List<AssetInfo> _assets;
+  final Map<String, MediaSourceMetadata> metadata;
 
   DateTime? lastStart;
   DateTime? lastEnd;
@@ -84,7 +87,8 @@ class _StubPhotoPicker implements PhotoPickerService {
   Future<String?> getFilePath(String assetId) async => null;
 
   @override
-  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async => null;
+  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async =>
+      metadata[assetId];
 
   @override
   bool get supportsGalleryBrowsing => true;
@@ -645,6 +649,39 @@ void main() {
 
         expect(result!.map((a) => a.id), ['mac-2']);
       });
+
+      test('finds a photo taken in the dive\'s timezone when this device has '
+          'since moved to another one (#259)', () async {
+        // 10:20 in Palau reads as 19:20 the evening before on a phone now in
+        // Denver. The EXIF digits are what the diver's clock showed.
+        final picker = _StubPhotoPicker(
+          assets: [
+            _testAsset('palau', createdAt: DateTime(2026, 3, 9, 19, 20)),
+          ],
+          metadata: {
+            'palau': MediaSourceMetadata(
+              takenAt: DateTime.utc(2026, 3, 10, 10, 20),
+              mimeType: 'image/jpeg',
+            ),
+          },
+        );
+        final dive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime.utc(2026, 3, 10, 10, 0),
+          entryTime: DateTime.utc(2026, 3, 10, 10, 0),
+          exitTime: DateTime.utc(2026, 3, 10, 11, 0),
+        );
+
+        final result = await TripMediaScanner.scanGalleryForDive(
+          dive: dive,
+          linked: const [],
+          linkedGalleryAssets: const LinkedGalleryAssets(),
+          photoPickerService: picker,
+        );
+
+        expect(result!.map((a) => a.id), ['palau']);
+        expect(result.single.createDateTime, DateTime(2026, 3, 10, 10, 20));
+      });
     });
 
     group('scanGalleryForTrip', () {
@@ -802,6 +839,76 @@ void main() {
         expect(result!.matchedByDive[dive], hasLength(1));
         expect(result.matchedByDive[dive]!.single.id, 'shifted');
         expect(result.unmatched, isEmpty);
+      });
+
+      group('a photo dated by its EXIF (#259)', () {
+        final dive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+          entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+          exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+        );
+
+        Future<ScanResult?> scan(MediaSourceMetadata exif) =>
+            TripMediaScanner.scanGalleryForTrip(
+              dives: [dive],
+              tripStartDate: DateTime.utc(2024, 1, 15),
+              tripEndDate: DateTime.utc(2024, 1, 15),
+              linked: const [],
+              linkedGalleryAssets: const LinkedGalleryAssets(),
+              photoPickerService: _StubPhotoPicker(
+                assets: [
+                  _testAsset(
+                    'shifted',
+                    createdAt: DateTime(2024, 1, 14, 19, 49, 11),
+                  ),
+                ],
+              ),
+              assetMetadataResolver: (_) async => exif,
+            );
+
+        test('reaches the import with the time the diver\'s clock showed, so '
+            'its stored time and profile position are right', () async {
+          final result = await scan(
+            MediaSourceMetadata(
+              takenAt: DateTime.utc(2024, 1, 15, 10, 30),
+              mimeType: 'image/jpeg',
+            ),
+          );
+
+          expect(
+            result!.matchedByDive[dive]!.single.createDateTime,
+            DateTime(2024, 1, 15, 10, 30),
+          );
+        });
+
+        test('keeps that time when it matched no dive, in case the diver '
+            'assigns it by hand', () async {
+          final result = await scan(
+            MediaSourceMetadata(
+              takenAt: DateTime.utc(2024, 1, 15, 15),
+              mimeType: 'image/jpeg',
+            ),
+          );
+
+          expect(
+            result!.unmatched.single.createDateTime,
+            DateTime(2024, 1, 15, 15),
+          );
+        });
+
+        test('is not rescued by a file\'s modified date, which is when the '
+            'file was copied, not when the photo was taken', () async {
+          final result = await scan(
+            MediaSourceMetadata(
+              takenAt: DateTime.utc(2024, 1, 15, 10, 30),
+              takenAtSource: TakenAtSource.fileModifiedTime,
+              mimeType: 'image/jpeg',
+            ),
+          );
+
+          expect(result!.matchedByDive, isEmpty);
+        });
       });
 
       test(

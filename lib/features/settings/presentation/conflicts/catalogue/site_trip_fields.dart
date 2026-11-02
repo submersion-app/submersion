@@ -357,6 +357,10 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_returnFlightAt,
     FieldKind.wallClock,
   ),
+  'scaleFactor': ConflictField(
+    (l) => l.settings_conflict_field_scaleFactor,
+    FieldKind.number,
+  ),
   'scientificName': ConflictField(
     (l) => l.settings_conflict_field_scientificName,
     FieldKind.shortText,

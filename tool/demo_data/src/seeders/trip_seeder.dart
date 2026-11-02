@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
@@ -190,6 +191,10 @@ class TripSeeder implements DemoSeeder {
     );
     await packing.pack(upcomingTripId, await _setItems(ctx, 'ccr'));
     final checklist = TripChecklistRepository();
+    final demoChecklist = await TripChecklistsRepository().createChecklist(
+      tripId: upcomingTripId,
+      name: 'Checklist',
+    );
     var order = 0;
     for (final (section, items) in [
       (
@@ -216,7 +221,7 @@ class TripSeeder implements DemoSeeder {
       ),
     ]) {
       final sectionRow = await checklist.createSection(
-        tripId: upcomingTripId,
+        checklistId: demoChecklist.id,
         title: section,
       );
       for (final title in items) {
@@ -224,7 +229,7 @@ class TripSeeder implements DemoSeeder {
         await checklist.createItem(
           TripChecklistItem(
             id: 'demo-checklist-${order++}',
-            tripId: upcomingTripId,
+            checklistId: demoChecklist.id,
             sectionId: sectionRow.id,
             title: title,
             isDone: done,

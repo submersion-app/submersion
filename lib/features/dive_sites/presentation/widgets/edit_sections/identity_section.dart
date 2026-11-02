@@ -10,7 +10,8 @@ import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
 /// Site group 1 (always open): name, description, country, region, city,
 /// island, body of water — all as suggestion-capable rows. Merge mode adds
-/// a source caption + cycle button per field via [mergeExtras].
+/// a source caption + cycle button per field via [mergeExtras]. The section
+/// ends with [placeLookup], which fills the place fields above it.
 class IdentitySection extends StatelessWidget {
   const IdentitySection({
     super.key,
@@ -24,6 +25,7 @@ class IdentitySection extends StatelessWidget {
     required this.islandController,
     required this.bodyOfWaterController,
     required this.nameValidator,
+    required this.placeLookup,
     this.mergeExtras,
     this.errorCount = 0,
   });
@@ -38,6 +40,7 @@ class IdentitySection extends StatelessWidget {
   final TextEditingController islandController;
   final TextEditingController bodyOfWaterController;
   final String? Function(String?) nameValidator;
+  final Widget placeLookup;
   final MergeFieldExtras? Function(String key)? mergeExtras;
   final int errorCount;
 
@@ -183,6 +186,7 @@ class IdentitySection extends StatelessWidget {
             enableFuzzy: true,
           ),
         ),
+        placeLookup,
       ],
     );
   }

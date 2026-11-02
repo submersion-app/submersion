@@ -199,6 +199,18 @@ final tankConfigurationStatsProvider = FutureProvider<TankConfigurationStats>((
   );
 });
 
+/// The cylinders the retired twin set guess counted, for the Gas page's
+/// re-role note (issue #3374). Ignores the Insights filter: it is a
+/// migration aid over the diver's whole logbook.
+final twinSetCandidatesProvider = FutureProvider<TwinSetCandidates>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref, filtered: false);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  return repository.getTwinSetCandidates(diverId: currentDiverId);
+});
+
 /// Best and highest consumption for the lane the gas page shows.
 final sacRecordsProvider =
     FutureProvider<({RankingItem? best, RankingItem? worst})>((ref) async {

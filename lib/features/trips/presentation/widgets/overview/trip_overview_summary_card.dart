@@ -55,7 +55,7 @@ class TripOverviewSummaryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final status = StatusColors.of(context);
-    final checklist = ref.watch(tripChecklistProvider(trip.id)).value;
+    final checklist = ref.watch(tripChecklistAllItemsProvider(trip.id)).value;
     final gear = ref.watch(tripGearProvider(trip.id)).value;
     final slots = ref.watch(tripCylinderStatesProvider(trip.id)).value;
     final alerts = ref.watch(tripServiceAlertsProvider(trip.id)).value;

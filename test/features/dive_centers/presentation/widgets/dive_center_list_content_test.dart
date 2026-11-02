@@ -970,7 +970,7 @@ void main() {
       await pumpWithQuery(tester, ids: {'k1'});
       expect(find.text('Reef Divers'), findsWidgets);
       expect(find.text('Lake Club'), findsNothing);
-      expect(find.text('rating >= 4'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'rating >= 4'), findsOneWidget);
     });
 
     testWidgets('a query that keeps nothing shows the no-match state', (

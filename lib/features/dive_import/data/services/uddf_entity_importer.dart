@@ -2993,6 +2993,7 @@ class UddfEntityImporter {
       final excludedFromStats = diveData['excludedFromStats'] as bool? ?? false;
       final excludedFromGasStats =
           diveData['excludedFromGasStats'] as bool? ?? false;
+      final gasSwitchesEdited = diveData['gasSwitchesEdited'] as bool? ?? false;
 
       // Build diluent gas mix (if present)
       final diluentO2 = diveData['diluentO2'] as double?;
@@ -3104,6 +3105,7 @@ class UddfEntityImporter {
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
+        gasSwitchesEdited: gasSwitchesEdited,
         courseIds: linkedCourseIds,
         setpointLow: asDoubleOrNull(diveData['setpointLow']),
         setpointHigh: asDoubleOrNull(diveData['setpointHigh']),
