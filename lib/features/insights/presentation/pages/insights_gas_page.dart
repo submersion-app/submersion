@@ -13,6 +13,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_foc
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
+import 'package:submersion/features/insights/presentation/widgets/ccr_gas_use_section.dart';
 import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/tank_configuration_card.dart';
@@ -49,6 +50,7 @@ class InsightsGasPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildSacByRoleSection(context, ref, units),
           const SizedBox(height: 16),
+          const CcrGasUseSection(),
           _buildSacRecordsSection(context, ref, units),
         ],
       ),

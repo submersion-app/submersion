@@ -10180,6 +10180,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return '回路用量 $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return '最大作业深度 $depth';
   }
@@ -27535,7 +27540,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
+      '如何将气瓶压力换算为气体体积。这会影响 RMV 耗气率、已用气体、气体统计、计划器和气体计算器。理想气体与各潜水机构教授的算法一致；真实气体在物理上更准确，RMV 约低 5%。';
 
   @override
   String get settings_units_dialog_gasModel => '气体计算';
@@ -28359,6 +28364,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => '按气瓶用途的气体消耗';
+
+  @override
+  String get insights_gas_ccrUse_title => '循环呼吸器气体用量';
+
+  @override
+  String get insights_gas_ccrUse_subtitle => '回路上每分钟用量，不含应急脱出时间';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'O₂ 平均';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => '稀释气平均';
 
   @override
   String get insights_gas_sacRecords_empty => '暂无消耗数据';

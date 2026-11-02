@@ -10548,6 +10548,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Loop use $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -28713,7 +28718,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.';
+      'How cylinder pressure is converted to gas volume. This affects RMV, gas used, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.';
 
   @override
   String get settings_units_dialog_gasModel => 'Gas calculations';
@@ -29581,6 +29586,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'Gas consumption by tank role';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Rebreather gas use';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Per minute on the loop, leaving out bailout time';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'O₂ average';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Diluent average';
 
   @override
   String get insights_gas_sacRecords_empty => 'No consumption data yet';

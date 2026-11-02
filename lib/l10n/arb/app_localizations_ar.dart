@@ -10853,6 +10853,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'استهلاك الحلقة $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -29439,7 +29444,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'كيفية تحويل ضغط الأسطوانة إلى حجم غاز. يؤثر ذلك على معدل استهلاك الهواء والإحصاءات ومخطط الغوص وحاسبات الغاز. الغاز المثالي يطابق الحساب الذي تُعلّمه هيئات التدريب، أما الغاز الحقيقي فدقيق فيزيائيًا ويعطي معدل استهلاك أقل بنحو 5%.';
+      'كيفية تحويل ضغط الأسطوانة إلى حجم غاز. يؤثر ذلك على معدل استهلاك الهواء والغاز المستخدم والإحصاءات ومخطط الغوص وحاسبات الغاز. الغاز المثالي يطابق الحساب الذي تُعلّمه هيئات التدريب، أما الغاز الحقيقي فدقيق فيزيائيًا ويعطي معدل استهلاك أقل بنحو 5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'حسابات الغاز';
@@ -30328,6 +30333,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_sacByRole_title => 'استهلاك الغاز حسب دور الأسطوانة';
+
+  @override
+  String get insights_gas_ccrUse_title => 'استهلاك الغاز لجهاز إعادة التنفس';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'لكل دقيقة على الحلقة، باستثناء وقت الانتقال إلى الدائرة المفتوحة';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'متوسط O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'متوسط المخفف';
 
   @override
   String get insights_gas_sacRecords_empty => 'لا توجد بيانات استهلاك بعد';

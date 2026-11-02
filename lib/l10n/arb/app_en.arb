@@ -5931,6 +5931,7 @@
   "diveLog_cylinders_figureUsed": "Used {pressure}",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
+  "diveLog_cylinders_loopUse": "Loop use {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
@@ -6607,6 +6608,14 @@
     "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",
     "placeholders": {
       "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_loopUse": {
+    "description": "Cylinders card detail item on a CCR dive: the rate gas left this cylinder while the diver was on the loop, with no depth correction, e.g. \"Loop use 1.8 L/min\"",
+    "placeholders": {
+      "rate": {
         "type": "String"
       }
     }
@@ -16480,7 +16489,7 @@
   "settings_units_gasModel_real_subtitle": "Accounts for compressibility. A 12 L cylinder at 200 bar holds about 2317 L.",
   "settings_units_gasModel_ideal": "Ideal gas",
   "settings_units_gasModel_ideal_subtitle": "Matches hand calculation and dive tables. A 12 L cylinder at 200 bar holds 2400 L.",
-  "settings_units_gasModel_explanation": "How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.",
+  "settings_units_gasModel_explanation": "How cylinder pressure is converted to gas volume. This affects RMV, gas used, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.",
   "settings_units_dialog_gasModel": "Gas calculations",
   "settings_units_dialog_waterType": "Default water type",
   "settings_units_dialog_temperatureUnit": "Temperature Unit",
@@ -17189,6 +17198,11 @@
   "insights_gas_sacByRole_error": "Failed to load consumption by role",
   "insights_gas_sacByRole_subtitle": "Average consumption by tank type",
   "insights_gas_sacByRole_title": "Gas consumption by tank role",
+  "insights_gas_ccrUse_title": "Rebreather gas use",
+  "insights_gas_ccrUse_subtitle": "Per minute on the loop, leaving out bailout time",
+  "insights_gas_ccrUse_o2Average": "O₂ average",
+  "insights_gas_ccrUse_o2Series": "O₂",
+  "insights_gas_ccrUse_diluentAverage": "Diluent average",
   "insights_gas_sacRecords_empty": "No consumption data yet",
   "insights_gas_sacRecords_error": "Failed to load consumption records",
   "insights_gas_sacRecords_highestRmv": "Highest RMV",

@@ -10720,6 +10720,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Uso en el circuito $rate';
+  }
+
+  @override
   String diveLog_cylinders_mod(String depth) {
     return 'MOD $depth';
   }
@@ -29222,7 +29227,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Cómo se convierte la presión de la botella en volumen de gas. Afecta al RMV, las estadísticas de gas, el planificador y las calculadoras. El gas ideal coincide con el cálculo que enseñan las agencias; el gas real es físicamente exacto y da un RMV un 5 % menor aproximadamente.';
+      'Cómo se convierte la presión de la botella en volumen de gas. Afecta al RMV, el gas usado, las estadísticas de gas, el planificador y las calculadoras. El gas ideal coincide con el cálculo que enseñan las agencias; el gas real es físicamente exacto y da un RMV un 5 % menor aproximadamente.';
 
   @override
   String get settings_units_dialog_gasModel => 'Cálculos de gas';
@@ -30112,6 +30117,22 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get insights_gas_sacByRole_title =>
       'Consumo de gas por función del tanque';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Uso de gas del rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Por minuto en el circuito, sin tiempo de bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Media de O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Media de diluyente';
 
   @override
   String get insights_gas_sacRecords_empty => 'Aún no hay datos de consumo';

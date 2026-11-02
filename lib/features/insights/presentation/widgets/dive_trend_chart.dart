@@ -67,6 +67,7 @@ class DiveTrendChart extends StatefulWidget {
     this.showRollingMean = false,
     this.showLinearFit = false,
     this.pointColor,
+    this.pointLabel,
     this.rollingColor,
     this.rateColor,
     this.yAxisLabel,
@@ -127,6 +128,11 @@ class DiveTrendChart extends StatefulWidget {
   final bool showRollingMean;
   final bool showLinearFit;
   final Color? pointColor;
+
+  /// Names [points] in the tooltip, for a chart with [secondarySeries] where
+  /// what they are matters more than how they were bucketed. Null names the
+  /// aggregation mode.
+  final String? pointLabel;
   final Color? rollingColor;
   final Color? rateColor;
   final String? yAxisLabel;
@@ -516,7 +522,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       TrendAggregation.monthly => l10n.insights_trend_aggregation_monthly,
     };
     return <String>[
-      mode,
+      widget.pointLabel ?? mode,
       if (!isRaw) ...[
         l10n.insights_trend_tooltip_lowest,
         l10n.insights_trend_tooltip_highest,

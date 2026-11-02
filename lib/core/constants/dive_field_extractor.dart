@@ -4,6 +4,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
 import 'package:submersion/core/text/markdown/notes_plain_text.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// Extension providing raw value extraction from [Dive] and [DiveSummary]
 /// entities for each [DiveField].
@@ -21,9 +23,9 @@ extension DiveFieldExtractor on DiveField {
   /// (`diveTypeLabel` in `dive_log/presentation/formatters/`) so the column
   /// honors the active locale (issue #643). Omitting it keeps the English slug
   /// capitalization, which is what locale-independent consumers want.
-  /// [gasModel] selects the equation of state behind the RMV value and is
-  /// ignored for every other field. Defaults to [GasModel.real] to match the
-  /// AppSettings default (issue #828).
+  /// [gasModel] selects the equation of state behind the RMV and gas consumed
+  /// values and is ignored for every other field. Defaults to [GasModel.real]
+  /// to match the AppSettings default (issue #828).
   dynamic extractFromDive(
     Dive dive, {
     GasModel gasModel = GasModel.real,
@@ -102,7 +104,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.rmv:
         return dive.rmvFor(gasModel);
       case DiveField.gasConsumed:
-        return _computeGasConsumed(dive);
+        return _computeGasConsumed(dive, gasModel);
       case DiveField.totalWeight:
         return dive.recordedWeightKg;
       case DiveField.diveComputerModel:
@@ -221,18 +223,24 @@ extension DiveFieldExtractor on DiveField {
 }
 
 /// Compute the total gas consumed in liters across all tanks of a [Dive].
-double? _computeGasConsumed(Dive dive) {
+double? _computeGasConsumed(Dive dive, GasModel gasModel) {
   if (dive.tanks.isEmpty) return null;
   double total = 0;
   for (final tank in dive.tanks) {
-    if (tank.startPressure == null ||
-        tank.endPressure == null ||
-        tank.volume == null) {
+    final start = tank.startPressure;
+    final end = tank.endPressure;
+    final volume = consumptionVolume(tank, dive.tanks);
+    if (start == null || end == null || volume == null || end >= start) {
       continue;
     }
-    final used = tank.startPressure! - tank.endPressure!;
-    if (used <= 0) continue;
-    total += tank.volume! * used;
+    total += gasVolumeBetween(
+      tankSizeLiters: volume,
+      startBar: start,
+      endBar: end,
+      o2Percent: tank.gasMix.o2,
+      hePercent: tank.gasMix.he,
+      model: gasModel,
+    );
   }
   return total > 0 ? total : null;
 }
