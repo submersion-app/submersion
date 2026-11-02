@@ -448,6 +448,22 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("no such test file: test/nope_test.dart", err)
 
+    def test_subset_with_a_file_outside_the_test_root_is_an_error(self):
+        os.makedirs("testdata")
+        self.write(os.path.join("testdata", "f00_test.dart"), PLAIN)
+        code, _, err = self.run_main(
+            "--subset",
+            self.subset_list("test/a/f00_test.dart", "testdata/f00_test.dart"),
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("not under test/: testdata/f00_test.dart", err)
+
+    def test_subset_with_an_empty_list_is_an_error(self):
+        path = self.subset_list()
+        code, _, err = self.run_main("--subset", path)
+        self.assertEqual(code, 2)
+        self.assertIn("%s lists no test files" % path, err)
+
     def test_subset_and_files_together_are_an_error(self):
         code, _, err = self.run_main(
             "--subset", self.subset_list("test/a/f00_test.dart"),
