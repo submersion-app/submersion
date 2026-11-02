@@ -75,23 +75,7 @@ class SavedQueryChipRow extends ConsumerWidget {
             color: theme.colorScheme.error,
           ),
           label: Text(name),
-          // The same wording as the Manage page, in the diver's language,
-          // under the query's name.
-          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(savedQueryProblemText(context.l10n, load)!),
-                ],
-              ),
-            ),
-          ),
+          onPressed: () => showSavedQueryProblem(context, load),
         );
     }
   }

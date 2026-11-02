@@ -28323,6 +28323,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_filterBar_clear => '清除筛选';
 
   @override
+  String get insights_filterBar_allDives => '全部潜水';
+
+  @override
+  String get insights_filterBar_customFilter => '自定义筛选';
+
+  @override
+  String get insights_filterBar_chooseGroup => '选择潜水分组';
+
+  @override
+  String get insights_filterBar_saveCurrent => '保存当前筛选...';
+
+  @override
+  String get insights_filterBar_manageSaved => '管理已保存的查询';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

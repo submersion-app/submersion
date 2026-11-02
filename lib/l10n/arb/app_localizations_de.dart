@@ -29987,6 +29987,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_filterBar_clear => 'Filter zurücksetzen';
 
   @override
+  String get insights_filterBar_allDives => 'Alle Tauchgänge';
+
+  @override
+  String get insights_filterBar_customFilter => 'Eigener Filter';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Tauchgang-Gruppe wählen';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Aktuellen Filter speichern...';
+
+  @override
+  String get insights_filterBar_manageSaved =>
+      'Gespeicherte Abfragen verwalten';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

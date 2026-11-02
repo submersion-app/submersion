@@ -11,6 +11,8 @@ import 'package:submersion/features/insights/presentation/insights_dive_filters.
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/calendar_day_matrix_card.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -57,8 +59,16 @@ class InsightsTimePatternsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.insights_timePatterns_appBar_title),
+        actions: const [InsightsFilterAction()],
       ),
-      body: content,
+      // Expanded is required: content scrolls, and a Column would otherwise
+      // hand it unbounded height.
+      body: Column(
+        children: [
+          const InsightsFilterBar(),
+          Expanded(child: content),
+        ],
+      ),
     );
   }
 

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -37,8 +39,16 @@ class InsightsGeographicPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.insights_geographic_appBar_title),
+        actions: const [InsightsFilterAction()],
       ),
-      body: content,
+      // Expanded is required: content scrolls, and a Column would otherwise
+      // hand it unbounded height.
+      body: Column(
+        children: [
+          const InsightsFilterBar(),
+          Expanded(child: content),
+        ],
+      ),
     );
   }
 
