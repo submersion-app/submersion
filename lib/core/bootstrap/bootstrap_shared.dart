@@ -77,7 +77,7 @@ Widget buildStartupWrapper({
   required SharedPreferences prefs,
   required LogFileService logFileService,
   required DatabaseLocationService locationService,
-  required DemoPaths demoPaths,
+  required DemoPaths? demoPaths,
 }) => StartupWrapper(
   prefs: prefs,
   logFileService: logFileService,

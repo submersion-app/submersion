@@ -58,7 +58,7 @@ void main() {
       p.join(dir.path, 'logs', 'submersion.log'),
     );
     expect(Directory(p.join(dir.path, 'logs')).existsSync(), isTrue);
-    expect(wrapper.demoPaths?.supportDir, dir.path);
+    expect(wrapper.demoPaths, isNull, reason: 'demo mode is native only');
     expect(environmentLogged, 1);
   });
 }

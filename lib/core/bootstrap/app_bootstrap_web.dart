@@ -8,7 +8,6 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/global_error_handler.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 
 /// Starts the app in a browser.
 ///
@@ -53,7 +52,8 @@ Future<void> bootstrapWeb({
       prefs: prefs,
       logFileService: logFileService,
       locationService: locationService,
-      demoPaths: DemoPaths(appSupportDir),
+      // Demo mode reads sample files from disk; a browser has none.
+      demoPaths: null,
     ),
   );
 }

@@ -206,6 +206,9 @@ class TileCacheService {
     // extracted into browseStoreStrategies and offlineStoreStrategies
     // precisely so it is asserted in tests rather than ignored here.
     if (_initialized) return;
+    // No ObjectBox in a browser: map tiles come straight from the network
+    // there, and the capability work swaps the tile provider accordingly.
+    if (HostPlatform.isWeb) return;
 
     // For macOS: use App Group container for sandbox compatibility.
     // ObjectBox requires special permissions that the App Group provides.
