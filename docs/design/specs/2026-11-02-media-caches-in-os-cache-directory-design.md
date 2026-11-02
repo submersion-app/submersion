@@ -223,6 +223,24 @@ The issue asks for these to be confirmed on a device before relying on them.
 If the emulator contradicts the design, that goes back to the maintainer rather
 than being worked around.
 
+Results, with a debug build of this work on an Android API 36.1 emulator and an
+iOS 26.5 simulator, using files planted in the old location:
+
+- **Paths and the upgrade move:** confirmed on both. All five directories moved
+  to `cache/Submersion` on Android and `Library/Caches/Submersion` on iOS, and
+  `staging` and `transcode` stayed in application support.
+- **Android "Clear cache" (the App Info button) and `pm trim-caches`:** both
+  remove the whole `Submersion` tree, directory included, with the app stopped or
+  open, and the app stays running. So a missing directory does fire for these
+  purges, which is what the design assumed.
+- **Daily cleanup:** confirmed on Android. A dead row was dropped and a live row
+  kept by the production wiring on launch.
+- **Relaunch after emptying `Library/Caches` on iOS:** the app starts normally.
+- **Not covered on a device:** regenerating real thumbnails after a purge, which
+  needs a library of linked photos. Unit tests cover it, and it uses the same path
+  as a first view of a photo. iOS purging and backup behaviour stays based on
+  Apple's documentation.
+
 ## Left to the builder
 
 - The helper's file and function names, and the name of the new sweep.
