@@ -986,6 +986,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      # MinIO's community image and binaries were withdrawn when the project
+      # was archived, so this is a community fork from before it was renamed:
+      # the same server, command and variables, pinned by digest. Only a
+      # throwaway test store with throwaway credentials runs from it.
+      MINIO_IMAGE: pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
       MINIO_BUCKET: submersion-test
@@ -999,11 +1004,11 @@ jobs:
           docker run -d --name minio -p 9000:9000 \
             -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
             -e MINIO_API_CORS_ALLOW_ORIGIN='*' \
-            minio/minio:latest server /data
+            "$MINIO_IMAGE" server /data
           docker run -d --name minio-nocors -p 9001:9000 \
             -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
             -e MINIO_API_CORS_ALLOW_ORIGIN='https://example.invalid' \
-            minio/minio:latest server /data
+            "$MINIO_IMAGE" server /data
           for port in 9000 9001; do
             for attempt in $(seq 1 30); do
               if curl -sf "http://localhost:$port/minio/health/live" > /dev/null; then
@@ -1019,16 +1024,13 @@ jobs:
           done
 
       - name: Create the bucket on both stores
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.MINIO_ROOT_USER }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.MINIO_ROOT_PASSWORD }}
+          AWS_DEFAULT_REGION: us-east-1
         run: |
-          curl -sSfL https://dl.min.io/client/mc/release/linux-amd64/mc \
-            -o "$RUNNER_TEMP/mc"
-          chmod +x "$RUNNER_TEMP/mc"
-          "$RUNNER_TEMP/mc" alias set open http://localhost:9000 \
-            "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
-          "$RUNNER_TEMP/mc" alias set nocors http://localhost:9001 \
-            "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
-          "$RUNNER_TEMP/mc" mb --ignore-existing "open/$MINIO_BUCKET"
-          "$RUNNER_TEMP/mc" mb --ignore-existing "nocors/$MINIO_BUCKET"
+          aws --endpoint-url http://localhost:9000 s3 mb "s3://$MINIO_BUCKET"
+          aws --endpoint-url http://localhost:9001 s3 mb "s3://$MINIO_BUCKET"
 
       - name: Read Flutter version
         id: flutter-ver
@@ -1108,6 +1110,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
+      # MinIO's community image and binaries were withdrawn when the project
+      # was archived, so this is a community fork from before it was renamed:
+      # the same server, command and variables, pinned by digest. Only a
+      # throwaway test store with throwaway credentials runs from it.
+      MINIO_IMAGE: pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
       MINIO_BUCKET: submersion-test
@@ -1121,7 +1128,7 @@ jobs:
           docker run -d --name minio -p 9000:9000 \
             -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
             -e MINIO_API_CORS_ALLOW_ORIGIN='*' \
-            minio/minio:latest server /data
+            "$MINIO_IMAGE" server /data
           for attempt in $(seq 1 30); do
             if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
               break
@@ -1135,13 +1142,11 @@ jobs:
           done
 
       - name: Create the bucket
-        run: |
-          curl -sSfL https://dl.min.io/client/mc/release/linux-amd64/mc \
-            -o "$RUNNER_TEMP/mc"
-          chmod +x "$RUNNER_TEMP/mc"
-          "$RUNNER_TEMP/mc" alias set open http://localhost:9000 \
-            "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
-          "$RUNNER_TEMP/mc" mb --ignore-existing "open/$MINIO_BUCKET"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.MINIO_ROOT_USER }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.MINIO_ROOT_PASSWORD }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: aws --endpoint-url http://localhost:9000 s3 mb "s3://$MINIO_BUCKET"
 
       - name: Read Flutter version
         id: flutter-ver
