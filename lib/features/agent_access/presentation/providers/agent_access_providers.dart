@@ -129,10 +129,12 @@ class AgentAccessController {
   String? _token;
   bool _disposed = false;
 
-  /// One for the listener's life, unlike the server built per request below.
-  /// Reads the file at call time, so a restore, a storage move or an
-  /// encryption change is seen by the next statement.
-  final _sqlRunner = SqlWindowRunner(file: liveSqlDatabaseFile);
+  /// Process-wide, like [AgentAccessServer.instance], and unlike the server
+  /// built per request below: a statement that cannot be stopped outlives a
+  /// scope rebuild too, so its busy flag must. Reads the file at call time, so
+  /// a restore, a storage move or an encryption change is seen by the next
+  /// statement.
+  static final _sqlRunner = SqlWindowRunner(file: liveSqlDatabaseFile);
 
   /// Called when the owning provider is disposed (a scope rebuild). A sync
   /// still awaiting the keychain, the settings or the package info resumes

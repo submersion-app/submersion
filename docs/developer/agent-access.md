@@ -136,8 +136,9 @@ here: that provider can only answer for the active diver.
 with `PRAGMA query_only` on a worker isolate and closed when the call ends.
 Nothing holds a handle between calls, so a restore, a storage move or an
 encryption change needs no handling: the runner reads the path and key on each
-call. The runner lives on the controller rather than in the per-request
-server, because its busy flag has to outlast a request.
+call. The runner is a static on the controller rather than part of the
+per-request server, because its busy flag has to outlast a request and a scope
+rebuild, as a statement that cannot be stopped does.
 
 Read-only says nothing about credentials, so a statement is inspected before
 it steps. The bundled SQLite is built with `OMIT_AUTHORIZATION` and
@@ -160,7 +161,10 @@ fails closed:
 Classifying a table: a table the change log policy excludes must go in
 `kSqlDeniedTables` or `kSqlReadableExcludedTables`, and a test fails until it
 does. A table the policy does not know is refused at runtime. A new credential
-column goes in `changeLogCredentialColumns`, which the window reads too.
+column goes in `changeLogCredentialColumns`, which the window reads too. A
+column the log should keep recording but an agent should not see goes in
+`kSqlDeniedColumns` directly, as `manifest_url` does: a private feed's URL can
+carry an access token.
 
 `submersion://schema` comes from the live schema, so it cannot drift. Its notes
 come from the comments in `lib/core/database/tables/`, because Drift keeps no
@@ -174,14 +178,17 @@ process. `sql_value_limit.dart` sets `SQLITE_LIMIT_LENGTH` through
 `sqlite3_limit`, bound directly because the package does not bind it. That
 works where the library exports the symbol, as on macOS. The package's Linux
 build exports only the functions it binds, so there the call answers false and
-a statement can still build a value of up to a gigabyte. Windows has not been
-checked.
+a statement can still build a value of up to a gigabyte. The Windows build marks
+every API function `dllexport`, so it should work there, but nobody has run it.
 
 A statement that stays inside one native step cannot be stopped: `Isolate.kill`
 acts only when the step returns. The call answers with `still_running`, and
-later calls answer `sql_busy` until the worker ends. `sqlite3_interrupt`
-through FFI would fix this, but it needs a test on all three desktop platforms
-and CI runs Linux only.
+later calls answer `sql_busy` until the worker ends. Until then the statement
+costs more than its thread: it holds a read snapshot, so the WAL cannot reset
+past it, a recursive `UNION` or a sort keeps growing its temporary storage, and
+on Windows its open file can block a restore or a storage move.
+`sqlite3_interrupt` through FFI would fix this, but it needs a test on all three
+desktop platforms and CI runs Linux only.
 
 ## Security rules and their tests
 

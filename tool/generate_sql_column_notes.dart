@@ -8,13 +8,19 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/agent_access/data/sql/sql_denied_set.dart';
 
-const String kSqlTablesPath = 'lib/core/database/tables';
+final String kSqlTablesPath = p.join('lib', 'core', 'database', 'tables');
 
-const String kSqlColumnNotesPath =
-    'lib/features/agent_access/data/resources/'
-    'sql_column_notes.generated.dart';
+final String kSqlColumnNotesPath = p.join(
+  'lib',
+  'features',
+  'agent_access',
+  'data',
+  'resources',
+  'sql_column_notes.generated.dart',
+);
 
 const int _maxNoteLength = 160;
 

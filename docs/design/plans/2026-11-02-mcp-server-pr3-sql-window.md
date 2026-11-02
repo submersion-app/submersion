@@ -49,7 +49,7 @@ The spec leaves these to the builder.
 
 ### Denied columns
 
-`changeLogCredentialColumns`. Today only `media_subscriptions.credentials_host_id` sits on a readable table, but the check stays generic so a future column is covered by adding it to the policy.
+`changeLogCredentialColumns`, plus `manifest_url`, because a private feed's URL can carry an access token. Today only `media_subscriptions.credentials_host_id` and `media_subscriptions.manifest_url` sit on a readable table, but the check stays generic so a future column is covered by adding it to the set.
 
 ## Known limits
 
@@ -98,7 +98,7 @@ Modify `domain/agent_tool_error.dart`, `tools/agent_tool_registry.dart`, `presen
 
 ### Task 1: Denied set and guard
 
-- [ ] Write `sql_denied_set_test.dart`: every `excluded` table in `changeLogTables` is in exactly one of the denied and readable sets; both sets hold only excluded tables; every `sync_*` and `change_log_*` table is denied; `kSqlDeniedColumns` equals `changeLogCredentialColumns`.
+- [ ] Write `sql_denied_set_test.dart`: every `excluded` table in `changeLogTables` is in exactly one of the denied and readable sets; both sets hold only excluded tables; every `sync_*` and `change_log_*` table is denied; `kSqlDeniedColumns` equals `changeLogCredentialColumns` plus `manifest_url`.
 - [ ] Write `sql_denied_set.dart` to pass.
 
 ### Task 2: Program inspection

@@ -42,11 +42,9 @@ void main() {
     final catalog = SqlReadCatalog.load(db);
     final table = catalog.root(rootOf('dives'))!;
     expect(table.table, 'dives');
-    expect(table.index, isNull);
     expect(table.denied, isFalse);
     final index = catalog.root(rootOf('idx_dives_name'))!;
     expect(index.table, 'dives');
-    expect(index.index, 'idx_dives_name');
     expect(index.denied, isFalse);
   });
 
@@ -84,6 +82,17 @@ void main() {
   test('an expression index on such a table is denied', () {
     expect(
       SqlReadCatalog.load(db).root(rootOf('idx_sub_expr'))!.denied,
+      isTrue,
+    );
+  });
+
+  test('a partial index on such a table is denied', () {
+    db.execute(
+      'CREATE INDEX idx_sub_partial ON media_subscriptions (display_name) '
+      'WHERE credentials_host_id IS NOT NULL',
+    );
+    expect(
+      SqlReadCatalog.load(db).root(rootOf('idx_sub_partial'))!.denied,
       isTrue,
     );
   });

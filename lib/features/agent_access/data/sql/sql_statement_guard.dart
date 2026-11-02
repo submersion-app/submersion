@@ -84,6 +84,10 @@ bool _isLetter(int unit) =>
 /// the main database, and every virtual table are refused. A cursor no
 /// `OpenRead` opened, such as a sorter's, needs no check, because its rows
 /// could only have come through a read that was checked here.
+///
+/// Opens are read first, because a program runs in jumps rather than from the
+/// top: a read laid out above the open of its cursor is still judged against
+/// it.
 SqlRefusal? inspectSqlProgram(
   List<SqlExplainStep> program,
   SqlReadCatalog catalog,
@@ -113,17 +117,18 @@ SqlRefusal? inspectSqlProgram(
           'Virtual tables, including pragma_ and json_each, are not available '
           'here.',
         );
-      case 'Column':
-        final refusal = _deniedColumn(cursors[step.p1], step.p2);
-        if (refusal != null) return refusal;
-      // A whole record, so every column it holds.
-      case 'RowData' when cursors[step.p1]?.deniedColumns.isNotEmpty ?? false:
-        final root = cursors[step.p1]!;
-        return _deniedColumn(root, root.deniedColumns.keys.first);
-      case 'IsType' when step.p1 >= 0:
-        final refusal = _deniedColumn(cursors[step.p1], step.p3);
-        if (refusal != null) return refusal;
     }
+  }
+  for (final step in program) {
+    final root = cursors[step.p1];
+    final refusal = switch (step.opcode) {
+      'Column' => _deniedColumn(root, step.p2),
+      'IsType' => _deniedColumn(root, step.p3),
+      // A whole record, so every column it holds.
+      'RowData' => _deniedColumn(root, root?.deniedColumns.keys.firstOrNull),
+      _ => null,
+    };
+    if (refusal != null) return refusal;
   }
   return null;
 }
@@ -133,7 +138,7 @@ SqlRefusal _deniedTable(SqlRoot root) => SqlRefusal(
   details: {'table': root.table},
 );
 
-SqlRefusal? _deniedColumn(SqlRoot? root, int position) {
+SqlRefusal? _deniedColumn(SqlRoot? root, int? position) {
   final column = root?.deniedColumns[position];
   if (column == null) return null;
   return SqlRefusal(

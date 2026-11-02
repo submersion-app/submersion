@@ -52,8 +52,14 @@ const Set<String> kSqlReadableExcludedTables = {
   'trip_day_weather',
 };
 
-/// Columns refused on any table that is otherwise readable.
-const Set<String> kSqlDeniedColumns = changeLogCredentialColumns;
+/// Columns refused on any table that is otherwise readable: the credentials
+/// the change log never records, and the URL of a private feed, which can carry
+/// an access token in its query string. That URL stays out of
+/// [changeLogCredentialColumns] because the log still records edits to it.
+const Set<String> kSqlDeniedColumns = {
+  ...changeLogCredentialColumns,
+  'manifest_url',
+};
 
 /// SQLite's own catalogue: structure, never data.
 const String kSqlSchemaTable = 'sqlite_schema';

@@ -153,6 +153,25 @@ void main() {
       ]);
     });
 
+    test('a value that is not UTF-8 is an SQL error, and hex reads it', () {
+      final outcome =
+          run("SELECT CAST(unhex('ff') AS TEXT)") as SqlWindowFailure;
+      expect(outcome.code, AgentToolErrorCode.sqlError);
+      expect(outcome.message, contains('hex'));
+      expect(rows("SELECT hex(CAST(unhex('ff') AS TEXT))").rows, [
+        ['FF'],
+      ]);
+    });
+
+    test('a blob literal that is not UTF-8 is refused, and unhex reads it', () {
+      expectRefused("SELECT x'ff'", mentions: 'unhex');
+      expect(rows("SELECT unhex('ff')").rows, [
+        [
+          {'blob_bytes': 1},
+        ],
+      ]);
+    });
+
     test('never returns the bytes of a blob', () {
       expect(rows('SELECT zeroblob(5)').rows, [
         [
@@ -219,6 +238,11 @@ void main() {
       expectRefused("WITH c AS (SELECT 1) DELETE FROM dives WHERE id = 'x'");
     });
 
+    test('refuses a NUL, where SQLite would stop reading', () {
+      expectRefused('SELECT 1\u0000');
+      expectRefused('SELECT 1\u0000; DROP TABLE dives');
+    });
+
     test('refuses a second statement', () {
       expectRefused('SELECT 1; SELECT 2');
       expectRefused('SELECT 1; DROP TABLE dives');
@@ -282,18 +306,15 @@ void main() {
 
   group('denied columns', () {
     test('the rest of the table reads', () {
-      final result = rows(
-        'SELECT id, manifest_url, display_name FROM media_subscriptions',
-      );
+      final result = rows('SELECT id, display_name FROM media_subscriptions');
       expect(result.rows, [
-        ['sub-1', 'https://example.test/feed', 'Feed'],
+        ['sub-1', 'Feed'],
       ]);
     });
 
     test('a denied column is refused however it is named', () {
       for (final sql in const [
         'SELECT credentials_host_id FROM media_subscriptions',
-        'SELECT * FROM media_subscriptions',
         'SELECT 1 FROM media_subscriptions WHERE credentials_host_id IS NULL',
         "SELECT 1 FROM media_subscriptions WHERE credentials_host_id > 'a'",
         'SELECT length(credentials_host_id) FROM media_subscriptions',
@@ -306,6 +327,22 @@ void main() {
             'GROUP BY 1',
       ]) {
         expectRefused(sql, mentions: 'credentials_host_id');
+      }
+      expectRefused('SELECT * FROM media_subscriptions');
+    });
+
+    test('a feed URL is refused however it is named', () {
+      for (final sql in const [
+        'SELECT manifest_url FROM media_subscriptions',
+        "SELECT id FROM media_subscriptions WHERE manifest_url LIKE 'https%'",
+        "SELECT instr(manifest_url, 'token') FROM media_subscriptions",
+        'SELECT length(manifest_url) FROM media_subscriptions',
+        'WITH c AS (SELECT * FROM media_subscriptions) '
+            'SELECT manifest_url FROM c',
+        'SELECT id FROM media_subscriptions ORDER BY manifest_url',
+        'SELECT manifest_url, count(*) FROM media_subscriptions GROUP BY 1',
+      ]) {
+        expectRefused(sql, mentions: 'manifest_url');
       }
     });
 
@@ -329,6 +366,14 @@ void main() {
           run('SELECT credentials_host_id FROM media_subscriptions')
               as SqlWindowFailure;
       expect('${outcome.message} ${outcome.details}', isNot(contains('host-')));
+
+      final feed =
+          run('SELECT manifest_url FROM media_subscriptions')
+              as SqlWindowFailure;
+      expect(
+        '${feed.message} ${feed.details}',
+        isNot(contains('example.test')),
+      );
     });
   });
 }

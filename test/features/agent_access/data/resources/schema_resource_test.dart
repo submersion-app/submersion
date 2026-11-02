@@ -76,7 +76,8 @@ void main() {
 
   test('the notes file matches the table sources', () {
     expect(
-      File(kSqlColumnNotesPath).readAsStringSync(),
+      // A Windows checkout can hold this file with CRLF line endings.
+      File(kSqlColumnNotesPath).readAsStringSync().replaceAll('\r\n', '\n'),
       renderSqlColumnNotes(readSqlColumnNotes(Directory(kSqlTablesPath))),
       reason: 'Run dart run tool/generate_sql_column_notes.dart',
     );

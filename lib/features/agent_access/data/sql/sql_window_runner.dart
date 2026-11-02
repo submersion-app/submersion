@@ -67,8 +67,8 @@ class SqlWindowRunner {
     if (_busy) {
       return const SqlWindowFailure(
         AgentToolErrorCode.sqlBusy,
-        'An earlier statement is still running and cannot be stopped. Try '
-        'again later; quitting the app ends it.',
+        'An earlier statement is still running, and only one runs at a time. '
+        'Try again when it ends. One that never ends stops when the app quits.',
       );
     }
     _busy = true;

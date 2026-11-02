@@ -34,8 +34,8 @@ void main() {
     }
   });
 
-  test('the denied columns are the policy credential columns', () {
-    expect(kSqlDeniedColumns, changeLogCredentialColumns);
+  test('the denied columns are the policy credentials and feed URLs', () {
+    expect(kSqlDeniedColumns, {...changeLogCredentialColumns, 'manifest_url'});
   });
 
   test('a table is readable only when the policy knows it', () {

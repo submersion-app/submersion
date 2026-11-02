@@ -110,6 +110,14 @@ SqlWindowOutcome runSqlWindow(SqlWindowRequest request) {
       'Only a single SELECT, WITH or VALUES statement may run.',
     );
   }
+  // SQLite stops reading at a NUL, and the package's check for a second
+  // statement then never reaches the end of the text.
+  if (request.sql.contains('\u0000')) {
+    return const SqlWindowFailure(
+      AgentToolErrorCode.sqlRefused,
+      'A statement may not contain a NUL character.',
+    );
+  }
 
   final Database db;
   try {
@@ -135,6 +143,12 @@ SqlWindowOutcome runSqlWindow(SqlWindowRequest request) {
     return _run(db, request, catalog, clock);
   } on SqliteException catch (e) {
     return SqlWindowFailure(AgentToolErrorCode.sqlError, e.message);
+  } on FormatException {
+    // A TEXT value that is not UTF-8. The package decodes strictly.
+    return const SqlWindowFailure(
+      AgentToolErrorCode.sqlError,
+      'A value is not valid UTF-8 text. Read it with hex() instead.',
+    );
   } finally {
     db.close();
   }
@@ -169,7 +183,18 @@ SqlWindowOutcome _run(
         '${request.params.length} were given.',
       );
     }
-    final refusal = inspectSqlProgram(_explain(db, request), catalog);
+    final SqlRefusal? refusal;
+    try {
+      refusal = inspectSqlProgram(_explain(db, request), catalog);
+    } on FormatException {
+      // A blob literal sits in the listing as raw bytes, and the package
+      // decodes every column it reads, strictly.
+      return const SqlWindowFailure(
+        AgentToolErrorCode.sqlRefused,
+        "A blob literal that is not UTF-8 cannot be inspected. Write x'ff' as "
+        "unhex('ff').",
+      );
+    }
     if (refusal != null) {
       return SqlWindowFailure(
         AgentToolErrorCode.sqlRefused,

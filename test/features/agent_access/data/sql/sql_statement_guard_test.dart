@@ -11,18 +11,14 @@ const _storesNameIndex = 32;
 
 SqlReadCatalog _catalog() => const SqlReadCatalog({
   _dives: SqlRoot(table: 'dives'),
-  _divesIndex: SqlRoot(table: 'dives', index: 'idx_dives'),
+  _divesIndex: SqlRoot(table: 'dives'),
   _accounts: SqlRoot(table: 'connected_accounts', denied: true),
   _stores: SqlRoot(
     table: 'media_subscriptions',
     deniedColumns: {6: 'credentials_host_id'},
   ),
-  _storesCredIndex: SqlRoot(
-    table: 'media_subscriptions',
-    index: 'idx_cred',
-    denied: true,
-  ),
-  _storesNameIndex: SqlRoot(table: 'media_subscriptions', index: 'idx_name'),
+  _storesCredIndex: SqlRoot(table: 'media_subscriptions', denied: true),
+  _storesNameIndex: SqlRoot(table: 'media_subscriptions'),
 });
 
 SqlExplainStep _step(
@@ -49,6 +45,17 @@ void main() {
         ]),
         isNull,
       );
+    });
+
+    test('a read laid out above the open of its cursor is still checked', () {
+      final refusal = _inspect([
+        _step('Init', p2: 3),
+        _step('Column', p1: 0, p2: 6, p3: 1),
+        _step('Halt'),
+        _step('OpenRead', p1: 0, p2: _stores),
+        _step('Goto', p2: 1),
+      ]);
+      expect(refusal?.message, contains('credentials_host_id'));
     });
 
     test('a denied table is refused by name', () {

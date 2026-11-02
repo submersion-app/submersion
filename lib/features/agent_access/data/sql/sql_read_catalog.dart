@@ -6,15 +6,11 @@ import 'package:submersion/features/agent_access/data/sql/sql_denied_set.dart';
 class SqlRoot {
   const SqlRoot({
     required this.table,
-    this.index,
     this.denied = false,
     this.deniedColumns = const {},
   });
 
   final String table;
-
-  /// Null for the table's own b-tree.
-  final String? index;
 
   /// No statement may open this b-tree.
   final bool denied;
@@ -69,18 +65,21 @@ class SqlReadCatalog {
       }
     }
 
-    // Indexes over a denied column, expression indexes included: a NULL
-    // column name means an expression, which might be over anything.
+    // Indexes over a denied column, expression and partial indexes included:
+    // a NULL column name means an expression, and either that or a predicate
+    // might be over anything.
     final deniedIndexes = <String>{};
     for (final table in positions.keys) {
       for (final row in db.select(
-        'SELECT l.name AS idx, x.name AS col, x.cid AS cid '
+        'SELECT l.name AS idx, l.partial AS partial, x.name AS col '
         'FROM pragma_index_list(?) l, pragma_index_xinfo(l.name) x '
         'WHERE x.key = 1',
         [table],
       )) {
         final column = row['col'] as String?;
-        if (column == null || kSqlDeniedColumns.contains(column)) {
+        if (column == null ||
+            row['partial'] != 0 ||
+            kSqlDeniedColumns.contains(column)) {
           deniedIndexes.add(row['idx'] as String);
         }
       }
@@ -100,7 +99,6 @@ class SqlReadCatalog {
           (isIndex && deniedIndexes.contains(name));
       roots[row['rootpage'] as int] = SqlRoot(
         table: table,
-        index: isIndex ? name : null,
         denied: denied,
         deniedColumns: isIndex || denied
             ? const {}
