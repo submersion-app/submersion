@@ -18,6 +18,7 @@ import 'package:submersion/features/divers/data/repositories/profile_hides_repos
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
 import 'package:submersion/features/trips/data/repositories/trip_day_weather_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
@@ -26,6 +27,7 @@ import 'package:submersion/features/trips/data/repositories/trip_row_mapper.dart
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
@@ -463,6 +465,9 @@ class TripRepository {
           variables: [Variable.withString(tripId), Variable.withString(diveId)],
           updates: {_db.dives},
         );
+        await stretchTripsToCoverDives(_db, _syncRepository, [
+          diveId,
+        ], now: DateTime.now().millisecondsSinceEpoch);
       });
       // The cleared tank links are staged; tell auto-sync.
       SyncEventBus.notifyLocalChange();
@@ -622,6 +627,7 @@ class TripRepository {
             updates: {_db.dives},
           );
         }
+        await stretchTripsToCoverDives(_db, _syncRepository, diveIds, now: now);
       });
 
       // Mark dives as pending sync
@@ -638,6 +644,33 @@ class TripRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to batch assign dives to trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Stretches the trips of the dives [diveIds] to cover them (issue #3351),
+  /// for a save that put a dive on a trip or moved it to another day. Returns
+  /// the trips that moved.
+  Future<List<TripDateStretch>> stretchToCoverDives(
+    List<String> diveIds,
+  ) async {
+    try {
+      final stretches = await _db.transaction(
+        () => stretchTripsToCoverDives(
+          _db,
+          _syncRepository,
+          diveIds,
+          now: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      if (stretches.isNotEmpty) SyncEventBus.notifyLocalChange();
+      return stretches;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to stretch trips to cover dives',
         error: e,
         stackTrace: stackTrace,
       );
