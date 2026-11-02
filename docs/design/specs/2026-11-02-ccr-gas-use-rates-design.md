@@ -158,8 +158,9 @@ marked as loop gas have no minimum.
 
 **Known limits.** `classifyCcrGasChanges` decides the timeline from the role of
 the cylinder switched to, and only a Diluent-role cylinder means the loop. This
-feature follows it, so the card always agrees with the profile and the
-decompression schedule, and it inherits two limits:
+feature follows it, so the card agrees with the profile and the decompression
+schedule past the first minute, where a switch only names the starting gas here,
+and it inherits two limits:
 
 - A bailout onto a cylinder marked Diluent reads as staying on the loop, so that
   gas and time count as loop use. Marking the cylinder Sidemount or Bailout
