@@ -149,6 +149,34 @@ void main() {
     },
   );
 
+  test('every segment breathes a twin set logged as one row (#3374)', () {
+    final profile = builder.build(
+      plan: _plan(
+        tanks: const [
+          DiveTank(
+            id: 'deco',
+            volume: 11,
+            startPressure: 200,
+            gasMix: GasMix(o2: 50),
+            role: TankRole.deco,
+          ),
+          DiveTank(
+            id: 'twin',
+            volume: 24,
+            startPressure: 200,
+            gasMix: _air,
+            role: TankRole.twinSet,
+          ),
+        ],
+      ),
+      mission: const DpvMission(legs: [_l1]),
+      throughLegIndex: 0,
+      outboundSpeedMps: 0.5,
+      exitSpeedMps: 0.5,
+    );
+    expect(profile.segments.map((s) => s.tankId).toSet(), {'twin'});
+  });
+
   test('a per-leg current changes the outbound and return holds', () {
     // 0.1 m/s setting toward 90 on a heading of 90: 0.6 out, 0.4 back.
     final leg = _l1.copyWith(
