@@ -97,11 +97,14 @@ void main() {
       required bool picked,
     }) async {
       await pump(tester, highlighted: highlighted, picked: picked);
+      // The card's own InkWell, ahead of the tile's inner one.
       return tester.getSemantics(
-        find.descendant(
-          of: find.byType(RecordListCard),
-          matching: find.byType(InkWell),
-        ),
+        find
+            .descendant(
+              of: find.byType(RecordListCard),
+              matching: find.byType(InkWell),
+            )
+            .first,
       );
     }
 

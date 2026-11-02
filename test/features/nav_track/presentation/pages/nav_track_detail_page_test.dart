@@ -144,6 +144,13 @@ NavTrack _route({
   updatedAt: DateTime(2026, 8, 22),
 );
 
+/// Room for the cards below the stats card: the page is a lazy list, so a
+/// card past the default viewport's cache extent is never built.
+Future<void> _tallView(WidgetTester tester) async {
+  await tester.binding.setSurfaceSize(const Size(800, 1400));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+}
+
 Future<_RecordingNavTrackRepository> _pump(
   WidgetTester tester, {
   required NavTrack route,
@@ -359,6 +366,7 @@ void main() {
   testWidgets('shows the no-correction sentence when nothing was aligned', (
     tester,
   ) async {
+    await _tallView(tester);
     await _pump(tester, route: _route());
 
     expect(find.text('No correction applied yet.'), findsOneWidget);
@@ -630,13 +638,6 @@ void main() {
   });
 
   group('the battery row', () {
-    // The recording-device card sits below the equipment card, past the
-    // default test viewport.
-    Future<void> tallView(WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1400));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-    }
-
     testWidgets(
       'skips a leading 0.00V sample (sensor not settled yet) when picking '
       'the start reading (018.DAT.csv: row 1 reads 0, row 2 reads the real '
@@ -668,7 +669,7 @@ void main() {
                 ),
               ],
             );
-        await tallView(tester);
+        await _tallView(tester);
         await _pump(tester, route: route);
 
         expect(find.text('Battery: 3.90 V → 3.78 V (-0.12 V)'), findsOneWidget);
@@ -699,7 +700,7 @@ void main() {
                 ),
               ],
             );
-        await tallView(tester);
+        await _tallView(tester);
         await _pump(tester, route: route);
 
         final recorder = find.byKey(const ValueKey('nav-track-recorder-card'));
@@ -738,7 +739,7 @@ void main() {
           ),
         ],
       );
-      await tallView(tester);
+      await _tallView(tester);
       await _pump(tester, route: route);
 
       expect(find.textContaining('Battery:'), findsNothing);
@@ -1037,21 +1038,25 @@ void main() {
 
   group('correction status text per end mode', () {
     testWidgets('none', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route());
       expect(find.text('No correction applied yet.'), findsOneWidget);
     });
 
     testWidgets('sameAsStart', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route(endMode: NavTrackEndMode.sameAsStart));
       expect(find.text('End set to same as start.'), findsOneWidget);
     });
 
     testWidgets('point', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route(endMode: NavTrackEndMode.point));
       expect(find.text('End point set on the map.'), findsOneWidget);
     });
 
     testWidgets('gpsFix', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route(endMode: NavTrackEndMode.gpsFix));
       expect(
         find.text('End set from the recording\'s GPS fix.'),

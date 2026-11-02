@@ -47,6 +47,9 @@ class TrackListCard extends StatelessWidget {
       onTap: onTap,
       child: ListTileTheme.merge(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+        // A tile without its own onTap reads as disabled to its mouse region
+        // and shows the basic cursor over the card's click one.
+        mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
         // The dive card's title and date line.
         titleTextStyle: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
