@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/bootstrap/app_bootstrap_web.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/data_quality/domain/detectors/quality_detector_toggles.dart';
 
 /// The browser bootstrap, imported directly and run on the VM with its side
 /// effects injected: no real `runApp`, no platform directory, no platform
@@ -25,11 +26,15 @@ void main() {
     final originalPlatformOnError = PlatformDispatcher.instance.onError;
     final imageCache = PaintingBinding.instance.imageCache;
     final originalCacheBytes = imageCache.maximumSizeBytes;
+    final originalFileLevel = LoggerService.minimumFileLevel;
+    final originalDisabledDetectors = QualityDetectorToggles.disabled;
     addTearDown(() {
       FlutterError.onError = originalFlutterOnError;
       PlatformDispatcher.instance.onError = originalPlatformOnError;
       imageCache.maximumSizeBytes = originalCacheBytes;
       LoggerService.setFileService(null);
+      LoggerService.setMinimumFileLevel(originalFileLevel);
+      QualityDetectorToggles.disabled = originalDisabledDetectors;
     });
 
     Widget? handed;

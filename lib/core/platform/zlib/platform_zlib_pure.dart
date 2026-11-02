@@ -17,10 +17,15 @@ import 'package:submersion/core/platform/zlib/zlib_framing.dart';
 /// Trailers are verified when present: a wrong Adler-32 or CRC-32 is a
 /// [ZlibFormatException], as it is on the native path. A stream cut short
 /// inside the body hands back what was inflated, which is also what the
-/// native decoder does; callers frame their own payloads.
+/// native decoder does; callers frame their own payloads. The unbounded
+/// entries cap at [pureInflateCeilingBytes].
 
-/// 2^52: exact in JavaScript as well as on the VM, and larger than any body.
-const int _unbounded = 4503599627370496;
+/// The cap the "unbounded" pure functions still apply: 256 MiB, well above
+/// any blob the app stores or any sync payload, and far below the point
+/// where a page dies. archive's inflater can produce output without
+/// consuming input on one malformed dynamic block, so a pure inflate with no
+/// cap at all could run until memory is exhausted on ten corrupt bytes.
+const int pureInflateCeilingBytes = 256 << 20;
 
 /// Compresses [bytes] into a zlib stream at [level].
 Uint8List pureDeflate(List<int> bytes, {int level = 6}) =>
@@ -28,15 +33,18 @@ Uint8List pureDeflate(List<int> bytes, {int level = 6}) =>
 
 /// Inflates a zlib stream with no cap on the body.
 Uint8List pureInflate(List<int> bytes) =>
-    pureInflateBounded(bytes, maxBytes: _unbounded);
+    pureInflateBounded(bytes, maxBytes: pureInflateCeilingBytes);
 
 /// Compresses [bytes] into a gzip stream at [level].
 Uint8List pureGzip(List<int> bytes, {int level = 6}) =>
     const GZipEncoderWeb().encodeBytes(bytes, level: level);
 
 /// Inflates a gzip stream with no cap on the body.
-Uint8List pureGunzip(List<int> bytes) =>
-    pureInflateBounded(bytes, maxBytes: _unbounded, framing: ZlibFraming.gzip);
+Uint8List pureGunzip(List<int> bytes) => pureInflateBounded(
+  bytes,
+  maxBytes: pureInflateCeilingBytes,
+  framing: ZlibFraming.gzip,
+);
 
 /// Inflates a stream in [framing], throwing [ZlibBoundExceeded] as soon as
 /// the body would pass [maxBytes] and [ZlibFormatException] for bytes that
@@ -59,13 +67,22 @@ Uint8List pureInflateBounded(
   } on _TruncatedInput {
     throw ZlibFormatException('not a ${framing.name} stream: truncated header');
   }
+  // archive reports most bad data by ending the block parse early, so a
+  // stream cut short inside the body returns what was inflated, as native
+  // does. What it does throw for corrupt data is a RangeError: a
+  // back-reference before the start of the output, or a code-length table
+  // overrun. Neither is a bug here, so both become the format error every
+  // caller already handles.
   try {
     Inflate.stream(input, output: output);
-  } on _TruncatedInput {
-    // Cut short inside the body: return what was inflated, as native does.
-    return output.getBytes();
+  } on ZlibBoundExceeded {
+    rethrow;
   } on ArchiveException catch (e) {
     throw ZlibFormatException(e.message);
+  } on RangeError catch (e) {
+    throw ZlibFormatException('corrupt deflate stream: ${e.message}');
+  } on ArgumentError catch (e) {
+    throw ZlibFormatException('corrupt deflate stream: ${e.message}');
   }
   _verifyTrailer(framing, input, output.getBytes());
   return output.getBytes();
@@ -151,11 +168,12 @@ int _readUint32(_GuardedInput input, {required bool bigEndian}) {
       : (b3 << 24) | (b2 << 16) | (b1 << 8) | b0;
 }
 
-/// Signals that the stream ended where a byte was needed.
+/// Signals that the stream ended inside a header or trailer.
 ///
-/// archive reads past the end of its buffer without a check of its own,
-/// which throws on the VM but can read `undefined` in JavaScript, so the
-/// guard lives on the input side.
+/// archive's own block parser checks for the end of input before every
+/// read; the framing reads here do not, and reading past a JavaScript typed
+/// array yields `undefined` rather than throwing, so the guard lives on the
+/// input side.
 class _TruncatedInput implements Exception {
   const _TruncatedInput();
 }

@@ -143,6 +143,80 @@ void main() {
     expect(() => pureInflate(packed), throwsA(isA<ZlibFormatException>()));
   });
 
+  group('pure path on corrupt deflate data', () {
+    // A valid zlib header, then a back-reference (length code 257,
+    // distance 1) into an output that has no bytes yet.
+    final badDistance = Uint8List.fromList([
+      0x78,
+      0x9c,
+      0x03,
+      0x02,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+    ]);
+    // A valid zlib header, then a dynamic block whose code lengths are all
+    // zero: archive decodes symbol 0 at no bit cost and would write zeros
+    // until memory runs out.
+    final zeroLengths = Uint8List.fromList([
+      0x78,
+      0x9c,
+      0x05,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+    ]);
+    // A valid zlib header followed by a reserved block type.
+    final reservedBlock = Uint8List.fromList([0x78, 0x9c, 0x07, 0x00]);
+
+    test('a back-reference before the start is a format error', () {
+      expect(
+        () => pureInflate(badDistance),
+        throwsA(isA<ZlibFormatException>()),
+      );
+      expect(
+        () => pureInflateBounded(badDistance, maxBytes: 1024),
+        throwsA(isA<ZlibFormatException>()),
+      );
+      expect(
+        () => PlatformZlib.inflate(badDistance),
+        throwsA(isA<ZlibFormatException>()),
+      );
+    });
+
+    test('a block that produces output without input stops at the cap', () {
+      expect(
+        () => pureInflateBounded(zeroLengths, maxBytes: 4096),
+        throwsA(isA<ZlibBoundExceeded>()),
+      );
+    });
+
+    test('the unbounded pure entry still has a ceiling', () {
+      expect(pureInflateCeilingBytes, lessThanOrEqualTo(512 * 1024 * 1024));
+      expect(pureInflateCeilingBytes, greaterThanOrEqualTo(64 * 1024 * 1024));
+    });
+
+    test('a reserved block type with a trailer is a format error', () {
+      final withTrailer = Uint8List.fromList([
+        ...reservedBlock,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+      ]);
+      expect(
+        () => pureInflate(withTrailer),
+        throwsA(isA<ZlibFormatException>()),
+      );
+    });
+  });
+
   test('gzip round-trips and gunzip accepts the other path\'s output', () {
     final native = PlatformZlib.gzip(sample);
     final pure = pureGzip(sample);
