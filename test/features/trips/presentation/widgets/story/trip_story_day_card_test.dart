@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
@@ -414,6 +415,11 @@ void main() {
     expect(backdropWidget.fadeStart, TripStoryDayCard.mapFadeStart);
     expect(TripStoryDayCard.mapFadeStart, greaterThan(0));
     expect(TripStoryDayCard.mapFadeStart, lessThan(0.5));
+    // Pins and the attribution stay above the fade's heavy end.
+    expect(
+      tester.widget<TripDayMap>(find.byType(TripDayMap)).bottomInset,
+      TripStoryDayCard.mapBottomInset,
+    );
   });
 
   testWidgets('a surface day card is shaded, a dive day card is not', (

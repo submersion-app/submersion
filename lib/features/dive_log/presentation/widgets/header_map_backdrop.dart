@@ -42,10 +42,10 @@ class HeaderMapBackdrop extends StatelessWidget {
   /// on so the pins on its day map stay tappable under the fade (#4106).
   final bool passesPointerThrough;
 
-  /// Fraction of the height the map shows through clear before the fade
-  /// begins. Zero (the dive detail header) washes the map lightly from the
-  /// top edge; the trip story's day card leaves the top of its taller map
-  /// clear so the day's pins read against real map (#4106).
+  /// Fraction of the height the map shows with nothing over it. Zero (the
+  /// dive detail header) washes the map lightly from the top edge instead;
+  /// the trip story's day card leaves the top of its taller map clear so the
+  /// day's pins read against real map (#4106).
   final double fadeStart;
 
   @override
@@ -79,17 +79,9 @@ class HeaderMapBackdrop extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    stops: [
-                      if (fadeStart > 0) 0.0,
-                      start,
-                      step(0.3),
-                      step(0.7),
-                      opaqueFrom,
-                      1.0,
-                    ],
+                    stops: [start, step(0.3), step(0.7), opaqueFrom, 1.0],
                     colors: [
-                      if (fadeStart > 0) fadeColor.withValues(alpha: 0),
-                      fadeColor.withValues(alpha: 0.3),
+                      fadeColor.withValues(alpha: fadeStart > 0 ? 0 : 0.3),
                       fadeColor.withValues(alpha: 0.6),
                       fadeColor.withValues(alpha: 0.85),
                       fadeColor,

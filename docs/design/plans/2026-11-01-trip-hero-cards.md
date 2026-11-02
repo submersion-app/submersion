@@ -91,11 +91,16 @@ intended, and the design changed:
   progress line) goes back on the page surface with the stat strip under it.
   The strip keeps no tint, so the header is one block rather than the two
   shaded blocks that started this. `TripHeroCard` and its gradient fallback
-  are removed; `TripStoryHero` opens the story again, as before the issue.
+  are removed, and so are the helpers extracted for it: `TripStoryHero` opens
+  the story again, unchanged from before the issue.
 - Day card: the map peek grows from 120 to 220 points, and
   `HeaderMapBackdrop` gains `fadeStart`, the fraction of its height the map
-  shows clear before the fade begins. The day card passes 0.3; the dive
+  shows clear before the fade begins. The day card passes 0.45; the dive
   detail header passes nothing and renders as before.
+- `TripDayMap.bottomInset` (120 on the day card) fits pins, and lifts the map
+  attribution, above the part of the map the header row and the fade cover.
+  `WorldCameraFit` honours uneven padding for a lone point so a one-site day
+  is lifted too.
 - Surface days: the card is filled with `surfaceContainerHighest`, two tonal
   steps above the other day cards, so a day with only a header reads as a
   pause in the trip.

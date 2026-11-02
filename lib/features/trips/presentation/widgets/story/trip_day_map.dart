@@ -39,6 +39,11 @@ class TripDayMap extends ConsumerStatefulWidget {
   /// never catches the story's scroll; the fullscreen page leaves it on.
   final bool interactive;
 
+  /// Height along the map's bottom edge that something else covers. Pins are
+  /// fitted above it and the attribution sits above it, so neither ends up
+  /// hidden.
+  final double bottomInset;
+
   const TripDayMap({
     super.key,
     required this.day,
@@ -48,6 +53,7 @@ class TripDayMap extends ConsumerStatefulWidget {
     this.onMapTap,
     this.onExpand,
     this.interactive = true,
+    this.bottomInset = 0,
   });
 
   /// Zoomed out further the world shrinks to a strip; matches the other
@@ -81,7 +87,7 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
 
   WorldCameraFit _fit(double maxZoom) => WorldCameraFit(
     points: [for (final p in widget.points) LatLng(p.latitude, p.longitude)],
-    padding: const EdgeInsets.all(32),
+    padding: EdgeInsets.fromLTRB(32, 32, 32, 32 + widget.bottomInset),
     maxZoom: maxZoom,
     singlePointZoom: TripDayMap.singlePointZoom,
   );
@@ -206,7 +212,7 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
                   builder: (context) =>
                       MarkerLayer(markers: _markers(MapCamera.of(context))),
                 ),
-                const MapAttribution(),
+                MapAttribution(bottomInset: widget.bottomInset),
               ],
             ),
           ),

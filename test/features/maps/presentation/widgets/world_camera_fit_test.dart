@@ -36,6 +36,31 @@ void main() {
     expect(fitted.zoom, greaterThan(3));
   });
 
+  test('a lone point sits in the middle of the padded area', () {
+    const point = LatLng(12.1, -68.2);
+    final fitted = const WorldCameraFit(
+      points: [point],
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 100),
+      singlePointZoom: 13,
+    ).fit(_camera());
+
+    expect(fitted.zoom, 13);
+    // 100 points of bottom padding lift the point 50 above the map's centre.
+    final screen = fitted.projectAtZoom(point) - fitted.pixelOrigin;
+    expect(screen.dx, closeTo(400, 0.01));
+    expect(screen.dy, closeTo(250, 0.01));
+  });
+
+  test('symmetric padding leaves a lone point centred', () {
+    const point = LatLng(12.1, -68.2);
+    final fitted = const WorldCameraFit(
+      points: [point],
+      padding: EdgeInsets.all(32),
+    ).fit(_camera());
+    expect(fitted.center.latitude, closeTo(point.latitude, 1e-9));
+    expect(fitted.center.longitude, closeTo(point.longitude, 1e-9));
+  });
+
   test('matches a plain bounds fit when nothing crosses the date line', () {
     const points = [LatLng(10, -80), LatLng(20, -60)];
     const padding = EdgeInsets.all(50);

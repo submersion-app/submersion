@@ -115,10 +115,9 @@ void main() {
 
     final gradient = _fadeGradient(tester);
     const opaqueFrom = (200 - kHeaderMapBottomInset) / 200;
-    // Transparent down to the fade start, then the same three-step fade
+    // Nothing over the map above the fade start, then the fade's steps
     // compressed into what is left above the opaque band.
     expect(gradient.stops, [
-      0.0,
       0.4,
       0.4 + 0.3 * (opaqueFrom - 0.4),
       0.4 + 0.7 * (opaqueFrom - 0.4),
@@ -126,8 +125,7 @@ void main() {
       1.0,
     ]);
     expect(gradient.colors.first, _fade.withValues(alpha: 0));
-    expect(gradient.colors[1], _fade.withValues(alpha: 0.3));
-    expect(gradient.colors.sublist(4), [_fade, _fade]);
+    expect(gradient.colors.sublist(3), [_fade, _fade]);
   });
 
   Future<int> tapsThroughFade(

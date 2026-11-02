@@ -21,8 +21,9 @@ import 'package:submersion/features/maps/domain/map_utils.dart';
 ///
 /// The bounds are padded by ten percent of each span first, as
 /// [boundsForPoints] does, then by [padding] on screen. A set of points that
-/// all sit on one spot is centred at [singlePointZoom] instead (never past
-/// [maxZoom]), since a zero-area box has no finite zoom. Unusable points (see
+/// all sit on one spot is centred in the padded area at [singlePointZoom]
+/// instead (never past [maxZoom]), since a zero-area box has no finite zoom.
+/// Unusable points (see
 /// [isUsableMapPoint]) are skipped; with none left the camera is unchanged.
 @immutable
 class WorldCameraFit extends CameraFit {
@@ -51,9 +52,22 @@ class WorldCameraFit extends CameraFit {
     ];
     final bounds = boundsForPoints(centred)!;
     if (bounds.north == bounds.south && bounds.east == bounds.west) {
+      final zoom = math.min(singlePointZoom, maxZoom ?? singlePointZoom);
+      final spot = LatLng(bounds.north, normalizeLongitude(middle));
+      // Uneven padding moves the padded area's middle off the map's, so the
+      // camera shifts by half the difference to keep the spot in it.
+      final shift = Offset(
+        (padding.right - padding.left) / 2,
+        (padding.bottom - padding.top) / 2,
+      );
       return camera.withPosition(
-        center: LatLng(bounds.north, normalizeLongitude(middle)),
-        zoom: math.min(singlePointZoom, maxZoom ?? singlePointZoom),
+        center: shift == Offset.zero
+            ? spot
+            : camera.unprojectAtZoom(
+                camera.projectAtZoom(spot, zoom) + shift,
+                zoom,
+              ),
+        zoom: zoom,
       );
     }
 

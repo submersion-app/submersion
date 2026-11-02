@@ -99,6 +99,7 @@ Future<List<String?>> _pump(
   String? highlighted,
   VoidCallback? onExpand,
   bool interactive = true,
+  double bottomInset = 0,
 }) async {
   final taps = <String?>[];
   final overrides = await getBaseOverrides();
@@ -119,6 +120,7 @@ Future<List<String?>> _pump(
               onDiveTap: taps.add,
               onExpand: onExpand,
               interactive: interactive,
+              bottomInset: bottomInset,
             ),
           ),
         ),
@@ -131,6 +133,22 @@ Future<List<String?>> _pump(
 }
 
 void main() {
+  testWidgets('a bottom inset keeps the pin and attribution above it', (
+    tester,
+  ) async {
+    await _pump(tester, points: const [_dive1]);
+    final pin = find.byKey(const Key('day-map-pin-d1'));
+    final info = find.byIcon(Icons.info_outlined);
+    final pinY = tester.getCenter(pin).dy;
+    final infoY = tester.getCenter(info).dy;
+
+    // The initial fit applies once, so the map has to mount afresh.
+    await tester.pumpWidget(const SizedBox());
+    await _pump(tester, points: const [_dive1], bottomInset: 60);
+    expect(tester.getCenter(pin).dy, closeTo(pinY - 30, 1));
+    expect(tester.getCenter(info).dy, closeTo(infoY - 60, 0.5));
+  });
+
   testWidgets('a story-card map forwards trackpad scrolls to the story', (
     tester,
   ) async {

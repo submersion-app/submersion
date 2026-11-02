@@ -18,9 +18,9 @@ import 'package:submersion/features/documents/presentation/widgets/documents_sec
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
-/// The assembled trip story, one plain scroll (#2845): the hero card with the
-/// trip's stats (#4106), the cylinders line while under way, and one chapter
-/// per day, each with its own map. While the trip is under way it opens at today: today's chapter is
+/// The assembled trip story, one plain scroll (#2845): hero, stat strip, the
+/// cylinders line while under way, and one chapter per day, each with its
+/// own map. While the trip is under way it opens at today: today's chapter is
 /// the scroll's anchor, with the hero and earlier days above it.
 class TripStoryView extends ConsumerWidget {
   /// Marks the sliver that opens at the top of the view on a trip under way.

@@ -40,10 +40,15 @@ class TripStoryDayCard extends ConsumerStatefulWidget {
   static const double mapPeekHeight = 220;
 
   /// Fraction of the map stack that shows clear before the fade begins
-  /// (`HeaderMapBackdrop.fadeStart`): the pins sit on real map and the fade
-  /// has most of the peek to reach the header row, instead of washing the
-  /// map from its first pixel and turning opaque in a short band.
-  static const double mapFadeStart = 0.3;
+  /// (`HeaderMapBackdrop.fadeStart`): the pins sit on real map, and the fade
+  /// runs down to the header row instead of washing the map from its first
+  /// pixel.
+  static const double mapFadeStart = 0.45;
+
+  /// The bottom of the map stack the header row and the fade's heavy end
+  /// cover (`TripDayMap.bottomInset`), so a day's pins and the attribution
+  /// land in the part of the map that can be seen.
+  static const double mapBottomInset = 120;
 
   final TripStoryDay day;
   final String tripId;
@@ -171,6 +176,7 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                       // Panning and zooming live in the fullscreen view; in
                       // the card a drag scrolls the story.
                       interactive: false,
+                      bottomInset: TripStoryDayCard.mapBottomInset,
                       onExpand: widget.onExpandMap == null
                           ? null
                           : () => widget.onExpandMap!(day, widget.mapPoints),
@@ -196,10 +202,10 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
 
     return Card(
       shape: shape,
-      // A surface day sits two tonal steps above the other cards: with no
-      // map, stats or rows, its header alone would look like a dive day
-      // that lost its body. backdropColorOf reads this colour, so a map
-      // (which a surface day never has) would still fade correctly.
+      // A surface day sits two tonal steps above the other cards: its header
+      // alone would look like a dive day that lost its body. A planned rest
+      // day can still have an itinerary map, which backdropColorOf fades
+      // into this same colour.
       color: day.readsAsSurface
           ? theme.colorScheme.surfaceContainerHighest
           : null,
