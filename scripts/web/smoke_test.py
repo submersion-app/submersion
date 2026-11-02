@@ -25,10 +25,13 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from playwright.sync_api import sync_playwright
 
 BASE_URL = os.environ.get("SMOKE_BASE_URL", "http://127.0.0.1:8080")
-ENDPOINT = os.environ["MINIO_ENDPOINT"]
-BUCKET = os.environ["MINIO_BUCKET"]
-ACCESS_KEY = os.environ["MINIO_ACCESS_KEY"]
-SECRET_KEY = os.environ["MINIO_SECRET_KEY"]
+# The store settings are read when a test needs the store, so the first-run
+# test runs against a bare bundle; the round trip fails, never skips, if
+# one is missing.
+ENDPOINT = os.environ.get("MINIO_ENDPOINT")
+BUCKET = os.environ.get("MINIO_BUCKET")
+ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY")
+SECRET_KEY = os.environ.get("MINIO_SECRET_KEY")
 
 # The sync log layout (lib/core/services/sync/changeset_log): every object
 # under the prefix starts with ssv1.<device id>. and a changeset carries .cs.
@@ -41,11 +44,28 @@ STEP_TIMEOUT_MS = 30_000
 SEEDED_DIVES = 5
 SEED_SITE = "Seed Reef"
 
-# The wizard's own step actions, whichever its later steps show.
-STEP_ACTIONS = ["Next", "Skip", "Not now", "Done", "Finish", "Get started"]
+# The wizard's later steps (backups, photos, finish) each move on with one of
+# these; Not now and Skip are left out on purpose, since they skip steps
+# that matter (the sync step's Not now would skip the download).
+STEP_ACTIONS = ["Next", "Get started", "Done", "Finish"]
+# The actions that leave the wizard for the app.
+FINISH_ACTIONS = ("Get started", "Done", "Finish")
+# A first run with no store moves off the connect step with Not now.
+FRESH_ACTIONS = STEP_ACTIONS + ["Not now"]
 
 
 def s3():
+    missing = [
+        name
+        for name, value in (
+            ("MINIO_ENDPOINT", ENDPOINT),
+            ("MINIO_BUCKET", BUCKET),
+            ("MINIO_ACCESS_KEY", ACCESS_KEY),
+            ("MINIO_SECRET_KEY", SECRET_KEY),
+        )
+        if not value
+    ]
+    assert not missing, "the store needs %s" % ", ".join(missing)
     return boto3.client(
         "s3",
         endpoint_url=ENDPOINT,
@@ -94,20 +114,36 @@ def wait_for_browser_changeset(timeout_s=90):
     )
 
 
+def exact(text):
+    """A whole-name match: Flutter composes a tile's name from its texts."""
+    return re.compile(r"^%s$" % re.escape(text))
+
+
+def button(page, name):
+    return page.get_by_role("button", name=name).first
+
+
 def by_text(page, text):
-    """A locator for a Flutter semantics node that reads [text]."""
-    pattern = re.compile(re.escape(text))
-    return page.get_by_text(pattern).or_(page.get_by_label(pattern))
+    """A node that reads exactly [text], or a tile whose name starts with it."""
+    return page.get_by_text(exact(text)).or_(
+        page.get_by_role("button", name=re.compile(r"^%s\b" % re.escape(text)))
+    ).first
 
 
-def click(page, text, timeout=STEP_TIMEOUT_MS):
-    by_text(page, text).first.click(timeout=timeout)
+def click_text(page, text, timeout=STEP_TIMEOUT_MS):
+    by_text(page, text).click(timeout=timeout)
 
 
-def fill(page, label, value):
-    field = page.get_by_label(re.compile(re.escape(label))).first
+def fill_field(page, label, value):
+    """Material merges the label into the field's node, so the textbox is
+    found by its label. Typed keys, never `fill`: Flutter's text field is
+    a DOM input only while it holds focus, and a value set on it directly
+    was dropped for every other field of the connect form."""
+    field = page.get_by_role("textbox", name=re.compile(re.escape(label))).first
     field.click(timeout=STEP_TIMEOUT_MS)
-    field.fill(value)
+    page.wait_for_timeout(300)
+    field.press_sequentially(value)
+    page.wait_for_timeout(300)
 
 
 def wait_for_flutter(page):
@@ -124,34 +160,76 @@ def wait_for_flutter(page):
 def advance_until(page, text, max_steps=12):
     """Clicks whatever wizard action is showing until [text] is on screen."""
     for _ in range(max_steps):
-        if by_text(page, text).first.is_visible():
+        if by_text(page, text).is_visible():
             return
         for action in STEP_ACTIONS:
-            button = page.get_by_role("button", name=re.compile(r"^%s$" % re.escape(action)))
-            if button.count() and button.first.is_visible():
-                button.first.click()
+            candidate = button(page, exact(action))
+            if candidate.count() and candidate.is_visible():
+                candidate.click()
                 page.wait_for_timeout(1500)
                 break
         else:
             page.wait_for_timeout(1500)
-    by_text(page, text).first.wait_for(state="visible", timeout=STEP_TIMEOUT_MS)
+    by_text(page, text).wait_for(state="visible", timeout=STEP_TIMEOUT_MS)
+
+
+def continue_without_store(page):
+    """The connect step's offer on a browser's first run."""
+    button(page, exact("Continue without a sync store")).click(
+        timeout=STEP_TIMEOUT_MS
+    )
+
+
+def finish_first_run(page, max_steps=12):
+    """Clicks through the remaining steps and waits for the dashboard once
+    the last one is taken."""
+    dashboard = re.compile(r"#/dashboard")
+    for _ in range(max_steps):
+        for action in FRESH_ACTIONS:
+            candidate = button(page, exact(action))
+            if (
+                candidate.count()
+                and candidate.is_visible()
+                and candidate.is_enabled()
+            ):
+                candidate.click()
+                if action in FINISH_ACTIONS:
+                    page.wait_for_url(dashboard, timeout=STEP_TIMEOUT_MS)
+                    return
+                page.wait_for_timeout(1500)
+                break
+        else:
+            page.wait_for_timeout(1500)
+    raise AssertionError("the wizard never reached its last step")
 
 
 def connect_to_store(page):
-    click(page, "My own server")
-    fill(page, "Endpoint URL", ENDPOINT)
-    fill(page, "Bucket", BUCKET)
-    fill(page, "Access Key ID", ACCESS_KEY)
-    fill(page, "Secret Access Key", SECRET_KEY)
-    click(page, "Check connection")
+    click_text(page, "My own server")
+    fill_field(page, "Endpoint URL", ENDPOINT)
+    fill_field(page, "Bucket", BUCKET)
+    fill_field(page, "Access Key ID", ACCESS_KEY)
+    fill_field(page, "Secret Access Key", SECRET_KEY)
+    button(page, exact("Check connection")).click()
     page.wait_for_timeout(3000)
-    click(page, "Save")
+    button(page, exact("Save")).click()
+    # The session store is page memory; a reload later needs the credentials
+    # kept, which is what the switch does.
+    page.get_by_role("switch", name=re.compile(r"^Remember on this device")).first.click()
+    page.wait_for_timeout(500)
+
+
+def download_library(page):
+    """The sync step offers the seeded library; an empty browser downloads
+    it, which runs the first sync."""
+    button(page, exact("Download library")).click(timeout=STEP_TIMEOUT_MS)
 
 
 def open_dive_list(page):
     advance_until(page, "Dives")
-    click(page, "Dives")
-    rows = by_text(page, SEED_SITE)
+    click_text(page, "Dives")
+    rows = page.get_by_text(re.compile(SEED_SITE)).or_(
+        page.get_by_role("button", name=re.compile(SEED_SITE))
+    )
     deadline = time.monotonic() + STEP_TIMEOUT_MS / 1000
     while rows.count() < SEEDED_DIVES and time.monotonic() < deadline:
         page.wait_for_timeout(1000)
@@ -164,23 +242,17 @@ def open_dive_list(page):
 
 def edit_first_dive(page, rows, note):
     rows.first.click()
-    page.get_by_role("button", name=re.compile("edit", re.I)).first.click(
-        timeout=STEP_TIMEOUT_MS
-    )
-    fill(page, "Notes", note)
-    click(page, "Save")
+    button(page, re.compile(r"^Edit\b", re.I)).click(timeout=STEP_TIMEOUT_MS)
+    fill_field(page, "Notes", note)
+    button(page, exact("Save")).click()
     page.wait_for_timeout(2000)
 
 
 def sync_now(page):
-    for route in ("/settings/cloud-sync?a11y=1", "/#/settings/cloud-sync?a11y=1"):
-        page.goto(BASE_URL + route, wait_until="load")
-        try:
-            click(page, "Sync Now", timeout=20_000)
-            return
-        except PlaywrightTimeout:
-            continue
-    raise AssertionError("the Cloud Sync page with its Sync Now button was not reached")
+    """The app routes by URL fragment, so the query stays ahead of the hash;
+    the credentials survive the reload because Remember was turned on."""
+    page.goto(BASE_URL + "/?a11y=1#/settings/cloud-sync", wait_until="load")
+    button(page, exact("Sync Now")).click(timeout=STEP_TIMEOUT_MS)
 
 
 @pytest.fixture(params=["chromium", "firefox", "webkit"])
@@ -195,14 +267,32 @@ def page(request):
         finally:
             context.close()
             browser.close()
-            # The next browser starts from a bucket holding only the seed.
-            delete_browser_objects()
 
 
-def test_round_trip(page):
+@pytest.fixture
+def clean_store():
+    """A bucket holding only the seed before the test, and again after it
+    so the next browser starts from the same place."""
     delete_browser_objects()
+    yield
+    delete_browser_objects()
+
+
+def test_fresh_first_run(page):
+    """No store: the offer on the connect step, a name, the remaining steps,
+    then the first write (the diver) landing on the dashboard. drift 2.34.3
+    hung that commit on the locked OPFS mode, which is what an isolated page
+    gets in Chromium (drift issue #3870)."""
+    wait_for_flutter(page)
+    continue_without_store(page)
+    fill_field(page, "Your Name", "Smoke Diver")
+    finish_first_run(page)
+
+
+def test_round_trip(page, clean_store):
     wait_for_flutter(page)
     connect_to_store(page)
+    download_library(page)
     rows = open_dive_list(page)
     note = "Smoke edit from %s at %s" % (
         page.context.browser.browser_type.name,

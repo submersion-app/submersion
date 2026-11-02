@@ -293,7 +293,14 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
         .authorizationForScopes(_scopes);
     if (authorization == null) return false;
     final client = _browserClient(authorization);
-    final email = _email ?? await _readAccountEmail(client);
+    final String? email;
+    try {
+      email = _email ?? await _readAccountEmail(client);
+    } catch (_) {
+      // Nothing installed it yet, so nothing else would ever close it.
+      client.close();
+      rethrow;
+    }
     _install(client, accessToken: authorization.accessToken, email: email);
     return true;
   }
@@ -312,7 +319,15 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       null,
       _scopes,
     );
-    return TimeoutHttpClient(authenticatedClient(_baseClient(), credentials));
+    // The wrapper's close must reach the transport, which the OAuth client
+    // leaves open unless told otherwise.
+    return TimeoutHttpClient(
+      authenticatedClient(
+        _baseClient(),
+        credentials,
+        closeUnderlyingClient: true,
+      ),
+    );
   }
 
   Future<String?> _readAccountEmail(http.Client client) async {

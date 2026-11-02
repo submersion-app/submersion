@@ -26,13 +26,14 @@ Cross-Origin-Embedder-Policy: credentialless
 ```
 
 They make the page "cross-origin isolated", which unlocks the fastest
-browser storage: the database runs in a shared worker over the browser's
-private file system. Without them the app still works, on a slower path.
+browser storage: the database runs in a web worker over the browser's
+private file system. Chrome only gets that with the headers; Firefox gets
+it either way. Without them the app still works, on a slower path.
 Settings, Cloud Sync shows a **Browser storage** row naming what is in
-use: *Browser file storage* with or without the headers (slower without),
-*Browser database (slower)* where the browser has no file storage, or a
-warning that nothing is saved when the browser gives the site no lasting
-storage at all.
+use: *Browser file storage*, *Browser database (slower)* where the browser
+has no file storage or, in Chrome, the headers are missing, or a warning
+that nothing is saved when the browser gives the site no lasting storage
+at all.
 
 `credentialless` rather than `require-corp`: the stricter mode blocks every
 image and map tile from a host that does not send its own cross-origin
@@ -40,7 +41,16 @@ headers, so photos linked from the web and map tiles would stop loading.
 Switch to `require-corp` only if a policy on your side demands it, and
 expect those to break.
 
-The files for each host below already carry the headers.
+**Google Drive and the opener policy.** Google's sign-in opens a popup
+that has to report back to the page, and `same-origin` cuts that link, so
+the sign-in never completes. If your users connect Google Drive, send
+`Cross-Origin-Opener-Policy: same-origin-allow-popups` instead. That mode
+does not make the page cross-origin isolated, so the database runs on the
+slower storage path described above; the other stores are unaffected
+either way.
+
+The files for each host below already carry the headers, with the Google
+Drive alternative noted beside them.
 
 ## Hosts
 
@@ -125,5 +135,11 @@ Google Cloud project, created once; the guide walks through it.
 ## Updating
 
 Replace the files with the next release's bundle. There is no service
-worker, so browsers fetch the new files on the next load and there is no
-cache to clear. The app shows its version in Settings, About.
+worker, and the hosting files mark the entry files (`index.html`,
+`flutter_bootstrap.js`, `main.dart.js` and `version.json`) `no-cache`, so a
+browser revalidates them on the next load and picks the new bundle up at
+once; the rest of the bundle may stay cached until those files point
+elsewhere. On a host that cannot set headers (GitHub Pages, an S3 website
+endpoint) a returning visitor may keep last release's files until their
+browser revalidates on its own; a hard reload fetches the new ones. The
+app shows its version in Settings, About.

@@ -7,10 +7,17 @@
 dive.example.com {
 	root * /srv/submersion-web
 	encode gzip
+	# A site whose users connect Google Drive needs Google's sign-in popup
+	# to talk back to the page, which same-origin forbids: use
+	# "same-origin-allow-popups" there and accept the slower storage.
 	header {
 		Cross-Origin-Opener-Policy "same-origin"
 		Cross-Origin-Embedder-Policy "credentialless"
 	}
+	# The entry files are revalidated on every load, so a replaced bundle
+	# is picked up at once.
+	@entry path /index.html /flutter_bootstrap.js /main.dart.js /version.json
+	header @entry Cache-Control "no-cache"
 	try_files {path} /index.html
 	file_server
 }

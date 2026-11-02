@@ -756,6 +756,7 @@ jobs:
         with:
           name: web-bundle
           path: Submersion-*-Web.zip
+          if-no-files-found: error
           retention-days: 5
 
   # ============================================================================

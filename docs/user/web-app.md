@@ -174,7 +174,12 @@ once:
    asks for it when you choose Google Drive in a browser; paste it there.
 
 A web client id is public by design: it has no secret, and restricting it
-to your site's address is what protects it. The browser's Google sign-in
+to your site's address is what protects it. One thing to tell whoever
+hosts the site: Google's sign-in opens a popup that must report back to the
+page, and the `Cross-Origin-Opener-Policy: same-origin` header the hosting
+guide recommends cuts that link, so a site whose users connect Google Drive
+sends `same-origin-allow-popups` instead (the guide explains; the app then
+uses the slower storage path). The browser's Google sign-in
 lasts about an hour and cannot be kept across visits, so Google asks you
 to sign in to the site on each visit; while the tab is open the app renews
 quietly, and when it cannot, the sync status asks you to sign in again.
@@ -201,9 +206,11 @@ site, so they are there on the next visit without a fresh download.
 Settings, Cloud Sync shows a **Browser storage** row naming what is in
 use:
 
-- *Browser file storage*: the fastest, and the usual case.
-- *Browser database (slower)*: a browser without file storage. Everything
-  works; large libraries take longer to open.
+- *Browser file storage*: the fastest. Chrome uses it when the site sends
+  the two headers the hosting guide describes; Firefox uses it either way.
+- *Browser database (slower)*: a browser without file storage, or Chrome
+  on a site without the headers. Everything works; large libraries take
+  longer to open.
 - A warning that nothing is saved after the tab closes: a browser that
   gives the site no lasting storage, such as some private windows. Sync
   before you leave.

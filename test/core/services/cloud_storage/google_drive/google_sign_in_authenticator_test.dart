@@ -747,7 +747,44 @@ void main() {
       expect(platform.authorizationCalls, 1);
       expect(platform.lightweightCalls, 0);
     });
+
+    test(
+      'a renewal whose account read fails closes the client it built',
+      () async {
+        platform.webPlugin = true;
+        final transport = _ClosingClient(
+          MockClient((request) async => throw http.ClientException('offline')),
+        );
+        final web = GoogleSignInAuthenticator(
+          isWeb: true,
+          webClientId: () async => clientId,
+          baseClient: () => transport,
+        );
+        expect(await web.attemptSilentAuth(), isFalse);
+        expect(web.lastSilentAuthThrew, isTrue);
+        expect(web.authClient, isNull);
+        expect(transport.closed, isTrue);
+      },
+    );
   });
+}
+
+/// A transport that records whether the authenticator closed it.
+class _ClosingClient extends http.BaseClient {
+  _ClosingClient(this._inner);
+
+  final http.Client _inner;
+  bool closed = false;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      _inner.send(request);
+
+  @override
+  void close() {
+    closed = true;
+    _inner.close();
+  }
 }
 
 /// Platform whose init() throws, to exercise attemptSilentAuth's catch.
