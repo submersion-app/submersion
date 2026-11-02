@@ -20,6 +20,9 @@ import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -47,6 +50,32 @@ class PdfExportService {
   /// folder of exports still sorts chronologically (#964).
   static final _fileNameDate = DateFormat('yyyy-MM-dd');
 
+  /// Each dive's annotation id to its m:ss (#4109), so a linked passage in
+  /// the notes prints its time. Read once for the whole export. The time is
+  /// a courtesy after the words, so a failed read prints the words alone
+  /// rather than failing the export.
+  Future<Map<String, Map<String, String>>> _annotationTimesByDive(
+    List<Dive> dives,
+  ) async {
+    try {
+      final rows = await DiveComputerRepository().getEventsForDives([
+        for (final dive in dives) dive.id,
+      ]);
+      return {
+        for (final dive in dives)
+          if (rows[dive.id] case final events?)
+            dive.id: annotationTimesOf(
+              dropOrphanAnnotations(
+                events.map(mapDiveProfileEventToProfileEvent).toList(),
+                dive.notes,
+              ),
+            ),
+      };
+    } catch (_) {
+      return const {};
+    }
+  }
+
   // ==================== Trip PDF ====================
 
   /// Export trip with dives to PDF, in [localization]'s language (#2252).
@@ -67,6 +96,7 @@ class PdfExportService {
     // translated label such as Hungarian "Időtartam" would print boxes.
     await PdfFonts.instance.initialize();
     final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
+    final annotationTimesByDive = await _annotationTimesByDive(dives);
 
     // Title page
     pdf.addPage(
@@ -197,6 +227,7 @@ class PdfExportService {
               ...notesMarkdownPdfBlocks(
                 dive.notes,
                 style: const pw.TextStyle(fontSize: 12),
+                annotationTimes: annotationTimesByDive[dive.id] ?? const {},
               ),
             ],
           ],
@@ -256,6 +287,7 @@ class PdfExportService {
     final generatedAt = _now();
 
     final builder = _templateFor(options.template);
+    final annotationTimesByDive = await _annotationTimesByDive(dives);
     // The language picked in the export sheet (#2252). A null title lets the
     // template head the document in that language, and dates name months in
     // it too.
@@ -268,6 +300,7 @@ class PdfExportService {
       pageSize: options.pageSize,
       dates: dates.inLanguage(localization.languageCode),
       units: units,
+      annotationTimesByDive: annotationTimesByDive,
       title: title,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       profiles: profiles,
