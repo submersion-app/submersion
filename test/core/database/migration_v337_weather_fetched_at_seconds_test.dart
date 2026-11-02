@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/change_log/change_log_rewrites.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v337: `dives.weather_fetched_at` is Unix seconds, but the bulk conditions
@@ -85,6 +86,10 @@ void main() {
   test('v337 is in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(337));
     expect(AppDatabase.migrationVersions, contains(337));
+  });
+
+  test('a revert will not put back a stamp from before the rung', () {
+    expect(changeLogRewrittenColumns['dives.weather_fetched_at'], 337);
   });
 
   test('a stamp stored in milliseconds becomes seconds', () async {

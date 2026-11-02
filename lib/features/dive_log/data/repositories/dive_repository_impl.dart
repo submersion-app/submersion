@@ -132,6 +132,14 @@ typedef ConditionsCandidate = ({
   double longitude,
 });
 
+/// `dives.weather_fetched_at` holds Unix seconds, where most columns here hold
+/// milliseconds (issue #4119), so every read and write goes through this pair.
+int? _weatherStamp(DateTime? fetchedAt) =>
+    fetchedAt == null ? null : fetchedAt.millisecondsSinceEpoch ~/ 1000;
+
+DateTime? _weatherStampTime(int? stamp) =>
+    stamp == null ? null : DateTime.fromMillisecondsSinceEpoch(stamp * 1000);
+
 class DiveRepository {
   /// The media dependencies drive the dive-deletion cascade
   /// (orphan-prevention spec 4.2); injectable for tests, self-constructed
@@ -1265,7 +1273,7 @@ class DiveRepository {
                 ? Value(source.name)
                 : const Value.absent(),
             weatherFetchedAt: stampProvenance
-                ? Value(fetchedAt.millisecondsSinceEpoch ~/ 1000)
+                ? Value(_weatherStamp(fetchedAt))
                 : const Value.absent(),
             updatedAt: Value(now),
           ),
@@ -2122,11 +2130,7 @@ class DiveRepository {
                 weatherDescription: Value(dive.weatherDescription),
                 weatherCode: Value(dive.weatherCode),
                 weatherSource: Value(dive.weatherSource?.name),
-                weatherFetchedAt: Value(
-                  dive.weatherFetchedAt != null
-                      ? dive.weatherFetchedAt!.millisecondsSinceEpoch ~/ 1000
-                      : null,
-                ),
+                weatherFetchedAt: Value(_weatherStamp(dive.weatherFetchedAt)),
                 // Surface interval and deco settings
                 surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
                 gradientFactorLow: Value(dive.gradientFactorLow),
@@ -2461,11 +2465,7 @@ class DiveRepository {
             weatherDescription: Value(dive.weatherDescription),
             weatherCode: Value(dive.weatherCode),
             weatherSource: Value(dive.weatherSource?.name),
-            weatherFetchedAt: Value(
-              dive.weatherFetchedAt != null
-                  ? dive.weatherFetchedAt!.millisecondsSinceEpoch ~/ 1000
-                  : null,
-            ),
+            weatherFetchedAt: Value(_weatherStamp(dive.weatherFetchedAt)),
             // Surface interval and deco settings
             surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
             gradientFactorLow: Value(dive.gradientFactorLow),
@@ -4877,9 +4877,7 @@ class DiveRepository {
               orElse: () => WeatherSource.manual,
             )
           : null,
-      weatherFetchedAt: row.weatherFetchedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.weatherFetchedAt! * 1000)
-          : null,
+      weatherFetchedAt: _weatherStampTime(row.weatherFetchedAt),
       tanks: tanks
           .map(
             (t) => domain.DiveTank(
@@ -5342,9 +5340,7 @@ class DiveRepository {
               orElse: () => WeatherSource.manual,
             )
           : null,
-      weatherFetchedAt: row.weatherFetchedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.weatherFetchedAt! * 1000)
-          : null,
+      weatherFetchedAt: _weatherStampTime(row.weatherFetchedAt),
       tanks: tankRows.map((t) {
         return domain.DiveTank(
           id: t.id,

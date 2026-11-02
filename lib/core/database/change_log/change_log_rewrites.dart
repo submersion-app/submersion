@@ -11,4 +11,7 @@ const Map<String, int> changeLogRewrittenColumns = {
   // delete copy from before it has no checklist_id, which a restore needs.
   'trip_checklist_items.trip_id': 336,
   'trip_checklist_sections.trip_id': 336,
+  // v337 turned milliseconds back into the seconds this column holds (issue
+  // #4119), so a stamp logged before it may be a thousand times too large.
+  'dives.weather_fetched_at': 337,
 };
