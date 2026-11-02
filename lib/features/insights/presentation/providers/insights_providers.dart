@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/ccr_gas_use_trend.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
@@ -220,6 +221,19 @@ final sacRecordsProvider =
         );
       }
     });
+
+/// O2 and diluent use per CCR dive. Not a SAC or RMV lane, so the gas page's
+/// lane selector does not touch it.
+final ccrGasUseTrendProvider = FutureProvider<CcrGasUseTrend>((ref) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getCcrGasUsePerDive(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
 
 /// Average consumption by tank role for the lane the gas page shows.
 final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {

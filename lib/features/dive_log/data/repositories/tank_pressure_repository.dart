@@ -76,6 +76,19 @@ class TankPressureRepository {
     };
   }
 
+  /// [getTankPressuresForDive] for many dives at once, keyed by dive id, then
+  /// tank id; a dive with no pressure data is absent. Unlike
+  /// [getTankPressuresForDives] this keeps only the series the app reads, so
+  /// a statistic over many dives matches what one dive shows.
+  Future<Map<String, Map<String, List<TankPressurePoint>>>>
+  getDisplayedTankPressuresForDives(List<String> diveIds) async {
+    final exports = await getTankPressuresForDives(diveIds);
+    return {
+      for (final entry in exports.entries)
+        entry.key: _groupByTank(entry.value.displayedSeries),
+    };
+  }
+
   /// [getTankPressuresForDive] as one source saw the dive: on a tank that
   /// [computerId] logged, only its series; on any other tank, every series.
   /// See [selectTankSeriesForComputer] for why a consolidated dive needs
