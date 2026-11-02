@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:markdown/markdown.dart' as md;
 
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/shared/utils/browser_launch.dart';
 import 'package:submersion/shared/utils/link_open.dart';
 
@@ -13,7 +15,15 @@ import 'package:submersion/shared/utils/link_open.dart';
 ///
 /// Callers keep their own empty state; an empty [source] draws nothing.
 class MarkdownNotesView extends StatefulWidget {
-  const MarkdownNotesView(this.source, {super.key, this.style, this.launch});
+  const MarkdownNotesView(
+    this.source, {
+    super.key,
+    this.style,
+    this.launch,
+    this.annotationTimes,
+    this.onAnnotationTap,
+    this.highlightedAnnotationId,
+  });
 
   final String source;
 
@@ -23,6 +33,20 @@ class MarkdownNotesView extends StatefulWidget {
   /// Opens a link. Defaults to [openInBrowser]; injectable so tests never
   /// leave the app.
   final UrlLaunch? launch;
+
+  /// Annotation id to its time as `m:ss` (#4109). A `[words](annotation:id)`
+  /// link whose id is here draws with a pin and that time after it, and taps
+  /// through to [onAnnotationTap]; one whose id is absent, or every one when
+  /// this is null, draws as plain words, as it does for every other Notes
+  /// consumer.
+  final Map<String, String>? annotationTimes;
+
+  /// Called with the annotation id when its link is tapped.
+  final ValueChanged<String>? onAnnotationTap;
+
+  /// The annotation whose words draw with a highlight background, when the
+  /// page has just scrolled to it.
+  final String? highlightedAnnotationId;
 
   @override
   State<MarkdownNotesView> createState() => _MarkdownNotesViewState();
@@ -38,6 +62,8 @@ class _MarkdownNotesViewState extends State<MarkdownNotesView> {
   String? _builtSource;
   TextStyle? _builtStyle;
   ThemeData? _builtTheme;
+  Map<String, String>? _builtAnnotationTimes;
+  String? _builtHighlight;
 
   void _disposeRecognizers() {
     for (final recognizer in _recognizers) {
@@ -59,7 +85,9 @@ class _MarkdownNotesViewState extends State<MarkdownNotesView> {
     if (_blocks != null &&
         _builtSource == widget.source &&
         _builtStyle == widget.style &&
-        identical(_builtTheme, theme)) {
+        identical(_builtTheme, theme) &&
+        mapEquals(_builtAnnotationTimes, widget.annotationTimes) &&
+        _builtHighlight == widget.highlightedAnnotationId) {
       return _blocks!;
     }
     _disposeRecognizers();
@@ -68,10 +96,17 @@ class _MarkdownNotesViewState extends State<MarkdownNotesView> {
       base: widget.style ?? theme.textTheme.bodyMedium ?? const TextStyle(),
       recognizers: _recognizers,
       onOpen: _open,
+      annotationTimes: widget.annotationTimes,
+      onAnnotationTap: widget.onAnnotationTap,
+      highlightedAnnotationId: widget.highlightedAnnotationId,
     );
     _builtSource = widget.source;
     _builtStyle = widget.style;
     _builtTheme = theme;
+    _builtAnnotationTimes = widget.annotationTimes == null
+        ? null
+        : Map.of(widget.annotationTimes!);
+    _builtHighlight = widget.highlightedAnnotationId;
     return _blocks = builder.blocks(parseNotesMarkdown(widget.source));
   }
 
@@ -101,12 +136,18 @@ class _NotesBuilder {
     required this.base,
     required this.recognizers,
     required this.onOpen,
+    this.annotationTimes,
+    this.onAnnotationTap,
+    this.highlightedAnnotationId,
   });
 
   final ThemeData theme;
   final TextStyle base;
   final List<TapGestureRecognizer> recognizers;
   final void Function(Uri uri) onOpen;
+  final Map<String, String>? annotationTimes;
+  final ValueChanged<String>? onAnnotationTap;
+  final String? highlightedAnnotationId;
 
   ColorScheme get _colors => theme.colorScheme;
 
@@ -358,26 +399,74 @@ class _NotesBuilder {
     String? href,
     TextStyle style,
   ) {
+    final annotationId = annotationIdFromHref(href);
+    if (annotationId != null) {
+      return _annotationLink(children, annotationId, style);
+    }
     if (!isTappableNotesLink(href)) return _inline(children, style);
     final uri = Uri.parse(href!);
     final recognizer = TapGestureRecognizer()..onTap = () => onOpen(uri);
     recognizers.add(recognizer);
-    final linkStyle = style.copyWith(
-      color: _colors.primary,
-      decoration: TextDecoration.underline,
-      decorationColor: _colors.primary,
-    );
+    return _tappable(children, recognizer, _linkStyle(style));
+  }
+
+  /// An annotation link (#4109): a pin, the words as a link, then the
+  /// annotation's time in a smaller muted style. A dangling id (no
+  /// annotation on this dive), or a consumer without the hooks, draws the
+  /// words plain and never rewrites them.
+  List<InlineSpan> _annotationLink(
+    List<md.Node> children,
+    String id,
+    TextStyle style,
+  ) {
+    final time = annotationTimes?[id];
+    if (time == null) return _inline(children, style);
+    final onTap = onAnnotationTap;
+    final recognizer = TapGestureRecognizer()..onTap = () => onTap?.call(id);
+    recognizers.add(recognizer);
+    var linkStyle = _linkStyle(style);
+    if (id == highlightedAnnotationId) {
+      linkStyle = linkStyle.copyWith(backgroundColor: _colors.primaryContainer);
+    }
+    final size = (style.fontSize ?? 14) * 0.85;
     return [
-      for (final span in _inline(children, linkStyle))
-        if (span is TextSpan)
-          TextSpan(
-            text: span.text,
-            style: span.style,
-            recognizer: recognizer,
-            mouseCursor: SystemMouseCursors.click,
-          )
-        else
-          span,
+      WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 2),
+          child: Icon(Icons.push_pin, size: size, color: _colors.primary),
+        ),
+      ),
+      ..._tappable(children, recognizer, linkStyle),
+      TextSpan(
+        text: ' $time',
+        style: (theme.textTheme.bodySmall ?? style).copyWith(
+          color: _colors.onSurfaceVariant,
+        ),
+      ),
     ];
   }
+
+  TextStyle _linkStyle(TextStyle style) => style.copyWith(
+    color: _colors.primary,
+    decoration: TextDecoration.underline,
+    decorationColor: _colors.primary,
+  );
+
+  List<InlineSpan> _tappable(
+    List<md.Node> children,
+    TapGestureRecognizer recognizer,
+    TextStyle linkStyle,
+  ) => [
+    for (final span in _inline(children, linkStyle))
+      if (span is TextSpan)
+        TextSpan(
+          text: span.text,
+          style: span.style,
+          recognizer: recognizer,
+          mouseCursor: SystemMouseCursors.click,
+        )
+      else
+        span,
+  ];
 }
