@@ -55,6 +55,7 @@ part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
 part 'insights_repository_tank_configuration.dart';
 part 'insights_repository_time_of_day.dart';
+part 'insights_repository_twin_set_candidates.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
