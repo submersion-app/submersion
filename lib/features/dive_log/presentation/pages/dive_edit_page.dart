@@ -30,6 +30,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
@@ -108,6 +109,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/conditions_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_gear_section.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_editing.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/annotation_time_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_link_sheet.dart';
@@ -178,6 +182,7 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
+part 'dive_edit_page_annotations.dart';
 part 'dive_edit_page_gas_switches.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
@@ -516,6 +521,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   // Existing dive for editing
   Dive? _existingDive;
+
+  /// Annotations linked in the notes since the page opened, written on save
+  /// (#4109).
+  List<PendingAnnotation> _pendingAnnotations = const [];
 
   /// Planned dive, awaiting its dive computer data (issue #2002). A planned
   /// dive holds no number; turning the switch off on an existing planned
@@ -3485,6 +3494,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       notesPlaceholder: context.l10n.diveLog_edit_notesHint,
       sightingsChild: _sightingsChild(),
       tagsChild: _tagsChild(),
+      onAnnotate: widget.isBulk ? null : _requestAnnotation,
     );
   }
 
@@ -6454,6 +6464,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
       // After the dive and its cylinders, so the cylinder ids exist.
       await _saveGasSwitches(savedDiveId);
+      // After the notes, which the annotation rows are reconciled against.
+      await _reconcileAnnotations(savedDiveId);
 
       // Save sightings
       if (savedDiveId != null) {

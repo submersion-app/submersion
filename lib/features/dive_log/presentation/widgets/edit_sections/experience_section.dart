@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_editing.dart';
 
 /// Group 6: rating, marine life (existing list as slot), notes, tags
 /// (existing TagInputWidget as slot).
@@ -19,6 +20,7 @@ class ExperienceSection extends StatelessWidget {
     required this.notesPlaceholder,
     required this.sightingsChild,
     required this.tagsChild,
+    this.onAnnotate,
   });
 
   final bool expanded;
@@ -31,6 +33,10 @@ class ExperienceSection extends StatelessWidget {
   final String notesPlaceholder;
   final Widget sightingsChild;
   final Widget tagsChild;
+
+  /// Answers the notes editor's pin (#4109); null hides the pin.
+  final Future<AnnotationRequestResult?> Function(String selectedWords)?
+  onAnnotate;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +63,7 @@ class ExperienceSection extends StatelessWidget {
           placeholder: notesPlaceholder,
           maxLines: 5,
           markdown: true,
+          onAnnotate: onAnnotate,
         ),
         tagsChild,
       ],
