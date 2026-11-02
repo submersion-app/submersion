@@ -5462,6 +5462,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get notesEditor_action_numberedList => 'Számozott lista';
 
   @override
+  String get notesEditor_action_annotate => 'Megjelölés';
+
+  @override
   String get notesEditor_action_preview => 'Előnézet';
 
   @override
@@ -8317,6 +8320,80 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_section_notes => 'Jegyzetek';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'Új jelölés';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return '„$words” megjelölése';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'Mi történt';
+
+  @override
+  String get diveLog_annotation_words_required => 'Írd le, mi történt';
+
+  @override
+  String get diveLog_annotation_field_time => 'Idő a kezdettől';
+
+  @override
+  String get diveLog_annotation_time_invalid =>
+      'Adj meg perc:másodperc értéket';
+
+  @override
+  String get diveLog_annotation_time_outsideDive =>
+      'A merülésen belül kell lennie';
+
+  @override
+  String get diveLog_annotation_pickOnProfile =>
+      'Vagy koppints a profilra az elhelyezéshez';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'Ennek a merülésnek nincs profilja, amire mutatni lehetne. Írd be helyette az időt.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'Megjelölés';
+
+  @override
+  String get diveLog_annotation_action_add => 'Hozzáadás';
+
+  @override
+  String get diveLog_annotation_add => 'Jelölés hozzáadása';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'Koppints a profilon oda, ahol történt. Tartsd nyomva a finomhangoláshoz.';
+
+  @override
+  String get diveLog_annotation_banner_move => 'Koppints a jelölés új helyére.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'Mégse';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'Megnyitás a jegyzetekben';
+
+  @override
+  String get diveLog_annotation_popup_move => 'Áthelyezés';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'Eltávolítás';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'Jelölés itt: $time';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'Jelölés eltávolítva';
+
+  @override
   String get diveLog_edit_section_rating => 'Értékelés';
 
   @override
@@ -8910,6 +8987,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'Események';
+
+  @override
+  String get diveLog_legend_label_annotations => 'Jelölések';
 
   @override
   String get diveLog_legend_label_computedEvents => 'Számított események';
@@ -13628,6 +13708,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => 'Jegyzet';
+
+  @override
+  String get enum_profileEvent_annotation => 'Jelölés';
 
   @override
   String get enum_profileEvent_ppO2High => 'Magas ppO2';

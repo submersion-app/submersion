@@ -5179,6 +5179,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notesEditor_action_numberedList => '编号列表';
 
   @override
+  String get notesEditor_action_annotate => '标注';
+
+  @override
   String get notesEditor_action_preview => '预览';
 
   @override
@@ -7919,6 +7922,75 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_section_notes => '备注';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => '新建标注';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return '标注“$words”';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => '发生了什么';
+
+  @override
+  String get diveLog_annotation_words_required => '请填写发生了什么';
+
+  @override
+  String get diveLog_annotation_field_time => '距开始的时间';
+
+  @override
+  String get diveLog_annotation_time_invalid => '请输入 分钟:秒';
+
+  @override
+  String get diveLog_annotation_time_outsideDive => '必须在潜水时间范围内';
+
+  @override
+  String get diveLog_annotation_pickOnProfile => '或点击轮廓以放置';
+
+  @override
+  String get diveLog_annotation_noProfile => '此次潜水没有可指向的轮廓。请改为输入时间。';
+
+  @override
+  String get diveLog_annotation_action_annotate => '标注';
+
+  @override
+  String get diveLog_annotation_action_add => '添加';
+
+  @override
+  String get diveLog_annotation_add => '添加标注';
+
+  @override
+  String get diveLog_annotation_banner_place => '点击轮廓上事件发生的位置。长按可微调。';
+
+  @override
+  String get diveLog_annotation_banner_move => '点击此标注的新位置。';
+
+  @override
+  String get diveLog_annotation_banner_cancel => '取消';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time，$depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => '在备注中打开';
+
+  @override
+  String get diveLog_annotation_popup_move => '移动';
+
+  @override
+  String get diveLog_annotation_popup_remove => '移除';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return '在 $time 标注';
+  }
+
+  @override
+  String get diveLog_annotation_removed => '标注已移除';
+
+  @override
   String get diveLog_edit_section_rating => '评分';
 
   @override
@@ -8468,6 +8540,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => '事件';
+
+  @override
+  String get diveLog_legend_label_annotations => '标注';
 
   @override
   String get diveLog_legend_label_computedEvents => '计算的事件';
@@ -13006,6 +13081,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => '备注';
+
+  @override
+  String get enum_profileEvent_annotation => '标注';
 
   @override
   String get enum_profileEvent_ppO2High => '氧分压过高';

@@ -5573,6 +5573,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesEditor_action_numberedList => 'قائمة مرقمة';
 
   @override
+  String get notesEditor_action_annotate => 'تعليق';
+
+  @override
   String get notesEditor_action_preview => 'معاينة';
 
   @override
@@ -8467,6 +8470,79 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_section_notes => 'الملاحظات';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'تعليق جديد';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return 'التعليق على «$words»';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'ماذا حدث';
+
+  @override
+  String get diveLog_annotation_words_required => 'اذكر ما حدث';
+
+  @override
+  String get diveLog_annotation_field_time => 'الوقت منذ البداية';
+
+  @override
+  String get diveLog_annotation_time_invalid => 'أدخل الدقائق:الثواني';
+
+  @override
+  String get diveLog_annotation_time_outsideDive => 'يجب أن يكون ضمن الغوصة';
+
+  @override
+  String get diveLog_annotation_pickOnProfile =>
+      'أو انقر على ملف الغوصة لتحديد الموضع';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'لا يوجد ملف غوصة للإشارة إليه في هذه الغوصة. أدخل الوقت بدلًا من ذلك.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'تعليق';
+
+  @override
+  String get diveLog_annotation_action_add => 'إضافة';
+
+  @override
+  String get diveLog_annotation_add => 'إضافة تعليق';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'انقر على ملف الغوصة حيث حدث الأمر. اضغط مطولًا للضبط الدقيق.';
+
+  @override
+  String get diveLog_annotation_banner_move =>
+      'انقر على الموضع الجديد لهذا التعليق.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'إلغاء';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time عند $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'فتح في الملاحظات';
+
+  @override
+  String get diveLog_annotation_popup_move => 'نقل';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'إزالة';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'تعليق عند $time';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'تمت إزالة التعليق';
+
+  @override
   String get diveLog_edit_section_rating => 'التقييم';
 
   @override
@@ -9053,6 +9129,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'الأحداث';
+
+  @override
+  String get diveLog_legend_label_annotations => 'التعليقات';
 
   @override
   String get diveLog_legend_label_computedEvents => 'الأحداث المحسوبة';
@@ -13850,6 +13929,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => 'ملاحظة';
+
+  @override
+  String get enum_profileEvent_annotation => 'تعليق';
 
   @override
   String get enum_profileEvent_ppO2High => 'ppO2 مرتفع';

@@ -5397,6 +5397,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesEditor_action_numberedList => 'Numbered list';
 
   @override
+  String get notesEditor_action_annotate => 'Annotate';
+
+  @override
   String get notesEditor_action_preview => 'Preview';
 
   @override
@@ -8213,6 +8216,79 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_section_notes => 'Notes';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'New annotation';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return 'Annotate \"$words\"';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'What happened';
+
+  @override
+  String get diveLog_annotation_words_required => 'Say what happened';
+
+  @override
+  String get diveLog_annotation_field_time => 'Time from the start';
+
+  @override
+  String get diveLog_annotation_time_invalid => 'Enter minutes:seconds';
+
+  @override
+  String get diveLog_annotation_time_outsideDive => 'Must be within the dive';
+
+  @override
+  String get diveLog_annotation_pickOnProfile =>
+      'Or tap the profile to place it';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'This dive has no profile to point at. Type the time instead.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'Annotate';
+
+  @override
+  String get diveLog_annotation_action_add => 'Add';
+
+  @override
+  String get diveLog_annotation_add => 'Add annotation';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'Tap the profile where it happened. Press and hold to fine-tune.';
+
+  @override
+  String get diveLog_annotation_banner_move =>
+      'Tap the new spot for this annotation.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'Cancel';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time at $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'Open in Notes';
+
+  @override
+  String get diveLog_annotation_popup_move => 'Move';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'Remove';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'Annotate at $time';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'Annotation removed';
+
+  @override
   String get diveLog_edit_section_rating => 'Rating';
 
   @override
@@ -8789,6 +8865,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'Events';
+
+  @override
+  String get diveLog_legend_label_annotations => 'Annotations';
 
   @override
   String get diveLog_legend_label_computedEvents => 'Computed events';
@@ -13458,6 +13537,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => 'Note';
+
+  @override
+  String get enum_profileEvent_annotation => 'Annotation';
 
   @override
   String get enum_profileEvent_ppO2High => 'High ppO2';

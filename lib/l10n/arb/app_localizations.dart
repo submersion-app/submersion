@@ -8550,6 +8550,12 @@ abstract class AppLocalizations {
   /// **'Numbered list'**
   String get notesEditor_action_numberedList;
 
+  /// Tooltip for the notes editor button that pins the selected words to a time in the dive (an annotation)
+  ///
+  /// In en, this message translates to:
+  /// **'Annotate'**
+  String get notesEditor_action_annotate;
+
   /// Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed
   ///
   /// In en, this message translates to:
@@ -13141,6 +13147,132 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get diveLog_edit_section_notes;
 
+  /// Title of the sheet that creates an annotation (a notes passage pinned to a time in the dive) when no words were selected
+  ///
+  /// In en, this message translates to:
+  /// **'New annotation'**
+  String get diveLog_annotation_sheetTitle_new;
+
+  /// Title of the sheet that pins the selected notes words to a time in the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Annotate \"{words}\"'**
+  String diveLog_annotation_sheetTitle_words(String words);
+
+  /// Label of the words field on the annotation sheet
+  ///
+  /// In en, this message translates to:
+  /// **'What happened'**
+  String get diveLog_annotation_field_words;
+
+  /// Validation message when the annotation words field is left empty
+  ///
+  /// In en, this message translates to:
+  /// **'Say what happened'**
+  String get diveLog_annotation_words_required;
+
+  /// Label of the minutes:seconds field on the annotation sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Time from the start'**
+  String get diveLog_annotation_field_time;
+
+  /// Validation message when the annotation time does not parse as minutes:seconds
+  ///
+  /// In en, this message translates to:
+  /// **'Enter minutes:seconds'**
+  String get diveLog_annotation_time_invalid;
+
+  /// Validation message when the annotation time is later than the dive's runtime
+  ///
+  /// In en, this message translates to:
+  /// **'Must be within the dive'**
+  String get diveLog_annotation_time_outsideDive;
+
+  /// Hint above the small dive profile on the annotation sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Or tap the profile to place it'**
+  String get diveLog_annotation_pickOnProfile;
+
+  /// Shown on the annotation sheet in place of the small profile when the dive has no profile samples
+  ///
+  /// In en, this message translates to:
+  /// **'This dive has no profile to point at. Type the time instead.'**
+  String get diveLog_annotation_noProfile;
+
+  /// Primary button of the annotation sheet when the words were selected in the notes
+  ///
+  /// In en, this message translates to:
+  /// **'Annotate'**
+  String get diveLog_annotation_action_annotate;
+
+  /// Primary button of the annotation sheet when it also asked for the words
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get diveLog_annotation_action_add;
+
+  /// Tooltip of the pin button on the dive profile card that starts placing an annotation
+  ///
+  /// In en, this message translates to:
+  /// **'Add annotation'**
+  String get diveLog_annotation_add;
+
+  /// Banner above the dive profile while a new annotation is being placed
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the profile where it happened. Press and hold to fine-tune.'**
+  String get diveLog_annotation_banner_place;
+
+  /// Banner above the dive profile while an existing annotation is being moved
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the new spot for this annotation.'**
+  String get diveLog_annotation_banner_move;
+
+  /// Button on the placement banner that leaves placement mode with nothing added
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get diveLog_annotation_banner_cancel;
+
+  /// Time and depth line of the annotation popup, e.g. 21:30 at 19.6m
+  ///
+  /// In en, this message translates to:
+  /// **'{time} at {depth}'**
+  String diveLog_annotation_popup_meta(String time, String depth);
+
+  /// Annotation popup action that scrolls to the Notes card and highlights the passage
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Notes'**
+  String get diveLog_annotation_popup_openInNotes;
+
+  /// Annotation popup action that re-enters placement mode for this annotation
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get diveLog_annotation_popup_move;
+
+  /// Annotation popup action that deletes the annotation and keeps its words as plain text
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get diveLog_annotation_popup_remove;
+
+  /// Right-click menu item on the dive profile that opens the annotation sheet for that time
+  ///
+  /// In en, this message translates to:
+  /// **'Annotate at {time}'**
+  String diveLog_annotation_contextMenu_annotateAt(String time);
+
+  /// Snack bar shown after an annotation was removed from the profile
+  ///
+  /// In en, this message translates to:
+  /// **'Annotation removed'**
+  String get diveLog_annotation_removed;
+
   /// No description provided for @diveLog_edit_section_rating.
   ///
   /// In en, this message translates to:
@@ -14094,6 +14226,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Events'**
   String get diveLog_legend_label_events;
+
+  /// No description provided for @diveLog_legend_label_annotations.
+  ///
+  /// In en, this message translates to:
+  /// **'Annotations'**
+  String get diveLog_legend_label_annotations;
 
   /// No description provided for @diveLog_legend_label_computedEvents.
   ///
@@ -21948,6 +22086,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Note'**
   String get enum_profileEvent_note;
+
+  /// No description provided for @enum_profileEvent_annotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Annotation'**
+  String get enum_profileEvent_annotation;
 
   /// No description provided for @enum_profileEvent_ppO2High.
   ///
