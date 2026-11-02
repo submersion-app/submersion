@@ -39,6 +39,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
@@ -158,8 +160,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// A tap on an annotation link in the Notes card (#4109): unfolds the
   /// profile when the list layout folds it, turns the legend's Annotations
   /// toggle back on if it was off, scrolls to the profile and asks the chart
-  /// to light the marker and open its popup.
+  /// to light the marker and open its popup. A dive with no profile has no
+  /// marker to open, so the link changes the time instead.
   Future<void> _scrollToProfileAndFocus(String annotationId) async {
+    final dive = ref.read(diveProvider(widget.diveId)).value;
+    if (dive != null && dive.profile.isEmpty) {
+      final annotations = await ref
+          .read(annotationRepositoryProvider)
+          .annotationsForDive(widget.diveId);
+      final annotation = annotations
+          .where((a) => a.id == annotationId)
+          .firstOrNull;
+      if (annotation == null || !mounted) return;
+      await DiveDetailAnnotationActions(
+        ref: ref,
+        context: context,
+        dive: dive,
+      ).editTime(annotation);
+      return;
+    }
     final layout = ref.read(settingsProvider.select((s) => s.diveDetailLayout));
     if (layout.foldsSections) {
       await ref
@@ -183,12 +202,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       );
     }
     if (!mounted) return;
-    // Cleared first: a request nothing could serve (no layer mounted yet)
-    // would otherwise leave the same id in place, and setting it again is
-    // not a change the layer sees.
-    final focus = ref.read(annotationFocusProvider(widget.diveId).notifier);
-    focus.state = null;
-    focus.state = annotationId;
+    // A request nothing could serve (placement mode, no layer yet) leaves its
+    // id in place, and setting it again is no change to the layer. Clearing
+    // it takes a frame: two writes in one tick reach the layer as neither.
+    final focus = annotationFocusProvider(widget.diveId);
+    if (ref.read(focus) != null) {
+      ref.read(focus.notifier).state = null;
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+    }
+    ref.read(focus.notifier).state = annotationId;
   }
 
   /// Scrolls the page so the safety review section is visible (callout

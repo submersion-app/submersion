@@ -68,6 +68,42 @@ void main() {
   });
 
   group('wrapSelectionAsAnnotation (#4109)', () {
+    const pinned = '[sick](annotation:old)';
+    TextEditingValue selecting(String text, String part) {
+      final start = text.indexOf(part);
+      return TextEditingValue(
+        text: text,
+        selection: TextSelection(
+          baseOffset: start,
+          extentOffset: start + part.length,
+        ),
+      );
+    }
+
+    test('a selection across a pinned passage stops before it', () {
+      final value = selecting('I felt $pinned today', 'felt $pinned today');
+      expect(selectedWords(value), 'felt');
+      expect(
+        wrapSelectionAsAnnotation(value, id: 'a1').text,
+        'I [felt](annotation:a1) $pinned today',
+      );
+    });
+
+    test('a selection starting on a pinned passage takes what follows it', () {
+      final value = selecting('$pinned today', '$pinned today');
+      expect(selectedWords(value), 'today');
+      expect(
+        wrapSelectionAsAnnotation(value, id: 'a1').text,
+        '$pinned [today](annotation:a1)',
+      );
+    });
+
+    test('a selection inside a pinned passage selects nothing', () {
+      final value = selecting('I $pinned today', 'ick');
+      expect(selectedWords(value), '');
+      expect(wrapSelectionAsAnnotation(value, id: 'a1').text, value.text);
+    });
+
     test('wraps a selection as an annotation link and hugs the words', () {
       final out = wrapSelectionAsAnnotation(v('I [felt sick ]today'), id: 'a1');
       expect(out.text, 'I [felt sick](annotation:a1) today');

@@ -114,12 +114,13 @@ class DiveDetailAnnotationActions {
       units: units,
       onOpenInNotes: () => onOpenInNotes?.call(annotation.id),
       onMove: () => _placement.startMove(annotation.id),
-      onEditTime: () => _editTime(annotation),
+      onEditTime: () => editTime(annotation),
       onRemove: () => _remove(annotation),
     );
   }
 
-  Future<void> _editTime(ProfileEvent annotation) async {
+  /// The time sheet for an existing annotation; the marker follows on Save.
+  Future<void> editTime(ProfileEvent annotation) async {
     final repository = _repository;
     final result = await showAnnotationTimeSheet(
       context,

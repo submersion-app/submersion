@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/annotation_pla
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -328,6 +329,56 @@ void main() {
 
     expect(container.read(profileLegendProvider).showAnnotations, isTrue);
     expect(find.text('Remove'), findsOneWidget);
+  });
+
+  testWidgets('a Notes link placement mode held back opens on the next tap', (
+    tester,
+  ) async {
+    await seedDive();
+    await seedAnnotation();
+    await pumpDetail(tester);
+
+    Future<void> tapLink() async {
+      await tester.ensureVisible(find.byType(DiveNotesSection));
+      await settle(tester, frames: 4);
+      await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
+      await settle(tester, frames: 8);
+    }
+
+    await tester.tap(pin());
+    await settle(tester, frames: 4);
+    await tapLink();
+    expect(find.text('Remove'), findsNothing);
+
+    await tester.ensureVisible(find.text('Cancel'));
+    await settle(tester, frames: 4);
+    await tester.tap(find.text('Cancel'));
+    await settle(tester, frames: 4);
+    await tapLink();
+    expect(find.text('Remove'), findsOneWidget);
+  });
+
+  testWidgets('a Notes link on a dive with no profile changes its time', (
+    tester,
+  ) async {
+    await seedDive(withProfile: false);
+    await seedAnnotation(timestamp: 300);
+    await pumpDetail(tester);
+
+    await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
+    await settle(tester, frames: 6);
+    expect(find.text('Change the time'), findsOneWidget);
+
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(MinutesSecondsField),
+        matching: find.byType(TextFormField),
+      ),
+      '7:30',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await settle(tester);
+    expect((await rows()).single.timestamp, 450);
   });
 
   testWidgets('a dive with no profile accepts an annotation by typed time', (

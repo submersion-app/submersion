@@ -66,6 +66,14 @@ Map<String, String> annotationWordsInNotes(String notes) {
 Set<String> annotationIdsInNotes(String notes) =>
     annotationWordsInNotes(notes).keys.toSet();
 
+/// Any annotation link as written in Notes, whatever its id.
+final annotationLinkPattern = RegExp(
+  r'\[(?:\\.|[^\]])*\]\('
+  '$annotationLinkScheme:'
+  r'[^)\s]*\)',
+  caseSensitive: false,
+);
+
 /// [notes] with every `[words](annotation:id)` turned back into `words`.
 /// Other text is untouched; an absent [id] returns the input unchanged.
 String unlinkAnnotation(String notes, String id) {

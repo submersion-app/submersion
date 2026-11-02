@@ -85,7 +85,8 @@ mode.
 A linked passage draws as a link with a small pin glyph before it and the
 annotation's time after it in a smaller muted style. Tapping it scrolls to
 the profile, pans a zoomed plot to the marker when it is out of view, lights
-it up and opens its popup. The time after the link is rendered by the app from the annotation, so moving the marker
+it up and opens its popup. On a dive with no profile there is no marker to
+open, so it opens the time sheet instead. The time after the link is rendered by the app from the annotation, so moving the marker
 updates it and it never appears in the stored text.
 
 ### Creating from the chart

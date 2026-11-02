@@ -84,7 +84,7 @@ TextEditingValue wrapSelectionAsAnnotation(
   String? words,
 }) {
   final text = value.text;
-  final sel = _hugWords(text, _firstParagraphOf(text, _normalized(value)));
+  final sel = _annotationSelection(value);
   if (!sel.isCollapsed) {
     final link = annotationLinkMarkdown(text.substring(sel.start, sel.end), id);
     return TextEditingValue(
@@ -105,6 +105,31 @@ TextEditingValue wrapSelectionAsAnnotation(
   );
 }
 
+/// The part of [value]'s selection an annotation can cover, hugged.
+TextSelection _annotationSelection(TextEditingValue value) => _hugWords(
+  value.text,
+  _clearOfLinks(value.text, _firstParagraphOf(value.text, _normalized(value))),
+);
+
+/// [sel] up to the first annotation link it touches, or the words after a
+/// link it starts on; a caret after the link when nothing is left. Links do
+/// not nest, and wrapping one would leave its marker with no link to keep it.
+TextSelection _clearOfLinks(String text, TextSelection sel) {
+  if (sel.isCollapsed) return sel;
+  var start = sel.start;
+  for (final link in annotationLinkPattern.allMatches(text)) {
+    if (link.end <= start) continue;
+    if (link.start >= sel.end) break;
+    if (link.start > start) {
+      return TextSelection(baseOffset: start, extentOffset: link.start);
+    }
+    start = link.end;
+  }
+  return start < sel.end
+      ? TextSelection(baseOffset: start, extentOffset: sel.end)
+      : TextSelection.collapsed(offset: start);
+}
+
 /// [sel] cut at the first blank line inside it: a Markdown link cannot span
 /// paragraphs, so an annotation covers the selection's first paragraph.
 TextSelection _firstParagraphOf(String text, TextSelection sel) {
@@ -121,10 +146,7 @@ TextSelection _firstParagraphOf(String text, TextSelection sel) {
 
 /// The words a selection covers once hugged, or '' for a caret.
 String selectedWords(TextEditingValue value) {
-  final sel = _hugWords(
-    value.text,
-    _firstParagraphOf(value.text, _normalized(value)),
-  );
+  final sel = _annotationSelection(value);
   return sel.isCollapsed ? '' : value.text.substring(sel.start, sel.end);
 }
 
