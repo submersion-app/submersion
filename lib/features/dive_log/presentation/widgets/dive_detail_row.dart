@@ -34,7 +34,7 @@ class DiveDetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return DetailRow(
       label: label,
-      copyValue: copyable ? value : null,
+      copyValue: copyable && DetailRow.canCopy(value) ? value : null,
       value: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

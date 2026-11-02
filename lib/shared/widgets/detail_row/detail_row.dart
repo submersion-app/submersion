@@ -63,8 +63,12 @@ class DetailRow extends StatefulWidget {
          iconGap: iconGap,
          iconColor: iconColor,
          padding: padding,
-         copyValue: copyable ? value : null,
+         copyValue: copyable && canCopy(value) ? value : null,
        );
+
+  /// Whether [value] has anything to copy: a blank value would only empty
+  /// the clipboard.
+  static bool canCopy(String value) => value.trim().isNotEmpty;
 
   /// The space between the label column and the value.
   static const double gap = 16;

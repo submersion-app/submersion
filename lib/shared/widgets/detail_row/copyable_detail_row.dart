@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(CopyableDetailRow);
 
 /// Makes a detail row copyable: a long press anywhere on it, or the copy
 /// button at its far edge, puts [copyValue] on the clipboard (issue #3362).
@@ -39,14 +42,29 @@ class CopyableDetailRow extends StatelessWidget {
 
   Future<void> _copy(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    final message = context.l10n.common_snackbar_copiedToClipboard;
-    unawaited(HapticFeedback.mediumImpact());
-    await Clipboard.setData(ClipboardData(text: copyValue));
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message), duration: _messageDuration),
+    final l10n = context.l10n;
+    try {
+      await Clipboard.setData(ClipboardData(text: copyValue));
+    } on PlatformException catch (e, stackTrace) {
+      _log.error(
+        'Could not copy to the clipboard',
+        error: e,
+        stackTrace: stackTrace,
       );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.common_error_tryAgain)),
+      );
+      return;
+    }
+    unawaited(HapticFeedback.mediumImpact());
+    // Replaces only our own message: another may be offering an Undo.
+    if (_CopiedMessage.isShowing) messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: _CopiedMessage(l10n.common_snackbar_copiedToClipboard),
+        duration: _messageDuration,
+      ),
+    );
   }
 
   @override
@@ -65,6 +83,11 @@ class CopyableDetailRow extends StatelessWidget {
             onLongPress: copy,
             // The haptic is ours, so Android does not get a second one.
             enableFeedback: false,
+            // Only a long press does anything, so to a mouse or a keyboard
+            // the row stays plain text and the button is the way in.
+            mouseCursor: SystemMouseCursors.basic,
+            hoverColor: Colors.transparent,
+            canRequestFocus: false,
             borderRadius: BorderRadius.circular(8),
             child: child,
           ),
@@ -77,6 +100,7 @@ class CopyableDetailRow extends StatelessWidget {
           child: IconButton(
             tooltip: l10n.common_action_copy,
             onPressed: copy,
+            onLongPress: copy,
             iconSize: _iconSize,
             padding: EdgeInsets.zero,
             style: IconButton.styleFrom(
@@ -90,4 +114,35 @@ class CopyableDetailRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// The confirmation, which counts itself while on screen: the messenger cannot
+/// be asked which message is current, and a queued message is not built yet.
+class _CopiedMessage extends StatefulWidget {
+  const _CopiedMessage(this.text);
+
+  static int _onScreen = 0;
+  static bool get isShowing => _onScreen > 0;
+
+  final String text;
+
+  @override
+  State<_CopiedMessage> createState() => _CopiedMessageState();
+}
+
+class _CopiedMessageState extends State<_CopiedMessage> {
+  @override
+  void initState() {
+    super.initState();
+    _CopiedMessage._onScreen++;
+  }
+
+  @override
+  void dispose() {
+    _CopiedMessage._onScreen--;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Text(widget.text);
 }

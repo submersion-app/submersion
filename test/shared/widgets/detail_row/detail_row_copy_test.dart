@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/detail_row/copyable_detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/detail_row/render_detail_row.dart';
 
 import '../../../support/clipboard_recorder.dart';
 
@@ -123,6 +125,101 @@ void main() {
 
       expect(copiedText(calls), isNull);
       expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('a long press on the button copies too', (tester) async {
+      final calls = recordClipboardCalls();
+      await _pump(tester, _row());
+
+      await tester.longPress(_copyButton);
+      await tester.pump();
+
+      expect(copiedText(calls), 'A7X-20419');
+    });
+
+    for (final blank in ['', '   ']) {
+      testWidgets('a blank value "$blank" offers nothing to copy', (
+        tester,
+      ) async {
+        final calls = recordClipboardCalls();
+        await _pump(tester, _row(value: blank));
+
+        expect(_copyButton, findsNothing);
+        await tester.longPress(find.text('Card'));
+        await tester.pump();
+
+        expect(copiedText(calls), isNull);
+      });
+    }
+
+    testWidgets('a clipboard failure says so and gives no success haptic', (
+      tester,
+    ) async {
+      final calls = <MethodCall>[];
+      final messenger = tester.binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        calls.add(call);
+        if (call.method == 'Clipboard.setData') {
+          throw PlatformException(code: 'unavailable');
+        }
+        return null;
+      });
+      addTearDown(
+        () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+      await _pump(tester, _row());
+
+      await tester.tap(_copyButton);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Copied to clipboard'), findsNothing);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      expect(
+        calls.where(
+          (c) =>
+              c.method == 'HapticFeedback.vibrate' &&
+              c.arguments == 'HapticFeedbackType.mediumImpact',
+        ),
+        isEmpty,
+      );
+    });
+
+    testWidgets('copying leaves another message on screen alone', (
+      tester,
+    ) async {
+      recordClipboardCalls();
+      await _pump(tester, _row());
+      final context = tester.element(find.byType(DetailRow));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Item deleted')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      await tester.tap(_copyButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Item deleted'), findsOneWidget);
+      expect(find.text('Copied to clipboard'), findsNothing);
+    });
+
+    testWidgets('on desktop the row does not pose as a button', (tester) async {
+      await _pump(tester, _row(), platform: TargetPlatform.macOS);
+
+      final ink = tester.widget<InkWell>(
+        find.ancestor(
+          of: find.byType(DetailRowLayout),
+          matching: find.byType(InkWell),
+        ),
+      );
+      expect(ink.mouseCursor, SystemMouseCursors.basic);
+      expect(ink.canRequestFocus, isFalse);
+      expect(ink.hoverColor, Colors.transparent);
     });
 
     testWidgets('a second copy replaces the message rather than queueing', (
@@ -273,6 +370,7 @@ void main() {
         tooltip: 'Copy',
         isButton: true,
         hasTapAction: true,
+        hasLongPressAction: true,
         hasFocusAction: true,
         hasEnabledState: true,
         isEnabled: true,

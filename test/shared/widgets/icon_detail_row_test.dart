@@ -180,6 +180,28 @@ void main() {
       );
     });
 
+    testWidgets('a blank value still reads as one node, with no button', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: IconDetailRow(
+              icon: Icons.numbers,
+              label: 'Card Number',
+              value: '',
+              copyable: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(IconButton), findsNothing);
+      expect(find.bySemanticsLabel('Card Number: '), findsOneWidget);
+      semantics.dispose();
+    });
+
     testWidgets('a screen reader still reaches the copy button', (
       tester,
     ) async {

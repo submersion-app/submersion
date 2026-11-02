@@ -50,7 +50,7 @@ class IconDetailRow extends StatelessWidget {
       copyable: copyable,
     );
     // A copyable row reads as one node by itself, beside its copy button.
-    if (copyable) return row;
+    if (copyable && DetailRow.canCopy(value)) return row;
 
     // The row reads as one "label: value" node; the texts are not read again.
     return Semantics(

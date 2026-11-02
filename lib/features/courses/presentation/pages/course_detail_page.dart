@@ -420,7 +420,7 @@ class CourseDetailPage extends ConsumerWidget {
       copyable: copyable,
     );
     // A copyable row reads as one node by itself, beside its copy button.
-    if (copyable) return row;
+    if (copyable && DetailRow.canCopy(value)) return row;
 
     return Semantics(label: '$label: $value', child: row);
   }
