@@ -25,15 +25,17 @@ bool _isComma(Token t) => t.kind == TokenKind.symbol && t.text == ',';
 
 bool _isYear(Token t) => _isTerm(t) && _isYearText(t.text);
 
-/// What a number can end in, as its own token: `14. Oktober`,
-/// `2018. október 14.`, `1º de maio`.
-const Set<String> _numberMarks = {'.', 'º', '°'};
+/// The ordinal mark on the first of a month (`1º de maio`). On any other number
+/// it is a temperature.
+const Set<String> _firstOfMonthMarks = {'º', '°'};
 
-/// A mark written straight after [term], so it belongs to the term.
+/// A mark written straight after [term], so it belongs to the term: a dot
+/// (`14. Oktober`, `2018. október 14.`) or the ordinal of the first.
 bool _closesTerm(Token mark, Token term) =>
     mark.kind == TokenKind.word &&
-    _numberMarks.contains(mark.text) &&
-    mark.offset == term.offset + term.length;
+    mark.offset == term.offset + term.length &&
+    (mark.text == '.' ||
+        (term.text == '1' && _firstOfMonthMarks.contains(mark.text)));
 
 /// The words that mean "of" inside a date (`14 de octubre de 2018`). Other
 /// fillers stay out: `30 en octubre 2018` is 30 in October, not 30 October.

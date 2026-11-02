@@ -278,6 +278,17 @@ void main() {
       expect(read('1° maggio 2018', language: 'it'), may1);
     });
 
+    test('a mark on any other number is not an ordinal', () {
+      expect(
+        read('28° october 2018'),
+        AndNode([word('28'), word('°'), month(2018, 10)]),
+      );
+      expect(
+        read('2° maggio 2018', language: 'it'),
+        AndNode([word('2'), word('°'), month(2018, 5)]),
+      );
+    });
+
     test('a comma before a year reads in any digits', () {
       expect(read('أكتوبر 14, ٢٠١٨', language: 'ar'), october14);
     });
@@ -603,6 +614,14 @@ void main() {
     test('a filler in the app language does too', () {
       final node = read('"avec" mike', language: 'fr');
       expect(read(printer.print(node), language: 'fr'), node);
+    });
+
+    test('a word that spells a date stays text', () {
+      for (final text in ['"2018年"', '"2018年10月"', '"２０１８年１０月"']) {
+        final node = read(text, language: 'zh');
+        expect(node, isA<TextNode>(), reason: text);
+        expect(read(printer.print(node), language: 'zh'), node, reason: text);
+      }
     });
 
     test('an entity without plainWords prints the word bare', () {

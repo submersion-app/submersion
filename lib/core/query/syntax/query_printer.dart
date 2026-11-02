@@ -2,6 +2,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
+import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart'
     show kQueryKeywords;
 import 'package:submersion/core/query/syntax/query_plain_words.dart';
@@ -24,6 +25,9 @@ String formatQueryNumber(double v) {
 
 final RegExp _plainWord = RegExp(r'^[^\s"()\[\],:~=<>!&|-]+$');
 final RegExp _isoLike = RegExp(r'^\d{4}(-\d{2}){0,2}$');
+
+/// No one-word date depends on today.
+final DateTime _anyDay = DateTime(2000);
 
 /// Emits exactly one canonical text per tree, which the parser reads back
 /// to an equal tree.
@@ -89,7 +93,8 @@ class QueryPrinter {
       _plainWord.hasMatch(w) &&
       !kQueryKeywords.contains(w.toLowerCase()) &&
       !_isoLike.hasMatch(w) &&
-      double.tryParse(w) == null;
+      double.tryParse(w) == null &&
+      parseDateText(w, now: _anyDay) == null;
 
   String _condition(
     FieldPath path,
