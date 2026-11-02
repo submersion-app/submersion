@@ -107,10 +107,10 @@ class TripDivesTab extends ConsumerWidget {
                         // Measured runtime, matching the trip totals so these
                         // rows add up to the figure the Overview tab reports
                         // (issue #889).
-                        if (dive.measuredRuntime != null)
+                        if (dive.measuredRuntime case final runtime?)
                           Text(
                             context.l10n.diveLog_sources_minutes(
-                              dive.measuredRuntime!.inMinutes,
+                              runtime.inMinutes,
                             ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,

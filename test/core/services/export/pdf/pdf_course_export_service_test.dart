@@ -212,6 +212,20 @@ void main() {
     );
   });
 
+  test('a dive with only a bottom time renders no Duration chip', () async {
+    final text = await exportText([
+      trainingDive(
+        id: 'd1',
+        number: 1,
+        bottomTime: const Duration(minutes: 40),
+        maxDepth: 12.0,
+      ),
+    ]);
+
+    expect(text, isNot(contains('Duration')));
+    expect(text, contains('0 Total Minutes'));
+  });
+
   test('a dive with no duration at all renders no Duration chip', () async {
     final text = await exportText([
       trainingDive(id: 'd1', number: 1, maxDepth: 12.0),

@@ -1,6 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('pdfDiveDuration (#644)', () {
@@ -35,6 +37,28 @@ void main() {
 
     test('prints a dash when no duration is known', () {
       expect(pdfDiveDurationMinutes(dive()), '-');
+    });
+  });
+
+  group('pdfDiveDurationCompact', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    test('prints the minutes with their unit', () {
+      final dive = Dive(
+        id: 'd1',
+        dateTime: DateTime(2026, 1, 15, 9),
+        runtime: const Duration(minutes: 62),
+      );
+      expect(pdfDiveDurationCompact(dive, l10n), '62min');
+    });
+
+    test('prints a bare dash, with no unit, when no runtime is known', () {
+      final dive = Dive(
+        id: 'd1',
+        dateTime: DateTime(2026, 1, 15, 9),
+        bottomTime: const Duration(minutes: 50),
+      );
+      expect(pdfDiveDurationCompact(dive, l10n), '-');
     });
   });
 

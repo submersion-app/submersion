@@ -220,6 +220,17 @@ void main() {
     });
   });
 
+  group('dive summaries', () {
+    test('carry what a dive measured, and no bottom time', () async {
+      final summaries = await dives.getDiveSummaries(limit: 10);
+      final byId = {for (final s in summaries) s.id: s.runtime};
+      expect(byId['timed'], const Duration(minutes: 60));
+      expect(byId['stamped'], const Duration(minutes: 40));
+      expect(byId['sampled'], const Duration(minutes: 20));
+      expect(byId['logged'], isNull);
+    });
+  });
+
   group('SAC and RMV', () {
     // 60 bar over the measured runtime at 15 m average depth.
     const stamped = 60 / 40 / 2.5;

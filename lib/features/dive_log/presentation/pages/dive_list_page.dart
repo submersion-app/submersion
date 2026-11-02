@@ -1176,8 +1176,11 @@ class DiveListTile extends ConsumerWidget {
     Color accentColor,
     Color secondaryTextColor,
   ) {
-    // Use full Dive when available (has all fields), otherwise try summary
-    dynamic value = fullDive != null
+    // Use full Dive when available (has all fields), otherwise try summary.
+    // The constructor params stand in only with neither: [duration] is either
+    // of runtime and bottom time, so it would fill one slot with the other
+    // (issue #3304).
+    final dynamic value = fullDive != null
         ? field.extractFromDive(
             fullDive!,
             gasModel: units.settings.gasModel,
@@ -1188,8 +1191,7 @@ class DiveListTile extends ConsumerWidget {
             summary,
             diveTypeLabel: diveTypeLabelResolver,
           )
-        : null;
-    value ??= _fallbackValue(field);
+        : _fallbackValue(field);
     final formatted = field.formatValue(value, units);
     final color = value != null ? accentColor : secondaryTextColor;
     final icon = field.icon;
@@ -1208,10 +1210,7 @@ class DiveListTile extends ConsumerWidget {
     return switch (field) {
       DiveField.maxDepth => maxDepth,
       DiveField.bottomTime => duration,
-      // [duration] falls back to a bottom time, which is no runtime, so it
-      // only stands in when there was nothing to extract from (issue #3304).
-      DiveField.runtime =>
-        fullDive == null && summary == null ? duration : null,
+      DiveField.runtime => duration,
       DiveField.waterTemp => waterTemp,
       DiveField.ratingStars => rating,
       DiveField.isFavorite => isFavorite,

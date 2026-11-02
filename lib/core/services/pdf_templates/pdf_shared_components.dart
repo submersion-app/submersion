@@ -20,6 +20,13 @@ import 'package:submersion/features/certification_agencies/presentation/certific
 String pdfDiveDurationMinutes(Dive dive) =>
     '${dive.measuredRuntime?.inMinutes ?? '-'}';
 
+/// [pdfDiveDurationMinutes] with its unit, for a template's Time field, or a
+/// bare dash when no runtime is known: a dash takes no unit.
+String pdfDiveDurationCompact(Dive dive, AppLocalizations l10n) {
+  final minutes = dive.measuredRuntime?.inMinutes;
+  return minutes == null ? '-' : l10n.pdf_minutesCompact('$minutes');
+}
+
 /// Sum of measured runtimes for summary and total rows (#644, #3304).
 Duration pdfTotalRuntime(List<Dive> dives) => dives.fold<Duration>(
   Duration.zero,

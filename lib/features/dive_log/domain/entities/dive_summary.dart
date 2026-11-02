@@ -103,7 +103,7 @@ class DiveSummary extends Equatable {
       entryTime: dive.entryTime,
       maxDepth: dive.maxDepth,
       bottomTime: dive.bottomTime,
-      runtime: dive.runtime,
+      runtime: dive.measuredRuntime,
       waterTemp: dive.waterTemp,
       rating: dive.rating,
       isFavorite: dive.isFavorite,

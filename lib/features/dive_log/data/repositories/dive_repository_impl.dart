@@ -3103,7 +3103,9 @@ class DiveRepository {
             'SELECT '
             'd.id, d.dive_number, d.name AS dive_name, '
             'd.dive_date_time, d.entry_time, '
-            'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
+            'd.max_depth, d.bottom_time, '
+            '${measuredRuntimeSecondsSql('d')} AS runtime, '
+            'd.water_temp, d.rating, '
             'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
             'd.is_planned, '
             'd.dive_type, d.dive_mode, '
@@ -3142,6 +3144,9 @@ class DiveRepository {
               readsFrom: {
                 _db.dives,
                 _db.diveSites,
+                // The measured runtime's profile step.
+                _db.diveProfileSeries,
+                _db.diveDataSources,
                 // Renaming a trip changes a header the list is showing.
                 _db.trips,
                 _db.diveSafetyFindings,
@@ -3993,7 +3998,9 @@ class DiveRepository {
           'SELECT '
           'd.id, d.dive_number, d.name AS dive_name, '
           'd.dive_date_time, d.entry_time, '
-          'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
+          'd.max_depth, d.bottom_time, '
+          '${measuredRuntimeSecondsSql('d')} AS runtime, '
+          'd.water_temp, d.rating, '
           'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
           'd.is_planned, '
           'd.dive_type, d.dive_mode, '
@@ -4029,6 +4036,8 @@ class DiveRepository {
           readsFrom: {
             _db.dives,
             _db.diveSites,
+            _db.diveProfileSeries,
+            _db.diveDataSources,
             _db.trips,
             _db.diveSafetyFindings,
             _db.diveSafetyReviews,
@@ -6278,8 +6287,8 @@ class DiveRepository {
   ///
   /// Every caller here reads a single dive or a short range, so the subquery
   /// runs a bounded number of times. Aggregates that scan the whole dive
-  /// table use [effectiveRuntimeSecondsSql] instead, which resolves the same
-  /// chain but short-circuits past the profile scan.
+  /// table use [measuredRuntimeSecondsSql] instead, which short-circuits past
+  /// the profile scan.
   static final _diveTimesSelect =
       'SELECT d.id, d.diver_id, d.dive_date_time, d.entry_time, d.exit_time, '
       'd.runtime, d.bottom_time, '

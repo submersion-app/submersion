@@ -181,6 +181,46 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('37'), findsNothing);
     });
+
+    testWidgets('does not pass a runtime off as a bottom time', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(const AppSettings()),
+            ),
+            detailedCardConfigProvider.overrideWith(
+              (ref) => _TestCardConfigNotifier(
+                CardViewConfig.defaultDetailed().copyWith(
+                  slots: const [
+                    CardSlotConfig(slotId: 'stat1', field: DiveField.maxDepth),
+                    CardSlotConfig(
+                      slotId: 'stat2',
+                      field: DiveField.bottomTime,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          child: DiveListTile(
+            diveId: 'd1',
+            diveNumber: 7,
+            dateTime: DateTime(2024, 6, 1),
+            siteName: 'Reef',
+            duration: const Duration(minutes: 52),
+            summary: DiveSummary(
+              id: 'd1',
+              dateTime: DateTime(2024, 6, 1),
+              runtime: const Duration(minutes: 52),
+              sortTimestamp: 0,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('52'), findsNothing);
+    });
   });
 
   group('DiveListTile dive number badge', () {

@@ -864,7 +864,7 @@ class InsightsRepository with InsightsChartDives {
           t.tank_role,
           AVG(
             CASE
-              WHEN ${measuredRuntimeSecondsSql('d')} > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
+              WHEN t.start_pressure > t.end_pressure THEN
                 (t.start_pressure - t.end_pressure) / (${measuredRuntimeSecondsSql('d')} / 60.0) / ${diveAmbientBarSql('d', 'd.avg_depth')}
               ELSE NULL
             END
