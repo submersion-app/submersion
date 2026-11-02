@@ -29948,6 +29948,19 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gázfogyasztás palack szerep szerint';
 
   @override
+  String get insights_gas_ccrUse_title => 'Rebreather gázfogyasztás';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Percenként a hurkon, a bailout idő nélkül';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Átlagos O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Átlagos diluens';
+
+  @override
   String get insights_gas_sacRecords_empty =>
       'Még nincsenek fogyasztási adatok';
 

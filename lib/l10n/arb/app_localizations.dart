@@ -48222,6 +48222,30 @@ abstract class AppLocalizations {
   /// **'Gas consumption by tank role'**
   String get insights_gas_sacByRole_title;
 
+  /// No description provided for @insights_gas_ccrUse_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather gas use'**
+  String get insights_gas_ccrUse_title;
+
+  /// No description provided for @insights_gas_ccrUse_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Per minute on the loop, leaving out bailout time'**
+  String get insights_gas_ccrUse_subtitle;
+
+  /// No description provided for @insights_gas_ccrUse_o2Average.
+  ///
+  /// In en, this message translates to:
+  /// **'O₂ average'**
+  String get insights_gas_ccrUse_o2Average;
+
+  /// No description provided for @insights_gas_ccrUse_diluentAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent average'**
+  String get insights_gas_ccrUse_diluentAverage;
+
   /// No description provided for @insights_gas_sacRecords_empty.
   ///
   /// In en, this message translates to:

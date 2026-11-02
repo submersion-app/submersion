@@ -29325,6 +29325,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
 
   @override
+  String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'לדקה בלולאה, ללא זמן מעבר למעגל פתוח';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'ממוצע O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'ממוצע מדלל';
+
+  @override
   String get insights_gas_sacRecords_empty => 'אין עדיין נתוני צריכה';
 
   @override

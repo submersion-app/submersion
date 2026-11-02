@@ -30106,6 +30106,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_gas_sacByRole_title => 'Consumo di gas per ruolo bombola';
 
   @override
+  String get insights_gas_ccrUse_title => 'Uso di gas del rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Al minuto sul loop, escluso il tempo di bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Media O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Media diluente';
+
+  @override
   String get insights_gas_sacRecords_empty =>
       'Nessun dato di consumo disponibile';
 

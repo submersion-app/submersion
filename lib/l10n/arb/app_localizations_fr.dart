@@ -30188,6 +30188,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Consommation de gaz par rôle du bloc';
 
   @override
+  String get insights_gas_ccrUse_title => 'Consommation de gaz du recycleur';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Par minute sur la boucle, hors temps de bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Moyenne O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Moyenne diluant';
+
+  @override
   String get insights_gas_sacRecords_empty => 'Aucune donnée de consommation';
 
   @override

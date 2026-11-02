@@ -29891,6 +29891,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_sacByRole_title => 'Gasverbruik per flesrol';
 
   @override
+  String get insights_gas_ccrUse_title => 'Gasverbruik rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Per minuut op de loop, zonder bailouttijd';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Gemiddelde O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Gemiddelde diluent';
+
+  @override
   String get insights_gas_sacRecords_empty => 'Nog geen verbruiksgegevens';
 
   @override

@@ -30086,6 +30086,19 @@ class AppLocalizationsPt extends AppLocalizations {
       'Consumo de gás por função do cilindro';
 
   @override
+  String get insights_gas_ccrUse_title => 'Uso de gás do rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Por minuto no circuito, sem o tempo de bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Média de O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Média de diluente';
+
+  @override
   String get insights_gas_sacRecords_empty => 'Nenhum dado de consumo ainda';
 
   @override

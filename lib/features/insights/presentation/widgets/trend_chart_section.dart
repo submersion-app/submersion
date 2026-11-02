@@ -28,6 +28,8 @@ class TrendChartSection extends ConsumerWidget {
     this.yAxisFormatter,
     this.rateFormatter,
     this.onDiveSelected,
+    this.header,
+    this.secondarySeries = const [],
     this.footer,
   });
 
@@ -49,6 +51,14 @@ class TrendChartSection extends ConsumerWidget {
 
   /// Opens the dive behind a tapped point. Only fires in per-dive mode.
   final void Function(String diveId)? onDiveSelected;
+
+  /// Shown above the chart once the points have loaded, for a caller with
+  /// figures that summarise it.
+  final Widget? header;
+
+  /// Further lines on the chart's axes. The fitted line and rolling mean
+  /// follow [pointsAsync] alone.
+  final List<TrendSeries> secondarySeries;
 
   /// Shown under the controls once the points have loaded, for a caller that
   /// says something about the data, such as how many dives it covers.
@@ -81,9 +91,11 @@ class TrendChartSection extends ConsumerWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              ?header,
               DiveTrendChart(
                 chartId: chartId,
                 points: points,
+                secondarySeries: secondarySeries,
                 dateFormat: ref.watch(dateFormatProvider),
                 onDiveSelected: onDiveSelected,
                 range: settings.range,

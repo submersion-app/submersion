@@ -29585,6 +29585,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_sacByRole_title => 'Gas consumption by tank role';
 
   @override
+  String get insights_gas_ccrUse_title => 'Rebreather gas use';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Per minute on the loop, leaving out bailout time';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'O₂ average';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Diluent average';
+
+  @override
   String get insights_gas_sacRecords_empty => 'No consumption data yet';
 
   @override

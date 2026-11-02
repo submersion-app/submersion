@@ -28363,6 +28363,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_sacByRole_title => '按气瓶用途的气体消耗';
 
   @override
+  String get insights_gas_ccrUse_title => '循环呼吸器气体用量';
+
+  @override
+  String get insights_gas_ccrUse_subtitle => '回路上每分钟用量，不含应急脱出时间';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'O₂ 平均';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => '稀释气平均';
+
+  @override
   String get insights_gas_sacRecords_empty => '暂无消耗数据';
 
   @override

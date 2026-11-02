@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/ccr_gas_use_trend.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
@@ -142,6 +143,46 @@ void main() {
       tester.getTopLeft(card).dy,
       lessThan(tester.getTopLeft(find.text('Gas consumption by tank role')).dy),
     );
+  });
+
+  // Issue #4082: the rebreather card follows the role breakdown.
+  testWidgets('rebreather gas use sits between the role and records cards', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          ccrGasUseTrendProvider.overrideWith(
+            (ref) async => CcrGasUseTrend(
+              o2: [TrendDataPoint(date: DateTime.utc(2026, 1, 1), value: 1.2)],
+              diluent: const [],
+            ),
+          ),
+        ].cast(),
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: InsightsGasPage(embedded: true)),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    double top(String title) => tester.getTopLeft(find.text(title)).dy;
+    expect(
+      top('Rebreather gas use'),
+      greaterThan(top('Gas consumption by tank role')),
+    );
+    expect(top('Rebreather gas use'), lessThan(top('Gas consumption records')));
+  });
+
+  testWidgets('an open-circuit diver sees no rebreather card', (tester) async {
+    await pumpPage(tester, const AppSettings());
+    expect(find.text('Rebreather gas use'), findsNothing);
   });
 
   // A dive breathing air from its back gas and nitrox from a deco tank

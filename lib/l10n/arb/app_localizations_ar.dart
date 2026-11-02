@@ -30332,6 +30332,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_sacByRole_title => 'استهلاك الغاز حسب دور الأسطوانة';
 
   @override
+  String get insights_gas_ccrUse_title => 'استهلاك الغاز لجهاز إعادة التنفس';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'لكل دقيقة على الحلقة، باستثناء وقت الانتقال إلى الدائرة المفتوحة';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'متوسط O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'متوسط المخفف';
+
+  @override
   String get insights_gas_sacRecords_empty => 'لا توجد بيانات استهلاك بعد';
 
   @override
