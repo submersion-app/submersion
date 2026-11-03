@@ -3,11 +3,13 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/database/database.dart' hide ConnectedAccount;
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -23,6 +25,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
@@ -147,6 +150,46 @@ void main() {
       expect(await storesRepository.getActive(), isNull);
     },
   );
+
+  group('the service provider', () {
+    ProviderContainer container(DeviceCapabilities capabilities) {
+      final c = ProviderContainer(
+        overrides: [
+          deviceCapabilitiesProvider.overrideWithValue(capabilities),
+          mediaStoreAttachStateProvider.overrideWithValue(attachState),
+          mediaStoreCredentialsStoreProvider.overrideWithValue(credentials),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('in a browser joins only, never starting copies', () async {
+      final store = InMemoryMediaObjectStore();
+
+      await expectLater(
+        container(DeviceCapabilities.web)
+            .read(mediaStoreServiceProvider)
+            .attachToAccountRow(_row('db-row', AccountKind.dropbox), store),
+        throwsA(isA<MediaStoreReadOnly>()),
+      );
+      expect(store.objects, isEmpty);
+    });
+
+    test(
+      'on a device that writes starts copies where there are none',
+      () async {
+        final store = InMemoryMediaObjectStore();
+
+        final result =
+            await container(DeviceCapabilities.web.copyWith(mediaAttach: true))
+                .read(mediaStoreServiceProvider)
+                .attachToAccountRow(_row('db-row', AccountKind.dropbox), store);
+
+        expect(result.createdNewStore, isTrue);
+      },
+    );
+  });
 
   test('attaching to a store that already has a marker adopts it', () async {
     final store = InMemoryMediaObjectStore();

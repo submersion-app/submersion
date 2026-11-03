@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/media_store/media_object_store.dart';
@@ -106,8 +107,10 @@ class StoreMarkerStore {
     // (Directory.systemTemp), same constraint sync hit in issue #509.
     final tmpDir = await resolveSyncTempDir();
     final tmp = File(
-      '${tmpDir.path}/'
-      'submersion_marker_w_${DateTime.now().microsecondsSinceEpoch}.json',
+      p.join(
+        tmpDir.path,
+        'submersion_marker_w_${DateTime.now().microsecondsSinceEpoch}.json',
+      ),
     );
     try {
       await tmp.writeAsString(jsonEncode(marker.toJson()), flush: true);
