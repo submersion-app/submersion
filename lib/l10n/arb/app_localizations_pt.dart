@@ -26831,6 +26831,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_tank => 'Cilindro';
 
   @override
+  String get settings_conflict_ref_weight => 'Lastro';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Transmissor';
 
   @override

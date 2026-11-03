@@ -26855,6 +26855,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_tank => 'Tanque';
 
   @override
+  String get settings_conflict_ref_weight => 'Lastre';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Transmisor';
 
   @override

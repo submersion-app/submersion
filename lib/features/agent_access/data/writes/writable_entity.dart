@@ -34,6 +34,16 @@ class PlanBlock {
   final String detail;
 }
 
+/// The record a child entry belongs to, such as a tank's dive. [entity] is
+/// the parent's write and read name, and [field] names the parent on the
+/// child, as the document key and the column.
+class ChildOf {
+  const ChildOf({required this.entity, required this.field});
+
+  final String entity;
+  final String field;
+}
+
 /// One link a record can hold. [refEntity] is the read catalogue's name for
 /// what it points at, so a reference passes that entity's own visibility
 /// rule: shared sites and built-in types count, another profile's do not.
@@ -99,7 +109,11 @@ class WriteCheck {
 /// What an update does beyond what it names, through a repository's own
 /// rules. The planner lists these, so a diver sees everything a plan does.
 class SideEffects {
-  const SideEffects({this.fields = const {}, this.relations = const {}});
+  const SideEffects({
+    this.fields = const {},
+    this.relations = const {},
+    this.lost = const {},
+  });
 
   /// Document key to the value it will hold, as a document would read.
   final Map<String, Object?> fields;
@@ -107,7 +121,11 @@ class SideEffects {
   /// Relation name to the ids it gains.
   final Map<String, Set<String>> relations;
 
-  bool get isEmpty => fields.isEmpty && relations.isEmpty;
+  /// Relation name to the ids it loses, such as the parts that leave a
+  /// dive with their assembly.
+  final Map<String, Set<String>> lost;
+
+  bool get isEmpty => fields.isEmpty && relations.isEmpty && lost.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -117,6 +135,10 @@ class SideEffects {
     }),
     'relations': _sorted({
       for (final MapEntry(:key, :value) in relations.entries)
+        key: (value.toList()..sort()),
+    }),
+    'lost': _sorted({
+      for (final MapEntry(:key, :value) in lost.entries)
         key: (value.toList()..sort()),
     }),
   });
@@ -178,6 +200,19 @@ abstract class WritableEntry {
 
   /// Fields a create must carry.
   Set<String> get requiredOnCreate;
+
+  /// The record this one belongs to. A child takes its parent's owner,
+  /// names it in [ChildOf.field] when it is created, and stays on it.
+  ChildOf? get parent => null;
+
+  /// Fields a create sets and an update may not change. A child's
+  /// [ChildOf.field] is always one.
+  Set<String> get createOnly => const {};
+
+  /// Document keys a reader needs to show a change to this record that the
+  /// change may leave alone, such as the working pressure that says what a
+  /// tank's size holds.
+  Set<String> get displayContext => const {};
 
   /// Fields whose write does something even when it equals the row, so a
   /// plan cannot drop one as unchanged.

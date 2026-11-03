@@ -27076,6 +27076,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_tank => 'الأسطوانة';
 
   @override
+  String get settings_conflict_ref_weight => 'ثقل';
+
+  @override
   String get settings_conflict_ref_transmitter => 'المرسل';
 
   @override

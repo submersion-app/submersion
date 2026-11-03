@@ -29,13 +29,17 @@ class PlanItem {
     required this.entity,
     this.id,
     this.diverId,
+    this.parentId,
+    this.parentTitle,
     this.title,
     this.fields = const {},
     this.values = const {},
     this.relations = const {},
     this.indirectRelations = const {},
+    this.indirectLost = const {},
     this.names = const {},
     this.date,
+    this.context = const {},
     this.reach = const DeleteReach(),
     this.block,
   });
@@ -49,6 +53,13 @@ class PlanItem {
   final String? id;
   final String? diverId;
 
+  /// The record a child item belongs to, such as a tank's dive.
+  final String? parentId;
+
+  /// What the diver knows [parentId] by, so a change says which dive it is
+  /// on.
+  final String? parentTitle;
+
   /// The record's own name, for the diver to recognise it.
   final String? title;
   final Map<String, FieldChange> fields;
@@ -61,11 +72,21 @@ class PlanItem {
   /// the write that causes them makes them.
   final Map<String, Set<String>> indirectRelations;
 
+  /// Links a repository removes because of another change, listed the
+  /// same way.
+  final Map<String, Set<String>> indirectLost;
+
   /// The names of the records [relations] refers to, by id.
   final Map<String, String> names;
 
-  /// The record's date, when it has one, as a document writes it.
+  /// The record's date, or its parent's for a child, as a document writes
+  /// it.
   final String? date;
+
+  /// Values of the record the change leaves alone that a reader needs to
+  /// show it, by document key: a tank's working pressure, which says what
+  /// its size holds. See [WritableEntry.displayContext].
+  final Map<String, Object?> context;
 
   /// What a delete takes with it.
   final DeleteReach reach;
@@ -77,6 +98,7 @@ class PlanItem {
     'entity': entity,
     'id': id ?? 'new',
     'diver_id': diverId,
+    'parent_id': ?parentId,
     'title': ?title,
     if (fields.isNotEmpty)
       'fields': {
@@ -88,10 +110,13 @@ class PlanItem {
         for (final MapEntry(:key, :value) in relations.entries)
           key: {'add': value.add.toList(), 'remove': value.remove.toList()},
       },
-    if (indirectRelations.isNotEmpty)
+    if (indirectRelations.isNotEmpty || indirectLost.isNotEmpty)
       'indirect_relations': {
-        for (final MapEntry(:key, :value) in indirectRelations.entries)
-          key: {'add': value.toList()},
+        for (final key in {...indirectRelations.keys, ...indirectLost.keys})
+          key: {
+            if (indirectRelations[key] case final add?) 'add': add.toList(),
+            if (indirectLost[key] case final remove?) 'remove': remove.toList(),
+          },
       },
     if (!reach.isEmpty)
       'also_reaches': {
@@ -130,6 +155,7 @@ class RecordMarker {
     required this.table,
     required this.id,
     required this.updatedAt,
+    this.versioned = true,
     this.relations = const {},
     this.readRelation,
     this.footprint,
@@ -141,6 +167,10 @@ class RecordMarker {
 
   /// Null when the row has gone.
   final int? updatedAt;
+
+  /// Whether [table] has an `updated_at` to compare. A table with none, such
+  /// as `species`, is checked by [footprint] alone.
+  final bool versioned;
 
   /// The links this plan changes, by relation.
   final Map<String, Set<String>> relations;

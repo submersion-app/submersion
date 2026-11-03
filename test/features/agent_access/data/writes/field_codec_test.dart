@@ -36,6 +36,21 @@ void main() {
     );
   });
 
+  test('a reference takes an id and names what it points at', () {
+    const codec = FieldCodec.reference('dives');
+    expect(codec.parse('d1'), 'd1');
+    expect(codec, isA<ReferenceCodec>());
+    expect((codec as ReferenceCodec).refEntity, 'dives');
+    expect(() => codec.parse(''), _refused('id'));
+    expect(() => codec.parse('  '), _refused('id'));
+    expect(() => codec.parse(7), _refused('id'));
+    expect(() => codec.parse(null), _refused('required'));
+    expect(
+      const FieldCodec.reference('species', nullable: true).parse(null),
+      isNull,
+    );
+  });
+
   test('a blank required text is refused', () {
     expect(() => const FieldCodec.text().parse('   '), _refused('blank'));
     expect(const FieldCodec.text(nullable: true).parse(''), '');

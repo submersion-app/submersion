@@ -52,6 +52,32 @@ void main() {
         'sites',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:deleteSite':
         'sites',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddEquipment':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveEquipment':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddCourses':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveCourses':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addTank':
+        'dive_tanks',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateTank':
+        'dive_tanks',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteTank':
+        'dive_tanks',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addWeight':
+        'dive_weights',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateWeight':
+        'dive_weights',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteWeight':
+        'dive_weights',
+    'lib/features/marine_life/data/repositories/species_repository.dart:addSighting':
+        'sightings',
+    'lib/features/marine_life/data/repositories/species_repository.dart:updateSighting':
+        'sightings',
+    'lib/features/marine_life/data/repositories/species_repository.dart:deleteSighting':
+        'sightings',
   };
 
   /// A public `Future` method on a repository. The return type may sit on the

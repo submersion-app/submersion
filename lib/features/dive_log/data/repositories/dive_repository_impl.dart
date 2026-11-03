@@ -122,6 +122,8 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
+part 'dive_repository_gear_preview.dart';
+
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
 ///

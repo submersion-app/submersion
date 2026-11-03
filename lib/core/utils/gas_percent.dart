@@ -6,6 +6,10 @@ import 'package:submersion/core/utils/number_display.dart';
 /// a threshold is never shown as the threshold itself.
 String formatGasPercent(double value) => '${formatGasPercentValue(value)}%';
 
+/// [fraction] of a gas as the percentage a gas column stores, without the
+/// float noise of a bare multiplication (0.29 * 100 is 28.999999999999996).
+double gasPercentOfFraction(double fraction) => (fraction * 1e6).round() / 1e4;
+
 /// [formatGasPercent] without the sign, for a mix whose two gases share
 /// one ("18.5/45%"). A non-finite value renders as text rather than
 /// throwing: `round()` cannot convert infinity to an int.
