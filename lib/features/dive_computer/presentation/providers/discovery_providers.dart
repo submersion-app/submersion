@@ -298,12 +298,15 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
 
   /// How long a scan start must wait so that no more than [scanStartLimit]
   /// starts fall inside any [scanStartWindow], plus a second's margin for
-  /// Android's own clock. Forgets the starts already outside the window.
+  /// Android's own clock. Forgets the starts already outside the window, and
+  /// any that lie ahead of now: the wall clock was set back, and keeping
+  /// them would hold the next start for as long as the jump.
   Duration _scanStartWait() {
     final now = clock.now();
     _scanStarts = [
       for (final start in _scanStarts)
-        if (now.difference(start) < scanStartWindow) start,
+        if (!start.isAfter(now) && now.difference(start) < scanStartWindow)
+          start,
     ];
     if (_scanStarts.length < scanStartLimit) return Duration.zero;
     return scanStartWindow -

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
@@ -89,6 +90,28 @@ void main() {
           async.elapse(const Duration(seconds: 7));
         }
         notifier.dispose();
+      });
+    });
+
+    test('a clock set back does not hold a start for the size of the jump', () {
+      fakeAsync((async) {
+        var now = DateTime.utc(2026, 11, 3, 12);
+        withClock(Clock(() => now), () {
+          final notifier = notifierFor(paceScanStarts: true);
+          for (var i = 0; i < DiscoveryNotifier.scanStartLimit; i++) {
+            notifier.startScan();
+            async.flushMicrotasks();
+          }
+          expect(hostApi.startDiscoveryCalls, 5);
+
+          // A manual change or a network time correction.
+          now = now.subtract(const Duration(hours: 1));
+          notifier.startScan();
+          async.flushMicrotasks();
+
+          expect(hostApi.startDiscoveryCalls, 6);
+          notifier.dispose();
+        });
       });
     });
 
