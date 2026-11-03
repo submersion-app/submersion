@@ -317,12 +317,57 @@ def wait_for_dives_at(page, site):
     ).first.wait_for(timeout=SAMPLE_TIMEOUT_MS)
 
 
+# What a page that never got going was doing, for a failure only the
+# runner reproduces: how often the main thread and the frames get a turn,
+# whether the page is isolated, whether the origin private file system
+# answers, and the Web Locks drift's storage waits on. Each probe is bounded,
+# so a wedged page still reports.
+PAGE_PROBE = """async () => {
+  const within = (promise, ms) => Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve('no answer in ' + ms + ' ms'), ms)),
+  ]);
+  const settle = (promise) => promise.then(
+    (value) => value,
+    (error) => 'threw ' + error,
+  );
+  const started = performance.now();
+  const timerDelay = await within(
+    new Promise((resolve) => setTimeout(() => resolve(Math.round(performance.now() - started)), 0)),
+    5000,
+  );
+  let frames = 0;
+  const countFrames = () => { frames += 1; requestAnimationFrame(countFrames); };
+  requestAnimationFrame(countFrames);
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  const opfs = await within(settle(
+    navigator.storage.getDirectory().then(() => 'answers'),
+  ), 5000);
+  const locks = navigator.locks
+    ? await within(settle(navigator.locks.query().then((s) => JSON.stringify(s))), 5000)
+    : 'no Web Locks';
+  return {
+    timerDelayMs: timerDelay,
+    framesIn2s: frames,
+    crossOriginIsolated: self.crossOriginIsolated,
+    cores: navigator.hardwareConcurrency,
+    opfs,
+    locks,
+  };
+}"""
+
+
 def report_failure(page, request, heard):
     """What a failed run saw: printed, since a browser in a runner cannot be
     watched, with a screenshot under SMOKE_ARTIFACT_DIR when that is set."""
     print("\n--- what the page reported (%s) ---" % request.node.name)
     print("url: %s" % page.url)
     print("\n".join(heard[-40:]) or "(nothing)")
+    print("workers: %s" % ([w.url for w in page.workers] or "(none)"))
+    try:
+        print("probe: %s" % page.evaluate(PAGE_PROBE))
+    except Exception as error:  # the report must not hide the failure
+        print("probe failed: %s" % error)
     folder = os.environ.get("SMOKE_ARTIFACT_DIR")
     if folder:
         os.makedirs(folder, exist_ok=True)
