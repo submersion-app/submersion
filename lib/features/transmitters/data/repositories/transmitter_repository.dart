@@ -319,16 +319,46 @@ class TransmitterRepository {
   /// Writes [entry] onto [unclaimed]'s row, replacing the key [entry] edits
   /// if it has one (issue #3367). The row is kept rather than replaced: its
   /// id derives from the serial, so a peer downloading the same serial still
-  /// lands on it. A clash with any third entry refuses before anything is
-  /// written.
+  /// lands on it. One transaction holds the conflict check, the delete and
+  /// the write, so a clash with a third entry, or a placeholder a sync
+  /// removed meanwhile, throws with the edited key still in place.
   Future<Transmitter> takeOverKey(
     Transmitter entry,
     Transmitter unclaimed,
   ) async {
     final adopted = _normalized(entry).copyWith(id: unclaimed.id);
-    await _checkConflicts(adopted, ignoring: entry.id);
-    if (await getById(entry.id) != null) await delete(entry.id);
-    await update(adopted);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    Transmitter? replaced;
+    Transmitter? previous;
+    await _db.transaction(() async {
+      await _checkConflicts(adopted, ignoring: entry.id);
+      replaced = await getById(entry.id);
+      previous = await getById(adopted.id);
+      if (previous == null) {
+        throw StateError('Transmitter ${adopted.id} is gone');
+      }
+      if (replaced != null) {
+        await (_db.delete(
+          _db.transmitters,
+        )..where((t) => t.id.equals(entry.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: _entity,
+          recordId: entry.id,
+        );
+      }
+      await (_db.update(_db.transmitters)
+            ..where((r) => r.id.equals(adopted.id)))
+          .write(_companion(adopted, now: now));
+      await _syncRepository.markRecordPending(
+        entityType: _entity,
+        recordId: adopted.id,
+        localUpdatedAt: now,
+      );
+    });
+    SyncEventBus.notifyLocalChange();
+    // The dives the replaced key and the placeholder matched are rescanned
+    // with the ones the key matches now, as an edit's are.
+    await _rescanAffectedDives([adopted, ?replaced, ?previous]);
     return adopted;
   }
 

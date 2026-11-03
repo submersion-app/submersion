@@ -327,6 +327,35 @@ void main() {
       expect(key.channelIndex, 3);
     });
 
+    test('a placeholder gone before the save leaves the edited key', () async {
+      await registerFromDownload();
+      await repo.create(
+        keyOn('mine', id: 'typed-key', transmitterSerial: '076287'),
+      );
+      final editing = await repo.getById('typed-key');
+      final unclaimed = await holderOfSerial();
+      // A sync removes the placeholder's row between the clash and the save.
+      await (db.delete(
+        db.transmitters,
+      )..where((t) => t.id.equals(unclaimed.id))).go();
+
+      await expectLater(
+        adoptTransmitterKey(
+          editing!.copyWith(transmitterSerial: serial),
+          unclaimed,
+          repository: repo,
+        ),
+        throwsA(anything),
+      );
+
+      final kept = await repo.getById('typed-key');
+      expect(kept?.transmitterSerial, '076287');
+      final logged = await (db.select(
+        db.deletionLog,
+      )..where((t) => t.recordId.equals('typed-key'))).get();
+      expect(logged, isEmpty);
+    });
+
     test('a fold that fails still saves the key', () async {
       await registerFromDownload();
 
