@@ -11,6 +11,7 @@ import 'package:submersion/features/agent_access/data/writes/families/scenario_w
 import 'package:submersion/features/agent_access/data/writes/families/sighting_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_type_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/species_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tag_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/weight_writes.dart';
@@ -43,6 +44,7 @@ class WriteCatalog {
       DiveTypeWrites(repositories),
       DiveRoleWrites(repositories),
       SiteTypeWrites(repositories),
+      SpeciesWrites(repositories),
     ]);
   }
 

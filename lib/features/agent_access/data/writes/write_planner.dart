@@ -79,7 +79,7 @@ class _Pass {
   final _rows = <String, Map<String, _Row>>{};
   final _seen = <(String, String)>{};
   final _referenced = <(String, String)>{};
-  final _versionedTables = <String, bool>{};
+  final _tableColumns = <String, Set<String>>{};
 
   /// The fields each update in the set names, by record, wherever it sits.
   late final _updatedFields = {
@@ -128,7 +128,7 @@ class _Pass {
         final marks = List.filled(chunk.length, '?').join(', ');
         final found = await db
             .customSelect(
-              '${_rowSelect(entry)} WHERE r.id IN ($marks)',
+              '${await _rowSelect(entry)} WHERE r.id IN ($marks)',
               variables: [for (final id in chunk) Variable.withString(id)],
             )
             .get();
@@ -417,14 +417,21 @@ class _Pass {
   }
 
   /// Whether [table] has an `updated_at` column.
-  Future<bool> _versioned(String table) async => _versionedTables[table] ??=
-      (await db
-          .customSelect(
-            "SELECT 1 FROM pragma_table_info(?) WHERE name = 'updated_at'",
-            variables: [Variable.withString(table)],
-          )
-          .getSingleOrNull()) !=
-      null;
+  Future<bool> _versioned(String table) async =>
+      (await _columnsOf(table)).contains('updated_at');
+
+  /// The column names of [table].
+  Future<Set<String>> _columnsOf(String table) async =>
+      _tableColumns[table] ??= {
+        for (final row
+            in await db
+                .customSelect(
+                  'SELECT name FROM pragma_table_info(?)',
+                  variables: [Variable.withString(table)],
+                )
+                .get())
+          row.read<String>('name'),
+      };
 
   /// The names of what a change links, so a diver reads names, not ids.
   Future<Map<String, String>> _names(
@@ -438,16 +445,26 @@ class _Pass {
       final ids = {...?delta?.add, ...?delta?.remove, ...?indirect[relation]};
       if (ids.isEmpty) continue;
       final table = records.named(entry.relations[relation]!.refEntity).table;
+      final columns = await _columnsOf(table);
+      // What the table calls a record: a species by its common name, a
+      // preset by its display name.
+      final name =
+          const [
+            'name',
+            'common_name',
+            'display_name',
+          ].where(columns.contains).firstOrNull ??
+          'id';
       for (final chunk in seriesIdChunks(ids.toList())) {
         final marks = List.filled(chunk.length, '?').join(', ');
         final rows = await db
             .customSelect(
-              'SELECT id, name FROM $table WHERE id IN ($marks)',
+              'SELECT id, $name AS title FROM $table WHERE id IN ($marks)',
               variables: [for (final id in chunk) Variable.withString(id)],
             )
             .get();
         for (final row in rows) {
-          names[row.read<String>('id')] = row.read<String>('name');
+          names[row.read<String>('id')] = row.read<String>('title');
         }
       }
     }

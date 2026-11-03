@@ -122,6 +122,20 @@ void main() {
         'site_types',
     'lib/features/site_types/data/repositories/site_type_repository.dart:deleteSiteTypesWithLinks':
         'site_types',
+    'lib/features/marine_life/data/repositories/species_repository.dart:createSpecies':
+        'species',
+    'lib/features/marine_life/data/repositories/species_repository.dart:updateSpecies':
+        'species',
+    'lib/features/marine_life/data/repositories/species_repository.dart:deleteSpecies':
+        'species',
+    'lib/features/marine_life/data/repositories/species_repository.dart:addExpectedSpecies':
+        'sites',
+    'lib/features/marine_life/data/repositories/species_repository.dart:removeExpectedSpecies':
+        'sites',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:replaceTags':
+        'sites',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTagsToSites':
+        'sites',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
