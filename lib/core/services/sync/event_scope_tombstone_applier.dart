@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -48,13 +50,17 @@ class EventScopeTombstoneApplier {
     // events, and the rest of each row is never looked at.
     final events = _db.diveProfileEvents;
     final computerId = scope.computerId;
+    // A dive scope replaces the computer's events; the diver's own rows
+    // (annotations, hand-added bookmarks) are never in it (#4109).
+    final notUser = events.source.equals(EventSource.user.name).not();
     final query = _db.selectOnly(events)
       ..addColumns([events.id, events.hlc, events.createdAt])
       ..where(
         computerId == null
-            ? events.diveId.equals(scope.diveId)
+            ? events.diveId.equals(scope.diveId) & notUser
             : events.diveId.equals(scope.diveId) &
-                  events.computerId.equals(computerId),
+                  events.computerId.equals(computerId) &
+                  notUser,
       );
     final doomed = <String>[];
     for (final row in await query.get()) {

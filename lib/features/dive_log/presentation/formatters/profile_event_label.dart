@@ -39,6 +39,7 @@ extension ProfileEventTypeDisplay on ProfileEventType {
     ProfileEventType.bookmark => l10n.enum_profileEvent_bookmark,
     ProfileEventType.alert => l10n.enum_profileEvent_alert,
     ProfileEventType.note => l10n.enum_profileEvent_note,
+    ProfileEventType.annotation => l10n.enum_profileEvent_annotation,
   };
 }
 

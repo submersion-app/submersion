@@ -148,6 +148,9 @@ void main() {
     'lib/features/dive_log/presentation/widgets/dive_numbering_dialog.dart '
             'gap.description':
         'a numbering gap description, not a notes field',
+    'lib/features/dive_log/presentation/widgets/annotation_marker_popup.dart '
+            'annotation.description':
+        'the plain words of a Notes link, cached without any Markdown (#4109)',
     'lib/features/universal_import/presentation/widgets/source_confirmation_step.dart '
             'detection.description':
         'an import format description, not a notes field',

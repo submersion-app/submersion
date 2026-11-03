@@ -67,6 +67,89 @@ void main() {
     });
   });
 
+  group('wrapSelectionAsAnnotation (#4109)', () {
+    const pinned = '[sick](annotation:old)';
+    TextEditingValue selecting(String text, String part) {
+      final start = text.indexOf(part);
+      return TextEditingValue(
+        text: text,
+        selection: TextSelection(
+          baseOffset: start,
+          extentOffset: start + part.length,
+        ),
+      );
+    }
+
+    test('a selection across a pinned passage stops before it', () {
+      final value = selecting('I felt $pinned today', 'felt $pinned today');
+      expect(selectedWords(value), 'felt');
+      expect(
+        wrapSelectionAsAnnotation(value, id: 'a1').text,
+        'I [felt](annotation:a1) $pinned today',
+      );
+    });
+
+    test('a selection starting on a pinned passage takes what follows it', () {
+      final value = selecting('$pinned today', '$pinned today');
+      expect(selectedWords(value), 'today');
+      expect(
+        wrapSelectionAsAnnotation(value, id: 'a1').text,
+        '$pinned [today](annotation:a1)',
+      );
+    });
+
+    test('a selection inside a pinned passage selects nothing', () {
+      final value = selecting('I $pinned today', 'ick');
+      expect(selectedWords(value), '');
+      expect(wrapSelectionAsAnnotation(value, id: 'a1').text, value.text);
+    });
+
+    test('wraps a selection as an annotation link and hugs the words', () {
+      final out = wrapSelectionAsAnnotation(v('I [felt sick ]today'), id: 'a1');
+      expect(out.text, 'I [felt sick](annotation:a1) today');
+      expect(out.selection.isCollapsed, isTrue);
+      expect(out.selection.baseOffset, 'I [felt sick](annotation:a1)'.length);
+    });
+
+    test('inserts a new linked line at a collapsed caret', () {
+      final out = wrapSelectionAsAnnotation(
+        v('First.|'),
+        id: 'a1',
+        words: 'Octo',
+      );
+      expect(out.text, 'First.\n[Octo](annotation:a1)');
+      expect(out.selection.baseOffset, out.text.length);
+    });
+
+    test('at a line start the link goes on that line', () {
+      final out = wrapSelectionAsAnnotation(
+        v('First.\n|'),
+        id: 'a1',
+        words: 'Octo',
+      );
+      expect(out.text, 'First.\n[Octo](annotation:a1)');
+    });
+
+    test('a selection across a blank line links the first paragraph only', () {
+      final out = wrapSelectionAsAnnotation(
+        v('[felt sick\n\nlater calm] end'),
+        id: 'a1',
+      );
+      expect(out.text, '[felt sick](annotation:a1)\n\nlater calm end');
+    });
+
+    test('a caret with no words to insert leaves the text alone', () {
+      final v0 = v('First.|');
+      expect(wrapSelectionAsAnnotation(v0, id: 'a1'), v0);
+      expect(wrapSelectionAsAnnotation(v0, id: 'a1', words: '  '), v0);
+    });
+
+    test('a whitespace-only selection counts as a caret', () {
+      final out = wrapSelectionAsAnnotation(v('a[ ]b'), id: 'a1', words: 'w');
+      expect(out.text, 'a\n[w](annotation:a1) b');
+    });
+  });
+
   group('toggleLinePrefix', () {
     test('heading on and off', () {
       expect(
@@ -175,5 +258,41 @@ void main() {
       show(toggleInlineMark(v('a [big ]turtle'), '**')),
       'a **[big]** turtle',
     );
+  });
+
+  group('a caret inside an annotation link', () {
+    const link = '[felt sick](annotation:a1)';
+    TextEditingValue caretAt(int offset) => TextEditingValue(
+      text: 'Start $link end',
+      selection: TextSelection.collapsed(offset: offset),
+    );
+
+    test('inserts after the link, leaving it whole', () {
+      final result = wrapSelectionAsAnnotation(
+        caretAt('Start [felt'.length),
+        id: 'b2',
+        words: 'cold',
+      );
+      expect(result.text, contains(link));
+      expect(result.text, contains('[cold](annotation:b2)'));
+    });
+
+    test('in the address too', () {
+      final result = wrapSelectionAsAnnotation(
+        caretAt('Start [felt sick](annot'.length),
+        id: 'b2',
+        words: 'cold',
+      );
+      expect(result.text, contains(link));
+    });
+
+    test('at the edge of a link stays where it is', () {
+      final result = wrapSelectionAsAnnotation(
+        caretAt('Start '.length),
+        id: 'b2',
+        words: 'cold',
+      );
+      expect(result.text, 'Start \n[cold](annotation:b2)$link end');
+    });
   });
 }

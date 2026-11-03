@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -54,6 +55,7 @@ void main() {
     WidgetTester tester,
     Diver diver, {
     bool isNewDiver = false,
+    AppExitGuard? exitGuard,
   }) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1.0;
@@ -66,6 +68,8 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
+          if (exitGuard != null)
+            appExitGuardProvider.overrideWithValue(exitGuard),
           currentDiverProvider.overrideWith((_) async => diver),
           diverListNotifierProvider.overrideWith((_) => notifier),
         ],
@@ -197,5 +201,43 @@ void main() {
     expect(notifier.added!.name, 'Carlos Charlie');
     expect(notifier.added!.id, isNotEmpty);
     expect(notifier.updated, isNull);
+  });
+
+  // A page underneath may hold unsaved work, which a switch would drop (#3422).
+  testWidgets('a new diver waits on the page underneath before taking over', (
+    tester,
+  ) async {
+    final guard =
+        AppExitGuard(
+          retryExit: () async {},
+          preventWindowClose: (_) async {},
+          revealWindow: () async {},
+        )..hold(
+          AppExitBlocker(
+            hasUnsavedWork: () => true,
+            confirmLeaving: () async => false,
+          ),
+        );
+    final notifier = await pump(
+      tester,
+      makeDiver(),
+      isNewDiver: true,
+      exitGuard: guard,
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name *'),
+      'Carlos Charlie',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.added, isNotNull);
+    expect(
+      ProviderScope.containerOf(
+        tester.element(find.byType(PersonalInfoEditPage)),
+      ).read(currentDiverIdProvider),
+      isNull,
+    );
   });
 }

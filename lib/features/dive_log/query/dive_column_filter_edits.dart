@@ -1,36 +1,15 @@
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/presentation/column_rules.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_column_filters.dart';
-
-/// The top-level AND children of [query], as the filter chips show them.
-List<QueryNode> _topLevel(QueryNode? query) => switch (query) {
-  null => const [],
-  AndNode(:final children) => children,
-  final node => [node],
-};
-
-QueryNode? _join(List<QueryNode> nodes) => switch (nodes.length) {
-  0 => null,
-  1 => nodes.single,
-  _ => AndNode(nodes),
-};
-
-bool _isOnKey(QueryNode node, String key) => switch (node) {
-  ConditionNode(:final path) => path.segments.first == key,
-  // A scoped relation rule (`buddies[name contains "Sam"]`) is on the
-  // relation it scopes.
-  ScopedNode(:final path) => path.segments.first == key,
-  NotNode(:final child) => _isOnKey(child, key),
-  _ => false,
-};
 
 /// [filter] with [rule] ANDed as a new top-level child (#2984), so it shows
 /// as its own removable chip; unchanged when an equal child is there.
 DiveFilterState addDiveTableRule(DiveFilterState filter, QueryNode rule) {
-  final top = _topLevel(filter.query);
-  if (top.contains(rule)) return filter;
-  return filter.copyWith(query: _join([...top, rule]));
+  final query = addColumnRule(filter.query, rule);
+  if (identical(query, filter.query)) return filter;
+  return filter.copyWith(query: query);
 }
 
 /// [filter] without [field]'s column filter: every top-level rule on its
@@ -38,11 +17,10 @@ DiveFilterState addDiveTableRule(DiveFilterState filter, QueryNode rule) {
 DiveFilterState resetDiveColumnFilter(DiveFilterState filter, DiveField field) {
   final key = kDiveColumnFilters[field]?.key;
   if (key == null) return filter;
-  final top = _topLevel(filter.query);
-  final kept = top.where((n) => !_isOnKey(n, key)).toList();
-  final withoutRules = kept.length == top.length
+  final query = resetColumnRules(filter.query, key);
+  final withoutRules = identical(query, filter.query)
       ? filter
-      : filter.copyWith(query: _join(kept), clearQuery: kept.isEmpty);
+      : filter.copyWith(query: query, clearQuery: query == null);
   return _clearAxis(withoutRules, field);
 }
 
@@ -51,7 +29,7 @@ DiveFilterState resetDiveColumnFilter(DiveFilterState filter, DiveField field) {
 bool isDiveColumnFiltered(DiveFilterState filter, DiveField field) {
   final key = kDiveColumnFilters[field]?.key;
   if (key == null) return false;
-  return _topLevel(filter.query).any((n) => _isOnKey(n, key)) ||
+  return isColumnFiltered(filter.query, key) ||
       (!filter.axesSuspended && _hasAxis(filter, field));
 }
 

@@ -84,6 +84,10 @@ class ProfileLegendConfig {
   /// (issue #1523).
   final bool hasComputedEvents;
   final bool hasImportedEvents;
+
+  /// Whether the dive carries annotations (#4109), which get their own
+  /// toggle beside Events.
+  final bool hasAnnotations;
   final bool hasMaxDepthMarker;
   final bool hasPressureMarkers;
   final bool hasGasSwitches;
@@ -145,6 +149,7 @@ class ProfileLegendConfig {
     this.hasEvents = false,
     this.hasComputedEvents = false,
     this.hasImportedEvents = false,
+    this.hasAnnotations = false,
     this.hasMaxDepthMarker = false,
     this.hasPressureMarkers = false,
     this.hasGasSwitches = false,

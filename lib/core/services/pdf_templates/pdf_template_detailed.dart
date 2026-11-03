@@ -52,6 +52,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    Map<String, Map<String, String>> annotationTimesByDive = const {},
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -153,6 +154,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
           margin: const pw.EdgeInsets.all(32),
           textDirection: loc.textDirection,
           build: (context) => _buildDivePage(
+            annotationTimes: annotationTimesByDive[dive.id] ?? const {},
             dive,
             dates: dates,
             l10n: l10n,
@@ -201,6 +203,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required Map<String, DiveTypeEntity> diveTypesById,
     required Map<String, DiveRole> diveRolesById,
     required Map<String, String> equipmentSetNamesById,
+    Map<String, String> annotationTimes = const {},
   }) {
     final chart = profile == null
         ? null
@@ -243,7 +246,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _technicalFields(dive, diveTypesById: diveTypesById, l10n: l10n),
       ),
       ..._marineLifeSection(dive, l10n),
-      ..._notesSection(dive, l10n),
+      ..._notesSection(dive, l10n, annotationTimes),
       ..._customFieldsSection(dive, l10n),
       ..._signatureSection(signatures, dates: dates, l10n: l10n),
       if (includeVerificationAreas) ..._verificationSection(l10n),
@@ -837,7 +840,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
   }
 
-  List<pw.Widget> _notesSection(Dive dive, AppLocalizations l10n) {
+  List<pw.Widget> _notesSection(
+    Dive dive,
+    AppLocalizations l10n,
+    Map<String, String> annotationTimes,
+  ) {
     if (dive.notes.isEmpty) return const [];
 
     return [
@@ -850,6 +857,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       ...notesMarkdownPdfBlocks(
         dive.notes,
         style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+        annotationTimes: annotationTimes,
       ),
       pw.SizedBox(height: 14),
     ];

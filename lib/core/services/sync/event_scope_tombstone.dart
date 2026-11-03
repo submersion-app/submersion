@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 
 /// One tombstone for a set of `dive_profile_events` rows (#1926): every
@@ -97,6 +98,8 @@ class EventScopeCoverage {
   /// Whether [event], a `diveProfileEvents` record as the wire carries it,
   /// predates a stored scope delete that includes it.
   bool covers(Map<String, dynamic> event) {
+    // The diver's own events are never part of a scope delete (#4109).
+    if (event['source'] == EventSource.user.name) return false;
     final diveId = event['diveId'];
     if (diveId is! String) return false;
     final scopes = _byDive[diveId];

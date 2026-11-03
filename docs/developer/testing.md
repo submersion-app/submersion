@@ -492,10 +492,26 @@ runs bundles instead: generated entrypoints that import many test files and
 call each one's `main()` inside a group named after the file
 (`scripts/bundle_tests.py`, issue #2500). A full local run with
 `scripts/run_all_tests.sh` (or `RUN_ALL_TESTS=1` on a push) uses bundles too, of
-up to 40 files so they spread evenly over the local workers (issue #2512). The
-pre-push hook's usual run of the affected
-test files stays unbundled: a few dozen files finish sooner side by side than
-one after another in a single isolate.
+up to 40 files so they spread evenly over the local workers (issue #2512).
+
+The pre-push hook's run of the affected test files stays unbundled below 100
+files: a few dozen files finish no sooner in a bundle, since a bundle runs its
+files one after another. From 100 files up the hook writes its selection to a
+list file and runs the script with `TEST_FILES_FROM=<list>`, which bundles only
+those files, in at least one bundle per worker (issue #4117). The gain depends
+on the mix, since database and migration tests stay slow however they load. At
+`-j 16`, an even sample of 522 files went from about 6 minutes to about 2, a real
+424-file push from 293 to 268 seconds, and 86 files took the same either way,
+but about 3 minutes in 40-file bundles, which is why the size follows the worker
+count. `scripts/run_all_tests.sh` raises the limit for plain tests from 2 to 5
+minutes, because on a very busy machine a slow test can reach 2 minutes in a
+bundle. The same variable works by hand, with the list named by an absolute path:
+
+```bash
+list="$(mktemp)"
+printf '%s\n' test/a_test.dart test/b_test.dart > "$list"
+TEST_FILES_FROM="$list" scripts/run_all_tests.sh
+```
 
 ### The rule: put back what you replace
 
@@ -605,6 +621,36 @@ Mark a new test that reads source files from disk the same way, or put a
 guard that scans all of `lib/` in `test/architecture/`. CI still runs the full suite on every pull request that
 changes code; a docs-only or CI-only change skips it unless `[full-ci]` is in
 the title or a commit message.
+
+### The time budget
+
+The selection has no natural ceiling: after a merge from `main`, or a change
+to a file that hundreds of tests import, it has run for over an hour. The hook
+therefore estimates the bundled run from the number of selected files, the
+per-file cost and the concurrency, and caps it at `TEST_BUDGET` seconds
+(default 600). The estimate is a rough guide, since the same push can take twice
+as long on a busy machine. Over the budget it drops whole tiers from the lowest
+signal up, the hub sample, the generated-l10n sample, the tests importing two or
+more changed files, then the same-area importers, until the estimate fits, and
+prints what it dropped. Changed tests, mirrored tests and the repo-wide guards
+always run. When the selection is at least half of the suite and the whole
+suite fits the budget, the whole suite runs instead, since bundled it costs
+about the same and covers everything (issue #4117).
+
+| Variable | Effect |
+|---|---|
+| `TEST_BUDGET=N` | cap the local run at about N seconds; `0` turns the cap off |
+| `TEST_FILE_SECONDS=X` | the bundled cost of one test file in CPU-seconds that the estimate uses |
+| `RUN_ALL_AFFECTED=1` | run every importer, ignoring the ranking and the budget |
+| `TEST_BUNDLE_MIN=N` | bundle a selection of at least N files (default 100) |
+| `RUN_ALL_TESTS_ARG_LIMIT=N` | the longest path list one `flutter test` call may carry, in characters (default 8000) |
+| `DRY_RUN=1` | print the selection and the budget decision without running anything |
+| `SKIP_TESTS=1` | skip the local test run; format, analyze and the l10n check still run |
+
+`DRY_RUN=1 git push` is the way to see what a push would run before it runs
+it. After a merge from `main` the push range includes everything the merge
+brought in, so the budget is what keeps that push short; `SKIP_TESTS=1` is
+still there when the trimmed selection is not worth waiting for.
 
 A pull request's CI tests the merge of the branch into `main`, so a failure on
 `main` turns every open pull request red too. When a required job fails on a

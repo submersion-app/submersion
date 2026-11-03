@@ -4,14 +4,15 @@
 # Runs dart format check, flutter analyze, a generated-l10n staleness check, and
 # a SCOPED test run before pushing.
 #
-# Why scoped tests: the full suite is ~1900 test files. Measured on the full
-# suite, 79% of local test wall-clock is `loading <file>` (isolate spawn +
-# Flutter binding + kernel load) rather than executing tests: 4824s of load
-# against 1300s of actual test cases, averaging 2.55s of overhead per file to
-# run ~0.7s of work. Selecting fewer FILES is therefore the only lever that
-# matters locally. CI already runs the ENTIRE suite across 8 parallel shards on
-# every push (see .github/workflows/ci.yaml), so the local gate does not need to
-# duplicate that; it exists to catch obvious breakage fast.
+# Why scoped tests: the full suite is over 6,000 test files (1,900 when this
+# was measured). Measured on the full suite, 79% of local test wall-clock is
+# `loading <file>` (isolate spawn + Flutter binding + kernel load) rather than
+# executing tests: 4824s of load against 1300s of actual test cases, averaging
+# 2.55s of overhead per file to run ~0.7s of work. Selecting fewer FILES is
+# therefore the main lever locally, and bundling a large selection the next one.
+# CI already runs the ENTIRE suite across 8 parallel shards on every push (see
+# .github/workflows/ci.yaml), so the local gate does not need to duplicate that;
+# it exists to catch obvious breakage fast.
 #
 # Selection tiers, highest signal first. The first two are never trimmed (they
 # peaked at 29 and 32 files across the last 25 merged PRs):
@@ -64,12 +65,50 @@
 # sample is seeded on the pushed sha: stable for a given commit so a failure
 # reproduces, but rotating across commits so coverage accumulates.
 #
+# A selection of 100 files or more runs BUNDLED (issue #4117): the hook writes
+# it to a list file and runs scripts/run_all_tests.sh with TEST_FILES_FROM,
+# which packs the files into generated entrypoints, at least one per worker, so
+# the isolate start-up and kernel load is paid per bundle rather than per file.
+# Smaller selections stay separate files, because bundling gains nothing there
+# and a bundle shares its isolate. The gain depends on what is selected, since
+# database and migration tests stay slow however they load. Measured at -j 16 on
+# an 18-core Mac with other sessions running:
+#   86 files, a push          56-69s separate, 62-67s as 19 bundles
+#   424 files, a real push    293s separate, 268s as 31 bundles (load 28)
+#                             821s separate, 604s as 31 bundles (load 55)
+#   522 files, an even sample 334-393s separate, 110-138s as 33 bundles
+# run_all_tests.sh gives each test a 5-minute limit, since a bundle's files share
+# a busy machine. A branch whose script predates TEST_FILES_FROM keeps separate
+# files.
+#
+# The time budget (issue #4117): the selection has no natural ceiling. After a
+# merge from main, or a change to a hub file, it has run for over an hour, and
+# the only remedy was SKIP_TESTS=1 on a hunch. The hook now estimates the
+# bundled run as files x TEST_FILE_SECONDS / concurrency and, when that is
+# over TEST_BUDGET seconds, drops whole tiers from the lowest signal up: the
+# hub sample, the l10n sample, tier 4, then tier 3, until the estimate fits,
+# saying what it dropped. Tiers 1, 2 and 5 always run, over budget or not.
+# When the selection is at least half of the suite and the whole suite fits
+# the budget, the whole suite runs instead: bundled, it costs about the same
+# and covers everything. RUN_ALL_AFFECTED=1 and TEST_BUDGET=0 turn the budget
+# off. The default per-file cost comes from a real push (see TEST_FILE_COST
+# below), not from the whole suite, whose even mix costs less per file.
+#
 # Escape hatches:
 #   RUN_ALL_TESTS=1    git push   run the entire suite locally, as bundles, via
 #                                 scripts/run_all_tests.sh (also runnable alone)
-#   RUN_ALL_AFFECTED=1 git push   skip ranking; run every importer (old behavior)
+#   RUN_ALL_AFFECTED=1 git push   skip ranking and the budget; run every importer
 #   SKIP_TESTS=1       git push   skip the local test run entirely
-#   DRY_RUN=1          git push   print the resolved test list and exit (no run)
+#   DRY_RUN=1          git push   print the resolved test list and the budget
+#                                 decision, then exit (no run)
+#   TEST_BUDGET=N      git push   cap the local run at about N seconds
+#                                 (default 600; 0 turns the cap off)
+#   TEST_FILE_SECONDS=X git push  the bundled cost of one test file in
+#                                 CPU-seconds that the estimate uses
+#   TEST_BUNDLE_MIN=N  git push   bundle a selection of at least N files
+#                                 (default 100)
+#   RUN_ALL_TESTS_ARG_LIMIT=N git push  the longest path list one flutter test
+#                                 call may carry, in characters (default 8000)
 #   TEST_CONCURRENCY=N git push   override the parallel test-isolate count
 #   L10N_SAMPLE=N      git push   override the generated-l10n importer sample
 #   HUB_SAMPLE=N       git push   override the hub importer sample
@@ -460,33 +499,111 @@ if [ -n "${HUB_THRESHOLD:-}" ]; then
     HUB_THRESHOLD_COUNT="$(sanitized_override HUB_THRESHOLD "$HUB_THRESHOLD" 100)"
 fi
 
+TEST_BUNDLE_MIN_FILES=100
+if [ -n "${TEST_BUNDLE_MIN:-}" ]; then
+    TEST_BUNDLE_MIN_FILES="$(sanitized_override TEST_BUNDLE_MIN "$TEST_BUNDLE_MIN" 100)"
+fi
+
+# TEST_BUDGET is in seconds. Zero in any spelling means no cap, which
+# sanitized_override would refuse, so it is settled first.
+TEST_BUDGET_SECONDS=600
+case "${TEST_BUDGET:-}" in
+    '') ;;
+    *[!0]*) TEST_BUDGET_SECONDS="$(sanitized_override TEST_BUDGET "$TEST_BUDGET" 600)" ;;
+    *) TEST_BUDGET_SECONDS=0 ;;
+esac
+
+# The bundled cost of one test file, in CPU-seconds, so wall-clock is about
+# files x cost / concurrency. Measured at -j 16 on an 18-core Mac with other
+# sessions running: a real 424-file push took 268s at load 28, which is 5.1; an
+# even sample of 522 files is 3.8, and the whole suite of 6,270 is 2.9. Pushes
+# select the heavy database and hub-adjacent tests, so the real push sets the
+# value, and it reads high for the even mix of a whole suite. It is a rough
+# guide: the same push took 604s at load 55. Concurrency does not scale
+# linearly either (the suite took 939s at -j 8 and 1,151s at -j 16, at different
+# loads), so a lower TEST_CONCURRENCY overstates the time.
+# TEST_FILE_SECONDS overrides it, as a positive decimal.
+TEST_FILE_COST=5.0
+if [ -n "${TEST_FILE_SECONDS:-}" ]; then
+    if printf '%s' "$TEST_FILE_SECONDS" | grep -Eq '^[0-9]+(\.[0-9]+)?$' \
+        && awk -v x="$TEST_FILE_SECONDS" 'BEGIN { exit !(x > 0) }'; then
+        TEST_FILE_COST="$TEST_FILE_SECONDS"
+    else
+        echo "Ignoring invalid TEST_FILE_SECONDS='${TEST_FILE_SECONDS}'; using ${TEST_FILE_COST}." >&2
+    fi
+fi
+
 # Shared test runner: "$@" is an explicit file list; empty means whole suite.
 run_tests() {
     flutter test --exclude-tags performance --concurrency="$CONCURRENCY" "$@"
 }
 
-# Runs an explicit file list through run_tests in fixed-size batches, rather
-# than as one invocation: a selection large enough (a long-lived branch, a
-# squash-worthy PR) makes flutter test's own command line exceed the OS's
-# length limit -- on Windows this fails with "Argument list too long" inside
-# flutter.bat before a single test runs, the same class of failure the
-# xargs-batched format check above works around. Each batch pays its own
-# isolate/compile startup cost, which is the point: correctness over the
-# single-invocation speed this hook otherwise optimizes for, and this path
-# only engages once a selection is large enough to overflow in the first
-# place. Returns non-zero if any batch fails, after running them all so one
-# failing batch does not hide a later one.
+# The most one flutter test call carries: 100 files, and paths totalling the
+# 8,000 characters run_all_tests.sh allows under Git Bash, which leaves room for
+# flutter's own options in the 8,191 Windows limit. Paths here run to 107
+# characters, so 100 files alone could overflow it. The limit applies on every
+# platform, which costs an extra call only for very long paths and means the
+# Linux CI exercises the same path Windows takes.
+TEST_BATCH_FILES=100
+TEST_BATCH_CHARS=8000
+if [ -n "${RUN_ALL_TESTS_ARG_LIMIT:-}" ]; then
+    TEST_BATCH_CHARS="$(sanitized_override RUN_ALL_TESTS_ARG_LIMIT "$RUN_ALL_TESTS_ARG_LIMIT" 8000)"
+fi
+
+# Runs an explicit file list through run_tests in batches, rather than as one
+# invocation: a selection large enough (a long-lived branch, a squash-worthy PR)
+# makes flutter test's own command line exceed the OS's length limit -- on
+# Windows this fails with "Argument list too long" inside flutter.bat before a
+# single test runs, the same class of failure the xargs-batched format check
+# above works around. Each batch pays its own isolate/compile startup cost, which
+# is the point: correctness over the single-invocation speed this hook otherwise
+# optimizes for, and this path only engages once a selection is large enough to
+# overflow in the first place. A path longer than the limit still runs, alone.
+# Returns non-zero if any batch fails, after running them all so one failing
+# batch does not hide a later one.
 run_tests_batched() {
-    local -a files=("$@")
-    local batch_size=100
-    local i=0
-    local failed=0
-    while [ "$i" -lt "${#files[@]}" ]; do
-        local -a batch=("${files[@]:$i:$batch_size}")
-        run_tests "${batch[@]}" || failed=1
-        i=$((i + batch_size))
+    local -a batch=()
+    local file length=0 failed=0
+    for file in "$@"; do
+        if [ "${#batch[@]}" -gt 0 ] && { [ "${#batch[@]}" -ge "$TEST_BATCH_FILES" ] \
+            || [ $((length + ${#file} + 1)) -gt "$TEST_BATCH_CHARS" ]; }; then
+            run_tests "${batch[@]}" || failed=1
+            batch=()
+            length=0
+        fi
+        batch+=("$file")
+        length=$((length + ${#file} + 1))
     done
+    if [ "${#batch[@]}" -gt 0 ]; then
+        run_tests "${batch[@]}" || failed=1
+    fi
     return "$failed"
+}
+
+# True when a selection of $1 files runs bundled. The script is the pushed
+# tree's, so a branch cut before it learned TEST_FILES_FROM (or before it
+# existed) says no here.
+selection_bundles() {
+    [ "$1" -ge "$TEST_BUNDLE_MIN_FILES" ] \
+        && [ -f scripts/run_all_tests.sh ] \
+        && grep -q 'TEST_FILES_FROM' scripts/run_all_tests.sh
+}
+
+# Runs the selected files: bundled through scripts/run_all_tests.sh when the
+# selection is large enough (see the header), which also handles the
+# command-line limit and names the failing files, otherwise as separate files.
+run_selected() {
+    local list status
+    if selection_bundles "$#"; then
+        list=$(mktemp)
+        printf '%s\n' "$@" > "$list"
+        status=0
+        TEST_FILES_FROM="$list" TEST_CONCURRENCY="$CONCURRENCY" \
+            bash scripts/run_all_tests.sh || status=$?
+        rm -f "$list"
+        return "$status"
+    fi
+    run_tests_batched "$@"
 }
 
 if [ "${SKIP_TESTS:-0}" = "1" ]; then
@@ -523,7 +640,10 @@ if [ "${RUN_ALL_TESTS:-0}" = "1" ]; then
 fi
 
 # Map changed files to affected test files. "matched" accumulates candidate
-# paths (newline-separated); it is deduped and existence-filtered at the end.
+# lines "<tier> <path>" (newline-separated), the tier being the one from the
+# header that selected the path; a path selected by several tiers keeps the
+# lowest number. It is deduped and existence-filtered at the end, and the tier
+# is what the time budget trims by.
 matched=""
 dart_changed=0
 helper_pattern=$(mktemp)   # changed test helpers, matched by path segment
@@ -544,9 +664,9 @@ while IFS= read -r f; do
     case "$f" in lib/*) lib_changed=1 ;; esac
     case "$f" in
         test/*_test.dart)
-            # A changed test: run it directly.
+            # A changed test: run it directly (tier 1).
             matched="${matched}
-${f}"
+1 ${f}"
             ;;
         test/*.dart)
             # A changed helper/fixture: run the tests that import it. Match the
@@ -556,10 +676,10 @@ ${f}"
             printf '/%s\n' "$(basename "$f")" >> "$helper_pattern"
             ;;
         lib/*.dart)
-            # Mirrored test path (lib/x/y.dart -> test/x/y_test.dart) ...
+            # Mirrored test path (lib/x/y.dart -> test/x/y_test.dart), tier 2.
             rel="${f#lib/}"
             matched="${matched}
-test/${rel%.dart}_test.dart"
+2 test/${rel%.dart}_test.dart"
             # ... plus, below, the tests that import this file.
             case "$f" in
                 lib/l10n/arb/app_localizations*.dart)
@@ -667,7 +787,7 @@ split_out_hubs "$code_pattern"
 if [ -s "$helper_pattern" ]; then
     while IFS= read -r t; do
         matched="${matched}
-${t}"
+1 ${t}"
     done < <(grep -rlF -f "$helper_pattern" --include='*_test.dart' test 2>/dev/null || true)
 fi
 
@@ -709,7 +829,7 @@ done < <(grep -rHE "$guard_marker" --include='*_test.dart' test 2>/dev/null || t
 while IFS= read -r t; do
     [ -n "$t" ] || continue
     matched="${matched}
-${t}"
+5 ${t}"
 done <<< "$guards"
 
 # Importers of changed lib code, ranked. `grep -rc` reports "path:count" per
@@ -723,20 +843,23 @@ if [ -s "$code_pattern" ]; then
         hits="${line##*:}"
         path="${line%:*}"
         [ "$hits" != "0" ] || continue
+        # keep is the tier that selects the test: 3 for proximity (which
+        # every importer gets when nothing is dropped), 4 for the multi-hit
+        # signal, 0 for not selected.
         keep=0
         if [ "${RUN_ALL_AFFECTED:-0}" = "1" ] || [ "$near_everything" = "1" ]; then
-            keep=1
+            keep=3
         elif [ "$hits" -ge 2 ]; then
-            keep=1
+            keep=4
         else
             area=$(dirname "${path#test/}" | cut -d/ -f1-3)
             if grep -qxF "$area" "$near_dirs" 2>/dev/null; then
-                keep=1
+                keep=3
             fi
         fi
-        if [ "$keep" = "1" ]; then
+        if [ "$keep" != "0" ]; then
             matched="${matched}
-${path}"
+${keep} ${path}"
         fi
     done < <(grep -rcF -f "$code_pattern" --include='*_test.dart' test 2>/dev/null || true)
 fi
@@ -753,7 +876,7 @@ if [ -s "$l10n_pattern" ]; then
         while IFS= read -r t; do
             [ -n "$t" ] || continue
             matched="${matched}
-${t}"
+6 ${t}"
         done <<< "$l10n_pick"
     fi
 fi
@@ -763,7 +886,7 @@ fi
 if [ -s "$hub_pattern" ]; then
     hub_hits=$(grep -rlF -f "$hub_pattern" --include='*_test.dart' test 2>/dev/null || true)
     if [ -n "$hub_hits" ]; then
-        already=$(printf '%s\n' "$matched" | grep -v '^$' || true)
+        already=$(printf '%s\n' "$matched" | grep -v '^$' | sed 's/^[0-9] //' || true)
         if [ -n "$already" ]; then
             hub_hits=$(printf '%s\n' "$hub_hits" \
                 | grep -vxF -f <(printf '%s\n' "$already") || true)
@@ -774,15 +897,17 @@ if [ -s "$hub_pattern" ]; then
         while IFS= read -r t; do
             [ -n "$t" ] || continue
             matched="${matched}
-${t}"
+7 ${t}"
         done <<< "$hub_pick"
     fi
 fi
 
 rm -f "$helper_pattern" "$code_pattern" "$l10n_pattern" "$near_dirs" "$hub_pattern"
 
-# Dedupe, drop blanks/non-tests/deleted paths, load into an array.
-final=$(printf '%s\n' "$matched" | sort -u | while IFS= read -r t; do
+# Dedupe (a path selected by several tiers keeps the lowest tier number),
+# drop blanks/non-tests/deleted paths, load into parallel arrays.
+final=$(printf '%s\n' "$matched" | grep -v '^$' | sort -k2,2 -k1,1n \
+    | awk '!seen[$2]++' | while read -r tier t; do
     [ -n "$t" ] || continue
     [[ "$t" == *_test.dart ]] || continue
     # Must be "|| continue", never '[ -f "$t" ] && printf'. This loop is the
@@ -792,38 +917,165 @@ final=$(printf '%s\n' "$matched" | sort -u | while IFS= read -r t; do
     # here are routine: the mirrored lib/x.dart -> test/x_test.dart mapping is
     # speculative, and plenty of lib files have no mirrored test.
     [ -f "$t" ] || continue
-    printf '%s\n' "$t"
+    printf '%s %s\n' "$tier" "$t"
 done)
 
 test_files=()
-while IFS= read -r t; do
-    [ -n "$t" ] && test_files+=("$t")
+test_tiers=()
+while read -r tier t; do
+    [ -n "$t" ] || continue
+    test_tiers+=("$tier")
+    test_files+=("$t")
 done <<< "$final"
+
+# --- The time budget (see the header) ---------------------------------------
+
+# Whole seconds a bundled run of $1 test files is expected to take.
+estimate_seconds() {
+    awk -v n="$1" -v cost="$TEST_FILE_COST" -v j="$CONCURRENCY" \
+        'BEGIN { s = n * cost / j; printf "%d", (s == int(s)) ? s : int(s) + 1 }'
+}
+
+# $1 seconds as "1m09s", or "45s" under a minute.
+format_seconds() {
+    if [ "$1" -ge 60 ]; then
+        printf '%dm%02ds' $(($1 / 60)) $(($1 % 60))
+    else
+        printf '%ds' "$1"
+    fi
+}
+
+tier_label() {
+    case "$1" in
+        3) printf 'same-area importers of changed files' ;;
+        4) printf 'tests importing two or more changed files' ;;
+        6) printf 'sampled importers of generated l10n' ;;
+        7) printf 'sampled importers of hub files' ;;
+        *) printf 'tier %s' "$1" ;;
+    esac
+}
+
+# Removes every test of tier $1 from test_files and test_tiers, leaving the
+# count in dropped_count. Not a $(...) call: that would run in a subshell and
+# lose the arrays.
+dropped_count=0
+drop_tier() {
+    local -a keep_files=() keep_tiers=()
+    local i
+    dropped_count=0
+    for i in "${!test_files[@]}"; do
+        if [ "${test_tiers[$i]}" = "$1" ]; then
+            dropped_count=$((dropped_count + 1))
+        else
+            keep_files+=("${test_files[$i]}")
+            keep_tiers+=("${test_tiers[$i]}")
+        fi
+    done
+    test_files=(${keep_files[@]+"${keep_files[@]}"})
+    test_tiers=(${keep_tiers[@]+"${keep_tiers[@]}"})
+}
+
+budget_notes=""
+budget_dropped=0
+run_whole_suite=0
+if [ "${#test_files[@]}" -gt 0 ] && [ "$TEST_BUDGET_SECONDS" -gt 0 ] \
+    && [ "${RUN_ALL_AFFECTED:-0}" != "1" ]; then
+    selected=${#test_files[@]}
+    suite_files=$(find test -name '*_test.dart' -not -path 'test/.bundles/*' \
+        2>/dev/null | wc -l | tr -d ' ')
+    suite_estimate=$(estimate_seconds "$suite_files")
+    if [ $((selected * 2)) -ge "$suite_files" ] \
+        && [ "$suite_estimate" -le "$TEST_BUDGET_SECONDS" ] \
+        && [ -f scripts/run_all_tests.sh ]; then
+        run_whole_suite=1
+        budget_notes="The selection is ${selected} of ${suite_files} test files, so the whole suite
+   runs instead: bundled it takes about $(format_seconds "$suite_estimate"), within
+   TEST_BUDGET=${TEST_BUDGET_SECONDS}s, and covers everything."
+    else
+        estimate=$(estimate_seconds "$selected")
+        if [ "$estimate" -gt "$TEST_BUDGET_SECONDS" ]; then
+            budget_notes="${selected} test files would take about $(format_seconds "$estimate") bundled, over
+   TEST_BUDGET=${TEST_BUDGET_SECONDS}s. Trimming the lowest-signal tiers first:"
+            for tier in 7 6 4 3; do
+                [ "$estimate" -gt "$TEST_BUDGET_SECONDS" ] || break
+                drop_tier "$tier"
+                [ "$dropped_count" -gt 0 ] || continue
+                budget_dropped=$((budget_dropped + dropped_count))
+                estimate=$(estimate_seconds "${#test_files[@]}")
+                budget_notes="${budget_notes}
+   dropped ${dropped_count} $(tier_label "$tier") (now about $(format_seconds "$estimate"))"
+            done
+            if [ "$estimate" -gt "$TEST_BUDGET_SECONDS" ]; then
+                budget_notes="${budget_notes}
+   Still over budget with the ${#test_files[@]} files that always run (changed and
+   mirrored tests, repo-wide guards); running them anyway."
+            fi
+            budget_notes="${budget_notes}
+   CI runs the full suite. (TEST_BUDGET=0 runs the whole selection; a larger
+   TEST_BUDGET keeps more tiers.)"
+        fi
+    fi
+fi
 
 if [ "${DRY_RUN:-0}" = "1" ]; then
     echo "🧪 DRY_RUN: ${#test_files[@]} affected test file(s):"
     printf '   %s\n' "${test_files[@]}"
+    if [ -n "$budget_notes" ]; then
+        printf '%s\n' "$budget_notes"
+    fi
+    if [ "$run_whole_suite" = "1" ]; then
+        echo "   DRY_RUN: the whole suite would run, as bundles, instead of this selection."
+    fi
     exit 0
 fi
 
-if [ "${#test_files[@]}" -gt 0 ]; then
-    echo "🧪 Running ${#test_files[@]} affected test file(s) (concurrency $CONCURRENCY)..."
+if [ "$run_whole_suite" = "1" ]; then
+    printf '%s\n' "$budget_notes"
+    echo ""
+    echo "Running the whole test suite as bundles (concurrency $CONCURRENCY)..."
+    if ! run_full_suite; then
+        echo ""
+        echo "❌ Tests failed! Fix the failing tests before pushing."
+        exit 1
+    fi
+    echo "✅ All tests passed"
+    echo ""
+elif [ "${#test_files[@]}" -gt 0 ]; then
+    if [ -n "$budget_notes" ]; then
+        printf '%s\n' "$budget_notes"
+        echo ""
+    fi
+    if selection_bundles "${#test_files[@]}"; then
+        echo "Running ${#test_files[@]} affected test file(s) as bundles (concurrency $CONCURRENCY)..."
+    else
+        echo "🧪 Running ${#test_files[@]} affected test file(s) (concurrency $CONCURRENCY)..."
+    fi
     if [ "${#test_files[@]}" -le 25 ]; then
         printf '   %s\n' "${test_files[@]}"
     fi
     echo ""
-    if ! run_tests_batched "${test_files[@]}"; then
+    if ! run_selected "${test_files[@]}"; then
         echo ""
         echo "❌ Tests failed! Fix the failing tests before pushing."
         echo "   (RUN_ALL_TESTS=1 git push runs the full suite; CI runs it regardless.)"
         exit 1
     fi
     echo "✅ Affected tests passed"
-    echo "   Ranked selection: changed and mirrored tests, same-area importers,"
-    echo "   tests hitting 2+ changed files, and repo-wide guards."
-    echo "   Distant single-hit importers, and most importers of generated l10n"
-    echo "   and of hub files, are left to CI's full suite."
-    echo "   (RUN_ALL_AFFECTED=1 runs every importer.)"
+    if [ "$budget_dropped" -gt 0 ]; then
+        echo "   Trimmed to TEST_BUDGET=${TEST_BUDGET_SECONDS}s: the tiers dropped above"
+        echo "   did not run locally, and are left to CI's full suite."
+    else
+        echo "   Ranked selection: changed and mirrored tests, same-area importers,"
+        echo "   tests hitting 2+ changed files, and repo-wide guards."
+        echo "   Distant single-hit importers, and most importers of generated l10n"
+        echo "   and of hub files, are left to CI's full suite."
+    fi
+    echo "   (RUN_ALL_AFFECTED=1 runs every importer, ignoring TEST_BUDGET.)"
+    echo ""
+elif [ "$budget_dropped" -gt 0 ]; then
+    printf '%s\n' "$budget_notes"
+    echo ""
+    echo "The budget dropped every selected test; skipping local tests."
     echo ""
 elif [ "$dart_changed" = "1" ]; then
     echo "🧪 No test files directly import the changed Dart files; skipping local tests."

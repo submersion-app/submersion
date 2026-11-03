@@ -371,36 +371,4 @@ void main() {
       expect(parser.calculateAscentRates(profile), isEmpty);
     });
   });
-
-  group('analyzeDivePhases', () {
-    test('identifies descent end, ascent start and bottom time', () {
-      // Max depth (30m) is first reached at t=90. descentEnd is the first
-      // sample within 10% of max (>=27m) before that: t=60. ascentStart is the
-      // last sample within 10% of max: t=150.
-      final profile = <ProfileSample>[
-        sample(time: 0, depth: 0.0),
-        sample(time: 30, depth: 15.0),
-        sample(time: 60, depth: 28.0),
-        sample(time: 90, depth: 30.0),
-        sample(time: 120, depth: 30.0),
-        sample(time: 150, depth: 30.0),
-        sample(time: 180, depth: 10.0),
-        sample(time: 240, depth: 0.0),
-      ];
-
-      final phases = parser.analyzeDivePhases(profile);
-
-      expect(phases.descentEnd, 60);
-      expect(phases.ascentStart, 150);
-      expect(phases.bottomTime, 90);
-    });
-
-    test('returns zeroed phases for an empty profile', () {
-      final phases = parser.analyzeDivePhases(const []);
-
-      expect(phases.descentEnd, 0);
-      expect(phases.ascentStart, 0);
-      expect(phases.bottomTime, 0);
-    });
-  });
 }

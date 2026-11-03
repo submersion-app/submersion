@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -2894,8 +2895,6 @@ class UddfEntityImporter {
                 ),
       ];
 
-      final notes = diveData['notes'] as String? ?? '';
-
       // Parse sightings
       final sightings = _buildSightings(diveData);
 
@@ -2966,9 +2965,24 @@ class UddfEntityImporter {
       final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
       // Parser-emitted profile events; persisted as ProfileEvents after the
-      // dive row is created.
-      final eventMaps = (diveData['events'] as List?)
-          ?.cast<Map<String, dynamic>>();
+      // dive row is created. SSRF and DL7 fill `events`, the UDDF path fills
+      // `profileEvents` (the app's own <profileevents> extension), the same
+      // two keys the resync writer reads. A restore that read only the first
+      // dropped every event a backup carried, annotations included (#4109).
+      final eventMaps =
+          ((diveData['events'] ?? diveData['profileEvents']) as List?)
+              ?.cast<Map<String, dynamic>>();
+      // A backup carries each event's own id (#4109). This dive is new, so an
+      // id the log already holds is another dive's (the backup restored
+      // twice): this copy takes a fresh one, and its Notes links follow.
+      final freshEventIds = await _freshIdsForTakenEvents(
+        eventMaps,
+        repos.diveRepository,
+      );
+      final notes = renameAnnotationLinks(
+        diveData['notes'] as String? ?? '',
+        freshEventIds,
+      );
       final diveTypeIds = _resolveDiveTypeIds(
         (diveData['diveTypeIds'] as List?)?.cast<String>() ??
             [diveData['diveType'] as String? ?? 'recreational'],
@@ -3269,27 +3283,32 @@ class UddfEntityImporter {
         );
       }
 
-      // Persist profile events emitted by the parser. Currently supported (Slice C + C.2):
-      // setpointChange, bookmark, safetyStopStart, decoStopStart, decoViolation,
-      // ascentRateWarning, ppO2High, ppO2Low. Future slices may add more types as
-      // real SSRF exports surface additional event names.
-      //
-      // NOTE ON UDDF DIVERGENCE: SSRF's subsurface_xml_parser emits events under
-      // `diveData['events']` (read here). The UDDF path in
-      // `uddf_full_import_service.dart` emits events under
-      // `diveData['profileEvents']` — a pre-existing key mismatch. UDDF-side
-      // event persistence is intentionally out of scope for Slice C; when a
-      // future slice adds UDDF event import, unify the keys or add a second
-      // consumer block here.
+      // Persist profile events emitted by the parser, converted by the same
+      // mapper the resync writer uses; the types it does not know are skipped
+      // with a log line.
       if (eventMaps != null && eventMaps.isNotEmpty) {
         final events = profileEventsFromParsed(
           diveId: diveId,
-          eventMaps: eventMaps,
+          eventMaps: [
+            for (final map in eventMaps)
+              {...map, 'id': ?freshEventIds[map['id']]},
+          ],
           now: now,
           onSkipped: _log.warning,
         );
-        if (events.isNotEmpty) {
-          await repos.diveRepository.insertProfileEvents(events);
+        // A failure here must not leave the dive half imported: the events
+        // are a detail of it, not the dive.
+        try {
+          if (events.isNotEmpty) {
+            await repos.diveRepository.insertProfileEvents(events);
+          }
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to import the profile events of dive $diveId; the dive '
+            'itself is kept',
+            error: e,
+            stackTrace: stackTrace,
+          );
         }
       }
 
@@ -3821,6 +3840,20 @@ class UddfEntityImporter {
       }
     }
     return result;
+  }
+
+  /// A fresh id for each event in [eventMaps] whose id the log already holds.
+  Future<Map<String, String>> _freshIdsForTakenEvents(
+    List<Map<String, dynamic>>? eventMaps,
+    DiveRepository diveRepository,
+  ) async {
+    final ids = <String>[
+      for (final map in eventMaps ?? const <Map<String, dynamic>>[])
+        if (map['id'] case final String id when id.isNotEmpty) id,
+    ];
+    if (ids.isEmpty) return const {};
+    final taken = await diveRepository.existingProfileEventIds(ids);
+    return {for (final id in taken) id: _uuid.v4()};
   }
 
   Future<void> _storeTankPressures(

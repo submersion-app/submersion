@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/icon_detail_row.dart';
+
+import '../../support/clipboard_recorder.dart';
 
 void main() {
   // Under the test font every glyph is one em wide, so a bodyMedium (14 px)
@@ -142,6 +145,74 @@ void main() {
     // Disposed in the body: the binding checks for a live handle before
     // tear-downs run.
     semantics.dispose();
+  });
+
+  group('copyable (issue #3362)', () {
+    Future<void> pumpCopyable(WidgetTester tester) => tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: IconDetailRow(
+            icon: Icons.numbers,
+            label: 'Card Number',
+            value: 'SSI-12345',
+            copyable: true,
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('the value is copied and the row keeps the page style', (
+      tester,
+    ) async {
+      final calls = recordClipboardCalls();
+      await pumpCopyable(tester);
+
+      await tester.tap(find.byTooltip('Copy'));
+      await tester.pump();
+
+      expect(copiedText(calls), 'SSI-12345');
+      expect(
+        tester.widget<Text>(find.text('SSI-12345')).style?.fontWeight,
+        FontWeight.bold,
+      );
+    });
+
+    testWidgets('a blank value still reads as one node, with no button', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: IconDetailRow(
+              icon: Icons.numbers,
+              label: 'Card Number',
+              value: '',
+              copyable: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(IconButton), findsNothing);
+      expect(find.bySemanticsLabel('Card Number: '), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('a screen reader still reaches the copy button', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpCopyable(tester);
+
+      expect(find.bySemanticsLabel('Card Number: SSI-12345'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'^Card Number$')), findsNothing);
+      expect(tester.getSemantics(find.byTooltip('Copy')).tooltip, 'Copy');
+      semantics.dispose();
+    });
   });
 
   testWidgets('a row narrower than its icon never builds invalid '

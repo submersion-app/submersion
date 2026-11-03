@@ -1,9 +1,16 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_resize_handle.dart';
+
+const double _horizontalPadding = 8;
+const double _rightBorderWidth = 0.5;
+const double _filterIconWidth = 14;
+const double _sortIconWidth = 14;
 
 /// A single column header cell for the generic entity table view.
 ///
@@ -34,6 +41,10 @@ class EntityTableHeaderCell extends StatelessWidget {
   /// Shows a filter icon: the list has a filter on this column.
   final bool isFiltered;
 
+  /// Shown in brackets after the label, such as the unit an editable column
+  /// is typed in.
+  final String? labelSuffix;
+
   const EntityTableHeaderCell({
     super.key,
     required this.field,
@@ -47,12 +58,17 @@ class EntityTableHeaderCell extends StatelessWidget {
     this.showResizeHandle = true,
     this.onOpenMenu,
     this.isFiltered = false,
+    this.labelSuffix,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final labelStyle = theme.textTheme.labelSmall?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: colorScheme.onSurfaceVariant,
+    );
 
     // Wider hit target on mobile for easier resizing.
     final isMobile =
@@ -77,7 +93,9 @@ class EntityTableHeaderCell extends StatelessWidget {
               child: InkWell(
                 onTap: field.sortable ? onTap : null,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: _horizontalPadding,
+                  ),
                   alignment: Alignment.centerLeft,
                   decoration: BoxDecoration(
                     border: Border(
@@ -86,7 +104,7 @@ class EntityTableHeaderCell extends StatelessWidget {
                         color: colorScheme.outlineVariant.withValues(
                           alpha: 0.5,
                         ),
-                        width: 0.5,
+                        width: _rightBorderWidth,
                       ),
                     ),
                     color: colorScheme.surfaceContainerLow,
@@ -98,19 +116,39 @@ class EntityTableHeaderCell extends StatelessWidget {
                           field.localizedDisplayName(context.l10n),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: labelStyle,
                         ),
                       ),
+                      // Apart from the label, so a narrow column cuts the
+                      // label short and keeps the suffix, which gives way only
+                      // to the icons: nothing here may overflow the cell.
+                      if (labelSuffix case final suffix?)
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: math.max(
+                              0,
+                              width -
+                                  _horizontalPadding * 2 -
+                                  _rightBorderWidth -
+                                  (isFiltered ? _filterIconWidth : 0) -
+                                  (isSorted ? _sortIconWidth : 0),
+                            ),
+                          ),
+                          child: Text(
+                            ' ($suffix)',
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.clip,
+                            style: labelStyle,
+                          ),
+                        ),
                       if (isFiltered)
                         Padding(
                           key: ValueKey('entity-table-filtered-${field.name}'),
                           padding: const EdgeInsetsDirectional.only(end: 2),
                           child: Icon(
                             Icons.filter_alt,
-                            size: 12,
+                            size: _filterIconWidth - 2,
                             color: colorScheme.primary,
                           ),
                         ),
@@ -119,7 +157,7 @@ class EntityTableHeaderCell extends StatelessWidget {
                           sortAscending
                               ? Icons.arrow_upward
                               : Icons.arrow_downward,
-                          size: 14,
+                          size: _sortIconWidth,
                           color: colorScheme.primary,
                         ),
                     ],

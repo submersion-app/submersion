@@ -1723,6 +1723,17 @@ class UddfFullImportService {
           if (eventType != null) {
             event['eventType'] = eventType;
           }
+          final id = UddfImportParsers.getElementText(eventElement, 'id');
+          if (id != null && id.isNotEmpty) {
+            event['id'] = id;
+          }
+          final source = UddfImportParsers.getElementText(
+            eventElement,
+            'source',
+          );
+          if (source != null && source.isNotEmpty) {
+            event['source'] = source;
+          }
           final severity = UddfImportParsers.getElementText(
             eventElement,
             'severity',
