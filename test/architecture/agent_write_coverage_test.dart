@@ -14,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// `UPDATE_AGENT_WRITE_BASELINE=1 flutter test
 /// test/architecture/agent_write_coverage_test.dart`
 void main() {
+  const gear = 'lib/features/equipment/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -190,7 +191,7 @@ void main() {
   /// covers them, each with the reason. `path:*` exempts a whole repository
   /// file. Anything a diver edits as a record of their diving stays out of
   /// here, however small.
-  const exempt = <String, String>{
+  final exempt = <String, String>{
     'lib/features/settings/data/repositories/app_settings_repository.dart:*':
         'app preferences, not logbook records',
     'lib/features/settings/data/repositories/diver_settings_repository.dart:*':
@@ -225,6 +226,36 @@ void main() {
         'updates',
     'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createFromWeights':
         'a shortcut for a create with entries, which weight_presets covers',
+    for (final method in const [
+      'retireEquipment',
+      'setStatusForMany',
+      'markEquipmentPurchased',
+    ])
+      '$gear/equipment_repository_impl.dart:$method':
+          'a shortcut for a status change, which equipment covers through '
+          'updateEquipment',
+    for (final method in const [
+      'createEquipmentWithTags',
+      'updateEquipmentWithTags',
+    ])
+      '$gear/equipment_repository_impl.dart:$method':
+          'the edit page\'s save, which equipment covers as fields and a tags '
+          'relation',
+    '$gear/dive_sensor_summary_repository.dart:*':
+        'a summary derived from dives, recomputed when they change',
+    '$gear/equipment_service_status_repository.dart:*':
+        'a status derived from the service ledger, recomputed from it',
+    '$gear/equipment_findings_repository.dart:*':
+        'the review state of derived findings, recomputed from records',
+    for (final step in const [
+      'cylinder_gear_links.dart:*',
+      'equipment_location_buddy_links.dart:*',
+      'equipment_location_center_links.dart:*',
+      'equipment_tag_repository.dart:deleteLinksForEquipment',
+      'equipment_share_repository.dart:deleteForEquipment',
+      'equipment_location_move_repository.dart:deleteForEquipment',
+    ])
+      '$gear/$step': 'an inner step of a delete of its owner',
   };
 
   /// A public `Future` method on a repository. The return type may sit on the
