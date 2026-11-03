@@ -6,8 +6,8 @@ import 'dart:typed_data';
 /// In a browser they live in the origin private file system under
 /// [directory], the one OPFS write path all three browsers share (synchronous
 /// access handles, worker-only). Paths are `opfs://submersion-sync-tmp/<name>`
-/// so a caller can tell them from native file paths at a glance. Tests use an
-/// in-memory implementation.
+/// so a caller can tell them from native file paths at a glance. A browser
+/// that refuses that file system, and the tests, use `MemoryOpfsFiles`.
 abstract interface class OpfsFiles {
   /// The OPFS directory that holds every temporary sync file.
   static const String directory = 'submersion-sync-tmp';

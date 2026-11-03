@@ -155,6 +155,13 @@ schema into a scratch database (a second `sqlite3.wasm` over an in-memory
 file system in the page), copies every row, then the indexes, triggers and
 views, and hands the bytes to `FileSaver` as a download.
 
+Sync's temp files live in OPFS through the compute worker. A browser that
+refuses OPFS (a private window, or WebKit under Playwright) falls back to
+`MemoryOpfsFiles` through `FallbackOpfsFiles`, so sync still runs and a large
+library is the only thing that suffers. An export cannot outlive its page, so
+a browser never records a resumable base publish: `ResumableBasePublishStore`
+is not persistent there, and a base publish that dies starts over.
+
 ## Tests
 
 Browser tests live under `test/web/` and are `@TestOn('browser')`; the VM

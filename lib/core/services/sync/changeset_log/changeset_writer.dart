@@ -11,6 +11,7 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/resumable_base_publish.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_liveness.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/core/services/sync/changeset_log/rebase_request.dart';
@@ -207,7 +208,7 @@ class ChangesetWriter {
         // empty library. Peers apply an empty base as a no-op (upsert + LWW).
         if (rowCount == 0 && deletions.isEmpty && !publishBase) {
           try {
-            await File(base.path).delete();
+            await SyncTempFiles.delete(base.path);
           } catch (_) {}
           return ChangesetWriteResult(ChangesetWriteKind.noop, null, now);
         }
@@ -562,7 +563,7 @@ class ChangesetWriter {
           );
     } finally {
       try {
-        await File(base.path).delete();
+        await SyncTempFiles.delete(base.path);
       } catch (_) {}
     }
     final manifest = SyncManifest(
@@ -650,16 +651,21 @@ class ChangesetWriter {
     String? uploadNonce, {
     required int exportedAt,
   }) async {
-    final dir = await _resumable.directory;
-    final target = basePublishTargetPath(dir.path, base.path);
-    final source = File(base.path);
-    try {
-      await source.rename(target);
-    } on FileSystemException {
-      await source.copy(target);
+    final String target;
+    if (_resumable.persistent) {
+      final dir = await _resumable.directory;
+      target = basePublishTargetPath(dir.path, base.path);
+      final source = File(base.path);
       try {
-        await source.delete();
-      } catch (_) {}
+        await source.rename(target);
+      } on FileSystemException {
+        await source.copy(target);
+        try {
+          await source.delete();
+        } catch (_) {}
+      }
+    } else {
+      target = base.path;
     }
     final publish = ResumableBasePublish(
       providerId: providerId,

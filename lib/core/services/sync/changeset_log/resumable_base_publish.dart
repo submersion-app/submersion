@@ -6,6 +6,9 @@ import 'package:flutter/services.dart' show MissingPluginException;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
+
 /// A full base export that has been written to disk but not yet fully uploaded.
 ///
 /// A backend wipe forces the whole library to be republished as a fresh base --
@@ -118,10 +121,19 @@ class ResumableBasePublish {
 /// apart or outlive one another. It also keeps this off the schema ladder
 /// entirely, so recovering an interrupted publish needs no migration.
 class ResumableBasePublishStore {
-  ResumableBasePublishStore({Future<Directory> Function()? directory})
-    : _directory = directory ?? resolveBasePublishDir;
+  ResumableBasePublishStore({
+    Future<Directory> Function()? directory,
+    bool? persistent,
+  }) : _directory = directory ?? resolveBasePublishDir,
+       persistent = persistent ?? !HostPlatform.isWeb;
 
   final Future<Directory> Function() _directory;
+
+  /// Whether an export can outlive this attempt. A browser has no directory
+  /// to park one in (issue #4121): the export stays in the sync temp files,
+  /// nothing is recorded, and a publish cut short starts over, its leftover
+  /// removed by the temp sweep.
+  final bool persistent;
 
   /// How recently an export no publish here will resume must have been touched
   /// to be spared as "probably still in flight" rather than swept: one with no
@@ -140,6 +152,7 @@ class ResumableBasePublishStore {
   /// the export as corrupt. A temp file a crash strands has no sidecar, so
   /// [_pruneUnreferencedExports] reclaims it.
   Future<void> save(ResumableBasePublish publish) async {
+    if (!persistent) return;
     final temp = File('${publish.sidecarPath}.tmp');
     await temp.writeAsString(jsonEncode(publish.toJson()), flush: true);
     await temp.rename(publish.sidecarPath);
@@ -160,6 +173,7 @@ class ResumableBasePublishStore {
     required String deviceId,
     String? epochId,
   }) async {
+    if (!persistent) return null;
     final dir = await directory;
     if (!await dir.exists()) return null;
 
@@ -265,12 +279,17 @@ class ResumableBasePublishStore {
 
   /// Delete a record and the export it describes.
   Future<void> discard(ResumableBasePublish publish) async {
+    if (!persistent) {
+      await SyncTempFiles.delete(publish.dataPath);
+      return;
+    }
     await _deleteQuietly(publish.sidecarPath);
     await _deleteQuietly(publish.dataPath);
   }
 
   /// Drop every record for [providerId], used when sync state is reset.
   Future<void> clearForProvider(String providerId) async {
+    if (!persistent) return;
     final dir = await directory;
     if (!await dir.exists()) return;
     await for (final entity in dir.list(followLinks: false)) {

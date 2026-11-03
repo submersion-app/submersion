@@ -14,11 +14,12 @@ import 'package:web/web.dart' as web;
 
 import 'package:submersion/core/platform/compute/compute_job_handlers.dart';
 import 'package:submersion/core/platform/compute/compute_protocol.dart';
+import 'package:submersion/core/platform/compute/opfs_files_fallback.dart';
 import 'package:submersion/core/platform/compute/opfs_files_web.dart';
 
 void main() {
   final self = globalContext as web.DedicatedWorkerGlobalScope;
-  final handler = ComputeJobHandler(files: WebOpfsFiles());
+  final handler = ComputeJobHandler(files: FallbackOpfsFiles(WebOpfsFiles()));
   self.onmessage = ((web.MessageEvent event) {
     unawaited(_serve(self, handler, event.data.dartify()));
   }).toJS;

@@ -2,8 +2,9 @@ import 'dart:typed_data';
 
 import 'package:submersion/core/platform/compute/opfs_files.dart';
 
-/// An [OpfsFiles] held in memory, for VM tests of the compute job handlers
-/// and of the web sync temp files.
+/// An [OpfsFiles] held in memory: where a browser refuses the origin private
+/// file system (`FallbackOpfsFiles`), and in VM tests of the compute job
+/// handlers and the web sync temp files.
 class MemoryOpfsFiles implements OpfsFiles {
   final Map<String, BytesBuilder> _open = {};
   final Map<String, Uint8List> _files = {};

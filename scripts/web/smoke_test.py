@@ -41,7 +41,8 @@ OBJECT = re.compile(r"^ssv1\.(?P<device>[^.]+)\.")
 
 RENDER_TIMEOUT_MS = 60_000
 STEP_TIMEOUT_MS = 30_000
-SEEDED_DIVES = 5
+# The seed files three of its five dives under the diver the app opens on.
+SEEDED_DIVES = 3
 SEED_SITE = "Seed Reef"
 
 # The wizard's later steps (backups, photos, finish) each move on with one of
@@ -101,16 +102,23 @@ def delete_browser_objects():
         )
 
 
-def wait_for_browser_changeset(timeout_s=90):
+def wait_for_browser_object(marker, timeout_s=90, besides=frozenset()):
+    """Keys of the browser's objects whose name holds [marker], or any of
+    them when it is a tuple, leaving out [besides]."""
+    markers = (marker,) if isinstance(marker, str) else marker
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
-        published = [key for key in browser_objects() if ".cs." in key]
+        published = [
+            key
+            for key in browser_objects()
+            if key not in besides and any(m in key for m in markers)
+        ]
         if published:
             return published
         time.sleep(3)
     raise AssertionError(
-        "no changeset from a browser device appeared under %s%s within %ss"
-        % (BUCKET, SYNC_PREFIX, timeout_s)
+        "no %s object from a browser device appeared under %s/%s within %ss"
+        % (marker, BUCKET, SYNC_PREFIX, timeout_s)
     )
 
 
@@ -157,21 +165,6 @@ def wait_for_flutter(page):
     )
 
 
-def advance_until(page, text, max_steps=12):
-    """Clicks whatever wizard action is showing until [text] is on screen."""
-    for _ in range(max_steps):
-        if by_text(page, text).is_visible():
-            return
-        for action in STEP_ACTIONS:
-            candidate = button(page, exact(action))
-            if candidate.count() and candidate.is_visible():
-                candidate.click()
-                page.wait_for_timeout(1500)
-                break
-        else:
-            page.wait_for_timeout(1500)
-    by_text(page, text).wait_for(state="visible", timeout=STEP_TIMEOUT_MS)
-
 
 def continue_without_store(page):
     """The connect step's offer on a browser's first run."""
@@ -212,9 +205,6 @@ def connect_to_store(page):
     button(page, exact("Check connection")).click()
     page.wait_for_timeout(3000)
     button(page, exact("Save")).click()
-    # The session store is page memory, so an accidental reload would lose
-    # the store; the switch keeps the run independent of that.
-    page.get_by_role("switch", name=re.compile(r"^Remember on this device")).first.click()
     page.wait_for_timeout(500)
 
 
@@ -225,8 +215,9 @@ def download_library(page):
 
 
 def open_dive_list(page):
-    advance_until(page, "Dives")
-    click_text(page, "Dives")
+    button(page, exact("Get started")).click(timeout=STEP_TIMEOUT_MS)
+    page.wait_for_url(re.compile(r"#/dashboard"), timeout=STEP_TIMEOUT_MS)
+    page.goto(BASE_URL + "/?a11y=1#/dives", wait_until="load")
     rows = page.get_by_text(re.compile(SEED_SITE)).or_(
         page.get_by_role("button", name=re.compile(SEED_SITE))
     )
@@ -240,10 +231,15 @@ def open_dive_list(page):
     return rows
 
 
-def edit_first_dive(page, rows, note):
+def edit_first_dive(page, rows):
+    """A saved edit, through a switch: a text row collapses again when it is
+    tapped through the semantics layer, as the page's only pointer here."""
     rows.first.click()
     button(page, re.compile(r"^Edit\b", re.I)).click(timeout=STEP_TIMEOUT_MS)
-    fill_field(page, "Notes", note)
+    page.get_by_role("switch", name=re.compile(r"^Planned dive")).first.click(
+        timeout=STEP_TIMEOUT_MS
+    )
+    page.wait_for_timeout(500)
     button(page, exact("Save")).click()
     page.wait_for_timeout(2000)
 
@@ -255,6 +251,27 @@ def sync_now(page):
     button(page, exact("Sync Now")).click(timeout=STEP_TIMEOUT_MS)
 
 
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Records the call's result on the test, for the page fixture."""
+    outcome = yield
+    if call.when == "call":
+        item.call_failed = outcome.get_result().failed
+
+
+def report_failure(page, request, heard):
+    """What a failed run saw: printed, since a browser in a runner cannot be
+    watched, with a screenshot under SMOKE_ARTIFACT_DIR when that is set."""
+    print("\n--- what the page reported (%s) ---" % request.node.name)
+    print("url: %s" % page.url)
+    print("\n".join(heard[-40:]) or "(nothing)")
+    folder = os.environ.get("SMOKE_ARTIFACT_DIR")
+    if folder:
+        os.makedirs(folder, exist_ok=True)
+        name = re.sub(r"[^a-z0-9]+", "-", request.node.name.lower())
+        page.screenshot(path=os.path.join(folder, name + ".png"))
+
+
 @pytest.fixture(params=["chromium", "firefox", "webkit"])
 def page(request):
     with sync_playwright() as playwright:
@@ -262,8 +279,17 @@ def page(request):
         context = browser.new_context(viewport={"width": 1280, "height": 900})
         page = context.new_page()
         page.set_default_timeout(STEP_TIMEOUT_MS)
+        heard = []
+        page.on("console", lambda m: heard.append("%s: %s" % (m.type, m.text)))
+        page.on("pageerror", lambda e: heard.append("pageerror: %s" % e))
+        page.on(
+            "requestfailed",
+            lambda r: heard.append("failed: %s %s" % (r.url, r.failure)),
+        )
         try:
             yield page
+            if getattr(request.node, "call_failed", False):
+                report_failure(page, request, heard)
         finally:
             context.close()
             browser.close()
@@ -294,11 +320,14 @@ def test_round_trip(page, clean_store):
     connect_to_store(page)
     download_library(page)
     rows = open_dive_list(page)
-    note = "Smoke edit from %s at %s" % (
-        page.context.browser.browser_type.name,
-        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-    )
-    edit_first_dive(page, rows, note)
+    # The browser's first publish is a base. Waiting for it means the edit
+    # below has to travel in something new: a changeset, or a fresh base
+    # where compaction judges the library small enough to rewrite.
+    wait_for_browser_object(".manifest.")
+    first_publish = frozenset(browser_objects())
+    edit_first_dive(page, rows)
     sync_now(page)
-    published = wait_for_browser_changeset()
+    published = wait_for_browser_object(
+        (".cs.", ".base."), besides=first_publish
+    )
     assert published, "the browser published nothing"

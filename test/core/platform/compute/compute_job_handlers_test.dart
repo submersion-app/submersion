@@ -8,10 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/platform/compute/compute_job_handlers.dart';
 import 'package:submersion/core/platform/compute/compute_protocol.dart';
+import 'package:submersion/core/platform/compute/memory_opfs_files.dart';
 import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
-
-import 'memory_opfs_files.dart';
 
 void main() {
   late MemoryOpfsFiles files;

@@ -1219,11 +1219,12 @@ jobs:
       - name: Run the smoke in Chromium, Firefox and WebKit
         env:
           SMOKE_BASE_URL: http://127.0.0.1:8080
+          SMOKE_ARTIFACT_DIR: ${{ runner.temp }}/smoke
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: ${{ env.MINIO_ROOT_USER }}
           MINIO_SECRET_KEY: ${{ env.MINIO_ROOT_PASSWORD }}
         run: |
-          python3 -m pytest scripts/web/smoke_test.py -v \
+          python3 -m pytest scripts/web/smoke_test.py -v -rP \
             --junitxml="$RUNNER_TEMP/smoke.xml"
           # A run that tested nothing, or skipped, must not pass.
           python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); s = [r] if r.tag == 'testsuite' else list(r); t = sum(int(x.get('tests', 0)) for x in s); k = sum(int(x.get('skipped', 0)) for x in s); print('smoke tests', t, 'skipped', k); sys.exit(1 if t == 0 or k else 0)" "$RUNNER_TEMP/smoke.xml"
@@ -1233,7 +1234,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: web-smoke-logs
-          path: ${{ runner.temp }}/serve.log
+          path: |
+            ${{ runner.temp }}/serve.log
+            ${{ runner.temp }}/smoke
           if-no-files-found: ignore
 
   # Platform-agnostic integration tests (#2940). They exercise Dart code, the
