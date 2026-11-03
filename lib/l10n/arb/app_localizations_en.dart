@@ -21124,11 +21124,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_about_reportIssue => 'Report an Issue';
 
   @override
-  String get settings_about_reportIssue_copy => 'Copy link';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Visit github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => 'User Guide';
+
+  @override
+  String get settings_about_userGuide_snackbar => 'Visit submersion.app/guide';
 
   @override
   String settings_about_version(String version) {
