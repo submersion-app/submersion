@@ -59451,11 +59451,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Continuar sem um armazenamento de sincronização';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Lembrar neste dispositivo';
+  String get web_rememberOnThisDevice_title =>
+      'Lembrar o acesso neste dispositivo';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Guarda os dados de acesso e a frase-passe neste navegador. Desligado, são esquecidos quando o separador fecha.';
+      'Guarda os dados de acesso e a frase-passe neste navegador. Desligado, são esquecidos quando o separador fecha. Os seus mergulhos ficam neste navegador em qualquer caso, até esquecer este dispositivo.';
 
   @override
   String get web_unavailable_offer_icloud =>

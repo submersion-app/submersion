@@ -253,7 +253,7 @@ void main() {
       tester,
     ) async {
       await pump(tester, browser: true);
-      expect(find.text('Remember on this device'), findsOneWidget);
+      expect(find.text('Remember sign-in on this device'), findsOneWidget);
       final toggle = find.byType(SwitchListTile);
       expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
       await tester.tap(toggle);
@@ -264,7 +264,7 @@ void main() {
 
     testWidgets('natively there is no remember switch', (tester) async {
       await pump(tester);
-      expect(find.text('Remember on this device'), findsNothing);
+      expect(find.text('Remember sign-in on this device'), findsNothing);
       expect(find.byType(SwitchListTile), findsNothing);
     });
 

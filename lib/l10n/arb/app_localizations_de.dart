@@ -59335,11 +59335,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get web_continueWithoutSync => 'Ohne Sync-Speicher fortfahren';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Auf diesem Gerät merken';
+  String get web_rememberOnThisDevice_title =>
+      'Anmeldung auf diesem Gerät merken';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird.';
+      'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird. Deine Tauchgänge bleiben so oder so in diesem Browser, bis du dieses Gerät vergisst.';
 
   @override
   String get web_unavailable_offer_icloud =>

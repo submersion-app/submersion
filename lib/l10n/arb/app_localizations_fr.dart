@@ -59595,11 +59595,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Continuer sans espace de synchronisation';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Mémoriser sur cet appareil';
+  String get web_rememberOnThisDevice_title =>
+      'Mémoriser la connexion sur cet appareil';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Conserve les identifiants et la phrase secrète dans ce navigateur. Désactivé, ils sont oubliés à la fermeture de l\'onglet.';
+      'Conserve les identifiants et la phrase secrète dans ce navigateur. Désactivé, ils sont oubliés à la fermeture de l\'onglet. Vos plongées restent dans ce navigateur dans tous les cas, jusqu\'à ce que vous oubliiez cet appareil.';
 
   @override
   String get web_unavailable_offer_icloud =>

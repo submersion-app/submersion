@@ -59133,11 +59133,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Folytatás szinkronizálási tároló nélkül';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Megjegyzés ezen az eszközön';
+  String get web_rememberOnThisDevice_title =>
+      'Bejelentkezés megjegyzése ezen az eszközön';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'A bejelentkezési adatok és a jelmondat megőrzése ebben a böngészőben. Kikapcsolva a lap bezárásakor elfelejtődnek.';
+      'A bejelentkezési adatok és a jelmondat megőrzése ebben a böngészőben. Kikapcsolva a lap bezárásakor elfelejtődnek. A merüléseid mindenképp ebben a böngészőben maradnak, amíg el nem felejted ezt az eszközt.';
 
   @override
   String get web_unavailable_offer_icloud =>

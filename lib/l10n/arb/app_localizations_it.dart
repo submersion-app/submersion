@@ -59467,11 +59467,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Continua senza un archivio di sincronizzazione';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Ricorda su questo dispositivo';
+  String get web_rememberOnThisDevice_title =>
+      'Ricorda l\'accesso su questo dispositivo';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Conserva i dati di accesso e la passphrase in questo browser. Se disattivato, vengono dimenticati alla chiusura della scheda.';
+      'Conserva i dati di accesso e la passphrase in questo browser. Se disattivato, vengono dimenticati alla chiusura della scheda. Le tue immersioni restano comunque in questo browser finché non dimentichi questo dispositivo.';
 
   @override
   String get web_unavailable_offer_icloud =>
