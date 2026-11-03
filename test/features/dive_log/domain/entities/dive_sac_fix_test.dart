@@ -56,7 +56,7 @@ void main() {
       expect(dive.rmvFor(GasModel.real)!, closeTo(14.21, 0.1));
     });
 
-    test('uses effectiveRuntime via entry/exit when runtime is null', () {
+    test('uses measuredRuntime via entry/exit when runtime is null', () {
       final dive = _sacDive(
         bottomTime: const Duration(minutes: 20),
         entryTime: DateTime(2024, 1, 1, 10, 0),
@@ -68,7 +68,7 @@ void main() {
       expect(dive.rmvFor(GasModel.real)!, closeTo(14.21, 0.1));
     });
 
-    test('falls back to bottomTime when no runtime source', () {
+    test('has no value for a dive with only a bottom time', () {
       final dive = _sacDive(
         bottomTime: const Duration(minutes: 30),
         avgDepth: 20.0,
@@ -82,9 +82,8 @@ void main() {
           ),
         ],
       );
-      // (200-50) * 12 / 30 / (20/10+1) = 1800 / 30 / 3 = 20.0 (ideal)
-      // With Z-factor: ≈ 18.77
-      expect(dive.rmvFor(GasModel.real)!, closeTo(19.02, 0.1));
+      // Dividing the whole dive's gas by a bottom time would read high.
+      expect(dive.rmvFor(GasModel.real), isNull);
     });
 
     // --- Null return cases ---
@@ -108,7 +107,7 @@ void main() {
       expect(dive.rmvFor(GasModel.real), isNull);
     });
 
-    test('returns null when effectiveRuntime is zero', () {
+    test('returns null when measuredRuntime is zero', () {
       final dive = _sacDive(
         bottomTime: Duration.zero,
         tanks: const [_singleTank],
@@ -240,7 +239,7 @@ void main() {
       expect(dive.sac!, closeTo(1.34, 0.1));
     });
 
-    test('uses effectiveRuntime via entry/exit when runtime is null', () {
+    test('uses measuredRuntime via entry/exit when runtime is null', () {
       final dive = _sacDive(
         bottomTime: const Duration(minutes: 20),
         entryTime: DateTime(2024, 1, 1, 10, 0),
@@ -258,6 +257,15 @@ void main() {
       expect(dive.sac, isNull);
     });
 
+    test('has no value for a dive with only a bottom time', () {
+      final dive = _sacDive(
+        bottomTime: const Duration(minutes: 30),
+        avgDepth: 20.3,
+        tanks: const [_singleTank],
+      );
+      expect(dive.sac, isNull);
+    });
+
     test('returns null when tanks are empty', () {
       final dive = _sacDive(runtime: const Duration(minutes: 42));
       expect(dive.sac, isNull);
@@ -272,7 +280,7 @@ void main() {
       expect(dive.sac, isNull);
     });
 
-    test('returns null when effectiveRuntime is zero', () {
+    test('returns null when measuredRuntime is zero', () {
       final dive = _sacDive(
         bottomTime: Duration.zero,
         tanks: const [_singleTank],

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:permission_handler/permission_handler.dart';
@@ -159,23 +160,53 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   /// false (issue #123).
   final bool _requiresRuntimePermissions;
 
+  /// Whether this platform throttles BLE scan starts. Android lets an app
+  /// start [scanStartLimit] scans in [scanStartWindow] and gives the next one
+  /// no results, with no error, so it reads as an empty scan. The passive
+  /// scan on the Dive Computers section restarts on every return to it
+  /// (issue #3361), which makes that reachable. Injectable like
+  /// [_requiresRuntimePermissions].
+  final bool _paceScanStarts;
+
+  /// When the scans started inside the last [scanStartWindow] began, oldest
+  /// first.
+  List<DateTime> _scanStarts = const [];
+
+  static const scanStartLimit = 5;
+  static const scanStartWindow = Duration(seconds: 30);
+
   StreamSubscription<pigeon.DiscoveredDevice>? _discoverySubscription;
   StreamSubscription<void>? _discoveryCompleteSubscription;
+
+  /// Who started the current scan, and a count of scan starts and stops.
+  /// Every flow shares this one notifier, so a manual flow stopping its scan
+  /// must not stop the auto-connect scan running in its place, a stop that
+  /// finishes late must not mark a newer scan as ended, and a start still
+  /// waiting on the permission prompt must not begin a scan someone stopped
+  /// meanwhile (issue #3361).
+  Object? _scanOwner;
+  int _scanGeneration = 0;
 
   DiscoveryNotifier({
     required pigeon.DiveComputerService service,
     bool? requiresRuntimePermissions,
+    bool? paceScanStarts,
   }) : _service = service,
        _requiresRuntimePermissions =
            requiresRuntimePermissions ?? HostPlatform.isAndroid,
+       _paceScanStarts = paceScanStarts ?? HostPlatform.isAndroid,
        super(const DiscoveryState()) {
     _discoveryCompleteSubscription = _service.discoveryComplete.listen((_) {
       state = state.copyWith(isScanning: false);
     });
   }
 
-  /// Start scanning for devices via BLE.
-  Future<void> startScan() async {
+  /// Start scanning for devices via BLE. [owner] is null for every manual
+  /// flow (the wizards and download pages), which [stopScan] stops; a scan
+  /// with an owner is stopped only through [stopScanOwnedBy].
+  Future<void> startScan({Object? owner}) async {
+    final generation = ++_scanGeneration;
+    _scanOwner = owner;
     try {
       // Request Bluetooth permissions on Android before scanning.
       if (_requiresRuntimePermissions) {
@@ -183,6 +214,9 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
           Permission.bluetoothScan,
           Permission.bluetoothConnect,
         ].request();
+        // Stopped, or replaced by another start, while the prompt was up:
+        // starting now would leave a scan nobody stops.
+        if (generation != _scanGeneration) return;
 
         final denied = statuses.entries
             .where((e) => !e.value.isGranted)
@@ -215,6 +249,22 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
         _onDeviceDiscovered,
       );
 
+      if (_paceScanStarts) {
+        final wait = _scanStartWait();
+        if (wait > Duration.zero) {
+          _discoveryLog.info(
+            'Waiting ${wait.inSeconds}s before the BLE scan: Android gives '
+            'no results to a scan started too soon after $scanStartLimit '
+            'others',
+            category: LogCategory.bluetooth,
+          );
+          await Future<void>.delayed(wait);
+          // Stopped, or replaced by another start, while waiting.
+          if (generation != _scanGeneration) return;
+        }
+        _scanStarts = [..._scanStarts, clock.now()];
+      }
+
       _discoveryLog.info(
         'Starting BLE scan for dive computers',
         category: LogCategory.bluetooth,
@@ -227,6 +277,11 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
         error: e,
         stackTrace: stackTrace,
       );
+      // A start that failed after a newer start or a stop took over must
+      // not tear down that newer scan's subscription or state. The native
+      // calls themselves run in the order they were sent, so a stop sent
+      // after this start already stops whatever this start began.
+      if (generation != _scanGeneration) return;
       // Cancel the event subscription so stray events from the native side
       // cannot mutate state after a synchronous start failure.
       _discoverySubscription?.cancel();
@@ -239,6 +294,24 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
             e.code == pigeon.bluetoothUnavailableErrorCode,
       );
     }
+  }
+
+  /// How long a scan start must wait so that no more than [scanStartLimit]
+  /// starts fall inside any [scanStartWindow], plus a second's margin for
+  /// Android's own clock. Forgets the starts already outside the window, and
+  /// any that lie ahead of now: the wall clock was set back, and keeping
+  /// them would hold the next start for as long as the jump.
+  Duration _scanStartWait() {
+    final now = clock.now();
+    _scanStarts = [
+      for (final start in _scanStarts)
+        if (!start.isAfter(now) && now.difference(start) < scanStartWindow)
+          start,
+    ];
+    if (_scanStarts.length < scanStartLimit) return Duration.zero;
+    return scanStartWindow -
+        now.difference(_scanStarts.first) +
+        const Duration(seconds: 1);
   }
 
   void _onDeviceDiscovered(pigeon.DiscoveredDevice pigeonDevice) {
@@ -256,8 +329,15 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     state = state.copyWith(discoveredDevices: [...existing, device]);
   }
 
-  /// Stop scanning.
-  Future<void> stopScan() async {
+  /// Stops the current scan if a manual flow started it. An auto-connect
+  /// scan the Dive Computers section restarted in its place keeps running.
+  Future<void> stopScan() => stopScanOwnedBy(null);
+
+  /// Stops the current scan only if [owner] started it (null: a manual
+  /// flow), so closing one flow never stops a scan another one runs.
+  Future<void> stopScanOwnedBy(Object? owner) async {
+    if (!identical(_scanOwner, owner)) return;
+    final generation = ++_scanGeneration;
     _discoverySubscription?.cancel();
     _discoverySubscription = null;
     await _service.stopDiscovery();
@@ -269,6 +349,9 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
       '${state.discoveredDevices.length} supported device(s) found',
       category: LogCategory.bluetooth,
     );
+    // A scan started while this stop was in flight is running now; marking
+    // it finished would end that caller's wait early.
+    if (generation != _scanGeneration) return;
     state = state.copyWith(isScanning: false);
   }
 

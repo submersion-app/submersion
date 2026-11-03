@@ -44,6 +44,17 @@ DiscoveredDevice? sameModelFallbackDevice({
   return candidates.length == 1 ? candidates.single : null;
 }
 
+/// Whether [a] and [b] are saved as the same make and model, so one device
+/// of that model could be either of them. Compared the way
+/// [sameModelFallbackDevice] compares a computer with a device.
+bool isSameSavedModel(DiveComputer a, DiveComputer b) {
+  final manufacturer = _normalize(a.manufacturer);
+  final model = _normalize(a.model);
+  if (manufacturer.isEmpty || model.isEmpty) return false;
+  return _normalize(b.manufacturer) == manufacturer &&
+      _sameModel(manufacturer, _normalize(b.model), model);
+}
+
 /// Whether a saved Bluetooth computer with no address on this device can be
 /// looked for by make and model instead (issue #3710).
 ///
@@ -57,6 +68,43 @@ bool canFindByModel(DiveComputer computer) {
   return manufacturer.isNotEmpty &&
       manufacturer != 'garmin' &&
       _normalize(computer.model).isNotEmpty;
+}
+
+/// The transport a saved computer's connection type names, or null for
+/// one the app cannot reopen directly, such as `cloud`. Every other value
+/// used to fall back to BLE, which dialed a cloud computer's stale address
+/// over Bluetooth (issue #3106). A missing type still means BLE: records
+/// saved before the type was always written carry an address and no type.
+DeviceConnectionType? storedConnectionType(String? type) {
+  switch (type?.toLowerCase()) {
+    case null:
+    case 'bluetooth':
+    case 'ble':
+      return DeviceConnectionType.ble;
+    case 'bluetoothclassic':
+      return DeviceConnectionType.bluetoothClassic;
+    case 'usb':
+      return DeviceConnectionType.usb;
+    case 'infrared':
+      return DeviceConnectionType.infrared;
+    default:
+      return null;
+  }
+}
+
+/// Whether a BLE scan can find [computer] again: it is saved as a BLE
+/// computer and either holds an address on this device or can be looked for
+/// by make and model. The same reach the saved-computer download has, so a
+/// USB, Bluetooth Classic, cloud or file-imported record never starts one.
+/// A missing type alone is no evidence of Bluetooth, since a file-imported
+/// record has neither a type nor an address.
+bool canFindByScan(DiveComputer computer) {
+  if (storedConnectionType(computer.connectionType) !=
+      DeviceConnectionType.ble) {
+    return false;
+  }
+  return computer.bluetoothAddress != null ||
+      (computer.connectionType != null && canFindByModel(computer));
 }
 
 bool _isBluetooth(DiscoveredDevice device) =>

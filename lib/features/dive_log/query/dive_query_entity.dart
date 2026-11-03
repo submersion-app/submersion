@@ -229,8 +229,11 @@ String _derived(String column) =>
 /// with no back-gas pressures, no drop to count (#3974), no runtime or no
 /// average depth, and on a CCR or SCR dive (issue #3673).
 final String kDiveSacSql =
-    '(CASE WHEN COALESCE({r}.runtime, {r}.bottom_time) > 0 '
+    '(CASE WHEN ${measuredRuntimeSecondsSql('{r}')} > 0 '
     'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';
+
+/// [measuredRuntimeTables] as a field's table list (issue #3537).
+const List<String> _measuredRuntimeTables = [...measuredRuntimeTables];
 
 final QueryEntity diveQueryEntity = QueryEntity(
   subject: QuerySubject.dives,
@@ -397,11 +400,13 @@ final QueryEntity diveQueryEntity = QueryEntity(
       dimension: FieldDimension.minutes,
       emptySql: '{r}.bottom_time IS NULL',
     ),
+    // What the dive measured, like the Runtime column and every total: never
+    // a bottom time (issue #3304).
     _num(
       'runtime',
-      '({r}.runtime / 60)',
+      '(${measuredRuntimeSecondsSql('{r}')} / 60)',
       dimension: FieldDimension.minutes,
-      emptySql: '{r}.runtime IS NULL',
+      tables: _measuredRuntimeTables,
     ),
     _num(
       'depth',
@@ -462,7 +467,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
       // The profile span fallback also reads the series history, which is
       // only written alongside a dive_profile_series row, so that tick
       // covers it (issue #3537).
-      tables: const ['dive_profile_series', 'dive_data_sources'],
+      tables: _measuredRuntimeTables,
     ),
     _num(
       'cnsEnd',
@@ -509,7 +514,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
       dimension: FieldDimension.pressureRate,
       sanity: (min: 0, max: 20),
       // dive_sites: a dive with no water of its own reads its site's.
-      tables: ['dive_tanks', 'dive_sites'],
+      tables: ['dive_tanks', 'dive_sites', ..._measuredRuntimeTables],
     ),
     QueryField(
       key: 'sacTrend',

@@ -351,7 +351,7 @@ class PdfCourseExportService {
                   l10n.pdf_maxDepth,
                   units.formatDepth(dive.maxDepth),
                 ),
-              if (dive.effectiveRuntime != null) ...[
+              if (dive.measuredRuntime != null) ...[
                 pw.SizedBox(width: 20),
                 _buildInfoChip(
                   l10n.pdf_duration,

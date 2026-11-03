@@ -379,6 +379,7 @@ class DiveComputerRepository {
                 ),
                 diveCount: Value(computer.diveCount),
                 isFavorite: Value(computer.isFavorite),
+                autoDownloadDisabled: Value(computer.autoDownloadDisabled),
                 notes: Value(computer.notes),
                 createdAt: Value(now),
                 updatedAt: Value(now),
@@ -463,6 +464,7 @@ class DiveComputerRepository {
           ),
           diveCount: Value(computer.diveCount),
           isFavorite: Value(computer.isFavorite),
+          autoDownloadDisabled: Value(computer.autoDownloadDisabled),
           notes: Value(computer.notes),
           updatedAt: Value(now),
         ),
@@ -753,6 +755,35 @@ class DiveComputerRepository {
         error: e,
         stackTrace: stackTrace,
       );
+    }
+  }
+
+  /// Set or clear one computer's opt-out from auto-download (issue #3361),
+  /// leaving every other column as it is.
+  Future<void> setAutoDownloadDisabled(String id, bool disabled) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(id))).write(
+        DiveComputersCompanion(
+          autoDownloadDisabled: Value(disabled),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set the auto-download opt-out of dive computer: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 
@@ -2728,6 +2759,7 @@ class DiveComputerRepository {
           : null,
       diveCount: row.diveCount,
       isFavorite: row.isFavorite,
+      autoDownloadDisabled: row.autoDownloadDisabled,
       notes: row.notes,
       equipmentId: row.equipmentId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),

@@ -113,14 +113,14 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     }
 
     func stopDiscovery() throws {
-        bleScanner?.stop()
+        bleScanner?.stop(reportCompletion: false)
         bleScanner = nil
         serialScanner?.stop()
         serialScanner = nil
     }
 
     private func startBleDiscovery() {
-        bleScanner?.stop()
+        bleScanner?.stop(reportCompletion: false)
         let scanner = BleScanner()
         scanner.onDeviceDiscovered = { [weak self] device in
             DispatchQueue.main.async {

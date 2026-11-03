@@ -106,6 +106,11 @@ If you entered prior experience on your
 it and show the split, for example "120 logged + 380 prior". A "Diving since"
 line appears when you set the year you started.
 
+**Total Time** adds up runtime, the time from entry to exit. A dive logged with
+only a bottom time counts toward **Total Dives** but adds nothing to it, because
+bottom time is not a runtime. To count those dives, fill in their runtime, or
+enter the hours as prior experience.
+
 ### Personal records, sites and distributions
 
 - **Personal Records:** your first, deepest, longest, coldest and warmest dives.

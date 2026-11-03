@@ -8,6 +8,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 void main() {
   late AppDatabase db;
@@ -236,7 +238,12 @@ void main() {
             match.group(1)!,
       };
 
-      expect(read, {'dives', ...DiveRepository.diveHydrationTables});
+      // The span also reads the series history, which is no drift table and is
+      // only written beside a dive_profile_series row, which this set covers.
+      expect(read.difference({'dive_profile_series_history'}), {
+        'dives',
+        ...DiveRepository.diveHydrationTables,
+      });
     });
 
     test('fires on a child write without a debounce', () async {
@@ -251,6 +258,27 @@ void main() {
       await pumpEventQueue();
 
       expect(ticks, hasLength(1));
+    });
+
+    test('fires on a series write, which a list dive measures', () async {
+      await seed();
+      final ticks = <void>[];
+      final subscription = repository.watchDiveHydrationWrites().listen(
+        ticks.add,
+      );
+      addTearDown(subscription.cancel);
+
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'new',
+        isPrimary: true,
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 600, depth: 0),
+        ],
+      );
+      await pumpEventQueue();
+
+      expect(ticks, isNotEmpty);
     });
 
     test('stays quiet on a dives write', () async {

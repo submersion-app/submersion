@@ -1,6 +1,7 @@
 #ifndef NATIVE_LOGGER_H_
 #define NATIVE_LOGGER_H_
 
+#include <functional>
 #include <mutex>
 #include <string>
 
@@ -19,15 +20,20 @@ namespace libdivecomputer_plugin {
 //
 // Used on the connect and discovery paths and for one-off failures on the
 // download thread (a rejected write, a failed characteristic read), never
-// from the GATT notification handler: pigeon calls reach the Flutter engine
-// from whichever thread the caller runs on, and a per-packet log line during
-// a logbook dump would put that on the transport's hot path.
+// from the GATT notification handler: callers run on whichever thread they
+// run on, and a per-packet log line during a logbook dump would queue a
+// platform-thread task per packet on the transport's hot path.
 class NativeLogger {
  public:
+  // Runs a task on the platform thread, the only one Flutter takes pigeon
+  // calls on (issue #4086).
+  using Dispatcher = std::function<void(std::function<void()>)>;
+
   // Called by the plugin as it takes and releases ownership of the API.
   // Passing nullptr stops forwarding, which must happen before the API is
   // destroyed.
-  static void SetFlutterApi(DiveComputerFlutterApi* api);
+  static void SetFlutterApi(DiveComputerFlutterApi* api,
+                            Dispatcher dispatcher = nullptr);
 
   static void Debug(const std::string& category, const std::string& message);
   static void Info(const std::string& category, const std::string& message);
@@ -37,9 +43,12 @@ class NativeLogger {
  private:
   static void Log(const std::string& category, const std::string& level,
                   const std::string& message);
+  static void Send(const std::string& category, const std::string& level,
+                   const std::string& message);
 
-  static std::mutex mutex_;
+  static std::recursive_mutex mutex_;
   static DiveComputerFlutterApi* api_;
+  static Dispatcher dispatcher_;
 };
 
 }  // namespace libdivecomputer_plugin

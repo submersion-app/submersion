@@ -54,6 +54,17 @@ final transferSections = [
   ),
 ];
 
+/// The small heading over a group of cards in a Transfer section.
+Widget transferSectionHeader(BuildContext context, String title) {
+  return Text(
+    title,
+    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+      color: Theme.of(context).colorScheme.primary,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+}
+
 /// The sections this device offers: every one natively, and no dive
 /// computers in a browser, which has no Bluetooth or USB to reach them.
 final transferSectionsProvider = Provider<List<TransferSection>>((ref) {

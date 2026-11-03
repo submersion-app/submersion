@@ -54,6 +54,7 @@ void main() {
             avgDepth: const Value(15.0),
             maxDepth: const Value(30.0),
             bottomTime: const Value(1800),
+            runtime: const Value(1800),
             isPlanned: Value(isPlanned),
             excludedFromStats: Value(excludedFromStats),
             excludedFromGasStats: Value(excludedFromGasStats),

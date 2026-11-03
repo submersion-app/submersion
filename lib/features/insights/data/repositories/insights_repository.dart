@@ -380,7 +380,7 @@ class InsightsRepository with InsightsChartDives {
           d.id AS dive_id,
           d.dive_date_time,
           ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          COALESCE(d.runtime, d.bottom_time) AS duration_sec,
+          ${measuredRuntimeSecondsSql('d')} AS duration_sec,
           t.start_pressure,
           t.end_pressure,
           ${consumptionVolumeSql('t')} AS volume,
@@ -389,7 +389,7 @@ class InsightsRepository with InsightsChartDives {
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
         WHERE 1 = 1 $diverFilter ${df.clause}
-          AND COALESCE(d.runtime, d.bottom_time) > 0
+          AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
         ORDER BY d.dive_date_time
@@ -494,7 +494,7 @@ class InsightsRepository with InsightsChartDives {
             ${diveSacPressureSql('d')} AS sac
           FROM dives d
           WHERE 1 = 1 $diverFilter ${df.clause}
-            AND COALESCE(d.runtime, d.bottom_time) > 0
+            AND ${measuredRuntimeSecondsSql('d')} > 0
             AND d.avg_depth > 0
         )
         WHERE sac IS NOT NULL
@@ -591,7 +591,7 @@ class InsightsRepository with InsightsChartDives {
           d.dive_number,
           d.dive_date_time,
           ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          COALESCE(d.runtime, d.bottom_time) AS duration_sec,
+          ${measuredRuntimeSecondsSql('d')} AS duration_sec,
           ds.name AS site_name,
           t.start_pressure,
           t.end_pressure,
@@ -601,7 +601,7 @@ class InsightsRepository with InsightsChartDives {
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
-        WHERE COALESCE(d.runtime, d.bottom_time) > 0
+        WHERE ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
          
@@ -721,7 +721,7 @@ class InsightsRepository with InsightsChartDives {
             ${diveSacPressureSql('d')} AS sac
           FROM dives d
           LEFT JOIN dive_sites ds ON ds.id = d.site_id
-          WHERE COALESCE(d.runtime, d.bottom_time) > 0
+          WHERE ${measuredRuntimeSecondsSql('d')} > 0
             AND d.avg_depth > 0
             $diverFilter ${df.clause}
         )
@@ -789,13 +789,13 @@ class InsightsRepository with InsightsChartDives {
           t.o2_percent,
           t.he_percent,
           ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          COALESCE(d.runtime, d.bottom_time) AS duration_sec
+          ${measuredRuntimeSecondsSql('d')} AS duration_sec
         FROM dives d
         INNER JOIN dive_tanks t ON t.dive_id = d.id
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
           AND t.start_pressure > t.end_pressure
-          AND COALESCE(d.runtime, d.bottom_time) > 0
+          AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
           AND d.dive_mode <> 'ccr'
           $diverFilter ${df.clause}
@@ -875,8 +875,8 @@ class InsightsRepository with InsightsChartDives {
           t.tank_role,
           AVG(
             CASE
-              WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ${diveAmbientBarSql('d', 'd.avg_depth')}
+              WHEN t.start_pressure > t.end_pressure THEN
+                (t.start_pressure - t.end_pressure) / (${measuredRuntimeSecondsSql('d')} / 60.0) / ${diveAmbientBarSql('d', 'd.avg_depth')}
               ELSE NULL
             END
           ) AS avg_sac
@@ -884,7 +884,7 @@ class InsightsRepository with InsightsChartDives {
         INNER JOIN dive_tanks t ON t.dive_id = d.id
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
-          AND COALESCE(d.runtime, d.bottom_time) > 0
+          AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
           AND d.dive_mode <> 'ccr'
           $diverFilter ${df.clause}
@@ -920,8 +920,8 @@ class InsightsRepository with InsightsChartDives {
   ///
   /// A dive carrying several types counts once under each of them, so the
   /// per-type totals deliberately sum to more than the diver's career total.
-  /// Each dive's contribution is its `Dive.effectiveRuntime`, resolved in SQL
-  /// by [effectiveRuntimeSecondsSql] so a dive whose duration only exists in
+  /// Each dive's contribution is its `Dive.measuredRuntime`, resolved in SQL
+  /// by [measuredRuntimeSecondsSql] so a dive whose duration only exists in
   /// its profile is not reported as zero.
   Future<List<DistributionSegment>> getDiveTypeDistribution({
     String? diverId,
@@ -936,7 +936,7 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           ddt.dive_type_id AS dive_type,
           COUNT(*) AS count,
-          SUM(${effectiveRuntimeSecondsSql('d')}) AS total_time
+          SUM(${measuredRuntimeSecondsSql('d')}) AS total_time
         FROM dive_dive_types ddt
         JOIN dives d ON d.id = ddt.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
@@ -957,8 +957,8 @@ class InsightsRepository with InsightsChartDives {
           label: label,
           count: count,
           percentage: count / total * 100,
-          // NULL when no dive of this type carries a duration in any
-          // form, which reads as no time logged.
+          // NULL when no dive of this type measured a runtime, which reads
+          // as no time logged.
           totalDurationSeconds: row.readNullable<int>('total_time') ?? 0,
         );
       }).toList();
@@ -1092,8 +1092,8 @@ class InsightsRepository with InsightsChartDives {
 
   /// Aggregates for a single calendar year (dashboard year-in-review).
   /// The duration sum mirrors getStatistics' total_time expression
-  /// (COALESCE(runtime, bottom_time), seconds) so the card's hours agree
-  /// with the hero header's lifetime hours.
+  /// ([measuredRuntimeSecondsSql], seconds) so the card's hours agree with
+  /// the hero header's lifetime hours.
   Future<YearStats> getYearStats(int year, {String? diverId}) async {
     try {
       // Half-open millisecond range [Jan 1, next Jan 1) rather than
@@ -1110,7 +1110,7 @@ class InsightsRepository with InsightsChartDives {
             '''
         SELECT
           COUNT(*) AS dive_count,
-          COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) AS total_seconds,
+          COALESCE(SUM(${measuredRuntimeSecondsSql('dives')}), 0) AS total_seconds,
           MAX(max_depth) AS max_depth
         FROM dives
         WHERE dive_date_time >= ? AND dive_date_time < ?
@@ -1560,11 +1560,8 @@ class InsightsRepository with InsightsChartDives {
   /// #1038): dive count, depth range, duration range/average, and first/last
   /// dive dates, aggregated over the dives actually logged at [siteId].
   ///
-  /// Duration is approximated as `COALESCE(runtime, bottom_time)`, a
-  /// deliberate simplification of [Dive.effectiveRuntime]'s 4-step fallback
-  /// chain: the entry/exit-time-difference and profile-derived steps cannot
-  /// be expressed in SQL, so dives that only carry those will slightly
-  /// undercount the duration stats.
+  /// Duration is [measuredRuntimeSecondsSql], so a dive with only a bottom
+  /// time counts toward the dive count but not the duration figures.
   ///
   /// These are descriptive numbers, so [DiveStatsScope] applies: a dive the
   /// diver ticked "exclude from statistics" and a planner entry for a dive
@@ -1598,7 +1595,7 @@ class InsightsRepository with InsightsChartDives {
           'ORDER BY $orderBy, a.id ASC LIMIT 1)';
 
       const depthNotNull = 'a.max_depth IS NOT NULL';
-      const duration = 'COALESCE(a.runtime, a.bottom_time)';
+      final duration = measuredRuntimeSecondsSql('a');
       final deepest = anchor('a.max_depth DESC', notNull: depthNotNull);
       final shallowest = anchor('a.max_depth ASC', notNull: depthNotNull);
       final longest = anchor(
@@ -1621,8 +1618,8 @@ class InsightsRepository with InsightsChartDives {
           COUNT(*) AS dive_count,
           MAX(max_depth) AS max_depth_reached,
           MIN(max_depth) AS min_depth_reached,
-          MAX(COALESCE(runtime, bottom_time)) AS longest_dive_seconds,
-          AVG(COALESCE(runtime, bottom_time)) AS average_duration_seconds,
+          MAX(${measuredRuntimeSecondsSql('dives')}) AS longest_dive_seconds,
+          AVG(${measuredRuntimeSecondsSql('dives')}) AS average_duration_seconds,
           MIN(dive_date_time) AS first_dive_at,
           MAX(dive_date_time) AS last_dive_at,
           $deepest AS deepest_dive_id,

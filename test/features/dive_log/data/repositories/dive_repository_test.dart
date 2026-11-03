@@ -60,6 +60,7 @@ void main() {
       diveNumber: diveNumber,
       dateTime: dateTime ?? DateTime.now(),
       bottomTime: duration,
+      runtime: duration,
       maxDepth: maxDepth,
       avgDepth: avgDepth,
       site: site,

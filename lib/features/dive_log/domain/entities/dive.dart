@@ -48,6 +48,11 @@ class Dive extends Equatable {
   final List<DiveTank> tanks;
   final List<DiveProfilePoint> profile;
 
+  /// How long the recorded profile lasts, for a dive read without its samples:
+  /// a list read leaves [profile] empty and fills this for a dive only its
+  /// samples can measure. Read, never stored.
+  final Duration? profileSpan;
+
   /// The gear on this dive, one link per junction row with the item and
   /// where it came from (issue #1487). [equipment] is the flat view.
   final List<GearLink> gear;
@@ -260,6 +265,7 @@ class Dive extends Equatable {
     this.tripId,
     this.tanks = const [],
     this.profile = const [],
+    this.profileSpan,
     this.gear = const [],
     this.notes = '',
     this.photoIds = const [],
@@ -443,14 +449,19 @@ class Dive extends Equatable {
     return id[0].toUpperCase() + id.substring(1).replaceAll('_', ' ');
   }
 
-  /// Best available runtime for this dive.
+  /// The runtime this dive measured, or null when it measured none.
+  ///
+  /// This is what to report: totals, records, charts, SAC and anything
+  /// labelled Runtime. Bottom time is left out because it is derived from a
+  /// depth threshold, so a dive that only carries one has no runtime (issue
+  /// #3304). `measuredRuntimeSecondsSql` is the SQL form.
   ///
   /// Fallback chain:
   /// 1. runtime (explicit, from dive computer/import)
   /// 2. exitTime - entryTime (computed from timestamps)
-  /// 3. calculateRuntimeFromProfile() (from profile data)
-  /// 4. bottomTime (approximate, but better than null)
-  Duration? get effectiveRuntime {
+  /// 3. calculateRuntimeFromProfile() (from profile data), else [profileSpan]
+  ///    for a dive read without its samples
+  Duration? get measuredRuntime {
     if (runtime != null) return runtime;
 
     if (entryTime != null && exitTime != null) {
@@ -458,11 +469,17 @@ class Dive extends Equatable {
       if (!computed.isNegative && computed > Duration.zero) return computed;
     }
 
-    final fromProfile = calculateRuntimeFromProfile();
-    if (fromProfile != null) return fromProfile;
-
-    return bottomTime;
+    return calculateRuntimeFromProfile() ?? profileSpan;
   }
+
+  /// [measuredRuntime], else [bottomTime]: an estimate of how long the dive
+  /// took, for working out when it ended.
+  ///
+  /// Use this for a time window (photo matching, overlap checks, surface
+  /// intervals, tissue loading), where a table-era log has nothing better.
+  /// Never report it as a runtime. `effectiveRuntimeSecondsSql` is the SQL
+  /// form.
+  Duration? get effectiveRuntime => measuredRuntime ?? bottomTime;
 
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
@@ -520,14 +537,12 @@ class Dive extends Equatable {
   /// `gasModelProvider`. The runtime is used verbatim: nothing is added for
   /// a safety stop (issue #828).
   double? rmvFor(GasModel model) {
-    if (isRebreather ||
-        tanks.isEmpty ||
-        effectiveRuntime == null ||
-        avgDepth == null) {
+    final runtime = measuredRuntime;
+    if (isRebreather || tanks.isEmpty || runtime == null || avgDepth == null) {
       return null;
     }
 
-    final minutes = effectiveRuntime!.inSeconds / 60;
+    final minutes = runtime.inSeconds / 60;
     if (minutes <= 0) return null;
 
     // Ambient pressure ratio in bar, matching the 1 bar reference that
@@ -605,14 +620,12 @@ class Dive extends Equatable {
   /// only converted by volume. A cylinder of unknown size is left out
   /// unless it pairs with the reference (see [isMatchedPair]).
   double? get sac {
-    if (isRebreather ||
-        tanks.isEmpty ||
-        effectiveRuntime == null ||
-        avgDepth == null) {
+    final runtime = measuredRuntime;
+    if (isRebreather || tanks.isEmpty || runtime == null || avgDepth == null) {
       return null;
     }
 
-    final minutes = effectiveRuntime!.inSeconds / 60;
+    final minutes = runtime.inSeconds / 60;
     if (minutes <= 0) return null;
 
     final avgPressureBar = environment.pressureAtDepth(avgDepth!);
@@ -712,6 +725,7 @@ class Dive extends Equatable {
     String? tripId,
     List<DiveTank>? tanks,
     List<DiveProfilePoint>? profile,
+    Duration? profileSpan,
     List<GearLink>? gear,
     String? notes,
     List<String>? photoIds,
@@ -819,6 +833,7 @@ class Dive extends Equatable {
       tripId: tripId ?? this.tripId,
       tanks: tanks ?? this.tanks,
       profile: profile ?? this.profile,
+      profileSpan: profileSpan ?? this.profileSpan,
       gear: gear ?? this.gear,
       notes: notes ?? this.notes,
       photoIds: photoIds ?? this.photoIds,
@@ -928,6 +943,7 @@ class Dive extends Equatable {
     tripId,
     tanks,
     profile,
+    profileSpan,
     gear,
     notes,
     photoIds,

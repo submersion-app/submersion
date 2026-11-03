@@ -379,9 +379,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                                 ),
                                 _buildNauiField(
                                   l10n.pdf_columnTime,
-                                  l10n.pdf_minutesCompact(
-                                    pdfDiveDurationMinutes(dive),
-                                  ),
+                                  pdfDiveDurationCompact(dive, l10n),
                                 ),
                               ],
                             ),

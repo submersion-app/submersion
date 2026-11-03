@@ -207,6 +207,15 @@ class DiveComputerNotifier
     _ref.invalidate(diveComputerByIdProvider(id));
   }
 
+  /// The per-computer opt-out from auto-download (issue #3361), written on
+  /// its own so the rest of the record keeps whatever it holds now.
+  Future<void> setAutoDownloadDisabled(String id, bool disabled) async {
+    await _repository.setAutoDownloadDisabled(id, disabled);
+    await _load();
+    _ref.invalidate(allDiveComputersProvider);
+    _ref.invalidate(diveComputerByIdProvider(id));
+  }
+
   Future<void> setFavorite(String id) async {
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
     await _repository.setFavoriteComputer(id, diverId: validatedId);

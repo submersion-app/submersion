@@ -156,11 +156,24 @@ class DiveComputerHostApiImpl(
     }
 
     override fun stopDiscovery() {
-        bleScanner?.stop()
+        stopBleScanner()
+    }
+
+    // Detached first: only a scan that ends on its own reports completion.
+    // Dart marks a scan it stopped as finished itself, and a report from one
+    // arrives after the next scan began, where it reads as that scan ending.
+    private fun stopBleScanner() {
+        val scanner = bleScanner ?: return
         bleScanner = null
+        scanner.onComplete = null
+        scanner.stop()
     }
 
     private fun startBleDiscovery() {
+        // A new scan replaces a running one, which nothing could stop once
+        // the reference to it is gone.
+        stopBleScanner()
+
         // BleScanner identifies devices via LibdcWrapper.nativeDescriptorMatch on
         // the (async) scan-result thread. Bail with a clear error if the native
         // library never loaded, rather than crashing there (issue #318).

@@ -350,10 +350,10 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field(l10n.pdf_maxDepth, units.formatDepth(dive.maxDepth)),
       if (dive.avgDepth != null)
         _Field(l10n.pdf_avgDepth, units.formatDepth(dive.avgDepth)),
-      if (dive.effectiveRuntime != null)
+      if (dive.measuredRuntime != null)
         _Field(
           l10n.pdf_runtime,
-          l10n.pdf_minutes('${dive.effectiveRuntime!.inMinutes}'),
+          l10n.pdf_minutes('${dive.measuredRuntime!.inMinutes}'),
         ),
       if (dive.bottomTime != null)
         _Field(

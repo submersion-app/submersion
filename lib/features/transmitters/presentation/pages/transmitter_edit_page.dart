@@ -23,6 +23,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_key_adoption.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_key_remove_dialog.dart';
@@ -325,12 +326,13 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     );
 
     final repo = ref.read(transmitterRepositoryProvider);
+    final Transmitter saved;
     try {
-      if (_existing != null) {
-        await repo.update(entry);
-      } else {
-        await repo.create(entry);
-      }
+      saved = await saveTransmitterKey(
+        entry,
+        isNew: _existing == null,
+        repository: repo,
+      );
       // Role and cylinder are the transmitter's, so every other key behind
       // the item takes them too, and each is marked configured.
       await repo.saveSetup(
@@ -341,7 +343,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         workingPressureBar: workingPressureBar,
         material: _material,
         presetName: _presetName,
-        exceptKeyId: entry.id,
+        exceptKeyId: saved.id,
       );
       // The dropout findings read serials through the transmitter link and
       // are stored, read without the engine, so the item refreshes now.
@@ -360,6 +362,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       ).showSnackBar(SnackBar(content: Text('${l10n.common_label_error}: $e')));
       return;
     }
+    final tookOverKey = saved.id != entry.id;
     // Outside the save's try: the entry is already written. An item with no
     // serial of its own takes the key's, as an item created from a serial
     // does (issue #3676); one it already has is never overwritten.
@@ -371,7 +374,8 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     // The first setup after a download is the moment the diver most wants
     // the dives already imported fixed too, so offer the retroactive apply
     // once here (spec section 5). Edits never apply automatically.
-    final offerApply = _existing == null || !_existing!.isConfigured;
+    final offerApply =
+        _existing == null || !_existing!.isConfigured || tookOverKey;
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
       SnackBar(
@@ -418,15 +422,21 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     }
   }
 
-  /// Writes [serial] onto the item, which has none. Through the list
-  /// notifier, as the equipment editor saves, so the lists refresh. A
-  /// failure is reported and swallowed: the key is already saved.
+  /// Writes [serial] onto the item, which had none at load. Through the list
+  /// notifier, as the equipment editor saves, so the lists refresh. The item
+  /// is read afresh, not from the copy read at load: a sync, or the fold of a
+  /// placeholder, may have given it a serial since, which stays, and the
+  /// write must not put back fields they changed. A failure is reported and
+  /// swallowed: the key is already saved.
   Future<void> _fillItemSerial(String serial) async {
     try {
-      final gear = await ref.read(
-        equipmentItemProvider(widget.equipmentId).future,
-      );
-      if (gear == null) return;
+      final gear = await ref
+          .read(equipmentRepositoryProvider)
+          .getEquipmentById(widget.equipmentId);
+      if (gear == null ||
+          normalizeTransmitterSerial(gear.serialNumber) != null) {
+        return;
+      }
       await ref
           .read(equipmentListNotifierProvider.notifier)
           .updateEquipment(gear.copyWith(serialNumber: serial));

@@ -10,6 +10,7 @@ import 'package:submersion/core/network/proxy/system/system_proxy_resolver.dart'
 import 'package:submersion/core/network/proxy/system_proxy_result.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
@@ -89,6 +90,30 @@ void main() {
         .read(clockSyncSettingsNotifierProvider.notifier)
         .setGlobalEnabled(false);
     expect(prefs.getBool('dive_computer_clock_sync_enabled'), isFalse);
+  });
+
+  test('backs the auto-connect switch with SharedPreferences', () async {
+    SharedPreferences.setMockInitialValues({
+      SettingsKeys.autoConnectKnownComputers: false,
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final logFileService = LogFileService(
+      logDirectory: p.join(Directory.systemTemp.path, 'submersion-test'),
+    );
+
+    final container = ProviderContainer(
+      overrides: rootProviderOverrides(
+        prefs: prefs,
+        logFileService: logFileService,
+      ).cast(),
+    );
+    addTearDown(container.dispose);
+
+    expect(container.read(autoConnectKnownComputersProvider), isFalse);
+    await container
+        .read(autoConnectKnownComputersProvider.notifier)
+        .setEnabled(true);
+    expect(prefs.getBool(SettingsKeys.autoConnectKnownComputers), isTrue);
   });
 
   test('backs the viewer fullscreen mode with SharedPreferences', () async {

@@ -48,4 +48,39 @@ void main() {
     final afternoonTop = tester.getTopLeft(find.text('#8')).dy;
     expect(morningTop, lessThan(afternoonTop));
   });
+
+  testWidgets('rows show measured runtimes, as the trip total adds them up', (
+    tester,
+  ) async {
+    final timed = Dive(
+      id: 't',
+      dateTime: DateTime(2026, 3, 8, 9),
+      runtime: const Duration(minutes: 52),
+    );
+    final logged = Dive(
+      id: 'l',
+      dateTime: DateTime(2026, 3, 8, 14),
+      bottomTime: const Duration(minutes: 47),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divesForTripProvider(
+            't1',
+          ).overrideWith((ref) async => [timed, logged]),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: TripDivesTab(tripId: 't1')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('52'), findsOneWidget);
+    expect(find.textContaining('47'), findsNothing);
+  });
 }

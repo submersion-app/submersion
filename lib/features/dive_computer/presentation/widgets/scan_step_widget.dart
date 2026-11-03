@@ -36,8 +36,12 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
       _tabController = TabController(length: 2, vsync: this);
     }
 
-    // Start Bluetooth scanning when widget is shown
+    // Start Bluetooth scanning when widget is shown. Not stopped when this
+    // step goes away: the wizard moves past it with the scan still running,
+    // because the connect needs that on Android (issue #3369), and stops the
+    // scan itself as it closes (issue #4088).
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       ref.read(discoveryNotifierProvider.notifier).startScan();
     });
   }

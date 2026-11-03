@@ -65,7 +65,7 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
             gasSwitches: switches[id],
             tankPressures: pressures[id],
             diveEnd:
-                dive.effectiveRuntime?.inSeconds ??
+                dive.measuredRuntime?.inSeconds ??
                 dive.profile.lastOrNull?.timestamp ??
                 0,
             gasModel: gasModel,

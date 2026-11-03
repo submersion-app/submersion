@@ -16,6 +16,7 @@ DiveComputer _computer({
   String? lastDiveFingerprint,
   int diveCount = 0,
   bool isFavorite = false,
+  bool autoDownloadDisabled = false,
   String notes = '',
   String? equipmentId,
 }) {
@@ -34,6 +35,7 @@ DiveComputer _computer({
     lastDiveFingerprint: lastDiveFingerprint,
     diveCount: diveCount,
     isFavorite: isFavorite,
+    autoDownloadDisabled: autoDownloadDisabled,
     notes: notes,
     equipmentId: equipmentId,
     createdAt: now,
@@ -154,6 +156,17 @@ void main() {
   });
 
   group('mergedDiveComputer', () {
+    test(
+      'keeps an opt-out from auto-connect from any record (issue #3361)',
+      () {
+        final merged = mergedDiveComputer(_computer(id: 'a'), [
+          _computer(id: 'b', autoDownloadDisabled: true),
+        ]);
+
+        expect(merged.autoDownloadDisabled, isTrue);
+      },
+    );
+
     test('keeps the survivor identity and fills its blank fields', () {
       final survivor = _computer(
         id: 'a',
