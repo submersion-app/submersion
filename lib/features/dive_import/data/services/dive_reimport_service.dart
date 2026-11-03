@@ -281,11 +281,14 @@ class DiveReimportService {
   }
 
   /// Bottom time exactly as `UddfEntityImporter` derives it on first import:
-  /// trust `duration` only when it differs from `runtime`, otherwise measure
+  /// a `bottomTime` the parse states (Submersion's own UDDF, issue #4181),
+  /// else `duration` only when it differs from `runtime`, otherwise measure
   /// the fresh profile, otherwise fall back to `duration`. Without this a
   /// resync that replaces the profile leaves the summary duration describing
   /// the profile it just deleted.
   static int? _deriveBottomTimeSeconds(Map<String, dynamic> diveData) {
+    final stated = diveData['bottomTime'];
+    if (stated is Duration) return stated.inSeconds;
     final duration = diveData['duration'];
     final durationValue = duration is Duration ? duration : null;
     final runtimeRaw = diveData['runtime'];

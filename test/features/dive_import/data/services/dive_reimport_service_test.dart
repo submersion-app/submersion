@@ -939,6 +939,30 @@ void main() {
     expect(dive.bottomTime, 1200);
   });
 
+  test('keeps a bottom time the parse states over the profile', () async {
+    // Submersion's own UDDF states the bottom time (issue #4181), as the
+    // first import keeps it: even equal to the runtime, it is no echo.
+    final diveId = await seedDive(notes: '', buddy: '');
+    await seedSource(diveId, id: 'src-file');
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'maxDepth': 20.0,
+        'profile': profileWithPressure,
+        'runtime': const Duration(minutes: 41),
+        'bottomTime': const Duration(minutes: 41),
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final dive = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingle();
+    expect(dive.bottomTime, 41 * 60);
+    expect(dive.runtime, 41 * 60);
+  });
+
   group('fresh-parse tank identity (the keys real parsers emit)', () {
     test('resolves gas switches by tankRef, the key subsurface and DAN DL7 '
         'emit', () async {
