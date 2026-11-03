@@ -348,7 +348,7 @@ final class FileGitObjectStore implements GitObjectStore {
 
   /// A temp file name of its own: two writes of one object may run at once.
   String _tmpName(String stem) =>
-      '$stem.${_random.nextInt(1 << 32).toRadixString(16)}$_tmpSuffix';
+      '$stem.${_random.nextInt(0x100000000).toRadixString(16)}$_tmpSuffix';
 
   @override
   Future<void> put(GitStoredObject object) async {
