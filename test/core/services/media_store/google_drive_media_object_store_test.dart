@@ -136,6 +136,30 @@ void main() {
     expect(server.filesById.values.single.bytes, bytes);
   });
 
+  test('getBytes hands a whole object back in memory, and a missing one is '
+      'notFound', () async {
+    final store = build(chunkSizeBytes: 256 * 1024);
+    final bytes = List<int>.generate(700 * 1024, (i) => (i * 5) % 251);
+    final src = File('${tmp.path}/m.bin')..writeAsBytesSync(bytes);
+    await store.putFile(
+      'smv1/objects/aa/m.bin',
+      src,
+      contentType: 'application/octet-stream',
+    );
+
+    expect(await store.getBytes('smv1/objects/aa/m.bin'), bytes);
+    await expectLater(
+      store.getBytes('smv1/objects/aa/missing.bin'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.notFound,
+        ),
+      ),
+    );
+  });
+
   test('chunked getFile round-trips with progress', () async {
     const chunk = 256 * 1024;
     final store = build(chunkSizeBytes: chunk);
@@ -266,6 +290,10 @@ void main() {
     );
     await expectLater(
       store.getFile('smv1/objects/aa/x.bin', File('${tmp.path}/o')),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.getBytes('smv1/objects/aa/x.bin'),
       throwsA(isA<MediaStoreException>()),
     );
     await expectLater(

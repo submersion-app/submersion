@@ -348,6 +348,19 @@ class S3MediaObjectStore implements MediaObjectStore {
   }
 
   @override
+  Future<Uint8List> getBytes(String key) async {
+    try {
+      final info = await _client.headObject(_wire(key));
+      if (info == null) {
+        throw CloudStorageException('File not found in S3: $key');
+      }
+      return await _client.getObject(_wire(key));
+    } on CloudStorageException catch (e) {
+      throw _map('get', key, e);
+    }
+  }
+
+  @override
   Future<void> delete(String key) async {
     try {
       await _client.deleteObject(_wire(key));

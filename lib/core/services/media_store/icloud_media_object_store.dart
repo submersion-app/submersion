@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
@@ -131,6 +132,18 @@ class ICloudMediaObjectStore implements MediaObjectStore, LocalListingStore {
     File destination, {
     TransferProgressCallback? onProgress,
   }) async {
+    final file = await _downloaded(key);
+    await file.copy(destination.path);
+    final length = await destination.length();
+    onProgress?.call(length, length);
+  }
+
+  @override
+  Future<Uint8List> getBytes(String key) async =>
+      (await _downloaded(key)).readAsBytes();
+
+  /// The local file iCloud holds for [key] once it is downloaded.
+  Future<File> _downloaded(String key) async {
     final path = await _pathFor(key);
     // A false answer means iCloud KNOWS the file: the placeholder is on disk,
     // startDownloadingUbiquitousItem succeeded, and the native poll ran out
@@ -152,9 +165,7 @@ class ICloudMediaObjectStore implements MediaObjectStore, LocalListingStore {
         kind: MediaStoreErrorKind.notFound,
       );
     }
-    await file.copy(destination.path);
-    final length = await destination.length();
-    onProgress?.call(length, length);
+    return file;
   }
 
   @override

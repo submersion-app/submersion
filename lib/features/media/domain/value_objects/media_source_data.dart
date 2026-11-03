@@ -175,7 +175,18 @@ class NetworkData extends MediaSourceData {
 /// Maps to `Image.memory`.
 class BytesData extends MediaSourceData {
   final Uint8List bytes;
-  const BytesData({required this.bytes, super.servedFrom, super.servedTier});
+
+  /// As on [FileData]: the bytes are a decodable stand-in (a video's poster
+  /// frame, a document's page-1 render) for a row that is not itself an
+  /// image. A browser's store fetches serve these (issue #4121).
+  final bool isPoster;
+
+  const BytesData({
+    required this.bytes,
+    this.isPoster = false,
+    super.servedFrom,
+    super.servedTier,
+  });
 }
 
 /// We cannot resolve the bytes on the current device.

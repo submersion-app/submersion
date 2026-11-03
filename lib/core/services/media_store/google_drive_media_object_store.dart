@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
@@ -272,6 +273,27 @@ class GoogleDriveMediaObjectStore
     } finally {
       await raf.close();
     }
+  }
+
+  @override
+  Future<Uint8List> getBytes(String key) async {
+    final found = await _findByKey(key);
+    if (found == null) {
+      throw MediaStoreException(
+        'not found: $key',
+        kind: MediaStoreErrorKind.notFound,
+      );
+    }
+    final response = await _send(
+      http.Request(
+        'GET',
+        Uri.parse('$_apiBase/drive/v3/files/${found.id}?alt=media'),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw _forStatus('get', key, response);
+    }
+    return response.bodyBytes;
   }
 
   @override

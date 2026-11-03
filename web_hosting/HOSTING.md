@@ -117,7 +117,9 @@ Google Cloud project, created once (the guide walks through it), and on
 your site sees only a Drive library your site starts: Google keeps each
 project's Drive folder apart, so the library the installed apps sync to
 Google Drive opens only on Submersion's own site. Libraries in Dropbox, S3
-and WebDAV open from any site.
+and WebDAV open from any site. A photo store kept in a different bucket or
+server from the sync store needs the same rule, or its photos stay as
+placeholders in the browser.
 
 ## What to know before you share the address
 

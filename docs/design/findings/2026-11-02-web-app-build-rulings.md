@@ -248,3 +248,17 @@ warning.
 - It applies only when the page's origin is one it is authorised for, so the release bundle a self-hoster serves elsewhere asks for an id of their own instead of failing at Google's sign-in. Cost if wrong: none
 - On the site it belongs to, the built-in id wins over an id pasted earlier, which could not see the library. Cost if wrong: someone who wants their own project there cannot choose it
 
+## Media store photos in a browser
+
+Raised in review: the store's resolver and its cache were built on device
+files, so a page could show none of the store's photos, and a browser's
+dive and viewer pages wrote synced enrichment rows. The owner chose to make
+the photos show in this PR.
+
+### Rulings
+
+- The resolver keeps its tiers, gates and probes; only the fetch step moves behind `MediaStoreFetches`, the disk code verbatim into `DiskMediaStoreFetches` and a browser's into `MemoryMediaStoreFetches`. Cost if wrong: none, the disk resolver's suites pass unchanged
+- A browser downloads thumbnails for every row and full bytes only for photos: a video or document needs a file to play or render, so its full download would buy nothing. Cost if wrong: videos play only on devices, until a signed-URL path is built
+- What a browser fetched stays in a 64 MB in-page cache, least recently used first, shared by the runtime and the probe resolver. Cost if wrong: a large gallery re-downloads thumbnails it scrolled past
+- A browser's dive media enricher writes nothing, at the provider, so the dive section, the viewer and the time pinner all skip it. Cost if wrong: a browser shows no profile markers for photos no device has enriched yet
+

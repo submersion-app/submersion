@@ -25,6 +25,7 @@ import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
+import 'package:submersion/features/media/data/resolvers/media_bytes_memory.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_cache_purge.dart';
@@ -59,18 +60,28 @@ import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 class MediaStoreRuntime {
   final String storeId;
   final MediaObjectStore store;
-  final MediaCacheStore cache;
+
+  /// The disk cache, or null in a browser, which has none: its [resolver]
+  /// keeps what it fetches in page memory (issue #4121).
+  final MediaCacheStore? cache;
   final MediaStoreResolver resolver;
   final MediaStoreWorker? worker;
 
   const MediaStoreRuntime({
     required this.storeId,
     required this.store,
-    required this.cache,
+    this.cache,
     required this.resolver,
     this.worker,
   });
 }
+
+/// What a browser keeps of the media it fetched from the store (issue
+/// #4121): one budget, shared by the runtime's resolver and the probe
+/// resolver, for the life of the page.
+final mediaBytesMemoryProvider = Provider<MediaBytesMemory>(
+  (ref) => MediaBytesMemory(),
+);
 
 final mediaStoreCredentialsStoreProvider = Provider<MediaStoreCredentialsStore>(
   (ref) => MediaStoreCredentialsStore(),
@@ -509,10 +520,16 @@ final FutureProvider<MediaStoreResolver?> mediaStoreProbeResolverProvider =
     FutureProvider<MediaStoreResolver?>((ref) async {
       final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
-      final resolver = MediaStoreResolver(
-        store: store,
-        cache: await openMediaCacheStore(mediaCachePrefsOrNull(ref)),
-      );
+      // A page has no disk to cache in (issue #4121).
+      final resolver = ref.watch(deviceCapabilitiesProvider).isBrowser
+          ? MediaStoreResolver.inMemory(
+              store: store,
+              memory: ref.watch(mediaBytesMemoryProvider),
+            )
+          : MediaStoreResolver(
+              store: store,
+              cache: await openMediaCacheStore(mediaCachePrefsOrNull(ref)),
+            );
       ref.onDispose(resolver.dispose);
       return resolver;
     });
@@ -538,7 +555,8 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       if (store == null) return null;
       // A browser reads the store and never writes it (issue #4121): no
       // account to record, no worker to drain and no sweep that uploads.
-      final readOnly = !ref.watch(deviceCapabilitiesProvider).mediaAttach;
+      final capabilities = ref.watch(deviceCapabilitiesProvider);
+      final readOnly = !capabilities.mediaAttach;
       if (!readOnly) {
         // Fills in the account a store announced before descriptors
         // recorded it, so other devices join it in its own folder. Best
@@ -550,6 +568,21 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
             MediaStoreService,
           ).warning('Could not record the media store account: $e');
         }
+      }
+
+      // A page has no disk to cache in: its resolver keeps what it fetches
+      // in memory, and there is no cache to evict.
+      if (capabilities.isBrowser) {
+        final resolver = MediaStoreResolver.inMemory(
+          store: store,
+          memory: ref.watch(mediaBytesMemoryProvider),
+        );
+        ref.onDispose(resolver.dispose);
+        return MediaStoreRuntime(
+          storeId: attachedId,
+          store: store,
+          resolver: resolver,
+        );
       }
 
       final cache = await openMediaCacheStore(mediaCachePrefsOrNull(ref));

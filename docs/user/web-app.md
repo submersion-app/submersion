@@ -264,6 +264,12 @@ or kept at a web address. Linking new media, replacing a link, scanning
 and importing files are not offered in a browser; viewing and sharing
 are.
 
+Photos copied to your photo store open in full; videos and documents show
+their thumbnail, and play or open on a phone or computer. The browser
+keeps what it fetches only while the tab is open. When your photo store is
+a different bucket or server from your sync store, it needs the same CORS
+rule naming this site, or its photos stay as placeholders.
+
 ## Downloads and backups
 
 Every export (UDDF, CSV, PDF and the rest) is a download in the browser.
