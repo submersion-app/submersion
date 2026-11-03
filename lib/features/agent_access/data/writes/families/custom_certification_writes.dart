@@ -238,9 +238,7 @@ class CustomLevelWrites extends WritableEntry {
   /// A block unless [agencyId] is a built-in agency or one of [ownerId]'s.
   Future<PlanBlock?> _agencyBlock(String agencyId, String ownerId) async {
     if (CertificationAgency.fromId(agencyId) != null) return null;
-    final agency = (await _r.customCertifications.getAllAgencies())
-        .where((a) => a.id == agencyId)
-        .firstOrNull;
+    final agency = await _r.customCertifications.getAgencyById(agencyId);
     if (agency == null) {
       return PlanBlock(
         BlockReason.unknownReference,

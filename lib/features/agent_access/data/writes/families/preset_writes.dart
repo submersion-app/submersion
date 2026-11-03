@@ -6,6 +6,7 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/object_list_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 
@@ -122,8 +123,14 @@ class WeightPresetWrites extends WritableEntry {
     'entries': ObjectListCodec(
       {
         'type': FieldCodec.enumName(WeightType.values),
-        'amount_kg': const FieldCodec.number(min: 0, max: 30),
-        'label': const FieldCodec.text(maxLength: 60, allowBlank: true),
+        // As a dive's weights take them, since a preset can be made from
+        // those; the repository trims a label as normalizeWeightLabel does.
+        'amount_kg': const FieldCodec.number(min: 0, max: 60),
+        'label': const FieldCodec.text(
+          maxLength: weightLabelMaxLength,
+          allowBlank: true,
+          trim: true,
+        ),
         'notes': const FieldCodec.text(allowBlank: true),
       },
       defaults: const {'label': '', 'notes': ''},

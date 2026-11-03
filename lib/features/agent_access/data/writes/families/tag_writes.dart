@@ -182,7 +182,10 @@ class TagWrites extends WritableEntry {
   @override
   String get note =>
       'Delete a tag with merge_into set to another of the diver\'s tags to '
-      'merge it: its links move to that tag, as the tag page merges them';
+      'merge it: its links move to that tag, as the tag page merges them. '
+      'The merge\'s fields are the survivor\'s, such as the scopes it gains, '
+      'and moved_to_merge_target counts the links and smart albums that '
+      'follow it';
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {

@@ -119,6 +119,29 @@ void main() {
     expect(entries.single['label'], 'Belt');
   });
 
+  // A preset can be made from a dive's weights, so its entries take what a
+  // dive's weights take, and a label is stored trimmed.
+  test('preset entries take what a dive\'s weights take', () async {
+    final id = await created('weight_presets', {
+      'display_name': 'Drysuit',
+      'entries': [
+        {'type': 'belt', 'amount_kg': 40.0, 'label': '  Belt  '},
+      ],
+    });
+
+    final entries = await entriesOf(id);
+    expect(entries.single['amount_kg'], 40.0);
+    expect(entries.single['label'], 'Belt');
+    final again = await h.preview([
+      updateOp('weight_presets', id, {
+        'entries': [
+          {'type': 'belt', 'amount_kg': 40.0, 'label': 'Belt '},
+        ],
+      }),
+    ]);
+    expect(again.items, isEmpty);
+  });
+
   test('an unchanged entry list is not listed as a change', () async {
     final id = await created('weight_presets', {
       'display_name': 'Tropical',
