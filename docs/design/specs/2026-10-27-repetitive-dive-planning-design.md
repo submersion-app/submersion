@@ -11,17 +11,17 @@ This adds a **series** of planned dives to the planner, a way to move between
 them, and the chain that carries each dive's end state into the next.
 
 The full design, its mockups and its five phases are in discussion #3700. This
-record covers what the phases agreed and the decisions made for phases 1, 3
-and 4, the phases built so far.
+record covers what the phases agreed and the decisions made for phases 1 to
+4, the phases built so far.
 
 ## Phases
 
 1. **Series in memory** (built): navigator, add and remove dives, the
    Dive details card, the tissue/CNS/OTU chain, carried tank pressures with
    Fill.
-2. **Shared settings** (being built): start time and site per dive, settings
-   shared across the series with per-dive overrides, series warnings. The
-   series results summary was dropped.
+2. **Shared settings** (built): start time and site per dive, settings and
+   tanks shared across the series with per-dive overrides, series warnings,
+   keyboard shortcuts. The series results summary was dropped.
 3. **Persistence** (built): a `dive_plan_series` table (synced), the saved
    plans list grouped by series, sharing a series in a `.subplan` file.
    Existing plans are not migrated: a plan with no series is a one-dive
@@ -337,6 +337,6 @@ Windows beeps at Alt+letter, and it is not a convention in the app.
 
 ## Out of scope
 
-Everything in phases 2 and 5, writing a series to the log as planned dives,
+Everything in phase 5, writing a series to the log as planned dives,
 plus (as in #3700) a whole-day timeline chart, series PDF export, and inserting
 or reordering dives.
