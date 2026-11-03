@@ -20602,6 +20602,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_library_filter_site => 'Sitio';
 
   @override
+  String get media_library_filter_source => 'Fuente';
+
+  @override
   String get media_library_filter_species => 'Especie';
 
   @override
@@ -20659,6 +20662,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Inmersión sin título';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Sitio: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Equipo: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Abrir este sitio';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Abrir este equipo';
+
+  @override
+  String get media_library_untitledEquipment => 'Equipo sin nombre';
 
   @override
   String get media_library_viewMode_byDive => 'Por inmersión';
@@ -21431,11 +21453,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_about_reportIssue => 'Reportar un problema';
 
   @override
-  String get settings_about_reportIssue_copy => 'Copiar enlace';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Visita github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => 'Guía del usuario';
+
+  @override
+  String get settings_about_userGuide_snackbar => 'Visita submersion.app/guide';
 
   @override
   String settings_about_version(String version) {

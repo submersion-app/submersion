@@ -12658,6 +12658,10 @@
   "@media_library_filter_site": {
     "description": "Library filter chip: pick a dive site"
   },
+  "media_library_filter_source": "Source",
+  "@media_library_filter_source": {
+    "description": "Library filter sheet row: pick the source the media came from (photo library, local files, and so on)"
+  },
   "media_library_filter_species": "Species",
   "@media_library_filter_species": {
     "description": "Library filter chip: pick a species tag"
@@ -12738,6 +12742,38 @@
   "media_library_untitledDiveHeader": "Untitled dive",
   "@media_library_untitledDiveHeader": {
     "description": "By-dive view header for a linked dive with no number, site or date"
+  },
+  "media_library_siteHeader": "Site: {name}",
+  "@media_library_siteHeader": {
+    "description": "By-dive view header for media attached to a dive site but to no dive",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "The dive site's name"
+      }
+    }
+  },
+  "media_library_equipmentHeader": "Equipment: {name}",
+  "@media_library_equipmentHeader": {
+    "description": "By-dive view header for media attached to an equipment item but to no dive or site",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "The equipment item's name"
+      }
+    }
+  },
+  "media_library_siteHeaderHint": "Open this site",
+  "@media_library_siteHeaderHint": {
+    "description": "Accessibility hint for the by-dive view's site group header, which opens the site"
+  },
+  "media_library_equipmentHeaderHint": "Open this equipment",
+  "@media_library_equipmentHeaderHint": {
+    "description": "Accessibility hint for the by-dive view's equipment group header, which opens the equipment item"
+  },
+  "media_library_untitledEquipment": "Untitled equipment",
+  "@media_library_untitledEquipment": {
+    "description": "Name used in the by-dive view's equipment header when the item has no name"
   },
   "media_library_viewMode_byDive": "By dive",
   "@media_library_viewMode_byDive": {
@@ -13410,8 +13446,9 @@
   "settings_about_header": "About",
   "settings_about_openSourceLicenses": "Open Source Licenses",
   "settings_about_reportIssue": "Report an Issue",
-  "settings_about_reportIssue_copy": "Copy link",
   "settings_about_reportIssue_snackbar": "Visit github.com/submersion-app/submersion/issues",
+  "settings_about_userGuide": "User Guide",
+  "settings_about_userGuide_snackbar": "Visit submersion.app/guide",
   "settings_about_version": "Version {version}",
   "@settings_about_version": {
     "placeholders": {

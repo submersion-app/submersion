@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/about_links.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
@@ -107,18 +107,6 @@ void main() {
     });
 
     testWidgets('fallback snackbar copy action copies the URL', (tester) async {
-      const channel = MethodChannel('plugins.flutter.io/url_launcher');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'launch') return false;
-            if (methodCall.method == 'canLaunch') return false;
-            return null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-
       final platformCalls = <MethodCall>[];
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -137,7 +125,8 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: ElevatedButton(
-                onPressed: () => launchReportIssue(context),
+                onPressed: () =>
+                    launchReportIssue(context, launch: (_) async => false),
                 child: const Text('Report'),
               ),
             ),
@@ -161,18 +150,6 @@ void main() {
     });
 
     testWidgets('shows snackbar fallback when launch fails', (tester) async {
-      const channel = MethodChannel('plugins.flutter.io/url_launcher');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'launch') return false;
-            if (methodCall.method == 'canLaunch') return false;
-            return null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -180,7 +157,8 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: ElevatedButton(
-                onPressed: () => launchReportIssue(context),
+                onPressed: () =>
+                    launchReportIssue(context, launch: (_) async => false),
                 child: const Text('Report'),
               ),
             ),
@@ -193,21 +171,7 @@ void main() {
 
       expect(find.byType(SnackBar), findsOneWidget);
     });
-    testWidgets('shows snackbar when launchUrl throws', (tester) async {
-      const channel = MethodChannel('plugins.flutter.io/url_launcher');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'canLaunch') return true;
-            if (methodCall.method == 'launch') {
-              throw PlatformException(code: 'ERROR');
-            }
-            return null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-
+    testWidgets('shows snackbar when the launch throws', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -215,7 +179,10 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: ElevatedButton(
-                onPressed: () => launchReportIssue(context),
+                onPressed: () => launchReportIssue(
+                  context,
+                  launch: (_) async => throw PlatformException(code: 'ERROR'),
+                ),
                 child: const Text('Report'),
               ),
             ),

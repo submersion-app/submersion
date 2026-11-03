@@ -147,6 +147,32 @@ class _MediaLibraryGroupedListState
     return parts.join(' · ');
   }
 
+  /// A by-dive mode header that opens [route]. Inert while a selection is in
+  /// progress, matching the tiles below it: a tap landing a few pixels high
+  /// must not navigate away from a half-built selection.
+  MediaGroupHeaderSpec _linkHeader(
+    String label, {
+    required String? route,
+    required String hint,
+  }) => MediaGroupHeaderSpec(
+    kind: MediaGroupHeaderKind.dive,
+    label: label,
+    route: widget.isSelectionMode ? null : route,
+    hint: hint,
+  );
+
+  /// [template] around [name] when it has text, else [fallback] on its own:
+  /// an empty label renders a zero-size, untappable header, and the fallback
+  /// inside the template would read "Site: Site".
+  static String _named(
+    String? name,
+    String Function(String name) template,
+    String fallback,
+  ) {
+    final trimmed = name?.trim();
+    return trimmed == null || trimmed.isEmpty ? fallback : template(trimmed);
+  }
+
   /// Each group's headers, in order. The timeline carries a month header
   /// whenever the month changes between groups.
   List<List<MediaGroupHeaderSpec>> _headers(
@@ -171,14 +197,36 @@ class _MediaLibraryGroupedListState
           ]);
           lastMonth = monthStart;
         case final DiveGroupHeader header:
+          final diveId = header.diveId;
           headers.add([
-            MediaGroupHeaderSpec(
-              kind: MediaGroupHeaderKind.dive,
-              label: _diveHeaderLabel(context, units, header),
-              // Inert while a selection is in progress, matching the tiles
-              // below it: a tap landing a few pixels high must not navigate
-              // away from a half-built selection.
-              diveId: widget.isSelectionMode ? null : header.diveId,
+            _linkHeader(
+              _diveHeaderLabel(context, units, header),
+              route: diveId == null ? null : '/dives/$diveId',
+              hint: context.l10n.media_library_diveHeaderHint,
+            ),
+          ]);
+        case SiteGroupHeader(:final siteId, :final siteName):
+          headers.add([
+            _linkHeader(
+              _named(
+                siteName,
+                context.l10n.media_library_siteHeader,
+                context.l10n.media_library_filter_site,
+              ),
+              route: '/sites/$siteId',
+              hint: context.l10n.media_library_siteHeaderHint,
+            ),
+          ]);
+        case EquipmentGroupHeader(:final equipmentId, :final name):
+          headers.add([
+            _linkHeader(
+              _named(
+                name,
+                context.l10n.media_library_equipmentHeader,
+                context.l10n.media_library_untitledEquipment,
+              ),
+              route: '/equipment/$equipmentId',
+              hint: context.l10n.media_library_equipmentHeaderHint,
             ),
           ]);
       }
@@ -262,7 +310,7 @@ class _MediaLibraryGroupedListState
                 final spec = headers[group][header];
                 return MediaGroupHeader(
                   spec: spec,
-                  onTap: () => context.pushOrReturnTo('/dives/${spec.diveId}'),
+                  onTap: () => context.pushOrReturnTo(spec.route!),
                 );
               }
               final index = table.tileIndexOf(cell);

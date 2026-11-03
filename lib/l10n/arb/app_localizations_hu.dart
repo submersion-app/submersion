@@ -20540,6 +20540,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_library_filter_site => 'Merülőhely';
 
   @override
+  String get media_library_filter_source => 'Forrás';
+
+  @override
   String get media_library_filter_species => 'Faj';
 
   @override
@@ -20597,6 +20600,25 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Névtelen merülés';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Merülőhely: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Felszerelés: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Merülőhely megnyitása';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Felszerelés megnyitása';
+
+  @override
+  String get media_library_untitledEquipment => 'Névtelen felszerelés';
 
   @override
   String get media_library_viewMode_byDive => 'Merülés szerint';
@@ -21365,11 +21387,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_about_reportIssue => 'Hiba bejelentése';
 
   @override
-  String get settings_about_reportIssue_copy => 'Link másolása';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Látogasson el: github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => 'Felhasználói útmutató';
+
+  @override
+  String get settings_about_userGuide_snackbar =>
+      'Látogasson el: submersion.app/guide';
 
   @override
   String settings_about_version(String version) {

@@ -19599,6 +19599,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_filter_site => '潜点';
 
   @override
+  String get media_library_filter_source => '来源';
+
+  @override
   String get media_library_filter_species => '物种';
 
   @override
@@ -19656,6 +19659,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => '未命名潜水';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return '潜点：$name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return '装备：$name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => '打开此潜点';
+
+  @override
+  String get media_library_equipmentHeaderHint => '打开此装备';
+
+  @override
+  String get media_library_untitledEquipment => '未命名装备';
 
   @override
   String get media_library_viewMode_byDive => '按潜水';
@@ -20391,11 +20413,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_about_reportIssue => '报告问题';
 
   @override
-  String get settings_about_reportIssue_copy => '复制链接';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       '请访问 github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => '用户指南';
+
+  @override
+  String get settings_about_userGuide_snackbar => '请访问 submersion.app/guide';
 
   @override
   String settings_about_version(String version) {

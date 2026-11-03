@@ -20479,6 +20479,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_library_filter_site => 'Duikstek';
 
   @override
+  String get media_library_filter_source => 'Bron';
+
+  @override
   String get media_library_filter_species => 'Soort';
 
   @override
@@ -20536,6 +20539,25 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Naamloze duik';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Duikstek: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Uitrusting: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Deze duikstek openen';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Deze uitrusting openen';
+
+  @override
+  String get media_library_untitledEquipment => 'Naamloze uitrusting';
 
   @override
   String get media_library_viewMode_byDive => 'Per duik';
@@ -21302,11 +21324,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_about_reportIssue => 'Probleem melden';
 
   @override
-  String get settings_about_reportIssue_copy => 'Link kopiëren';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Ga naar github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => 'Gebruikershandleiding';
+
+  @override
+  String get settings_about_userGuide_snackbar =>
+      'Ga naar submersion.app/guide';
 
   @override
   String settings_about_version(String version) {

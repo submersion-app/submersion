@@ -14,10 +14,14 @@ import 'package:submersion/shared/utils/browser_launch.dart';
 /// showSnackBar builds the SnackBar's AnimationController with `vsync: this`,
 /// so calling it on a state that was disposed while the platform launch was
 /// in flight throws. The mounted check is what covers that.
+///
+/// [failureMessage] replaces the generic "could not open" text, for callers
+/// that can name where the link goes.
 Future<void> openLinkOrOfferCopy(
   BuildContext context,
   Uri uri, {
   required UrlLaunch launch,
+  String? failureMessage,
 }) async {
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l10n = context.l10n;
@@ -30,7 +34,7 @@ Future<void> openLinkOrOfferCopy(
   if (opened || !context.mounted || messenger == null) return;
   messenger.showSnackBar(
     SnackBar(
-      content: Text(l10n.common_link_couldNotOpen),
+      content: Text(failureMessage ?? l10n.common_link_couldNotOpen),
       persist: false,
       action: SnackBarAction(
         label: l10n.common_action_copyLink,
