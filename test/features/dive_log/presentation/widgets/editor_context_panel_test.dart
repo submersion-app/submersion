@@ -26,10 +26,13 @@ class _TrackingProfileEditorNotifier extends ProfileEditorNotifier {
 }
 
 void main() {
-  testWidgets('trim mode renders controls and invokes trim action', (
+  testWidgets('cleanup mode renders controls and invokes trim action', (
     tester,
   ) async {
     final notifier = _TrackingProfileEditorNotifier();
+    tester.view.physicalSize = const Size(1600, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -37,13 +40,15 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('en'),
         home: Scaffold(
-          body: EditorContextPanel(mode: EditorMode.delete, notifier: notifier),
+          body: EditorContextPanel(
+            mode: EditorMode.outlier,
+            notifier: notifier,
+          ),
         ),
       ),
     );
 
-    expect(find.text('Delete'), findsOneWidget);
-    expect(find.text('Trim profile endpoints'), findsOneWidget);
+    expect(find.text('Cleanup'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Trim End'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(FilledButton, 'Trim End'));

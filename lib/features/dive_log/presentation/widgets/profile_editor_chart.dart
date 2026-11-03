@@ -231,13 +231,14 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
           strokeWidth: 2,
           strokeColor: backdropColorOf(context),
         ),
-        EditorMode.outlier || EditorMode.select || EditorMode.smooth =>
-          FlDotCirclePainter(
-            radius: 5,
-            color: colorScheme.error,
-            strokeWidth: 1.5,
-            strokeColor: colorScheme.onError,
-          ),
+        EditorMode.outlier ||
+        EditorMode.select ||
+        EditorMode.smooth => FlDotCirclePainter(
+          radius: 5,
+          color: colorScheme.error,
+          strokeWidth: 1.5,
+          strokeColor: colorScheme.onError,
+        ),
       };
 
   FlTitlesData _buildTitles(UnitFormatter units) {

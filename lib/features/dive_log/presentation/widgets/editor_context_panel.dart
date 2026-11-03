@@ -250,7 +250,9 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
             ),
             const SizedBox(width: 8),
             FilledButton.icon(
-              onPressed: widget.canDeleteProfile ? widget.onDeleteProfile : null,
+              onPressed: widget.canDeleteProfile
+                  ? widget.onDeleteProfile
+                  : null,
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
                 foregroundColor: Theme.of(context).colorScheme.onError,
@@ -315,5 +317,4 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
       ],
     );
   }
-
 }
