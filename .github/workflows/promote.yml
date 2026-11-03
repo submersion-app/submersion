@@ -458,7 +458,7 @@ jobs:
 
   # Submersion's own site, https://web.submersion.app, gets the promoted
   # release's web bundle as it is (issue #4161). Skips with a notice until
-  # WEB_DEPLOY_KEY is set (docs/developer/web-site-setup.md).
+  # WEB_DEPLOY_TOKEN is set (docs/developer/web-site-setup.md).
   deploy-web:
     name: Deploy the web app
     needs: promote
@@ -466,7 +466,7 @@ jobs:
     with:
       tag: ${{ needs.promote.outputs.tag }}
     secrets:
-      WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
+      WEB_DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
 
   notify-failures:
     name: Open issue on promotion failure

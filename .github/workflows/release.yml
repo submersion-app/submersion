@@ -522,7 +522,7 @@ jobs:
     with:
       tag: ${{ github.ref_name }}
     secrets:
-      WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
+      WEB_DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
 
   # A failed web app deploy gets its own issue, so the store-upload alert
   # below keeps its timing (it would otherwise wait for validate-release and

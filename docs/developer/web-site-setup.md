@@ -25,8 +25,9 @@ release zip still asks a self-hosted copy for a client id of its own.
   downloads that release's `Web.zip`, stages it with
   `scripts/web/stage_hosted_site.py` (the bundle check, `CNAME`,
   `.nojekyll`), and force-pushes it to `submersion-app/web` as a single
-  commit over SSH with a deploy key. `promote.yml` calls it after every
-  promotion, and `release.yml` for a stable tag pushed by hand.
+  commit, authenticated by a fine-grained token for that repository alone
+  (the organization turns deploy keys off). `promote.yml` calls it after
+  every promotion, and `release.yml` for a stable tag pushed by hand.
 
 ## One-time setup
 
@@ -59,25 +60,26 @@ Cloud project, the domain's DNS and the repositories' settings.
    at `submersion-app.github.io`. Check it with
    `dig +short web.submersion.app CNAME`.
 
-4. **The deploy key.** Generate a key pair, give the public half write
-   access to the Pages repository, store the private half as this
-   repository's secret, and delete both files:
+4. **The deploy token.** On GitHub: Settings, Developer settings, Personal
+   access tokens, **Fine-grained tokens**, **Generate new token**:
+   - Resource owner: `submersion-app`.
+   - Repository access: **Only select repositories**, `submersion-app/web`.
+   - Repository permissions: **Contents: Read and write** (Metadata: Read
+     comes with it). Nothing else.
+   - Expiration: the longest the organization allows; note the date.
+
+   If the organization approves fine-grained tokens, approve it under the
+   organization's Settings, Personal access tokens, Pending requests. Then
+   store it as this repository's secret (the command asks for the value, so
+   it stays out of the shell history):
 
    ```bash
-   ssh-keygen -t ed25519 -N "" -C web-deploy -f web_deploy_key
+   gh secret set WEB_DEPLOY_TOKEN --repo submersion-app/submersion
    ```
 
-   ```bash
-   gh repo deploy-key add web_deploy_key.pub --repo submersion-app/web --allow-write --title "Deploy from submersion-app/submersion"
-   ```
-
-   ```bash
-   gh secret set WEB_DEPLOY_KEY --repo submersion-app/submersion < web_deploy_key
-   ```
-
-   ```bash
-   rm web_deploy_key web_deploy_key.pub
-   ```
+   When the token expires, deploys fail at "Read the version the site
+   serves" with `Authentication failed`: generate a new one the same way,
+   set the secret again, and rerun the deploy.
 
 5. **HTTPS.** Once DNS resolves, in submersion-app/web, Settings, Pages:
    confirm the custom domain shows as verified and tick **Enforce HTTPS**
@@ -88,7 +90,7 @@ The Pages repository itself already exists, with Pages turned on from
 
 ## Before the setup is finished
 
-- **No `WEB_DEPLOY_KEY`:** the deploy job writes a notice and succeeds
+- **No `WEB_DEPLOY_TOKEN`:** the deploy job writes a notice and succeeds
   without deploying. A promotion is never held up or reported as failed
   by the site's setup.
 - **No Google client in the bundle** (a beta built before step 1): the

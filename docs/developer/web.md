@@ -142,7 +142,7 @@ Each stable release deploys its `Web.zip`, as it is, to
 repository `submersion-app/web`. A manual run redeploys a tag, and refuses
 an older release than the site serves unless `force` is set, since an
 older release cannot open the newer schema visitors' browsers already
-hold. Setup, the deploy key and rolling back:
+hold. Setup, the deploy token and rolling back:
 [Submersion's Own Web Site](web-site-setup.md).
 
 ## Storage

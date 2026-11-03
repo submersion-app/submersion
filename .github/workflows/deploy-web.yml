@@ -14,10 +14,12 @@ name: Deploy Web App
 # Each deploy force-pushes one orphan commit, so the Pages repository holds
 # a single copy of the site rather than a history of 25 MB bundles.
 #
-# Until WEB_DEPLOY_KEY is set, the configured job notes that the site is not
-# set up and the deploy job is skipped, so a release is never held up by the
-# site's setup. One-time
-# setup: docs/developer/web-site-setup.md.
+# It pushes with WEB_DEPLOY_TOKEN, a fine-grained token for submersion-app/web
+# alone (Contents: read and write), as beta.yml publishes with
+# BETA_BUILDS_TOKEN: the organization turns deploy keys off. Until the token
+# is set, the configured job notes that the site is not set up and the
+# deploy job is skipped, so a release is never held up by the site's setup.
+# One-time setup: docs/developer/web-site-setup.md.
 on:
   workflow_call:
     inputs:
@@ -31,7 +33,7 @@ on:
         type: boolean
         default: false
     secrets:
-      WEB_DEPLOY_KEY:
+      WEB_DEPLOY_TOKEN:
         required: false
   workflow_dispatch:
     inputs:
@@ -60,7 +62,7 @@ concurrency:
 
 env:
   SITE_DOMAIN: web.submersion.app
-  PAGES_REMOTE: git@github.com:submersion-app/web.git
+  PAGES_REMOTE: https://github.com/submersion-app/web.git
 
 jobs:
   # Its own job so the deploy below is skipped whole: a secret cannot be
@@ -72,13 +74,13 @@ jobs:
     outputs:
       deploy: ${{ steps.configured.outputs.deploy }}
     steps:
-      - name: Check for the deploy key
+      - name: Check for the deploy token
         id: configured
         env:
-          WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
+          WEB_DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
         run: |
-          if [ -z "$WEB_DEPLOY_KEY" ]; then
-            echo "::notice::WEB_DEPLOY_KEY is not set, so ${SITE_DOMAIN} was not deployed. See docs/developer/web-site-setup.md."
+          if [ -z "$WEB_DEPLOY_TOKEN" ]; then
+            echo "::notice::WEB_DEPLOY_TOKEN is not set, so ${SITE_DOMAIN} was not deployed. See docs/developer/web-site-setup.md."
             echo "deploy=false" >> "$GITHUB_OUTPUT"
           else
             echo "deploy=true" >> "$GITHUB_OUTPUT"
@@ -116,6 +118,9 @@ jobs:
             scripts/check_web_bundle.py
             scripts/web/stage_hosted_site.py
           sparse-checkout-cone-mode: false
+          # The deploy's own credential is the only one git should send; a
+          # second Authorization header from checkout would fail every call.
+          persist-credentials: false
 
       - name: Read the release's sqlite3.wasm lock
         env:
@@ -147,27 +152,29 @@ jobs:
             --domain "$SITE_DOMAIN" --client-id "$CLIENT_ID" \
             --lock "$RUNNER_TEMP/sqlite3_wasm.lock"
 
-      # GitHub's host keys from its own API rather than ssh-keyscan, so the
-      # first connection is not trust-on-first-use.
-      - name: Set up the deploy key
+      # The token travels as an HTTP header through git's environment config,
+      # never in a remote URL or a file, and only for the steps below. Masked,
+      # so neither form of it reaches the log.
+      - name: Set up the deploy token
         env:
-          GH_TOKEN: ${{ github.token }}
-          WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
+          WEB_DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
         run: |
           set -euo pipefail
-          key="$RUNNER_TEMP/deploy_key"
-          hosts="$RUNNER_TEMP/known_hosts"
-          (umask 077 && printf '%s\n' "$WEB_DEPLOY_KEY" > "$key")
-          gh api meta --jq '.ssh_keys[]' | sed 's/^/github.com /' > "$hosts"
-          echo "GIT_SSH_COMMAND=ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
+          basic=$(printf 'x-access-token:%s' "$WEB_DEPLOY_TOKEN" | base64 -w0)
+          echo "::add-mask::${basic}"
+          {
+            echo "GIT_CONFIG_COUNT=1"
+            echo "GIT_CONFIG_KEY_0=http.https://github.com/.extraheader"
+            echo "GIT_CONFIG_VALUE_0=AUTHORIZATION: basic ${basic}"
+          } >> "$GITHUB_ENV"
 
       - name: Read the version the site serves
         run: |
           set -euo pipefail
           current="$RUNNER_TEMP/current-version.json"
           rm -f "$current"
-          # An unreachable repository stops here; an empty one (the first
-          # deploy) has no main branch and nothing to compare.
+          # An unreachable repository or a refused token stops here; an empty
+          # one (the first deploy) has no main branch and nothing to compare.
           heads=$(git ls-remote --heads "$PAGES_REMOTE" main)
           if [ -z "$heads" ]; then
             echo "The Pages repository has no main branch yet."
@@ -204,7 +211,3 @@ jobs:
           git commit -q -m "Deploy Submersion ${TAG}"
           git push -q --force "$PAGES_REMOTE" main
           echo "Deployed ${TAG} to https://${SITE_DOMAIN}" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Remove the deploy key
-        if: always()
-        run: rm -f "$RUNNER_TEMP/deploy_key"

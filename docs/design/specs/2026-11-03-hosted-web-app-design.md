@@ -21,10 +21,11 @@ client id, and the user guide sends readers there first.
 | 2 | Host | GitHub Pages, served from the `main` branch root of a new public repository, `submersion-app/web`, with `web.submersion.app` as its custom domain and HTTPS enforced. The website repository is not touched. Pages sends no isolation headers, so Chrome runs the slower IndexedDB storage, as `web_hosting/HOSTING.md` says; it also sends no opener policy, so Google's sign-in popup works |
 | 3 | When it updates | On each stable release, never on a beta (owner's choice). The site then matches the version the stores ship, the version installed apps sync with |
 | 4 | Which bundle | The one release `Submersion-<tag>-Web.zip`, built with Submersion's Google web client limited to `https://web.submersion.app` (owner's choice). The client is already used only at its authorised addresses (`GoogleDriveClientConfig.builtInWebClientIdFor`), so a self-hosted copy of the same zip still asks for its own client id. No second build: the site runs the exact bundle that was tested as a beta and promoted |
-| 5 | Who creates the Pages repository | The builder, with `gh` (owner's choice). The owner does the steps that need their accounts: the Google client, the consent screen, DNS, and the deploy key |
+| 5 | Who creates the Pages repository | The builder, with `gh` (owner's choice). The owner does the steps that need their accounts: the Google client, the consent screen, DNS, and the deploy token |
 | 6 | Website link | None in this change. The user guide names the address; a link on the `submersion.app` pages is left for later (owner's choice) |
 | 7 | A bundle without the Google client | Deployed anyway, with a warning in the run (owner's choice). The client goes in when the beta is built, so a release whose beta was built before `GOOGLE_WEB_CLIENT_ID` was set, or an older release, carries none; on the site Google Drive then asks for a client id until the next release. A release with no `Web.zip` at all (before PR #4142) cannot be deployed and fails with that reason |
 | 8 | Rolling back | A manual run refuses a release older than the one the site serves unless its `force` input is ticked (owner's choice). Every visitor's library lives in their browser on the one origin, already moved to the newer schema; an older release meets it with `DatabaseVersionMismatchException` and the visitor cannot update their way out. The docs say so beside the input |
+| 9 | How the deploy authenticates (found during setup) | A fine-grained personal access token for `submersion-app/web` only, Contents read and write, as `beta.yml` publishes with `BETA_BUILDS_TOKEN` (owner's choice). The organization turns deploy keys off for every repository, so the deploy key first planned cannot be added. The token goes to git as an HTTP header through its environment config, never in a URL or a file; it expires and must be renewed |
 
 ## How it works
 
@@ -49,7 +50,7 @@ A new reusable workflow, `.github/workflows/deploy-web.yml`, with
 `workflow_call` (input: the stable tag) and `workflow_dispatch` (the tag,
 plus a `force` checkbox, for a redeploy or a rollback):
 
-1. **Configured?** When the `WEB_DEPLOY_KEY` secret is absent, the job
+1. **Configured?** When the `WEB_DEPLOY_TOKEN` secret is absent, the job
    writes a notice and succeeds without deploying, so releases cut before
    the setup is finished do not fail or open alert issues.
 2. **Fetch** `Submersion-<tag>-Web.zip` from that tag's GitHub release
@@ -65,7 +66,7 @@ plus a `force` checkbox, for a redeploy or a rollback):
    `_test.py` beside it run in CI's Script Tests job under the guards'
    coverage, as the other web scripts are.
 4. **Not older, unless forced**: fetch `main` of `submersion-app/web`
-   (depth 1, with the deploy key) and read its `version.json`, which
+   (depth 1, with the deploy token) and read its `version.json`, which
    Flutter writes into every bundle (`version` and `build_number`). When
    the staged bundle's version is older, refuse unless `force` is set
    (decision 8). An empty repository, or one with no `version.json`,
@@ -73,7 +74,7 @@ plus a `force` checkbox, for a redeploy or a rollback):
    A promote never sets `force`; its tag is always the newest.
 5. **Publish**: commit the staged folder as a single orphan commit
    ("Deploy Submersion <tag>") and force-push it to `main` of
-   `submersion-app/web` over SSH with the deploy key. One commit, replaced
+   `submersion-app/web` over HTTPS with the deploy token. One commit, replaced
    each release, so the Pages repository never accumulates a history of
    25 MB bundles.
 
@@ -116,9 +117,9 @@ Callers:
    published already; the new origin may prompt Google to re-check the
    branding.
 3. DNS: a `CNAME` record for `web` pointing at `submersion-app.github.io`.
-4. Deploy key: generate an SSH key pair, add the public half to
-   `submersion-app/web` as a deploy key with write access, and the private
-   half to this repository as the secret `WEB_DEPLOY_KEY`.
+4. Deploy token: a fine-grained personal access token for
+   `submersion-app/web` alone with Contents read and write, stored as the
+   secret `WEB_DEPLOY_TOKEN` (decision 9).
 5. After the first deploy: in `submersion-app/web`, Settings, Pages,
    confirm the custom domain and tick **Enforce HTTPS** once the
    certificate is issued.
@@ -161,9 +162,7 @@ before DNS exists.
   commit, the `concurrency` group (one deploy at a time, not cancelled).
 - The wording of the docs.
 
-My calls (not discussed with the owner): the deploy key rather than a
-personal access token (scoped to one repository, no expiry tied to a
-person); the deploy skipping, not failing, while unconfigured; the
+My calls (not discussed with the owner): the deploy skipping, not failing, while unconfigured; the
 legacy `release.yml` path also deploying; the bundle check before
 publishing; reading the deployed version from the Pages repository's
 `version.json` rather than from the commit message or the live site.
