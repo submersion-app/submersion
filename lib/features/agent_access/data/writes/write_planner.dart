@@ -47,6 +47,7 @@ class WritePlanner {
       items: pass.items,
       unchanged: pass.unchanged,
       markers: pass.markers,
+      previewedOn: WeakReference(db),
     );
   }
 }

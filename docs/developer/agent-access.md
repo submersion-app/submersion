@@ -111,7 +111,11 @@ then checks again inside `SyncCoordinator.run`, because the dialog can stay
 open for five minutes. It then opens `ChangeLogScope.run` with source `agent`,
 and inside that one transaction around every operation. A refusal rolls back
 everything. The settler files other divers' records under `operation:diver`,
-so one apply can return several operation ids, each revertable alone.
+so one apply can return several operation ids, each revertable alone. A
+scope that cannot open a change log entry carries on for a diver's own save,
+but an apply checks for its entry before the first write and refuses without
+one, so every agent change can be reverted. A plan also keeps the database
+it was previewed on, so a restored logbook with the same rows refuses it.
 
 A plan with a blocked item gets no `plan_id`, so a diver is never asked to
 allow something that cannot run. The dialog raises and focuses the window, so Allow

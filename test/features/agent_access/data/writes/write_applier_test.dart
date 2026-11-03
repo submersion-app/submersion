@@ -330,6 +330,51 @@ void main() {
     expect(await notes('d1'), 'seeded');
   });
 
+  test('a plan previewed on a database that was replaced is refused', () async {
+    final plan = await preview([note('d1', 'agent')]);
+    // A restored logbook can hold the same rows at the same versions, so no
+    // marker tells the two apart.
+    final other = createTestDatabase();
+    addTearDown(other.close);
+    await seedTwoDivers(other);
+    await other
+        .into(other.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diverId: const Value(kDiverA),
+            diveDateTime: 1710408600000,
+            createdAt: t,
+            updatedAt: t,
+            notes: const Value('seeded'),
+          ),
+        );
+    DatabaseService.instance.setTestDatabase(other);
+    addTearDown(() => DatabaseService.instance.setTestDatabase(db));
+
+    await expectLater(
+      applier().apply(other, plan),
+      _refusedWith(AgentToolErrorCode.databaseUnavailable),
+    );
+    final row = await (other.select(
+      other.dives,
+    )..where((d) => d.id.equals('d1'))).getSingle();
+    expect(row.notes, 'seeded');
+  });
+
+  test('a change log that cannot open an entry refuses the plan', () async {
+    final plan = await preview([note('d1', 'agent')]);
+    // Without its context row the change log cannot file the writes, and an
+    // agent's change the diver cannot revert must not happen.
+    await db.customStatement('DELETE FROM change_log_context');
+
+    await expectLater(
+      applier().apply(db, plan),
+      _refusedWith(AgentToolErrorCode.writeRefused),
+    );
+    expect(await notes('d1'), 'seeded');
+  });
+
   test('denied returns not_confirmed and changes nothing', () async {
     final plan = await preview([note('d1', 'agent')]);
 

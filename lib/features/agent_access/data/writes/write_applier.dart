@@ -172,6 +172,7 @@ class WriteApplier {
         // what the diver allowed is checked once more, where a diver's own
         // save cannot come between the check and the write.
         await _ensureCurrent(db, plan);
+        await _ensureLogged(db);
         for (final item in plan.items) {
           await _writeItem(item, created);
         }
@@ -233,10 +234,35 @@ class WriteApplier {
     'id': item.id,
   };
 
+  /// Refuses to write when the change log has no entry to file the writes
+  /// under. The scope carries on when it cannot open one, as a diver's own
+  /// save should, but an agent's change the diver cannot revert must not
+  /// happen. Checked before the first write, so nothing commits.
+  Future<void> _ensureLogged(AppDatabase db) async {
+    final id = ChangeLogScope.currentOperationId ?? '';
+    final row = await db
+        .customSelect(
+          'SELECT (SELECT COUNT(*) FROM change_log_operations WHERE id = ?1) '
+          'AS operation, (SELECT COUNT(*) FROM change_log_context '
+          'WHERE id = 1 AND operation_id = ?1) AS filing',
+          variables: [Variable.withString(id)],
+        )
+        .getSingle();
+    if (row.read<int>('operation') > 0 && row.read<int>('filing') > 0) return;
+    throw const AgentToolException(
+      AgentToolErrorCode.writeRefused,
+      'The change log could not record this change, so it could not be '
+      'reverted. Nothing was changed.',
+    );
+  }
+
   /// Refuses a plan that no longer describes the logbook.
   Future<void> _ensureCurrent(AppDatabase db, WritePlan plan) async {
-    // A restore, storage move or demo switch replaces the database.
-    if (!identical(DatabaseService.instance.databaseOrNull, db)) {
+    // A restore, storage move or demo switch replaces the database, between
+    // the preview and this apply or during the wait.
+    final previewed = plan.previewedOn;
+    if (!identical(DatabaseService.instance.databaseOrNull, db) ||
+        (previewed != null && !identical(previewed.target, db))) {
       throw const AgentToolException(
         AgentToolErrorCode.databaseUnavailable,
         'The logbook was replaced after this plan was made. Preview again.',

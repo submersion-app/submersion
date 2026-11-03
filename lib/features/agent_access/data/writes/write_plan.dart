@@ -1,3 +1,4 @@
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 
 /// How long a diver and agent have between a preview and its apply.
@@ -166,6 +167,7 @@ class WritePlan {
     required this.unchanged,
     required this.markers,
     this.clientName,
+    this.previewedOn,
   });
 
   final String id;
@@ -175,6 +177,11 @@ class WritePlan {
   final List<PlanItem> items;
   final List<UnchangedRecord> unchanged;
   final List<RecordMarker> markers;
+
+  /// The database the preview read. A restored logbook can hold the same rows
+  /// at the same versions, so only this tells a plan it no longer applies.
+  /// Weak, so a plan waiting out its lifetime keeps no closed database alive.
+  final WeakReference<AppDatabase>? previewedOn;
 
   /// Whether it can be applied: something changes and nothing is blocked. A
   /// diver is never asked to confirm what cannot run.
