@@ -2,11 +2,13 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/platform/compute/compute_worker_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
@@ -28,11 +30,23 @@ void main() {
   final config = minioConfigFromEnvironment();
 
   final previousAssetBase = BackgroundDatabaseConnection.assetBase;
+  final previousWorkerBase = ComputeWorkerClient.assetBase;
   setUpAll(() {
     BackgroundDatabaseConnection.assetBase = kWebTestAssetBase;
+    ComputeWorkerClient.assetBase = kWebTestAssetBase;
+    // A test page registers no plugins, and on a browser the version lookup
+    // a publish makes for its manifest then never answers.
+    PackageInfo.setMockInitialValues(
+      appName: 'Submersion',
+      packageName: 'app.submersion',
+      version: '0.0.0',
+      buildNumber: '0',
+      buildSignature: '',
+    );
   });
   tearDownAll(() {
     BackgroundDatabaseConnection.assetBase = previousAssetBase;
+    ComputeWorkerClient.assetBase = previousWorkerBase;
   });
 
   Future<AppDatabase> openWebDatabase(String path) async {
@@ -53,11 +67,16 @@ void main() {
       'receives it', () async {
     SharedPreferences.setMockInitialValues({});
     addTearDown(DatabaseService.instance.resetForTesting);
+    // Shown when the test fails, so a timeout names the stage that stalled.
+    final clock = Stopwatch()..start();
+    void stage(String name) => printOnFailure('[${clock.elapsed}] $name');
     final s3 = S3StorageProvider(store: FixedS3CredentialsStore(config!));
 
     // This browser.
     await openWebDatabase('/opfs/Submersion/s3-round-trip-a.db');
+    stage('database open');
     final pull = await syncWith(s3).performSync();
+    stage('first pull done');
     expect(
       pull.isSuccess,
       isTrue,
@@ -67,16 +86,16 @@ void main() {
     final pulled = await dives.getAllDives();
     expect(pulled.length, 5);
     expect(pulled.map((dive) => dive.id), containsAll(kSeededDiveIds));
-    expect(
-      pulled.firstWhere((dive) => dive.id == kSeededDiveIds.first).profile,
-      isNotEmpty,
-    );
+    // The list leaves profiles out; a dive read on its own carries one.
+    final edited = (await dives.getDiveById(kSeededDiveIds.first))!;
+    expect(edited.profile, isNotEmpty);
 
     final note =
         'Edited in a browser at ${DateTime.now().toUtc().toIso8601String()}';
-    final edited = pulled.firstWhere((dive) => dive.id == kSeededDiveIds.first);
     await dives.updateDive(edited.copyWith(notes: note));
+    stage('edit saved');
     final push = await syncWith(s3).performSync();
+    stage('publish done');
     expect(
       push.isSuccess,
       isTrue,
@@ -93,11 +112,18 @@ void main() {
           file.name,
     ];
     expect(ours, contains(ChangesetLogLayout.manifestName(deviceA)));
-    expect(ours, anyElement(contains('.cs.')), reason: 'a changeset object');
+    // A changeset, or a fresh base where compaction rewrote a small library.
+    expect(
+      ours.where((name) => name.contains('.cs.') || name.contains('.base.')),
+      isNotEmpty,
+      reason: 'the edit was published',
+    );
 
     // A second browser database under another name.
     await openWebDatabase('/opfs/Submersion/s3-round-trip-c.db');
+    stage('second database open');
     final second = await syncWith(s3).performSync();
+    stage('second pull done');
     expect(
       second.isSuccess,
       isTrue,
