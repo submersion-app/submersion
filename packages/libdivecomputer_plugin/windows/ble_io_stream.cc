@@ -254,6 +254,10 @@ bool BleIoStream::ConnectAndDiscoverOnce(uint64_t bluetooth_address) {
     connect_failure_ = BleConnectFailure::kNone;
     connect_failure_detail_.clear();
     connect_failure_hresult_ = 0;
+    // A fresh balance per attempt. Credit grant completions capture the
+    // balance they were issued against, so one still in flight from an
+    // earlier attempt lands on that object and never on this link's.
+    credits_ = std::make_shared<CreditBalance>();
     NativeLogger::Debug(kBleCategory, "Connecting to " + address);
     // Which WinRT call is running, for the catch below. Its line used to say
     // only "connect or service discovery", so the 0x8007003A in #4094 could

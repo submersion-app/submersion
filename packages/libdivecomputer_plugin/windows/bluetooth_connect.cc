@@ -102,7 +102,7 @@ DiveComputerHostApiImpl::ConnectBluetooth(const DiscoveredDevice& device) {
     BleConnectFailure failure = le_failure;
     std::string detail = le_detail;
     if (classic_tried) {
-        failure = ClassifyDualModeFailure(le_failure, classic_paired);
+        failure = ClassifyDualModeFailure(classic_paired);
         if (detail.empty()) {
             detail = classic_reason;
         } else if (classic_tried_first) {

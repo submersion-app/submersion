@@ -49,10 +49,11 @@ bool ClassicRouteFirst(bool dual_mode, bool classic_paired);
 
 // The advice when neither route connected a dual-mode computer. Without a
 // Classic pairing, pairing it is the step that opens the Classic route. With
-// one, the computer did not answer; ble_device_not_found would say to remove
-// the pairing the Classic route needs.
-BleConnectFailure ClassifyDualModeFailure(BleConnectFailure le_failure,
-                                          bool classic_paired);
+// one, the computer did not answer, whatever LE reported: telling the diver
+// to pair a computer Windows already lists as paired would send them in a
+// circle, and ble_device_not_found would say to remove the pairing the
+// Classic route needs.
+BleConnectFailure ClassifyDualModeFailure(bool classic_paired);
 
 // Colon-free upper-case hex, the one form a Windows address takes anywhere
 // in this plugin: ble_scanner.cc formats the same uint64 as "%012llX", that

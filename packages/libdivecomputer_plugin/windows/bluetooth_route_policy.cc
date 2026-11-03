@@ -46,13 +46,9 @@ bool ClassicRouteFirst(bool dual_mode, bool classic_paired) {
     return dual_mode && classic_paired;
 }
 
-BleConnectFailure ClassifyDualModeFailure(BleConnectFailure le_failure,
-                                          bool classic_paired) {
-    if (!classic_paired) return BleConnectFailure::kPairingRequired;
-    if (le_failure == BleConnectFailure::kPairingRequired) {
-        return BleConnectFailure::kPairingRequired;
-    }
-    return BleConnectFailure::kUnreachable;
+BleConnectFailure ClassifyDualModeFailure(bool classic_paired) {
+    return classic_paired ? BleConnectFailure::kUnreachable
+                          : BleConnectFailure::kPairingRequired;
 }
 
 std::string FormatBluetoothAddress(uint64_t address) {

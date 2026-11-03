@@ -93,22 +93,13 @@ static void test_route_order(void) {
 static void test_dual_mode_failure_advice(void) {
     // Neither route connected and Windows has no Classic pairing: pairing it
     // is the one step that opens the Classic route, whatever LE said.
-    assert(ClassifyDualModeFailure(BleConnectFailure::kOther, false) ==
+    assert(ClassifyDualModeFailure(false) ==
            BleConnectFailure::kPairingRequired);
-    assert(ClassifyDualModeFailure(BleConnectFailure::kNoLeDevice, false) ==
-           BleConnectFailure::kPairingRequired);
-    assert(ClassifyDualModeFailure(BleConnectFailure::kUnreachable, false) ==
-           BleConnectFailure::kPairingRequired);
-    // Already paired: telling the diver to pair it would be no help, and
-    // "remove it from Bluetooth settings" (ble_device_not_found) would undo
-    // the pairing the Classic route needs. The computer did not answer.
-    assert(ClassifyDualModeFailure(BleConnectFailure::kOther, true) ==
-           BleConnectFailure::kUnreachable);
-    assert(ClassifyDualModeFailure(BleConnectFailure::kNoLeDevice, true) ==
-           BleConnectFailure::kUnreachable);
-    // LE itself asked for pairing: that stays the advice.
-    assert(ClassifyDualModeFailure(BleConnectFailure::kPairingRequired, true) ==
-           BleConnectFailure::kPairingRequired);
+    // Already paired: telling the diver to pair it would send them in a
+    // circle, even when LE asked for pairing, and "remove it from Bluetooth
+    // settings" (ble_device_not_found) would undo the pairing the Classic
+    // route needs. The computer did not answer.
+    assert(ClassifyDualModeFailure(true) == BleConnectFailure::kUnreachable);
     printf("PASS: test_dual_mode_failure_advice\n");
 }
 
