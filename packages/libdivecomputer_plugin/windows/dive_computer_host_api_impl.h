@@ -82,9 +82,9 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   // that is a child window, and top-level window-proc delegates never see
   // messages posted to it, so every queued task was stranded.
   HWND dispatch_window_ = nullptr;
-  // Set first thing in the destructor. A scanner callback still in flight
-  // then drops its task instead of reaching a window being destroyed, or
-  // running Flutter calls on the scanner thread.
+  // Set first thing in the destructor, under task_mutex_. A scanner callback
+  // still in flight then drops its task instead of reaching a window being
+  // destroyed, or running Flutter calls on the scanner thread.
   std::atomic<bool> shutting_down_{false};
   std::mutex task_mutex_;
   std::queue<std::function<void()>> pending_tasks_;

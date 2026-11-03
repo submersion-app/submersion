@@ -63,7 +63,13 @@ DiveComputerHostApiImpl::DiveComputerHostApiImpl(
 }
 
 DiveComputerHostApiImpl::~DiveComputerHostApiImpl() {
-    shutting_down_ = true;
+    {
+        // Under the lock PostToPlatformThread checks it under: once this is
+        // set, no callback can be between its check and its post, so the
+        // window below cannot go while one is still about to use it.
+        std::lock_guard<std::mutex> lock(task_mutex_);
+        shutting_down_ = true;
+    }
     // Their callbacks capture `this` and post through the dispatch window,
     // so both stop before it goes: the serial scanner joins its thread, the
     // BLE scanner revokes its watcher handlers.
@@ -98,18 +104,21 @@ LRESULT CALLBACK DiveComputerHostApiImpl::DispatchWindowProc(HWND hwnd,
 
 void DiveComputerHostApiImpl::PostToPlatformThread(
     std::function<void()> task) {
-    if (shutting_down_) return;
-    if (!dispatch_window_) {
-        // Only when the window could not be created (logged above); running
-        // inline beats dropping the call.
-        task();
-        return;
-    }
     {
+        // The check, the push and the post all under the lock the destructor
+        // sets shutting_down_ under, so the window outlives every post.
         std::lock_guard<std::mutex> lock(task_mutex_);
-        pending_tasks_.push(std::move(task));
+        if (shutting_down_) return;
+        if (dispatch_window_) {
+            pending_tasks_.push(std::move(task));
+            PostMessageW(dispatch_window_, kRunPendingTasksMessage, 0, 0);
+            return;
+        }
     }
-    PostMessageW(dispatch_window_, kRunPendingTasksMessage, 0, 0);
+    // Only when the window could not be created (logged above); running
+    // inline beats dropping the call. Outside the lock: the task can log,
+    // and logging posts through here again.
+    task();
 }
 
 void DiveComputerHostApiImpl::RunPendingTasks() {
