@@ -20,7 +20,8 @@ const int kPresenceBitmap = 2;
 const int minVarInt = -0x4000000000000000;
 
 /// The most positive value [ByteWriter.writeVarInt] can zigzag-map. In
-/// JavaScript this rounds to 2^62, past every int a double holds exactly.
+/// JavaScript this rounds to 2^62, and the ends of the range zigzag past 63
+/// bits there, which [ByteWriter.writeVarUint] refuses.
 const int maxVarInt = -minVarInt - 1;
 
 // The varints below use arithmetic where a bit trick would be shorter.
@@ -37,6 +38,7 @@ class ByteWriter {
   // float written to the same eight bytes.
   final BytesBuilder _builder = BytesBuilder();
   final ByteData _scratch = ByteData(8);
+  final Uint8List _varint = Uint8List(9);
 
   /// Throws [ArgumentError] outside 0 .. 255. Like [writeVarUint], this is
   /// not an assert: `addByte` keeps the low eight bits, so a release build
@@ -55,16 +57,32 @@ class ByteWriter {
   /// Throws [ArgumentError] on a negative value. The check is not an assert
   /// because a release build would otherwise emit one truncated byte for it
   /// and produce a blob no reader can make sense of.
+  ///
+  /// Also throws on a value past 63 bits, which the reader refuses. Only
+  /// JavaScript can hold one, as a double: there the ends of the zigzag
+  /// range round up to 2^63. The bytes go to a scratch buffer first, so a
+  /// refused value leaves nothing behind.
   void writeVarUint(int value) {
     if (value < 0) {
       throw ArgumentError.value(value, 'value', 'varuint cannot encode');
     }
+    if (value < 0x80) {
+      _builder.addByte(value);
+      return;
+    }
+    var length = 0;
     var remaining = value;
     while (remaining >= 0x80) {
-      _builder.addByte(remaining % 0x80 + 0x80);
+      // Nine bytes carry 63 bits; a continuation from the ninth would need
+      // a tenth.
+      if (length == _varint.length - 1) {
+        throw ArgumentError.value(value, 'value', 'varuint past 63 bits');
+      }
+      _varint[length++] = remaining % 0x80 + 0x80;
       remaining ~/= 0x80;
     }
-    _builder.addByte(remaining);
+    _varint[length++] = remaining;
+    _builder.add(Uint8List.sublistView(_varint, 0, length));
   }
 
   /// Zigzag-mapped signed varint, so small negatives stay small: 0, -1, 1,
