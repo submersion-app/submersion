@@ -16,8 +16,10 @@ void main() {
     test('offers nothing the hardware, files or OS provide', () {
       expect(caps.isBrowser, isTrue);
       expect(caps.cloudGoogleDrive, isTrue);
-      // The picker reads a backup into memory (issue #4121).
+      // The picker reads a backup into memory, and the sample logbook ships
+      // inside the site (issue #4121).
       expect(caps.backupRestore, isTrue);
+      expect(caps.demoMode, isTrue);
       for (final (name, value) in [
         ('diveComputerDownload', caps.diveComputerDownload),
         ('nfc', caps.nfc),
@@ -30,7 +32,6 @@ void main() {
         ('backgroundTasks', caps.backgroundTasks),
         ('offlineMapTiles', caps.offlineMapTiles),
         ('sqliteImport', caps.sqliteImport),
-        ('demoMode', caps.demoMode),
         ('agentAccess', caps.agentAccess),
         ('autoUpdate', caps.autoUpdate),
         ('ocrImport', caps.ocrImport),

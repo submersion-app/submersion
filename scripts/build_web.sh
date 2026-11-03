@@ -7,8 +7,13 @@
 # the files must not have last release's bundle served from the browser's
 # cache) and with the engine loaded from the bundle, not from Google's CDN
 # (a self-hosted site must work where gstatic.com does not), drops the worker sources and the compiler sidecars that `flutter
-# build web` copies out of web/, adds the hosting files, and checks the
-# bundle.
+# build web` copies out of web/, adds the sample logbook and the hosting
+# files, and checks the bundle.
+#
+# The sample logbook ships inside the site, in demo/: a page cannot read the
+# GitHub release the app downloads it from (issue #4121). Set
+# SUBMERSION_WEB_SAMPLE_LOGBOOK=0 to build without it, which hides sample
+# mode in that site.
 #
 # Usage:
 #   scripts/build_web.sh [flutter build web options...]
@@ -32,5 +37,10 @@ rm -f build/web/*.js.deps build/web/*.js.map
 
 cp web_hosting/_headers web_hosting/nginx.conf web_hosting/Caddyfile \
    web_hosting/Dockerfile web_hosting/HOSTING.md build/web/
+
+if [ "${SUBMERSION_WEB_SAMPLE_LOGBOOK:-1}" != "0" ]; then
+  rm -rf build/web/demo
+  python3 scripts/demo_data/fetch_demo_db.py build/web/demo --web-index
+fi
 
 python3 scripts/check_web_bundle.py build/web

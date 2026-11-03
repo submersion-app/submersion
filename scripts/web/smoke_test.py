@@ -3,19 +3,25 @@
 
 For each of Chromium, Firefox and WebKit: open the bundle with semantics on
 (`?a11y=1`), connect to the S3 store the environment names, let the first
-sync pull the seeded library, reach the dive list with its five dives, edit
-one dive's notes, sync, and check in the bucket that this browser published
-a changeset of its own. A browser that never renders fails on the wait for
-the semantics tree rather than passing on nothing.
+sync pull the seeded library, reach the dive list with its seeded dives,
+edit one dive, sync, and check in the bucket that this browser published
+its own changes. Then, from a fresh first run each time, open the sample logbook
+the bundle ships, and restore that same database as a backup file, which is
+older than the app's schema and so runs the upgrade ladder in the browser.
+A browser that never renders fails on the wait for the semantics tree
+rather than passing on nothing.
 
-Environment: SMOKE_BASE_URL (default http://127.0.0.1:8080), MINIO_ENDPOINT,
-MINIO_BUCKET, MINIO_ACCESS_KEY, MINIO_SECRET_KEY. Run with
+Environment: SMOKE_BASE_URL (default http://127.0.0.1:8080), SMOKE_BUNDLE_DIR
+(default build/web), MINIO_ENDPOINT, MINIO_BUCKET, MINIO_ACCESS_KEY,
+MINIO_SECRET_KEY. Run with
 `python -m pytest scripts/web/smoke_test.py -v`, after
 `python -m playwright install --with-deps chromium firefox webkit`.
 """
 
+import gzip
 import os
 import re
+import sqlite3
 import time
 
 import boto3
@@ -44,6 +50,10 @@ STEP_TIMEOUT_MS = 30_000
 # The seed files three of its five dives under the diver the app opens on.
 SEEDED_DIVES = 3
 SEED_SITE = "Seed Reef"
+
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BUNDLE_DIR = os.environ.get("SMOKE_BUNDLE_DIR", os.path.join(_REPO, "build", "web"))
+SAMPLE_TIMEOUT_MS = 120_000
 
 # The wizard's later steps (backups, photos, finish) each move on with one of
 # these; Not now and Skip are left out on purpose, since they skip steps
@@ -251,12 +261,31 @@ def sync_now(page):
     button(page, exact("Sync Now")).click(timeout=STEP_TIMEOUT_MS)
 
 
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    """Records the call's result on the test, for the page fixture."""
-    outcome = yield
-    if call.when == "call":
-        item.call_failed = outcome.get_result().failed
+def sample_database(folder):
+    """The bundle's sample logbook as a plain database file in [folder], and
+    the site of its newest dive, which the dive list must show."""
+    with gzip.open(os.path.join(BUNDLE_DIR, "demo", "submersion_demo.db.gz")) as src:
+        data = src.read()
+    path = os.path.join(folder, "submersion-sample-backup.db")
+    with open(path, "wb") as out:
+        out.write(data)
+    db = sqlite3.connect(path)
+    try:
+        (site,) = db.execute(
+            "SELECT s.name FROM dives d JOIN dive_sites s ON s.id = d.site_id "
+            "ORDER BY d.dive_date_time DESC LIMIT 1"
+        ).fetchone()
+    finally:
+        db.close()
+    return path, site
+
+
+def wait_for_dives_at(page, site):
+    """The dive list shows a dive at [site]: the library opened."""
+    page.goto(BASE_URL + "/?a11y=1#/dives", wait_until="load")
+    by_text(page, site).or_(
+        page.get_by_role("button", name=re.compile(re.escape(site)))
+    ).first.wait_for(timeout=SAMPLE_TIMEOUT_MS)
 
 
 def report_failure(page, request, heard):
@@ -331,3 +360,31 @@ def test_round_trip(page, clean_store):
         (".cs.", ".base."), besides=first_publish
     )
     assert published, "the browser published nothing"
+
+
+def test_sample_logbook(page, tmp_path):
+    """The connect step offers the sample logbook the bundle ships; it opens
+    with the demo strip showing and its dives in the list."""
+    _, site = sample_database(str(tmp_path))
+    wait_for_flutter(page)
+    button(page, exact("Explore with sample data")).click()
+    button(page, exact("Download")).click()
+    # The dashboard's recent dives, newest first: the sample logbook is the
+    # open one. (The demo strip is not in a browser's semantics tree.)
+    page.get_by_role(
+        "button", name=re.compile(r"^Dive \d+ at %s\b" % re.escape(site))
+    ).first.wait_for(timeout=SAMPLE_TIMEOUT_MS)
+    wait_for_dives_at(page, site)
+
+
+def test_restore_backup(page, tmp_path):
+    """The connect step restores a backup file the picker reads; the bundle's
+    sample database stands in for one, a few schema versions old."""
+    path, site = sample_database(str(tmp_path))
+    wait_for_flutter(page)
+    with page.expect_file_chooser() as chooser:
+        button(page, exact("Restore a backup file")).click()
+    chooser.value.set_files(path)
+    button(page, exact("Restore")).click()
+    button(page, exact("Continue")).click(timeout=SAMPLE_TIMEOUT_MS)
+    wait_for_dives_at(page, site)

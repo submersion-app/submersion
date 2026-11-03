@@ -745,11 +745,11 @@ void main() {
       );
     });
 
-    testWidgets('the sample logbook is not offered even when available', (
+    testWidgets('the sample logbook is offered when the site ships one', (
       tester,
     ) async {
       await pumpData(tester, browser: true, demoPackage: package);
-      expect(find.text('Explore with sample data'), findsNothing);
+      expect(find.text('Explore with sample data'), findsOneWidget);
     });
   });
 }

@@ -21,7 +21,10 @@ first sync the app opens on your dive list, as on any device.
 
 If you would rather start without a store, **Continue without a sync
 store** on that first screen runs the normal setup wizard and keeps a
-logbook in that browser alone.
+logbook in that browser alone. The same screen offers **Restore a backup
+file** (below) and, when the site ships it, **Explore with sample data**:
+the sample logbook, as in the installed app, with your own data set aside
+until you exit from Settings, Data.
 
 ## What works, and what does not
 
@@ -43,12 +46,10 @@ offered, and the app says so where they would be:
   log scan**, the device **photo library**, and the **biometric lock**.
 - **Background sync and reminders**. Sync runs while the tab is open.
 - **Offline map tiles**. Maps load their tiles from the network.
-- **Restoring a backup file**. The browser's data comes from your store;
-  you can still download a backup (below).
 - **Importing another app's database** (MacDive, Subsurface, Diving Log).
   Text and XML formats (UDDF, CSV, FIT, SSRF, DL7) import normally.
-- **The sample logbook**, the **in-app updater** (the site shows its
-  version; whoever hosts it updates the files) and **agent access**.
+- The **in-app updater** (the site shows its version; whoever hosts it
+  updates the files) and **agent access**.
 
 ## Connecting your store
 
@@ -254,6 +255,16 @@ are.
 ## Downloads and backups
 
 Every export (UDDF, CSV, PDF and the rest) is a download in the browser.
-The Backups page offers one thing: **Download a backup**, a copy of your
-dive log as a database file, named `submersion-backup-<date>-<time>.db`.
-Restoring from a file is done in the installed app, not in the browser.
+The Backups page offers **Download a backup**, a copy of your dive log as
+a database file named `submersion-backup-<date>-<time>.db`, and **Restore
+from a file**, which takes a backup from any Submersion device, encrypted
+or not. An encrypted backup opens with the browser's sync key when it is
+the same library, or asks for its passphrase or recovery code.
+
+Restoring replaces the dive log in this browser. When that dive log holds
+dives, a copy of it downloads first, named
+`submersion-backup-before-restore-<date>-<time>.db`, so a restore can be
+undone. As in the installed app, with a store connected you choose whether
+the restored dives merge with the store on the next sync or replace the
+library everywhere. Other open tabs of the site reload onto the restored
+dive log.

@@ -62,7 +62,11 @@ void main() {
       p.join(dir.path, 'logs', 'submersion.log'),
     );
     expect(Directory(p.join(dir.path, 'logs')).existsSync(), isTrue);
-    expect(wrapper.demoPaths, isNull, reason: 'demo mode is native only');
+    expect(
+      wrapper.demoPaths?.root,
+      p.join(dir.path, 'demo_mode'),
+      reason: 'a browser resumes demo mode too (#4121)',
+    );
     expect(environmentLogged, 1);
     expect(swept, [
       kWebDatabasePath,

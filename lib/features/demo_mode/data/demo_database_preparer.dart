@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/features/demo_mode/data/demo_date_columns.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 
@@ -35,19 +35,25 @@ class DemoUnitSettings {
 /// The published file is built once, so its dates would grow stale and its
 /// photo paths point at the build machine. [prepare] moves every instant by
 /// the same whole number of weeks, relinks the photos into the downloaded
-/// photo folder, applies the user's units, and drops device-local
-/// notification rows the app rebuilds itself.
+/// photo folder (or, in a browser, to the site that serves them), applies
+/// the user's units, and drops device-local notification rows the app
+/// rebuilds itself.
 class DemoDatabasePreparer {
   static const _trackTables = ['gps_tracks', 'nav_tracks'];
 
   /// [onProgress] hears each step done, out of the total: one per date
   /// column and per track table, one for the date attributes, then the
   /// photos, units and notifications.
+  ///
+  /// With [photosUrl] the photos become links under it instead of files in
+  /// [photosDir]: a browser shows them from the site the sample logbook
+  /// shipped with (issue #4121).
   Future<void> prepare(
     GeneratedDatabase db, {
     required DateTime now,
     required String photosDir,
     required String? deviceId,
+    Uri? photosUrl,
     DemoUnitSettings? units,
     void Function(int done, int total)? onProgress,
   }) async {
@@ -60,7 +66,7 @@ class DemoDatabasePreparer {
 
     await db.transaction(() async {
       await _shiftDates(db, now, columns, step);
-      await _relinkPhotos(db, photosDir, deviceId);
+      await _relinkPhotos(db, photosDir, photosUrl, deviceId);
       step();
       if (units != null) await _applyUnits(db, units);
       step();
@@ -153,7 +159,9 @@ class DemoDatabasePreparer {
         .get();
     for (final row in rows) {
       final points =
-          jsonDecode(utf8.decode(gzip.decode(row.read<Uint8List>('points'))))
+          jsonDecode(
+                utf8.decode(PlatformZlib.gunzip(row.read<Uint8List>('points'))),
+              )
               as List;
       final shifted = [
         for (final point in points)
@@ -166,7 +174,7 @@ class DemoDatabasePreparer {
         'UPDATE "$table" SET points = ? WHERE id = ?',
         variables: [
           Variable.withBlob(
-            Uint8List.fromList(gzip.encode(utf8.encode(jsonEncode(shifted)))),
+            PlatformZlib.gzip(utf8.encode(jsonEncode(shifted))),
           ),
           Variable.withString(row.read<String>('id')),
         ],
@@ -177,6 +185,7 @@ class DemoDatabasePreparer {
   Future<void> _relinkPhotos(
     GeneratedDatabase db,
     String photosDir,
+    Uri? photosUrl,
     String? deviceId,
   ) async {
     final rows = await db
@@ -188,7 +197,23 @@ class DemoDatabasePreparer {
     for (final row in rows) {
       final old =
           row.read<String?>('local_path') ?? row.read<String>('file_path');
-      final path = p.join(photosDir, p.basename(old.replaceAll(r'\', '/')));
+      final name = p.basename(old.replaceAll(r'\', '/'));
+      if (photosUrl != null) {
+        // A link resolves the same on every device, so no device owns it.
+        final url = photosUrl.resolve(Uri.encodeComponent(name)).toString();
+        await db.customUpdate(
+          "UPDATE media SET source_type = 'networkUrl', url = ?, "
+          'file_path = ?, local_path = NULL, origin_device_id = NULL '
+          'WHERE id = ?',
+          variables: [
+            Variable.withString(url),
+            Variable.withString(url),
+            Variable.withString(row.read<String>('id')),
+          ],
+        );
+        continue;
+      }
+      final path = p.join(photosDir, name);
       await db.customUpdate(
         'UPDATE media SET file_path = ?, local_path = ?, origin_device_id = ? '
         'WHERE id = ?',

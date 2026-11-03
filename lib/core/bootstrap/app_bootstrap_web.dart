@@ -13,6 +13,7 @@ import 'package:submersion/core/services/global_error_handler.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/web_library_paths.dart';
+import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 
 /// Starts the app in a browser.
 ///
@@ -73,8 +74,8 @@ Future<void> bootstrapWeb({
       prefs: prefs,
       logFileService: logFileService,
       locationService: locationService,
-      // Demo mode reads sample files from disk; a browser has none.
-      demoPaths: null,
+      // Demo mode keeps its state in local storage here (issue #4121).
+      demoPaths: DemoPaths(appSupportDir),
     ),
   );
   // The smoke runner reads Flutter's semantics tree, which a page only

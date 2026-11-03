@@ -1,7 +1,10 @@
+import 'dart:js_interop';
+
 import 'package:drift/drift.dart';
 import 'package:drift/wasm.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
+import 'package:web/web.dart' as web;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
@@ -148,23 +151,61 @@ class BackgroundDatabaseConnection {
     }
   }
 
-  /// The names of every database drift stores for this site, in OPFS and
-  /// IndexedDB alike.
-  static Future<Set<String>> storedDatabaseNames() async {
+  /// The names of every database stored for this site.
+  ///
+  /// drift's probe lists every OPFS database but only the IndexedDB one it
+  /// is asked about, so IndexedDB is asked for its own list too, and the
+  /// databases at [alsoCheck] are probed by name for a browser that cannot
+  /// list them (Firefox before 126).
+  static Future<Set<String>> storedDatabaseNames({
+    Iterable<String> alsoCheck = const [],
+  }) async {
+    final names = <String>{};
+    for (final name in {
+      'submersion',
+      for (final path in alsoCheck) databaseNameFor(path),
+    }) {
+      final probe = await WasmDatabase.probe(
+        sqlite3Uri: sqlite3Uri,
+        driftWorkerUri: driftWorkerUri,
+        databaseName: name,
+      );
+      names.addAll([
+        for (final existing in probe.existingDatabases) existing.$2,
+      ]);
+    }
+    return names..addAll(await _indexedDbNames());
+  }
+
+  static Future<Set<String>> _indexedDbNames() async {
+    try {
+      final listed = await web.window.indexedDB.databases().toDart;
+      return {for (final info in listed.toDart) info.name};
+    } catch (_) {
+      // A browser without the listing: the probes above stand in.
+      return const {};
+    }
+  }
+
+  /// Whether a database is stored under [path]'s name, in either storage.
+  static Future<bool> storedDatabaseExists(String path) async {
+    final name = databaseNameFor(path);
     final probe = await WasmDatabase.probe(
       sqlite3Uri: sqlite3Uri,
       driftWorkerUri: driftWorkerUri,
-      // Any name: the listing covers every database the site stores.
-      databaseName: 'submersion',
+      databaseName: name,
     );
-    return {for (final existing in probe.existingDatabases) existing.$2};
+    return probe.existingDatabases.any((existing) => existing.$2 == name);
   }
 
-  /// Deletes every database the site stores, and throws when one is still
-  /// there afterwards: Forget this device takes the restored libraries and
-  /// the sample logbook with the rest (issue #4121).
-  static Future<void> deleteAllStoredDatabases() async {
-    for (final name in await storedDatabaseNames()) {
+  /// Deletes every database the site stores (see [storedDatabaseNames]),
+  /// and throws when one is still there afterwards: Forget this device
+  /// takes the restored libraries and the sample logbook with the rest
+  /// (issue #4121).
+  static Future<void> deleteAllStoredDatabases({
+    Iterable<String> alsoCheck = const [],
+  }) async {
+    for (final name in await storedDatabaseNames(alsoCheck: alsoCheck)) {
       await deleteStoredDatabases('/opfs/$name.db');
     }
   }

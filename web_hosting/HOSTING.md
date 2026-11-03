@@ -134,6 +134,10 @@ Google Cloud project, created once; the guide walks through it.
 - **The Google client id is public by design.** A web client id has no
   secret; restricting it to this site's address in Google Cloud is what
   protects it.
+- **The `demo/` folder is the sample logbook.** It is the made-up dive log
+  behind **Explore with sample data**, about 21 MB with its photos, and the
+  site reads it from its own address. Delete the folder to hide sample mode;
+  nothing else depends on it.
 
 ## Updating
 

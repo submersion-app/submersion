@@ -36,7 +36,6 @@ void main() {
     'lib/core/services/sync/changeset_log/sync_temp_dir.dart',
     'lib/features/backup/data/services/backup_service.dart',
     'lib/features/certifications/presentation/widgets/certification_share_sheet.dart',
-    'lib/features/demo_mode/data/demo_paths.dart',
     'lib/features/documents/presentation/helpers/document_page_opener.dart',
     'lib/features/maps/data/services/tile_cache_service.dart',
     'lib/features/media/data/services/cached_network_image_diagnostics.dart',

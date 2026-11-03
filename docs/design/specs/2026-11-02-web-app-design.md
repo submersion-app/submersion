@@ -44,9 +44,10 @@ later, safe for a single public copy to serve every user.
 | 12 | Browsers | Chromium, Firefox and Safari are equal targets. Heavy work runs in a compiled web worker so a large library's first sync streams to disk in all three and never freezes the tab |
 | 13 | Google Drive on the web | Accepted as the browser allows it: sign in to Google on each visit, hour-long tokens renewed in the background while signed in, a click when the browser blocks the renewal popup. "Remember on this device" keeps the client id, not the sign-in |
 | 14 | Restore and the sample logbook (asked for during the build) | Both work as on desktop. See "Restore and the sample logbook" |
-| 15 | Where the sample logbook comes from | Shipped inside the site: the build adds the published package and its photos, about 22 MB, because a page cannot read GitHub release files |
+| 15 | Where the sample logbook comes from | Shipped inside the site: the build adds the published package and its photos (21 MB in the folder, the database gzipped), because a page cannot read GitHub release files |
 | 16 | Safety before a restore | A copy of the browser's library downloads first, as the desktop app backs up first. Skipped when the browser holds no dives |
 | 17 | Encrypted backups | Restored, with the browser's sync key when it matches or the passphrase or recovery code otherwise |
+| 18 | First-run entry points in a browser | Links on the connect step, where a browser's first run opens, beside Continue without a sync store |
 
 ## Goals
 
@@ -471,21 +472,24 @@ on a later launch, once no tab holds it. Sync is re-baselined as on desktop:
 the device id and epoch are kept, and the merge or replace choice is the
 same dialog. The site's other tabs reload.
 
-The entry points are the desktop's: Settings > Backups, first run's
-"I have existing data", and Set up this device.
+The entry points are the desktop's (Settings > Backups and Set up this
+device), and on a browser's first run, which opens on the connect step
+rather than the welcome screen, links on that step: Restore a backup file
+and, when the site ships one, Explore with sample data (decision 18).
 
 **The sample logbook.** GitHub release files send no CORS header, so a page
 cannot download the package the desktop app does. `scripts/build_web.sh`
 fetches the newest package this build can open, verifies its SHA-256 and
-unpacks it into the bundle's `demo/` folder, with an index
-(`demo/demo.json`) naming the database, its size and hash, and the photos.
+unpacks it into the bundle's `demo/` folder, with the database gzipped
+(about 8 MB of a 21 MB folder) and an index (`demo/demo.json`) naming it,
+its inflated size and hash, and the photos.
 The site reads the index from its own origin. Without one (a host who
 deleted the folder, or a build run with `SUBMERSION_WEB_SAMPLE_LOGBOOK=0`)
 the entry points stay hidden, as they do on desktop when the manifest
 cannot be reached.
 
-Entering fetches the database from the site, checks its hash, installs it
-as `submersion_demo` and prepares it as desktop does (dates moved, units
+Entering fetches the database from the site, inflates it in the compute
+worker, checks its hash, installs it as `submersion_demo` and prepares it as desktop does (dates moved, units
 applied). Sample photos become links to `demo/photos/` on the site, which
 the browser shows like any other web photo. The demo state and the
 preferences snapshot live in local storage instead of files. Entering and

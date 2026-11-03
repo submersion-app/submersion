@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Unit tests for check_web_bundle.py."""
 
+import gzip
 import hashlib
 import importlib.util
+import json
 import os
 import tempfile
 import unittest
@@ -83,6 +85,63 @@ class BundleCheckTest(unittest.TestCase):
 
     def test_main_passes_a_complete_bundle(self):
         self.assertEqual(check.main([self.bundle, self.lock]), 0)
+
+
+class SampleLogbookTest(unittest.TestCase):
+    """The sample logbook ships in the bundle (issue #4121): when its index
+    is there, everything it names must be there too, byte for byte."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.bundle = self._tmp.name
+        packed = gzip.compress(b"sample", mtime=0)
+        _write(self.bundle, "demo/submersion_demo.db.gz", packed)
+        _write(self.bundle, "demo/photos/reef.jpg", b"jpg")
+        self.index = {
+            "formatVersion": 1,
+            "schemaVersion": 327,
+            "generatedAt": "2026-10-30T00:00:00Z",
+            "database": {
+                "path": "submersion_demo.db.gz",
+                "size": 6,
+                "sha256": hashlib.sha256(b"sample").hexdigest(),
+                "compressedSize": len(packed),
+            },
+            "photos": ["photos/reef.jpg"],
+        }
+
+    def _write_index(self):
+        _write(
+            self.bundle,
+            "demo/demo.json",
+            json.dumps(self.index).encode("utf-8"),
+        )
+
+    def test_a_complete_sample_logbook_passes(self):
+        self._write_index()
+        self.assertEqual(check.check_sample_logbook(self.bundle), [])
+
+    def test_a_bundle_without_one_passes(self):
+        self.assertEqual(check.check_sample_logbook(self.bundle), [])
+
+    def test_a_database_that_does_not_match_fails(self):
+        self.index["database"]["sha256"] = "0" * 64
+        self._write_index()
+        failures = check.check_sample_logbook(self.bundle)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("submersion_demo.db", failures[0])
+
+    def test_a_missing_photo_fails(self):
+        self.index["photos"].append("photos/wreck.jpg")
+        self._write_index()
+        failures = check.check_sample_logbook(self.bundle)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("wreck.jpg", failures[0])
+
+    def test_an_unreadable_index_fails(self):
+        _write(self.bundle, "demo/demo.json", b"{not json")
+        self.assertEqual(len(check.check_sample_logbook(self.bundle)), 1)
 
 
 if __name__ == "__main__":

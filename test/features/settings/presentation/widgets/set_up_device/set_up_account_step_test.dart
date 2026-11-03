@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -67,6 +69,7 @@ void main() {
     SetUpHost host = SetUpHost.settingsPage,
     bool browser = false,
     VoidCallback? onNoLibrary,
+    DemoPackage? demoPackage,
   }) async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
@@ -84,6 +87,7 @@ void main() {
             // Natively the switch has nothing to move; this stand-in keeps
             // what the step sets so the wiring shows.
             rememberCredentialsProvider.overrideWith(_RecordingRemember.new),
+            demoAvailabilityProvider.overrideWith((ref) async => demoPackage),
           ],
           accountGroupsProvider.overrideWith((ref) async => groups),
           offerableAccountKindsProvider.overrideWithValue(const [
@@ -108,6 +112,7 @@ void main() {
               ),
               consequenceOf: consequenceOf ?? (_) => null,
               onRestoreFile: () async => calls.add('restore'),
+              onTryDemo: (package) => calls.add('demo ${package.size}'),
             ),
           ),
         ),
@@ -275,6 +280,36 @@ void main() {
       expect(find.text('Not now'), findsNothing);
       await tester.tap(find.text('Continue without a sync store'));
       expect(calls, ['noLibrary']);
+    });
+
+    testWidgets('first run offers the sample logbook the site ships', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        browser: true,
+        host: SetUpHost.firstRun,
+        onNoLibrary: () => calls.add('noLibrary'),
+        demoPackage: DemoPackage(
+          schemaVersion: 327,
+          url: Uri.parse('https://dive.example/demo/submersion_demo.db.gz'),
+          sha256: 'a' * 64,
+          size: 8075714,
+          generatedAt: DateTime.utc(2026, 10, 30),
+        ),
+      );
+      await tester.tap(find.text('Explore with sample data'));
+      expect(calls, ['demo 8075714']);
+    });
+
+    testWidgets('a site without a sample logbook offers none', (tester) async {
+      await pump(
+        tester,
+        browser: true,
+        host: SetUpHost.firstRun,
+        onNoLibrary: () => calls.add('noLibrary'),
+      );
+      expect(find.text('Explore with sample data'), findsNothing);
     });
 
     testWidgets('first run offers to restore a backup file', (tester) async {

@@ -5,6 +5,9 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_actions.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_flow_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_chooser.dart';
@@ -12,6 +15,7 @@ import 'package:submersion/features/settings/presentation/widgets/set_up_device/
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_scaffold.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_using_row.dart';
+import 'package:submersion/features/setup_wizard/domain/unit_preset_detector.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Step 1, "Where should Submersion keep your data?" (issue #3482, spec
@@ -24,6 +28,7 @@ class SetUpAccountStep extends ConsumerWidget {
     required this.navigation,
     this.consequenceOf,
     this.onRestoreFile,
+    this.onTryDemo,
   });
 
   final SetUpStepNavigation navigation;
@@ -35,6 +40,10 @@ class SetUpAccountStep extends ConsumerWidget {
   /// Restores from a backup file instead. Defaults to Backups' Restore from
   /// a file.
   final Future<void> Function()? onRestoreFile;
+
+  /// Opens the sample logbook instead. Defaults to the question and the
+  /// download the welcome screen's link uses natively.
+  final void Function(DemoPackage package)? onTryDemo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -123,7 +132,44 @@ class SetUpAccountStep extends ConsumerWidget {
               ),
             ),
           ),
+        // A browser's first run opens here rather than on the welcome
+        // screen, so the sample logbook is offered here when the site ships
+        // one (issue #4121).
+        if (browser && host == SetUpHost.firstRun)
+          _TryDemoLink(onTryDemo: onTryDemo),
       ],
     );
   }
+}
+
+class _TryDemoLink extends ConsumerWidget {
+  const _TryDemoLink({this.onTryDemo});
+
+  final void Function(DemoPackage package)? onTryDemo;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final package = ref.watch(demoAvailabilityProvider).value;
+    if (package == null || !ref.watch(deviceCapabilitiesProvider).demoMode) {
+      return const SizedBox.shrink();
+    }
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: TextButton(
+        onPressed: () =>
+            (onTryDemo ?? (p) => _askAndEnter(context, p))(package),
+        child: Text(context.l10n.demo_welcome_title),
+      ),
+    );
+  }
+
+  static void _askAndEnter(BuildContext context, DemoPackage package) =>
+      askAndEnterDemo(
+        context,
+        fromFirstRun: true,
+        package: package,
+        units: demoUnitsForPreset(
+          presetForLocale(WidgetsBinding.instance.platformDispatcher.locale),
+        ),
+      );
 }

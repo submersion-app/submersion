@@ -205,3 +205,31 @@ Each ruling ends with what it costs if it turns out wrong.
 - The Google client id cannot be corrected once stored, short of Forget this device: a well-formed id from the wrong project keeps failing with Remember on. It needs a Change client id row, which is a design choice.
 - A failed Forget leaves the tab on a closed database until the retry or a reload; pressing Forget again works, since each step tolerates what the last run did.
 - The scanned logs migration calls path_provider in a browser and logs one MissingPluginException line at startup. It fails soft and moves nothing, so it is noise rather than a fault; gating it on the capability would quiet it.
+
+## Plan 5: restore and the sample logbook
+
+Asked for by the owner during the CI rounds. Their answers: the sample
+logbook ships inside the site, a copy of the library downloads before a
+restore, encrypted backups restore, and on a browser's first run both are
+offered on the connect step.
+
+### Rulings
+
+- **Task 1**: an image is installed under a name nothing has open, through drift's `initializeDatabase`, with the header's write and read versions set to rollback first, since a browser file system has no shared memory for WAL and a desktop backup can carry the WAL flag. Cost if wrong: none; pinned by a VM test on the header and a browser install test with a WAL-flagged image
+- **Task 2**: a restore installs under `submersion_<millis>` and moves a preference to it only after the open succeeds, instead of deleting the live database first: in IndexedDB mode the shared worker keeps another tab's connection open and a delete waits on it, and a tab closed between delete and install would lose the library. The replaced library is deleted at once when nothing holds it and swept at a later launch otherwise. Cost if wrong: one leftover database until the next launch
+- **Task 2**: drift's probe lists every OPFS database but only the IndexedDB database it is asked about, so a listing built on the probe alone came back empty in IndexedDB mode and the first Forget-everything, sweep and demo tests passed on nothing. The listing now asks `indexedDB.databases()` too and probes the names the app knows for a browser without it. Cost if wrong: a restored library left behind in Firefox before 126 when another tab held it
+- **Task 2**: a tab now ignores its own reload announcement: two channel objects in one page hear each other, so the restoring tab reloaded itself in the middle of the restore it announced (found by the new test). Cost if wrong: none
+- **Task 2**: the backup checks run the native queries in an in-memory SQLite in the page (`readScratchImage`), the SBE1 frame rules move into `SbeFrames` for the file and in-memory decryptors to share, and every restore entry point shares the notifier's tail, which also brought `backup_providers.dart` back under 800 lines. Cost if wrong: none; the native restore tests pass unchanged
+- **Task 2**: the browser's safety copy is a download of the library taken after the checks and before the swap, skipped when it holds no dives; a download that fails stops the restore, as a failed pre-restore backup does natively. Cost if wrong: a restore refused in a browser that blocks the download
+- **Task 3**: the restore branch keys on the browser capability, not on a missing path, since an Android SAF pick has no path either. The picker gives no file date in a browser, so the dialog names the file instead of a date. Cost if wrong: none
+- **Task 4**: `fetch_demo_db.py` gains `--web-index` rather than a new script: it already picks the newest package this build can open, checks it and unpacks it. The database ships gzipped (25 MB to 8 MB) and the index carries the inflated size and hash. `build_web.sh` fails without it unless `SUBMERSION_WEB_SAMPLE_LOGBOOK=0`. Cost if wrong: a build needs the network to fetch the package
+- **Task 5**: the demo service keeps its downloader and extractor parameters and gains an optional installer, so its tests are unchanged; every file it touched moves behind `DemoStateStore`, whose browser half uses local storage and drift's databases. The sample photos become links to the site, which the network photo resolver shows. Cost if wrong: none
+- **Task 5**: the first-run links reuse the desktop's translated strings ("Restore a backup file", "Explore with sample data"), so nothing new is translated. Cost if wrong: none
+- **Task 6**: the smoke run restores the bundle's own sample database as the backup file, which is several schema versions old and so runs the upgrade ladder in each browser. Cost if wrong: none
+- **CI**: the Chrome round trip stalled in the publish because `PackageInfo.fromPlatform()` never answers in a test page, where no plugin is registered; the test mocks the version. Its profile assertion read the dive list, which leaves profiles out, and had never run. Cost if wrong: none
+- **CI**: the browser data tools test still expected four tools after main's table editor made it five. Cost if wrong: none
+
+### Deferred minors
+
+- A demo database left behind when another tab held it at exit stays until the next entry replaces it or Forget removes it.
+

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/demo_mode/domain/demo_state.dart';
@@ -76,5 +77,43 @@ void main() {
     await store.deleteAll();
 
     expect(Directory(paths.root).existsSync(), isFalse);
+  });
+
+  group('what the demo flow keeps here, natively in files', () {
+    test('hasAnything is a synchronous look for the demo directory', () async {
+      expect(store.hasAnything, isFalse);
+      await store.write(state);
+      expect(store.hasAnything, isTrue);
+    });
+
+    test('hasDatabase looks for the sample logbook file', () async {
+      expect(await store.hasDatabase(), isFalse);
+      Directory(paths.root).createSync(recursive: true);
+      File(paths.databaseFile).writeAsStringSync('db');
+      expect(await store.hasDatabase(), isTrue);
+    });
+
+    test('preferences are captured and put back', () async {
+      SharedPreferences.setMockInitialValues({'current_diver_id': 'real'});
+      final prefs = await SharedPreferences.getInstance();
+      expect(await store.restorePrefs(prefs), isFalse, reason: 'none yet');
+
+      await store.capturePrefs(prefs);
+      await prefs.setString('current_diver_id', 'demo');
+
+      expect(await store.restorePrefs(prefs), isTrue);
+      expect(prefs.getString('current_diver_id'), 'real');
+    });
+
+    test('photoPaths lists the sample photos in order', () async {
+      expect(await store.photoPaths(), isEmpty);
+      Directory(paths.photosDir).createSync(recursive: true);
+      File(p.join(paths.photosDir, 'b.jpg')).writeAsStringSync('b');
+      File(p.join(paths.photosDir, 'a.jpg')).writeAsStringSync('a');
+      expect(await store.photoPaths(), [
+        p.join(paths.photosDir, 'a.jpg'),
+        p.join(paths.photosDir, 'b.jpg'),
+      ]);
+    });
   });
 }

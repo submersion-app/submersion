@@ -10,13 +10,18 @@ worker was generated (a self-hoster who replaces the files would keep
 serving last release's bundle from the browser's cache; the build passes
 `--pwa-strategy=none` for that reason), or when the worker sources and the
 compiler sidecars `flutter build web` copies out of `web/` made it in.
+When the bundle carries the sample logbook (`demo/demo.json`), every file
+the index names must be there, the gzipped database inflating byte for
+byte to what the index says.
 
 Usage: check_web_bundle.py [BUNDLE_DIR] [LOCK]
 Prints OK or FAIL lines; exits 1 on any failure.
 """
 
 import fnmatch
+import gzip
 import hashlib
+import json
 import os
 import sys
 
@@ -69,6 +74,46 @@ def _file_sha256(path):
     return digest.hexdigest()
 
 
+SAMPLE_INDEX = os.path.join("demo", "demo.json")
+
+
+def check_sample_logbook(bundle_dir):
+    """Failures for the sample logbook the bundle ships, if it ships one."""
+    index_path = os.path.join(bundle_dir, SAMPLE_INDEX)
+    if not os.path.isfile(index_path):
+        return []
+    demo = os.path.dirname(index_path)
+    try:
+        with open(index_path, encoding="utf-8") as handle:
+            index = json.load(handle)
+        database = index["database"]
+        photos = index["photos"]
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return [f"{SAMPLE_INDEX} cannot be read: {exc}"]
+    failures = []
+    db_path = os.path.join(demo, database["path"])
+    if not os.path.isfile(db_path):
+        failures.append(f"demo/{database['path']} is missing")
+    else:
+        try:
+            with gzip.open(db_path, "rb") as handle:
+                inflated = handle.read()
+        except OSError:
+            inflated = None
+        if (
+            inflated is None
+            or len(inflated) != database["size"]
+            or hashlib.sha256(inflated).hexdigest() != database["sha256"]
+        ):
+            failures.append(
+                f"demo/{database['path']} is not the file the index names"
+            )
+    for photo in photos:
+        if not os.path.isfile(os.path.join(demo, photo)):
+            failures.append(f"demo/{photo} is missing")
+    return failures
+
+
 def check_bundle(bundle_dir, lock_path):
     """Returns the list of failures, empty when the bundle is complete."""
     failures = []
@@ -101,7 +146,7 @@ def main(argv=None):
     args = sys.argv[1:] if argv is None else list(argv)
     bundle_dir = args[0] if args else DEFAULT_BUNDLE
     lock_path = args[1] if len(args) > 1 else DEFAULT_LOCK
-    failures = check_bundle(bundle_dir, lock_path)
+    failures = check_bundle(bundle_dir, lock_path) + check_sample_logbook(bundle_dir)
     for failure in failures:
         print(f"FAIL: {failure}")
     if failures:

@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/isolate.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database_connection_setup.dart';
@@ -177,15 +178,30 @@ class BackgroundDatabaseConnection {
     throw UnsupportedError('native builds delete the database file');
   }
 
+  /// drift's name for a browser database at [path]; the same rule as the
+  /// browser file, so code built for both can name one.
+  static String databaseNameFor(String path) =>
+      p.basenameWithoutExtension(path);
+
   /// The databases a browser stores; a native build lists files instead,
   /// so this is never called.
-  static Future<Set<String>> storedDatabaseNames() async {
+  static Future<Set<String>> storedDatabaseNames({
+    Iterable<String> alsoCheck = const [],
+  }) async {
+    throw UnsupportedError('native builds keep database files');
+  }
+
+  /// Whether a browser database is stored under [path]'s name; a native
+  /// build looks for the file instead, so this is never called.
+  static Future<bool> storedDatabaseExists(String path) async {
     throw UnsupportedError('native builds keep database files');
   }
 
   /// The browser's wipe of every database it stores; a native build deletes
   /// its files through `DatabaseService`, so this is never called.
-  static Future<void> deleteAllStoredDatabases() async {
+  static Future<void> deleteAllStoredDatabases({
+    Iterable<String> alsoCheck = const [],
+  }) async {
     throw UnsupportedError('native builds delete the database files');
   }
 

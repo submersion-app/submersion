@@ -167,7 +167,8 @@ class DeviceCapabilities {
     // The picker reads a backup into memory (issue #4121).
     backupRestore: true,
     sqliteImport: false,
-    demoMode: false,
+    // The sample logbook ships inside the site (issue #4121).
+    demoMode: true,
     agentAccess: false,
     autoUpdate: false,
     ocrImport: false,

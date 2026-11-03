@@ -155,6 +155,31 @@ schema into a scratch database (a second `sqlite3.wasm` over an in-memory
 file system in the page), copies every row, then the indexes, triggers and
 views, and hands the bytes to `FileSaver` as a download.
 
+A restore works the other way round (`DatabaseServiceBrowserRestore`).
+`BackgroundDatabaseConnection.installImage` creates a database from bytes
+through drift's `initializeDatabase`, with the header set to a rollback
+journal, under a new name (`submersion_<millis>`, see
+`web_library_paths.dart`). The browser's preference
+(`web_library_database_path`) moves to it only once it opens, so the old
+library survives a tab closed halfway or a backup that fails to open. The
+replaced library is deleted at once, or at a later launch when another tab
+held it, and the other tabs are told to reload over the site's
+`BroadcastChannel`, which a tab never hears from itself.
+
+drift's probe lists every OPFS database but only the IndexedDB database it
+is asked about. `storedDatabaseNames` therefore asks
+`indexedDB.databases()` as well, and probes the names the app knows for a
+browser that cannot list. Forget this device deletes everything it finds.
+
+The sample logbook ships in the bundle's `demo/` folder
+(`fetch_demo_db.py --web-index`): a page cannot read the GitHub release the
+native app downloads from. `BundledDemoManifestClient` reads
+`demo/demo.json`, `BundledDemoPackageInstaller` fetches the gzipped
+database, inflates it in the compute worker, checks its hash and installs
+it as `submersion_demo`, and the sample photos become links to
+`demo/photos/`. Demo mode's state and preferences snapshot live in local
+storage (`demo_state_store_web.dart`).
+
 Sync's temp files live in OPFS through the compute worker. A browser that
 refuses OPFS (a private window, or WebKit under Playwright) falls back to
 `MemoryOpfsFiles` through `FallbackOpfsFiles`, so sync still runs and a large
