@@ -11,13 +11,27 @@ extension DatabaseServiceBrowserRestore on DatabaseService {
   /// launch sweeps it up.
   ///
   /// The caller has checked the backup: a sealed restore, a non-SQLite
-  /// file or a newer schema never reaches here.
-  Future<void> restoreImage(Uint8List image) async {
+  /// file or a newer schema never reaches here. It runs under the cross-tab
+  /// sync lock, as Forget this device does, so no other tab's sync merges
+  /// into or publishes from the library being replaced. [onMigrationProgress]
+  /// hears the upgrade ladder of an older backup.
+  Future<void> restoreImage(
+    Uint8List image, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
-    return SyncCoordinator.join(() => _restoreImage(image));
+    return SyncCoordinator.join(
+      () => withCrossTabLock(
+        kSyncCrossTabLock,
+        () => _restoreImage(image, onMigrationProgress),
+      ),
+    );
   }
 
-  Future<void> _restoreImage(Uint8List image) async {
+  Future<void> _restoreImage(
+    Uint8List image,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  ) async {
     final location = _locationService;
     if (location == null) {
       throw StateError('A browser restore needs the database location');
@@ -26,7 +40,10 @@ extension DatabaseServiceBrowserRestore on DatabaseService {
     final target = webRestoredLibraryPath(DateTime.now());
     await BackgroundDatabaseConnection.installImage(target, image);
     try {
-      await _reinitializeAtPath(target);
+      await _reinitializeAtPath(
+        target,
+        onMigrationProgress: onMigrationProgress,
+      );
     } catch (_) {
       // Best effort: the error to report is the one that stopped the open.
       try {

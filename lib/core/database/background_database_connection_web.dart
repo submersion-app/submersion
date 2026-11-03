@@ -212,7 +212,7 @@ class BackgroundDatabaseConnection {
     Iterable<String> alsoCheck = const [],
   }) async {
     for (final name in await storedDatabaseNames(alsoCheck: alsoCheck)) {
-      await deleteStoredDatabases('/opfs/$name.db');
+      await deleteStoredDatabases(p.url.join('/opfs', '$name.db'));
     }
   }
 

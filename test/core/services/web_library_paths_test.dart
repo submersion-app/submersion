@@ -71,6 +71,17 @@ void main() {
       expect(deleted, ['/opfs/Submersion/submersion_2.db']);
     });
 
+    test('a restore in another tab holds the sweep off', () async {
+      // The library it is installing is not yet the preference's, and would
+      // read as replaced.
+      await sweepSupersededWebLibraries(
+        kWebDatabasePath,
+        withLock: (name, body) async => false,
+        listNames: () async => {'submersion', 'submersion_9'},
+        delete: (_) async => fail('nothing is deleted under a held lock'),
+      );
+    });
+
     test('a listing that fails is not an error at launch', () async {
       await sweepSupersededWebLibraries(
         kWebDatabasePath,

@@ -132,9 +132,10 @@ void main() {
       syncRepository: repository,
       epochStore: epochStore,
       encryptionKeyStore: keyStore,
-      restoreImage: (bytes) async {
+      restoreImage: (bytes, {onMigrationProgress}) async {
         events.add('swap');
         swapped.add(bytes);
+        onMigrationProgress?.call(3, 7);
       },
     );
   });
@@ -182,15 +183,32 @@ void main() {
     expect(events, isEmpty);
   });
 
-  test('bytes that are not a database are refused', () async {
+  test('bytes that are not a database are refused, naming a protected '
+      'copy as the likely cause', () async {
     await expectLater(
       service.restoreFromImage(
         Uint8List.fromList(List.filled(4096, 3)),
         safetyCopy: safetyCopy,
       ),
-      throwsA(isA<BackupException>()),
+      throwsA(
+        isA<BackupException>().having(
+          (e) => e.message,
+          'message',
+          BackupService.unreadableCopyNoKeyMessage,
+        ),
+      ),
     );
     expect(events, isEmpty);
+  });
+
+  test('an older backup\'s upgrade steps reach the caller', () async {
+    final steps = <(int, int)>[];
+    await service.restoreFromImage(
+      await image(),
+      safetyCopy: safetyCopy,
+      onMigrationProgress: (step, total) => steps.add((step, total)),
+    );
+    expect(steps, [(3, 7)]);
   });
 
   group('an encrypted backup', () {

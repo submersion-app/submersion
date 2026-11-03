@@ -18,18 +18,22 @@ extension _BackupServiceImageRestore on BackupService {
   ///
   /// Throws [BackupEncryptedException] when no key here opens an encrypted
   /// backup and no [encryptionSecret] was given, so the caller can ask.
+  /// [onMigrationProgress] hears an older backup's upgrade ladder.
   Future<void> _restoreFromImage(
     Uint8List bytes, {
     RestoreMode mode = RestoreMode.merge,
     String? encryptionSecret,
     Future<void> Function()? safetyCopy,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
     _log.info('Starting restore from a backup in memory (mode: $mode)');
     final plain = await _plaintextImage(bytes, encryptionSecret);
     await _checkRestorableImage(plain);
     await safetyCopy?.call();
-    await _replaceAndRebaselineSync(() => _restoreImage(plain));
+    await _replaceAndRebaselineSync(
+      () => _restoreImage(plain, onMigrationProgress: onMigrationProgress),
+    );
     await _armPostRestoreSync(mode);
     _log.info('Restore from a backup in memory completed');
   }
@@ -58,8 +62,10 @@ extension _BackupServiceImageRestore on BackupService {
   }
 
   Future<void> _checkRestorableImage(Uint8List image) async {
+    // Neither SQLite nor an encrypted backup: most likely a copy of a
+    // password-protected database, as the file restore says.
     if (!isSqliteImage(image)) {
-      throw const BackupException('File is not a valid database');
+      throw const BackupException(BackupService.unreadableCopyNoKeyMessage);
     }
     final BackupImageInfo info;
     try {

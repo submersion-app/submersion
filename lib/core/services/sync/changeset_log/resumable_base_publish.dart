@@ -280,7 +280,11 @@ class ResumableBasePublishStore {
   /// Delete a record and the export it describes.
   Future<void> discard(ResumableBasePublish publish) async {
     if (!persistent) {
-      await SyncTempFiles.delete(publish.dataPath);
+      // Quiet, as the file path is: the publish this follows has landed,
+      // and the temp sweep reaps a leftover.
+      try {
+        await SyncTempFiles.delete(publish.dataPath);
+      } catch (_) {}
       return;
     }
     await _deleteQuietly(publish.sidecarPath);

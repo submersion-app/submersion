@@ -55,12 +55,14 @@ class _ImageRecordingService extends BackupService {
     RestoreMode mode = RestoreMode.merge,
     String? encryptionSecret,
     Future<void> Function()? safetyCopy,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
     lastBytes = bytes;
     lastMode = mode;
     lastSecret = encryptionSecret;
     if (error != null) throw error!;
     await safetyCopy?.call();
+    onMigrationProgress?.call(3, 7);
   }
 }
 
@@ -125,6 +127,24 @@ void main() {
         container.read(backupOperationProvider).status,
         BackupOperationStatus.restoreComplete,
       );
+    },
+  );
+
+  test(
+    'an older backup\'s upgrade steps show in the operation message',
+    () async {
+      final container = makeContainer();
+      final messages = <String?>[];
+      container.listen(
+        backupOperationProvider,
+        (_, next) => messages.add(next.message),
+      );
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .restoreFromImage(bytes);
+
+      expect(messages, contains('Upgrading database (step 3 of 7)...'));
     },
   );
 

@@ -1,6 +1,8 @@
 @TestOn('browser')
 library;
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +11,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_image.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/database/scratch_database.dart';
+import 'package:submersion/core/platform/cross_tab_lock.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/web_library_paths.dart';
@@ -108,5 +111,24 @@ void main() {
       isEmpty,
       reason: 'the image that failed to open is not left behind',
     );
+  });
+
+  test('a restore waits for a sync another tab holds the lock for', () async {
+    final db = await openLibrary();
+    final image = await readDatabaseImage(db);
+    final release = Completer<void>();
+    final held = withCrossTabLock(kSyncCrossTabLock, () => release.future);
+
+    var restored = false;
+    final restore = DatabaseService.instance
+        .restoreImage(image)
+        .then((_) => restored = true);
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    expect(restored, isFalse, reason: 'the other sync still runs');
+
+    release.complete();
+    await held;
+    await restore;
+    expect(restored, isTrue);
   });
 }

@@ -18,6 +18,7 @@ import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart'
     as sqlcipher_setup;
 import 'package:submersion/core/platform/browser_origin_storage.dart';
+import 'package:submersion/core/platform/cross_tab_lock.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
@@ -655,7 +656,10 @@ class DatabaseService {
   Future<void> reinitializeAtPath(String newPath) =>
       SyncCoordinator.join(() => _reinitializeAtPath(newPath));
 
-  Future<void> _reinitializeAtPath(String newPath) async {
+  Future<void> _reinitializeAtPath(
+    String newPath, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     // Strict close: this method reopens immediately, so it must not race a
     // background connection that timed out mid-close and is still holding
     // file locks. A stuck close throws here rather than being abandoned.
@@ -674,7 +678,10 @@ class DatabaseService {
     // This helps prevent SQLite file locking issues, especially with WAL mode
     await Future.delayed(const Duration(milliseconds: 100));
 
-    _database = await _openDatabase(newPath);
+    _database = await _openDatabase(
+      newPath,
+      onMigrationProgress: onMigrationProgress,
+    );
 
     // Verify the database is ready by running a simple query
     // This ensures the connection is fully established before returning

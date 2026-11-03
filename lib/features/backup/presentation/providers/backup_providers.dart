@@ -537,6 +537,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
         mode: mode,
         encryptionSecret: encryptionSecret,
         safetyCopy: _ref.read(browserSafetyCopyProvider),
+        onMigrationProgress: _onRestoreMigrationProgress,
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/background_database_connection.dart';
+import 'package:submersion/core/platform/cross_tab_lock.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// The names a browser's library takes (issue #4121). The first library is
@@ -16,7 +17,7 @@ final RegExp _libraryName = RegExp(r'^submersion(_\d+)?$');
 
 /// Where a restore made at [at] installs the backup.
 String webRestoredLibraryPath(DateTime at) =>
-    '$_directory/submersion_${at.millisecondsSinceEpoch}.db';
+    p.url.join(_directory, 'submersion_${at.millisecondsSinceEpoch}.db');
 
 /// The libraries in [stored] (drift's database names) that the one at
 /// [activePath] replaced. The local cache, the sample logbook and anything
@@ -34,14 +35,32 @@ const _log = LoggerService('WebLibrarySweep');
 /// Deletes the libraries the one at [activePath] replaced, at launch and
 /// best effort: a tab still holding one keeps it until a later launch, and
 /// nothing here ever stops the app opening.
+///
+/// Only when no tab holds the sync lock, which a restore runs under: the
+/// library a restore is installing is not yet the preference's and would
+/// read as replaced.
 Future<void> sweepSupersededWebLibraries(
   String activePath, {
+  Future<bool> Function(String name, Future<void> Function() body) withLock =
+      withCrossTabLockIfAvailable,
   Future<Set<String>> Function() listNames =
       BackgroundDatabaseConnection.storedDatabaseNames,
   Future<void> Function(String path) delete =
       BackgroundDatabaseConnection.deleteStoredDatabases,
   Duration timeout = const Duration(seconds: 5),
 }) async {
+  await withLock(
+    kSyncCrossTabLock,
+    () => _sweep(activePath, listNames, delete, timeout),
+  );
+}
+
+Future<void> _sweep(
+  String activePath,
+  Future<Set<String>> Function() listNames,
+  Future<void> Function(String path) delete,
+  Duration timeout,
+) async {
   final Set<String> stored;
   try {
     stored = await listNames();
@@ -58,7 +77,7 @@ Future<void> sweepSupersededWebLibraries(
     activePath: activePath,
   )) {
     try {
-      await delete('$_directory/$name.db').timeout(timeout);
+      await delete(p.url.join(_directory, '$name.db')).timeout(timeout);
     } catch (e, stackTrace) {
       _log.warning(
         'Could not delete the replaced library $name yet',

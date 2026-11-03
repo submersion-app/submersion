@@ -364,7 +364,7 @@ def test_round_trip(page, clean_store):
 
 def test_sample_logbook(page, tmp_path):
     """The connect step offers the sample logbook the bundle ships; it opens
-    with the demo strip showing and its dives in the list."""
+    on the dashboard with its newest dive, and its dives are in the list."""
     _, site = sample_database(str(tmp_path))
     wait_for_flutter(page)
     button(page, exact("Explore with sample data")).click()

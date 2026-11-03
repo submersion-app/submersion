@@ -164,7 +164,11 @@ class BackupService {
   final BackupSafPort _safPort;
 
   /// A browser's swap of its library for a backup's bytes (issue #4121).
-  final Future<void> Function(Uint8List image) _restoreImage;
+  final Future<void> Function(
+    Uint8List image, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  })
+  _restoreImage;
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -185,7 +189,11 @@ class BackupService {
     BackupEncryptionKeyStore? backupEncryptionKeyStore,
     BuiltInSpeciesSeedVersionStore? seedVersionStore,
     String? copyAccountId,
-    Future<void> Function(Uint8List image)? restoreImage,
+    Future<void> Function(
+      Uint8List image, {
+      void Function(int currentStep, int totalSteps)? onMigrationProgress,
+    })?
+    restoreImage,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
@@ -1028,11 +1036,13 @@ class BackupService {
     RestoreMode mode = RestoreMode.merge,
     String? encryptionSecret,
     Future<void> Function()? safetyCopy,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) => _restoreFromImage(
     bytes,
     mode: mode,
     encryptionSecret: encryptionSecret,
     safetyCopy: safetyCopy,
+    onMigrationProgress: onMigrationProgress,
   );
 
   /// Restore the database from a copy the restore journal set aside next to
