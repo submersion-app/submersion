@@ -20682,6 +20682,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_site_clear => 'ניקוי האתר';
 
   @override
+  String get plannerSeries_scope_series => 'סדרה';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'הצלילות הבאות משתמשות בהגדרות אלה אלא אם יש להן הגדרות משלהן';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'מהסדרה';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'צלילה זו בלבד';
+
+  @override
+  String get plannerSeries_scope_reset => 'איפוס לסדרה';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'החלה על כל הצלילות';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'מילוי $tank';
   }
@@ -25248,6 +25267,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_fixedStart => 'שעת התחלה נקבעה ידנית';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'הגדרות לצלילה זו בלבד';
 
   @override
   String get settings_conflict_field_startTime => 'שעת התחלה';

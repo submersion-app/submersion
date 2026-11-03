@@ -21148,6 +21148,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_site_clear => 'Limpar o local';
 
   @override
+  String get plannerSeries_scope_series => 'Série';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Os mergulhos seguintes usam estas definições, salvo se tiverem as suas';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'Da série';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Só este mergulho';
+
+  @override
+  String get plannerSeries_scope_reset => 'Repor a série';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Aplicar a todos os mergulhos';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Encher $tank';
   }
@@ -25893,6 +25912,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_fixedStart =>
       'Hora de início definida manualmente';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Definições apenas para este mergulho';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de início';

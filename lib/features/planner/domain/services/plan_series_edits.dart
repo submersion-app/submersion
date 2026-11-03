@@ -56,6 +56,8 @@ PlanSeries appendDive(
   final dive = PlanSeriesDive(
     state: state,
     sourceTankIds: {for (final e in tankIds.entries) e.value: e.key},
+    // It copies the previous dive's settings, its own ones included.
+    settingOverrides: series.dives.last.settingOverrides,
   );
   final dives = [...series.dives, dive];
   return series.copyWith(dives: dives, selectedIndex: dives.length - 1);
@@ -87,6 +89,8 @@ PlanSeries removeDive(PlanSeries series, int index) {
           // It is the whole plan now, and it has never been saved.
           isDirty: true,
         ),
+        // Its settings are the series' now.
+        settingOverrides: const {},
         // Following, its tanks now carry from the logged tanks the removed
         // dive's carried from.
         sourceTankIds: follow == null

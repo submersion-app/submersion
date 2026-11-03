@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 
@@ -84,6 +85,45 @@ void main() {
     expect(loaded.dives[0].fixedStart, isFalse);
     expect(loaded.dives[1].fixedStart, isTrue);
     expect(loaded.dives[1].plan.startDateTime, start);
+  });
+
+  test('a dive keeps the setting groups it overrides', () async {
+    final series = twoDives();
+    await repo.saveSeries(
+      series.copyWith(
+        dives: [
+          series.dives[0],
+          series.dives[1].copyWith(
+            settingOverrides: const {
+              PlanSettingGroup.deco,
+              PlanSettingGroup.gas,
+            },
+          ),
+        ],
+      ),
+    );
+
+    final loaded = (await repo.getSeries('s1'))!;
+
+    expect(loaded.dives[0].settingOverrides, isEmpty);
+    expect(loaded.dives[1].settingOverrides, {
+      PlanSettingGroup.deco,
+      PlanSettingGroup.gas,
+    });
+  });
+
+  test('a group a newer build stored is skipped, not a failed read', () async {
+    await repo.saveSeries(twoDives());
+    final database = DatabaseService.instance.database;
+    await (database.update(
+      database.divePlans,
+    )..where((p) => p.id.equals('b'))).write(
+      const db.DivePlansCompanion(settingOverrides: Value('rates,future')),
+    );
+
+    final loaded = (await repo.getSeries('s1'))!;
+
+    expect(loaded.dives[1].settingOverrides, {PlanSettingGroup.rates});
   });
 
   test('a plan knows its series; one saved alone has none', () async {

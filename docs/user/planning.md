@@ -119,6 +119,13 @@ dive:
 > A lower gradient factor is more conservative. See the [Glossary](glossary.md)
 > for gradient factors, RMV, ppO₂ and the other terms used here.
 
+On a series of dives, the first dive's settings are the series'. Changing
+**Decompression**, **Rates**, **Gas**, **Environment** or **Contingencies** on
+the first dive changes them on every later dive that hasn't set its own.
+Changing one on a later dive makes it that dive's own, and the section says
+**This dive only**, with **Reset to series** and **Apply to all dives**. CCR,
+pSCR and Gear & Weights are always each dive's own.
+
 ### Reading the results
 
 The results pane leads with **Runtime**, **NDL** (or **TTS** once the dive needs

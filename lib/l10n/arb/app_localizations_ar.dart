@@ -21450,6 +21450,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_site_clear => 'مسح الموقع';
 
   @override
+  String get plannerSeries_scope_series => 'السلسلة';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'تستخدم الغطسات التالية هذه الإعدادات ما لم تكن لها إعداداتها الخاصة';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'من السلسلة';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'هذه الغطسة فقط';
+
+  @override
+  String get plannerSeries_scope_reset => 'إعادة إلى السلسلة';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'تطبيق على كل الغطسات';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'ملء $tank';
   }
@@ -26134,6 +26153,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_fixedStart => 'وقت البدء محدد يدويًا';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'إعدادات لهذه الغطسة فقط';
 
   @override
   String get settings_conflict_field_startTime => 'وقت البدء';

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 
@@ -81,6 +82,24 @@ void main() {
     expect(read.dives[0].fixedStart, isFalse);
     expect(read.dives[1].plan.startDateTime, bStart);
     expect(read.dives[1].fixedStart, isTrue);
+  });
+
+  test('the groups a dive keeps its own travel in the file', () {
+    final source = series();
+    final json = seriesToSubplanJson(
+      source.copyWith(
+        dives: [
+          source.dives[0],
+          source.dives[1].copyWith(
+            settingOverrides: const {PlanSettingGroup.rates},
+          ),
+        ],
+      ),
+    );
+
+    final read = seriesFromSubplanJson(json)!;
+    expect(read.dives[0].settingOverrides, isEmpty);
+    expect(read.dives[1].settingOverrides, {PlanSettingGroup.rates});
   });
 
   test('a series file reads as its first dive to the single-plan reader', () {

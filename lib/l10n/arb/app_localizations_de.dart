@@ -21122,6 +21122,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_site_clear => 'Tauchplatz löschen';
 
   @override
+  String get plannerSeries_scope_series => 'Serie';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Spätere Tauchgänge übernehmen diese Einstellungen, sofern sie keine eigenen haben';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'Aus der Serie';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Nur dieser Tauchgang';
+
+  @override
+  String get plannerSeries_scope_reset => 'Auf Serie zurücksetzen';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Auf alle Tauchgänge anwenden';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank füllen';
   }
@@ -25852,6 +25871,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_fixedStart =>
       'Startzeit manuell festgelegt';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Einstellungen nur für diesen Tauchgang';
 
   @override
   String get settings_conflict_field_startTime => 'Startzeit';

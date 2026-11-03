@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/data/services/plan_file_mission_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 
 /// The `.subplan` file format: versioned JSON around the plan aggregate.
@@ -36,6 +37,9 @@ import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 /// 2 or 3. The followed dive is left out: it is in the sender's log, not the
 /// reader's. Older installs refuse the file rather than open one dive of a
 /// series as if it stood alone.
+///
+/// A series dive may also carry `settingOverrides`: the setting groups it
+/// keeps its own values for rather than the first dive's.
 ///
 /// Any version may carry a plan's optional `startDateTime`, its clock digits
 /// with no offset (`2026-11-03T09:30:00`), like the dive log's times, and a
@@ -187,6 +191,10 @@ Map<String, dynamic> _seriesDiveToMap(
     'diveName': dive.name,
     'surfaceIntervalSeconds': dive.plan.surfaceInterval?.inSeconds,
     if (dive.fixedStart) 'fixedStart': true,
+    if (dive.settingOverrides.isNotEmpty)
+      'settingOverrides': [
+        for (final group in dive.settingOverrides) group.name,
+      ],
     'carriesFrom': [
       for (final tank in tanks)
         before.indexWhere((t) => t.id == dive.sourceTankIds[tank.id]),
@@ -236,6 +244,10 @@ StoredSeries? seriesFromSubplanJson(String source, {DateTime? now}) {
           plan: plan,
           name: dive['diveName'] as String?,
           fixedStart: dive['fixedStart'] as bool? ?? false,
+          settingOverrides: {
+            for (final name in dive['settingOverrides'] as List? ?? const [])
+              ?PlanSettingGroup.values.asNameMap()[name],
+          },
           sourceTankIds: {
             for (var i = 0; i < tanks.length && i < carriesFrom.length; i++)
               if (carriesFrom[i] >= 0 && carriesFrom[i] < before.length)

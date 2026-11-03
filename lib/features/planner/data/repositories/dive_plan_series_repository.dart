@@ -8,6 +8,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 
 /// Persistence for saved repetitive series (issue #3565): a series row, and
 /// each dive as an ordinary saved plan placed in it, so everything that reads
@@ -123,6 +124,7 @@ class DivePlanSeriesRepository {
               diverId: owner == null ? const Value.absent() : Value(owner),
               diveName: Value(dive.name),
               fixedStart: Value(dive.fixedStart),
+              settingOverrides: Value(_encodeGroups(dive.settingOverrides)),
             ),
           );
           for (final tank in plan.tanks) {
@@ -214,6 +216,7 @@ class DivePlanSeriesRepository {
           plan: plan,
           name: planRow.diveName,
           fixedStart: planRow.fixedStart,
+          settingOverrides: _decodeGroups(planRow.settingOverrides),
           sourceTankIds: {
             for (final tank in tankRows) tank.id: ?tank.sourceTankId,
           },
@@ -354,6 +357,7 @@ class DivePlanSeriesRepository {
             seriesIndex: const Value(null),
             diveName: const Value(null),
             fixedStart: const Value(false),
+            settingOverrides: const Value(null),
             updatedAt: Value(now),
           ),
         );
@@ -429,5 +433,15 @@ class DivePlanSeriesRepository {
       _db.dives,
     )..where((d) => d.id.equals(id))).getSingleOrNull();
     return row?.id;
+  }
+
+  String? _encodeGroups(Set<PlanSettingGroup> groups) =>
+      groups.isEmpty ? null : groups.map((g) => g.name).join(',');
+
+  /// Names this build does not know, from a newer one, are left out.
+  Set<PlanSettingGroup> _decodeGroups(String? value) {
+    if (value == null || value.isEmpty) return const {};
+    final known = PlanSettingGroup.values.asNameMap();
+    return {for (final name in value.split(',')) ?known[name]};
   }
 }

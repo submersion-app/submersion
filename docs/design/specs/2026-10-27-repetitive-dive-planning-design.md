@@ -244,6 +244,24 @@ Phase 2; the plan is
   dive log's site picker. The planner doesn't use it; a dive logged from the
   plan takes it. A new dive copies the previous dive's site.
 
+## Shared settings
+
+- **The first dive's settings are the series'.** Each Setup section
+  (Decompression, Rates, Gas, Environment, Contingencies) is a group.
+  Changing a group on the first dive reaches every later dive that has not
+  set its own. Changing it on a later dive makes it that dive's own at once,
+  without asking. The section then reads "This dive only" and offers
+  **Reset to series** and **Apply to all dives**. On a single dive nothing
+  shows.
+- Not shared, because they change a dive's segments or depend on its
+  circuit: the circuit and its setpoints, the pSCR ratio, stop minimums,
+  gear and weights, the DPV mission and the site.
+- **Stored as effective values.** Each dive's setting columns stay complete,
+  so the engine and an older peer read them as before.
+  `dive_plans.setting_overrides` (schema v342) names the groups a dive keeps
+  its own; the series' value of a group is the first dive's, so nothing else
+  is stored. A `.subplan` series dive carries the same list.
+
 ## Series warnings
 
 Each dive of a series, and a first dive that follows a logged dive, is checked

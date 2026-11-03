@@ -21072,6 +21072,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_site_clear => 'Merülőhely törlése';
 
   @override
+  String get plannerSeries_scope_series => 'Sorozat';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'A későbbi merülések ezeket a beállításokat használják, hacsak nincs sajátjuk';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'A sorozatból';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Csak ez a merülés';
+
+  @override
+  String get plannerSeries_scope_reset => 'Vissza a sorozathoz';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Alkalmazás minden merülésre';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank töltése';
   }
@@ -25781,6 +25800,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_fixedStart => 'Kezdési idő kézzel megadva';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Csak erre a merülésre vonatkozó beállítások';
 
   @override
   String get settings_conflict_field_startTime => 'Kezdés ideje';

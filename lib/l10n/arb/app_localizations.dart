@@ -33669,6 +33669,42 @@ abstract class AppLocalizations {
   /// **'Clear the site'**
   String get plannerSeries_site_clear;
 
+  /// No description provided for @plannerSeries_scope_series.
+  ///
+  /// In en, this message translates to:
+  /// **'Series'**
+  String get plannerSeries_scope_series;
+
+  /// No description provided for @plannerSeries_scope_seriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives after this one take these settings unless they set their own'**
+  String get plannerSeries_scope_seriesHint;
+
+  /// No description provided for @plannerSeries_scope_fromSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'From the series'**
+  String get plannerSeries_scope_fromSeries;
+
+  /// No description provided for @plannerSeries_scope_thisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive only'**
+  String get plannerSeries_scope_thisDive;
+
+  /// No description provided for @plannerSeries_scope_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to series'**
+  String get plannerSeries_scope_reset;
+
+  /// No description provided for @plannerSeries_scope_applyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to all dives'**
+  String get plannerSeries_scope_applyAll;
+
   /// The tank's name or gas, such as EAN32
   ///
   /// In en, this message translates to:
@@ -41384,6 +41420,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start time set by hand'**
   String get settings_conflict_field_fixedStart;
+
+  /// No description provided for @settings_conflict_field_settingOverrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings for this dive only'**
+  String get settings_conflict_field_settingOverrides;
 
   /// No description provided for @settings_conflict_field_startTime.
   ///

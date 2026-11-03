@@ -20114,6 +20114,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_site_clear => '清除潜点';
 
   @override
+  String get plannerSeries_scope_series => '系列';
+
+  @override
+  String get plannerSeries_scope_seriesHint => '后续潜水使用这些设置，除非有自己的设置';
+
+  @override
+  String get plannerSeries_scope_fromSeries => '来自系列';
+
+  @override
+  String get plannerSeries_scope_thisDive => '仅此潜水';
+
+  @override
+  String get plannerSeries_scope_reset => '重置为系列';
+
+  @override
+  String get plannerSeries_scope_applyAll => '应用到所有潜水';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '加满 $tank';
   }
@@ -24442,6 +24460,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_fixedStart => '手动设置的开始时间';
+
+  @override
+  String get settings_conflict_field_settingOverrides => '仅适用于本次潜水的设置';
 
   @override
   String get settings_conflict_field_startTime => '开始时间';

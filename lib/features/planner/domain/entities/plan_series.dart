@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 
 /// The surface interval a dive gets when it is added to a series.
@@ -35,12 +36,17 @@ class PlanSeriesDive extends Equatable {
   /// whatever the diver gave it.
   final bool fixedStart;
 
+  /// The setting groups this dive keeps its own values for, rather than the
+  /// series' (the first dive's). Always empty on the first dive.
+  final Set<PlanSettingGroup> settingOverrides;
+
   const PlanSeriesDive({
     required this.state,
     this.sourceTankIds = const {},
     this.pinnedTankIds = const {},
     this.name,
     this.fixedStart = false,
+    this.settingOverrides = const {},
   });
 
   PlanSeriesDive copyWith({
@@ -50,6 +56,7 @@ class PlanSeriesDive extends Equatable {
     String? name,
     bool clearName = false,
     bool? fixedStart,
+    Set<PlanSettingGroup>? settingOverrides,
   }) {
     return PlanSeriesDive(
       state: state ?? this.state,
@@ -57,6 +64,7 @@ class PlanSeriesDive extends Equatable {
       pinnedTankIds: pinnedTankIds ?? this.pinnedTankIds,
       name: clearName ? null : (name ?? this.name),
       fixedStart: fixedStart ?? this.fixedStart,
+      settingOverrides: settingOverrides ?? this.settingOverrides,
     );
   }
 
@@ -67,6 +75,7 @@ class PlanSeriesDive extends Equatable {
     pinnedTankIds,
     name,
     fixedStart,
+    settingOverrides,
   ];
 }
 

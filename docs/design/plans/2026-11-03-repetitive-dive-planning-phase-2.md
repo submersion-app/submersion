@@ -11,27 +11,26 @@ decisions for the whole feature that this plan builds on.
 Phase 2 was first built in the closed draft PR #4080, together with phases 3
 and 5. The work is on the local tag `backup/3565-phase-2-3-5`. Phase 3 has
 been rebuilt on `main` without the phase 2 fields, so phase 2 now adds them
-to what main stores. It goes in two PRs, the second built on the first:
+to what main stores. It goes in one PR, on branch
+`feature-request-3565-repetitive-dive-planning-phase-2`, in two parts:
 
-- **2a**, branch `feature-request-3565-repetitive-dive-planning-phase-2a`:
-  start time and site, series warnings, moving between dives from the
-  keyboard.
-- **2b**, branch `feature-request-3565-repetitive-dive-planning-phase-2b`:
-  settings shared across a series, and tanks shared across it.
+- **Part A:** start time and site, series warnings, moving between dives
+  from the keyboard.
+- **Part B:** settings shared across a series, and tanks shared across it.
 
-| Backup commit | What | PR |
+| Backup commit | What | Part |
 |---|---|---|
-| `1fb123f197` | Start time and site per dive | 2a |
-| `dcb6622bd7` (part) | Follow default interval: an hour, or the time since | 2a |
-| `035a8777db`, `7915f689c3` (part) | Alt+Left and Alt+Right | 2a |
-| `89e50d32f3`, `e907849eef`, `a058b585b0` | Series warnings, without the summary card | 2a |
-| `5a1f67b239` | Shared settings and their groups | 2b |
-| `dcb6622bd7` | Shared tanks and the carry rule | 2b |
+| `1fb123f197` | Start time and site per dive | A |
+| `dcb6622bd7` (part) | Follow default interval: an hour, or the time since | A |
+| `035a8777db`, `7915f689c3` (part) | Alt+Left and Alt+Right | A |
+| `89e50d32f3`, `e907849eef`, `a058b585b0` | Series warnings, without the summary card | A |
+| `5a1f67b239` | Shared settings and their groups | B |
+| `dcb6622bd7` | Shared tanks and the carry rule | B |
 
 Left out: Alt+N, and the Windows runner change (`6344d82fbd`) that tried to
 stop its beep. Alt+Left and Alt+Right do not beep.
 
-## 2a: timing, warnings and shortcuts
+## Part A: timing, warnings and shortcuts
 
 ### Start time and site
 
@@ -80,7 +79,7 @@ exposure, so its existing warnings already count earlier dives.
 Alt+Left and Alt+Right select the previous and next dive, registered in
 `ShortcutCatalog` and wrapped in `NotWhileTypingActivator`.
 
-## 2b: shared settings and tanks
+## Part B: shared settings and tanks
 
 ### Settings
 
@@ -94,9 +93,9 @@ Alt+Left and Alt+Right select the previous and next dive, registered in
   Apply to all dives. No "This dive / All dives" question while editing.
 - Stored as effective values: each dive's setting columns stay complete, so
   older peers and the engine read them as before. Added on top:
-  `dive_plans.setting_overrides` (the groups a dive owns) and
-  `dive_plan_series.shared_settings_json` (the series value of each group),
-  in the next schema version.
+  `dive_plans.setting_overrides`, the groups a dive owns, in the next
+  schema version. The series' value of a group is the first dive's, so
+  nothing else is stored.
 
 ### Tanks
 
@@ -111,6 +110,6 @@ Alt+Left and Alt+Right select the previous and next dive, registered in
 - Each feature is one commit, tests first, passing analyze and its tests,
   and is pushed to the fork when done.
 - l10n in all 11 locales, `dart format .`, `flutter analyze`, and the full
-  suite with `scripts/run_all_tests.sh` before each PR.
+  suite with `scripts/run_all_tests.sh` before the PR.
 - PR descriptions: `Refs #3565`, screenshots through the secret gist.
-- Check `currentSchemaVersion` against `main` again before each PR.
+- Check `currentSchemaVersion` against `main` again before the PR.

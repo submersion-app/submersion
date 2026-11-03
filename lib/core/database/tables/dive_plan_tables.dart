@@ -52,6 +52,11 @@ class DivePlans extends Table {
   /// surface interval is measured from it; otherwise the interval leads and
   /// the start follows from the dive before.
   BoolColumn get fixedStart => boolean().withDefault(const Constant(false))();
+
+  /// The setting groups (`PlanSettingGroup` names, comma separated) this
+  /// dive keeps its own values for rather than its series'; null = none.
+  /// Names a newer build adds are skipped when read.
+  TextColumn get settingOverrides => text().nullable()();
   RealColumn get altitude => real().nullable()();
 
   /// WaterType enum name; null = unspecified (EN13319 density).

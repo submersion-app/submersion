@@ -197,6 +197,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'series_id': 'The repetitive series this plan is one dive of',
     'series_index': 'This dive\'s 0-based position in its series',
     'setpoint_low': 'CCR setpoints (Phase 4 UI',
+    'setting_overrides': 'The setting groups (`PlanSettingGroup` names, comma separated) this dive keeps its own values for rather than its series\'',
     'shallow_ascent_rate': 'Ascent rate between shallow (9 m and above) stops, m per minute',
     'source_dive_id': 'Tissue-seeding source dive (repetitive planning, Phase 6)',
     'start_date_time': 'Planned start time (Unix seconds)',

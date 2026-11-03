@@ -21206,6 +21206,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_site_clear => 'Effacer le site';
 
   @override
+  String get plannerSeries_scope_series => 'Série';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Les plongées suivantes prennent ces réglages sauf si elles ont les leurs';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'De la série';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Cette plongée uniquement';
+
+  @override
+  String get plannerSeries_scope_reset => 'Rétablir la série';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Appliquer à toutes les plongées';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Remplir $tank';
   }
@@ -25975,6 +25994,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_fixedStart =>
       'Heure de début saisie manuellement';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Réglages pour cette plongée uniquement';
 
   @override
   String get settings_conflict_field_startTime => 'Heure de début';

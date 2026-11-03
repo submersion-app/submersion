@@ -1566,8 +1566,9 @@ class AppDatabase extends _$AppDatabase {
     // and #4136.
     341,
     // v342: dive_plans.fixed_start, whether a planned dive's start was set
-    // by the diver (issue #3565, phase 2). A defaulted column an older peer
-    // omits, so the floor does not move.
+    // by the diver, and dive_plans.setting_overrides, the setting groups a
+    // dive keeps its own (issue #3565, phase 2). Defaulted columns an older
+    // peer omits, so the floor does not move.
     342,
   ];
 

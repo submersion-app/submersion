@@ -20833,6 +20833,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_site_clear => 'Clear the site';
 
   @override
+  String get plannerSeries_scope_series => 'Series';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Dives after this one take these settings unless they set their own';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'From the series';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'This dive only';
+
+  @override
+  String get plannerSeries_scope_reset => 'Reset to series';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Apply to all dives';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Fill $tank';
   }
@@ -25465,6 +25484,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_fixedStart => 'Start time set by hand';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Settings for this dive only';
 
   @override
   String get settings_conflict_field_startTime => 'Start time';

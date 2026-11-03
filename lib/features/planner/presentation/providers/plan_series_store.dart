@@ -107,6 +107,7 @@ Future<StoredSeries> currentStoredSeries(ProviderContainer container) async {
         sourceTankIds: dive.sourceTankIds,
         pinnedTankIds: dive.pinnedTankIds,
         fixedStart: dive.fixedStart,
+        settingOverrides: dive.settingOverrides,
         summaryMaxDepth: result.outcome.maxDepth,
         summaryRuntimeSeconds: result.outcome.runtimeSeconds,
         summaryTtsSeconds: result.outcome.ttsAtBottom,
@@ -194,6 +195,7 @@ PlanSeries seriesFromStored(
           sourceTankIds: dive.sourceTankIds,
           pinnedTankIds: dive.pinnedTankIds,
           fixedStart: dive.fixedStart,
+          settingOverrides: dive.settingOverrides,
         ),
     ],
   );
