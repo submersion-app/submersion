@@ -98,6 +98,47 @@ void main() {
         'dive_scenarios',
   };
 
+  /// Writes that change no record a diver keeps, so no change set entity
+  /// covers them, each with the reason. `path:*` exempts a whole repository
+  /// file. Anything a diver edits as a record of their diving stays out of
+  /// here, however small.
+  const exempt = <String, String>{
+    'lib/features/settings/data/repositories/app_settings_repository.dart:*':
+        'app preferences, not logbook records',
+    'lib/features/settings/data/repositories/diver_settings_repository.dart:*':
+        'a diver\'s preferences, not logbook records',
+    'lib/features/auto_update/data/repositories/update_preferences.dart:*':
+        'app preferences',
+    'lib/features/backup/data/repositories/backup_preferences.dart:*':
+        'app preferences and backup bookkeeping',
+    'lib/features/change_log/data/repositories/change_log_preferences.dart:*':
+        'app preferences',
+    'lib/features/change_log/data/repositories/change_log_repository.dart:*':
+        'the log of changes itself, written by every write',
+    'lib/features/notifications/data/repositories/scheduled_notification_repository.dart:*':
+        'reminders scheduled from records, rewritten when they change',
+    'lib/features/maps/data/repositories/offline_map_repository.dart:*':
+        'map downloads kept on this device',
+    'lib/features/reef/data/repositories/reef_cache_dao.dart:*': 'a cache',
+    'lib/features/tides/data/repositories/noaa_station_cache_repository.dart:*':
+        'a cache',
+    'lib/features/gps_log/data/repositories/track_geometry_cache_repository.dart:*':
+        'a cache',
+    'lib/features/insights/data/repositories/deco_classification_cache.dart:*':
+        'a cache',
+    'lib/features/insights/data/repositories/observation_dismissals_repository.dart:*':
+        'the state of derived findings, recomputed from records',
+    'lib/features/data_quality/data/repositories/quality_findings_repository.dart:*':
+        'the state of derived findings, recomputed from records',
+    'lib/features/dive_computer/data/repositories/dive_computer_connection_repository.dart:*':
+        'this device\'s pairing with a dive computer',
+    'lib/features/marine_life/data/repositories/species_repository.dart:resetBuiltInSpecies':
+        'restores the bundled catalogue; the edits it undoes are species '
+        'updates',
+    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createFromWeights':
+        'a shortcut for a create with entries, which weight_presets covers',
+  };
+
   /// A public `Future` method on a repository. The return type may sit on the
   /// line above the name. The type stops at `=` and at the end of its line, or
   /// on a line ending in `=>` it would run to that arrow and take the method
@@ -157,8 +198,30 @@ void main() {
       .where((line) => line.isNotEmpty)
       .toSet();
 
-  test('every repository write is covered or in the baseline', () {
+  /// Whether [method] is exempt, by name or with its whole repository file.
+  bool isExempt(String method) =>
+      exempt.containsKey(method) ||
+      exempt.containsKey('${method.substring(0, method.lastIndexOf(':'))}:*');
+
+  test('every exempt entry names an existing write and a reason', () {
     final found = scanRepositories();
+    for (final MapEntry(:key, :value) in exempt.entries) {
+      expect(value.trim(), isNotEmpty, reason: key);
+      if (key.endsWith(':*')) {
+        final file = key.substring(0, key.length - 1);
+        expect(found.any((m) => m.startsWith(file)), isTrue, reason: key);
+      } else {
+        expect(found, contains(key));
+      }
+    }
+  });
+
+  test('no method is both covered and exempt', () {
+    expect(covered.keys.where(isExempt), isEmpty);
+  });
+
+  test('every repository write is covered or in the baseline', () {
+    final found = scanRepositories().where((m) => !isExempt(m)).toSet();
     if (Platform.environment['UPDATE_AGENT_WRITE_BASELINE'] == '1') {
       final lines = found.difference(covered.keys.toSet()).toList()..sort();
       File(baselinePath).writeAsStringSync('${lines.join('\n')}\n');
@@ -182,6 +245,7 @@ void main() {
 
     expect(readBaseline().difference(found), isEmpty);
     expect(readBaseline().intersection(covered.keys.toSet()), isEmpty);
+    expect(readBaseline().where(isExempt), isEmpty);
   });
 
   test('every covered method exists', () {
