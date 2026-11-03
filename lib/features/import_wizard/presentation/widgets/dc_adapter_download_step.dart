@@ -163,7 +163,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       notifier.clearSelectedDevice();
     }
     final isBluetooth =
-        _connectionTypeFromString(computer.connectionType) ==
+        storedConnectionType(computer.connectionType) ==
         DeviceConnectionType.ble;
 
     // Saved on another device: the Bluetooth connection synced, its
@@ -411,7 +411,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     if (device == null &&
         computer != null &&
         !ScanStepWidget.offersUsb &&
-        _connectionTypeFromString(computer.connectionType) ==
+        storedConnectionType(computer.connectionType) ==
             DeviceConnectionType.usb) {
       return DcNoDirectDownloadView(
         computer: computer,
@@ -425,7 +425,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     // computer's stored connection info when discovery state has no device.
     // The device descriptor lookup provides the dcModel integer that
     // libdivecomputer needs to select the right driver.
-    final storedTransport = _connectionTypeFromString(computer?.connectionType);
+    final storedTransport = storedConnectionType(computer?.connectionType);
     if (device == null &&
         computer != null &&
         computer.bluetoothAddress != null &&
@@ -683,32 +683,6 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
         ref.read(dcAdapterDownloadCanAdvanceProvider.notifier).state = true;
       }
     });
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/// The transport a saved computer's connection type names, or null for
-/// one the app cannot reopen directly, such as `cloud`. Every other value
-/// used to fall back to BLE, which dialed a cloud computer's stale address
-/// over Bluetooth (issue #3106). A missing type still means BLE: records
-/// saved before the type was always written carry an address and no type.
-DeviceConnectionType? _connectionTypeFromString(String? type) {
-  switch (type?.toLowerCase()) {
-    case null:
-    case 'bluetooth':
-    case 'ble':
-      return DeviceConnectionType.ble;
-    case 'bluetoothclassic':
-      return DeviceConnectionType.bluetoothClassic;
-    case 'usb':
-      return DeviceConnectionType.usb;
-    case 'infrared':
-      return DeviceConnectionType.infrared;
-    default:
-      return null;
   }
 }
 

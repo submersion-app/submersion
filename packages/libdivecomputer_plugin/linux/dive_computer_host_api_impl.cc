@@ -123,6 +123,19 @@ static void on_ble_scan_complete(gpointer user_data) {
       ctx->flutter_api, nullptr, nullptr, nullptr);
 }
 
+// Stops and frees the BLE scanner, if any, without reporting completion:
+// Dart marks a scan it stopped as finished itself, and a report from one
+// arrives after the next scan began, where it reads as that scan ending.
+// Stopped before it is freed, or BlueZ keeps discovering for this client
+// and refuses the next StartDiscovery with InProgress.
+static void stop_ble_scanner(HostApiContext* ctx) {
+  if (ctx->ble_scanner == nullptr) return;
+  ctx->ble_scanner->on_complete = nullptr;
+  ble_scanner_stop(ctx->ble_scanner);
+  ble_scanner_free(ctx->ble_scanner);
+  ctx->ble_scanner = nullptr;
+}
+
 // --- Serial scanner callbacks ---
 
 static void on_serial_device_discovered(
@@ -729,10 +742,8 @@ static void handle_start_discovery(
 
   switch (transport) {
     case LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_BLE: {
-      // Clean up any previous scanner.
-      if (ctx->ble_scanner != nullptr) {
-        ble_scanner_free(ctx->ble_scanner);
-      }
+      // A new scan replaces a running one.
+      stop_ble_scanner(ctx);
       ctx->ble_scanner = ble_scanner_new();
       ble_scanner_set_callbacks(ctx->ble_scanner,
                                 on_ble_device_discovered,
@@ -778,11 +789,7 @@ static LibdivecomputerPluginDiveComputerHostApiStopDiscoveryResponse*
 handle_stop_discovery(gpointer user_data) {
   auto* ctx = static_cast<HostApiContext*>(user_data);
 
-  if (ctx->ble_scanner != nullptr) {
-    ble_scanner_stop(ctx->ble_scanner);
-    ble_scanner_free(ctx->ble_scanner);
-    ctx->ble_scanner = nullptr;
-  }
+  stop_ble_scanner(ctx);
   if (ctx->serial_scanner != nullptr) {
     serial_scanner_stop(ctx->serial_scanner);
     serial_scanner_free(ctx->serial_scanner);

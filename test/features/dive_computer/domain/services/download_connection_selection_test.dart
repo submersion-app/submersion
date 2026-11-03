@@ -37,6 +37,17 @@ DiveComputerConnection _connection(
 );
 
 void main() {
+  test('the opt-out survives the copy: a download saves this record back, '
+      'and would clear it (issue #3361)', () {
+    final optedOut = _computer().copyWith(autoDownloadDisabled: true);
+
+    final copy = computerForDownload(optedOut, [
+      _connection('ble', DiveComputerConnectionKind.ble, address: 'AA'),
+    ]);
+
+    expect(copy.autoDownloadDisabled, isTrue);
+  });
+
   final ble = _connection(
     'ble',
     DiveComputerConnectionKind.ble,

@@ -101,6 +101,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'local_last_used_at': 'Device-local: when this device last used the connection, which picks the transport a saved-computer download uses here',
   },
   'dive_computers': {
+    'auto_download_disabled': 'Excludes this computer from auto-download even when the global auto-connect switch is on (per-device opt-out, issue #3361)',
     'bluetooth_address': 'Device-local BLE/MAC identifier',
     'connection_type': '"bluetooth", "usb", "ble"',
     'equipment_id': 'The equipment row representing this device as gear, its "gear twin"',
