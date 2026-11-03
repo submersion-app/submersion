@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
@@ -8,6 +10,21 @@ import 'package:submersion/features/dive_computer/presentation/providers/discove
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 
 import 'auto_connect_test_support.dart';
+
+/// A real discovery notifier whose scans start only once [_gate] completes,
+/// like a start Android's scan pacing holds back.
+class _DelayedStartDiscovery extends DiscoveryNotifier {
+  _DelayedStartDiscovery(pigeon.DiveComputerService service, this._gate)
+    : super(service: service, requiresRuntimePermissions: false);
+
+  final Future<void> _gate;
+
+  @override
+  Future<void> startScan({Object? owner}) async {
+    await _gate;
+    return super.startScan(owner: owner);
+  }
+}
 
 /// Auto-connect controller (issue #3361): the app lock, computers a scan
 /// cannot find, and matching by make and model. The rest of the
@@ -170,6 +187,31 @@ void main() {
         expect(requested, isEmpty);
 
         async.elapse(const Duration(seconds: 1));
+        expect(requested, ['c1']);
+      });
+    });
+
+    test('the window counts from the scan starting, not from the request', () {
+      fakeAsync((async) {
+        // Android can hold a start back up to 30 seconds (scan pacing).
+        final gate = Completer<void>();
+        final container = makeContainer(
+          computers: [perdix('c1', 'OLD')],
+          modelMatchWindow: const Duration(seconds: 15),
+          discovery: (service) => _DelayedStartDiscovery(service, gate.future),
+        );
+        container.read(autoConnectControllerProvider.notifier).activate();
+        async.elapse(const Duration(seconds: 20));
+
+        gate.complete();
+        async.flushMicrotasks();
+        container
+            .read(diveComputerServiceProvider)
+            .onDeviceDiscovered(advert('NEW'));
+        async.elapse(const Duration(seconds: 1));
+        expect(requested, isEmpty);
+
+        async.elapse(const Duration(seconds: 14));
         expect(requested, ['c1']);
       });
     });

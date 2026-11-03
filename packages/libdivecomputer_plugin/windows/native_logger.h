@@ -46,7 +46,7 @@ class NativeLogger {
   static void Send(const std::string& category, const std::string& level,
                    const std::string& message);
 
-  static std::mutex mutex_;
+  static std::recursive_mutex mutex_;
   static DiveComputerFlutterApi* api_;
   static Dispatcher dispatcher_;
 };

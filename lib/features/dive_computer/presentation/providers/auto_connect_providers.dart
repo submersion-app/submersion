@@ -209,16 +209,22 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     unawaited(
       _ref.read(discoveryNotifierProvider.notifier).startScan(owner: this).then(
         (_) {
+          if (!mounted || !_active || run != _scanRun) return;
           // A refused permission, a switched-off radio or a native start
           // error is caught inside DiscoveryNotifier and leaves it not
           // scanning; without this, "Searching..." would keep spinning
           // and the next resume would be refused.
-          if (mounted &&
-              _active &&
-              run == _scanRun &&
-              !_ref.read(discoveryNotifierProvider).isScanning) {
+          if (!_ref.read(discoveryNotifierProvider).isScanning) {
             _onOwnScanEnded();
+            return;
           }
+          // Counted from here, not from the request: a permission prompt
+          // or Android's scan pacing can hold the start back for longer
+          // than the window itself.
+          _modelMatchTimer = Timer(modelMatchWindow, () {
+            _modelMatchOpen = true;
+            _scheduleMatch();
+          });
         },
       ),
     );
@@ -240,11 +246,6 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       if (wasDownloading == true && isDownloading == false) {
         _scheduleMatch();
       }
-    });
-
-    _modelMatchTimer = Timer(modelMatchWindow, () {
-      _modelMatchOpen = true;
-      _scheduleMatch();
     });
 
     state = state.copyWith(isActive: true);
