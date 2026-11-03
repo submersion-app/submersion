@@ -221,6 +221,8 @@ void main() {
         computerModel: 'Perdix AI',
         computerSerial: 'SN1',
         sourceFileName: 'Perdix_SN1_0042.bin',
+        // A FIT import's id embeds the watch's serial.
+        sourceUuid: 'garmin-SN1-1772388000000',
         descriptorVendor: 'Shearwater',
         descriptorProduct: 'Perdix',
         descriptorModel: 5,
@@ -246,6 +248,7 @@ void main() {
       expect(written.findElements('computermodel'), isEmpty);
       expect(written.findElements('computerserial'), isEmpty);
       expect(written.findElements('sourcefilename'), isEmpty);
+      expect(written.findElements('sourceuuid'), isEmpty);
       // The row's own values still travel. The descriptor goes only with
       // the bytes, which a re-parse needs it for; without them it would only
       // name the computer.

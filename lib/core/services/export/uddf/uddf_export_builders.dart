@@ -1754,12 +1754,12 @@ class UddfExportBuilders {
   /// can hold bytes and still get no dump when its encode failed.
   ///
   /// With [includeIdentity] false each entry leaves out the computer's model
-  /// and serial and the source's file name, which name the diver's gear, and
-  /// its descriptor unless the entry has a dump to re-parse: a dives export
-  /// shared without gear writes the rest of the row and no more. Each
-  /// recording still restores as its own source, with no computer. A dump
-  /// itself still holds the computer's identity, serial included, so a share
-  /// with raw data ticked carries it there.
+  /// and serial and the source's file name and id, which name the diver's
+  /// gear, and its descriptor unless the entry has a dump to re-parse: a
+  /// dives export shared without gear writes the rest of the row and no more.
+  /// Each recording still restores as its own source, with no computer. A
+  /// dump itself still holds the computer's identity, serial included, so a
+  /// share with raw data ticked carries it there.
   static void buildDataSources(
     XmlBuilder builder,
     List<DiveSourceExport> sources,
@@ -1803,7 +1803,11 @@ class UddfExportBuilders {
                 'libdivecomputerversion',
                 source.libdivecomputerVersion,
               );
-              _dsText(builder, 'sourceuuid', source.sourceUuid);
+              // A source's own id can embed the device serial (a FIT
+              // import's is garmin-<serial>-<start>), so it is identity too.
+              if (includeIdentity) {
+                _dsText(builder, 'sourceuuid', source.sourceUuid);
+              }
               if (source.rawFingerprint != null &&
                   source.rawFingerprint!.isNotEmpty) {
                 builder.element(
