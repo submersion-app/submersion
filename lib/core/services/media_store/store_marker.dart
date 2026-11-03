@@ -37,31 +37,37 @@ class StoreMarker {
   }
 }
 
+/// A device that only reads the store found no copies to join, and cannot
+/// start them (issue #4193). Raised before anything is written.
+class MediaStoreReadOnly extends MediaStoreException {
+  const MediaStoreReadOnly(super.message)
+    : super(kind: MediaStoreErrorKind.fatal);
+}
+
 /// Reads/creates the marker through a [MediaObjectStore].
+///
+/// With [canWrite] false (a browser, which reads the store and never writes
+/// it), [ensure] joins a marker that is there and throws
+/// [MediaStoreReadOnly] rather than mint one.
 class StoreMarkerStore {
-  StoreMarkerStore({required MediaObjectStore store}) : _store = store;
+  StoreMarkerStore({required MediaObjectStore store, bool canWrite = true})
+    : _store = store,
+      _canWrite = canWrite;
 
   final MediaObjectStore _store;
+  final bool _canWrite;
 
   Future<StoreMarker?> read() async {
-    // App-container temp dir: hardened-runtime macOS denies /tmp
-    // (Directory.systemTemp), same constraint sync hit in issue #509.
-    final tmpDir = await resolveSyncTempDir();
-    final tmp = File(
-      '${tmpDir.path}/'
-      'submersion_marker_${DateTime.now().microsecondsSinceEpoch}.json',
-    );
+    // In memory, never through a temp file: the marker is a few dozen
+    // bytes, and a browser has no file to download into (issue #4193).
     try {
-      await _store.getFile(StoreKeys.markerKey, tmp);
-      final decoded = jsonDecode(await tmp.readAsString());
-      return StoreMarker.fromJson(decoded);
+      final bytes = await _store.getBytes(StoreKeys.markerKey);
+      return StoreMarker.fromJson(jsonDecode(utf8.decode(bytes)));
     } on MediaStoreException catch (e) {
       if (e.kind == MediaStoreErrorKind.notFound) return null;
       rethrow;
     } on FormatException {
       return null;
-    } finally {
-      if (await tmp.exists()) await tmp.delete();
     }
   }
 
@@ -86,11 +92,18 @@ class StoreMarkerStore {
         return (marker: afterListing, created: false);
       }
     }
+    if (!_canWrite) {
+      throw const MediaStoreReadOnly(
+        'no photo copies to join, and this device cannot start them',
+      );
+    }
     final marker = StoreMarker(
       storeId: const Uuid().v4(),
       formatVersion: 1,
       createdAt: DateTime.now().toUtc().toIso8601String(),
     );
+    // App-container temp dir: hardened-runtime macOS denies /tmp
+    // (Directory.systemTemp), same constraint sync hit in issue #509.
     final tmpDir = await resolveSyncTempDir();
     final tmp = File(
       '${tmpDir.path}/'

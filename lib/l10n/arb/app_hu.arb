@@ -17403,6 +17403,7 @@
   "settings_photos_switchConsequenceUnnamed": "Ez az eszköz nem használja tovább a jelenlegi másolatait, és másolatokat indít vagy csatlakozik hozzájuk itt: {choice}. Semmi sem törlődik.",
   "settings_photos_switchHeldOnly": "{count, plural, =1{1 fotó csak a jelenlegi másolatokban van meg, és a váltás után nem nyitható meg ezen az eszközön.} other{{count} fotó csak a jelenlegi másolatokban van meg, és a váltás után nem nyitható meg ezen az eszközön.}}",
   "settings_photos_startedSeparate": "Itt nem találhatók másolatok: {account}, ezért ez az eszköz külön másolatokat indított ott.",
+  "settings_photos_browserReadOnly": "A böngésző megjeleníti a többi eszköze által tárolt fotómásolatokat, de nem tudja elindítani őket. Indítsa el őket az alkalmazásban egy telefonon vagy számítógépen.",
   "settings_conflict_field_remoteStoreId": "Feltöltés helye",
   "tags_manage_scope_media": "Média",
   "tags_manage_scope_documents": "Dokumentumok",

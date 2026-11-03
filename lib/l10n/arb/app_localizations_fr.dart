@@ -58807,6 +58807,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Un navigateur affiche les copies de photos que conservent vos autres appareils, mais ne peut pas les commencer. Commencez-les dans l\'app sur un téléphone ou un ordinateur.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Envoyé vers';
 
   @override

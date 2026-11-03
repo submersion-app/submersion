@@ -17403,6 +17403,7 @@
   "settings_photos_switchConsequenceUnnamed": "המכשיר הזה מפסיק להשתמש בעותקים הנוכחיים שלו ומתחיל או מצטרף לעותקים ב-{choice}. שום דבר לא נמחק.",
   "settings_photos_switchHeldOnly": "{count, plural, =1{תמונה אחת שמורה רק בעותקים הנוכחיים ולא תיפתח במכשיר הזה אחרי השינוי.} other{{count} תמונות שמורות רק בעותקים הנוכחיים ולא ייפתחו במכשיר הזה אחרי השינוי.}}",
   "settings_photos_startedSeparate": "לא נמצאו עותקים ב-{account}, ולכן המכשיר הזה התחיל שם עותקים נפרדים.",
+  "settings_photos_browserReadOnly": "דפדפן מציג את עותקי התמונות שהמכשירים האחרים שלך שומרים, אך אינו יכול להתחיל אותם. אפשר להתחיל אותם באפליקציה בטלפון או במחשב.",
   "settings_conflict_field_remoteStoreId": "הועלה אל",
   "tags_manage_scope_media": "מדיה",
   "tags_manage_scope_documents": "מסמכים",

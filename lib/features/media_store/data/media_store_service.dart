@@ -116,7 +116,9 @@ class MediaStoreService {
     required MediaStoresRepository storesRepository,
     required MediaRepository mediaRepository,
     List<Duration>? markerRetryBackoff,
+    bool canWriteStore = true,
   }) : _markerRetryBackoff = markerRetryBackoff ?? defaultMarkerRetryBackoff,
+       _canWriteStore = canWriteStore,
        _credentials = credentials,
        _attachState = attachState,
        _storesRepository = storesRepository,
@@ -137,6 +139,11 @@ class MediaStoreService {
   ];
 
   final List<Duration> _markerRetryBackoff;
+
+  /// False on a device that reads the store and never writes it (a
+  /// browser, issue #4193): it joins copies another device started and
+  /// throws [MediaStoreReadOnly] where it would start its own.
+  final bool _canWriteStore;
 
   /// The legacy S3 blob a pre-account attachment kept; cleared on detach so
   /// the runtime's legacy fallback cannot reattach behind the diver's back.
@@ -221,7 +228,7 @@ class MediaStoreService {
   Future<({StoreMarker marker, bool created})> _ensureMarker(
     MediaObjectStore store,
   ) async {
-    final markers = StoreMarkerStore(store: store);
+    final markers = StoreMarkerStore(store: store, canWrite: _canWriteStore);
     for (var attempt = 0; ; attempt++) {
       try {
         return await markers.ensure();

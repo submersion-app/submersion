@@ -55085,6 +55085,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      '浏览器可以显示你的其他设备保存的照片副本，但无法开始副本。请在手机或电脑上的应用中开始。';
+
+  @override
   String get settings_conflict_field_remoteStoreId => '上传至';
 
   @override

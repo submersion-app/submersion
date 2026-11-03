@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -104,6 +105,8 @@ class _SetUpPhotosStepState extends ConsumerState<SetUpPhotosStep> {
       if (!mounted) return false;
     }
     if (!await widget.actions.attach(context, target, copies)) return false;
+    // A browser never writes the store (issue #4193): no upload switches.
+    if (!ref.read(deviceCapabilitiesProvider).mediaAttach) return true;
     final policies = ref.read(mediaStorePoliciesProvider);
     await policies.setAutoUpload(_auto);
     if (firstDevice) await policies.setPhotosOnCellular(_cellular);
@@ -166,7 +169,13 @@ class _SetUpPhotosStepState extends ConsumerState<SetUpPhotosStep> {
     }
     final on = _isOn(copies);
     void flip(bool v) => setState(() => _on = v);
+    // A browser joins copies another device keeps and never starts or
+    // uploads to them (issue #4193).
+    final canWrite = ref.watch(deviceCapabilitiesProvider).mediaAttach;
     if (copies.store == null) {
+      if (!canWrite) {
+        return (null, [Text(l10n.settings_photos_browserReadOnly)]);
+      }
       if (account == null || !photoAccountKinds.contains(account.kind)) {
         return (null, [note]);
       }
@@ -225,7 +234,7 @@ class _SetUpPhotosStepState extends ConsumerState<SetUpPhotosStep> {
           value: on,
           onChanged: _busy ? null : flip,
         ),
-        if (on)
+        if (on && canWrite)
           SwitchListTile(
             title: Text(l10n.settings_setUpDevice_photos_autoUploadHere),
             value: _auto,

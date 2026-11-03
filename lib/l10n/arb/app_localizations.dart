@@ -92862,6 +92862,12 @@ abstract class AppLocalizations {
   /// **'No copies were found in {account}, so this device started separate copies there.'**
   String settings_photos_startedSeparate(String account);
 
+  /// Shown in a browser, which only reads photo copies: as the Set up this device note on a device whose library keeps no copies yet, and as the error when an account holds no copies to join.
+  ///
+  /// In en, this message translates to:
+  /// **'A browser shows the photo copies your other devices keep, but cannot start them. Start them in the app on a phone or computer.'**
+  String get settings_photos_browserReadOnly;
+
   /// Sync conflict field label: the photo copies store a media item's upload stamps refer to
   ///
   /// In en, this message translates to:

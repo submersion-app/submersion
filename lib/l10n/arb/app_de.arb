@@ -17528,6 +17528,7 @@
   "settings_photos_switchConsequenceUnnamed": "Dieses Gerät verwendet seine bisherigen Kopien nicht mehr und beginnt oder übernimmt Kopien in {choice}. Es wird nichts gelöscht.",
   "settings_photos_switchHeldOnly": "{count, plural, =1{1 Foto liegt nur in den bisherigen Kopien und lässt sich nach dem Wechsel auf diesem Gerät nicht mehr öffnen.} other{{count} Fotos liegen nur in den bisherigen Kopien und lassen sich nach dem Wechsel auf diesem Gerät nicht mehr öffnen.}}",
   "settings_photos_startedSeparate": "In {account} wurden keine Kopien gefunden, daher hat dieses Gerät dort separate Kopien begonnen.",
+  "settings_photos_browserReadOnly": "Ein Browser zeigt die Fotokopien an, die Ihre anderen Geräte aufbewahren, kann sie aber nicht beginnen. Beginnen Sie sie in der App auf einem Telefon oder Computer.",
   "settings_conflict_field_remoteStoreId": "Hochgeladen in",
   "tags_manage_scope_media": "Medien",
   "tags_manage_scope_documents": "Dokumente",

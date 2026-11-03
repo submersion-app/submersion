@@ -58352,6 +58352,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'A böngésző megjeleníti a többi eszköze által tárolt fotómásolatokat, de nem tudja elindítani őket. Indítsa el őket az alkalmazásban egy telefonon vagy számítógépen.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Feltöltés helye';
 
   @override

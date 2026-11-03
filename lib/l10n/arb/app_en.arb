@@ -34472,6 +34472,8 @@
   "@settings_photos_switchHeldOnly": {"description": "Account sheet: added after the switch consequence when some photos exist only in the store being left (cloud-backed photos). Plural on count.", "placeholders": {"count": {"type": "int"}}},
   "settings_photos_startedSeparate": "No copies were found in {account}, so this device started separate copies there.",
   "@settings_photos_startedSeparate": {"description": "Snackbar after choosing an account for photo copies that held none, so a new separate set was started instead of joining the library's copies. {account} is an account name.", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_browserReadOnly": "A browser shows the photo copies your other devices keep, but cannot start them. Start them in the app on a phone or computer.",
+  "@settings_photos_browserReadOnly": {"description": "Shown in a browser, which only reads photo copies: as the Set up this device note on a device whose library keeps no copies yet, and as the error when an account holds no copies to join."},
   "settings_conflict_field_remoteStoreId": "Uploaded to",
   "@settings_conflict_field_remoteStoreId": {"description": "Sync conflict field label: the photo copies store a media item's upload stamps refer to"},
   "tags_manage_scope_media": "Media",

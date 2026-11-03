@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/core/services/media_store/icloud_media_platform.dart'
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
+import 'package:submersion/core/services/media_store/store_marker.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -39,11 +41,7 @@ class _UndownloadablePlatform extends DirectoryICloudMediaPlatform {
 /// Never serves the marker, however often it is asked.
 class _AlwaysTransientStore extends InMemoryMediaObjectStore {
   @override
-  Future<void> getFile(
-    String key,
-    File destination, {
-    TransferProgressCallback? onProgress,
-  }) async {
+  Future<Uint8List> getBytes(String key) async {
     throw const MediaStoreException(
       'still downloading from iCloud: smv1/store.json',
       kind: MediaStoreErrorKind.transient,
@@ -85,14 +83,17 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  MediaStoreService service({List<Duration> backoff = const []}) =>
-      MediaStoreService(
-        credentials: credentials,
-        attachState: attachState,
-        storesRepository: storesRepository,
-        mediaRepository: MediaRepository(),
-        markerRetryBackoff: backoff,
-      );
+  MediaStoreService service({
+    List<Duration> backoff = const [],
+    bool canWriteStore = true,
+  }) => MediaStoreService(
+    credentials: credentials,
+    attachState: attachState,
+    storesRepository: storesRepository,
+    mediaRepository: MediaRepository(),
+    markerRetryBackoff: backoff,
+    canWriteStore: canWriteStore,
+  );
 
   test('attaching creates the marker, attaches, and announces the store '
       'with its account', () async {
@@ -112,6 +113,40 @@ void main() {
     expect(active.displayHint, 'dive-media @ minio');
     expect(active.accountId, 's3-media');
   });
+
+  // Issue #4193: a browser reads the store and never writes it, so it
+  // joins copies another device started and cannot start its own.
+  test('a device that only reads joins existing copies', () async {
+    final store = InMemoryMediaObjectStore();
+    final row = _row('db-row', AccountKind.dropbox);
+    final first = await service().attachToAccountRow(row, store);
+    await service().disconnect();
+
+    final joined = await service(
+      canWriteStore: false,
+    ).attachToAccountRow(row, store);
+
+    expect(joined.createdNewStore, isFalse);
+    expect(joined.storeId, first.storeId);
+    expect(await attachState.attachedStoreId(), first.storeId);
+  });
+
+  test(
+    'a device that only reads cannot start copies, attaching nothing',
+    () async {
+      final store = InMemoryMediaObjectStore();
+
+      await expectLater(
+        service(
+          canWriteStore: false,
+        ).attachToAccountRow(_row('db-row', AccountKind.dropbox), store),
+        throwsA(isA<MediaStoreReadOnly>()),
+      );
+      expect(store.objects, isEmpty);
+      expect(await attachState.attachedStoreId(), isNull);
+      expect(await storesRepository.getActive(), isNull);
+    },
+  );
 
   test('attaching to a store that already has a marker adopts it', () async {
     final store = InMemoryMediaObjectStore();

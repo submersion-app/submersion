@@ -57452,6 +57452,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'דפדפן מציג את עותקי התמונות שהמכשירים האחרים שלך שומרים, אך אינו יכול להתחיל אותם. אפשר להתחיל אותם באפליקציה בטלפון או במחשב.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'הועלה אל';
 
   @override

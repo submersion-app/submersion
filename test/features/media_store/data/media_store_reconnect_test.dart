@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,20 +40,16 @@ class _CountingBackfill extends MediaBackfillService {
   }
 }
 
-/// Runs [onGetFile] once before serving a read, to change state mid-read.
+/// Runs [onGetBytes] once before serving a read, to change state mid-read.
 class _HookedStore extends InMemoryMediaObjectStore {
-  Future<void> Function()? onGetFile;
+  Future<void> Function()? onGetBytes;
 
   @override
-  Future<void> getFile(
-    String key,
-    File destination, {
-    TransferProgressCallback? onProgress,
-  }) async {
-    final hook = onGetFile;
-    onGetFile = null;
+  Future<Uint8List> getBytes(String key) async {
+    final hook = onGetBytes;
+    onGetBytes = null;
     await hook?.call();
-    return super.getFile(key, destination, onProgress: onProgress);
+    return super.getBytes(key);
   }
 }
 
@@ -201,7 +197,7 @@ void main() {
         'attachment', () async {
       await attachedWithMismatch('store-a');
       _writeMarker(store, 'store-b');
-      store.onGetFile = () async {
+      store.onGetBytes = () async {
         // Another flow reattaches to the store the folder holds.
         await attachState.setAttached(
           'store-b',
@@ -346,7 +342,7 @@ void main() {
         'newer attachment', () async {
       await attachedWithMismatch('store-a');
       _writeMarker(store, 'store-b');
-      store.onGetFile = () async {
+      store.onGetBytes = () async {
         await attachState.setAttached(
           'store-c',
           providerType: _row('db-row').kind.cloudProviderType!,

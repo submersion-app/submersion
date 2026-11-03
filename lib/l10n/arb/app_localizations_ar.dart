@@ -59438,6 +59438,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'يعرض المتصفح نسخ الصور التي تحتفظ بها أجهزتك الأخرى، لكنه لا يستطيع بدءها. ابدأها في التطبيق على هاتف أو حاسوب.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'تم الرفع إلى';
 
   @override
