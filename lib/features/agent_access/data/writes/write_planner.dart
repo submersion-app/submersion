@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' show Variable;
 import 'package:uuid/uuid.dart';
 
@@ -11,6 +13,8 @@ import 'package:submersion/features/agent_access/data/writes/write_catalog.dart'
 import 'package:submersion/features/agent_access/data/writes/write_plan.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+
+part 'write_planner_children.dart';
 
 /// Turns a change set into a plan by reading, and only reading. It opens no
 /// transaction and writes nothing, because the spec forbids even one that is
@@ -52,7 +56,9 @@ class WritePlanner {
   }
 }
 
-typedef _Row = ({String? ownerId, int updatedAt});
+/// A record's owner and version. A child has neither of its own, so these are
+/// its parent's, and [parentId] names the parent.
+typedef _Row = ({String? ownerId, int updatedAt, String? parentId});
 
 /// The state of one preview.
 class _Pass {
@@ -102,14 +108,13 @@ class _Pass {
       }
     }
     for (final MapEntry(key: entity, value: wanted) in ids.entries) {
-      final table = writes.named(entity)!.table;
+      final entry = writes.named(entity)!;
       final rows = _rows[entity] = {};
       for (final chunk in seriesIdChunks(wanted.toList())) {
         final marks = List.filled(chunk.length, '?').join(', ');
         final found = await db
             .customSelect(
-              'SELECT id, diver_id, updated_at FROM $table '
-              'WHERE id IN ($marks)',
+              '${_rowSelect(entry)} WHERE r.id IN ($marks)',
               variables: [for (final id in chunk) Variable.withString(id)],
             )
             .get();
@@ -117,6 +122,7 @@ class _Pass {
           rows[row.read<String>('id')] = (
             ownerId: row.readNullable<String>('diver_id'),
             updatedAt: row.read<int>('updated_at'),
+            parentId: row.readNullable<String>('parent_id'),
           );
         }
       }
@@ -147,14 +153,14 @@ class _Pass {
   }
 
   Future<void> _create(CreateOp op, WritableEntry entry) async {
-    final diverId = await resolveDiver(op.diverId);
     final parsed = _parse(op.index, entry, op.fields, const {});
     if (parsed.block case final block?) {
       return _add(op, entry, kind: ChangeKind.create, block: block);
     }
-    final missing = entry.requiredOnCreate.where(
-      (key) => !op.fields.containsKey(key),
-    );
+    final missing = {
+      ...entry.requiredOnCreate,
+      ?entry.parent?.field,
+    }.where((key) => !op.fields.containsKey(key));
     if (missing.isNotEmpty) {
       return _add(
         op,
@@ -166,18 +172,27 @@ class _Pass {
         ),
       );
     }
-    final block = await entry.refuse(
-      WriteCheck(
-        kind: ChangeKind.create,
-        ownerId: diverId,
-        values: parsed.values,
-      ),
-    );
+    final owner = await _owner(op, entry, parsed.values);
+    if (owner.block case final block?) {
+      return _add(op, entry, kind: ChangeKind.create, block: block);
+    }
+    final diverId = owner.diverId;
+    final block =
+        await _checkFieldRefs(entry, parsed.values, diverId) ??
+        await entry.refuse(
+          WriteCheck(
+            kind: ChangeKind.create,
+            ownerId: diverId,
+            values: parsed.values,
+          ),
+        );
+    if (block == null) await _markFieldRefs(entry, parsed.values);
     _add(
       op,
       entry,
       kind: ChangeKind.create,
       diverId: diverId,
+      parentId: owner.parentId,
       fields: parsed.changes,
       values: parsed.values,
       block: block,
@@ -187,15 +202,16 @@ class _Pass {
   Future<void> _update(UpdateOp op, WritableEntry entry) async {
     final row = _claim(op, op.id, entry, ChangeKind.update);
     if (row == null) return;
-    final document = await entry.stored(
-      op.id,
-      await _document(entry, op.id, row.ownerId),
-    );
+    if (_orphaned(op, entry, row, ChangeKind.update)) return;
+    final read = await _document(entry, op.id, row.ownerId);
+    final document = await entry.stored(op.id, read);
     final parsed = _parse(op.index, entry, op.fields, document);
     final links = await _relations(op, entry, row.ownerId);
     final block =
         parsed.block ??
         links.block ??
+        _fixed(entry, parsed) ??
+        await _checkFieldRefs(entry, parsed.values, row.ownerId) ??
         await entry.refuse(
           WriteCheck(
             kind: ChangeKind.update,
@@ -231,17 +247,18 @@ class _Pass {
     }
     if (block == null) {
       markers.add(
-        RecordMarker(
-          table: entry.table,
-          id: op.id,
-          updatedAt: row.updatedAt,
+        _marker(
+          entry,
+          op.id,
+          row,
+          read,
           relations: links.current,
-          readRelation: (relation) => entry.currentRelation(op.id, relation),
           footprint: effects.footprint,
           readFootprint: () async => (await readEffects()).footprint,
         ),
       );
       await _markReferences(entry, links.deltas);
+      await _markFieldRefs(entry, parsed.values);
     }
     _add(
       op,
@@ -249,6 +266,7 @@ class _Pass {
       kind: ChangeKind.update,
       id: op.id,
       diverId: row.ownerId,
+      parentId: row.parentId,
       title: entry.titleOf(document),
       date: document['date_time'] as String?,
       fields: fields,
@@ -263,6 +281,7 @@ class _Pass {
   Future<void> _delete(DeleteOp op, WritableEntry entry) async {
     final row = _claim(op, op.id, entry, ChangeKind.delete);
     if (row == null) return;
+    if (_orphaned(op, entry, row, ChangeKind.delete)) return;
     final document = await _document(entry, op.id, row.ownerId);
     final block = await entry.refuse(
       WriteCheck(
@@ -277,10 +296,11 @@ class _Pass {
     final reach = block == null ? await readReach() : const DeleteReach();
     if (block == null) {
       markers.add(
-        RecordMarker(
-          table: entry.table,
-          id: op.id,
-          updatedAt: row.updatedAt,
+        _marker(
+          entry,
+          op.id,
+          row,
+          document,
           footprint: reach.footprint,
           readFootprint: () async => (await readReach()).footprint,
         ),
@@ -292,6 +312,7 @@ class _Pass {
       kind: ChangeKind.delete,
       id: op.id,
       diverId: row.ownerId,
+      parentId: row.parentId,
       title: entry.titleOf(document),
       date: document['date_time'] as String?,
       reach: reach,
@@ -308,22 +329,26 @@ class _Pass {
     for (final MapEntry(key: name, value: delta) in deltas.entries) {
       final table = records.named(entry.relations[name]!.refEntity).table;
       for (final id in delta.add) {
-        if (!_referenced.add((table, id))) continue;
-        final row = await db
-            .customSelect(
-              'SELECT updated_at FROM $table WHERE id = ?',
-              variables: [Variable.withString(id)],
-            )
-            .getSingleOrNull();
-        markers.add(
-          RecordMarker(
-            table: table,
-            id: id,
-            updatedAt: row?.read<int>('updated_at'),
-          ),
-        );
+        await _markReference(table, id);
       }
     }
+  }
+
+  Future<void> _markReference(String table, String id) async {
+    if (!_referenced.add((table, id))) return;
+    final row = await db
+        .customSelect(
+          'SELECT updated_at FROM $table WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingleOrNull();
+    markers.add(
+      RecordMarker(
+        table: table,
+        id: id,
+        updatedAt: row?.read<int>('updated_at'),
+      ),
+    );
   }
 
   /// The names of what a change links, so a diver reads names, not ids.
@@ -472,7 +497,13 @@ class _Pass {
           PlanBlock(BlockReason.invalidValue, '$name takes one id.'),
         );
       }
-      final block = await _checkRefs(name, spec, delta.add, ownerId);
+      final block = await _checkRefs(
+        name,
+        spec.refEntity,
+        delta.add,
+        ownerId,
+        copiesTarget: spec.copiesTarget,
+      );
       if (block != null) return _Links.blocked(block);
       if (!delta.isEmpty) deltas[name] = delta;
     }
@@ -499,22 +530,25 @@ class _Pass {
     );
   }
 
+  /// Whether [ids], which [name] points at records of [refEntity] with, may
+  /// be used by [ownerId]. [copiesTarget] as [RelationSpec.copiesTarget].
   Future<PlanBlock?> _checkRefs(
     String name,
-    RelationSpec spec,
+    String refEntity,
     Set<String> ids,
-    String? ownerId,
-  ) async {
+    String? ownerId, {
+    bool copiesTarget = false,
+  }) async {
     if (ids.isEmpty) return null;
-    final deleted = ids.where((id) => _deleted.contains((spec.refEntity, id)));
+    final deleted = ids.where((id) => _deleted.contains((refEntity, id)));
     if (deleted.isNotEmpty) {
       return PlanBlock(
         BlockReason.referenceDeleted,
         '$name refers to ${deleted.join(', ')}, which this set deletes.',
       );
     }
-    final changed = spec.copiesTarget
-        ? ids.where((id) => _changedSoFar.contains((spec.refEntity, id)))
+    final changed = copiesTarget
+        ? ids.where((id) => _changedSoFar.contains((refEntity, id)))
         : const <String>[];
     if (changed.isNotEmpty) {
       return PlanBlock(
@@ -523,7 +557,7 @@ class _Pass {
         'operation in this set changes. Link it in a change set of its own.',
       );
     }
-    final ref = records.named(spec.refEntity);
+    final ref = records.named(refEntity);
     final diverId = ownerId ?? await resolveDiver(null);
     final visible = await RecordReader(
       db,
@@ -582,6 +616,7 @@ class _Pass {
     required ChangeKind kind,
     String? id,
     String? diverId,
+    String? parentId,
     String? title,
     String? date,
     Map<String, FieldChange> fields = const {},
@@ -598,6 +633,7 @@ class _Pass {
       entity: entry.name,
       id: id,
       diverId: diverId,
+      parentId: parentId,
       title: title,
       date: date,
       fields: fields,

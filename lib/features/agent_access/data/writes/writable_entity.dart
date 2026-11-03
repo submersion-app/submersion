@@ -34,6 +34,16 @@ class PlanBlock {
   final String detail;
 }
 
+/// The record a child entry belongs to, such as a tank's dive. [entity] is
+/// the parent's write and read name, and [field] names the parent on the
+/// child, as the document key and the column.
+class ChildOf {
+  const ChildOf({required this.entity, required this.field});
+
+  final String entity;
+  final String field;
+}
+
 /// One link a record can hold. [refEntity] is the read catalogue's name for
 /// what it points at, so a reference passes that entity's own visibility
 /// rule: shared sites and built-in types count, another profile's do not.
@@ -178,6 +188,14 @@ abstract class WritableEntry {
 
   /// Fields a create must carry.
   Set<String> get requiredOnCreate;
+
+  /// The record this one belongs to. A child takes its parent's owner,
+  /// names it in [ChildOf.field] when it is created, and stays on it.
+  ChildOf? get parent => null;
+
+  /// Fields a create sets and an update may not change. A child's
+  /// [ChildOf.field] is always one.
+  Set<String> get createOnly => const {};
 
   /// Fields whose write does something even when it equals the row, so a
   /// plan cannot drop one as unchanged.

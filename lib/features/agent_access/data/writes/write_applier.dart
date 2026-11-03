@@ -112,6 +112,10 @@ class WriteApplier {
         if (item.entity == 'dives' && item.kind == ChangeKind.update) item.id!,
       for (final record in written.created)
         if (record.entity == 'dives') record.id,
+      // A tank, weight or sighting feeds its dive's findings and figures.
+      for (final item in plan.items)
+        if (_catalog.named(item.entity)!.parent?.entity == 'dives')
+          item.parentId!,
     });
     // The settler files another diver's records under `operation:diver`, and
     // a revert straight after this needs the entries settled anyway.

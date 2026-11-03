@@ -3,6 +3,7 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/writes/families/buddy_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 
 /// Every entity an agent can change, by the read catalogue's names.
@@ -12,6 +13,7 @@ class WriteCatalog {
         DiveWrites(repositories),
         BuddyWrites(repositories),
         SiteWrites(repositories, stamper: stamper),
+        TankWrites(),
       ]);
 
   final List<WritableEntry> all;

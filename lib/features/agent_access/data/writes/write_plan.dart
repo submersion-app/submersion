@@ -29,6 +29,7 @@ class PlanItem {
     required this.entity,
     this.id,
     this.diverId,
+    this.parentId,
     this.title,
     this.fields = const {},
     this.values = const {},
@@ -48,6 +49,9 @@ class PlanItem {
   /// Null for a record that does not exist yet.
   final String? id;
   final String? diverId;
+
+  /// The record a child item belongs to, such as a tank's dive.
+  final String? parentId;
 
   /// The record's own name, for the diver to recognise it.
   final String? title;

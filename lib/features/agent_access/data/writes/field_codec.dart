@@ -41,6 +41,11 @@ abstract class FieldCodec {
   /// A wall clock, written as documents write it, with a nominal `Z`.
   const factory FieldCodec.wallClock() = _WallClockCodec;
 
+  /// The id of a record of [refEntity]. The planner checks it as it checks
+  /// a relation's links: the record must exist and be the owner's to use.
+  const factory FieldCodec.reference(String refEntity, {bool nullable}) =
+      ReferenceCodec;
+
   final bool nullable;
 
   /// The value to write. Throws [FieldRefusal] when it cannot be.
@@ -158,6 +163,22 @@ class _EnumCodec extends FieldCodec {
   Object parseValue(Object raw) {
     if (raw is String && _names.contains(raw)) return raw;
     throw FieldRefusal('This field takes one of ${_names.join(', ')}.');
+  }
+}
+
+class ReferenceCodec extends FieldCodec {
+  const ReferenceCodec(this.refEntity, {super.nullable});
+
+  /// The read catalogue's name for what the id points at.
+  final String refEntity;
+
+  @override
+  String get describe => 'the id of a $refEntity record';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is String && raw.trim().isNotEmpty) return raw;
+    throw FieldRefusal('This field takes the id of a $refEntity record.');
   }
 }
 
