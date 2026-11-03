@@ -218,12 +218,31 @@ Two relations join sites: `tags`, whose tags must apply to sites, and
 `expected_species`.
 
 A delete can name `merge_into` instead of going alone. The survivor takes the
-record's links, the plan lists them under `moved` and the dialog says which
-record it merges into. Only `tags` can merge so far: an entry opts in with
+record's links, the plan's JSON lists them under `moved_to_merge_target` and
+the dialog says which record it merges into. What the merge changes on the
+survivor itself, such as the scopes a tag gains, comes back from `mergeReach`
+in `DeleteReach.survivor` and is listed as indirect field changes on the
+merge's item. Only `tags` can merge so far: an entry opts in with
 `mergeable`, `mergeReach` and `merge`. The planner blocks a merge into the
-record itself, into a record that is gone or another profile's, and into one
-the same set deletes, and marks the survivor, so one that changes after the
-preview refuses the plan.
+record itself, into a record that is gone or another profile's, into one the
+same set deletes, beside an update that changes links to the same entity, and
+beside an update of a survivor field the merge changes. Several merges into
+one survivor are counted one after another through `mergedBefore`. The
+survivor is marked, so one that changes after the preview refuses the plan.
+
+A plan lists what is stored, not what was sent. A name the repository trims
+uses `FieldCodec.text(trim: true)`, and a number its column keeps to fewer
+places uses `FieldCodec.number(fractionDigits:)`, so an unchanged value
+compares equal. A create naming `sort_order` 0 is blocked where the
+repository reads 0 as "after the last".
+
+Two rules look past a single change. `uniqueKey` names what no two records
+of one owner may share, such as a tag's folded name, and the planner blocks
+a second claim within one set, which `refuse` cannot see in the database.
+`WriteCheck.soFar` carries what the set deletes and what earlier updates
+write and unlink, so a rule that reads stored rows counts the set too: a
+site may take a tag the set first opens to sites, and a dive type the set
+first takes off its dives may be deleted.
 
 ### Adding a writable entity
 

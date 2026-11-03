@@ -131,6 +131,27 @@ void main() {
     },
   );
 
+  test('another diver\'s tag cannot link to a site', () async {
+    await db
+        .into(db.tags)
+        .insert(
+          TagsCompanion.insert(
+            id: 'theirs',
+            name: 'Theirs',
+            createdAt: kSeedTime,
+            updatedAt: kSeedTime,
+            diverId: const Value(kDiverB),
+            appliesToSites: const Value(true),
+          ),
+        );
+
+    final plan = await h.preview([
+      link('tags', add: ['theirs']),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.otherProfileReference);
+  });
+
   test('a site gains and loses expected species', () async {
     for (final (id, name) in [('nudi', 'Nudibranch'), ('ray', 'Manta')]) {
       await db

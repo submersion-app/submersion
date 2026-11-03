@@ -226,6 +226,18 @@ void main() {
     expect(plan.items.last.block!.detail, contains('scopes'));
   });
 
+  test('a merge into a tag the set merges away is blocked', () async {
+    await tag('ships', 'Ships');
+
+    final plan = await h.preview([
+      merge('ships', 'wrecks'),
+      merge('wrecks', 'wreck'),
+    ]);
+
+    expect(plan.items.first.block!.reason, BlockReason.referenceDeleted);
+    expect(plan.items.last.block, isNull);
+  });
+
   test('a merge keeps a rename of the survivor in the same set', () async {
     await h.run([
       updateOp('tags', 'wreck', {'name': 'Shipwreck'}),

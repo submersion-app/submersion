@@ -108,4 +108,20 @@ void main() {
       expect(plan.items.single.reach.parts, {'dive_center_gear_notes': 1});
     },
   );
+
+  test('a gear note cannot name another diver\'s dive', () async {
+    final centerId = await center({'name': 'Reef Divers'});
+    await h.dive('theirs', owner: kDiverB);
+
+    final plan = await h.preview([
+      createOp('center_gear_notes', {
+        'center_id': centerId,
+        'gear_type': 'wetsuit',
+        'verdict': 'avoid',
+        'dive_id': 'theirs',
+      }),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.otherProfileReference);
+  });
 }
