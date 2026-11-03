@@ -20591,6 +20591,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_filter_site => 'Tauchplatz';
 
   @override
+  String get media_library_filter_source => 'Quelle';
+
+  @override
   String get media_library_filter_species => 'Art';
 
   @override
@@ -20648,6 +20651,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Unbenannter Tauchgang';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Tauchplatz: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Ausrüstung: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Diesen Tauchplatz öffnen';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Diese Ausrüstung öffnen';
+
+  @override
+  String get media_library_untitledEquipment => 'Unbenannte Ausrüstung';
 
   @override
   String get media_library_viewMode_byDive => 'Nach Tauchgang';

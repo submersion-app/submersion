@@ -20613,6 +20613,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_library_filter_site => 'Ponto';
 
   @override
+  String get media_library_filter_source => 'Fonte';
+
+  @override
   String get media_library_filter_species => 'Espécie';
 
   @override
@@ -20670,6 +20673,25 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Mergulho sem título';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Ponto: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Equipamento: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Abrir este ponto';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Abrir este equipamento';
+
+  @override
+  String get media_library_untitledEquipment => 'Equipamento sem nome';
 
   @override
   String get media_library_viewMode_byDive => 'Por mergulho';
