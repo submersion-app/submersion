@@ -3,6 +3,7 @@
 #include <winrt/Windows.Devices.Bluetooth.h>
 #include <winrt/Windows.Devices.Enumeration.h>
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
 
 #include <libdivecomputer/bluetooth.h>
 
@@ -113,17 +114,33 @@ void BluetoothClassicIoStream::Close() {
 }
 
 bool BluetoothClassicIoStream::IsPaired(uint64_t address) {
+    using winrt::Windows::Devices::Bluetooth::BluetoothDevice;
+    using winrt::Windows::Devices::Enumeration::DeviceInformation;
+    // Walks Windows' own list of paired Classic devices rather than resolving
+    // the address with BluetoothDevice::FromBluetoothAddressAsync, which for
+    // an address Windows has not paired can go out to the radio, just before
+    // the LE connect to the same dual-mode radio.
+    //
     // catch (...) rather than winrt::hresult_error alone: nothing above the
     // download thread would catch a WinRT error, and it is not a
     // std::exception (issue #2507).
     try {
-        auto device =
-            winrt::Windows::Devices::Bluetooth::BluetoothDevice::
-                FromBluetoothAddressAsync(address)
-                    .get();
-        if (!device) return false;
-        return device.DeviceInformation().Pairing().IsPaired();
+        const auto paired = DeviceInformation::FindAllAsync(
+                                BluetoothDevice::GetDeviceSelectorFromPairingState(
+                                    true))
+                                .get();
+        for (const auto& info : paired) {
+            const auto device = BluetoothDevice::FromIdAsync(info.Id()).get();
+            if (device && device.BluetoothAddress() == address) return true;
+        }
+        return false;
     } catch (...) {
+        // Treated as unpaired, so LE goes first and the both-failed advice
+        // says to pair; the log says why that advice may be wrong.
+        NativeLogger::Warn(kBleCategory,
+                           "Could not read Windows' paired Bluetooth devices; "
+                           "treating " + FormatBluetoothAddress(address) +
+                               " as unpaired");
         return false;
     }
 }
