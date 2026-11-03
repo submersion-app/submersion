@@ -52,7 +52,10 @@ DiveComputerHostApiImpl::ConnectBluetooth(const DiscoveredDevice& device) {
 
     // Paired as a Classic device: that is the route Windows set up, so it
     // goes first rather than after the whole LE retry window.
-    if (ClassicRouteFirst(dual_mode, classic_paired)) {
+    // The cancel check matters here too: once dc_bluetooth_open starts, the
+    // RFCOMM connect blocks until Winsock gives up, and nothing can interrupt
+    // it before libdc_download_run owns the stream.
+    if (ClassicRouteFirst(dual_mode, classic_paired) && !cancelled()) {
         classic_tried_first = true;
         if (try_classic()) {
             connection.connected = true;

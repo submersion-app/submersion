@@ -258,6 +258,14 @@ bool BleIoStream::ConnectAndDiscoverOnce(uint64_t bluetooth_address) {
     // balance they were issued against, so one still in flight from an
     // earlier attempt lands on that object and never on this link's.
     credits_ = std::make_shared<CreditBalance>();
+    // Bytes queued by a failed attempt would reach libdivecomputer ahead of
+    // this link's own and corrupt the protocol, so the queue starts empty
+    // and callbacks still running for the old attempt are shut out.
+    {
+        std::lock_guard<std::mutex> lock(read_mutex_);
+        link_generation_++;
+        read_chunks_.clear();
+    }
     NativeLogger::Debug(kBleCategory, "Connecting to " + address);
     // Which WinRT call is running, for the catch below. Its line used to say
     // only "connect or service discovery", so the 0x8007003A in #4094 could
@@ -674,8 +682,8 @@ bool BleIoStream::DiscoverCharacteristics() {
             credits_notify_characteristic_ = nullptr;
             credits_write_characteristic_ = nullptr;
         } else {
-            credits_notify_token_ = credits_notify_characteristic_.ValueChanged(
-                {this, &BleIoStream::OnCharacteristicValueChanged});
+            credits_notify_token_ =
+                SubscribeValueChanged(credits_notify_characteristic_);
         }
     }
 
@@ -706,8 +714,7 @@ bool BleIoStream::DiscoverCharacteristics() {
     // has something to match against.
     notify_attribute_handle_.store(notify_characteristic_.AttributeHandle(),
                                    std::memory_order_release);
-    notify_token_ = notify_characteristic_.ValueChanged(
-        {this, &BleIoStream::OnCharacteristicValueChanged});
+    notify_token_ = SubscribeValueChanged(notify_characteristic_);
 
     return GrantInitialCredits();
 }
@@ -845,9 +852,20 @@ void BleIoStream::ReplenishCredits() {
     }
 }
 
+winrt::event_token BleIoStream::SubscribeValueChanged(
+    GattCharacteristic const& characteristic) {
+    const uint32_t generation = link_generation_;
+    return characteristic.ValueChanged(
+        [this, generation](GattCharacteristic const& sender,
+                           GattValueChangedEventArgs const& args) {
+            OnCharacteristicValueChanged(sender, args, generation);
+        });
+}
+
 void BleIoStream::OnCharacteristicValueChanged(
     GattCharacteristic const& sender,
-    GattValueChangedEventArgs const& args) {
+    GattValueChangedEventArgs const& args,
+    uint32_t generation) {
     // UART Credits TX shares this handler with UART Data TX but carries no
     // application data: injecting its indications into the read queue would
     // corrupt the protocol stream.
@@ -873,6 +891,10 @@ void BleIoStream::OnCharacteristicValueChanged(
 
     {
         std::lock_guard<std::mutex> lock(read_mutex_);
+        // Checked under the lock the retry takes to clear the queue: a
+        // callback from a failed attempt either lands before the clear and
+        // is wiped, or arrives after it and is dropped here.
+        if (generation != link_generation_) return;
         read_chunks_.push_back(std::move(data));
     }
     read_cv_.notify_one();

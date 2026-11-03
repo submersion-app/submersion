@@ -105,12 +105,19 @@ class BleIoStream {
   int PerformRead(void* data, size_t size, size_t* actual);
   int PerformWrite(const void* data, size_t size, size_t* actual);
 
-  // GATT notification handler.
+  // GATT notification handler. `generation` is the connect attempt that
+  // subscribed it; a callback from an earlier attempt is dropped.
   void OnCharacteristicValueChanged(
       winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
           GattCharacteristic const& sender,
       winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
-          GattValueChangedEventArgs const& args);
+          GattValueChangedEventArgs const& args,
+      uint32_t generation);
+
+  // Subscribes OnCharacteristicValueChanged for the current attempt.
+  winrt::event_token SubscribeValueChanged(
+      winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
+          GattCharacteristic const& characteristic);
 
   // Telit/Stollmann Terminal I/O credit handshake. See the block comment in
   // ble_io_stream.cc and darwin's BleCharacteristicSelector.
@@ -209,6 +216,11 @@ class BleIoStream {
   // require each read to return bytes from at most one notification;
   // coalescing them into a flat buffer loses packet boundaries.
   std::deque<std::vector<uint8_t>> read_chunks_;
+  // Which connect attempt owns read_chunks_, guarded by read_mutex_. A retry
+  // reconnects to the same device, so the new data characteristic usually
+  // has the same attribute handle as the old one and the handle check alone
+  // would admit a late notification from the failed attempt (issue #4094).
+  uint32_t link_generation_ = 0;
 
   // Non-null only when the read-poll tier was selected. Read, poll and purge
   // go to it instead of read_chunks_, which stays empty in that mode.
