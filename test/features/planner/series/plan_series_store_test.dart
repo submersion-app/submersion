@@ -6,7 +6,9 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -252,6 +254,68 @@ void main() {
         .read(divePlanRepositoryProvider)
         .getAllPlanSummaries();
     expect(summaries.single.seriesId, isNull);
+  });
+
+  group('renamed from the saved plans sheet while open', () {
+    DivePlanSummary summaryOf(String id, {String? seriesId}) => DivePlanSummary(
+      id: id,
+      name: 'renamed',
+      updatedAt: DateTime(2026, 10, 27),
+      seriesId: seriesId,
+    );
+
+    test('a series keeps the new name through its next save', () async {
+      series().addDive();
+      await saveCurrentSeries(c);
+      final id = c.read(planSeriesNotifierProvider).id!;
+      final first = c.read(planSeriesNotifierProvider).dives.first.state.id;
+
+      await c
+          .read(divePlanSeriesRepositoryProvider)
+          .renameSeries(id, 'Wreck day');
+      adoptRenameInPlanner(c, summaryOf(first, seriesId: id), 'Wreck day');
+
+      expect(editor().name, 'Wreck day');
+      expect(c.read(planSeriesDirtyProvider), isFalse);
+
+      c
+          .read(divePlanNotifierProvider.notifier)
+          .setSurfaceInterval(const Duration(hours: 3));
+      await saveCurrentSeries(c);
+      final stored = await c
+          .read(divePlanSeriesRepositoryProvider)
+          .getSeries(id);
+      expect(stored!.name, 'Wreck day');
+      expect(stored.dives.map((d) => d.plan.name), everyElement('Wreck day'));
+    });
+
+    test('a plan takes the new name and stays saved', () async {
+      final saved = await c
+          .read(divePlanRepositoryProvider)
+          .savePlan(divePlanFromState(seriesDiveState(id: 'solo')));
+      await openSavedPlan(c, saved.id);
+
+      await c
+          .read(divePlanRepositoryProvider)
+          .savePlan(saved.copyWith(name: 'Night dive'));
+      adoptRenameInPlanner(c, summaryOf(saved.id), 'Night dive');
+
+      expect(editor().name, 'Night dive');
+      expect(editor().isDirty, isFalse);
+    });
+
+    test('another plan in the planner is left alone', () async {
+      final before = editor().name;
+
+      adoptRenameInPlanner(c, summaryOf('not-open'), 'Night dive');
+      adoptRenameInPlanner(
+        c,
+        summaryOf(editor().id, seriesId: 'other-series'),
+        'Night dive',
+      );
+
+      expect(editor().name, before);
+    });
   });
 
   test('a series deleted through the planner leaves no plans', () async {

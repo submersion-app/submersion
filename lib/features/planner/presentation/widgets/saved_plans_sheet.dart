@@ -323,6 +323,8 @@ class _PlanTile extends ConsumerWidget {
             builder: (menuContext) => PopupMenuButton<String>(
               onSelected: (value) async {
                 final repository = ref.read(divePlanRepositoryProvider);
+                // Read now: the sheet can be gone once a write returns.
+                final container = ref.container;
                 if (value == 'rename' && seriesId != null) {
                   final entered = await showPlanNameDialog(
                     context,
@@ -333,6 +335,8 @@ class _PlanTile extends ConsumerWidget {
                   await ref
                       .read(divePlanSeriesRepositoryProvider)
                       .renameSeries(seriesId, entered);
+                  // The planner may have this series open: keep its name.
+                  adoptRenameInPlanner(container, summary, entered);
                 } else if (value == 'rename') {
                   final plan = await repository.getPlan(summary.id);
                   if (plan == null || !context.mounted) return;
@@ -346,6 +350,7 @@ class _PlanTile extends ConsumerWidget {
                   // columns stay absent in the companion and the upsert
                   // preserves them along with the tile's subtitle.
                   await repository.savePlan(plan.copyWith(name: entered));
+                  adoptRenameInPlanner(container, summary, entered);
                 } else if (value == 'duplicate' && seriesId != null) {
                   await ref
                       .read(divePlanSeriesRepositoryProvider)

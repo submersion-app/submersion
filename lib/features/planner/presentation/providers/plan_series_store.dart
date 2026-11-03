@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
@@ -82,6 +83,25 @@ Future<void> _saveAsPlainPlan(
     ),
   );
   if (notifier.mounted) notifier.leaveSavedSeries();
+}
+
+/// Gives the planner the name [name] just stored from elsewhere for the
+/// saved plans row [renamed] (its whole series when it is in one), if that
+/// is what the planner holds. Without it the planner's next save would write
+/// back the name it opened with.
+void adoptRenameInPlanner(
+  ProviderContainer container,
+  DivePlanSummary renamed,
+  String name,
+) {
+  final series = container.read(planSeriesNotifierProvider);
+  final seriesId = renamed.seriesId;
+  final open = seriesId != null
+      ? series.id == seriesId
+      : series.id == null && series.dives.any((d) => d.state.id == renamed.id);
+  if (open) {
+    container.read(planSeriesNotifierProvider.notifier).adoptStoredName(name);
+  }
 }
 
 /// The series in the editor as it would be stored, for saving or sharing.
