@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -256,6 +257,13 @@ void main() {
   });
 
   group('renamed from the saved plans sheet while open', () {
+    DivePlanSummary summaryOf(String id, {String? seriesId}) => DivePlanSummary(
+      id: id,
+      name: 'renamed',
+      updatedAt: DateTime(2026, 10, 27),
+      seriesId: seriesId,
+    );
+
     test('a series keeps the new name through its next save', () async {
       series().addDive();
       await saveCurrentSeries(c);
@@ -265,7 +273,7 @@ void main() {
       await c
           .read(divePlanSeriesRepositoryProvider)
           .renameSeries(id, 'Wreck day');
-      adoptRenameInPlanner(c, seriesId: id, planId: first, name: 'Wreck day');
+      adoptRenameInPlanner(c, summaryOf(first, seriesId: id), 'Wreck day');
 
       expect(editor().name, 'Wreck day');
       expect(c.read(planSeriesDirtyProvider), isFalse);
@@ -290,12 +298,7 @@ void main() {
       await c
           .read(divePlanRepositoryProvider)
           .savePlan(saved.copyWith(name: 'Night dive'));
-      adoptRenameInPlanner(
-        c,
-        seriesId: null,
-        planId: saved.id,
-        name: 'Night dive',
-      );
+      adoptRenameInPlanner(c, summaryOf(saved.id), 'Night dive');
 
       expect(editor().name, 'Night dive');
       expect(editor().isDirty, isFalse);
@@ -304,17 +307,11 @@ void main() {
     test('another plan in the planner is left alone', () async {
       final before = editor().name;
 
+      adoptRenameInPlanner(c, summaryOf('not-open'), 'Night dive');
       adoptRenameInPlanner(
         c,
-        seriesId: null,
-        planId: 'not-open',
-        name: 'Night dive',
-      );
-      adoptRenameInPlanner(
-        c,
-        seriesId: 'other-series',
-        planId: editor().id,
-        name: 'Night dive',
+        summaryOf(editor().id, seriesId: 'other-series'),
+        'Night dive',
       );
 
       expect(editor().name, before);
