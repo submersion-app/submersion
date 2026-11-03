@@ -15,6 +15,13 @@
 # SUBMERSION_WEB_SAMPLE_LOGBOOK=0 to build without it, which hides sample
 # mode in that site.
 #
+# Submersion's own Google web client: set GOOGLE_WEB_CLIENT_ID and
+# GOOGLE_WEB_CLIENT_ORIGINS (the comma-separated addresses Google authorises
+# it for) to build it in, as the official site's build does. The site then
+# signs in to Google Drive without asking, and shares the Drive folder the
+# installed apps sync through; at any other address it asks for a client id
+# of the user's own. Unset, every site asks.
+#
 # Usage:
 #   scripts/build_web.sh [flutter build web options...]
 
@@ -25,7 +32,21 @@ cd "$REPO_ROOT"
 
 scripts/web/fetch_sqlite3_wasm.sh
 scripts/web/compile_workers.sh
-flutter build web --release --pwa-strategy=none --no-web-resources-cdn "$@"
+google_defines=()
+if [ -n "${GOOGLE_WEB_CLIENT_ID:-}" ]; then
+  if [ -z "${GOOGLE_WEB_CLIENT_ORIGINS:-}" ]; then
+    echo "GOOGLE_WEB_CLIENT_ORIGINS must name the addresses the Google web" \
+      "client is authorised for" >&2
+    exit 1
+  fi
+  google_defines=(
+    "--dart-define=GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID"
+    "--dart-define=GOOGLE_WEB_CLIENT_ORIGINS=$GOOGLE_WEB_CLIENT_ORIGINS"
+  )
+fi
+# The guarded expansion: bash 3.2 (macOS) calls an empty array unbound.
+flutter build web --release --pwa-strategy=none --no-web-resources-cdn \
+  ${google_defines[@]+"${google_defines[@]}"} "$@"
 
 # flutter build web writes flutter_service_worker.js whatever the PWA
 # strategy; with none, flutter_bootstrap.js calls load() with no service

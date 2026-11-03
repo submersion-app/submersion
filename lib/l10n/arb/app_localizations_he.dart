@@ -58166,6 +58166,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'דף אינטרנט נכנס ל-Google עם מזהה לקוח מפרויקט Google Cloud שלך: מסוג אפליקציית אינטרנט, עם כתובת האתר הזה כמקור JavaScript מורשה. הדבק אותו כאן. הוא נשמר עם פרטי הכניסה האחרים שלך.';
 
   @override
+  String get web_googleClientId_ownProjectNote =>
+      'מזהה לקוח משלכם רואה רק ספריית Google Drive שהאתר הזה יוצר. Google מפרידה בין תיקיות ה-Drive של כל פרויקט, ולכן את הספרייה שהטלפון והמחשב שלכם מסנכרנים עם Google Drive אי אפשר לפתוח כאן.';
+
+  @override
   String get web_googleClientId_hint =>
       '123456789-abc123.apps.googleusercontent.com';
 

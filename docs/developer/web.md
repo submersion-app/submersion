@@ -95,6 +95,21 @@ replaces the files must not get), copy the hosting files from
 missing file, a `sqlite3.wasm` that is not the lock's build, a service
 worker, or a source or sidecar in the bundle.
 
+Submersion's own site builds in its Google web client:
+
+```bash
+GOOGLE_WEB_CLIENT_ID=<id>.apps.googleusercontent.com \
+GOOGLE_WEB_CLIENT_ORIGINS=https://<the site's address> \
+  scripts/build_web.sh
+```
+
+The client must be a "Web application" client in the same Google Cloud
+project as the installed apps' clients, since Drive's app folder belongs
+to the project (`GoogleDriveClientConfig`), with each address in
+`GOOGLE_WEB_CLIENT_ORIGINS` listed as an authorised JavaScript origin. The
+build uses it only at those addresses; anywhere else, and in a build
+without it, the connect step asks for a client id of the user's own.
+
 To run the app in a browser during development:
 
 ```bash

@@ -93706,6 +93706,12 @@ abstract class AppLocalizations {
   /// Web app (issue #4121)
   ///
   /// In en, this message translates to:
+  /// **'A client id of your own sees only a Google Drive library this site starts. Google keeps each project\'s Drive folder apart, so the library your phone and computer sync to Google Drive cannot open here.'**
+  String get web_googleClientId_ownProjectNote;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
   /// **'123456789-abc123.apps.googleusercontent.com'**
   String get web_googleClientId_hint;
 

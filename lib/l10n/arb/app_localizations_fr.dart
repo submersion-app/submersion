@@ -59539,6 +59539,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une page web se connecte à Google avec un identifiant client de votre propre projet Google Cloud : de type Application Web, avec l\'adresse de ce site comme origine JavaScript autorisée. Collez-le ici. Il est conservé avec vos autres identifiants.';
 
   @override
+  String get web_googleClientId_ownProjectNote =>
+      'Un identifiant client à vous ne voit qu\'une bibliothèque Google Drive créée par ce site. Google sépare le dossier Drive de chaque projet : la bibliothèque que votre téléphone et votre ordinateur synchronisent avec Google Drive ne peut donc pas s\'ouvrir ici.';
+
+  @override
   String get web_googleClientId_hint =>
       '123456789-abc123.apps.googleusercontent.com';
 

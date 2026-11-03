@@ -64,6 +64,12 @@ void main() {
     return (result: () => result!, keychain: keychain, opened: opened);
   }
 
+  testWidgets('says plainly that an id of your own cannot open the library '
+      'the other apps sync', (tester) async {
+    await pumpDialog(tester);
+    expect(find.text(en.web_googleClientId_ownProjectNote), findsOneWidget);
+  });
+
   testWidgets('an id of the wrong shape is refused with a message', (
     tester,
   ) async {

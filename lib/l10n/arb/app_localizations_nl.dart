@@ -59034,6 +59034,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een webpagina meldt zich bij Google aan met een client-id uit je eigen Google Cloud-project: van het type Webtoepassing, met het adres van deze site als geautoriseerde JavaScript-oorsprong. Plak die hier. Hij wordt bij je andere aanmeldgegevens bewaard.';
 
   @override
+  String get web_googleClientId_ownProjectNote =>
+      'Een eigen client-ID ziet alleen een Google Drive-bibliotheek die deze site zelf aanmaakt. Google houdt de Drive-map van elk project gescheiden, dus de bibliotheek die je telefoon en computer met Google Drive synchroniseren, kan hier niet worden geopend.';
+
+  @override
   String get web_googleClientId_hint =>
       '123456789-abc123.apps.googleusercontent.com';
 

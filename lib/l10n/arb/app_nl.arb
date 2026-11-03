@@ -17542,6 +17542,7 @@
   "web_unavailable_offer_git": "Git-hosts accepteren geen verzoeken van een webpagina.",
   "web_googleClientId_title": "Google-client-id",
   "web_googleClientId_body": "Een webpagina meldt zich bij Google aan met een client-id uit je eigen Google Cloud-project: van het type Webtoepassing, met het adres van deze site als geautoriseerde JavaScript-oorsprong. Plak die hier. Hij wordt bij je andere aanmeldgegevens bewaard.",
+  "web_googleClientId_ownProjectNote": "Een eigen client-ID ziet alleen een Google Drive-bibliotheek die deze site zelf aanmaakt. Google houdt de Drive-map van elk project gescheiden, dus de bibliotheek die je telefoon en computer met Google Drive synchroniseren, kan hier niet worden geopend.",
   "web_googleClientId_hint": "123456789-abc123.apps.googleusercontent.com",
   "web_googleClientId_invalid": "Dat ziet er niet uit als een Google-client-id. Die eindigt op .apps.googleusercontent.com.",
   "web_googleClientId_help": "Zo maak je er een",

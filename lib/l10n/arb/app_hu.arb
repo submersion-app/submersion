@@ -17542,6 +17542,7 @@
   "web_unavailable_offer_git": "A Git-kiszolgálók nem fogadnak kéréseket weboldalról.",
   "web_googleClientId_title": "Google-ügyfélazonosító",
   "web_googleClientId_body": "Egy weboldal a saját Google Cloud-projekted ügyfélazonosítójával jelentkezik be a Google-ba: Webalkalmazás típusú, ennek az oldalnak a címével engedélyezett JavaScript-forrásként. Illeszd be ide. A többi bejelentkezési adatoddal együtt tároljuk.",
+  "web_googleClientId_ownProjectNote": "A saját kliensazonosító csak olyan Google Drive-könyvtárat lát, amelyet ez a webhely hoz létre. A Google projektenként külön tartja a Drive-mappát, ezért a telefonod és a számítógéped által a Google Drive-val szinkronizált könyvtár itt nem nyitható meg.",
   "web_googleClientId_hint": "123456789-abc123.apps.googleusercontent.com",
   "web_googleClientId_invalid": "Ez nem tűnik Google-ügyfélazonosítónak. A vége .apps.googleusercontent.com.",
   "web_googleClientId_help": "Így hozhatsz létre egyet",

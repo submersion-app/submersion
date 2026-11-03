@@ -158,9 +158,21 @@ Dropbox shows, and paste it back. Nothing to configure on Dropbox's side.
 
 ### Google Drive
 
-The app's built-in Google sign-in belongs to the installed apps; a page
-needs a client id of its own, from your own Google Cloud project, created
-once:
+On Submersion's own site, choose Google Drive and sign in: the site carries
+Submersion's Google client, so it opens the same library your phone and
+computer sync to Google Drive.
+
+**On a copy hosted anywhere else**, Google Drive works differently. Google
+keeps each app's Drive folder apart by the Google Cloud project its client
+belongs to, and the installed apps sync through Submersion's own project,
+which no other site can sign in with. A copy hosted elsewhere signs in with
+a client id from your own project, so it sees only a Drive library that
+copy starts: the library your phone and computer sync to Google Drive
+cannot open there. Use Submersion's own site for that library; a library
+kept in Dropbox, S3 or WebDAV opens from any copy.
+
+To use Google Drive on a copy hosted elsewhere, create a client id of your
+own, once:
 
 1. In the [Google Cloud console](https://console.cloud.google.com/),
    create a project (or pick one) and enable the **Google Drive API**

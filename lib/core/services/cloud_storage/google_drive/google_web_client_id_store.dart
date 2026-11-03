@@ -5,11 +5,12 @@ import 'package:submersion/core/services/secure_storage/fallback_secure_storage.
 /// The Google client id a browser signs in with (issue #4121).
 ///
 /// A web page cannot use the desktop or Android clients compiled into the
-/// app: it needs a client of type "Web application" from the user's own
-/// Google Cloud project, whose authorised JavaScript origin is the site's
-/// address. The user pastes it once; it lives with the other sign-in
-/// details, so "remember on this device" keeps it and Forget this device
-/// removes it.
+/// app: it needs a client of type "Web application" whose authorised
+/// JavaScript origin is the site's address. Submersion's own site carries
+/// one (`GoogleDriveClientConfig.builtInWebClientId`); anywhere else the
+/// user pastes one from their own Google Cloud project, once. It lives with
+/// the other sign-in details, so "remember on this device" keeps it and
+/// Forget this device removes it.
 class GoogleWebClientIdStore {
   GoogleWebClientIdStore({FlutterSecureStorage? storage})
     : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage());

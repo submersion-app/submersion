@@ -12,8 +12,10 @@ final Uri kGoogleWebClientIdGuide = Uri.parse(
 );
 
 /// Asks a browser user for the Google client id of their own Google Cloud
-/// project before the first Google sign-in (issue #4121). Checks the id's
-/// shape, stores it with the other sign-in details and pops `true`.
+/// project before the first Google sign-in, on a site that does not carry
+/// Submersion's own (issue #4121). Says first that such a client cannot see
+/// the Drive library the installed apps sync, checks the id's shape, stores
+/// it with the other sign-in details and pops `true`.
 ///
 /// [openUri] is injectable for widget tests; production uses [openInBrowser].
 class GoogleWebClientIdDialog extends ConsumerStatefulWidget {
@@ -75,6 +77,19 @@ class _GoogleWebClientIdDialogState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l10n.web_googleClientId_body),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l10n.web_googleClientId_ownProjectNote)),
+            ],
+          ),
           const SizedBox(height: 16),
           TextField(
             controller: _controller,

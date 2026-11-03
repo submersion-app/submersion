@@ -58472,6 +58472,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'A web page signs in to Google with a client id from your own Google Cloud project: type Web application, with this site\'s address as an authorised JavaScript origin. Paste it here. It is kept with your other sign-in details.';
 
   @override
+  String get web_googleClientId_ownProjectNote =>
+      'A client id of your own sees only a Google Drive library this site starts. Google keeps each project\'s Drive folder apart, so the library your phone and computer sync to Google Drive cannot open here.';
+
+  @override
   String get web_googleClientId_hint =>
       '123456789-abc123.apps.googleusercontent.com';
 

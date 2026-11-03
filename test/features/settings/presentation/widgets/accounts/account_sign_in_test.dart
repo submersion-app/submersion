@@ -47,6 +47,7 @@ void main() {
     FakeCloudStorageProvider drive, {
     bool browser = false,
     InMemoryKeychain? keychain,
+    String? builtInClientId,
   }) async {
     late BuildContext context;
     late WidgetRef ref;
@@ -63,6 +64,7 @@ void main() {
             googleWebClientIdStoreProvider.overrideWithValue(
               GoogleWebClientIdStore(storage: keychain ?? InMemoryKeychain()),
             ),
+            googleBuiltInWebClientIdProvider.overrideWithValue(builtInClientId),
           ],
         ],
         child: MaterialApp(
@@ -168,6 +170,21 @@ void main() {
         FakeCloudStorageProvider(),
         browser: true,
         keychain: keychain,
+      );
+      final row = await tester.runAsync(
+        () => addAccountRow(context, ref, AccountKindOffer.googleDrive),
+      );
+      expect(row, isNotNull);
+      expect(find.text('Google client id'), findsNothing);
+    });
+
+    testWidgets('on the site the built-in client id belongs to, the sign-in '
+        'runs without asking', (tester) async {
+      final (context, ref) = await pumpHost(
+        tester,
+        FakeCloudStorageProvider(),
+        browser: true,
+        builtInClientId: '433819313354-official.apps.googleusercontent.com',
       );
       final row = await tester.runAsync(
         () => addAccountRow(context, ref, AccountKindOffer.googleDrive),

@@ -59451,6 +59451,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Una página web inicia sesión en Google con un ID de cliente de tu propio proyecto de Google Cloud: de tipo Aplicación web, con la dirección de este sitio como origen de JavaScript autorizado. Pégalo aquí. Se guarda con tus otros datos de acceso.';
 
   @override
+  String get web_googleClientId_ownProjectNote =>
+      'Un ID de cliente propio solo ve una biblioteca de Google Drive que haya creado este sitio. Google mantiene separada la carpeta de Drive de cada proyecto, así que la biblioteca que tu teléfono y tu ordenador sincronizan con Google Drive no se puede abrir aquí.';
+
+  @override
   String get web_googleClientId_hint =>
       '123456789-abc123.apps.googleusercontent.com';
 

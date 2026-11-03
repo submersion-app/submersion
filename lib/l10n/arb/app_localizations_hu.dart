@@ -59077,6 +59077,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egy weboldal a saját Google Cloud-projekted ügyfélazonosítójával jelentkezik be a Google-ba: Webalkalmazás típusú, ennek az oldalnak a címével engedélyezett JavaScript-forrásként. Illeszd be ide. A többi bejelentkezési adatoddal együtt tároljuk.';
 
   @override
+  String get web_googleClientId_ownProjectNote =>
+      'A saját kliensazonosító csak olyan Google Drive-könyvtárat lát, amelyet ez a webhely hoz létre. A Google projektenként külön tartja a Drive-mappát, ezért a telefonod és a számítógéped által a Google Drive-val szinkronizált könyvtár itt nem nyitható meg.';
+
+  @override
   String get web_googleClientId_hint =>
       '123456789-abc123.apps.googleusercontent.com';
 

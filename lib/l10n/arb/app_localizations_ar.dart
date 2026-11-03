@@ -60206,6 +60206,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تسجّل صفحة الويب الدخول إلى Google بمعرّف عميل من مشروع Google Cloud الخاص بك: من نوع تطبيق ويب، مع عنوان هذا الموقع كأصل JavaScript مصرّح به. ألصقه هنا. يُحفظ مع بيانات تسجيل الدخول الأخرى.';
 
   @override
+  String get web_googleClientId_ownProjectNote =>
+      'معرّف العميل الخاص بك لا يرى إلا مكتبة Google Drive التي يبدؤها هذا الموقع. تفصل Google مجلد Drive لكل مشروع، لذلك لا يمكن فتح المكتبة التي يزامنها هاتفك وحاسوبك مع Google Drive هنا.';
+
+  @override
   String get web_googleClientId_hint =>
       '123456789-abc123.apps.googleusercontent.com';
 

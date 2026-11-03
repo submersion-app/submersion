@@ -233,3 +233,18 @@ offered on the connect step.
 
 - A demo database left behind when another tab held it at exit stays until the next entry replaces it or Forget removes it.
 
+## Google Drive's app folder
+
+Found while answering whether the site can be served from GitHub Pages:
+the installed apps sync through Drive's app folder, which Google keeps
+apart per Cloud project, so the guide's own-project client id could never
+see their library. The owner's answers: Submersion's own site signs in
+without asking, and a copy hosted elsewhere keeps Google Drive with a plain
+warning.
+
+### Rulings
+
+- The built-in client arrives at build time (`GOOGLE_WEB_CLIENT_ID` and `GOOGLE_WEB_CLIENT_ORIGINS`, passed on by `build_web.sh`) rather than committed beside the other ids, since it does not exist yet and a release build sets it without a code change. Cost if wrong: one line to commit instead
+- It applies only when the page's origin is one it is authorised for, so the release bundle a self-hoster serves elsewhere asks for an id of their own instead of failing at Google's sign-in. Cost if wrong: none
+- On the site it belongs to, the built-in id wins over an id pasted earlier, which could not see the library. Cost if wrong: someone who wants their own project there cannot choose it
+

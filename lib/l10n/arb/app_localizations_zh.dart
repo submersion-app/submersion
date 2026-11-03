@@ -55768,6 +55768,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '网页使用您自己的 Google Cloud 项目中的客户端 ID 登录 Google：类型为 Web 应用，并将本站地址设为已获授权的 JavaScript 来源。请粘贴到此处。它会与您的其他登录信息一起保存。';
 
   @override
+  String get web_googleClientId_ownProjectNote =>
+      '您自己的客户端 ID 只能看到由本网站创建的 Google Drive 资料库。Google 会将每个项目的 Drive 文件夹分开，因此您的手机和电脑同步到 Google Drive 的资料库无法在此打开。';
+
+  @override
   String get web_googleClientId_hint =>
       '123456789-abc123.apps.googleusercontent.com';
 

@@ -113,7 +113,11 @@ requests and shows the exact rule to add, with this site's address filled
 in and a **Copy rule** button. The user guide lists the rule for AWS S3,
 Cloudflare R2, Backblaze B2, MinIO, Nextcloud and plain WebDAV servers.
 Dropbox needs nothing. Google Drive needs a web client id from your own
-Google Cloud project, created once; the guide walks through it.
+Google Cloud project, created once (the guide walks through it), and on
+your site sees only a Drive library your site starts: Google keeps each
+project's Drive folder apart, so the library the installed apps sync to
+Google Drive opens only on Submersion's own site. Libraries in Dropbox, S3
+and WebDAV open from any site.
 
 ## What to know before you share the address
 

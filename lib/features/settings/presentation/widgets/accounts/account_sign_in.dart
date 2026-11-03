@@ -305,10 +305,11 @@ Future<bool> _signInGoogle(
   );
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l10n = context.l10n;
-  // A browser signs in with the user's own Google client id, asked for
-  // once before the first sign-in (issue #4121).
+  // A browser signs in with Submersion's own web client where the site is
+  // one it is authorised for, else with the user's own client id, asked
+  // for once before the first sign-in (issue #4121).
   final browser = ref.read(deviceCapabilitiesProvider).isBrowser;
-  if (browser) {
+  if (browser && ref.read(googleBuiltInWebClientIdProvider) == null) {
     final stored = await ref.read(googleWebClientIdStoreProvider).read();
     if (!context.mounted) return false;
     if (stored == null) {

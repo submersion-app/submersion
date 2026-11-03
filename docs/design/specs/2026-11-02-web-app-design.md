@@ -39,7 +39,7 @@ later, safe for a single public copy to serve every user.
 | 7 | Credentials | Forgotten when the tab closes by default. A "remember on this device" switch keeps them in browser storage |
 | 8 | Identity in the mesh | The browser registers as its own device, named after the browser and platform ("Chrome on Windows") |
 | 9 | Hosting bundle | A zip of static files on each release and a hosting guide with header snippets. A Dockerfile ships in the repository for anyone who wants an image; no image is published in this release |
-| 10 | Google and Dropbox sign-in | Self-hosters register their own Google client id and paste it in. Dropbox needs no registration (see Backends) |
+| 10 | Google and Dropbox sign-in | Self-hosters register their own Google client id and paste it in; Submersion's own site carries one (decision 19). Dropbox needs no registration (see Backends) |
 | 11 | Testing | The existing suite guards native. New VM tests cover the seams, the connect flow and the diagnoser. CI gains a web build job, a headless Chrome job for the browser database and sync against a MinIO container with a real cross-origin policy, and a smoke run of the built bundle in Chromium, Firefox and WebKit |
 | 12 | Browsers | Chromium, Firefox and Safari are equal targets. Heavy work runs in a compiled web worker so a large library's first sync streams to disk in all three and never freezes the tab |
 | 13 | Google Drive on the web | Accepted as the browser allows it: sign in to Google on each visit, hour-long tokens renewed in the background while signed in, a click when the browser blocks the renewal popup. "Remember on this device" keeps the client id, not the sign-in |
@@ -48,6 +48,7 @@ later, safe for a single public copy to serve every user.
 | 16 | Safety before a restore | A copy of the browser's library downloads first, as the desktop app backs up first. Skipped when the browser holds no dives |
 | 17 | Encrypted backups | Restored, with the browser's sync key when it matches or the passphrase or recovery code otherwise |
 | 18 | First-run entry points in a browser | Links on the connect step, where a browser's first run opens, beside Continue without a sync store |
+| 19 | Google Drive's app folder (found after the build) | Google keeps each Cloud project's Drive app folder apart, and the installed apps sync through Submersion's project, so a client id from anyone else's project can never see that library. Submersion's own site builds in a web client from the same project, used only at the addresses it is authorised for, and signs in without asking. A copy hosted anywhere else keeps Google Drive, and its client id dialog says plainly that such a client sees only a library that site starts |
 
 ## Goals
 
@@ -149,7 +150,7 @@ fact decides each backend's fate.
 | --- | --- | --- |
 | S3 and S3-compatible (AWS, Cloudflare R2, Backblaze B2, MinIO, Wasabi, Hetzner and so on) | Works once the bucket has a CORS rule naming the site's address | Pastes the same key, secret, endpoint, bucket and prefix as in the app. Adds the CORS rule the diagnoser prints |
 | Dropbox | Works as is. The app already uses the PKCE flow with a pasted code and no redirect address, and Dropbox's API answers browser requests | Signs in to Dropbox in a new tab, copies the code, pastes it |
-| Google Drive | Works with a Google client id of type "Web application" whose authorised JavaScript origin is the site's address. The desktop and Android client ids and the compiled-in secret do not apply | Creates a client id in their own Google Cloud project once and pastes it on the connect screen. The hosting guide walks through it |
+| Google Drive | Works with a Google client id of type "Web application" whose authorised JavaScript origin is the site's address. The desktop and Android client ids and the compiled-in secret do not apply. Only a client from Submersion's own Cloud project sees the library the installed apps sync (decision 19) | On Submersion's own site, signs in. On a copy hosted elsewhere, creates a client id in their own Google Cloud project once and pastes it on the connect screen, for a Drive library that site starts. The hosting guide walks through it |
 | WebDAV | Works once the server allows cross-origin requests. Nextcloud and ownCloud need headers added at the reverse proxy; plain Apache and nginx WebDAV need a header block | Adds the header block the diagnoser prints |
 | Git | Hidden in this release. GitHub, GitLab and Bitbucket refuse browser requests to git's smart HTTP endpoints, so only a self-hosted Gitea or Forgejo with CORS enabled could work, and the backend spools packs to temp files and classifies socket-level errors a browser never raises. A follow-up | Chooses another backend. The connect screen names Git as unavailable in a browser, with the reason |
 | iCloud Drive | Unavailable. There is no browser API | The connect screen says so and names the alternatives |

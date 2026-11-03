@@ -17542,6 +17542,7 @@
   "web_unavailable_offer_git": "Los servidores Git no aceptan solicitudes desde una página web.",
   "web_googleClientId_title": "ID de cliente de Google",
   "web_googleClientId_body": "Una página web inicia sesión en Google con un ID de cliente de tu propio proyecto de Google Cloud: de tipo Aplicación web, con la dirección de este sitio como origen de JavaScript autorizado. Pégalo aquí. Se guarda con tus otros datos de acceso.",
+  "web_googleClientId_ownProjectNote": "Un ID de cliente propio solo ve una biblioteca de Google Drive que haya creado este sitio. Google mantiene separada la carpeta de Drive de cada proyecto, así que la biblioteca que tu teléfono y tu ordenador sincronizan con Google Drive no se puede abrir aquí.",
   "web_googleClientId_hint": "123456789-abc123.apps.googleusercontent.com",
   "web_googleClientId_invalid": "Eso no parece un ID de cliente de Google. Termina en .apps.googleusercontent.com.",
   "web_googleClientId_help": "Cómo crear uno",
