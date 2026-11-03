@@ -703,8 +703,15 @@ class NearbyPairing {
     final secret = await _shared.pairSecret();
     final cipher = await _shared.sessionCipher(pairSecret: secret);
     final peer = await s._exchangeIdentity(cipher);
-    await _acknowledge(cipher);
+    // Stored before acknowledging: a keychain that refuses the write then
+    // fails this side before the peer hears it may keep the pairing.
     await s._secrets.store(peer.deviceId, secret);
+    try {
+      await _acknowledge(cipher);
+    } on Object {
+      await s._secrets.remove(peer.deviceId);
+      rethrow;
+    }
     return s._channel(peer, cipher);
   }
 

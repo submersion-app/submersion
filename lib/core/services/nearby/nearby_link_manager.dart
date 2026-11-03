@@ -81,6 +81,7 @@ class NearbyLinkManager {
     this.syncNowTimeout = const Duration(seconds: 20),
     this.recentSighting = const Duration(minutes: 2),
     this.scanRestartAfter = const Duration(seconds: 10),
+    this.pairingDialPause = const Duration(minutes: 2),
     this.partSize = 262144,
     String Function() pairingNonce = NearbySession.newPairingNonce,
   }) : _carrier = carrier,
@@ -127,6 +128,11 @@ class NearbyLinkManager {
 
   /// A local change dials only peers sighted this recently.
   final Duration recentSighting;
+
+  /// How long a code on screen holds back pairing dials. The diver answers
+  /// well within it, and a card whose peer left without answering (its
+  /// "Not mine" closes the link, not the card) stops blocking after it.
+  final Duration pairingDialPause;
 
   /// The least time between two starts of a running scan. Real radios
   /// report every advertisement, so a restart only freshens the sightings,
@@ -401,8 +407,11 @@ class NearbyLinkManager {
       // A code on screen means the other device is found. Another link
       // could only become a twin, and on Apple devices closing one can drop
       // the shared Bluetooth link the pairing runs on (issue #4154).
-      // Dialling resumes once the diver answers.
-      if (_pending.isNotEmpty) return;
+      // Dialling resumes once the diver answers, or after
+      // [pairingDialPause].
+      if (_pending.any((h) => !_waited(h.offeredAt, pairingDialPause))) {
+        return;
+      }
       if (!_pairingTried.add(transportId)) return;
       unawaited(_openPairing(transportId));
       return;

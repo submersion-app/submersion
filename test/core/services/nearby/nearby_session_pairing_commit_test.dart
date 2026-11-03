@@ -34,6 +34,14 @@ class _LosesIdentity extends ForwardingNearbyEndpoint {
   }
 }
 
+/// A keychain that refuses every write, as macOS does with -25308 when it
+/// cannot ask the user.
+class _RefusingSecrets extends MemoryNearbySecrets {
+  @override
+  Future<void> store(String peerDeviceId, Uint8List secret) async =>
+      throw StateError('keychain refused the write');
+}
+
 const _shortWait = Duration(milliseconds: 300);
 
 /// Opens a pairing from L (initiator) to P (responder), with L's or P's
@@ -50,9 +58,10 @@ Future<
 _confirmBoth({
   NearbyEndpoint Function(NearbyEndpoint)? wrapL,
   NearbyEndpoint Function(NearbyEndpoint)? wrapP,
+  MemoryNearbySecrets? laptopSecrets,
 }) async {
   final (out, into) = await nearbyLink();
-  final laptop = MemoryNearbySecrets();
+  final laptop = laptopSecrets ?? MemoryNearbySecrets();
   final phone = MemoryNearbySecrets();
   final incoming = NearbySession(
     endpoint: wrapP?.call(into) ?? into,
@@ -111,6 +120,14 @@ void main() {
       expect(r.laptopError, isA<NearbySessionRefused>());
       expect(r.phoneError, isNotNull);
       expect(r.laptop.map, isEmpty);
+      expect(r.phone.map, isEmpty);
+    });
+
+    test('a device whose keychain refuses the secret leaves the other '
+        'unpaired too', () async {
+      final r = await _confirmBoth(laptopSecrets: _RefusingSecrets());
+      expect(r.laptopError, isA<StateError>());
+      expect(r.phoneError, isNotNull);
       expect(r.phone.map, isEmpty);
     });
 

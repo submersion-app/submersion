@@ -30,6 +30,7 @@ class NearbyPairingHandle implements NearbyPairingOffer {
     required this.transportId,
     required this.dialled,
     required this.initiatorKey,
+    required this.offeredAt,
   });
 
   final NearbyLinkManager _manager;
@@ -42,6 +43,10 @@ class NearbyPairingHandle implements NearbyPairingOffer {
   /// The pairing nonce of the device that connected; with two pairings
   /// between the same two devices, the one started by the lower nonce stays.
   final String initiatorKey;
+
+  /// When the pairing reached this device: dialling pauses only so long
+  /// for it, since a card whose peer already left stays up until answered.
+  final DateTime offeredAt;
 
   /// This diver tapped "Same code" and the other has not answered yet.
   bool _confirming = false;
@@ -96,6 +101,7 @@ extension _NearbyLinkPairing on NearbyLinkManager {
             transportId: transportId,
             dialled: true,
             initiatorKey: _pairingNonce,
+            offeredAt: _now(),
           ),
         );
       } on Object catch (e) {
@@ -120,7 +126,7 @@ extension _NearbyLinkPairing on NearbyLinkManager {
     if (!_pairingMode || _disposed) {
       NearbyLinkManager._log.info(
         'Nearby pairing with ${handle.transportId} turned away: '
-        'pairing mode ended first',
+        '${_disposed ? 'the link was disposed' : 'pairing mode ended'} first',
       );
       await handle._pairing.reject();
       return;

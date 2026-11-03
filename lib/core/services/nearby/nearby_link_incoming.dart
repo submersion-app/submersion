@@ -75,6 +75,7 @@ extension _NearbyLinkIncoming on NearbyLinkManager {
             transportId: endpoint.transportId,
             dialled: false,
             initiatorKey: pairing.preview.nonce,
+            offeredAt: _now(),
           ),
         );
     }
