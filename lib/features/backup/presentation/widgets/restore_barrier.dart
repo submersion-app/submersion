@@ -85,40 +85,60 @@ class _RestoreOverlay extends StatelessWidget {
 
     // Announce the busy/restoring state to screen readers as a live region, and
     // exclude the inner widgets' own semantics so the state is announced once
-    // (not duplicated by the progress indicator and the label Text).
+    // (not duplicated by the progress indicator and the label Text). The Skip
+    // button stays outside the exclusion so a screen reader can reach it.
     return Semantics(
       container: true,
       liveRegion: true,
       label: label,
-      child: ExcludeSemantics(
-        child: Stack(
-          children: [
-            // Absorbs every pointer event and paints the scrim, so nothing
-            // beneath can be tapped or scrolled during the restore.
-            ModalBarrier(
+      child: Stack(
+        children: [
+          // Absorbs every pointer event and paints the scrim, so nothing
+          // beneath can be tapped or scrolled during the restore.
+          ExcludeSemantics(
+            child: ModalBarrier(
               dismissible: false,
               color: theme.colorScheme.scrim.withValues(alpha: 0.54),
             ),
-            Center(
-              child: Material(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 320),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: sweep == null
-                          ? _spinnerChildren(theme, label)
-                          : _sweepChildren(context, theme, sweep, label),
-                    ),
+          ),
+          Center(
+            child: Material(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ExcludeSemantics(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: sweep == null
+                              ? _spinnerChildren(theme, label)
+                              : _sweepChildren(context, theme, sweep, label),
+                        ),
+                      ),
+                      if (sweep != null) ...[
+                        const SizedBox(height: 8),
+                        // Skipping is lossless: unswept dives still compute
+                        // lazily when opened, and Settings > Safety >
+                        // "Analyze all dives" remains available.
+                        TextButton(
+                          onPressed: onSkipSweep,
+                          child: Text(
+                            context.l10n.backup_restore_safetyReview_skip,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -149,13 +169,6 @@ class _RestoreOverlay extends StatelessWidget {
       ),
       const SizedBox(height: 12),
       Text(label, style: theme.textTheme.bodyMedium),
-      const SizedBox(height: 8),
-      // Skipping is lossless: unswept dives still compute lazily when opened,
-      // and Settings > Safety > "Analyze all dives" remains available.
-      TextButton(
-        onPressed: onSkipSweep,
-        child: Text(context.l10n.backup_restore_safetyReview_skip),
-      ),
     ];
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -19,6 +20,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 PlanExportFile subplanExport(DivePlan plan) => (
   bytes: utf8.encode(planToSubplanJson(plan)),
   fileName: subplanFileName(plan.name),
+  mimeType: 'application/json',
+);
+
+/// [series] as a `.subplan` file.
+PlanExportFile seriesExport(StoredSeries series) => (
+  bytes: utf8.encode(seriesToSubplanJson(series)),
+  fileName: subplanFileName(series.name),
   mimeType: 'application/json',
 );
 

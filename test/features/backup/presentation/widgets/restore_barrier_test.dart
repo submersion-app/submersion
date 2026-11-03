@@ -122,6 +122,35 @@ void main() {
     },
   );
 
+  testWidgets('the sweep Skip button is a button screen readers can reach', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      wrap(
+        restoring: true,
+        sweepProgress: const SafetyReviewSweepProgress(done: 3, total: 10),
+        onTap: () {},
+      ),
+    );
+
+    expect(
+      tester.getSemantics(find.text('Skip')),
+      matchesSemantics(
+        label: 'Skip',
+        isButton: true,
+        hasTapAction: true,
+        hasEnabledState: true,
+        isEnabled: true,
+        isFocusable: true,
+        hasFocusAction: true,
+      ),
+    );
+    // The progress is still announced once, as the overlay's label.
+    expect(find.bySemanticsLabel('Analyzed 3 of 10 dives'), findsOneWidget);
+    handle.dispose();
+  });
+
   testWidgets('the restore barrier follows the theme scrim', (tester) async {
     await tester.pumpWidget(
       testApp(

@@ -29,9 +29,9 @@ Future<void> bootstrapApp() async {
 
   // Route uncaught Flutter framework and platform errors into the debug log so
   // future crashes are diagnosable from the user-shared log (issue #318).
-  installGlobalErrorHandlers(); // coverage:ignore-line
+  installGlobalErrorHandlers();
 
-  registerBundledLicenses(); // coverage:ignore-line
+  registerBundledLicenses();
 
   // Every HttpClient in the Dart VM (S3 sync, map tiles, NetworkImage,
   // weather, geocoding) goes through one hook. On Windows it supplies a
@@ -62,7 +62,7 @@ Future<void> bootstrapApp() async {
 
   // The image-cache cap and the data-quality toggles, after prefs and before
   // the first frame; see [applyStartupPreferences].
-  applyStartupPreferences(prefs); // coverage:ignore-line
+  applyStartupPreferences(prefs);
 
   // Load the proxy choice and, in system mode, ask the OS (at most 3 s, so
   // a slow PAC server cannot hold up launch), then keep it current as the

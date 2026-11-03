@@ -4,6 +4,29 @@ import 'package:submersion/features/agent_access/data/documents/document_dates.d
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/stored_series.dart';
+
+/// The agent-facing document for a saved repetitive series (issue #3565):
+/// its dives in order, each a dive plan read on its own, with its own name
+/// and which tank of the dive before each of its tanks carries from. What a
+/// dive carries in is worked out by the planner, never stored.
+Map<String, Object?> divePlanSeriesDocument(StoredSeries s) => {
+  'id': s.id,
+  'name': s.name,
+  'diver_id': s.diverId,
+  'followed_dive_id': s.followedDiveId,
+  'dives': [
+    for (final (index, dive) in s.dives.indexed)
+      {
+        'index': index,
+        'plan_id': dive.plan.id,
+        'name': dive.name,
+        'surface_interval_s': dive.plan.surfaceInterval?.inSeconds,
+        'carries_from_tank': dive.sourceTankIds,
+        'pinned_tank_ids': dive.pinnedTankIds.toList(),
+      },
+  ],
+};
 
 /// The agent-facing document for a dive plan: its settings, then its tanks,
 /// segments, gear and any scooter mission, which a plan always carries.

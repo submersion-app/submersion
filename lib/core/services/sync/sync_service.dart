@@ -1663,6 +1663,12 @@ class SyncService {
           ),
           (type: 'gpsTracks', records: data.gpsTracks, hasUpdatedAt: true),
           (type: 'navTracks', records: data.navTracks, hasUpdatedAt: true),
+          // Before divePlans, whose series_id references it.
+          (
+            type: 'divePlanSeries',
+            records: data.divePlanSeries,
+            hasUpdatedAt: true,
+          ),
           (type: 'divePlans', records: data.divePlans, hasUpdatedAt: true),
           (
             type: 'divePlanTanks',
@@ -2991,6 +2997,7 @@ class SyncService {
     'preDiveSessionItems': true,
     'gpsTracks': true,
     'navTracks': true,
+    'divePlanSeries': true,
     'divePlans': true,
     'diveScenarios': true,
     'divePlanTanks': true,
@@ -3638,10 +3645,15 @@ class SyncService {
       (field: 'sessionId', parent: 'preDiveSessions', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
+    'divePlanSeries': [
+      (field: 'diverId', parent: 'divers', nullable: true),
+      (field: 'followedDiveId', parent: 'dives', nullable: true),
+    ],
     'divePlans': [
       (field: 'siteId', parent: 'diveSites', nullable: true),
       (field: 'sourceDiveId', parent: 'dives', nullable: true),
       (field: 'linkedDiveId', parent: 'dives', nullable: true),
+      (field: 'seriesId', parent: 'divePlanSeries', nullable: true),
     ],
     'divePlanTanks': [(field: 'planId', parent: 'divePlans', nullable: false)],
     'divePlanSegments': [

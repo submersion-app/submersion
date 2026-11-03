@@ -109,6 +109,7 @@ Widget _host(
   List<Diver> divers = const [],
   Set<String> sharedSites = const {},
   Future<List<BuddyWithDiveCount>> Function()? buddies,
+  List<DivePlanSummary>? plans,
   List<EquipmentItem> equipment = const [
     EquipmentItem(id: 'x', name: 'Primary', type: EquipmentType.regulator),
   ],
@@ -202,9 +203,16 @@ Widget _host(
       (ref, scope) async => const <String, List<Tag>>{},
     ),
     divePlanSummariesProvider.overrideWith(
-      (ref) async => [
-        DivePlanSummary(id: 'x', name: 'Deep', updatedAt: _now, maxDepth: 45),
-      ],
+      (ref) async =>
+          plans ??
+          [
+            DivePlanSummary(
+              id: 'x',
+              name: 'Deep',
+              updatedAt: _now,
+              maxDepth: 45,
+            ),
+          ],
     ),
     gpsTracksProvider.overrideWith(
       (ref) async => const [GpsTrack(id: 'x', startTime: 1000, endTime: 2000)],
@@ -372,6 +380,35 @@ void main() {
       tester.getTopLeft(find.text('Buddy b')).dy,
       lessThan(tester.getTopLeft(find.text('Buddy a')).dy),
     );
+  });
+
+  testWidgets('a saved series is one row, opening on the dive found', (
+    tester,
+  ) async {
+    DivePlanSummary dive(String id, int index) => DivePlanSummary(
+      id: id,
+      name: 'Reef day',
+      updatedAt: _now,
+      seriesId: 's',
+      seriesIndex: index,
+      maxDepth: 20.0 + index,
+    );
+    String? opened;
+    await tester.pumpWidget(
+      _host(
+        GlobalSearchKind.divePlans,
+        ids: const ['b', 'c'],
+        plans: [dive('a', 0), dive('b', 1), dive('c', 2)],
+        onOpen: (id) => opened = id,
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(SavedPlanTile), findsOneWidget);
+    expect(find.textContaining('3 dives'), findsOneWidget);
+    await tester.tap(find.byType(SavedPlanTile));
+    expect(opened, 'b');
   });
 
   testWidgets('leaves out a record that has just gone', (tester) async {

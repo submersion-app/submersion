@@ -43,7 +43,26 @@ class PreviewChangesTool implements AgentTool {
         'fields, null clears a field and a key left out stays as it is. A '
         'relation takes add and remove, or set for the whole list. An update '
         'or delete acts on the record whichever profile owns it; a create '
-        'uses diver_id, or the active profile. Writable: $entities.';
+        'uses diver_id, or the active profile. $_children'
+        'Writable: $entities.';
+  }
+
+  /// How a record that belongs to another is created, one sentence per kind
+  /// of parent.
+  String get _children {
+    final byParent = <(String, String), List<String>>{};
+    for (final e in _writes.all) {
+      if (e.parent case final parent?) {
+        (byParent[(parent.entity, parent.field)] ??= []).add(e.name);
+      }
+    }
+    return [
+      for (final MapEntry(key: (entity, field), value: names)
+          in byParent.entries)
+        'Each ${names.join(', ')} record belongs to one record of $entity: '
+            'a create names it in $field and takes its profile, and the '
+            'record stays on it. ',
+    ].join();
   }
 
   @override

@@ -20933,16 +20933,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minuten meer';
 
   @override
+  String get plannerSeries_unsaved_title => 'Deze reeks opslaan?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Deze reeks heeft niet-opgeslagen wijzigingen.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Verwerpen';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'Deze duik opslaan?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Deze duik heeft niet-opgeslagen wijzigingen.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count duiken';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank vullen';
   }
 
   @override
   String get plannerSeries_fillAll => 'Alle flessen vullen';
-
-  @override
-  String get plannerSeries_saveUnavailable =>
-      'Een reeks duiken kan nog niet worden opgeslagen';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -24467,6 +24485,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ademmodus voor dit segment';
 
   @override
+  String get settings_conflict_field_diveName => 'Naam van de duik';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Duikorganisatie';
 
   @override
@@ -25422,6 +25443,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_section => 'Sectie';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Positie in de reeks';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Soort onderhoud';
 
   @override
@@ -25616,6 +25640,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Bronbestand of -apparaat';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Overgenomen van fles';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Flesnummer in het bronlogboek';
 
@@ -25643,6 +25670,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Begindiepte';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Begindruk handmatig ingesteld';
 
   @override
   String get settings_conflict_field_startTime => 'Starttijd';
@@ -26512,6 +26543,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Duikplan';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Duikreeks';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Rol tijdens de duik';
 
   @override
@@ -26537,6 +26571,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Bevinding';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Voorafgaande duik';
 
   @override
   String get settings_conflict_ref_importedFile => 'Geïmporteerd bestand';
@@ -26625,6 +26662,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_tank => 'Fles';
+
+  @override
+  String get settings_conflict_ref_weight => 'Gewicht';
 
   @override
   String get settings_conflict_ref_transmitter => 'Zender';

@@ -43,21 +43,20 @@ ProviderContainer _container(List<Override> overrides) {
   return c;
 }
 
+/// Every input the offers read, the device's capabilities included: left to
+/// the host, iCloud and Google Drive are there on macOS and missing on the
+/// Linux runners, so these tests passed here and failed in CI (#4182).
 List<Override> _gates({
   bool apple = true,
   ICloudAvailability icloud = ICloudAvailability.available,
   bool drive = true,
   bool dropbox = true,
 }) => [
-  // Every cloud the platform table can allow, so the build gates below are
-  // what decide; the host's own table would drop iCloud and Google Drive on
-  // a Linux runner.
   deviceCapabilitiesProvider.overrideWithValue(
     DeviceCapabilities.web.copyWith(
       cloudICloud: true,
-      cloudGit: true,
       cloudGoogleDrive: true,
-      isBrowser: false,
+      cloudGit: true,
     ),
   ),
   isApplePlatformProvider.overrideWithValue(apple),

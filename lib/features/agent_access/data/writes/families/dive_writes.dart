@@ -11,6 +11,8 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
+    show DiveGearPreview;
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
@@ -79,6 +81,8 @@ class DiveWrites extends WritableEntry {
     'tags': RelationSpec(refEntity: 'tags'),
     'types': RelationSpec(refEntity: 'dive_types'),
     'site': RelationSpec(refEntity: 'sites', single: true, copiesTarget: true),
+    'gear': RelationSpec(refEntity: 'equipment'),
+    'courses': RelationSpec(refEntity: 'courses'),
   };
 
   @override
@@ -101,21 +105,27 @@ class DiveWrites extends WritableEntry {
       'tags' => {for (final t in await _r.tags.getTagsForDive(id)) t.id},
       'types' => _types(id),
       'site' => {?(await _row(id))?.siteId},
+      'gear' => _ids('dive_equipment', 'equipment_id', id),
+      'courses' => _ids('dive_courses', 'course_id', id),
       _ => const {},
     };
   }
 
-  /// A dive with no type links has its one legacy type, as a dive read says.
-  Future<Set<String>> _types(String id) async {
-    final links = await DatabaseService.instance.database
+  /// The [column] of every row of [table] on dive [id].
+  Future<Set<String>> _ids(String table, String column, String id) async {
+    final rows = await DatabaseService.instance.database
         .customSelect(
-          'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ?',
+          'SELECT $column FROM $table WHERE dive_id = ?',
           variables: [Variable.withString(id)],
         )
         .get();
-    if (links.isNotEmpty) {
-      return {for (final row in links) row.read<String>('dive_type_id')};
-    }
+    return {for (final row in rows) row.read<String>(column)};
+  }
+
+  /// A dive with no type links has its one legacy type, as a dive read says.
+  Future<Set<String>> _types(String id) async {
+    final links = await _ids('dive_dive_types', 'dive_type_id', id);
+    if (links.isNotEmpty) return links;
     return {?(await _row(id))?.diveType};
   }
 
@@ -155,6 +165,21 @@ class DiveWrites extends WritableEntry {
       final added = types.difference(await currentRelation(id, 'types'));
       if (added.isNotEmpty) relations['types'] = added;
     }
+    final lost = <String, Set<String>>{};
+    if (update.relations['gear'] case final gear?) {
+      // An assembly brings its active parts, and an item taken off takes
+      // what is attached through it, as the bulk editor does.
+      final now = await currentRelation(id, 'gear');
+      final after = await _r.dives.gearIdsAfter(
+        id,
+        add: gear.add.toList(),
+        remove: gear.remove.toList(),
+      );
+      final gained = after.difference(now).difference(gear.add);
+      final dropped = now.difference(after).difference(gear.remove);
+      if (gained.isNotEmpty) relations['gear'] = gained;
+      if (dropped.isNotEmpty) lost['gear'] = dropped;
+    }
     if (update.values['visibility'] != null) {
       for (final key in _measuredVisibility) {
         if (document[key] != null) fields[key] = null;
@@ -170,7 +195,7 @@ class DiveWrites extends WritableEntry {
         }
       }
     }
-    return SideEffects(fields: fields, relations: relations);
+    return SideEffects(fields: fields, relations: relations, lost: lost);
   }
 
   @override
@@ -395,6 +420,40 @@ class DiveWrites extends WritableEntry {
               DiveTypesOp(
                 mode: BulkCollectionMode.remove,
                 diveTypeIds: delta.remove.toList(),
+              ),
+            );
+          }
+        case 'gear':
+          if (delta.add.isNotEmpty) {
+            ops.add(
+              EquipmentOp(
+                mode: BulkCollectionMode.add,
+                equipmentIds: delta.add.toList(),
+              ),
+            );
+          }
+          if (delta.remove.isNotEmpty) {
+            ops.add(
+              EquipmentOp(
+                mode: BulkCollectionMode.remove,
+                equipmentIds: delta.remove.toList(),
+              ),
+            );
+          }
+        case 'courses':
+          if (delta.add.isNotEmpty) {
+            ops.add(
+              DiveCoursesOp(
+                mode: BulkCollectionMode.add,
+                courseIds: delta.add.toList(),
+              ),
+            );
+          }
+          if (delta.remove.isNotEmpty) {
+            ops.add(
+              DiveCoursesOp(
+                mode: BulkCollectionMode.remove,
+                courseIds: delta.remove.toList(),
               ),
             );
           }

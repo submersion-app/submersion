@@ -1,15 +1,12 @@
 part of '../app_database_migrations.dart';
 
-/// The rungs that take a database to schema version 231 and above.
-///
-/// New rungs are appended here. When this file nears 800 lines, give
-/// it a closed range like its neighbours and start the next one.
+/// The rungs that take a database to schema versions 231 to 339.
 ///
 /// A rung that rewrites stored values in place (not one that only adds
 /// columns or copies them) lists the column in `changeLogRewrittenColumns`,
 /// so a revert will not put back a value from before the rewrite.
-extension RungsFromV231 on AppDatabase {
-  Future<void> _rungsFromV231(
+extension RungsV231ToV339 on AppDatabase {
+  Future<void> _rungsV231ToV339(
     Migrator m,
     int from,
     Future<void> Function() reportProgress,
@@ -789,11 +786,5 @@ extension RungsFromV231 on AppDatabase {
     // claimed first for issue #3062.
     if (from < 339) await _assertDiveComputerAutoDownloadDisabledColumn();
     if (from < 339) await reportProgress();
-
-    // v340: a combined dive's water temperature, CNS at the end and OTU
-    // describe the whole dive again rather than its first segment (issue
-    // #4136). Data only, so the compatibility floor does not move.
-    if (from < 340) await repairCombinedDiveSummaries(this);
-    if (from < 340) await reportProgress();
   }
 }

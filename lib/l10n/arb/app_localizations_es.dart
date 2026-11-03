@@ -21060,16 +21060,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minutos más';
 
   @override
+  String get plannerSeries_unsaved_title => '¿Guardar esta serie?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Esta serie tiene cambios sin guardar.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Descartar';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => '¿Guardar esta inmersión?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Esta inmersión tiene cambios sin guardar.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count inmersiones';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Llenar $tank';
   }
 
   @override
   String get plannerSeries_fillAll => 'Llenar todas las botellas';
-
-  @override
-  String get plannerSeries_saveUnavailable =>
-      'Todavía no se puede guardar una serie de inmersiones';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -24631,6 +24649,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Modo de respiración en este tramo';
 
   @override
+  String get settings_conflict_field_diveName => 'Nombre de la inmersión';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Operador de buceo';
 
   @override
@@ -25597,6 +25618,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_section => 'Sección';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Posición en la serie';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Tipo de mantenimiento';
 
   @override
@@ -25796,6 +25820,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Archivo o dispositivo de origen';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Traspasada de la botella';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Número de tanque en el registro de origen';
 
@@ -25823,6 +25850,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Profundidad inicial';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Presión inicial fijada a mano';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de inicio';
@@ -26701,6 +26732,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Plan de buceo';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Serie de inmersiones';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Función en la inmersión';
 
   @override
@@ -26726,6 +26760,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Hallazgo';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Inmersión anterior';
 
   @override
   String get settings_conflict_ref_importedFile => 'Archivo importado';
@@ -26816,6 +26853,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_tank => 'Tanque';
+
+  @override
+  String get settings_conflict_ref_weight => 'Lastre';
 
   @override
   String get settings_conflict_ref_transmitter => 'Transmisor';

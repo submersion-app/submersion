@@ -646,4 +646,12 @@ TDD applies. Minimum coverage:
 | A link that copies values from its target (a dive's site) is blocked after a change to that target earlier in the same set | review |
 | The write coverage guard knows a write by any verb repositories use for one, not only create, update and delete | review |
 | A second apply while a dialog is open is refused, not queued | design |
+| Tanks, weights and sightings are written one record at a time, by the ids `get_records` returns, not as a dive's whole list | Eric |
+| A child record takes its dive's owner, names the dive in `dive_id` when created, and stays on it; a sighting keeps its species | design |
+| A child's version marker is its dive's `updated_at`, which every child write stamps, plus a footprint of the child's own document | design |
+| A change to a child of a dive the same set deletes is blocked | design |
+| A tank's mix must have oxygen from 0.05 to 1, helium up to 0.95, and the two at most 1, judged after the change | design |
+| A weight label with spaces at either end is blocked, since every weight write stores it trimmed | design |
+| Adding an assembly to a dive's gear lists its active parts as indirect, and removing an item lists what goes with it | design |
+| The confirmation dialog shows pressures, weights, cylinder sizes and gas fractions in the diver's units | design |
 | `revert_operation` keeps records changed since unless `include_changed_since` is set, and asks the diver nothing | design |

@@ -20756,16 +20756,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minutes more';
 
   @override
+  String get plannerSeries_unsaved_title => 'Save this series?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'This series has changes that haven\'t been saved.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Discard';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'Save this dive?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'This dive has changes that haven\'t been saved.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count dives';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Fill $tank';
   }
 
   @override
   String get plannerSeries_fillAll => 'Fill all tanks';
-
-  @override
-  String get plannerSeries_saveUnavailable =>
-      'A series of dives can\'t be saved yet';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -24237,6 +24255,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Breathing mode for this segment';
 
   @override
+  String get settings_conflict_field_diveName => 'Dive name';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Dive operator';
 
   @override
@@ -25160,6 +25181,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_section => 'Section';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Position in series';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Service type';
 
   @override
@@ -25349,6 +25373,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Source file or device';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Carried over from tank';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Tank number in the source log';
 
@@ -25376,6 +25403,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Start depth';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Start pressure set by hand';
 
   @override
   String get settings_conflict_field_startTime => 'Start time';
@@ -26235,6 +26266,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Dive plan';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Dive series';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Dive role';
 
   @override
@@ -26260,6 +26294,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Finding';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Followed dive';
 
   @override
   String get settings_conflict_ref_importedFile => 'Imported file';
@@ -26347,6 +26384,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_tank => 'Tank';
+
+  @override
+  String get settings_conflict_ref_weight => 'Weight';
 
   @override
   String get settings_conflict_ref_transmitter => 'Transmitter';

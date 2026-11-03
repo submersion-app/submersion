@@ -21364,15 +21364,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => 'أكثر بـ 15 دقيقة';
 
   @override
+  String get plannerSeries_unsaved_title => 'هل تريد حفظ هذه السلسلة؟';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'تحتوي هذه السلسلة على تغييرات غير محفوظة.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'تجاهل';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'هل تريد حفظ هذه الغطسة؟';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'تحتوي هذه الغطسة على تغييرات غير محفوظة.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'ملء $tank';
   }
 
   @override
   String get plannerSeries_fillAll => 'ملء كل الأسطوانات';
-
-  @override
-  String get plannerSeries_saveUnavailable => 'لا يمكن حفظ سلسلة غطسات بعد';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -24899,6 +24927,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'وضع التنفس لهذا المقطع';
 
   @override
+  String get settings_conflict_field_diveName => 'اسم الغطسة';
+
+  @override
   String get settings_conflict_field_diveOperator => 'مشغل الغوص';
 
   @override
@@ -25822,6 +25853,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_section => 'القسم';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'الموضع في السلسلة';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'نوع الصيانة';
 
   @override
@@ -26008,6 +26042,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'الملف أو الجهاز المصدر';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'منقولة من الأسطوانة';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'رقم الأسطوانة في السجل المصدر';
 
@@ -26035,6 +26072,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'عمق البداية';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'ضغط البداية محدد يدويًا';
 
   @override
   String get settings_conflict_field_startTime => 'وقت البدء';
@@ -26914,6 +26955,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'خطة الغوص';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'سلسلة الغطسات';
+
+  @override
   String get settings_conflict_ref_diveRole => 'الدور في الغوص';
 
   @override
@@ -26939,6 +26983,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'الملاحظة';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'الغطسة السابقة';
 
   @override
   String get settings_conflict_ref_importedFile => 'ملف مستورد';
@@ -27027,6 +27074,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_tank => 'الأسطوانة';
+
+  @override
+  String get settings_conflict_ref_weight => 'ثقل';
 
   @override
   String get settings_conflict_ref_transmitter => 'المرسل';
