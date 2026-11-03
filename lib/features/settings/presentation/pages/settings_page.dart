@@ -72,10 +72,31 @@ import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 /// The URL for the GitHub issues page, used by [launchReportIssue].
 const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';
 
+/// The URL for the published user guide, used by [launchUserGuide].
+const userGuideUrl = 'https://submersion.app/guide/';
+
 /// Opens the GitHub issues page in an external browser. Falls back to a
 /// snackbar with a copy-link action if the launch fails.
-Future<void> launchReportIssue(BuildContext context) async {
-  final uri = Uri.parse(reportIssueUrl);
+Future<void> launchReportIssue(BuildContext context) => _launchExternalLink(
+  context,
+  url: reportIssueUrl,
+  fallbackMessage: context.l10n.settings_about_reportIssue_snackbar,
+);
+
+/// Opens the user guide in an external browser, with the same copy-link
+/// fallback as [launchReportIssue] (issue #4145).
+Future<void> launchUserGuide(BuildContext context) => _launchExternalLink(
+  context,
+  url: userGuideUrl,
+  fallbackMessage: context.l10n.settings_about_userGuide_snackbar,
+);
+
+Future<void> _launchExternalLink(
+  BuildContext context, {
+  required String url,
+  required String fallbackMessage,
+}) async {
+  final uri = Uri.parse(url);
   var didLaunch = false;
 
   // No canLaunchUrl guard: it false-negatives for https on Android 11+
@@ -89,12 +110,11 @@ Future<void> launchReportIssue(BuildContext context) async {
   if (!didLaunch && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(context.l10n.settings_about_reportIssue_snackbar),
+        content: Text(fallbackMessage),
         persist: false,
         action: SnackBarAction(
           label: context.l10n.settings_about_reportIssue_copy,
-          onPressed: () =>
-              Clipboard.setData(const ClipboardData(text: reportIssueUrl)),
+          onPressed: () => Clipboard.setData(ClipboardData(text: url)),
         ),
       ),
     );
@@ -2183,6 +2203,12 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                     ),
                   ),
                 ],
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.menu_book_outlined),
+                  title: Text(context.l10n.settings_about_userGuide),
+                  onTap: () => launchUserGuide(context),
+                ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.bug_report),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -1414,6 +1415,36 @@ void main() {
 
       expect(find.textContaining('Bathymetry data'), findsNothing);
       expect(find.text('Open Source Licenses'), findsOneWidget);
+    });
+
+    testWidgets('links the user guide just above Report an Issue (#4145)', (
+      tester,
+    ) async {
+      String? launchedUrl;
+      const channel = MethodChannel('plugins.flutter.io/url_launcher');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method != 'launch') return null;
+            launchedUrl = (call.arguments as Map)['url'] as String?;
+            return true;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      final guideTop = tester.getTopLeft(find.text('User Guide')).dy;
+      final reportTop = tester.getTopLeft(find.text('Report an Issue')).dy;
+      expect(guideTop, lessThan(reportTop));
+
+      await tester.tap(find.text('User Guide'));
+      await tester.pumpAndSettle();
+
+      expect(launchedUrl, userGuideUrl);
     });
 
     testWidgets('shows the channel selector on stable', (tester) async {
