@@ -38,10 +38,16 @@ class PlanBlock {
 /// the parent's write and read name, and [field] names the parent on the
 /// child, as the document key and the column.
 class ChildOf {
-  const ChildOf({required this.entity, required this.field});
+  const ChildOf({required this.entity, required this.field, String? column})
+    : _column = column;
 
   final String entity;
   final String field;
+  final String? _column;
+
+  /// The child's column naming the parent, when the table calls it other
+  /// than the document does: a gear note's `center_id` is `dive_center_id`.
+  String get column => _column ?? field;
 }
 
 /// One link a record can hold. [refEntity] is the read catalogue's name for

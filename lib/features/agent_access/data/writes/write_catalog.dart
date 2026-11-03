@@ -2,6 +2,9 @@ import 'package:submersion/core/services/shared_library/library_edit_stamper.dar
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/annotation_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/buddy_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/center_gear_note_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/center_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/custom_certification_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/custom_field_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_role_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_type_writes.dart';
@@ -45,6 +48,10 @@ class WriteCatalog {
       DiveRoleWrites(repositories),
       SiteTypeWrites(repositories),
       SpeciesWrites(repositories),
+      CenterWrites(repositories),
+      CenterGearNoteWrites(repositories),
+      CustomAgencyWrites(repositories),
+      CustomLevelWrites(repositories),
     ]);
   }
 

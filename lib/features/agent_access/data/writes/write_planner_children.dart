@@ -47,9 +47,9 @@ extension _ChildRules on _Pass {
       return 'SELECT r.id, $owner, $version, NULL AS parent_id '
           'FROM ${entry.table} r';
     }
-    return 'SELECT r.id, p.diver_id, p.updated_at, r.${parent.field} AS '
+    return 'SELECT r.id, p.diver_id, p.updated_at, r.${parent.column} AS '
         'parent_id FROM ${entry.table} r JOIN ${_parentTable(entry)} p '
-        'ON p.id = r.${parent.field}';
+        'ON p.id = r.${parent.column}';
   }
 
   String _parentTable(WritableEntry entry) =>

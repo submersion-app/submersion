@@ -155,6 +155,22 @@ void main() {
     expect(codec.wire(codec.parse(<String>[])), isEmpty);
   });
 
+  test('textList keeps the order and compares with a document list', () {
+    const codec = FieldCodec.textList(maxItems: 3, maxLength: 10);
+    final parsed = codec.parse(['PADI', 'SSI']);
+    expect(codec.wire(parsed), ['PADI', 'SSI']);
+    expect(parsed, codec.canonical(['PADI', 'SSI']));
+    expect(parsed, isNot(codec.canonical(['SSI', 'PADI'])));
+  });
+
+  test('textList refuses a blank, a long item or too many', () {
+    const codec = FieldCodec.textList(maxItems: 2, maxLength: 5);
+    expect(() => codec.parse(['PADI', ' ']), _refused('blank'));
+    expect(() => codec.parse(['TOOLONG']), _refused('5'));
+    expect(() => codec.parse(['A', 'B', 'C']), _refused('2'));
+    expect(() => codec.parse('PADI'), _refused('list'));
+  });
+
   test('enumSet refuses an unknown name, a repeat or too few', () {
     final codec = FieldCodec.enumSet(_Mood.values, min: 1);
     expect(() => codec.parse(['calm', 'stormy']), _refused('calm, rough'));

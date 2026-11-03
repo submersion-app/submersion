@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 
 /// Why one requested value cannot be written.
@@ -42,6 +44,11 @@ abstract class FieldCodec {
   /// The parsed value is the sorted names joined with commas, so a set
   /// compares with a document's list whatever order either is in.
   factory FieldCodec.enumSet(Iterable<Enum> values, {int min}) = _EnumSetCodec;
+
+  /// A list of short texts in order, such as a dive center's affiliations.
+  /// The parsed value is the list as JSON, so it compares with a document's.
+  const factory FieldCodec.textList({int maxItems, int maxLength}) =
+      _TextListCodec;
 
   /// A wall clock, written as documents write it, with a nominal `Z`.
   const factory FieldCodec.wallClock() = _WallClockCodec;
@@ -216,6 +223,40 @@ class _EnumSetCodec extends FieldCodec {
 
   static String _joined(Set<String> names) =>
       (names.toList()..sort()).join(',');
+}
+
+class _TextListCodec extends FieldCodec {
+  const _TextListCodec({this.maxItems = 20, this.maxLength = 100});
+
+  final int maxItems;
+  final int maxLength;
+
+  @override
+  String get describe => 'a list of texts';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! List) throw const FieldRefusal('This field takes a list.');
+    if (raw.length > maxItems) {
+      throw FieldRefusal('This field holds at most $maxItems items.');
+    }
+    for (final item in raw) {
+      if (item is! String || item.trim().isEmpty) {
+        throw const FieldRefusal('Each item is text and cannot be blank.');
+      }
+      if (item.length > maxLength) {
+        throw FieldRefusal('Each item holds at most $maxLength characters.');
+      }
+    }
+    return jsonEncode(raw);
+  }
+
+  @override
+  Object? canonical(Object? documentValue) =>
+      documentValue is List ? jsonEncode(documentValue) : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
 }
 
 class ReferenceCodec extends FieldCodec {

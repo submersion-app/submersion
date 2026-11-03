@@ -136,6 +136,32 @@ void main() {
         'sites',
     'lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTagsToSites':
         'sites',
+    'lib/features/dive_centers/data/repositories/dive_center_repository.dart:createDiveCenter':
+        'centers',
+    'lib/features/dive_centers/data/repositories/dive_center_repository.dart:updateDiveCenter':
+        'centers',
+    'lib/features/dive_centers/data/repositories/dive_center_repository.dart:deleteDiveCenter':
+        'centers',
+    'lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:create':
+        'center_gear_notes',
+    'lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:update':
+        'center_gear_notes',
+    'lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:delete':
+        'center_gear_notes',
+    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:createAgency':
+        'custom_agencies',
+    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:updateAgency':
+        'custom_agencies',
+    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:deleteAgency':
+        'custom_agencies',
+    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:createLevel':
+        'custom_levels',
+    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:updateLevel':
+        'custom_levels',
+    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:deleteLevel':
+        'custom_levels',
+    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:reorderProgression':
+        'custom_levels',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

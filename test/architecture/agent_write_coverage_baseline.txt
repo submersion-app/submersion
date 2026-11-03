@@ -17,13 +17,6 @@ lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite
 lib/features/buddies/data/repositories/buddy_repository.dart:undoLegacyConversion
 lib/features/buddies/data/repositories/buddy_repository.dart:undoMerge
 lib/features/buddies/data/repositories/buddy_repository.dart:updateBuddy
-lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:createAgency
-lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:createLevel
-lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:deleteAgency
-lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:deleteLevel
-lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:reorderProgression
-lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:updateAgency
-lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:updateLevel
 lib/features/certifications/data/repositories/certification_currency_repository.dart:createEvent
 lib/features/certifications/data/repositories/certification_currency_repository.dart:createRule
 lib/features/certifications/data/repositories/certification_currency_repository.dart:deleteEvent
@@ -95,12 +88,6 @@ lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:
 lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:unlinkFromDeletedEquipment
 lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:update
 lib/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart:assignPassportId
-lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:create
-lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:delete
-lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:update
-lib/features/dive_centers/data/repositories/dive_center_repository.dart:createDiveCenter
-lib/features/dive_centers/data/repositories/dive_center_repository.dart:deleteDiveCenter
-lib/features/dive_centers/data/repositories/dive_center_repository.dart:updateDiveCenter
 lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:duplicateScenario
 lib/features/dive_log/data/repositories/derived_metrics_repository.dart:saveMetrics
 lib/features/dive_log/data/repositories/dive_computer_merge_repository.dart:mergeComputers

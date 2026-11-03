@@ -484,19 +484,37 @@ class CustomCertificationRepository {
     required bool isShared,
     String? exceptId,
   }) async {
-    final lower = name.toLowerCase();
+    if (await agencyNameTaken(
+      name,
+      diverId: diverId,
+      isShared: isShared,
+      exceptId: exceptId,
+    )) {
+      throw CertificationNameTakenException(name);
+    }
+  }
+
+  /// Whether [name] clashes with a built-in agency or one [diverId] sees, as
+  /// a create or rename checks it. For a caller that must refuse before it
+  /// writes, such as an agent's plan.
+  Future<bool> agencyNameTaken(
+    String name, {
+    required String diverId,
+    required bool isShared,
+    String? exceptId,
+  }) async {
+    final lower = name.trim().toLowerCase();
     final builtIn = CertificationAgency.values.any(
       (a) =>
           a.displayName.toLowerCase() == lower || a.name.toLowerCase() == lower,
     );
-    if (builtIn) throw CertificationNameTakenException(name);
-    final clash = (await getAllAgencies()).any(
+    if (builtIn) return true;
+    return (await getAllAgencies()).any(
       (a) =>
           a.id != exceptId &&
           (isShared || a.diverId == diverId || a.isShared) &&
           a.name.toLowerCase() == lower,
     );
-    if (clash) throw CertificationNameTakenException(name);
   }
 
   /// The agency's built-in levels and the custom levels of it the diver can
@@ -510,15 +528,36 @@ class CustomCertificationRepository {
     required bool isShared,
     String? exceptId,
   }) async {
-    final lower = name.toLowerCase();
+    if (await levelNameTaken(
+      name,
+      agencyId: agencyId,
+      diverId: diverId,
+      isShared: isShared,
+      exceptId: exceptId,
+    )) {
+      throw CertificationNameTakenException(name);
+    }
+  }
+
+  /// Whether [name] clashes with a level of [agencyId] that [diverId] sees,
+  /// built-in or custom, as a create or rename checks it. For a caller that
+  /// must refuse before it writes, such as an agent's plan.
+  Future<bool> levelNameTaken(
+    String name, {
+    required String agencyId,
+    required String diverId,
+    required bool isShared,
+    String? exceptId,
+  }) async {
+    final lower = name.trim().toLowerCase();
     final builtInAgency = CertificationAgency.fromId(agencyId);
     if (builtInAgency != null) {
       final builtIns = CertificationLevelCatalog.levelsFor(builtInAgency);
       if (builtIns.any((l) => l.displayName.toLowerCase() == lower)) {
-        throw CertificationNameTakenException(name);
+        return true;
       }
     }
-    final clash = (await getAllLevels()).any(
+    return (await getAllLevels()).any(
       (l) =>
           l.id != exceptId &&
           l.agencyId == agencyId &&
@@ -528,7 +567,6 @@ class CustomCertificationRepository {
               builtInAgency == null) &&
           l.name.toLowerCase() == lower,
     );
-    if (clash) throw CertificationNameTakenException(name);
   }
 
   Future<int> _nextSortOrder(String agencyId) async {
