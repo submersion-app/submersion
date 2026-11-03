@@ -138,6 +138,26 @@ void main() {
     expect(await h.one('custom_agencies', agency), isNull);
   });
 
+  // The agency's delete takes its levels with it, so a delete of one of them
+  // in the same set would find no row and fail the apply.
+  test('a level whose agency the set deletes is left to that delete', () async {
+    final agency = await created('custom_agencies', {'name': 'Cave Club'});
+    final level = await created('custom_levels', {
+      'agency_id': agency,
+      'name': 'Cavern',
+      'is_progression': true,
+    });
+
+    final plan = await h.preview([
+      deleteOp('custom_agencies', agency),
+      deleteOp('custom_levels', level),
+    ]);
+
+    expect(plan.items.first.block, isNull);
+    expect(plan.items.last.block!.reason, BlockReason.notPermitted);
+    expect(plan.items.last.block!.detail, contains(agency));
+  });
+
   test('moving a progression level reorders the progression', () async {
     final agency = await created('custom_agencies', {'name': 'Cave Club'});
     final ids = <String>[];

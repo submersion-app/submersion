@@ -37,7 +37,20 @@ class DiveTypeWrites extends WritableEntry {
   Future<PlanBlock?> refuse(WriteCheck check) async =>
       builtInBlock(check, 'dive types', allowed: _visibility) ??
       appendSlotBlock(check) ??
-      await inUseBlock(check, 'dive type', _r.diveTypes.isDiveTypeInUse);
+      await inUseBlock(check, 'dive type', (id) => _stillInUse(id, check));
+
+  /// Whether a dive still carries type [id] once the set's earlier changes
+  /// run, counted as isDiveTypeInUse counts it.
+  Future<bool> _stillInUse(String id, WriteCheck check) async {
+    final freed = [...?check.soFar.unlinked[('dive_types', id)]?['dives']];
+    final count = await countLinks(
+      'dive_dive_types',
+      'dive_type_id',
+      id,
+      except: ('dive_id', freed),
+    );
+    return count > 0;
+  }
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {

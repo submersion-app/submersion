@@ -97,6 +97,40 @@ void main() {
     expect(plan.items.single.block!.detail, contains('night'));
   });
 
+  // The set runs in order, so an earlier change to the tag is what the link
+  // meets.
+  test(
+    'a tag the set first opens to sites can link, one it closes cannot',
+    () async {
+      await tag('night', 'Night', sites: false);
+      await tag('wall', 'Wall', sites: true);
+
+      final plan = await h.preview([
+        updateOp('tags', 'night', {
+          'scopes': ['dives', 'sites'],
+        }),
+        updateOp('tags', 'wall', {
+          'scopes': ['dives'],
+        }),
+        link('tags', add: ['night', 'wall']),
+      ]);
+
+      expect(plan.items.last.block!.reason, BlockReason.invalidValue);
+      expect(plan.items.last.block!.detail, contains('wall'));
+      expect(plan.items.last.block!.detail, isNot(contains('night')));
+
+      final opened = await h.preview([
+        updateOp('tags', 'night', {
+          'scopes': ['dives', 'sites'],
+        }),
+        link('tags', add: ['night']),
+      ]);
+      expect(opened.items.last.block, isNull);
+      await h.apply(opened);
+      expect(await linked('site_tags', 'tag_id'), {'night'});
+    },
+  );
+
   test('a site gains and loses expected species', () async {
     for (final (id, name) in [('nudi', 'Nudibranch'), ('ray', 'Manta')]) {
       await db

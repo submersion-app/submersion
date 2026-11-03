@@ -201,6 +201,14 @@ class CustomLevelWrites extends WritableEntry {
   Future<PlanBlock?> refuse(WriteCheck check) async {
     final certs = _r.customCertifications;
     if (check.kind == ChangeKind.delete) {
+      final agency = check.document!['agency_id'];
+      if (check.soFar.deleted['custom_agencies']?.contains(agency) ?? false) {
+        return PlanBlock(
+          BlockReason.notPermitted,
+          'This change set deletes custom agency $agency, which takes this '
+          'level with it. Leave this delete out.',
+        );
+      }
       return _usedBlock(await certs.usage(check.id!), 'level');
     }
     final agencyId =

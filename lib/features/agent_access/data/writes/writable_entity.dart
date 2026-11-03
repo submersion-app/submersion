@@ -100,11 +100,16 @@ class WriteCheck {
     this.values = const {},
     this.relations = const {},
     this.document,
+    this.soFar = const SetSoFar(),
   });
 
   final ChangeKind kind;
   final String? id;
   final String? ownerId;
+
+  /// What the rest of the set does before this change, for a rule that
+  /// reads stored rows the set changes first.
+  final SetSoFar soFar;
 
   /// The fields this change sets, parsed.
   final Map<String, Object?> values;
@@ -114,6 +119,26 @@ class WriteCheck {
 
   /// The record as it stands. Null for a create.
   final Map<String, Object?>? document;
+}
+
+/// What a change set does around the change a [WriteCheck] asks about. A set
+/// applies in order, so a rule that reads stored rows counts these too.
+class SetSoFar {
+  const SetSoFar({
+    this.deleted = const {},
+    this.values = const {},
+    this.unlinked = const {},
+  });
+
+  /// Every record the set deletes, wherever it sits, by entity.
+  final Map<String, Set<String>> deleted;
+
+  /// The fields earlier updates in the set write, parsed, by entity and id.
+  final Map<(String, String), Map<String, Object?>> values;
+
+  /// The records earlier updates take off a linked record, by the linked
+  /// record's entity and id, then by the updated entity.
+  final Map<(String, String), Map<String, Set<String>>> unlinked;
 }
 
 /// What an update does beyond what it names, through a repository's own

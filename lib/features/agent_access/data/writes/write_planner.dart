@@ -109,6 +109,33 @@ class _Pass {
   /// entity and survivor.
   final _mergedInto = <(String, String?), Set<String>>{};
 
+  final _valuesSoFar = <(String, String), Map<String, Object?>>{};
+  final _unlinkedSoFar = <(String, String), Map<String, Set<String>>>{};
+
+  /// What the set does before the change being planned, for its rules.
+  SetSoFar get _soFar => SetSoFar(
+    deleted: _deletedByEntity,
+    values: _valuesSoFar,
+    unlinked: _unlinkedSoFar,
+  );
+
+  /// Notes what an update the plan keeps writes and unlinks, for the rules
+  /// of the changes after it.
+  void _recordSoFar(
+    UpdateOp op,
+    WritableEntry entry,
+    Map<String, Object?> values,
+    Map<String, RelationDelta> deltas,
+  ) {
+    _valuesSoFar[(op.entity, op.id)] = values;
+    for (final MapEntry(key: name, value: delta) in deltas.entries) {
+      final target = entry.relations[name]!.refEntity;
+      for (final id in delta.remove) {
+        ((_unlinkedSoFar[(target, id)] ??= {})[op.entity] ??= {}).add(op.id);
+      }
+    }
+  }
+
   /// Each unique key a change in the set claims, by entity and owner, to the
   /// operation that claimed it first.
   final _claims = <(String, String?, String), int>{};
@@ -223,6 +250,7 @@ class _Pass {
       kind: ChangeKind.create,
       ownerId: diverId,
       values: parsed.values,
+      soFar: _soFar,
     );
     final block =
         await _checkFieldRefs(entry, parsed.values, diverId) ??
@@ -260,6 +288,7 @@ class _Pass {
       values: parsed.values,
       relations: links.deltas,
       document: document,
+      soFar: _soFar,
     );
     final block =
         parsed.block ??
@@ -306,6 +335,7 @@ class _Pass {
       );
       await _markReferences(entry, links.deltas);
       await _markFieldRefs(entry, parsed.values);
+      _recordSoFar(op, entry, parsed.values, links.deltas);
     }
     final parent = await _parentContext(entry, row.parentId, row.ownerId);
     _add(
@@ -352,6 +382,7 @@ class _Pass {
             id: op.id,
             ownerId: row.ownerId,
             document: document,
+            soFar: _soFar,
           ),
         );
     // Held as locals, so the closure a marker keeps holds these and not this

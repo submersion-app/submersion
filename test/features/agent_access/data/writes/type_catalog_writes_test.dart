@@ -164,6 +164,40 @@ void main() {
     }
   });
 
+  test(
+    'a dive type the set first takes off its dives can be deleted',
+    () async {
+      final type = await created('dive_types', {'name': 'Ice'});
+      await db
+          .into(db.diveDiveTypes)
+          .insert(
+            DiveDiveTypesCompanion.insert(
+              id: 'ddt',
+              diveId: 'd1',
+              diveTypeId: type,
+              createdAt: t,
+            ),
+          );
+      Map<String, Object?> types(String dive, Map<String, Object?> change) => {
+        'op': 'update',
+        'entity': 'dives',
+        'id': dive,
+        'relations': {'types': change},
+      };
+
+      final plan = await h.preview([
+        types('d1', {
+          'remove': [type],
+        }),
+        deleteOp('dive_types', type),
+      ]);
+
+      expect(plan.items.last.block, isNull);
+      await h.apply(plan);
+      expect(await h.one('dive_types', type), isNull);
+    },
+  );
+
   test('deleting a custom site type unlinks its sites', () async {
     final siteType = await created('site_types', {'name': 'Quarry'});
     await db

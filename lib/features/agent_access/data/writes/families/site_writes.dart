@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Variable;
+import 'package:drift/drift.dart' show QueryRow, Variable;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -168,13 +168,24 @@ class SiteWrites extends WritableEntry {
     if (added.isEmpty) return null;
     final rows = await DatabaseService.instance.database
         .customSelect(
-          'SELECT id FROM tags WHERE applies_to_sites = 0 AND id IN '
+          'SELECT id, applies_to_sites FROM tags WHERE id IN '
           '(${List.filled(added.length, '?').join(', ')})',
           variables: [for (final id in added) Variable.withString(id)],
         )
         .get();
-    if (rows.isEmpty) return null;
-    final other = [for (final row in rows) row.read<String>('id')];
+    // A change earlier in the set to a tag's scopes is what the link meets.
+    bool forSites(QueryRow row) => switch (check.soFar.values[(
+      'tags',
+      row.read<String>('id'),
+    )]?['scopes']) {
+      final String scopes => scopes.split(',').contains('sites'),
+      _ => row.read<bool>('applies_to_sites'),
+    };
+    final other = [
+      for (final row in rows)
+        if (!forSites(row)) row.read<String>('id'),
+    ];
+    if (other.isEmpty) return null;
     return PlanBlock(
       BlockReason.invalidValue,
       'tags: ${other.join(', ')} is not used for sites. Add sites to its '
