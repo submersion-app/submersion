@@ -204,6 +204,194 @@ void main() {
     });
   });
 
+  group('activeGasUsageSegments', () {
+    const profile = [
+      DiveProfilePoint(timestamp: 10, depth: 20),
+      DiveProfilePoint(timestamp: 1200, depth: 20),
+    ];
+    GasSwitchWithTank switchTo(String tankId, String computerId) =>
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'gs-$tankId',
+            diveId: 'test-dive',
+            timestamp: 600,
+            tankId: tankId,
+            computerId: computerId,
+            createdAt: DateTime.utc(2026),
+          ),
+          tankName: tankId,
+          gasMix: 'mix',
+          o2Fraction: 0.5,
+        );
+    final dive = makeDive(
+      diveMode: DiveMode.ccr,
+      tanks: const [
+        DiveTank(
+          id: 'controller-diluent',
+          computerId: 'controller',
+          gasMix: GasMix(o2: 10, he: 70),
+          role: TankRole.diluent,
+        ),
+        DiveTank(
+          id: 'controller-bailout',
+          computerId: 'controller',
+          gasMix: GasMix(o2: 50),
+          role: TankRole.bailout,
+          order: 1,
+        ),
+        DiveTank(
+          id: 'backup-diluent',
+          computerId: 'backup',
+          gasMix: GasMix(),
+          role: TankRole.diluent,
+          order: 2,
+        ),
+      ],
+    );
+
+    test('leaves out another computer\'s switches', () {
+      final segments = activeGasUsageSegments(
+        dive,
+        gasSwitches: [switchTo('controller-bailout', 'controller')],
+        profile: profile,
+        computerId: 'backup',
+      );
+
+      expect(segments.single.gasMix.isAir, isTrue);
+    });
+
+    test('keeps the viewed computer\'s own switches', () {
+      final segments = activeGasUsageSegments(
+        dive,
+        gasSwitches: [switchTo('controller-bailout', 'controller')],
+        profile: profile,
+        computerId: 'controller',
+      );
+
+      expect(segments.map((s) => s.gasMix.o2), [10, 50]);
+    });
+
+    test('with no computer in view, keeps every switch', () {
+      final segments = activeGasUsageSegments(
+        dive,
+        gasSwitches: [switchTo('controller-bailout', 'controller')],
+        profile: profile,
+      );
+
+      expect(segments, hasLength(2));
+    });
+
+    test('off the loop, starts on the viewed computer\'s own cylinder', () {
+      final openCircuit = makeDive(
+        tanks: const [
+          DiveTank(id: 'a', computerId: 'a', gasMix: GasMix(o2: 32)),
+          DiveTank(id: 'b', computerId: 'b', gasMix: GasMix(), order: 1),
+        ],
+      );
+
+      final segments = activeGasUsageSegments(
+        openCircuit,
+        gasSwitches: null,
+        profile: profile,
+        computerId: 'b',
+      );
+
+      expect(segments.single.gasMix.isAir, isTrue);
+    });
+
+    test('off the loop, a diluent-tagged cylinder does not take the start', () {
+      final openCircuit = makeDive(
+        tanks: const [
+          DiveTank(id: 'back', gasMix: GasMix(o2: 32)),
+          DiveTank(
+            id: 'tagged',
+            gasMix: GasMix(),
+            role: TankRole.diluent,
+            order: 1,
+          ),
+        ],
+      );
+
+      final segments = activeGasUsageSegments(
+        openCircuit,
+        gasSwitches: null,
+        profile: profile,
+      );
+
+      expect(segments.single.gasMix.o2, 32);
+    });
+
+    test('a computer with no cylinders of its own has no timeline', () {
+      final segments = activeGasUsageSegments(
+        dive,
+        gasSwitches: null,
+        profile: profile,
+        computerId: 'other',
+      );
+
+      expect(segments, isEmpty);
+    });
+  });
+
+  group('rebreatherLoopGas', () {
+    const stage = DiveTank(
+      id: 'stage',
+      gasMix: GasMix(o2: 40),
+      role: TankRole.stage,
+    );
+
+    test('is the diluent the deco model uses on a rebreather dive', () {
+      final dive = makeDive(
+        tanks: const [stage],
+        diluentGas: const GasMix(),
+        diveMode: DiveMode.ccr,
+      );
+      expect(rebreatherLoopGas(dive), const GasMix());
+    });
+
+    test('is null off the loop', () {
+      final dive = makeDive(tanks: const [stage], diluentGas: const GasMix());
+      expect(rebreatherLoopGas(dive), isNull);
+    });
+
+    test('reads the cylinders of the computer in view', () {
+      final dive = makeDive(
+        tanks: const [
+          DiveTank(
+            id: 'controller',
+            computerId: 'controller',
+            gasMix: GasMix(o2: 10, he: 70),
+            role: TankRole.diluent,
+          ),
+          DiveTank(
+            id: 'perdix',
+            computerId: 'perdix',
+            gasMix: GasMix(),
+            role: TankRole.diluent,
+          ),
+        ],
+        diveMode: DiveMode.ccr,
+      );
+
+      expect(rebreatherLoopGas(dive, 'perdix'), const GasMix());
+      expect(rebreatherLoopGas(dive, 'controller')?.he, 70);
+    });
+
+    test('is null when the log records no gas the loop could run on', () {
+      final dive = makeDive(
+        tanks: const [
+          DiveTank(
+            id: 'bailout',
+            gasMix: GasMix(o2: 32),
+            role: TankRole.bailout,
+          ),
+        ],
+        diveMode: DiveMode.ccr,
+      );
+      expect(rebreatherLoopGas(dive), isNull);
+    });
+  });
+
   group('buildCcrProfileGasSegments', () {
     const times = [0, 60, 120, 180, 240];
     const air = GasMix(); // 21/0
