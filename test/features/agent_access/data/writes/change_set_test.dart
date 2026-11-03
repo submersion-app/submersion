@@ -102,6 +102,27 @@ void main() {
     );
   });
 
+  test('an id both added and removed is refused, not guessed at', () {
+    expect(
+      () => ChangeSet.parse(
+        _set([
+          {
+            'op': 'update',
+            'entity': 'dives',
+            'id': 'd1',
+            'relations': {
+              'buddies': {
+                'add': ['b1', 'b2'],
+                'remove': ['b1'],
+              },
+            },
+          },
+        ]),
+      ),
+      throwsA(_refused('b1')),
+    );
+  });
+
   test('a relation key it does not take is refused', () {
     expect(
       () => ChangeSet.parse(

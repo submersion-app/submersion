@@ -202,6 +202,15 @@ RelationChange _relation(int index, String name, Object? raw) {
   if (set != null && (add.isNotEmpty || remove.isNotEmpty)) {
     throw _refused(index, 'relation $name takes set, or add and remove.');
   }
+  // Which one wins would depend on whether the link exists now, so the
+  // request says nothing either way.
+  final both = add.toSet().intersection(remove.toSet());
+  if (both.isNotEmpty) {
+    throw _refused(
+      index,
+      'relation $name both adds and removes ${both.join(', ')}.',
+    );
+  }
   return RelationChange(add: add, remove: remove, set: set);
 }
 
