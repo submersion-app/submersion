@@ -647,8 +647,10 @@ class MediaLibraryRepository {
   /// row leaves, joins or changes on the page without a media row being
   /// written: `media_species` is the species filter's EXISTS, `trips` holds
   /// the side-trip links its trip filter takes in (issue #3658), `dives` and
-  /// `dive_sites` give the trip and site filters and each row's dive header,
-  /// and `tags`, `buddies` and `divers` decide whether a facet applies at all
+  /// `dive_sites` give the trip and site filters, each row's dive header and
+  /// the name of the site a dive-less row is attached to, `equipment` names
+  /// an equipment-attached row's group (issue #4149), and `tags`, `buddies`
+  /// and `divers` decide whether a facet applies at all
   /// and who Me names. Deleting a tag or buddy already ticks through its
   /// cascade; these catch one arriving late or changing owner.
   Stream<void> watchLibraryChanges() => _db
@@ -661,6 +663,7 @@ class MediaLibraryRepository {
           _db.trips,
           _db.dives,
           _db.diveSites,
+          _db.equipment,
           _db.tags,
           _db.buddies,
           _db.divers,

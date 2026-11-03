@@ -379,6 +379,35 @@ void main() {
       expect(byId('unlinked-1').attachedEquipmentName, isNull);
     });
 
+    test(
+      'the library ticks when an equipment item is renamed (#4149)',
+      () async {
+        // The by-dive view names an equipment group from the joined row, so a
+        // rename has to refresh an open view like a site rename does.
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion(
+                id: const Value('eq-r'),
+                name: const Value('Old name'),
+                type: const Value('light'),
+                createdAt: Value(epoch),
+                updatedAt: Value(epoch),
+              ),
+            );
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        final ticks = <void>[];
+        final sub = repo.watchLibraryChanges().listen(ticks.add);
+        addTearDown(sub.cancel);
+
+        await (db.update(db.equipment)..where((t) => t.id.equals('eq-r')))
+            .write(const EquipmentCompanion(name: Value('New name')));
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+
+        expect(ticks, isNotEmpty);
+      },
+    );
+
     test('the joined dive time keeps its wall-clock components', () async {
       // dive_date_time is wall-clock-as-UTC, exactly as DiveRepositoryImpl
       // hydrates it. Reading it as a local instant shifts every by-dive
