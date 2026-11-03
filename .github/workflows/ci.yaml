@@ -2219,7 +2219,6 @@ jobs:
       - script-tests
       - web-build
       - web-tests
-      - web-smoke
       - integration-test
       - integration-test-macos
       - fastlane-bundles

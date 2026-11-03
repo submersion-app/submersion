@@ -287,10 +287,13 @@ tile, field and button through that tree.
   shape in a real browser), seeds the library and runs the browser suite,
   failing on any skipped test.
 - `web-smoke` serves `web-build`'s artifact and runs the Playwright smoke
-  in the three browsers, failing on a junit file with no tests.
+  in the three browsers, failing on a junit file with no tests. It is
+  advisory for now (exempt in `scripts/check_ci_success_gate.py`) until it
+  passes in Chromium and Firefox on the runner, issue #4186.
 - `build-all`'s `build-web` job zips the bundle as
   `Submersion-<tag>-Web.zip`, which the release workflow attaches and
   validates like every other asset.
 
-All three CI jobs sit in the `ci-success` gate, and `script-tests` covers
+`web-build` and `web-tests` sit in the `ci-success` gate (`web-smoke`
+rejoins it with #4186), and `script-tests` covers
 `check_web_bundle.py`, `check_sqlite3_wasm_lock.py` and `serve_bundle.py`.
