@@ -26551,6 +26551,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => 'Felszerelés helye';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'Felszerelés-ellenőrzés';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Felszereléskészlet';
 
   @override
@@ -40530,6 +40533,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get incidents_linkedDive => 'Merüléshez kapcsolva';
 
   @override
+  String get incidents_linkedCheckIn => 'Ellenőrzéshez kapcsolva';
+
+  @override
   String get incidents_delete_confirm => 'Törlöd ezt a kvázibaleset-jelentést?';
 
   @override
@@ -40595,6 +40601,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'Minden felszerelés';
+
+  @override
+  String get incidentEdit_checkIn => 'Felszerelés-ellenőrzés';
+
+  @override
+  String get incidentEdit_checkIn_others => 'További ellenőrzések';
 
   @override
   String get incidentCategory_buoyancy => 'Lebegés';
@@ -41404,6 +41416,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'Ellenőrzés hozzáadása';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kvázibaleset kapcsolva',
+      one: 'Kvázibaleset kapcsolva',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {
@@ -55319,8 +55342,8 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return 'Akkumulátor: $start V -> $end V';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return 'Akkumulátor: $start V → $end V ($change V)';
   }
 
   @override

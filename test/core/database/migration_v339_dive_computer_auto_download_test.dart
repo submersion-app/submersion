@@ -3,11 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v338: dive_computers gains auto_download_disabled (issue #3361),
+/// Schema v339: dive_computers gains auto_download_disabled (issue #3361),
 /// the per-device opt-out from the passive auto-connect scan. Every
-/// existing computer stays included in auto-download. Renumbered from v332
-/// and v333, which upstream claimed first for issues #3922 (the per-device
-/// change log tables) and #32 (dives.gas_switches_edited).
+/// existing computer stays included in auto-download. Renumbered from v332,
+/// v333 and v338, which upstream claimed first for issues #3922 (the
+/// per-device change log tables), #32 (dives.gas_switches_edited) and #3062
+/// (incidents.observation_id).
 void main() {
   NativeDatabase dbAt(
     int version, {
@@ -31,17 +32,17 @@ void main() {
     },
   );
 
-  test('v338 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(338));
-    expect(AppDatabase.migrationVersions, contains(338));
+  test('v339 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(339));
+    expect(AppDatabase.migrationVersions, contains(339));
     expect(
-      AppDatabase.migrationStepCount(337),
-      AppDatabase.migrationStepCount(338) + 1,
+      AppDatabase.migrationStepCount(338),
+      AppDatabase.migrationStepCount(339) + 1,
     );
   });
 
   test('the column is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(338));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(339));
   });
 
   test(
@@ -69,7 +70,7 @@ void main() {
     expect(columns, hasLength(1));
   });
 
-  test('the backstop restores the column at v338', () async {
+  test('the backstop restores the column at v339', () async {
     final db = AppDatabase(dbAt(AppDatabase.currentSchemaVersion));
     addTearDown(db.close);
     final row = await db

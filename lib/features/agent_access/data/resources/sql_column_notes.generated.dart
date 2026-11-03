@@ -501,6 +501,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'incidents': {
     'equipment_id': 'the item an equipment incident attributes to',
+    'observation_id': 'the gear check-in that recorded the fault behind this report',
   },
   'media': {
     'cloud_asset_id': 'PhotoKit\'s cloud identifier for a gallery link (media sync program spec 6.2), which names the same photo on every device sharing an iCloud Photos library',

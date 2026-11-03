@@ -175,6 +175,7 @@ void main() {
       ('transmitters', 'diveComputerId'): 'diveComputers',
       ('weightPresetEntries', 'presetId'): 'weightPresets',
       ('buddies', 'linkedDiverId'): 'divers',
+      ('incidents', 'observationId'): 'equipmentObservations',
     };
     for (final MapEntry(key: (entity, field), value: target)
         in expected.entries) {

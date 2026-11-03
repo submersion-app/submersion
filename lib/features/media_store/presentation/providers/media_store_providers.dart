@@ -5,8 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
@@ -22,6 +20,7 @@ import 'package:submersion/core/services/media_store/media_store_credentials_sto
 import 'package:submersion/core/services/media_store/media_store_policies.dart';
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
@@ -103,44 +102,15 @@ final mediaTransferQueueRepositoryProvider =
       (ref) => MediaTransferQueueRepository(),
     );
 
-Future<Directory>? _mediaCacheRootFuture;
-
-/// The on-disk root of the media cache: originals, thumbs, renditions, plus
-/// the staging and transcode scratch directories.
+/// The on-disk root of the media cache's pools: originals, thumbs and
+/// renditions. Staging and transcode sit apart; see [CacheLocation].
 ///
-/// Memoized for the process. Five call sites resolve this (the runtime, the
-/// eviction pass, and the three media cache rows on the storage usage page)
-/// and each one costs a platform channel round trip that returns the same
-/// immutable path every time. Caching the Directory is safe in a way that
-/// caching a MediaCacheStore is not: the store captures the LocalCacheDatabase
-/// at construction and would go stale after a database location migration,
-/// whereas the support directory does not move while the process lives.
-///
-/// A failed lookup is deliberately not cached, so the next caller retries
-/// rather than inheriting a permanent failure from one bad moment at boot.
-Future<Directory> mediaCacheRoot() async {
-  final cached = _mediaCacheRootFuture;
-  if (cached != null) return cached;
-
-  final pending = _resolveMediaCacheRoot();
-  _mediaCacheRootFuture = pending;
-  try {
-    return await pending;
-  } catch (_) {
-    _mediaCacheRootFuture = null;
-    rethrow;
-  }
-}
-
-Future<Directory> _resolveMediaCacheRoot() async {
-  final support = await getApplicationSupportDirectory();
-  return Directory(p.join(support.path, 'Submersion', 'media_cache'));
-}
-
-/// Drops the memoized [mediaCacheRoot], so a test that overrides the
-/// path_provider platform channel is not served another test's directory.
-@visibleForTesting
-void resetMediaCacheRootForTesting() => _mediaCacheRootFuture = null;
+/// Memoized for the process by [cacheLocation]. Holding on to the Directory is
+/// safe in a way that holding on to a MediaCacheStore is not: the store
+/// captures the LocalCacheDatabase at construction and would go stale after a
+/// database location migration, whereas this path does not move while the
+/// process lives.
+Future<Directory> mediaCacheRoot() async => (await cacheLocation()).mediaPools;
 
 /// The media cache over the live cache database.
 ///
@@ -152,13 +122,22 @@ void resetMediaCacheRootForTesting() => _mediaCacheRootFuture = null;
 /// (issue #3337), read each time eviction runs so that a change reaches
 /// stores already built. Without, the default size applies.
 Future<MediaCacheStore> openMediaCacheStore(SharedPreferences? prefs) async =>
-    MediaCacheStore(
-      database: LocalCacheDatabaseService.instance.database,
-      root: await mediaCacheRoot(),
-      thumbsCapSource: prefs == null
-          ? null
-          : () => MediaCacheSettings.fromPrefs(prefs).diskCacheBytes,
-    );
+    mediaCacheStoreAt(await cacheLocation(), prefs);
+
+/// [openMediaCacheStore] for a given [location], which lets a test on a
+/// desktop host build the store a phone would.
+@visibleForTesting
+MediaCacheStore mediaCacheStoreAt(
+  CacheLocation location,
+  SharedPreferences? prefs,
+) => MediaCacheStore(
+  database: LocalCacheDatabaseService.instance.database,
+  root: location.mediaPools,
+  scratchRoot: location.mediaScratch,
+  thumbsCapSource: prefs == null
+      ? null
+      : () => MediaCacheSettings.fromPrefs(prefs).diskCacheBytes,
+);
 
 /// Empties the thumbnail disk cache, and the decoded images in memory with
 /// it: the "Empty cache" button in Photos & Media settings.

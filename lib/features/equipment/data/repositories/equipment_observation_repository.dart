@@ -9,7 +9,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 
 /// Owns `equipment_observations`, a synced aggregate root with its own HLC:
 /// every write marks the row pending, every delete logs a tombstone, like
-/// `IncidentRepository`.
+/// `IncidentRepository`. A near-miss may name a check-in, so every write that
+/// ends that link here stages the near-miss as well.
 class EquipmentObservationRepository {
   static const String entityType = 'equipmentObservations';
 
@@ -103,6 +104,8 @@ class EquipmentObservationRepository {
         recordId: updated.id,
         localUpdatedAt: stamp.millisecondsSinceEpoch,
       );
+      // Only an issue can stand behind a near-miss. The report stays.
+      if (!updated.isIssue) await _unlinkIncidents(updated.id, stamp);
     });
     SyncEventBus.notifyLocalChange();
   }
@@ -150,12 +153,40 @@ class EquipmentObservationRepository {
 
   Future<void> delete(String id) async {
     await _db.transaction(() async {
+      await _unlinkIncidents(id, DateTime.now());
       await (_db.delete(
         _db.equipmentObservations,
       )..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(entityType: entityType, recordId: id);
     });
     SyncEventBus.notifyLocalChange();
+  }
+
+  /// Clears the check-in link on every near-miss naming [observationId] and
+  /// stages each. ON DELETE SET NULL would clear it on a delete too, but moves
+  /// no clock and stages nothing, so a peer would keep the stale link. Runs
+  /// inside the caller's transaction.
+  Future<void> _unlinkIncidents(String observationId, DateTime stamp) async {
+    final rows = await (_db.select(
+      _db.incidents,
+    )..where((t) => t.observationId.equals(observationId))).get();
+    if (rows.isEmpty) return;
+    final at = stamp.millisecondsSinceEpoch;
+    await (_db.update(
+      _db.incidents,
+    )..where((t) => t.observationId.equals(observationId))).write(
+      IncidentsCompanion(
+        observationId: const Value(null),
+        updatedAt: Value(at),
+      ),
+    );
+    for (final row in rows) {
+      await _syncRepository.markRecordPending(
+        entityType: 'incidents',
+        recordId: row.id,
+        localUpdatedAt: at,
+      );
+    }
   }
 
   Future<List<EquipmentObservation>> _query(

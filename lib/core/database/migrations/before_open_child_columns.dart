@@ -53,7 +53,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v334: equipment_locations.buddy_id (issue #3790), for the same reason.
     await _assertEquipmentLocationBuddyColumn();
 
-    // v338: dive_computers.auto_download_disabled (issue #3361). Every
+    // v338: incidents.observation_id (issue #3062), for the same reason.
+    await _assertIncidentObservationColumn();
+
+    // v339: dive_computers.auto_download_disabled (issue #3361). Every
     // computer read selects the whole row, for the same reason as the tank
     // columns.
     await _assertDiveComputerAutoDownloadDisabledColumn();

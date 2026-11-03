@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dart';
+import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 
 /// Version of the deco computation behind [ProfileAnalysis].
 ///
@@ -206,6 +207,11 @@ class ProfileAnalysis {
   /// Auto-detected and imported events
   final List<ProfileEvent> events;
 
+  /// Holds in the safety stop band that were required decompression, so they
+  /// carry no safety stop event. Filled in by `overlayComputerDecoData`, the
+  /// first point that knows which deco reading this analysis ends up showing.
+  final List<StopWindow> decoStopWindows;
+
   /// Decompression ceiling at each profile point (meters)
   final List<double> ceilingCurve;
 
@@ -351,6 +357,7 @@ class ProfileAnalysis {
     required this.ascentRateStats,
     required this.ascentRateViolations,
     required this.events,
+    this.decoStopWindows = const [],
     required this.ceilingCurve,
     this.decoStopCurve = const [],
     required this.ndlCurve,
@@ -454,6 +461,7 @@ class ProfileAnalysis {
     AscentRateStats? ascentRateStats,
     List<AscentRateViolation>? ascentRateViolations,
     List<ProfileEvent>? events,
+    List<StopWindow>? decoStopWindows,
     List<double>? ceilingCurve,
     List<double>? decoStopCurve,
     List<int>? ndlCurve,
@@ -493,6 +501,7 @@ class ProfileAnalysis {
       ascentRateStats: ascentRateStats ?? this.ascentRateStats,
       ascentRateViolations: ascentRateViolations ?? this.ascentRateViolations,
       events: events ?? this.events,
+      decoStopWindows: decoStopWindows ?? this.decoStopWindows,
       ceilingCurve: ceilingCurve ?? this.ceilingCurve,
       decoStopCurve: decoStopCurve ?? this.decoStopCurve,
       ndlCurve: ndlCurve ?? this.ndlCurve,
@@ -1280,12 +1289,11 @@ class ProfileAnalysisService {
     const maxStopDepth = 6.0;
     // Once a stop has opened, brief drifts just outside the 3-6 m band
     // (buoyancy wobble, small level changes) must not end it. The stop closes
-    // only on a *clear* departure: surfacing (shallower than [stopExitShallow])
-    // or descending back down (deeper than [stopExitDeep]). Without this
-    // hysteresis a long, gently varying shallow phase gets chopped into many
-    // spurious start/end pairs as the depth repeatedly crosses 3 m or 6 m.
-    const stopExitShallow = 1.5; // m -- heading to the surface
-    const stopExitDeep = 8.0; // m -- descending away from the stop
+    // only on a *clear* departure: surfacing (shallower than
+    // [safetyStopExitShallow]) or descending back down (deeper than
+    // [safetyStopExitDeep]). Without this hysteresis a long, gently varying
+    // shallow phase gets chopped into many spurious start/end pairs as the
+    // depth repeatedly crosses 3 m or 6 m.
     const minStopDuration = 120; // 2 minutes
     const maxConsolidationGap = 120; // seconds -- bridge brief clear departures
 
@@ -1323,7 +1331,7 @@ class ProfileAnalysisService {
           stopStartIndex = i;
           stopStartTimestamp = timestamps[i];
         }
-      } else if (depth < stopExitShallow || depth > stopExitDeep) {
+      } else if (depth < safetyStopExitShallow || depth > safetyStopExitDeep) {
         // Clear departure: close at the previous sample (which may sit
         // between the band edge and the hysteresis threshold, e.g. 7m).
         addRawStop(stopStartIndex, stopStartTimestamp!, i - 1);

@@ -776,11 +776,18 @@ extension RungsFromV231 on AppDatabase {
     if (from < 337) await _repairWeatherFetchedAtSeconds();
     if (from < 337) await reportProgress();
 
-    // v338: dive_computers.auto_download_disabled, the per-device opt-out
+    // v338: incidents.observation_id, the gear check-in behind a near-miss
+    // (issue #3062). Column only, no backfill: nothing says which existing
+    // report goes with which check-in. Re-asserted in beforeOpen.
+    if (from < 338) await _assertIncidentObservationColumn();
+    if (from < 338) await reportProgress();
+
+    // v339: dive_computers.auto_download_disabled, the per-device opt-out
     // for passive auto-connect/auto-download (issue #3361). Column only, no
     // backfill; re-asserted in beforeOpen. Renumbered from 332, which
-    // upstream claimed first for issue #3922.
-    if (from < 338) await _assertDiveComputerAutoDownloadDisabledColumn();
-    if (from < 338) await reportProgress();
+    // upstream claimed first for issue #3922, then from 338, which upstream
+    // claimed first for issue #3062.
+    if (from < 339) await _assertDiveComputerAutoDownloadDisabledColumn();
+    if (from < 339) await reportProgress();
   }
 }
