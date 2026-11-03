@@ -242,12 +242,7 @@ class DropboxMediaObjectStore implements MediaObjectStore {
   @override
   Future<Uint8List> getBytes(String key) async {
     try {
-      if (await _client.getMetadata(_path(key)) == null) {
-        throw MediaStoreException(
-          'not found: $key',
-          kind: MediaStoreErrorKind.notFound,
-        );
-      }
+      // A missing file answers not found, which _map classifies.
       return await _client.download(_path(key));
     } on CloudStorageException catch (e) {
       throw _map('get', key, e);
