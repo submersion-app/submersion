@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/bootstrap/bootstrap_shared.dart';
 import 'package:submersion/core/platform/app_directories.dart';
+import 'package:submersion/core/platform/browser_origin_storage.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/global_error_handler.dart';
 import 'package:submersion/core/services/log_environment.dart';
@@ -52,6 +53,10 @@ Future<void> bootstrapWeb({
     p.join(appSupportDir, 'logs'),
     logEnvironment: logEnvironment,
   );
+
+  // Forget this device in another tab leaves this one holding dives and
+  // credentials in memory; a reload drops them (issue #4121).
+  BrowserOriginStorage.onForgottenElsewhere(BrowserOriginStorage.reloadPage);
 
   final locationService = DatabaseLocationService(prefs);
   run(

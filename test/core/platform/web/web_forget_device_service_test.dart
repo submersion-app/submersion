@@ -22,6 +22,7 @@ void main() {
     closeDatabase: closeDatabase ?? () async => log.add('closeDatabase'),
     deleteDatabase: deleteDatabase ?? () async => log.add('deleteDatabase'),
     removeStorageEntry: (name) async => log.add('remove $name'),
+    announce: () => log.add('announce'),
     reload: () => log.add('reload'),
   );
 
@@ -35,6 +36,7 @@ void main() {
       'closeDatabase',
       'deleteDatabase',
       'remove submersion-sync-tmp',
+      'announce',
       'reload',
     ]);
   });
@@ -77,6 +79,7 @@ void main() {
       throwsStateError,
     );
     expect(log, isNot(contains('reload')));
+    expect(log, isNot(contains('announce')));
     expect(log, isNot(contains('remove submersion-sync-tmp')));
     expect(log, contains('closeDatabase'));
   });

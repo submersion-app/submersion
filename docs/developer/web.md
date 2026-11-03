@@ -143,7 +143,8 @@ first-run test is what exercises the locked mode.
 Forget this device wipes the browser through `WebForgetDeviceService`:
 sync off, secrets and preferences cleared, the database closed and then
 deleted through drift's probe (`deleteStoredDatabases`, which covers OPFS
-and IndexedDB alike), the sync temp files removed, then a reload. A
+and IndexedDB alike), the sync temp files removed, the site's other tabs
+told over a `BroadcastChannel` so they reload too, then a reload. A
 database that survives deletion stops the wipe and is reported, never
 reloaded over.
 

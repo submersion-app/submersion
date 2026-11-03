@@ -44,6 +44,7 @@ final webForgetDeviceProvider = Provider<WebForgetDevice>((ref) {
     closeDatabase: _closeDatabases,
     deleteDatabase: _deleteDatabases,
     removeStorageEntry: BrowserOriginStorage.removeEntry,
+    announce: BrowserOriginStorage.announceForgotten,
     reload: BrowserOriginStorage.reloadPage,
   );
   return service.forget;

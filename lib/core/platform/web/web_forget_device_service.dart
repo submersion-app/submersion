@@ -18,6 +18,7 @@ class WebForgetDeviceService {
     required this.closeDatabase,
     required this.deleteDatabase,
     required this.removeStorageEntry,
+    required this.announce,
     required this.reload,
   });
 
@@ -37,6 +38,12 @@ class WebForgetDeviceService {
   /// the user wanted it off.
   final Future<void> Function() deleteDatabase;
   final Future<void> Function(String name) removeStorageEntry;
+
+  /// Tells the site's other tabs, which reload too. They would otherwise
+  /// keep the dives and credentials in memory, and a sync from one could
+  /// bring the library back. Runs under the cross-tab lock, so a sync
+  /// waiting in another tab cannot start before it hears this.
+  final void Function() announce;
   final void Function() reload;
 
   Future<void> forget() =>
@@ -56,6 +63,7 @@ class WebForgetDeviceService {
       'remove $syncTempEntry',
       () => removeStorageEntry(syncTempEntry),
     );
+    announce();
     reload();
   }
 

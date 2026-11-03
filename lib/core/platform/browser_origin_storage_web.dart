@@ -38,4 +38,23 @@ abstract final class BrowserOriginStorage {
   }
 
   static void reloadPage() => web.window.location.reload();
+
+  /// The channel a tab tells the site's other tabs on that this browser
+  /// forgot the device. A channel does not hear its own messages.
+  static const String forgetChannel = 'submersion-forget-device';
+
+  /// Tells every other tab of this site that the device was forgotten.
+  static void announceForgotten() {
+    final channel = web.BroadcastChannel(forgetChannel);
+    channel.postMessage('forgotten'.toJS);
+    channel.close();
+  }
+
+  /// Calls [listener] when another tab forgets the device; the returned
+  /// function stops listening.
+  static void Function() onForgottenElsewhere(void Function() listener) {
+    final channel = web.BroadcastChannel(forgetChannel);
+    channel.onmessage = ((web.MessageEvent _) => listener()).toJS;
+    return () => channel.close();
+  }
 }
