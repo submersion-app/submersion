@@ -5,9 +5,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart'
     hide DiscoveredDevice;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
-import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -37,43 +35,6 @@ DiveComputer _savedComputer({
     createdAt: now,
     updatedAt: now,
   );
-}
-
-/// Records `recordConnection` calls instead of writing to the database.
-class _RecordingConnections implements DiveComputerConnectionRepository {
-  final List<
-    ({String computerId, DiveComputerConnectionKind kind, String? address})
-  >
-  calls = [];
-
-  /// When set, `recordConnection` throws this instead of recording.
-  Object? failWith;
-
-  @override
-  Future<DiveComputerConnection> recordConnection({
-    required String computerId,
-    required DiveComputerConnectionKind kind,
-    String? detail,
-    String? address,
-    DateTime? usedAt,
-    bool notify = true,
-  }) async {
-    final error = failWith;
-    if (error != null) throw error;
-    calls.add((computerId: computerId, kind: kind, address: address));
-    final now = DateTime(2026, 8, 31);
-    return DiveComputerConnection(
-      id: 'connection-1',
-      computerId: computerId,
-      kind: kind,
-      firstUsedAt: now,
-      lastUsedAt: now,
-      address: address,
-    );
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 DiscoveredDevice _device(
@@ -305,137 +266,5 @@ void main() {
         expect(updates.last.bluetoothAddress, secondFreshAddress);
       },
     );
-  });
-
-  // Issue #4087: a later direct connect to a known computer reads its address
-  // from the per-device connection record, so that record has to follow the
-  // address the download actually used, not only the legacy column.
-  group('DownloadNotifier connection record', () {
-    late _RecordingConnections connections;
-    late DownloadNotifier recordingNotifier;
-
-    setUp(() {
-      connections = _RecordingConnections();
-      recordingNotifier = DownloadNotifier(
-        service: service,
-        repository: repository,
-        connections: connections,
-      );
-    });
-
-    tearDown(() => recordingNotifier.dispose());
-
-    Future<void> completeRecordedDownload({
-      required DiveComputer computer,
-      required DiscoveredDevice device,
-      String serialNumber = '074691',
-    }) async {
-      await recordingNotifier.startDownload(device, computer: computer);
-      events.add(
-        DownloadCompleteEvent(
-          0,
-          serialNumber: serialNumber,
-          firmwareVersion: '5.0.0',
-        ),
-      );
-      await pumpEventQueue();
-    }
-
-    test('records the address the download actually used', () async {
-      await completeRecordedDownload(
-        computer: _savedComputer(),
-        device: _device(_freshAddress),
-      );
-
-      expect(connections.calls, hasLength(1));
-      expect(connections.calls.single.computerId, 'dc-1');
-      expect(connections.calls.single.kind, DiveComputerConnectionKind.ble);
-      expect(connections.calls.single.address, _freshAddress);
-    });
-
-    test('records the device address when the stored one already '
-        'matches', () async {
-      await completeRecordedDownload(
-        computer: _savedComputer(),
-        device: _device(_staleAddress.toLowerCase()),
-      );
-
-      expect(connections.calls.single.address, _staleAddress.toLowerCase());
-    });
-
-    test('records the connection even when the computer itself has '
-        'nothing to update', () async {
-      // No serial, no firmware, an address that already matches: the
-      // computer write is skipped, but the connection record may still hold
-      // an older address and has to follow this download.
-      await recordingNotifier.startDownload(
-        _device(_staleAddress.toLowerCase()),
-        computer: _savedComputer(),
-      );
-      events.add(DownloadCompleteEvent(0));
-      await pumpEventQueue();
-
-      expect(updates, isEmpty);
-      expect(connections.calls.single.computerId, 'dc-1');
-      expect(connections.calls.single.address, _staleAddress.toLowerCase());
-    });
-
-    test('records the device the download used, not one a later download '
-        'switched to meanwhile', () async {
-      const secondAddress = 'A1B2C3D4-0000-4000-8000-000000000003';
-      final firstWrite = Completer<void>();
-      when(repository.updateComputer(any)).thenAnswer((invocation) async {
-        updates.add(invocation.positionalArguments.first as DiveComputer);
-        if (updates.length == 1) await firstWrite.future;
-      });
-
-      await recordingNotifier.startDownload(
-        _device(_freshAddress),
-        computer: _savedComputer(),
-      );
-      events.add(
-        DownloadCompleteEvent(
-          0,
-          serialNumber: '074691',
-          firmwareVersion: '5.0.0',
-        ),
-      );
-      await pumpEventQueue();
-
-      // Another download starts while the first write is parked.
-      await recordingNotifier.startDownload(
-        _device(secondAddress, connectionType: DeviceConnectionType.usb),
-        computer: _savedComputer(id: 'dc-2', serialNumber: '999999'),
-      );
-      firstWrite.complete();
-      await pumpEventQueue();
-
-      expect(connections.calls.single.computerId, 'dc-1');
-      expect(connections.calls.single.kind, DiveComputerConnectionKind.ble);
-      expect(connections.calls.single.address, _freshAddress);
-    });
-
-    test('records nothing when another unit answered', () async {
-      await completeRecordedDownload(
-        computer: _savedComputer(),
-        device: _device(_freshAddress),
-        serialNumber: '999999',
-      );
-
-      expect(connections.calls, isEmpty);
-    });
-
-    test('a failing connection write does not undo the computer '
-        'update', () async {
-      connections.failWith = StateError('database locked');
-
-      await completeRecordedDownload(
-        computer: _savedComputer(),
-        device: _device(_freshAddress),
-      );
-
-      expect(connections.calls, isEmpty);
-      expect(updates.last.bluetoothAddress, _freshAddress);
-    });
   });
 }

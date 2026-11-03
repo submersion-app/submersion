@@ -758,6 +758,35 @@ class DiveComputerRepository {
     }
   }
 
+  /// Set or clear one computer's opt-out from auto-download (issue #3361),
+  /// leaving every other column as it is.
+  Future<void> setAutoDownloadDisabled(String id, bool disabled) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(id))).write(
+        DiveComputersCompanion(
+          autoDownloadDisabled: Value(disabled),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set the auto-download opt-out of dive computer: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Set a computer as the favorite (clears other favorites first for the same diver)
   Future<void> setFavoriteComputer(String id, {String? diverId}) async {
     try {

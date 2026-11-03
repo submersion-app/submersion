@@ -14,15 +14,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_mapper.dart';
-import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
-import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/domain/services/first_sync_cutoff.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
@@ -269,7 +266,6 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
 
   final pigeon.DiveComputerService _service;
   final DiveComputerRepository _repository;
-  final DiveComputerConnectionRepository? _connections;
   StreamSubscription<pigeon.DownloadEvent>? _downloadSubscription;
 
   /// Held for the length of a download so the idle timer cannot lock the
@@ -298,12 +294,10 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   DownloadNotifier({
     required pigeon.DiveComputerService service,
     required DiveComputerRepository repository,
-    DiveComputerConnectionRepository? connections,
     bool Function()? trimTankPressureAtSurfacing,
     bool Function(String? computerId)? resolveClockSync,
   }) : _service = service,
        _repository = repository,
-       _connections = connections,
        _trimTankPressureAtSurfacing = trimTankPressureAtSurfacing,
        _resolveClockSync = resolveClockSync,
        super(const DownloadState());
@@ -491,9 +485,6 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   ) async {
     final computer = _computer;
     if (computer == null) return;
-    // Captured now: nothing awaits this method, so a startDownload for
-    // another device can replace the field before the writes below finish.
-    final device = _device;
 
     // A backend that reports '' rather than null must not blank out values
     // stored by an earlier download.
@@ -528,9 +519,6 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
           firmwareVersion == null &&
           address == null &&
           identical(relabeled, computer)) {
-        // Nothing to write on the computer itself, but the connection
-        // record may still hold an address from before (issue #4087).
-        await _recordConnection(computer, device);
         return;
       }
       // A digits-only report that matches a stored hex serial (the other
@@ -557,38 +545,9 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       // onto the wrong one. Only the call that still owns the field may
       // refresh it.
       if (identical(_computer, computer)) _computer = updated;
-      await _recordConnection(updated, device);
     } catch (e, stackTrace) {
       _log.error(
         'Device info persist failed for ${computer.displayName}',
-        category: LogCategory.database,
-        error: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  /// Keep the per-device connection record (issue #3106) in step with the
-  /// legacy address just rebound above. Left stale, a later direct connect
-  /// to this computer reads [_computer.bluetoothAddress]'s predecessor
-  /// format back out of here instead of the address that just worked
-  /// (issue #4087). [device] is the one this download used, captured
-  /// before any await.
-  Future<void> _recordConnection(
-    DiveComputer computer,
-    DiscoveredDevice? device,
-  ) async {
-    final connections = _connections;
-    if (device == null || connections == null) return;
-    try {
-      await connections.recordConnection(
-        computerId: computer.id,
-        kind: DiveComputerConnectionKind.fromDevice(device.connectionType),
-        address: device.address,
-      );
-    } catch (e, stackTrace) {
-      _log.error(
-        'Could not record the connection for ${computer.displayName}',
         category: LogCategory.database,
         error: e,
         stackTrace: stackTrace,
@@ -681,12 +640,10 @@ final downloadNotifierProvider =
     StateNotifierProvider<DownloadNotifier, DownloadState>((ref) {
       final service = ref.watch(diveComputerServiceProvider);
       final repository = ref.watch(diveComputerRepositoryProvider);
-      final connections = ref.watch(diveComputerConnectionRepositoryProvider);
 
       return DownloadNotifier(
         service: service,
         repository: repository,
-        connections: connections,
         trimTankPressureAtSurfacing: () =>
             ref.read(settingsProvider).trimTankPressureAtSurfacing,
         // Read at download time, not provider build time, so a switch flipped

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:permission_handler/permission_handler.dart';
@@ -159,6 +160,21 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   /// false (issue #123).
   final bool _requiresRuntimePermissions;
 
+  /// Whether this platform throttles BLE scan starts. Android lets an app
+  /// start [scanStartLimit] scans in [scanStartWindow] and gives the next one
+  /// no results, with no error, so it reads as an empty scan. The passive
+  /// scan on the Dive Computers section restarts on every return to it
+  /// (issue #3361), which makes that reachable. Injectable like
+  /// [_requiresRuntimePermissions].
+  final bool _paceScanStarts;
+
+  /// When the scans started inside the last [scanStartWindow] began, oldest
+  /// first.
+  List<DateTime> _scanStarts = const [];
+
+  static const scanStartLimit = 5;
+  static const scanStartWindow = Duration(seconds: 30);
+
   StreamSubscription<pigeon.DiscoveredDevice>? _discoverySubscription;
   StreamSubscription<void>? _discoveryCompleteSubscription;
 
@@ -174,9 +190,11 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
   DiscoveryNotifier({
     required pigeon.DiveComputerService service,
     bool? requiresRuntimePermissions,
+    bool? paceScanStarts,
   }) : _service = service,
        _requiresRuntimePermissions =
            requiresRuntimePermissions ?? Platform.isAndroid,
+       _paceScanStarts = paceScanStarts ?? Platform.isAndroid,
        super(const DiscoveryState()) {
     _discoveryCompleteSubscription = _service.discoveryComplete.listen((_) {
       state = state.copyWith(isScanning: false);
@@ -231,6 +249,22 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
         _onDeviceDiscovered,
       );
 
+      if (_paceScanStarts) {
+        final wait = _scanStartWait();
+        if (wait > Duration.zero) {
+          _discoveryLog.info(
+            'Waiting ${wait.inSeconds}s before the BLE scan: Android gives '
+            'no results to a scan started too soon after $scanStartLimit '
+            'others',
+            category: LogCategory.bluetooth,
+          );
+          await Future<void>.delayed(wait);
+          // Stopped, or replaced by another start, while waiting.
+          if (generation != _scanGeneration) return;
+        }
+        _scanStarts = [..._scanStarts, clock.now()];
+      }
+
       _discoveryLog.info(
         'Starting BLE scan for dive computers',
         category: LogCategory.bluetooth,
@@ -260,6 +294,21 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
             e.code == pigeon.bluetoothUnavailableErrorCode,
       );
     }
+  }
+
+  /// How long a scan start must wait so that no more than [scanStartLimit]
+  /// starts fall inside any [scanStartWindow], plus a second's margin for
+  /// Android's own clock. Forgets the starts already outside the window.
+  Duration _scanStartWait() {
+    final now = clock.now();
+    _scanStarts = [
+      for (final start in _scanStarts)
+        if (now.difference(start) < scanStartWindow) start,
+    ];
+    if (_scanStarts.length < scanStartLimit) return Duration.zero;
+    return scanStartWindow -
+        now.difference(_scanStarts.first) +
+        const Duration(seconds: 1);
   }
 
   void _onDeviceDiscovered(pigeon.DiscoveredDevice pigeonDevice) {

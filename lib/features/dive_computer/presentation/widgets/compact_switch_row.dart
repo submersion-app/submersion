@@ -31,7 +31,9 @@ class CompactSwitchRow extends StatelessWidget {
           children: [
             Icon(icon, size: 20),
             const SizedBox(width: 12),
-            Expanded(child: Text(title, overflow: TextOverflow.ellipsis)),
+            // Wraps rather than cutting off: several languages need two
+            // lines on a phone, and the title is all the row says.
+            Expanded(child: Text(title)),
             Tooltip(
               message: explanation,
               triggerMode: TooltipTriggerMode.tap,

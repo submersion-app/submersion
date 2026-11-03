@@ -33,7 +33,7 @@ class DiveComputerAutoDownloadCard extends ConsumerWidget {
         value: computer.autoDownloadDisabled,
         onChanged: (value) => ref
             .read(diveComputerNotifierProvider.notifier)
-            .update(computer.copyWith(autoDownloadDisabled: value)),
+            .setAutoDownloadDisabled(computer.id, value),
       ),
     );
   }

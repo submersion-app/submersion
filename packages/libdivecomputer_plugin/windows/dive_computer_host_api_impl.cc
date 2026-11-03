@@ -111,7 +111,12 @@ void DiveComputerHostApiImpl::PostToPlatformThread(
         if (shutting_down_) return;
         if (dispatch_window_) {
             pending_tasks_.push(std::move(task));
-            PostMessageW(dispatch_window_, kRunPendingTasksMessage, 0, 0);
+            // A failed post stays unpending, so the next task retries it.
+            if (!wakeup_pending_) {
+                wakeup_pending_ = PostMessageW(dispatch_window_,
+                                               kRunPendingTasksMessage, 0,
+                                               0) != 0;
+            }
             return;
         }
     }
@@ -126,6 +131,9 @@ void DiveComputerHostApiImpl::RunPendingTasks() {
     {
         std::lock_guard<std::mutex> lock(task_mutex_);
         std::swap(tasks, pending_tasks_);
+        // Cleared with the swap: a task queued from here on, even by one of
+        // the tasks below, needs a wakeup of its own.
+        wakeup_pending_ = false;
     }
     while (!tasks.empty()) {
         tasks.front()();

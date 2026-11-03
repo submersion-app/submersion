@@ -5,7 +5,6 @@
 #include <flutter/plugin_registrar.h>
 #include <windows.h>
 
-#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -82,11 +81,16 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   // that is a child window, and top-level window-proc delegates never see
   // messages posted to it, so every queued task was stranded.
   HWND dispatch_window_ = nullptr;
-  // Set first thing in the destructor, under task_mutex_. A scanner callback
-  // still in flight then drops its task instead of reaching a window being
-  // destroyed, or running Flutter calls on the scanner thread.
-  std::atomic<bool> shutting_down_{false};
+  // The three below are guarded by task_mutex_. shutting_down_ is set first
+  // thing in the destructor: a scanner callback still in flight then drops
+  // its task instead of reaching a window being destroyed, or running
+  // Flutter calls on the scanner thread. wakeup_pending_ keeps one wakeup
+  // message in the queue at a time, however many tasks wait behind it: a
+  // message per task could fill the thread's message quota during a
+  // download, and a post that fails then leaves the last tasks stranded.
   std::mutex task_mutex_;
+  bool shutting_down_ = false;
+  bool wakeup_pending_ = false;
   std::queue<std::function<void()>> pending_tasks_;
 
   std::unique_ptr<DiveComputerFlutterApi> flutter_api_;

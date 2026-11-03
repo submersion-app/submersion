@@ -284,4 +284,43 @@ void main() {
       );
     });
   });
+
+  // Issue #3361: the auto-connect scan matches no computer by model when
+  // another of the diver's computers shares that model.
+  group('isSameSavedModel', () {
+    test('ignores case and surrounding whitespace', () {
+      expect(
+        isSameSavedModel(
+          _computer(),
+          _computer(manufacturer: ' RATIO ', model: 'ix3m 2021 gps fancy'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a different model, or a different maker, is not the same', () {
+      expect(isSameSavedModel(_computer(), _computer(model: 'iX3M')), isFalse);
+      expect(
+        isSameSavedModel(_computer(), _computer(manufacturer: 'Shearwater')),
+        isFalse,
+      );
+    });
+
+    test('interchangeable Cressi models count as one', () {
+      expect(
+        isSameSavedModel(
+          _computer(manufacturer: 'Cressi', model: 'Donatello'),
+          _computer(manufacturer: 'Cressi', model: 'Cartesio'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a record missing its model is like no other', () {
+      expect(
+        isSameSavedModel(_computer(model: null), _computer(model: null)),
+        isFalse,
+      );
+    });
+  });
 }

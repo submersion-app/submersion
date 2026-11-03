@@ -92,7 +92,10 @@ starts the download on its own.
    stands in for no other. Any other device can match by make and model
    only once the scan has run for 15 seconds, the window the download page
    searches for, since nothing shorter can say that one device of a model
-   is nearby. A match that belongs to a computer with auto-download opted
+   is nearby. A model that two of the diver's computers share matches
+   neither, unless the other one was found at its own address: unlike the
+   manual flow, nobody picked the computer. A match that belongs to a
+   computer with auto-download opted
    out is ignored for this purpose (it still shows up for manual download
    as today).
 4. On a match that is not opted out: open that computer's download page
@@ -118,6 +121,10 @@ starts the download on its own.
    stops the passive scan. So does anything covering it, on the shell's
    navigator or the root one, the app locking, and the app leaving the
    foreground; the scan starts again once the section is back in front.
+   Those restarts add BLE scan starts, and Android gives a sixth start
+   within 30 seconds no results without any error, so on Android every
+   scan start (passive or manual) waits until it is no more than the fifth
+   in the last 30 seconds.
 
 ---
 
@@ -133,6 +140,8 @@ starts the download on its own.
   (`/dive-computers/{id}`), that excludes that single device from
   auto-download regardless of the global switch. A computer with auto-scan
   opted out is otherwise unaffected - it can still be downloaded manually.
+  The switch shows only on a computer the passive scan could find, and
+  writes that one column, not the whole record.
 
 ---
 

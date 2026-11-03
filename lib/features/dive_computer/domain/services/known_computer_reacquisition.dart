@@ -44,6 +44,17 @@ DiscoveredDevice? sameModelFallbackDevice({
   return candidates.length == 1 ? candidates.single : null;
 }
 
+/// Whether [a] and [b] are saved as the same make and model, so one device
+/// of that model could be either of them. Compared the way
+/// [sameModelFallbackDevice] compares a computer with a device.
+bool isSameSavedModel(DiveComputer a, DiveComputer b) {
+  final manufacturer = _normalize(a.manufacturer);
+  final model = _normalize(a.model);
+  if (manufacturer.isEmpty || model.isEmpty) return false;
+  return _normalize(b.manufacturer) == manufacturer &&
+      _sameModel(manufacturer, _normalize(b.model), model);
+}
+
 /// Whether a saved Bluetooth computer with no address on this device can be
 /// looked for by make and model instead (issue #3710).
 ///

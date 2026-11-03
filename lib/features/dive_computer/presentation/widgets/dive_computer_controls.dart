@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/connection_presentation.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_actions_card.dart';
@@ -73,8 +74,12 @@ class _Controls extends ConsumerWidget {
         DiveComputerActionsCard(computer: computer),
         const SizedBox(height: 16),
         DiveComputerClockSyncCard(computer: computer),
-        const SizedBox(height: 16),
-        DiveComputerAutoDownloadCard(computer: computer),
+        // Only where the passive scan could find it: on a USB or
+        // file-imported record the switch would do nothing.
+        if (canFindByScan(computer)) ...[
+          const SizedBox(height: 16),
+          DiveComputerAutoDownloadCard(computer: computer),
+        ],
       ],
     );
   }

@@ -353,7 +353,9 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
   /// must not stand in for another computer of the same model. What is left
   /// goes to the manufacturer/model fallback the manual flow uses for a
   /// computer whose address rotated or never synced to this device (issue
-  /// #1423, #3710), once [modelMatchWindow] has passed.
+  /// #1423, #3710), once [modelMatchWindow] has passed. Unlike the manual
+  /// flow, nobody picked the computer here, so a model two of the diver's
+  /// computers share matches neither.
   DiveComputer? _firstMatchInDiscoveryOrder(
     List<DiveComputer> computers,
     List<DiscoveredDevice> discovered,
@@ -376,6 +378,16 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       ];
       for (final computer in computers) {
         if (!_canOpen(computer) || owners.containsValue(computer)) continue;
+        // Another scan target of the same model, not found at its own
+        // address, could just as well be the device in range.
+        final ambiguous = computers.any(
+          (other) =>
+              !identical(other, computer) &&
+              !owners.containsValue(other) &&
+              canFindByScan(other) &&
+              isSameSavedModel(other, computer),
+        );
+        if (ambiguous) continue;
         final device = sameModelFallbackDevice(
           computer: computer,
           discovered: unclaimed,
