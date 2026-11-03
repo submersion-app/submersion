@@ -59,9 +59,9 @@ class PreviewChangesTool implements AgentTool {
     return [
       for (final MapEntry(key: (entity, field), value: names)
           in byParent.entries)
-        '${names.join(', ')} records belong to a $entity record: a create '
-            'names it in $field and takes its profile, and the record stays '
-            'on it. ',
+        'Each ${names.join(', ')} record belongs to one record of $entity: '
+            'a create names it in $field and takes its profile, and the '
+            'record stays on it. ',
     ].join();
   }
 

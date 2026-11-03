@@ -120,8 +120,8 @@ void main() {
     expect(
       tool.description,
       contains(
-        'dive_tanks, dive_weights, sightings records belong to a dives '
-        'record: a create names it in dive_id',
+        'Each dive_tanks, dive_weights, sightings record belongs to one '
+        'record of dives: a create names it in dive_id',
       ),
     );
   });
