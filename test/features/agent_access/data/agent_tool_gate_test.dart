@@ -77,6 +77,12 @@ void main() {
         'sql_refused',
         'sql_error',
         'sql_busy',
+        'plan_not_found',
+        'plan_expired',
+        'plan_stale',
+        'not_confirmed',
+        'confirmation_pending',
+        'write_refused',
         'internal',
       ]);
     });

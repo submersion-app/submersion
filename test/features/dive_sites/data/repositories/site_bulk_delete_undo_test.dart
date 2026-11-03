@@ -259,6 +259,14 @@ void main() {
       },
     );
 
+    test('a single delete that can still go back leaves the worker alone, '
+        'with its blob delete queued', () async {
+      await sites.deleteSite('s1', holdRemoteMedia: true);
+      final intent = (await queue.allForTesting()).single;
+      expect((intent.direction, intent.state), ('delete', 'pending'));
+      expect(kicks, 0);
+    });
+
     test('Undo before the drain keeps the upload stamps and lets the held '
         'delete no-op', () async {
       await deleteAndUndo();

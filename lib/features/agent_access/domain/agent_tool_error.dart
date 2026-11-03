@@ -11,6 +11,12 @@ enum AgentToolErrorCode {
   sqlRefused,
   sqlError,
   sqlBusy,
+  planNotFound,
+  planExpired,
+  planStale,
+  notConfirmed,
+  confirmationPending,
+  writeRefused,
   internal;
 
   /// The snake_case name carried in tool error payloads.
@@ -26,6 +32,12 @@ enum AgentToolErrorCode {
     sqlRefused => 'sql_refused',
     sqlError => 'sql_error',
     sqlBusy => 'sql_busy',
+    planNotFound => 'plan_not_found',
+    planExpired => 'plan_expired',
+    planStale => 'plan_stale',
+    notConfirmed => 'not_confirmed',
+    confirmationPending => 'confirmation_pending',
+    writeRefused => 'write_refused',
     internal => 'internal',
   };
 }

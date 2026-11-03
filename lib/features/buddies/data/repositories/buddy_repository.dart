@@ -337,6 +337,24 @@ class BuddyRepository {
     }
   }
 
+  /// Writes only the columns present on [partial], so a null clears a column
+  /// and a column left out keeps its value, which [updateBuddy] cannot do
+  /// from an entity. An all-absent companion is not a touch: no stamp, no
+  /// pending mark.
+  Future<void> updateFields(String id, BuddiesCompanion partial) async {
+    if (partial.toColumns(false).isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.buddies)..where((t) => t.id.equals(id))).write(
+      partial.copyWith(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'buddies',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Delete a buddy
   Future<void> deleteBuddy(String id) => ChangeLogScope.bulk(
     DatabaseService.instance.databaseOrNull,

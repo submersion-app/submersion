@@ -26505,6 +26505,62 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_agentAccess_title => 'גישת סוכנים';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'צלילות שיאבדו את הקישור הזה ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'מוחק גם $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'מנתק גם $kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_title => 'לאשר את השינוי הזה?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return '$client רוצה לשנות את יומן הצלילות שלך.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'סוכן רוצה לשנות את יומן הצלילות שלך.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'משותף';
+
+  @override
+  String get settings_agentAccess_confirm_details => 'הצג את כל השינויים';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'אישור';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'דחייה';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'ללא';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'חדש';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'שינוי';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'מחיקה';
+
+  @override
   String get settings_agentAccess_subtitle =>
       'אפשר לסוכן בינה מלאכותית במחשב זה לקרוא ולשנות את יומן הצלילה שלך';
 
@@ -58154,6 +58210,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_source_system => 'מערכת';
+
+  @override
+  String get changeLog_source_agent => 'סוכן';
 
   @override
   String get changeLog_thisDevice => 'המכשיר הזה';
