@@ -146,6 +146,7 @@ lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clear
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:createComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:deleteComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:insertTanks
+lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:setAutoDownloadDisabled
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:setFavoriteComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateLastDownload
