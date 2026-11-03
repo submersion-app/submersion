@@ -85,6 +85,31 @@ void main() {
     expect(plan.items.single.fields.keys, ['description']);
   });
 
+  // The table keeps a tenth of a percent: the plan shows what it will hold,
+  // and a stored mix read back compares equal to the same mix written.
+  test('a gas is planned as stored, and reads back unchanged', () async {
+    final plan = await h.preview([
+      createOp('cylinder_configs', {
+        'name': 'Odd mixes',
+        'items': [cylinder('backGas', 0.3214), cylinder('deco', 0.052)],
+      }),
+    ]);
+    final planned = plan.items.single.fields['items']!.newValue! as List;
+    expect(
+      [for (final i in planned) (i as Map)['o2_fraction']],
+      [0.321, 0.052],
+    );
+
+    final id = (await h.apply(plan)).created.single.id;
+    final again = await h.preview([
+      updateOp('cylinder_configs', id, {
+        'items': [cylinder('backGas', 0.321), cylinder('deco', 0.052)],
+      }),
+    ]);
+    expect(again.items, isEmpty);
+    expect(again.unchanged.single.id, id);
+  });
+
   test('gas fractions that pass 1 are refused', () async {
     final plan = await h.preview([
       createOp('cylinder_configs', {

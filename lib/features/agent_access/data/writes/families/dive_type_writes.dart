@@ -36,6 +36,7 @@ class DiveTypeWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async =>
       builtInBlock(check, 'dive types', allowed: _visibility) ??
+      appendSlotBlock(check) ??
       await inUseBlock(check, 'dive type', _r.diveTypes.isDiveTypeInUse);
 
   @override

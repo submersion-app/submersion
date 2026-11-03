@@ -18,17 +18,25 @@ class FieldRefusal implements Exception {
 abstract class FieldCodec {
   const FieldCodec({this.nullable = false});
 
-  /// Plain text, stored exactly as sent. A required field refuses a blank
-  /// unless [allowBlank], for a column that holds no null but may be empty.
+  /// Plain text, stored exactly as sent, or with its ends trimmed when
+  /// [trim], for a column whose repository trims it. A required field refuses
+  /// a blank unless [allowBlank], for a column that holds no null but may be
+  /// empty.
   const factory FieldCodec.text({
     int? maxLength,
     bool nullable,
     bool allowBlank,
+    bool trim,
   }) = _TextCodec;
 
-  /// A decimal, optionally inside [min] to [max].
-  const factory FieldCodec.number({double? min, double? max, bool nullable}) =
-      _NumberCodec;
+  /// A decimal, optionally inside [min] to [max], and rounded to
+  /// [fractionDigits] when its column keeps no finer value.
+  const factory FieldCodec.number({
+    double? min,
+    double? max,
+    bool nullable,
+    int? fractionDigits,
+  }) = _NumberCodec;
 
   /// A whole number, optionally inside [min] to [max].
   const factory FieldCodec.integer({int? min, int? max, bool nullable}) =
@@ -80,10 +88,16 @@ abstract class FieldCodec {
 }
 
 class _TextCodec extends FieldCodec {
-  const _TextCodec({this.maxLength, super.nullable, this.allowBlank = false});
+  const _TextCodec({
+    this.maxLength,
+    super.nullable,
+    this.allowBlank = false,
+    this.trim = false,
+  });
 
   final int? maxLength;
   final bool allowBlank;
+  final bool trim;
 
   @override
   String get describe => 'text';
@@ -98,15 +112,21 @@ class _TextCodec extends FieldCodec {
     if (limit != null && raw.length > limit) {
       throw FieldRefusal('This field holds at most $limit characters.');
     }
-    return raw;
+    return trim ? raw.trim() : raw;
   }
 }
 
 class _NumberCodec extends FieldCodec {
-  const _NumberCodec({this.min, this.max, super.nullable});
+  const _NumberCodec({this.min, this.max, super.nullable, this.fractionDigits});
 
   final double? min;
   final double? max;
+  final int? fractionDigits;
+
+  double _rounded(double value) => switch (fractionDigits) {
+    final int digits => double.parse(value.toStringAsFixed(digits)),
+    null => value,
+  };
 
   @override
   String get describe => 'number';
@@ -120,12 +140,12 @@ class _NumberCodec extends FieldCodec {
     if ((min != null && value < min!) || (max != null && value > max!)) {
       throw FieldRefusal('This value must be from $min to $max.');
     }
-    return value;
+    return _rounded(value);
   }
 
   @override
   Object? canonical(Object? documentValue) =>
-      documentValue is num ? documentValue.toDouble() : documentValue;
+      documentValue is num ? _rounded(documentValue.toDouble()) : documentValue;
 }
 
 class _IntegerCodec extends FieldCodec {

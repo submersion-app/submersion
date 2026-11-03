@@ -66,6 +66,21 @@ void main() {
     expect(const FieldCodec.text().parse('Blue  Hole\n2'), 'Blue  Hole\n2');
   });
 
+  // A repository that trims a name stores it trimmed, so the plan shows it so.
+  test('a trimming text parses to the trimmed value', () {
+    const codec = FieldCodec.text(trim: true);
+    expect(codec.parse('  Wreck '), 'Wreck');
+    expect(const FieldCodec.text().parse(' Wreck '), ' Wreck ');
+  });
+
+  // A table that keeps a tenth of a percent cannot hold a finer fraction.
+  test('a number with fraction digits parses rounded', () {
+    const codec = FieldCodec.number(min: 0, max: 1, fractionDigits: 3);
+    expect(codec.parse(0.3214), 0.321);
+    expect(codec.parse(0.3216), 0.322);
+    expect(codec.canonical(0.052000000000000005), 0.052);
+  });
+
   test('text over its limit is refused', () {
     expect(
       () => const FieldCodec.text(maxLength: 3).parse('abcd'),

@@ -62,7 +62,7 @@ class CustomAgencyWrites extends WritableEntry {
 
   @override
   final Map<String, FieldCodec> fields = const {
-    'name': FieldCodec.text(maxLength: 100),
+    'name': FieldCodec.text(maxLength: 100, trim: true),
     'color_argb': FieldCodec.integer(min: 0, max: 0xFFFFFFFF),
     'is_shared': FieldCodec.flag(),
   };
@@ -171,7 +171,7 @@ class CustomLevelWrites extends WritableEntry {
   @override
   final Map<String, FieldCodec> fields = const {
     'agency_id': FieldCodec.text(maxLength: 100),
-    'name': FieldCodec.text(maxLength: 100),
+    'name': FieldCodec.text(maxLength: 100, trim: true),
     'is_progression': FieldCodec.flag(),
     'sort_order': FieldCodec.integer(min: 0, max: 9999),
     'is_shared': FieldCodec.flag(),

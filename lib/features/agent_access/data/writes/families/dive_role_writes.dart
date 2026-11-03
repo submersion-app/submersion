@@ -19,7 +19,7 @@ class DiveRoleWrites extends WritableEntry {
 
   @override
   final Map<String, FieldCodec> fields = const {
-    'name': FieldCodec.text(maxLength: 60),
+    'name': FieldCodec.text(maxLength: 60, trim: true),
   };
 
   @override

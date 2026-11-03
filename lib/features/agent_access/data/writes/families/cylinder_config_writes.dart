@@ -41,8 +41,16 @@ class CylinderConfigWrites extends WritableEntry {
           nullable: true,
         ),
         'material': FieldCodec.enumName(TankMaterial.values, nullable: true),
-        'o2_fraction': const FieldCodec.number(min: 0.05, max: 1),
-        'he_fraction': const FieldCodec.number(min: 0, max: 0.95),
+        'o2_fraction': const FieldCodec.number(
+          min: 0.05,
+          max: 1,
+          fractionDigits: 3,
+        ),
+        'he_fraction': const FieldCodec.number(
+          min: 0,
+          max: 0.95,
+          fractionDigits: 3,
+        ),
         'default_start_pressure_bar': const FieldCodec.number(
           min: 0,
           max: 450,

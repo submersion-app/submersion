@@ -136,6 +136,18 @@ void main() {
     expect(plan.items[1].block!.reason, BlockReason.duplicateRecord);
   });
 
+  test('a name is planned as the repository stores it, trimmed', () async {
+    await tag('reef', 'Reef');
+
+    final plan = await h.preview([
+      createOp('tags', {'name': '  Night '}),
+      updateOp('tags', 'reef', {'name': ' Reef '}),
+    ]);
+
+    expect(plan.items.single.fields['name']!.newValue, 'Night');
+    expect(plan.unchanged.single.id, 'reef');
+  });
+
   test('a name taken after the preview refuses the apply', () async {
     final plan = await h.preview([
       createOp('tags', {'name': 'Wreck'}),

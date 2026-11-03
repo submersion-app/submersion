@@ -25,6 +25,18 @@ PlanBlock? builtInBlock(
   );
 }
 
+/// A block for a create naming sort_order 0, which the repository reads as
+/// "after the last" and stores as the next free slot, so the plan would list
+/// a value that is never stored.
+PlanBlock? appendSlotBlock(WriteCheck check) =>
+    check.kind == ChangeKind.create && check.values['sort_order'] == 0
+    ? const PlanBlock(
+        BlockReason.invalidValue,
+        'sort_order: a new record given 0 goes after the last one. Leave '
+        'sort_order out to put it last, or give a slot from 1.',
+      )
+    : null;
+
 /// A block for a delete the settings page refuses while a dive uses the
 /// record, which [inUse] answers as the page asks it.
 Future<PlanBlock?> inUseBlock(

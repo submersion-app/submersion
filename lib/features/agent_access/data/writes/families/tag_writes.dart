@@ -27,7 +27,7 @@ class TagWrites extends WritableEntry {
 
   @override
   late final Map<String, FieldCodec> fields = {
-    'name': const FieldCodec.text(maxLength: 100),
+    'name': const FieldCodec.text(maxLength: 100, trim: true),
     'color_hex': const FieldCodec.text(maxLength: 7, nullable: true),
     'scopes': FieldCodec.enumSet(domain.TagScope.values, min: 1),
   };

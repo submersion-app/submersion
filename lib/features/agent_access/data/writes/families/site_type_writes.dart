@@ -21,7 +21,7 @@ class SiteTypeWrites extends WritableEntry {
 
   @override
   final Map<String, FieldCodec> fields = const {
-    'name': FieldCodec.text(maxLength: 60),
+    'name': FieldCodec.text(maxLength: 60, trim: true),
     'sort_order': FieldCodec.integer(min: 0, max: 999),
   };
 
@@ -30,7 +30,7 @@ class SiteTypeWrites extends WritableEntry {
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async =>
-      builtInBlock(check, 'site types');
+      builtInBlock(check, 'site types') ?? appendSlotBlock(check);
 
   @override
   Future<DeleteReach> deleteReach(

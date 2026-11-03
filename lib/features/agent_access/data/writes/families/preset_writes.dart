@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/enums.dart'
     show TankMaterial, WeightType;
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/built_in_rule.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/object_list_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -43,6 +44,9 @@ class TankPresetWrites extends WritableEntry {
   @override
   String? titleOf(Map<String, Object?> document) =>
       document['display_name'] as String?;
+
+  @override
+  Future<PlanBlock?> refuse(WriteCheck check) async => appendSlotBlock(check);
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
@@ -113,8 +117,8 @@ class WeightPresetWrites extends WritableEntry {
 
   @override
   late final Map<String, FieldCodec> fields = {
-    'display_name': const FieldCodec.text(maxLength: 100),
-    'notes': const FieldCodec.text(allowBlank: true),
+    'display_name': const FieldCodec.text(maxLength: 100, trim: true),
+    'notes': const FieldCodec.text(allowBlank: true, trim: true),
     'entries': ObjectListCodec(
       {
         'type': FieldCodec.enumName(WeightType.values),

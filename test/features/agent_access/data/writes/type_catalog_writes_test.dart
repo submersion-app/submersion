@@ -107,6 +107,29 @@ void main() {
     expect(await h.one('site_types', siteType), isNull);
   });
 
+  // These repositories put a new record with sort_order 0 after the last, so
+  // a plan listing 0 would not be what is stored.
+  test('a create with sort_order 0 is refused, any other slot stays', () async {
+    final plan = await h.preview([
+      createOp('dive_types', {'name': 'Ice', 'sort_order': 0}),
+      createOp('site_types', {'name': 'Quarry', 'sort_order': 0}),
+      createOp('tank_presets', {
+        'display_name': 'Twin 7',
+        'volume_l': 14.0,
+        'working_pressure_bar': 300.0,
+        'material': 'steel',
+        'sort_order': 0,
+      }),
+      createOp('dive_types', {'name': 'Cave', 'sort_order': 4}),
+    ]);
+
+    for (final item in plan.items.take(3)) {
+      expect(item.block!.reason, BlockReason.invalidValue, reason: item.entity);
+      expect(item.block!.detail, contains('sort_order'));
+    }
+    expect(plan.items[3].block, isNull);
+  });
+
   test('a custom dive type or role a dive uses cannot be deleted', () async {
     final type = await created('dive_types', {'name': 'Ice'});
     final role = await created('dive_roles', {'name': 'Safety diver'});
