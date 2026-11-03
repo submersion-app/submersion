@@ -21038,6 +21038,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minutos más';
 
   @override
+  String get plannerSeries_unsaved_title => '¿Guardar esta serie?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Esta serie tiene cambios sin guardar.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Descartar';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => '¿Guardar esta inmersión?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Esta inmersión tiene cambios sin guardar.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count inmersiones';
   }

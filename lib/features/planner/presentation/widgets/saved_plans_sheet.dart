@@ -221,12 +221,23 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
 
     try {
       final source = await File(path).readAsString();
-      final plan = subplanFromJson(source);
-      await ref.read(divePlanRepositoryProvider).savePlan(plan);
+      // A version 4 file can hold a whole series (issue #3565).
+      final series = seriesFromSubplanJson(source);
+      final String planId;
+      if (series != null) {
+        final stored = await ref
+            .read(divePlanSeriesRepositoryProvider)
+            .saveSeries(series);
+        planId = stored.dives.first.plan.id;
+      } else {
+        final plan = subplanFromJson(source);
+        await ref.read(divePlanRepositoryProvider).savePlan(plan);
+        planId = plan.id;
+      }
       navigator.pop();
       // PUSH (not go): keep the canvas poppable so system back does not
       // close the app (#647).
-      router.push('/planning/dive-planner/${plan.id}');
+      router.push('/planning/dive-planner/$planId');
     } on FormatException catch (e) {
       messenger.showSnackBar(
         SnackBar(
@@ -330,6 +341,10 @@ class _PlanTile extends ConsumerWidget {
                   // columns stay absent in the companion and the upsert
                   // preserves them along with the tile's subtitle.
                   await repository.savePlan(plan.copyWith(name: entered));
+                } else if (value == 'duplicate' && seriesId != null) {
+                  await ref
+                      .read(divePlanSeriesRepositoryProvider)
+                      .duplicateSeries(seriesId);
                 } else if (value == 'duplicate') {
                   await repository.duplicatePlan(summary.id);
                 } else if (value == 'share') {
@@ -346,6 +361,14 @@ class _PlanTile extends ConsumerWidget {
                       savedMessage: context.l10n.plannerCanvas_share_saved,
                       shareAnchor: anchor,
                       build: () async {
+                        // One dive saved as a series is shared as the plan
+                        // it is; several go together, with what they carry.
+                        if (row.showsDives) {
+                          final series = await ref
+                              .read(divePlanSeriesRepositoryProvider)
+                              .getSeries(seriesId!);
+                          return series == null ? null : seriesExport(series);
+                        }
                         final plan = await repository.getPlan(summary.id);
                         return plan == null ? null : subplanExport(plan);
                       },
@@ -372,18 +395,16 @@ class _PlanTile extends ConsumerWidget {
                   value: 'rename',
                   child: Text(context.l10n.divePlanner_action_renamePlan),
                 ),
-                // Copying or sharing one dive would lose what the dives
-                // before it carry in, so a series offers neither yet.
-                if (seriesId == null) ...[
-                  PopupMenuItem(
-                    value: 'duplicate',
-                    child: Text(context.l10n.plannerCanvas_saved_duplicate),
-                  ),
-                  PopupMenuItem(
-                    value: 'share',
-                    child: Text(context.l10n.plannerCanvas_share_menu),
-                  ),
-                ],
+                // On a series these act on every dive: one dive alone would
+                // lose what the dives before it carry in.
+                PopupMenuItem(
+                  value: 'duplicate',
+                  child: Text(context.l10n.plannerCanvas_saved_duplicate),
+                ),
+                PopupMenuItem(
+                  value: 'share',
+                  child: Text(context.l10n.plannerCanvas_share_menu),
+                ),
                 if (links) ...[
                   PopupMenuItem(
                     value: 'link',

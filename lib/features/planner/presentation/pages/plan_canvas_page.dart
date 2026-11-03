@@ -34,6 +34,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_chart_read
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_dialog.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
@@ -88,7 +89,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       Future.microtask(() {
         if (!mounted) return;
         logFailure(
-          openSavedPlan(ref.container, planId),
+          _openRoutePlan(planId),
           _PlanCanvasPageState,
           'open a saved plan',
         );
@@ -300,12 +301,25 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
-          return _buildPhone(constraints);
+      // Leaving a series with unsaved changes asks first (issue #3565).
+      body: PopScope(
+        canPop: !(isDirty && ref.watch(planSeriesSavesAsSeriesProvider)),
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            logFailure(
+              _confirmLeavingSeries(),
+              _PlanCanvasPageState,
+              'leave an unsaved series',
+            );
+          }
         },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
+            return _buildPhone(constraints);
+          },
+        ),
       ),
     );
   }
@@ -749,7 +763,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       title: l10n.plannerCanvas_share_menu,
       savedMessage: l10n.plannerCanvas_share_saved,
       shareAnchor: shareAnchor,
-      build: () async => mounted ? planFileExport(ref) : null,
+      build: () async {
+        if (!mounted) return null;
+        // One dive is shared as the plan it is; a series goes together, with
+        // what each dive carries from the one before.
+        if (!ref.read(planSeriesNotifierProvider).isSeries) {
+          return planFileExport(ref);
+        }
+        return seriesExport(await currentStoredSeries(ref.container));
+      },
     );
   }
 
@@ -973,6 +995,65 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         ),
       ),
     );
+  }
+
+  /// Opens the saved plan this page was pushed for, asking first when that
+  /// would replace unsaved work: the editor is app-wide, so what it holds may
+  /// be another plan altogether. A dive of the series being edited is not
+  /// another plan, so it is selected, keeping the edits.
+  Future<void> _openRoutePlan(String planId) async {
+    final series = ref.read(planSeriesNotifierProvider);
+    if (series.isDirty) {
+      final index = series.dives.indexWhere((d) => d.state.id == planId);
+      if (index >= 0) {
+        ref.read(planSeriesNotifierProvider.notifier).select(index);
+        return;
+      }
+      final choice = await showUnsavedPlanDialog(
+        context,
+        isSeries: series.savesAsSeries,
+      );
+      if (!mounted) return;
+      switch (choice) {
+        case UnsavedPlanChoice.save:
+          await _runSavePlan();
+          if (!mounted) return;
+          // The naming prompt can be cancelled, which leaves it unsaved.
+          if (ref.read(planSeriesDirtyProvider)) return _leaveUnopenedRoute();
+        case UnsavedPlanChoice.discard:
+          break;
+        case UnsavedPlanChoice.cancel:
+          return _leaveUnopenedRoute();
+      }
+    }
+    await openSavedPlan(ref.container, planId);
+  }
+
+  /// Backs out of a route whose plan was not opened: this page's [widget]
+  /// planId names a plan the editor does not hold, and Delete prefers it.
+  void _leaveUnopenedRoute() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      context.go('/planning/dive-planner');
+    }
+  }
+
+  /// Asks before leaving a series with unsaved changes, and leaves unless
+  /// the diver cancels, or cancels the name a first save asks for.
+  Future<void> _confirmLeavingSeries() async {
+    final choice = await showUnsavedPlanDialog(context, isSeries: true);
+    if (!mounted) return;
+    switch (choice) {
+      case UnsavedPlanChoice.save:
+        await _runSavePlan();
+        if (!mounted || ref.read(planSeriesDirtyProvider)) return;
+      case UnsavedPlanChoice.discard:
+        ref.read(divePlanNotifierProvider.notifier).newPlan();
+      case UnsavedPlanChoice.cancel:
+        return;
+    }
+    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _deleteSeries(String seriesId) async {

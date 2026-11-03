@@ -20021,6 +20021,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '增加 15 分钟';
 
   @override
+  String get plannerSeries_unsaved_title => '保存此系列？';
+
+  @override
+  String get plannerSeries_unsaved_body => '此系列有未保存的更改。';
+
+  @override
+  String get plannerSeries_unsaved_discard => '放弃';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => '保存此潜水？';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive => '此潜水有未保存的更改。';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count 次潜水';
   }

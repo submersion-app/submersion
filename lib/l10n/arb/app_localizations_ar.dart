@@ -21342,6 +21342,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => 'أكثر بـ 15 دقيقة';
 
   @override
+  String get plannerSeries_unsaved_title => 'هل تريد حفظ هذه السلسلة؟';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'تحتوي هذه السلسلة على تغييرات غير محفوظة.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'تجاهل';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'هل تريد حفظ هذه الغطسة؟';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'تحتوي هذه الغطسة على تغييرات غير محفوظة.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -13140,6 +13140,11 @@
   "plannerSeries_surfaceInterval_invalid": "Enter a time as h:mm",
   "plannerSeries_surfaceInterval_decrease": "15 minutes less",
   "plannerSeries_surfaceInterval_increase": "15 minutes more",
+  "plannerSeries_unsaved_title": "Save this series?",
+  "plannerSeries_unsaved_body": "This series has changes that haven't been saved.",
+  "plannerSeries_unsaved_discard": "Discard",
+  "plannerSeries_unsaved_titleDive": "Save this dive?",
+  "plannerSeries_unsaved_bodyDive": "This dive has changes that haven't been saved.",
   "plannerSeries_saved_diveCount": "{count} dives",
   "@plannerSeries_saved_diveCount": {
     "description": "How many dives a saved series has, in the saved plans list",

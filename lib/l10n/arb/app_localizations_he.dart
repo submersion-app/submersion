@@ -20585,6 +20585,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 דקות יותר';
 
   @override
+  String get plannerSeries_unsaved_title => 'לשמור את הסדרה?';
+
+  @override
+  String get plannerSeries_unsaved_body => 'בסדרה זו יש שינויים שלא נשמרו.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'ביטול שינויים';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'לשמור את הצלילה?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'בצלילה זו יש שינויים שלא נשמרו.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count צלילות';
   }

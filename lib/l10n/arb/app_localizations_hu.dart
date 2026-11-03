@@ -20972,6 +20972,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 perccel több';
 
   @override
+  String get plannerSeries_unsaved_title => 'Menti ezt a sorozatot?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'A sorozat nem mentett módosításokat tartalmaz.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Elvetés';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'Menti ezt a merülést?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'A merülés nem mentett módosításokat tartalmaz.';
+
+  @override
   String plannerSeries_saved_diveCount(int count) {
     return '$count merülés';
   }
