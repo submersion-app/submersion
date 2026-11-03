@@ -161,11 +161,16 @@ class _MediaLibraryGroupedListState
     hint: hint,
   );
 
-  /// [name] when it has text, else [fallback]: an empty label renders a
-  /// zero-size, untappable header.
-  static String _nameOr(String? name, String fallback) {
+  /// [template] around [name] when it has text, else [fallback] on its own:
+  /// an empty label renders a zero-size, untappable header, and the fallback
+  /// inside the template would read "Site: Site".
+  static String _named(
+    String? name,
+    String Function(String name) template,
+    String fallback,
+  ) {
     final trimmed = name?.trim();
-    return trimmed == null || trimmed.isEmpty ? fallback : trimmed;
+    return trimmed == null || trimmed.isEmpty ? fallback : template(trimmed);
   }
 
   /// Each group's headers, in order. The timeline carries a month header
@@ -203,8 +208,10 @@ class _MediaLibraryGroupedListState
         case SiteGroupHeader(:final siteId, :final siteName):
           headers.add([
             _linkHeader(
-              context.l10n.media_library_siteHeader(
-                _nameOr(siteName, context.l10n.media_library_filter_site),
+              _named(
+                siteName,
+                context.l10n.media_library_siteHeader,
+                context.l10n.media_library_filter_site,
               ),
               route: '/sites/$siteId',
               hint: context.l10n.media_library_siteHeaderHint,
@@ -213,8 +220,10 @@ class _MediaLibraryGroupedListState
         case EquipmentGroupHeader(:final equipmentId, :final name):
           headers.add([
             _linkHeader(
-              context.l10n.media_library_equipmentHeader(
-                _nameOr(name, context.l10n.media_library_untitledEquipment),
+              _named(
+                name,
+                context.l10n.media_library_equipmentHeader,
+                context.l10n.media_library_untitledEquipment,
               ),
               route: '/equipment/$equipmentId',
               hint: context.l10n.media_library_equipmentHeaderHint,

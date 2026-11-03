@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+/// [dive] is every by-dive mode header: a dive's, and since issue #4149 a
+/// site's, an equipment item's and Unlinked.
 enum MediaGroupHeaderKind { month, day, dive }
 
 /// One header in the grouped gallery. Everything that sets a header's height

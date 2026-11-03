@@ -307,7 +307,8 @@ void main() {
       await tester.tap(find.text('Source'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Web links'), findsWidgets);
+      // Once as the row's subtitle, once as an option in the picker.
+      expect(find.text('Web links'), findsNWidgets(2));
     });
   });
 }

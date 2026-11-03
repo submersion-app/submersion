@@ -121,6 +121,43 @@ void main() {
     expect(find.text('Unlinked'), findsOneWidget);
   });
 
+  testWidgets('a nameless site or item falls back to a bare label', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _badgeOverrides().cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: MediaLibraryGroupedList(
+              groups: [
+                MediaLibraryGroup(
+                  header: SiteGroupHeader(siteId: 's1', siteName: '  '),
+                  entries: [_entry('a')],
+                ),
+                MediaLibraryGroup(
+                  header: EquipmentGroupHeader(equipmentId: 'e1'),
+                  entries: [_entry('b')],
+                ),
+              ],
+              hasMore: false,
+              onLoadMore: () {},
+              onTileTap: (_) {},
+              columns: 4,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Site'), findsOneWidget);
+    expect(find.text('Untitled equipment'), findsOneWidget);
+  });
+
   testWidgets('a site header opens the site', (tester) async {
     final router = await pumpRouter(tester);
 
