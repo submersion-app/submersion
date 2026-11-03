@@ -41,8 +41,6 @@ const demoCoverageExclusions = <String, String>{
   'equipment_service_status': 'a local cache the app rebuilds from the gear',
   'dive_safety_reviews': 'computed by the app when a dive is opened',
   'dive_safety_findings': 'computed by the app when a dive is opened',
-  // Not seeded yet.
-  'dive_plan_series': 'seeded with series planning, phase 3',
 };
 
 class CoverageCheck {

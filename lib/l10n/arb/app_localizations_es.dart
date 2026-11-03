@@ -21046,10 +21046,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_fillAll => 'Llenar todas las botellas';
 
   @override
-  String get plannerSeries_saveUnavailable =>
-      'Todavía no se puede guardar una serie de inmersiones';
-
-  @override
   String get plannerSeries_convertUnavailable =>
       'Todavía no se puede convertir una serie de inmersiones en inmersiones registradas';
 

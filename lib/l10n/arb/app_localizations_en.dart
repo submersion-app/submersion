@@ -20742,10 +20742,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_fillAll => 'Fill all tanks';
 
   @override
-  String get plannerSeries_saveUnavailable =>
-      'A series of dives can\'t be saved yet';
-
-  @override
   String get plannerSeries_convertUnavailable =>
       'A series of dives can\'t be converted to logged dives yet';
 

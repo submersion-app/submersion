@@ -5924,7 +5924,6 @@
   "plannerSeries_surfaceInterval_increase": "15 perccel több",
   "plannerSeries_fill": "{tank} töltése",
   "plannerSeries_fillAll": "Minden palack töltése",
-  "plannerSeries_saveUnavailable": "Merülések sorozata még nem menthető",
   "plannerSeries_convertUnavailable": "Merülések sorozata még nem alakítható naplózott merülésekké",
   "plannerSeries_missionUnavailable": "Merülések sorozata nem tervezhető DPV-küldetésként",
   "plannerSeries_followUnavailableInReplan": "Az újratervezés nem követhet másik merülést",

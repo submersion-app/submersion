@@ -20029,9 +20029,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_fillAll => '加满所有气瓶';
 
   @override
-  String get plannerSeries_saveUnavailable => '暂时无法保存潜水系列';
-
-  @override
   String get plannerSeries_convertUnavailable => '暂时无法将潜水系列转换为已记录的潜水';
 
   @override

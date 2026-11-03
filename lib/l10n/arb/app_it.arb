@@ -5924,7 +5924,6 @@
   "plannerSeries_surfaceInterval_increase": "15 minuti in più",
   "plannerSeries_fill": "Riempi {tank}",
   "plannerSeries_fillAll": "Riempi tutte le bombole",
-  "plannerSeries_saveUnavailable": "Non è ancora possibile salvare una serie di immersioni",
   "plannerSeries_convertUnavailable": "Non è ancora possibile convertire una serie di immersioni in immersioni registrate",
   "plannerSeries_missionUnavailable": "Non è possibile pianificare una serie di immersioni come missione DPV",
   "plannerSeries_followUnavailableInReplan": "Una ripianificazione non può seguire un'altra immersione",
