@@ -69,9 +69,12 @@ class ByteWriter {
     for (var rest = value; rest >= 0x80; rest ~/= 0x80) {
       length++;
     }
-    // Nine bytes carry 63 bits.
+    // Nine bytes carry 63 bits. Only JavaScript gets past them, so the VM
+    // suite cannot reach the throw; test/web/js_integers covers it.
     if (length > 9) {
+      // coverage:ignore-start
       throw ArgumentError.value(value, 'value', 'varuint past 63 bits');
+      // coverage:ignore-end
     }
     var remaining = value;
     while (remaining >= 0x80) {
