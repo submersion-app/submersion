@@ -10,7 +10,7 @@ const Set<String> kMeasuredDiveFields = {
   // depths and temperature
   'maxDepth', 'avgDepth', 'waterTemp',
   // the record itself
-  'profile', 'tanks',
+  'profile', 'profileSpan', 'tanks',
   // deco and exposure the computer reports
   'gradientFactorLow', 'gradientFactorHigh', 'decoAlgorithm',
   'decoConservatism', 'computerTissue',

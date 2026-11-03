@@ -22,7 +22,7 @@ class ItineraryDiveRow extends StatelessWidget {
     final muted = theme.textTheme.bodySmall?.copyWith(
       color: colorScheme.onSurfaceVariant,
     );
-    final runtime = dive.runtime ?? dive.bottomTime;
+    final runtime = dive.measuredRuntime;
     // Time, then time in the water, depth and water temperature, each only
     // when the dive logged it.
     final values = [

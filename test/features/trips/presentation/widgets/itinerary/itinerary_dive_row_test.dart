@@ -90,4 +90,27 @@ void main() {
     expect(find.textContaining('00:10'), findsOneWidget);
     expect(find.textContaining('23:50'), findsNothing);
   });
+
+  testWidgets('a dive with only a bottom time shows no time in the water', (
+    tester,
+  ) async {
+    final logged = Dive(
+      id: 'logged',
+      dateTime: DateTime(2026, 3, 8, 9),
+      bottomTime: const Duration(minutes: 47),
+      site: const DiveSite(id: 's', name: 'Salt Pier'),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: ItineraryDiveRow(dive: logged, units: _imperial),
+        ),
+      ),
+    );
+    expect(find.textContaining('09:00'), findsOneWidget);
+    expect(find.textContaining('47m'), findsNothing);
+  });
 }

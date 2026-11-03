@@ -363,7 +363,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                     ),
                     _buildPadiField(
                       l10n.pdf_columnTime,
-                      l10n.pdf_minutesCompact(pdfDiveDurationMinutes(dive)),
+                      pdfDiveDurationCompact(dive, l10n),
                     ),
                     _buildPadiField(
                       l10n.pdf_columnTemp,

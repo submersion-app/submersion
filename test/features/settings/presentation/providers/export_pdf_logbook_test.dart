@@ -339,8 +339,8 @@ void main() {
         expect(text, contains('Summary'));
         expect(
           text,
-          contains('Total Dive Time 1h 42m'),
-          reason: 'runtime 62 + bottomTime fallback 40 = 102 minutes (#644)',
+          contains('Total Dive Time 1h 2m'),
+          reason: 'the runtime 62, with no bottom time counted (#644, #3304)',
         );
       },
     );
@@ -544,7 +544,7 @@ void main() {
       expect(picker.requestedFileName, startsWith('dive_logbook_detailed_'));
       final text = await textAt(target);
       expect(text, contains('Summary'));
-      expect(text, contains('Total Dive Time 1h 42m'));
+      expect(text, contains('Total Dive Time 1h 2m'));
     });
 
     test(

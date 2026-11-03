@@ -179,7 +179,9 @@ class CompactDiveListTile extends ConsumerWidget {
     if (field == DiveField.maxDepth) {
       return units.formatDepth(maxDepth);
     }
-    if (field == DiveField.bottomTime) {
+    // [duration] is either of runtime and bottom time, so with a source to
+    // read, the slot reads its own field (issue #3304).
+    if (field == DiveField.bottomTime && !_hasSlotData) {
       return duration != null ? '${duration!.inMinutes} min' : '--';
     }
     // Fallback for any other field value

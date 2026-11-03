@@ -116,7 +116,7 @@ class CsvDivesWriter {
         units.value(CsvColumns.maxDepth, dive.maxDepth),
         units.value(CsvColumns.avgDepth, dive.avgDepth),
         dive.bottomTime?.inMinutes ?? '',
-        dive.runtime?.inMinutes ?? '',
+        dive.measuredRuntime?.inMinutes ?? '',
         units.value(CsvColumns.waterTemp, dive.waterTemp),
         units.value(CsvColumns.airTemp, dive.airTemp),
         units.value(CsvColumns.visibility, dive.visibilityMeters),

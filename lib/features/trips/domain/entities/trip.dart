@@ -249,10 +249,11 @@ class TripWithStats extends Equatable {
 
   /// Total time in the water across the trip's dives, in seconds.
   ///
-  /// Runtime (surface to surface), falling back to bottom time for dives that
-  /// only carry one. This is the same `COALESCE(runtime, bottom_time)` total
-  /// the statistics page reports, so a trip's hours agree with the overall
-  /// dive-time figure instead of undercounting every ascent (issue #889).
+  /// Runtime (surface to surface). This is the same
+  /// `measuredRuntimeSecondsSql` total the statistics page reports, so a
+  /// trip's hours agree with the overall dive-time figure instead of
+  /// undercounting every ascent (issue #889). A dive with only a bottom time
+  /// adds nothing (issue #3304).
   final int totalRuntime; // seconds
   final double? maxDepth;
   final double? avgDepth;

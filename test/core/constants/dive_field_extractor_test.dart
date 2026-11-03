@@ -175,11 +175,23 @@ void main() {
       );
     });
 
-    test('runtime returns effectiveRuntime', () {
-      // effectiveRuntime falls back to runtime when set
+    test('runtime returns the measured runtime', () {
       expect(
         DiveField.runtime.extractFromDive(testDive),
         const Duration(minutes: 52),
+      );
+    });
+
+    test('runtime is empty for a dive with only a bottom time', () {
+      final dive = Dive(
+        id: 'hand-logged',
+        dateTime: testDive.dateTime,
+        bottomTime: const Duration(minutes: 45),
+      );
+      expect(DiveField.runtime.extractFromDive(dive), isNull);
+      expect(
+        DiveField.bottomTime.extractFromDive(dive),
+        const Duration(minutes: 45),
       );
     });
 
