@@ -1,3 +1,5 @@
+import 'dart:ui' show FrameTiming;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -168,6 +170,49 @@ void main() {
       expect(find.byType(CustomPaint), findsWidgets);
       expect(await countRepaintsOverOneSecond(tester), 0);
       expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    FrameTiming frameTaking(Duration span) {
+      final micros = span.inMicroseconds;
+      return FrameTiming(
+        vsyncStart: 0,
+        buildStart: 0,
+        buildFinish: micros ~/ 2,
+        rasterStart: micros ~/ 2,
+        rasterFinish: micros,
+        rasterFinishWallTime: micros,
+      );
+    }
+
+    void reportFrames(WidgetTester tester, Duration span, int count) {
+      tester.binding.platformDispatcher.onReportTimings!(
+        List.filled(count, frameTaking(span)),
+      );
+    }
+
+    // A browser without WebGL renders on the CPU, where each repaint costs
+    // more than the animation's frame interval; the bubbles then starved
+    // startup of the main thread and the splash never moved on (#4177).
+    testWidgets('holds still once its frames keep running over budget', (
+      tester,
+    ) async {
+      await pumpAnimated(tester);
+
+      reportFrames(tester, const Duration(milliseconds: 120), 12);
+      await tester.pump();
+
+      expect(await countRepaintsOverOneSecond(tester), 0);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    testWidgets('keeps animating through a few slow frames', (tester) async {
+      await pumpAnimated(tester);
+
+      reportFrames(tester, const Duration(milliseconds: 120), 3);
+      reportFrames(tester, const Duration(milliseconds: 8), 20);
+      await tester.pump();
+
+      expect(await countRepaintsOverOneSecond(tester), greaterThan(0));
     });
 
     testWidgets('stays still while its route has tickers disabled', (
