@@ -105,14 +105,19 @@ class BleIoStream {
   int PerformRead(void* data, size_t size, size_t* actual);
   int PerformWrite(const void* data, size_t size, size_t* actual);
 
+  // Defined below with the credit state; declared here for the handlers.
+  struct CreditBalance;
+
   // GATT notification handler. `generation` is the connect attempt that
-  // subscribed it; a callback from an earlier attempt is dropped.
+  // subscribed it and `credits` that attempt's balance; a callback from an
+  // earlier attempt is dropped and can only ever touch its own, closed,
+  // balance.
   void OnCharacteristicValueChanged(
       winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
           GattCharacteristic const& sender,
       winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
           GattValueChangedEventArgs const& args,
-      uint32_t generation);
+      uint32_t generation, const std::shared_ptr<CreditBalance>& credits);
 
   // Subscribes OnCharacteristicValueChanged for the current attempt.
   winrt::event_token SubscribeValueChanged(
@@ -122,7 +127,7 @@ class BleIoStream {
   // Telit/Stollmann Terminal I/O credit handshake. See the block comment in
   // ble_io_stream.cc and darwin's BleCharacteristicSelector.
   bool GrantInitialCredits();
-  void ReplenishCredits();
+  void ReplenishCredits(const std::shared_ptr<CreditBalance>& credits);
   // Unsubscribe from and forget the credit characteristics.
   void ReleaseCreditCharacteristics();
 

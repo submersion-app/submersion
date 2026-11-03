@@ -795,16 +795,19 @@ void BleIoStream::ReleaseCreditCharacteristics() {
     credits_->open = false;
 }
 
-void BleIoStream::ReplenishCredits() {
-    auto credits = credits_;
+void BleIoStream::ReplenishCredits(
+    const std::shared_ptr<CreditBalance>& credits) {
     const uint8_t grant = static_cast<uint8_t>(kTerminalIoInitialGrant -
                                                kTerminalIoRefillThreshold);
     GattCharacteristic characteristic{nullptr};
 
     {
         std::lock_guard<std::mutex> lock(credits->mutex);
-        if (!credits_write_characteristic_) return;
+        // `open` first: a failed attempt's balance was closed by Close(), so
+        // its late callbacks return here without reading the characteristic
+        // member the next attempt is setting up.
         if (!credits->open) return;
+        if (!credits_write_characteristic_) return;
         if (credits->credits > 0) credits->credits--;
         if (credits->grant_in_flight) return;
         if (credits->credits > kTerminalIoRefillThreshold) return;
@@ -854,18 +857,22 @@ void BleIoStream::ReplenishCredits() {
 
 winrt::event_token BleIoStream::SubscribeValueChanged(
     GattCharacteristic const& characteristic) {
+    // Both captured by value, so a late callback never reads the credits_
+    // member the next attempt replaces.
     const uint32_t generation = link_generation_;
+    auto credits = credits_;
     return characteristic.ValueChanged(
-        [this, generation](GattCharacteristic const& sender,
-                           GattValueChangedEventArgs const& args) {
-            OnCharacteristicValueChanged(sender, args, generation);
+        [this, generation, credits](GattCharacteristic const& sender,
+                                    GattValueChangedEventArgs const& args) {
+            OnCharacteristicValueChanged(sender, args, generation, credits);
         });
 }
 
 void BleIoStream::OnCharacteristicValueChanged(
     GattCharacteristic const& sender,
     GattValueChangedEventArgs const& args,
-    uint32_t generation) {
+    uint32_t generation,
+    const std::shared_ptr<CreditBalance>& credits) {
     // UART Credits TX shares this handler with UART Data TX but carries no
     // application data: injecting its indications into the read queue would
     // corrupt the protocol stream.
@@ -900,8 +907,10 @@ void BleIoStream::OnCharacteristicValueChanged(
     read_cv_.notify_one();
 
     // Each packet the module sends costs it one credit; top it back up before
-    // the balance runs out or the transfer stalls part-way through.
-    ReplenishCredits();
+    // the balance runs out or the transfer stalls part-way through. The
+    // balance is this callback's own attempt's: one that passed the
+    // generation check just before a retry finds it closed and stops.
+    ReplenishCredits(credits);
 }
 
 libdc_io_callbacks_t BleIoStream::MakeCallbacks() {
