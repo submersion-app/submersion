@@ -282,6 +282,11 @@ void DiveComputerHostApiImpl::StartDownload(
     if (download_thread_.joinable()) {
         download_thread_.join();
     }
+    // Cleared here, before the thread exists, rather than inside it: a
+    // cancel that arrives before the download thread reaches its connect
+    // would otherwise be wiped out and the connect would wait out its
+    // retry window anyway.
+    connect_cancelled_.store(false);
 
     // Copy device and fingerprint for the background thread (pointer would dangle).
     DiscoveredDevice device_copy = device;
@@ -392,7 +397,6 @@ void DiveComputerHostApiImpl::PerformDownload(
         return;
     }
     download_session_ = session;
-    connect_cancelled_.store(false);
 
     // Set up download callbacks.
     // When probing multiple serial ports, dives are buffered to avoid

@@ -22,14 +22,6 @@ namespace {
 // bug report reads the same way as the ones this code was modelled on.
 constexpr char kBleCategory[] = "BLE";
 
-// Colon-free upper-case hex, the one form a Windows address takes anywhere
-// else in this plugin: ble_scanner.cc formats the same uint64 as "%012llX",
-// that string is DiscoveredDevice::address(), it is the access-code storage
-// key, it is what dive_computer_host_api_impl.cc parses back with strtoull,
-// and it is what the Dart log prints. A colon-separated form here would mean
-// the connect and error lines could not be matched to the device that
-// produced them, and bluetoothAddressesMatch (discovery_providers.dart) only
-// upper-cases before comparing, so it would not bridge the two spellings.
 // HRESULT code plus message. The message alone is localized and often
 // generic ("The object has been closed"), while the code is what a bug
 // report can be searched on and what names an access or authentication
@@ -39,13 +31,6 @@ std::string DescribeHresult(const winrt::hresult_error& e) {
     std::snprintf(code, sizeof(code), "0x%08X",
                   static_cast<unsigned int>(static_cast<int32_t>(e.code())));
     return std::string(code) + " " + winrt::to_string(e.message());
-}
-
-std::string FormatAddress(uint64_t address) {
-    char buffer[13];
-    std::snprintf(buffer, sizeof(buffer), "%012llX",
-                  static_cast<unsigned long long>(address));
-    return std::string(buffer);
 }
 
 // Formatted by hand rather than through winrt::to_hstring so the output
@@ -265,7 +250,7 @@ bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address,
 }
 
 bool BleIoStream::ConnectAndDiscoverOnce(uint64_t bluetooth_address) {
-    const std::string address = FormatAddress(bluetooth_address);
+    const std::string address = FormatBluetoothAddress(bluetooth_address);
     connect_failure_ = BleConnectFailure::kNone;
     connect_failure_detail_.clear();
     connect_failure_hresult_ = 0;
@@ -649,6 +634,9 @@ bool BleIoStream::DiscoverCharacteristics() {
         // log and has to be true.
         std::string credits_cccd_threw;
         BleConnectFailure credits_cccd_failure = BleConnectFailure::kOther;
+        // Carried to Fail so the retry policy sees the same code it would
+        // for a throw anywhere else in discovery.
+        int32_t credits_cccd_hresult = 0;
         try {
             credits_cccd_result =
                 credits_notify_characteristic_
@@ -659,6 +647,7 @@ bool BleIoStream::DiscoverCharacteristics() {
             credits_cccd_result = GattCommunicationStatus::Unreachable;
             credits_cccd_threw = DescribeHresult(e);
             credits_cccd_failure = ClassifyError(e);
+            credits_cccd_hresult = static_cast<int32_t>(e.code());
         } catch (...) {
             credits_cccd_result = GattCommunicationStatus::Unreachable;
             credits_cccd_threw = "unknown error";
@@ -673,7 +662,7 @@ bool BleIoStream::DiscoverCharacteristics() {
                 return Fail(credits_cccd_threw.empty()
                                 ? ClassifyStatus(credits_cccd_result)
                                 : credits_cccd_failure,
-                            detail);
+                            detail, credits_cccd_hresult);
             }
             NativeLogger::Warn(kBleCategory, detail);
             // u-blox flow control is optional; fall back to running without it
@@ -729,6 +718,7 @@ bool BleIoStream::GrantInitialCredits() {
     bool granted = false;
     std::string refusal;
     BleConnectFailure failure = BleConnectFailure::kOther;
+    int32_t hresult = 0;
     try {
         auto writer = DataWriter();
         writer.WriteByte(kTerminalIoInitialGrant);
@@ -746,6 +736,7 @@ bool BleIoStream::GrantInitialCredits() {
         granted = false;
         refusal = "threw: " + DescribeHresult(e);
         failure = ClassifyError(e);
+        hresult = static_cast<int32_t>(e.code());
     } catch (...) {
         granted = false;
         refusal = "threw: unknown error";
@@ -757,7 +748,7 @@ bool BleIoStream::GrantInitialCredits() {
         // A Telit bridge carries nothing without credits, so the connection is
         // dead. u-blox flow control is optional and the service already works
         // with no handshake at all, so fall back to that instead.
-        if (credits_required_) return Fail(failure, detail);
+        if (credits_required_) return Fail(failure, detail, hresult);
         NativeLogger::Warn(kBleCategory, detail);
         ReleaseCreditCharacteristics();
         return true;

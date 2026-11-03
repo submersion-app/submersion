@@ -2,6 +2,7 @@
 #define BLUETOOTH_ROUTE_POLICY_H_
 
 #include <cstdint>
+#include <string>
 
 #include "ble_connect_failure.h"
 
@@ -52,6 +53,16 @@ bool ClassicRouteFirst(bool dual_mode, bool classic_paired);
 // the pairing the Classic route needs.
 BleConnectFailure ClassifyDualModeFailure(BleConnectFailure le_failure,
                                           bool classic_paired);
+
+// Colon-free upper-case hex, the one form a Windows address takes anywhere
+// in this plugin: ble_scanner.cc formats the same uint64 as "%012llX", that
+// string is DiscoveredDevice::address(), it is the access-code storage key,
+// it is what bluetooth_connect.cc parses back with strtoull, and it is what
+// the Dart log prints. A colon-separated form would mean the connect and
+// error lines could not be matched to the device that produced them, and
+// bluetoothAddressesMatch (discovery_providers.dart) only upper-cases before
+// comparing, so it would not bridge the two spellings.
+std::string FormatBluetoothAddress(uint64_t address);
 
 }  // namespace libdivecomputer_plugin
 

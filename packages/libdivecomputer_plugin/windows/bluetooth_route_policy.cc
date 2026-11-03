@@ -1,5 +1,7 @@
 #include "bluetooth_route_policy.h"
 
+#include <cstdio>
+
 extern "C" {
 #include "libdc_wrapper.h"
 }
@@ -51,6 +53,13 @@ BleConnectFailure ClassifyDualModeFailure(BleConnectFailure le_failure,
         return BleConnectFailure::kPairingRequired;
     }
     return BleConnectFailure::kUnreachable;
+}
+
+std::string FormatBluetoothAddress(uint64_t address) {
+    char buffer[13];
+    std::snprintf(buffer, sizeof(buffer), "%012llX",
+                  static_cast<unsigned long long>(address));
+    return std::string(buffer);
 }
 
 }  // namespace libdivecomputer_plugin

@@ -35,6 +35,9 @@ DiveComputerHostApiImpl::ConnectBluetooth(const DiscoveredDevice& device) {
     }
 
     BluetoothConnection connection;
+    // Classic before LE when it was tried first, so the combined detail
+    // reads in the order the routes ran.
+    bool classic_tried_first = false;
     bool classic_tried = false;
     std::string classic_reason;
     auto try_classic = [&]() {
@@ -49,10 +52,13 @@ DiveComputerHostApiImpl::ConnectBluetooth(const DiscoveredDevice& device) {
 
     // Paired as a Classic device: that is the route Windows set up, so it
     // goes first rather than after the whole LE retry window.
-    if (ClassicRouteFirst(dual_mode, classic_paired) && try_classic()) {
-        connection.connected = true;
-        connection.classic = true;
-        return connection;
+    if (ClassicRouteFirst(dual_mode, classic_paired)) {
+        classic_tried_first = true;
+        if (try_classic()) {
+            connection.connected = true;
+            connection.classic = true;
+            return connection;
+        }
     }
 
     BleConnectFailure le_failure = BleConnectFailure::kOther;
@@ -97,8 +103,13 @@ DiveComputerHostApiImpl::ConnectBluetooth(const DiscoveredDevice& device) {
     std::string detail = le_detail;
     if (classic_tried) {
         failure = ClassifyDualModeFailure(le_failure, classic_paired);
-        detail = detail.empty() ? classic_reason
-                                : detail + "; then " + classic_reason;
+        if (detail.empty()) {
+            detail = classic_reason;
+        } else if (classic_tried_first) {
+            detail = classic_reason + "; then " + detail;
+        } else {
+            detail = detail + "; then " + classic_reason;
+        }
     }
     connection.error_code = BleConnectFailureCode(failure);
     connection.error_message = BleConnectFailureMessage(failure, detail);

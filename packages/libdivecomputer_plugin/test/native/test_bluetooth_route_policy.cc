@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include <cstdint>
+#include <string>
 
 #include "bluetooth_route_policy.h"
 
@@ -20,6 +21,7 @@ extern "C" {
 using libdivecomputer_plugin::BleConnectFailure;
 using libdivecomputer_plugin::ClassicRouteFirst;
 using libdivecomputer_plugin::ClassifyDualModeFailure;
+using libdivecomputer_plugin::FormatBluetoothAddress;
 using libdivecomputer_plugin::IsDualModeBluetooth;
 using libdivecomputer_plugin::IsTransientConnectFailure;
 using libdivecomputer_plugin::ShouldRetryConnect;
@@ -110,12 +112,20 @@ static void test_dual_mode_failure_advice(void) {
     printf("PASS: test_dual_mode_failure_advice\n");
 }
 
+static void test_address_format(void) {
+    // The reporter's Petrel 2, as ble_scanner.cc and the debug log spell it.
+    assert(FormatBluetoothAddress(0x0013439776F7ULL) == "0013439776F7");
+    assert(FormatBluetoothAddress(0) == "000000000000");
+    printf("PASS: test_address_format\n");
+}
+
 int main(void) {
     test_transient_failures();
     test_retry_window();
     test_dual_mode();
     test_route_order();
     test_dual_mode_failure_advice();
+    test_address_format();
     printf("All bluetooth route policy tests passed.\n");
     return 0;
 }

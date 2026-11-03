@@ -1,13 +1,12 @@
 #include "bluetooth_classic_io_stream.h"
 
-#include <cstdio>
-
 #include <winrt/Windows.Devices.Bluetooth.h>
 #include <winrt/Windows.Devices.Enumeration.h>
 #include <winrt/Windows.Foundation.h>
 
 #include <libdivecomputer/bluetooth.h>
 
+#include "bluetooth_route_policy.h"
 #include "native_logger.h"
 
 namespace libdivecomputer_plugin {
@@ -17,13 +16,6 @@ namespace {
 // Shares the BLE category so one filter in the debug log shows both routes
 // a Bluetooth download tried.
 constexpr char kBleCategory[] = "BLE";
-
-std::string FormatAddress(uint64_t address) {
-    char buffer[13];
-    std::snprintf(buffer, sizeof(buffer), "%012llX",
-                  static_cast<unsigned long long>(address));
-    return std::string(buffer);
-}
 
 }  // namespace
 
@@ -68,14 +60,14 @@ std::string BluetoothClassicIoStream::Open(uint64_t address) {
 
     NativeLogger::Debug(kBleCategory,
                         "Connecting over Bluetooth Classic to " +
-                            FormatAddress(address));
+                            FormatBluetoothAddress(address));
     // Port 0: Winsock looks the Serial Port Profile channel up through SDP.
     const dc_status_t status = dc_bluetooth_open(
         &iostream_, context_, static_cast<dc_bluetooth_address_t>(address), 0);
     if (status != DC_STATUS_SUCCESS) {
         iostream_ = nullptr;
         std::string reason =
-            "Bluetooth Classic connect to " + FormatAddress(address) +
+            "Bluetooth Classic connect to " + FormatBluetoothAddress(address) +
             " failed (status " + std::to_string(static_cast<int>(status)) +
             ")";
         if (!last_error_.empty()) reason += ": " + last_error_;
@@ -83,7 +75,11 @@ std::string BluetoothClassicIoStream::Open(uint64_t address) {
         return reason;
     }
     NativeLogger::Info(kBleCategory, "Connected over Bluetooth Classic to " +
-                                         FormatAddress(address));
+                                         FormatBluetoothAddress(address));
+    // libdc hexdumps every read and write at INFO, and the Shearwater driver
+    // reads one byte at a time over Classic, so a download would post a log
+    // line per byte through the platform thread. Keep warnings and errors.
+    dc_context_set_loglevel(context_, DC_LOGLEVEL_WARNING);
     return "";
 }
 
