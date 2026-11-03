@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -193,14 +194,29 @@ void main() {
 
   // The resolver's only production construction site. Windows and Linux have
   // no photo library, and a resolver that thinks otherwise reports a synced
-  // gallery photo as notFound, which orphans the row on every device.
+  // gallery photo as notFound, which orphans the row on every device. The
+  // device is pinned: left to the host, the library is there on macOS and
+  // missing on the Linux runners, so the same test passed here and failed
+  // in CI (#4182).
   group('platformGalleryResolverProvider photo library wiring', () {
-    for (final hasLibrary in [true, false]) {
-      test('follows supportsGalleryBrowsing=$hasLibrary', () {
+    for (final (deviceLibrary, browses) in [
+      (true, true),
+      (true, false),
+      (false, true),
+      (false, false),
+    ]) {
+      final hasLibrary = deviceLibrary && browses;
+      test('devicePhotoLibrary=$deviceLibrary, '
+          'supportsGalleryBrowsing=$browses', () {
         final container = ProviderContainer(
           overrides: [
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web.copyWith(
+                devicePhotoLibrary: deviceLibrary,
+              ),
+            ),
             photoPickerServiceProvider.overrideWithValue(
-              _StubPicker(supportsGalleryBrowsing: hasLibrary),
+              _StubPicker(supportsGalleryBrowsing: browses),
             ),
           ],
         );
