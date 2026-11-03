@@ -148,6 +148,16 @@ menu, and on the Planning list) lets you open, rename, duplicate, share, import
 and delete plans. A deleted plan can be restored with **Undo** for a few
 seconds.
 
+A plan of several dives saves as one series: saving keeps every dive, and
+opening any of them opens the whole series on that dive. In **Saved plans** a
+series is one row, with its number of dives, deepest depth and total runtime,
+and a line for each dive that opens the series there and shows what that dive
+was dived as. Rename, duplicate, share and delete act on the whole series; link
+and unlink act on one dive, from its line. A series can't be compared.
+
+Leaving the planner with unsaved changes to a series, or opening another plan
+over unsaved changes, asks whether to **Save**, **Discard** or **Cancel**.
+
 In **Saved plans**, **Compare** puts two or three plans side by side: their
 profiles overlaid on one chart, with depth, runtime, TTS, deco and gas use for
 each.
@@ -158,6 +168,8 @@ From the menu you can also:
   contingencies, range table and bailout. It is available once the plan has
   at least one segment, since an empty plan has no schedule to print.
 - **Export plan file:** a `.subplan` file another Submersion user can import.
+  A series goes in one file, without the logged dive it follows, which is in
+  your log rather than theirs.
 - **Reset Plan** or **Delete plan**.
 
 ### Plans and logged dives
@@ -165,8 +177,9 @@ From the menu you can also:
 - **Follow a dive** plans a repetitive dive: pick one of your last 30 dives, and
   the planner starts from the tissue loading that dive left, with the surface
   interval set to the time since it ended. The dive needs a recorded profile.
-  A plan following a dive can't be saved or converted to a dive yet; **Stop
-  following** gives both back.
+  A plan following a dive saves with it, and reopens from that dive's tissue
+  loading, CNS and OTU. It can't be converted to a dive yet; **Stop
+  following** gives that back.
 - **Rebuild in planner** opens a logged dive in the planner. In the dive's menu
   choose **Compare…**, then **Rebuild in planner...** in the Compare page's
   menu; a dive Compare can't branch, such as a gauge dive, goes straight there.
