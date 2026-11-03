@@ -199,18 +199,11 @@ class UddfFullExportService {
                   },
                 );
               } else if (o2CellCount > 0) {
-                // An id-only owner, as the dives-only export writes, so the
-                // cells still have their declaration.
-                builder.element(
-                  'owner',
-                  attributes: {'id': 'owner'},
-                  nest: () {
-                    UddfGearWriters.writeOwnerEquipment(
-                      builder,
-                      const [],
-                      o2CellCount: o2CellCount,
-                    );
-                  },
+                // No diver, but the cells still need their declaration.
+                UddfGearWriters.writeIdOnlyOwner(
+                  builder,
+                  const [],
+                  o2CellCount: o2CellCount,
                 );
               }
 

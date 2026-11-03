@@ -18,23 +18,27 @@ abstract final class UddfRebreatherWriters {
   /// The id cell [index] (zero based) is declared under.
   static String cellRef(int index) => 'o2cell_${index + 1}';
 
-  static List<double?> _cells(DiveProfilePoint p) => [
-    p.o2Sensor1,
-    p.o2Sensor2,
-    p.o2Sensor3,
-    p.o2Sensor4,
-    p.o2Sensor5,
-    p.o2Sensor6,
-  ];
+  // Read by index rather than gathered into lists: these run for every
+  // sample of every exported dive, nearly all of them with no cell at all.
+  static double? _cell(DiveProfilePoint p, int index) => switch (index) {
+    0 => p.o2Sensor1,
+    1 => p.o2Sensor2,
+    2 => p.o2Sensor3,
+    3 => p.o2Sensor4,
+    4 => p.o2Sensor5,
+    5 => p.o2Sensor6,
+    _ => null,
+  };
 
-  static List<int?> _millivolts(DiveProfilePoint p) => [
-    p.o2SensorMv1,
-    p.o2SensorMv2,
-    p.o2SensorMv3,
-    p.o2SensorMv4,
-    p.o2SensorMv5,
-    p.o2SensorMv6,
-  ];
+  static int? _millivolt(DiveProfilePoint p, int index) => switch (index) {
+    0 => p.o2SensorMv1,
+    1 => p.o2SensorMv2,
+    2 => p.o2SensorMv3,
+    3 => p.o2SensorMv4,
+    4 => p.o2SensorMv5,
+    5 => p.o2SensorMv6,
+    _ => null,
+  };
 
   /// How many cells the document declares for [dives]: up to the highest
   /// cell any sample has a reading or a millivolt value for, so a gap in the
@@ -44,10 +48,10 @@ abstract final class UddfRebreatherWriters {
     var count = 0;
     for (final dive in dives) {
       for (final point in dive.profile) {
-        final cells = _cells(point);
-        final millivolts = _millivolts(point);
         for (var i = count; i < max; i++) {
-          if (cells[i] != null || millivolts[i] != null) count = i + 1;
+          if (_cell(point, i) != null || _millivolt(point, i) != null) {
+            count = i + 1;
+          }
         }
         if (count == max) return max;
       }
@@ -82,21 +86,24 @@ abstract final class UddfRebreatherWriters {
     if (point.ppO2 case final ppO2?) {
       builder.element('ppo2', nest: ppO2.toString());
     }
-    for (final (index, value) in _cells(point).indexed) {
-      if (value == null) continue;
-      builder.element(
-        'measuredpo2',
-        attributes: {'ref': cellRef(index)},
-        nest: value.toString(),
-      );
+    const max = UddfImportParsers.maxO2Sensors;
+    for (var i = 0; i < max; i++) {
+      if (_cell(point, i) case final value?) {
+        builder.element(
+          'measuredpo2',
+          attributes: {'ref': cellRef(i)},
+          nest: value.toString(),
+        );
+      }
     }
-    for (final (index, value) in _millivolts(point).indexed) {
-      if (value == null) continue;
-      builder.element(
-        'measuredmillivolts',
-        attributes: {'ref': cellRef(index)},
-        nest: value.toString(),
-      );
+    for (var i = 0; i < max; i++) {
+      if (_millivolt(point, i) case final value?) {
+        builder.element(
+          'measuredmillivolts',
+          attributes: {'ref': cellRef(i)},
+          nest: value.toString(),
+        );
+      }
     }
   }
 

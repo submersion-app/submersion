@@ -69,6 +69,29 @@ abstract final class UddfGearWriters {
     return computers.keys.toSet();
   }
 
+  /// An `<owner>` holding nothing but [writeOwnerEquipment]'s declarations,
+  /// for a file that carries no owner details: a shared dives export, or a
+  /// backup with no current diver. Returns the computer ids it declared.
+  static Set<String> writeIdOnlyOwner(
+    XmlBuilder builder,
+    Iterable<Dive> dives, {
+    int o2CellCount = 0,
+  }) {
+    var declared = const <String>{};
+    builder.element(
+      'owner',
+      attributes: {'id': 'owner'},
+      nest: () {
+        declared = writeOwnerEquipment(
+          builder,
+          dives,
+          o2CellCount: o2CellCount,
+        );
+      },
+    );
+    return declared;
+  }
+
   /// The dive's `<equipmentused>`: one `<equipmentref>` per gear row, then
   /// a link to its dive computer. Nothing when it has neither.
   static void writeEquipmentUsed(XmlBuilder builder, Dive dive) {

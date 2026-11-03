@@ -168,23 +168,17 @@ class UddfExportService {
         );
 
         // Diver section: an id-only owner hosting the computer and O2 cell
-        // declarations, then the participants. Both trimmed, because this file is shared
-        // with other people.
+        // declarations, then the participants. Both trimmed, because this
+        // file is shared with other people.
         if (computerIds.isNotEmpty || o2CellCount > 0 || people.isNotEmpty) {
           builder.element(
             'diver',
             nest: () {
               if (computerIds.isNotEmpty || o2CellCount > 0) {
-                builder.element(
-                  'owner',
-                  attributes: {'id': 'owner'},
-                  nest: () {
-                    UddfGearWriters.writeOwnerEquipment(
-                      builder,
-                      options.includeGear ? dives : const [],
-                      o2CellCount: o2CellCount,
-                    );
-                  },
+                UddfGearWriters.writeIdOnlyOwner(
+                  builder,
+                  options.includeGear ? dives : const [],
+                  o2CellCount: o2CellCount,
                 );
               }
               UddfParticipantWriters.writeBuddyDeclarations(

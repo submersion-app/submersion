@@ -1,6 +1,24 @@
 import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
+/// The bottom time a parsed dive map states, as a first import and a re-sync
+/// both seed it, or null to leave the profile to derive one.
+///
+/// A `bottomTime` is a bottom time the file states as one (Submersion's own
+/// UDDF, issue #4181), kept even when it equals the runtime. Otherwise
+/// `duration` is ambiguous across formats: some parsers (FIT) put a genuine
+/// bottom time there, while others (Subsurface) put the runtime, so it counts
+/// only when it differs from the runtime.
+Duration? statedBottomTime(Map<String, dynamic> diveData) {
+  final stated = diveData['bottomTime'];
+  if (stated is Duration) return stated;
+  final duration = diveData['duration'];
+  final runtime = diveData['runtime'];
+  return duration is Duration && runtime is Duration && duration != runtime
+      ? duration
+      : null;
+}
+
 /// One parsed profile sample as a [DiveProfilePoint], moved [offsetSeconds]
 /// along the dive's timeline (a further computer whose clock started later).
 ///

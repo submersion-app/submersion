@@ -2953,19 +2953,8 @@ class UddfEntityImporter {
       // to it for runtime so the total dive time is populated.
       final durationValue = diveData['duration'] as Duration?;
       final runtime = diveData['runtime'] as Duration? ?? durationValue;
-      // `duration` is ambiguous across import formats: some parsers (FIT) put a
-      // genuine bottom time here, while others (Subsurface) put total runtime,
-      // which would make bottom time equal runtime. Only trust `duration` as a
-      // real bottom time when it differs from runtime; otherwise leave it null
-      // so the profile-based auto-calculation below can derive it.
-      //
-      // A `bottomTime` is a bottom time the file states as one (Submersion's
-      // own UDDF, issue #4181), so it is kept even when it equals the runtime.
-      final bottomTimeSeed =
-          diveData['bottomTime'] as Duration? ??
-          (durationValue != null && durationValue != runtime
-              ? durationValue
-              : null);
+      // Null leaves the profile-based auto-calculation below to derive it.
+      final bottomTimeSeed = statedBottomTime(diveData);
       final parsedEntryTime = diveData['entryTime'] as DateTime?;
       final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
