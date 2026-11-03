@@ -221,7 +221,9 @@ kept.
 
 The switch covers only the sign-in. Your dives stay in the browser
 whether it is on or off, so closing the tab does not remove them; Forget
-this device does (below).
+this device does (below). The exception is a browser that gives the site
+no lasting storage (next): there nothing is kept after the tab closes,
+and the switch says so.
 
 ## Where your dives live in the browser
 

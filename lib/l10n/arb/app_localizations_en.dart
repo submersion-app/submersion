@@ -58535,6 +58535,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. Your dives stay in this browser either way, until you forget this device.';
 
   @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. This browser keeps no dives after the tab closes, whether this is on or off.';
+
+  @override
   String get web_unavailable_offer_icloud =>
       'Only the Submersion app on an Apple device can reach iCloud.';
 

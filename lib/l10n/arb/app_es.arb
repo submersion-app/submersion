@@ -17561,6 +17561,7 @@
   "web_continueWithoutSync": "Continuar sin un almacén de sincronización",
   "web_rememberOnThisDevice_title": "Recordar el acceso en este dispositivo",
   "web_rememberOnThisDevice_subtitle": "Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña. Tus inmersiones permanecen en este navegador en cualquier caso, hasta que olvides este dispositivo.",
+  "web_rememberOnThisDevice_subtitleInMemory": "Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña. Este navegador no conserva inmersiones al cerrar la pestaña, esté activado o no.",
   "web_unavailable_offer_icloud": "Solo la app Submersion en un dispositivo Apple puede acceder a iCloud.",
   "web_unavailable_offer_git": "Los servidores Git no aceptan solicitudes desde una página web.",
   "web_googleClientId_title": "ID de cliente de Google",

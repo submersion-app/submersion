@@ -58228,6 +58228,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה. הצלילות שלך נשארות בדפדפן זה בכל מקרה, עד שתשכח את המכשיר הזה.';
 
   @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה. דפדפן זה אינו שומר צלילות לאחר סגירת הכרטיסייה, בין אם זה מופעל ובין אם לא.';
+
+  @override
   String get web_unavailable_offer_icloud =>
       'רק אפליקציית Submersion במכשיר Apple יכולה לגשת ל-iCloud.';
 

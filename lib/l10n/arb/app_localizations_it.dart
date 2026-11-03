@@ -59475,6 +59475,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Conserva i dati di accesso e la passphrase in questo browser. Se disattivato, vengono dimenticati alla chiusura della scheda. Le tue immersioni restano comunque in questo browser finché non dimentichi questo dispositivo.';
 
   @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Conserva i dati di accesso e la passphrase in questo browser. Se disattivato, vengono dimenticati alla chiusura della scheda. Questo browser non conserva immersioni dopo la chiusura della scheda, che sia attivato o no.';
+
+  @override
   String get web_unavailable_offer_icloud =>
       'Solo l\'app Submersion su un dispositivo Apple può raggiungere iCloud.';
 

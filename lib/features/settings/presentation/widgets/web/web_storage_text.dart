@@ -13,3 +13,14 @@ String describeWebStorage(AppLocalizations l10n, WebDatabaseStatus status) =>
       WebDatabaseStorage.unknown => l10n.web_storage_indexedDb,
       WebDatabaseStorage.inMemory => l10n.web_storage_memoryWarning,
     };
+
+/// The remember switch's subtitle (issue #4187): it says the dives stay
+/// whether the switch is on or off, except in a browser that keeps nothing
+/// after the tab closes, where it says that instead. Before the database is
+/// open ([status] null) it reads as the lasting kinds do.
+String rememberSwitchSubtitle(
+  AppLocalizations l10n,
+  WebDatabaseStatus? status,
+) => status?.persists == false
+    ? l10n.web_rememberOnThisDevice_subtitleInMemory
+    : l10n.web_rememberOnThisDevice_subtitle;

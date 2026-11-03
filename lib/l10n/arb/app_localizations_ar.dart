@@ -60280,6 +60280,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب. تبقى غوصاتك في هذا المتصفح في الحالتين حتى تنسى هذا الجهاز.';
 
   @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب. لا يحتفظ هذا المتصفح بأي غوصات بعد إغلاق علامة التبويب، سواء كان هذا مفعّلاً أم لا.';
+
+  @override
   String get web_unavailable_offer_icloud =>
       'لا يصل إلى iCloud سوى تطبيق Submersion على جهاز Apple.';
 

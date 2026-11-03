@@ -93817,6 +93817,12 @@ abstract class AppLocalizations {
   /// **'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. Your dives stay in this browser either way, until you forget this device.'**
   String get web_rememberOnThisDevice_subtitle;
 
+  /// Web app, remember switch subtitle when the browser keeps nothing after the tab closes (issue #4187)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. This browser keeps no dives after the tab closes, whether this is on or off.'**
+  String get web_rememberOnThisDevice_subtitleInMemory;
+
   /// Web app (issue #4121)
   ///
   /// In en, this message translates to:

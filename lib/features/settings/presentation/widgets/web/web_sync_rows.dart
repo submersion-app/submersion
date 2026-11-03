@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
 import 'package:submersion/core/platform/web_database_status.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/web/web_forget_device_action.dart';
 import 'package:submersion/features/settings/presentation/widgets/web/web_storage_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -17,6 +18,10 @@ class WebSyncRows extends ConsumerWidget {
     final l10n = context.l10n;
     final status = ref.watch(webDatabaseStatusProvider);
     final persists = status?.persists ?? true;
+    // Forgetting wipes every database the site keeps, the real library
+    // behind the sample among them, so demo mode leaves it unavailable as
+    // Settings > Data does (#4187).
+    final demoActive = ref.watch(demoModeActiveProvider);
     return Column(
       children: [
         ListTile(
@@ -32,18 +37,23 @@ class WebSyncRows extends ConsumerWidget {
         SwitchListTile(
           secondary: const Icon(Icons.key),
           title: Text(l10n.web_rememberOnThisDevice_title),
-          subtitle: Text(l10n.web_rememberOnThisDevice_subtitle),
+          subtitle: Text(rememberSwitchSubtitle(l10n, status)),
           value: ref.watch(rememberCredentialsProvider),
           onChanged: (value) =>
               ref.read(rememberCredentialsProvider.notifier).set(value),
         ),
         ListTile(
+          enabled: !demoActive,
           leading: Icon(
             Icons.delete_forever,
-            color: Theme.of(context).colorScheme.error,
+            color: demoActive ? null : Theme.of(context).colorScheme.error,
           ),
           title: Text(l10n.web_forgetDevice_title),
-          subtitle: Text(l10n.web_forgetDevice_subtitle),
+          subtitle: Text(
+            demoActive
+                ? l10n.demo_row_unavailable
+                : l10n.web_forgetDevice_subtitle,
+          ),
           onTap: () => confirmAndForgetDevice(context, ref),
         ),
       ],

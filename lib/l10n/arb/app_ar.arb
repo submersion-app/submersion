@@ -17561,6 +17561,7 @@
   "web_continueWithoutSync": "المتابعة بدون مخزن مزامنة",
   "web_rememberOnThisDevice_title": "تذكّر تسجيل الدخول على هذا الجهاز",
   "web_rememberOnThisDevice_subtitle": "احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب. تبقى غوصاتك في هذا المتصفح في الحالتين حتى تنسى هذا الجهاز.",
+  "web_rememberOnThisDevice_subtitleInMemory": "احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب. لا يحتفظ هذا المتصفح بأي غوصات بعد إغلاق علامة التبويب، سواء كان هذا مفعّلاً أم لا.",
   "web_unavailable_offer_icloud": "لا يصل إلى iCloud سوى تطبيق Submersion على جهاز Apple.",
   "web_unavailable_offer_git": "لا تقبل مستضيفات Git الطلبات من صفحة ويب.",
   "web_googleClientId_title": "معرّف عميل Google",

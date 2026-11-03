@@ -59459,6 +59459,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Guarda os dados de acesso e a frase-passe neste navegador. Desligado, são esquecidos quando o separador fecha. Os seus mergulhos ficam neste navegador em qualquer caso, até esquecer este dispositivo.';
 
   @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Guarda os dados de acesso e a frase-passe neste navegador. Desligado, são esquecidos quando o separador fecha. Este navegador não guarda mergulhos depois de o separador fechar, esteja ligado ou desligado.';
+
+  @override
   String get web_unavailable_offer_icloud =>
       'Só a app Submersion num dispositivo Apple consegue aceder ao iCloud.';
 

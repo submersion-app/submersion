@@ -59343,6 +59343,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird. Deine Tauchgänge bleiben so oder so in diesem Browser, bis du dieses Gerät vergisst.';
 
   @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird. Dieser Browser behält nach dem Schließen des Tabs keine Tauchgänge, egal ob dies an oder aus ist.';
+
+  @override
   String get web_unavailable_offer_icloud =>
       'iCloud erreicht nur die Submersion-App auf einem Apple-Gerät.';
 

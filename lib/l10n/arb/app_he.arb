@@ -17561,6 +17561,7 @@
   "web_continueWithoutSync": "המשך ללא מאגר סנכרון",
   "web_rememberOnThisDevice_title": "זכור את הכניסה במכשיר זה",
   "web_rememberOnThisDevice_subtitle": "שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה. הצלילות שלך נשארות בדפדפן זה בכל מקרה, עד שתשכח את המכשיר הזה.",
+  "web_rememberOnThisDevice_subtitleInMemory": "שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה. דפדפן זה אינו שומר צלילות לאחר סגירת הכרטיסייה, בין אם זה מופעל ובין אם לא.",
   "web_unavailable_offer_icloud": "רק אפליקציית Submersion במכשיר Apple יכולה לגשת ל-iCloud.",
   "web_unavailable_offer_git": "שרתי Git אינם מקבלים בקשות מדף אינטרנט.",
   "web_googleClientId_title": "מזהה לקוח של Google",
