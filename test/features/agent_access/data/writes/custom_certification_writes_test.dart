@@ -49,6 +49,27 @@ void main() {
     }
   });
 
+  // The repository refuses the second name only at apply, after the diver
+  // has allowed the whole set.
+  test('one name claimed twice in a set blocks the second', () async {
+    Map<String, Object?> level(String name) => {
+      'agency_id': 'padi',
+      'name': name,
+      'is_progression': false,
+    };
+    final plan = await h.preview([
+      createOp('custom_agencies', {'name': 'Cave Club'}),
+      createOp('custom_agencies', {'name': ' cave club '}),
+      createOp('custom_levels', level('Sidemount Explorer')),
+      createOp('custom_levels', level('SIDEMOUNT EXPLORER')),
+    ]);
+
+    expect(plan.items[0].block, isNull);
+    expect(plan.items[1].block!.reason, BlockReason.duplicateRecord);
+    expect(plan.items[2].block, isNull);
+    expect(plan.items[3].block!.reason, BlockReason.duplicateRecord);
+  });
+
   test(
     'a level goes under a built-in or the diver\'s own agency only',
     () async {

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -96,6 +97,53 @@ void main() {
       expect(item.block!.reason, BlockReason.duplicateRecord);
       expect(item.block!.detail, contains('wreck'));
     }
+  });
+
+  // createTag hands back the tag already holding a name, and updateTag
+  // merges into it, so two claims on one name in a set must not both pass.
+  test('two creates of one name in a set block the second', () async {
+    final plan = await h.preview([
+      createOp('tags', {'name': 'Wreck'}),
+      createOp('tags', {'name': ' wreck '}),
+    ]);
+
+    expect(plan.items[0].block, isNull);
+    expect(plan.items[1].block!.reason, BlockReason.duplicateRecord);
+    expect(plan.items[1].block!.detail, contains('operation 0'));
+  });
+
+  test('a rename onto a name the set creates is blocked', () async {
+    await tag('reef', 'Reef');
+
+    final plan = await h.preview([
+      createOp('tags', {'name': 'Wreck'}),
+      updateOp('tags', 'reef', {'name': 'WRECK'}),
+    ]);
+
+    expect(plan.items[1].block!.reason, BlockReason.duplicateRecord);
+  });
+
+  test('two renames onto one name block the second', () async {
+    await tag('reef', 'Reef');
+    await tag('cave', 'Cave');
+
+    final plan = await h.preview([
+      updateOp('tags', 'reef', {'name': 'Wreck'}),
+      updateOp('tags', 'cave', {'name': 'wreck'}),
+    ]);
+
+    expect(plan.items[0].block, isNull);
+    expect(plan.items[1].block!.reason, BlockReason.duplicateRecord);
+  });
+
+  test('a name taken after the preview refuses the apply', () async {
+    final plan = await h.preview([
+      createOp('tags', {'name': 'Wreck'}),
+    ]);
+    await tag('wreck', 'Wreck');
+
+    await expectLater(h.apply(plan), throwsA(isA<AgentToolException>()));
+    expect(await count(db.tags), 1);
   });
 
   test('a colour must be #RRGGBB', () async {

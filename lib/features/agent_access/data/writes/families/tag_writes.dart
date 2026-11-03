@@ -57,6 +57,12 @@ class TagWrites extends WritableEntry {
     );
   }
 
+  @override
+  String? uniqueKey(WriteCheck check) => switch (check.values['name']) {
+    final String name => name.trim().toLowerCase(),
+    _ => null,
+  };
+
   /// The links a change of scopes takes off: every item of a scope it turns
   /// off.
   @override
@@ -135,12 +141,14 @@ class TagWrites extends WritableEntry {
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
+    final name = values['name']! as String;
+    await _nameStillFree(name, diverId);
     final now = DateTime.now();
     final tag = await _r.tags.createTag(
       domain.Tag(
         id: '',
         diverId: diverId,
-        name: values['name']! as String,
+        name: name,
         colorHex: values['color_hex'] as String?,
         scopes: _scopes(values['scopes']) ?? const {domain.TagScope.dives},
         createdAt: now,
@@ -154,6 +162,9 @@ class TagWrites extends WritableEntry {
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
     final current = await _r.tags.getTagById(id) ?? _gone(id);
     final v = update.values;
+    if (v['name'] case final String name) {
+      await _nameStillFree(name, current.diverId, except: id);
+    }
     await _r.tags.updateTag(
       domain.Tag(
         id: id,
@@ -176,6 +187,23 @@ class TagWrites extends WritableEntry {
     final names = fields['scopes']!.wire(parsed);
     if (names is! List) return null;
     return {for (final name in names) domain.TagScope.values.byName('$name')};
+  }
+
+  /// Throws when another tag of [ownerId] has taken [name] since the preview.
+  /// createTag would hand that tag back and updateTag would merge into it, a
+  /// change the diver never allowed.
+  Future<void> _nameStillFree(
+    String name,
+    String? ownerId, {
+    String? except,
+  }) async {
+    final holder = await _holderOf(name, ownerId, except: except);
+    if (holder == null) return;
+    throw AgentToolException(
+      AgentToolErrorCode.writeRefused,
+      'Tag ${holder.id} took the name "${holder.name}" after the preview.',
+      details: {'id': holder.id},
+    );
   }
 
   /// The tag of [ownerId] holding [name] as the name index keys it, other

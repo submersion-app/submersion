@@ -262,6 +262,12 @@ abstract class WritableEntry {
   /// A block when this change may not happen, null when it may.
   Future<PlanBlock?> refuse(WriteCheck check) async => null;
 
+  /// What this change claims that no other record of its owner may hold, such
+  /// as a tag's name as the name index keys it, or null when it claims
+  /// nothing. [refuse] checks the stored records; the planner blocks a second
+  /// claim on one key within the same set, which the database cannot see yet.
+  String? uniqueKey(WriteCheck check) => null;
+
   /// [document] with stored values where a read shows a derived one, so a
   /// plan compares against what the row holds.
   Future<Map<String, Object?>> stored(

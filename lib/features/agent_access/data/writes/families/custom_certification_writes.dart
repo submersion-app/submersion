@@ -36,6 +36,15 @@ bool _mayClash(WriteCheck check) {
   return check.kind == ChangeKind.create || renamed || shared;
 }
 
+/// The name a change claims, folded as the repository compares names, when
+/// it may clash.
+String? _nameKey(WriteCheck check) {
+  if (check.kind == ChangeKind.delete || !_mayClash(check)) return null;
+  final name =
+      check.values['name'] as String? ?? check.document!['name']! as String;
+  return name.trim().toLowerCase();
+}
+
 /// Custom certification agencies, through the repository the certification
 /// pages use. A name is free against the built-in agencies and those the
 /// diver sees; an agency in use cannot be deleted, and an unused one goes
@@ -60,6 +69,9 @@ class CustomAgencyWrites extends WritableEntry {
 
   @override
   Set<String> get requiredOnCreate => const {'name'};
+
+  @override
+  String? uniqueKey(WriteCheck check) => _nameKey(check);
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
@@ -176,6 +188,14 @@ class CustomLevelWrites extends WritableEntry {
       'agency_id is a built-in agency\'s name, such as padi, or the id of '
       'one of the diver\'s custom agencies. sort_order moves a progression '
       'level into a slot its progression already holds';
+
+  /// A level's name is free or taken within its agency.
+  @override
+  String? uniqueKey(WriteCheck check) => switch (_nameKey(check)) {
+    final String name =>
+      '${check.values['agency_id'] ?? check.document!['agency_id']}/$name',
+    null => null,
+  };
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {

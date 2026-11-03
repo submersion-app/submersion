@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 
 part 'write_planner_children.dart';
 part 'write_planner_merge.dart';
+part 'write_planner_references.dart';
 
 /// Turns a change set into a plan by reading, and only reading. It opens no
 /// transaction and writes nothing, because the spec forbids even one that is
@@ -103,6 +104,28 @@ class _Pass {
 
   /// Records an update earlier in the set changes, as each is planned.
   final _changedSoFar = <(String, String)>{};
+
+  /// Each unique key a change in the set claims, by entity and owner, to the
+  /// operation that claimed it first.
+  final _claims = <(String, String?, String), int>{};
+
+  /// A block when an earlier change in the set claims [check]'s unique key,
+  /// otherwise null, after claiming it for [op].
+  PlanBlock? _claimUnique(ChangeOp op, WritableEntry entry, WriteCheck check) {
+    final key = entry.uniqueKey(check);
+    if (key == null) return null;
+    final earlier = _claims.putIfAbsent((
+      entry.name,
+      check.ownerId,
+      key,
+    ), () => op.index);
+    if (earlier == op.index) return null;
+    return PlanBlock(
+      BlockReason.duplicateRecord,
+      'operation $earlier of this set already claims "$key" for a '
+      '${entry.name} record; two records of one owner cannot share it.',
+    );
+  }
 
   /// Reads the owner and version of every record the set names, by table.
   Future<void> loadRows() async {
@@ -192,15 +215,15 @@ class _Pass {
       return _add(op, entry, kind: ChangeKind.create, block: block);
     }
     final diverId = owner.diverId!;
+    final check = WriteCheck(
+      kind: ChangeKind.create,
+      ownerId: diverId,
+      values: parsed.values,
+    );
     final block =
         await _checkFieldRefs(entry, parsed.values, diverId) ??
-        await entry.refuse(
-          WriteCheck(
-            kind: ChangeKind.create,
-            ownerId: diverId,
-            values: parsed.values,
-          ),
-        );
+        await entry.refuse(check) ??
+        _claimUnique(op, entry, check);
     if (block == null) await _markFieldRefs(entry, parsed.values);
     final parent = await _parentContext(entry, owner.parentId, diverId);
     _add(
@@ -226,21 +249,21 @@ class _Pass {
     final document = await entry.stored(op.id, read);
     final parsed = _parse(op.index, entry, op.fields, document);
     final links = await _relations(op, entry, row.ownerId);
+    final check = WriteCheck(
+      kind: ChangeKind.update,
+      id: op.id,
+      ownerId: row.ownerId,
+      values: parsed.values,
+      relations: links.deltas,
+      document: document,
+    );
     final block =
         parsed.block ??
         links.block ??
         _fixed(entry, parsed) ??
         await _checkFieldRefs(entry, parsed.values, row.ownerId) ??
-        await entry.refuse(
-          WriteCheck(
-            kind: ChangeKind.update,
-            id: op.id,
-            ownerId: row.ownerId,
-            values: parsed.values,
-            relations: links.deltas,
-            document: document,
-          ),
-        );
+        await entry.refuse(check) ??
+        _claimUnique(op, entry, check);
     final update = RecordUpdate(values: parsed.values, relations: links.deltas);
     Future<SideEffects> readEffects() =>
         entry.sideEffects(op.id, row.ownerId, update, document);
@@ -369,106 +392,6 @@ class _Pass {
       mergeTitle: mergeTitle,
       block: block,
     );
-  }
-
-  /// Adds a marker for each record a plan links to, so one that goes away
-  /// after the preview refuses the plan instead of quietly not linking.
-  Future<void> _markReferences(
-    WritableEntry entry,
-    Map<String, RelationDelta> deltas,
-  ) async {
-    for (final MapEntry(key: name, value: delta) in deltas.entries) {
-      final table = records.named(entry.relations[name]!.refEntity).table;
-      for (final id in delta.add) {
-        await _markReference(table, id);
-      }
-    }
-  }
-
-  Future<void> _markReference(String table, String id) async {
-    if (!_referenced.add((table, id))) return;
-    if (!await _versioned(table)) {
-      // Nothing to compare but whether the row is still there.
-      markers.add(
-        RecordMarker(
-          table: table,
-          id: id,
-          updatedAt: null,
-          versioned: false,
-          footprint: await _presence(table, id),
-          readFootprint: () => _presence(table, id),
-        ),
-      );
-      return;
-    }
-    final row = await db
-        .customSelect(
-          'SELECT updated_at FROM $table WHERE id = ?',
-          variables: [Variable.withString(id)],
-        )
-        .getSingleOrNull();
-    markers.add(
-      RecordMarker(
-        table: table,
-        id: id,
-        updatedAt: row?.read<int>('updated_at'),
-      ),
-    );
-  }
-
-  /// Whether [table] has an `updated_at` column.
-  Future<bool> _versioned(String table) async =>
-      (await _columnsOf(table)).contains('updated_at');
-
-  /// The column names of [table].
-  Future<Set<String>> _columnsOf(String table) async =>
-      _tableColumns[table] ??= {
-        for (final row
-            in await db
-                .customSelect(
-                  'SELECT name FROM pragma_table_info(?)',
-                  variables: [Variable.withString(table)],
-                )
-                .get())
-          row.read<String>('name'),
-      };
-
-  /// The names of what a change links, so a diver reads names, not ids.
-  Future<Map<String, String>> _names(
-    WritableEntry entry,
-    Map<String, RelationDelta> deltas,
-    Map<String, Set<String>> indirect,
-  ) async {
-    final names = <String, String>{};
-    for (final relation in {...deltas.keys, ...indirect.keys}) {
-      final delta = deltas[relation];
-      final ids = {...?delta?.add, ...?delta?.remove, ...?indirect[relation]};
-      if (ids.isEmpty) continue;
-      final table = records.named(entry.relations[relation]!.refEntity).table;
-      final columns = await _columnsOf(table);
-      // What the table calls a record: a species by its common name, a
-      // preset by its display name.
-      final name =
-          const [
-            'name',
-            'common_name',
-            'display_name',
-          ].where(columns.contains).firstOrNull ??
-          'id';
-      for (final chunk in seriesIdChunks(ids.toList())) {
-        final marks = List.filled(chunk.length, '?').join(', ');
-        final rows = await db
-            .customSelect(
-              'SELECT id, $name AS title FROM $table WHERE id IN ($marks)',
-              variables: [for (final id in chunk) Variable.withString(id)],
-            )
-            .get();
-        for (final row in rows) {
-          names[row.read<String>('id')] = row.read<String>('title');
-        }
-      }
-    }
-    return names;
   }
 
   /// The row for a record the set may change, or null after blocking it.
