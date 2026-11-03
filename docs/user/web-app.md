@@ -7,15 +7,20 @@ or cannot install it: a work laptop, a friend's computer, a dive centre's
 machine. You look at your dives, refine them, and the changes sync back to
 your phone and your computer.
 
-Nothing runs on a server. The site is a folder of static files that you,
-or someone you trust, host; your data travels only between the browser
-and your own store. Hosting it is described in the guide shipped inside
+Open it at **<https://web.submersion.app>**, Submersion's own copy, which
+always runs the latest stable release.
+
+Nothing runs on a server. The site is a folder of static files, and your
+data travels only between the browser and your own store, on Submersion's
+site as on any other. You can also host a copy yourself, or use one
+someone you trust hosts; that is described in the guide shipped inside
 the bundle (`HOSTING.md` in `Submersion-<version>-Web.zip` on the
 [releases page](https://github.com/submersion-app/submersion/releases)).
 
 ## Opening it
 
-Open the address your self-hosted copy is served from. The first visit
+Open <https://web.submersion.app>, or the address your self-hosted copy
+is served from. The first visit
 asks which store holds your dives and how to reach it (below); after the
 first sync the app opens on your dive list, as on any device.
 
@@ -158,7 +163,8 @@ Dropbox shows, and paste it back. Nothing to configure on Dropbox's side.
 
 ### Google Drive
 
-On Submersion's own site, choose Google Drive and sign in: the site carries
+On Submersion's own site, <https://web.submersion.app>, choose Google
+Drive and sign in: the site carries
 Submersion's Google client, so it opens the same library your phone and
 computer sync to Google Drive.
 
