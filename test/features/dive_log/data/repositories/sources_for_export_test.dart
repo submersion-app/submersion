@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -268,6 +269,52 @@ void main() {
     expect(sources.single.descriptorVendor, 'Shearwater');
     expect(sources.single.descriptorModel, 5);
   });
+
+  test(
+    'without the raw data returns every row and value but the bytes',
+    () async {
+      // Issue #4180: an export with the raw data box unticked still needs each
+      // row, but must not load a blob only to drop it.
+      final raw = Uint8List.fromList(List<int>.generate(512, (i) => i % 256));
+      await insertDive('dive-1');
+      await insertSource(
+        'src-a',
+        'dive-1',
+        rawData: raw,
+        isPrimary: true,
+        mergeSourceSlot: 0,
+        computerId: 'dc-a',
+      );
+      await insertSource(
+        'src-b',
+        'dive-1',
+        rawData: raw,
+        mergeSourceSlot: 1,
+        createdAt: DateTime(2019, 6, 2, 18, 42),
+      );
+      await insertSeries(at: 0, sourceId: 'src-a', computerId: 'dc-a');
+      await insertSeries(at: 7, sourceId: 'src-b', isPrimary: false);
+
+      final full = await repository.getSourcesForExport(['dive-1']);
+      final metadata = await repository.getSourcesForExport([
+        'dive-1',
+      ], includeRawData: false);
+
+      // Every prop but rawData, which is the seventh.
+      List<Object?> sansBytes(DiveSourceExport s) {
+        expect(s.props[6], same(s.rawData));
+        return [
+          for (final (i, prop) in s.props.indexed)
+            if (i != 6) prop,
+        ];
+      }
+
+      expect(full.map((s) => s.rawData), [raw, raw]);
+      expect(metadata.map((s) => s.rawData), [null, null]);
+      expect(metadata.map(sansBytes), full.map(sansBytes));
+      expect(metadata.first.profileSeries, isNotEmpty);
+    },
+  );
 
   test('returns rows without raw data too, marked as having no dump', () async {
     await insertDive('dive-1');

@@ -209,7 +209,7 @@ void main() {
           dives: dives,
           dataSources: await resolveDataSources(repository, [
             for (final dive in dives) dive.id,
-          ]),
+          ], includeRawData: false),
           options: withoutBytes,
         );
       },
@@ -219,7 +219,7 @@ void main() {
           dives,
           dataSources: await resolveDataSources(repository, [
             for (final dive in dives) dive.id,
-          ]),
+          ], includeRawData: false),
           options: withoutBytes,
         );
       },

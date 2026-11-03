@@ -39,6 +39,7 @@ void main() {
             id: const Value('src-1'),
             diveId: const Value('dive-1'),
             isPrimary: const Value(true),
+            rawData: Value(Uint8List.fromList([1, 2, 3])),
             importedAt: Value(DateTime(2019, 6, 2)),
             createdAt: Value(DateTime(2019, 6, 2)),
           ),
@@ -71,6 +72,8 @@ void main() {
       ], UddfExportOptions(includeRawData: includeRawData));
 
       expect(result.map((s) => s.id), ['src-1']);
+      // The bytes only when they are wanted: unticked, the blob is not read.
+      expect(result.single.hasDump, includeRawData);
     });
   }
 }
