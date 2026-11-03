@@ -21333,6 +21333,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
 
   @override
+  String get plannerSeries_compareWithPlan => 'مقارنة بالخطة';
+
+  @override
+  String get plannerSeries_asPlanned => 'كما خُطط';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'هذه الغطسة في سجلك ولم تُخطط هنا. افتحها في السجل لتغييرها.';
+
+  @override
+  String get plannerSeries_maxDepth => 'أقصى عمق';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'ينتقل إلى $dive';
   }

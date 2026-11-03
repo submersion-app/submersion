@@ -20901,6 +20901,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Niet meer volgen';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Vergelijken met het plan';
+
+  @override
+  String get plannerSeries_asPlanned => 'Zoals gepland';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Deze duik staat in je logboek en is hier niet gepland. Open hem in het logboek om hem te wijzigen.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Max. diepte';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Overgedragen naar $dive';
   }

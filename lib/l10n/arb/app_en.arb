@@ -13131,6 +13131,10 @@
   },
   "plannerSeries_openInLog": "Open in dive log",
   "plannerSeries_stopFollowing": "Stop following",
+  "plannerSeries_compareWithPlan": "Compare with its plan",
+  "plannerSeries_asPlanned": "As planned",
+  "plannerSeries_loggedNotPlanned": "This dive is in your log and wasn't planned here. Open it in the dive log to change it.",
+  "plannerSeries_maxDepth": "Max depth",
   "plannerSeries_carriedInto": "Carried into {dive}",
   "@plannerSeries_carriedInto": {
     "description": "Heading over what a logged dive passes on to the dive after it",

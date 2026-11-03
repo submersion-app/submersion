@@ -20963,6 +20963,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Követés leállítása';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Összevetés a tervvel';
+
+  @override
+  String get plannerSeries_asPlanned => 'Ahogy tervezték';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Ez a merülés a naplódban van, és nem itt tervezték. A módosításhoz nyisd meg a naplóban.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Max. mélység';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Átvitel ide: $dive';
   }

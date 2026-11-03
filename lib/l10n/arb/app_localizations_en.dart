@@ -20725,6 +20725,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Stop following';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Compare with its plan';
+
+  @override
+  String get plannerSeries_asPlanned => 'As planned';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'This dive is in your log and wasn\'t planned here. Open it in the dive log to change it.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Max depth';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Carried into $dive';
   }

@@ -15,7 +15,13 @@ class PlanTankChip extends StatelessWidget {
   /// The role the plan derives for [tank], shown as the avatar glyph.
   final TankRole role;
   final UnitFormatter units;
-  final VoidCallback onEdit;
+
+  /// Null shows the tank read-only, as on a logged dive.
+  final VoidCallback? onEdit;
+
+  /// Replaces the start pressure on the second line, such as a logged
+  /// tank's start and end; null shows the start pressure.
+  final String? pressureLabel;
   final VoidCallback? onDelete;
 
   /// The loop role printed ahead of the pressure line on a CCR plan's
@@ -37,6 +43,7 @@ class PlanTankChip extends StatelessWidget {
     required this.units,
     required this.onEdit,
     this.onDelete,
+    this.pressureLabel,
     this.roleBadge,
     this.modLabel,
     this.modExceedsLimit = false,
@@ -54,7 +61,7 @@ class PlanTankChip extends StatelessWidget {
     final gas = tank.name == null ? null : tank.gasMix.name;
     final details = [
       ?gas,
-      units.formatPressure(tank.startPressure),
+      pressureLabel ?? units.formatPressure(tank.startPressure),
       tankSize,
       ?modLabel,
     ];

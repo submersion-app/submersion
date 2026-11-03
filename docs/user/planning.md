@@ -216,6 +216,15 @@ From the menu you can also:
   A plan following a dive saves with it, and reopens from that dive's tissue
   loading, CNS and OTU. It can't be converted to a dive yet; **Stop
   following** gives that back.
+- **Logged dives in the series bar.** The dives a plan follows lead the bar.
+  Tap one to see it in the planner's own layout, read-only: its profile where
+  the plan's chart was, its details and tanks, and in the results what it
+  carries into the next dive, its runtime and the warnings its safety review
+  found. If the dive was dived from a plan, that plan's segments show under
+  **Plan**, its schedule, gas and range table show **As planned**, and the
+  chart shows the plan beside the dive; **Compare with its plan** opens the
+  dive's Compare page. Setup isn't available for a logged dive. Tap a planned
+  dive to go back.
 - **Rebuild in planner** opens a logged dive in the planner. In the dive's menu
   choose **Compare…**, then **Rebuild in planner...** in the Compare page's
   menu; a dive Compare can't branch, such as a gauge dive, goes straight there.

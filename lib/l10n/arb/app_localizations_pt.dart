@@ -21039,6 +21039,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Deixar de seguir';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Comparar com o plano';
+
+  @override
+  String get plannerSeries_asPlanned => 'Conforme planeado';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Este mergulho está no teu registo e não foi planeado aqui. Abre-o no registo para o alterar.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Prof. máx.';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Transportado para $dive';
   }

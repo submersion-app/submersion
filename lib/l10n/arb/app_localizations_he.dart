@@ -20575,6 +20575,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'הפסקת מעקב';
 
   @override
+  String get plannerSeries_compareWithPlan => 'השוואה לתוכנית';
+
+  @override
+  String get plannerSeries_asPlanned => 'כפי שתוכנן';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'הצלילה הזו ביומן שלך ולא תוכננה כאן. פתח אותה ביומן כדי לשנות אותה.';
+
+  @override
+  String get plannerSeries_maxDepth => 'עומק מרבי';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'מועבר אל $dive';
   }

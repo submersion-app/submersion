@@ -27,7 +27,8 @@ record covers what the phases agreed and the decisions made for phases 1 to
    Existing plans are not migrated: a plan with no series is a one-dive
    series. Keyboard shortcuts moved to phase 2.
 4. **Logged dives** (built): follow any logged dive, the one-tap Follow prompt, "Plan
-   repetitive dive" in the dive detail menu, the read-only logged-dive view.
+   repetitive dive" in the dive detail menu, a logged dive shown read-only
+   in the planner.
 5. **Plan vs actual**: a logged plan becomes Dive #xxx, and the dives after it
    are recalculated from it.
 
@@ -164,12 +165,8 @@ planned dives in the log is built.
   else its dive number, else its date (the same in the Follow prompt), with
   the real
   interval between logged dives, then Dive A's interval. Tapping a logged
-  dive shows it read-only in place of the planner: its profile (the dive
-  log's own chart, starting on depth, NDL, deco stops and ceiling, with NDL
-  on the right axis; its toggles are scoped to the view, so the dive log
-  keeps its own), Open in dive log, Stop following on the followed dive,
-  and what it carries into the next dive (interval, end CNS, OTU, each
-  tank's end pressure). Tapping a planned dive goes back. The bar opens on
+  dive shows it read-only in the planner's own layout (see "A logged dive in
+  the planner" below). Tapping a planned dive goes back. The bar opens on
   the selected planned dive, scrolled past the logged ones.
 - **Carry into Dive A.** As between planned dives: the followed dive's end
   tissues and CNS (the dive log's analysis, residual from the dives before
@@ -201,9 +198,40 @@ planned dives in the log is built.
     rather than pushing a second one when the planner is already in the
     stack (a dive opened from the planner), which go_router cannot hold. It lands next to the "What if" entry #2407 changes; the
     merge is a matter of keeping both.
-- **Stopping.** Stop following sits in the followed dive's read-only view.
+- **Stopping.** Stop following sits in the followed dive's Dive details.
   There is no Following chip under the profile: it read as part of the chart
   while acting on the whole series, and one tap dropped the followed dive.
+
+### A logged dive in the planner
+
+Changed in phase 2: a logged dive used to replace the whole planner with a
+page of its own, which moved everything on screen. It now keeps the
+planner's layout, the panes, chart box and tabs where they were, and shows
+the dive read-only in each place.
+
+- **Chart.** The dive log's own chart in the plan chart's slot, starting on
+  depth, NDL, deco stops and ceiling, with NDL on the right axis; its toggles
+  are scoped to the view, so the dive log keeps its own. A dive dived from a
+  plan shows that plan ghosted beside it, as in the dive log. Under it, its
+  runtime, max depth and warnings; no contingency chips, chart mode or full
+  screen.
+- **Dive details**, read-only: its name and number, start, the interval
+  since the logged dive before, and site. The header opens it in the dive
+  log, compares it with its plan when it had one (the dive log's Compare),
+  and stops following on the followed dive.
+- **Tanks**, read-only: the same chips, each with its start and end pressure.
+- **Plan.** A dive dived from a plan (the plan linked to it, #4058) shows
+  that plan's segments read-only. One never planned has no Plan tab (greyed
+  on a phone) and says so in the editor pane. There are no plan settings:
+  Setup is greyed on a phone and hidden in the editor pane.
+- **Results.** What it carries into the next dive (interval, end CNS, OTU,
+  each tank's end pressure), two tiles wide; then its runtime and its
+  warnings, the safety review's findings the dive log shows (dismissed ones
+  and turned-off rules left out). A dive dived from a plan then shows that
+  plan's deco schedule, gas consumption and range table under "As planned";
+  last, the review's findings, which the Warnings tile scrolls to.
+- **Phone tabs.** A tab the logged dive can't show falls back to Tanks; the
+  choice comes back on a planned dive.
 
 ## Start time and site
 

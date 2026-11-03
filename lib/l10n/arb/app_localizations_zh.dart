@@ -20011,6 +20011,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_stopFollowing => '停止跟随';
 
   @override
+  String get plannerSeries_compareWithPlan => '与计划对比';
+
+  @override
+  String get plannerSeries_asPlanned => '按计划';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      '这次潜水在你的日志中，并非在此计划。请在潜水日志中打开以修改。';
+
+  @override
+  String get plannerSeries_maxDepth => '最大深度';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return '带入 $dive';
   }

@@ -14,12 +14,19 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_lege
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
+import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
+import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
+import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_details_card.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_chart.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_results.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_tanks_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -186,21 +193,32 @@ void main() {
   ) async {
     await pumpPlan(tester, dayDives);
     await follow(tester, 'd42');
+    final editor = tester.getRect(find.byType(PlanEditorPane));
+    final results = tester.getRect(find.byType(PlanResultsPane));
 
     await tester.tap(find.byTooltip('Logged dive #42'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(PlanLoggedDiveView), findsOneWidget);
+    expect(find.byType(LoggedDiveDetailsCard), findsOneWidget);
+    expect(find.byType(LoggedDiveTanksCard), findsOneWidget);
     expect(find.byType(PlanTankList), findsNothing);
-    expect(find.text('Open in dive log'), findsOneWidget);
+    expect(find.byTooltip('Open in dive log'), findsOneWidget);
     expect(find.text('Carried into Dive A'), findsOneWidget);
+    // The panes stay where they were, the logged dive read-only in each.
+    expect(tester.getRect(find.byType(PlanEditorPane)), editor);
+    expect(tester.getRect(find.byType(LoggedDiveResults)), results);
+    expect(find.byType(LoggedDiveChart), findsOneWidget);
+    // Never planned: no segments, and no plan settings of its own.
+    expect(find.byKey(const Key('loggedDiveNotPlanned')), findsOneWidget);
+    expect(find.byType(SegmentList), findsNothing);
+    expect(find.byType(PlanSetupAccordion), findsNothing);
     // The air tank's logged end pressure is what carries on.
     expect(find.text('90 bar'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Dive A'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(PlanLoggedDiveView), findsNothing);
+    expect(find.byType(LoggedDiveDetailsCard), findsNothing);
     expect(find.byType(PlanTankList), findsOneWidget);
   });
 
@@ -223,8 +241,8 @@ void main() {
     await tester.tap(find.byTooltip('Logged dive Blue Hole'));
     await tester.pumpAndSettle();
 
-    // The number the label leaves out stays beside the date.
-    expect(find.textContaining('#42 · '), findsOneWidget);
+    // The number the label leaves out stays beside the name.
+    expect(find.text('Blue Hole · #42'), findsOneWidget);
   });
 
   testWidgets('the logged view fits a phone', (tester) async {
@@ -235,8 +253,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(PlanLoggedDiveView), findsOneWidget);
+    expect(find.byType(LoggedDiveDetailsCard), findsOneWidget);
+    expect(find.byType(LoggedDiveChart), findsOneWidget);
+
+    // The same tabs: Plan and Setup are not this dive's, Results is.
+    SegmentedButton<int> tabs() =>
+        tester.widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>));
+    expect(tabs().segments.map((s) => s.enabled), [true, false, false, true]);
+    await tester.tap(find.text('Results'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
     expect(find.text('Carried into Dive A'), findsOneWidget);
+    expect(find.byKey(const Key('loggedDiveWarningsTile')), findsOneWidget);
+    expect(find.byKey(const Key('loggedDiveAsPlanned')), findsNothing);
+
+    // Back on the planned dive, every tab is there again.
+    await tester.tap(find.byTooltip('Dive A'));
+    await tester.pumpAndSettle();
+    expect(tabs().segments.every((s) => s.enabled), isTrue);
+    expect(tabs().selected, {3});
   });
 
   testWidgets('the logged dive chart starts clean, apart from the dive log', (
@@ -573,11 +608,11 @@ void main() {
     await tester.tap(find.byTooltip('Logged dive #42'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Stop following'));
+    await tester.tap(find.byTooltip('Stop following'));
     await tester.pumpAndSettle();
 
     expect(containerOf(tester).read(planSeriesNotifierProvider).follow, isNull);
-    expect(find.byType(PlanLoggedDiveView), findsNothing);
+    expect(find.byType(LoggedDiveDetailsCard), findsNothing);
     expect(inBar(find.text('#42')), findsNothing);
   });
 

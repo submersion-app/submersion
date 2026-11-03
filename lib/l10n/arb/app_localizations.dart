@@ -33495,6 +33495,30 @@ abstract class AppLocalizations {
   /// **'Stop following'**
   String get plannerSeries_stopFollowing;
 
+  /// No description provided for @plannerSeries_compareWithPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare with its plan'**
+  String get plannerSeries_compareWithPlan;
+
+  /// No description provided for @plannerSeries_asPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'As planned'**
+  String get plannerSeries_asPlanned;
+
+  /// No description provided for @plannerSeries_loggedNotPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive is in your log and wasn\'t planned here. Open it in the dive log to change it.'**
+  String get plannerSeries_loggedNotPlanned;
+
+  /// No description provided for @plannerSeries_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get plannerSeries_maxDepth;
+
   /// Heading over what a logged dive passes on to the dive after it
   ///
   /// In en, this message translates to:
