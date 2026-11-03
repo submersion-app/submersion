@@ -113,3 +113,15 @@ Alt+Left and Alt+Right select the previous and next dive, registered in
   suite with `scripts/run_all_tests.sh` before the PR.
 - PR descriptions: `Refs #3565`, screenshots through the secret gist.
 - Check `currentSchemaVersion` against `main` again before the PR.
+
+## Known issue to raise in the PR
+
+`lib/features/planner/presentation/pages/plan_canvas_page.dart` is 1,102
+lines, over the 800-line limit. It was already 1,044 before phase 2; the
+logged-dive layout added about 60. The PR description must say so, and that
+it will likely need resolving before the PR is merged. The proposed fix, as
+its own small PR with its own issue: move the menu, the layouts and the
+actions into three `part` files, each a mixin on the page's state, as
+`plan_canvas_series_flows.dart` already is. That is a move, not a rewrite,
+and leaves the page at about 350 lines. Convert to Dive stays put until the
+"Create / Update planned dives" work rewrites it.
