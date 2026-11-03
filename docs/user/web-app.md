@@ -251,11 +251,10 @@ what Forget this device is for.
 **Forget this device**, in Settings, Data (under Advanced) and in
 Settings, Cloud Sync, removes everything Submersion keeps in that
 browser: the dive log, the credentials and passphrase, and the device's
-identity in your sync mesh. Your other
-devices keep their copies and their stores. Use it before you leave a
-machine that is not yours. If the browser kept the database (another tab
-still had it open), the page says so rather than pretending; close the
-other Submersion tabs and try again.
+identity in your sync mesh. Your other devices keep their copies and
+their stores. Use it before you leave a machine that is not yours. If the
+browser kept the database (another tab still had it open), the page says
+so rather than pretending; close the other Submersion tabs and try again.
 
 Clearing this site's data in the browser's own settings removes the same
 things. Close every Submersion tab first: as with Forget this device, a
