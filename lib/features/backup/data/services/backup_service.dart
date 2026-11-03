@@ -1021,18 +1021,8 @@ class BackupService {
     _log.info('Restore from file completed: ${p.basename(filePath)}');
   }
 
-  /// Restores [bytes], a backup as a file holds it, plain or encrypted: a
-  /// browser's restore, where the picker reads the file into memory and
-  /// there is no file backup to take first (issue #4121).
-  ///
-  /// The checks a file restore makes come first (decryption, a SQLite file
-  /// with Submersion's tables, a schema no newer than this build), so a
-  /// refusal changes nothing. Then [safetyCopy] runs, the browser's stand-in
-  /// for the backup a file restore takes, then the swap with the same sync
-  /// re-baseline. [RestoreMode.replace] mints a pending replace.
-  ///
-  /// Throws [BackupEncryptedException] when no key here opens an encrypted
-  /// backup and no [encryptionSecret] was given, so the caller can ask.
+  /// A browser's restore of a backup held in memory (issue #4121); see
+  /// `_BackupServiceImageRestore._restoreFromImage` for the order of steps.
   Future<void> restoreFromImage(
     Uint8List bytes, {
     RestoreMode mode = RestoreMode.merge,
