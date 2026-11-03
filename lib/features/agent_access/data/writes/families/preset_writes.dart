@@ -46,6 +46,11 @@ class TankPresetWrites extends WritableEntry {
   String? titleOf(Map<String, Object?> document) =>
       document['display_name'] as String?;
 
+  /// What a preset's size holds for an imperial diver depends on it, even
+  /// when the change leaves it alone.
+  @override
+  Set<String> get displayContext => const {'working_pressure_bar'};
+
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async => appendSlotBlock(check);
 

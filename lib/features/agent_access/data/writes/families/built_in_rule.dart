@@ -52,24 +52,29 @@ Future<PlanBlock?> inUseBlock(
   );
 }
 
-/// How many rows of [table] hold [id] in [column], leaving out the rows whose
-/// [except] column holds one of its values.
+/// How many rows of [table] hold [id] in [column], leaving out each row
+/// whose column in [except] holds one of that column's values.
 Future<int> countLinks(
   String table,
   String column,
   String id, {
-  (String, List<String>)? except,
+  List<(String, List<String>)> except = const [],
 }) async {
-  final (skipColumn, skip) = except ?? ('', const <String>[]);
-  final notIn = skip.isEmpty
-      ? ''
-      : ' AND "$skipColumn" NOT IN (${List.filled(skip.length, '?').join(', ')})';
+  final skipped = [
+    for (final (skipColumn, values) in except)
+      if (values.isNotEmpty) (skipColumn, values),
+  ];
+  final notIn = [
+    for (final (skipColumn, values) in skipped)
+      ' AND "$skipColumn" NOT IN (${List.filled(values.length, '?').join(', ')})',
+  ].join();
   return (await DatabaseService.instance.database
           .customSelect(
             'SELECT COUNT(*) AS n FROM "$table" WHERE "$column" = ?$notIn',
             variables: [
               Variable.withString(id),
-              for (final value in skip) Variable.withString(value),
+              for (final (_, values) in skipped)
+                for (final value in values) Variable.withString(value),
             ],
           )
           .getSingle())

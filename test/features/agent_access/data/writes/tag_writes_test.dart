@@ -148,6 +148,20 @@ void main() {
     expect(plan.unchanged.single.id, 'reef');
   });
 
+  // The set runs in order, so the rename frees the name before the create.
+  test('a name an earlier rename in the set frees can be taken', () async {
+    await tag('reef', 'Reef');
+
+    final plan = await h.preview([
+      updateOp('tags', 'reef', {'name': 'Reefs'}),
+      createOp('tags', {'name': 'Reef'}),
+    ]);
+
+    expect(plan.items.last.block, isNull);
+    await h.apply(plan);
+    expect(await count(db.tags), 2);
+  });
+
   test('a name taken after the preview refuses the apply', () async {
     final plan = await h.preview([
       createOp('tags', {'name': 'Wreck'}),

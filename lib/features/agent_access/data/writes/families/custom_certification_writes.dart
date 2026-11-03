@@ -105,10 +105,14 @@ class CustomAgencyWrites extends WritableEntry {
     String id, {
     Map<String, Set<String>> alongside = const {},
   }) async {
+    // A level the set deletes on its own is that delete's to show.
     final levels = await countLinks(
       'custom_certification_levels',
       'agency_id',
       id,
+      except: [
+        ('id', [...?alongside['custom_levels']]),
+      ],
     );
     return DeleteReach(
       parts: {if (levels > 0) 'custom_certification_levels': levels},
@@ -217,8 +221,9 @@ class CustomLevelWrites extends WritableEntry {
       if (check.soFar.deleted['custom_agencies']?.contains(agency) ?? false) {
         return PlanBlock(
           BlockReason.notPermitted,
-          'This change set deletes custom agency $agency, which takes this '
-          'level with it. Leave this delete out.',
+          'An earlier delete in this change set removes custom agency '
+          '$agency, which takes this level with it. Leave this delete out, '
+          'or put it before the agency\'s.',
         );
       }
       return _usedBlock(await certs.usage(check.id!), 'level');

@@ -244,10 +244,12 @@ database: a shared claim clashes with any other, an unshared one with a
 shared claim or the same owner's. A merge's `DeleteReach.basis` carries the
 exact links it moves, so a link that moves after the preview refuses the
 plan even when the counts stay the same.
-`WriteCheck.soFar` carries what the set deletes and what earlier updates
-write and unlink, so a rule that reads stored rows counts the set too: a
-site may take a tag the set first opens to sites, and a dive type the set
-first takes off its dives may be deleted.
+`WriteCheck.soFar` carries what the changes earlier in the set delete, write
+and unlink, counting only those the plan keeps, since a set applies in
+order. A rule that reads stored rows counts them too: a site may take a tag
+the set first opens to sites, a tag may take a name an earlier rename frees,
+and a dive type or species whose dives or sightings the set first removes
+may be deleted.
 
 ### Adding a writable entity
 

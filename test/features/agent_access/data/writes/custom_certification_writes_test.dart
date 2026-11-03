@@ -172,6 +172,28 @@ void main() {
     expect(await h.one('custom_agencies', agency), isNull);
   });
 
+  // The set runs in order: the level goes first, so the agency's delete no
+  // longer reaches it.
+  test('a level deleted before its agency goes alone', () async {
+    final agency = await created('custom_agencies', {'name': 'Cave Club'});
+    final level = await created('custom_levels', {
+      'agency_id': agency,
+      'name': 'Cavern',
+      'is_progression': true,
+    });
+
+    final plan = await h.preview([
+      deleteOp('custom_levels', level),
+      deleteOp('custom_agencies', agency),
+    ]);
+
+    expect(plan.items.first.block, isNull);
+    expect(plan.items.last.block, isNull);
+    expect(plan.items.last.reach.parts, isEmpty);
+    await h.apply(plan);
+    expect(await h.one('custom_agencies', agency), isNull);
+  });
+
   // The agency's delete takes its levels with it, so a delete of one of them
   // in the same set would find no row and fail the apply.
   test('a level whose agency the set deletes is left to that delete', () async {

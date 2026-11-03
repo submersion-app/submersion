@@ -47,6 +47,23 @@ void main() {
     expect(await h.one('tank_presets', id), isNull);
   });
 
+  // An imperial diver reads a cylinder's size by what it holds at its
+  // working pressure, so the dialog needs that pressure even when it stays.
+  test('a tank preset change carries its working pressure', () async {
+    final id = await created('tank_presets', {
+      'display_name': 'Twin 12',
+      'volume_l': 24.0,
+      'working_pressure_bar': 232.0,
+      'material': 'steel',
+    });
+
+    final plan = await h.preview([
+      updateOp('tank_presets', id, {'volume_l': 25.0}),
+    ]);
+
+    expect(plan.items.single.context['working_pressure_bar'], 232.0);
+  });
+
   // A manifolded pair is one cylinder of their combined volume, as a dive's
   // tanks and the preset editor take it.
   test('a twin set\'s combined volume is accepted', () async {

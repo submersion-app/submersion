@@ -48,7 +48,7 @@ class SpeciesWrites extends WritableEntry {
         'not deleted.',
       );
     }
-    if (await _r.species.isSpeciesInUse(check.id!)) {
+    if (await _stillInUse(check.id!, check.soFar)) {
       return const PlanBlock(
         BlockReason.notPermitted,
         'A sighting or a photo names this species, and the app does not '
@@ -56,6 +56,23 @@ class SpeciesWrites extends WritableEntry {
       );
     }
     return null;
+  }
+
+  /// Whether a sighting or a photo still names species [id] once the set's
+  /// earlier deletes run, counted as isSpeciesInUse counts it: a sighting
+  /// an earlier delete removes, or one on a dive it removes, no longer does.
+  Future<bool> _stillInUse(String id, SetSoFar soFar) async {
+    final sightings = await countLinks(
+      'sightings',
+      'species_id',
+      id,
+      except: [
+        ('id', [...?soFar.deleted['sightings']]),
+        ('dive_id', [...?soFar.deleted['dives']]),
+      ],
+    );
+    return sightings > 0 ||
+        await countLinks('media_species', 'species_id', id) > 0;
   }
 
   @override

@@ -202,6 +202,29 @@ void main() {
     expect(item.reach.moved['media_smart_albums'], 1);
   });
 
+  // mergeTags keeps a merge of tags with no scope switched on a dive tag.
+  test('a merge of tags with no scope makes the survivor a dive tag', () async {
+    for (final (id, name) in [('a', 'Alpha'), ('b', 'Beta')]) {
+      await db
+          .into(db.tags)
+          .insert(
+            TagsCompanion.insert(
+              id: id,
+              name: name,
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverA),
+              appliesToDives: const Value(false),
+            ),
+          );
+    }
+
+    final plan = await h.preview([merge('a', 'b')]);
+
+    expect(plan.items.single.fields['scopes']!.oldValue, isEmpty);
+    expect(plan.items.single.fields['scopes']!.newValue, ['dives']);
+  });
+
   test('a merge that widens scopes the set also sets is blocked', () async {
     await db
         .into(db.tags)

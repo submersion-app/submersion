@@ -141,7 +141,8 @@ class SetSoFar {
     this.unlinked = const {},
   });
 
-  /// Every record the set deletes, wherever it sits, by entity.
+  /// The records deletes earlier in the set take away, by entity, counting
+  /// only those the plan keeps.
   final Map<String, Set<String>> deleted;
 
   /// The fields earlier updates in the set write, parsed, by entity and id.

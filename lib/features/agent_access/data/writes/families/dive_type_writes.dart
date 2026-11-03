@@ -40,14 +40,18 @@ class DiveTypeWrites extends WritableEntry {
       await inUseBlock(check, 'dive type', (id) => _stillInUse(id, check));
 
   /// Whether a dive still carries type [id] once the set's earlier changes
-  /// run, counted as isDiveTypeInUse counts it.
+  /// run, counted as isDiveTypeInUse counts it: a dive an earlier update
+  /// takes it off, or an earlier delete removes, no longer does.
   Future<bool> _stillInUse(String id, WriteCheck check) async {
-    final freed = [...?check.soFar.unlinked[('dive_types', id)]?['dives']];
+    final freed = [
+      ...?check.soFar.unlinked[('dive_types', id)]?['dives'],
+      ...?check.soFar.deleted['dives'],
+    ];
     final count = await countLinks(
       'dive_dive_types',
       'dive_type_id',
       id,
-      except: ('dive_id', freed),
+      except: [('dive_id', freed)],
     );
     return count > 0;
   }

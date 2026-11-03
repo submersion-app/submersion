@@ -109,12 +109,13 @@ class _Pass {
   /// entity and survivor.
   final _mergedInto = <(String, String?), Set<String>>{};
 
+  final _deletedSoFar = <String, Set<String>>{};
   final _valuesSoFar = <(String, String), Map<String, Object?>>{};
   final _unlinkedSoFar = <(String, String), Map<String, Set<String>>>{};
 
   /// What the set does before the change being planned, for its rules.
   SetSoFar get _soFar => SetSoFar(
-    deleted: _deletedByEntity,
+    deleted: _deletedSoFar,
     values: _valuesSoFar,
     unlinked: _unlinkedSoFar,
   );
@@ -410,6 +411,7 @@ class _Pass {
       (_mergedInto[(op.entity, into)] ??= {}).add(op.id);
     }
     if (block == null) {
+      (_deletedSoFar[op.entity] ??= {}).add(op.id);
       markers.add(
         await _marker(
           entry,

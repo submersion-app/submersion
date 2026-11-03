@@ -73,6 +73,16 @@ void main() {
     expect(const FieldCodec.text().parse(' Wreck '), ' Wreck ');
   });
 
+  // What is stored is the trimmed text, so that is what must fit.
+  test('a trimming text measures its length after trimming', () {
+    expect(
+      const FieldCodec.text(maxLength: 3, trim: true).parse('  abc '),
+      'abc',
+    );
+    const list = FieldCodec.textList(maxLength: 3);
+    expect(list.wire(list.parse([' abc '])), ['abc']);
+  });
+
   // A repository that trims a nullable text stores a blank one as null.
   test('a trimming nullable text reads a blank as null', () {
     const codec = FieldCodec.text(nullable: true, trim: true);

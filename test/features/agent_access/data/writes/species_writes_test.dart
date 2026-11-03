@@ -89,6 +89,26 @@ void main() {
     }
   });
 
+  // The set runs in order, so the species is unused once its sightings go.
+  test('a species whose sightings the set first deletes can go', () async {
+    await species('nudi', 'Nudibranch');
+    await db
+        .into(db.sightings)
+        .insert(
+          SightingsCompanion.insert(id: 'sg', diveId: 'd1', speciesId: 'nudi'),
+        );
+
+    for (final first in [
+      deleteOp('sightings', 'sg'),
+      deleteOp('dives', 'd1'),
+    ]) {
+      final plan = await h.preview([first, deleteOp('species', 'nudi')]);
+      expect(plan.items.last.block, isNull, reason: '${first['entity']}');
+    }
+    await h.run([deleteOp('dives', 'd1'), deleteOp('species', 'nudi')]);
+    expect(await h.one('species', 'nudi'), isNull);
+  });
+
   test(
     'deleting a custom species takes it off the sites expecting it',
     () async {

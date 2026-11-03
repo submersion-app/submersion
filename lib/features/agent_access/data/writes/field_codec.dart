@@ -119,11 +119,13 @@ class _TextCodec extends FieldCodec {
     if (!nullable && !allowBlank && raw.trim().isEmpty) {
       throw const FieldRefusal('This field is required and cannot be blank.');
     }
+    // What is stored is what must fit.
+    final value = trim ? raw.trim() : raw;
     final limit = maxLength;
-    if (limit != null && raw.length > limit) {
+    if (limit != null && value.length > limit) {
       throw FieldRefusal('This field holds at most $limit characters.');
     }
-    return trim ? raw.trim() : raw;
+    return value;
   }
 }
 
@@ -282,7 +284,7 @@ class _TextListCodec extends FieldCodec {
       if (item is! String || item.trim().isEmpty) {
         throw const FieldRefusal('Each item is text and cannot be blank.');
       }
-      if (item.length > maxLength) {
+      if (item.trim().length > maxLength) {
         throw FieldRefusal('Each item holds at most $maxLength characters.');
       }
       if (separator case final s? when item.contains(s)) {

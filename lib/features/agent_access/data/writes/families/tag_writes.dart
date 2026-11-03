@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/app_sql_functions.dart';
@@ -50,6 +53,11 @@ class TagWrites extends WritableEntry {
     final owner = check.ownerId ?? check.document?['diver_id'] as String?;
     final holder = await _holderOf(name, owner, except: check.id);
     if (holder == null) return null;
+    // A rename earlier in the set frees the name before this change runs.
+    if (check.soFar.values[('tags', holder.id)]?['name']
+        case final String renamed when _folded(renamed) != _folded(name)) {
+      return null;
+    }
     return PlanBlock(
       BlockReason.duplicateRecord,
       'name: tag ${holder.id} is already called "${holder.name}". Link that '
@@ -60,7 +68,7 @@ class TagWrites extends WritableEntry {
 
   @override
   UniqueClaim? uniqueKey(WriteCheck check) => switch (check.values['name']) {
-    final String name => UniqueClaim(name.trim().toLowerCase()),
+    final String name => UniqueClaim(_folded(name)),
     _ => null,
   };
 
@@ -112,7 +120,7 @@ class TagWrites extends WritableEntry {
     for (final scope in domain.TagScope.values) {
       final junction = scope.table.junctionTable;
       final item = scope.table.parentColumn;
-      // DISTINCT, since an item may carry more than one of the holders.
+      // An item counts once however many of the holders it carries.
       final row = await db
           .customSelect(
             'SELECT SUM(CASE WHEN held IS NULL THEN 1 ELSE 0 END) AS moved, '
@@ -146,9 +154,10 @@ class TagWrites extends WritableEntry {
     );
   }
 
-  /// Every link the tags in [tagIds] hold, in a stable order, so a link that
-  /// moves between items after the preview refuses the plan even when the
-  /// counts stay the same.
+  /// A digest of every link the tags in [tagIds] hold, in a stable order, so
+  /// a link that moves between items after the preview refuses the plan even
+  /// when the counts stay the same. A digest, so a plan does not hold every
+  /// link of a busy tag for its lifetime.
   Future<String> _linkRows(List<String> tagIds) async {
     final db = DatabaseService.instance.database;
     final marks = List.filled(tagIds.length, '?').join(', ');
@@ -169,7 +178,7 @@ class TagWrites extends WritableEntry {
         );
       }
     }
-    return rows.join('\n');
+    return sha256.convert(utf8.encode(rows.join('\n'))).toString();
   }
 
   /// The survivor's scopes after a merge takes the union of the merged
@@ -184,11 +193,13 @@ class TagWrites extends WritableEntry {
     for (final id in merged) {
       union.addAll((await _r.tags.getTagById(id))?.scopes ?? const {});
     }
-    if (union.length == survivor.scopes.length) return const {};
+    // A merge of tags with no scope stays a dive tag, as mergeTags keeps it.
+    final after = union.isEmpty ? const {domain.TagScope.dives} : union;
+    if (after.length == survivor.scopes.length) return const {};
     return {
       'scopes': [
         for (final scope in domain.TagScope.values)
-          if (union.contains(scope)) scope.name,
+          if (after.contains(scope)) scope.name,
       ],
     };
   }
@@ -321,6 +332,9 @@ class TagWrites extends WritableEntry {
     }
     return counts;
   }
+
+  /// [name] as the name index keys it.
+  static String _folded(String name) => name.trim().toLowerCase();
 
   Never _gone(String id) => throw AgentToolException(
     AgentToolErrorCode.writeRefused,

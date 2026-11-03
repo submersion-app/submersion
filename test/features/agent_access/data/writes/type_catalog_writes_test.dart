@@ -165,6 +165,32 @@ void main() {
   });
 
   test(
+    'a dive type whose dives the set first deletes can be deleted',
+    () async {
+      final type = await created('dive_types', {'name': 'Ice'});
+      await db
+          .into(db.diveDiveTypes)
+          .insert(
+            DiveDiveTypesCompanion.insert(
+              id: 'ddt',
+              diveId: 'd1',
+              diveTypeId: type,
+              createdAt: t,
+            ),
+          );
+
+      final plan = await h.preview([
+        deleteOp('dives', 'd1'),
+        deleteOp('dive_types', type),
+      ]);
+
+      expect(plan.items.last.block, isNull);
+      await h.apply(plan);
+      expect(await h.one('dive_types', type), isNull);
+    },
+  );
+
+  test(
     'a dive type the set first takes off its dives can be deleted',
     () async {
       final type = await created('dive_types', {'name': 'Ice'});
