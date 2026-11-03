@@ -46,9 +46,9 @@ const webUnavailableSections = <String, Map<String, WebUnavailableFeature>>{
 WebUnavailableFeature? webUnavailableFeatureFor(String location) {
   final uri = Uri.tryParse(location);
   final path = uri?.path ?? location;
-  final section = uri?.queryParameters['selected'];
-  if (section != null) {
-    final feature = webUnavailableSections[path]?[section];
+  final sections = webUnavailableSections[path];
+  if (uri != null && sections != null) {
+    final feature = sections[_selectedSection(uri)];
     if (feature != null) return feature;
   }
   final segments = path.split('/').where((s) => s.isNotEmpty).toList();
@@ -66,6 +66,18 @@ WebUnavailableFeature? webUnavailableFeatureFor(String location) {
     if (matches) return feature;
   }
   return null;
+}
+
+/// The `?selected=` value of [uri], or null. Only a page with sections
+/// decodes its query here, and a query Dart cannot decode (a truncated
+/// UTF-8 escape a link may carry) counts as no section, so the page opens
+/// as it would anywhere else.
+String? _selectedSection(Uri uri) {
+  try {
+    return uri.queryParameters['selected'];
+  } on FormatException {
+    return null;
+  }
 }
 
 /// The router redirect for the browser: a location the browser cannot serve

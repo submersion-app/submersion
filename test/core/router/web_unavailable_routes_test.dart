@@ -128,6 +128,16 @@ void main() {
       expect(webUnavailableFeatureFor('/transfer'), isNull);
     });
 
+    test('a query it cannot decode opens the page as it is', () {
+      // A truncated UTF-8 escape, which Dart refuses to decode.
+      expect(webUnavailableFeatureFor('/dives?q=%E0%A4%A'), isNull);
+      expect(webUnavailableFeatureFor('/transfer?selected=%E0%A4%A'), isNull);
+      expect(
+        webUnavailableFeatureFor('/dive-computers?q=%E0%A4%A'),
+        WebUnavailableFeature.diveComputers,
+      );
+    });
+
     test('leaves every other route alone', () {
       expect(webUnavailableFeatureFor('/dashboard'), isNull);
       expect(webUnavailableFeatureFor('/dives'), isNull);
