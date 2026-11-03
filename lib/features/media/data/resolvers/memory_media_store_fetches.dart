@@ -69,19 +69,24 @@ class MemoryMediaStoreFetches implements MediaStoreFetches {
   @override
   Future<MediaSourceData?> original(MediaItem item, String hash) async {
     if (item.mediaType != MediaType.photo) return null;
+    // A browser decodes only the web's own formats: a HEIC or camera RAW
+    // original would not show, so the resolver falls through to the JPEG
+    // rendition instead.
+    final extension = StoreKeys.extensionFor(item.originalFilename);
+    if (!_decodable.contains(extension)) return null;
     return _serve(
       item,
       memoryKey: '$hash#original',
-      storeKey: StoreKeys.objectKey(
-        hash,
-        extension: StoreKeys.extensionFor(item.originalFilename),
-      ),
+      storeKey: StoreKeys.objectKey(hash, extension: extension),
       tier: ServedTier.original,
       // Derived tiers carry the hash only for addressing; the original is
       // the bytes the hash names.
       verify: (bytes) => sha256.convert(bytes).toString() == hash,
     );
   }
+
+  /// The image formats every target browser decodes.
+  static const _decodable = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
 
   Future<MediaSourceData?> _serve(
     MediaItem item, {

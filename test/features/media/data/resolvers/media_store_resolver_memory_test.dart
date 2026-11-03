@@ -97,6 +97,24 @@ void main() {
     );
   });
 
+  test('a photo the browser cannot decode (HEIC) is shown from its JPEG '
+      'rendition, and its original is never downloaded', () async {
+    store.objects[originalKey('reef.heic')] = bytes;
+    store.objects[StoreKeys.renditionKey(
+          hash,
+          ext: StoreKeys.renditionExtension(isVideo: false),
+        )] =
+        bytes;
+
+    final served = await resolver.tryResolveRemote(
+      item(filename: 'reef.heic', originalAt: at, renditionAt: at),
+      thumbnail: false,
+    );
+
+    expect((served! as BytesData).servedTier, ServedTier.rendition);
+    expect(store.getBytesKeys, isNot(contains(originalKey('reef.heic'))));
+  });
+
   test('a photo rendition is served from memory', () async {
     store.objects[StoreKeys.renditionKey(
           hash,
