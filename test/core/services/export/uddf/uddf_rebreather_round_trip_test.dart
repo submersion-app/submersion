@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -209,5 +210,16 @@ void main() {
     expect(doc.findAllElements('o2sensor'), hasLength(3));
     expect(doc.findAllElements('divecomputer'), isEmpty);
     expect(xml, isNot(contains('Petrel 3')));
+  });
+
+  test('reads the cell declarations once per document', () {
+    final doc = XmlDocument.parse(
+      '<uddf><rebreather><o2sensor id="a"/><o2sensor id="b"/></rebreather>'
+      '</uddf>',
+    );
+
+    final first = UddfImportParsers.parseO2SensorOrder(doc);
+    expect(first, ['a', 'b']);
+    expect(identical(UddfImportParsers.parseO2SensorOrder(doc), first), isTrue);
   });
 }

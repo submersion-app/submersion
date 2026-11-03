@@ -345,14 +345,19 @@ class UddfImportParsers {
   /// resolves. Per-waypoint cell readings reference these ids, so declaration
   /// order — not the order the readings appear in a waypoint — determines
   /// which cell a reading belongs to.
-  static List<String> parseO2SensorOrder(XmlDocument document) {
-    return document
-        .findAllElements('o2sensor')
-        .map((sensor) => sensor.getAttribute('id')?.trim())
-        .whereType<String>()
-        .where((id) => id.isNotEmpty)
-        .toList();
-  }
+  ///
+  /// Read once per document: every dive with samples asks, and a walk of the
+  /// whole document per dive is quadratic in a large backup.
+  static List<String> parseO2SensorOrder(XmlDocument document) =>
+      _o2SensorOrder[document] ??= List.unmodifiable(
+        document
+            .findAllElements('o2sensor')
+            .map((sensor) => sensor.getAttribute('id')?.trim())
+            .whereType<String>()
+            .where((id) => id.isNotEmpty),
+      );
+
+  static final _o2SensorOrder = Expando<List<String>>('o2SensorOrder');
 
   /// Reads per-cell O2 readings from a waypoint, in bar, indexed by cell.
   ///
