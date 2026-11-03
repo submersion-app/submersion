@@ -157,7 +157,8 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester, debugMode: true, browser: true);
-    expect(find.byType(DataRowTile), findsNWidgets(4));
+    // The five tools, and no agent access row.
+    expect(find.byType(DataRowTile), findsNWidgets(5));
     expect(find.text('Agent access'), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
