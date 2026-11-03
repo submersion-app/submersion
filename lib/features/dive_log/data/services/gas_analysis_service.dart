@@ -344,7 +344,7 @@ class GasAnalysisService {
     );
 
     final diveEnd =
-        dive.effectiveRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
+        dive.measuredRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
 
     if (dive.isCCR) {
       return _ccrCylinderSac(

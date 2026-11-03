@@ -782,14 +782,23 @@ extension RungsFromV231 on AppDatabase {
     if (from < 338) await _assertIncidentObservationColumn();
     if (from < 338) await reportProgress();
 
-    // v339: dive_plan_series, a saved repetitive dive series, and the
+    // v339: dive_computers.auto_download_disabled, the per-device opt-out
+    // for passive auto-connect/auto-download (issue #3361). Column only, no
+    // backfill; re-asserted in beforeOpen. Renumbered from 332, which
+    // upstream claimed first for issue #3922, then from 338, which upstream
+    // claimed first for issue #3062.
+    if (from < 339) await _assertDiveComputerAutoDownloadDisabledColumn();
+    if (from < 339) await reportProgress();
+
+    // v340: dive_plan_series, a saved repetitive dive series, and the
     // dive_plans / dive_plan_tanks columns that place a plan in one (issue
     // #3565). Table and columns only, no backfill: a plan with no series is
-    // a one-dive series. Re-asserted in beforeOpen.
-    if (from < 339) {
+    // a one-dive series. Re-asserted in beforeOpen. Renumbered from 339,
+    // which upstream claimed first for issue #3361.
+    if (from < 340) {
       await _assertDivePlanSeriesTable();
       await _assertDivePlanSeriesColumns();
     }
-    if (from < 339) await reportProgress();
+    if (from < 340) await reportProgress();
   }
 }

@@ -143,10 +143,10 @@ void main() {
 
     expect(
       text,
-      contains('102 Total Minutes'),
+      contains('62 Total Minutes'),
       reason:
-          'runtime 62 + bottomTime fallback 40 = 102; bottom time alone '
-          'would understate the training log at 90 (#644)',
+          'the runtime 62 with no bottom time counted as one; bottom time '
+          'alone would understate the training log at 90 (#644, #3304)',
     );
     expect(text, contains('2 Training Dives'));
     expect(text, contains('25.0m Max Depth'));
@@ -210,6 +210,20 @@ void main() {
       contains(DateFormat('yyyy-MM-dd').format(DateTime.now())),
       reason: 'the file name stays ISO so training logs sort by date (#964)',
     );
+  });
+
+  test('a dive with only a bottom time renders no Duration chip', () async {
+    final text = await exportText([
+      trainingDive(
+        id: 'd1',
+        number: 1,
+        bottomTime: const Duration(minutes: 40),
+        maxDepth: 12.0,
+      ),
+    ]);
+
+    expect(text, isNot(contains('Duration')));
+    expect(text, contains('0 Total Minutes'));
   });
 
   test('a dive with no duration at all renders no Duration chip', () async {

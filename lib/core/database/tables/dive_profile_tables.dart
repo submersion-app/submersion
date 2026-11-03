@@ -33,6 +33,14 @@ class DiveComputers extends Table {
       integer().nullable()(); // Unix timestamp
   IntColumn get diveCount => integer().withDefault(const Constant(0))();
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+
+  /// Excludes this computer from auto-download even when the global
+  /// auto-connect switch is on (per-device opt-out, issue #3361). Syncs
+  /// across devices like the rest of this row - it expresses the diver's
+  /// intent about this computer, not a device-local technical detail like
+  /// [bluetoothAddress].
+  BoolColumn get autoDownloadDisabled =>
+      boolean().withDefault(const Constant(false))();
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();

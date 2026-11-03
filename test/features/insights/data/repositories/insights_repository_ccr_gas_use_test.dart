@@ -386,6 +386,20 @@ void main() {
       expect(trend.diluent.single.value, closeTo(9, 1e-9));
     });
 
+    test('a dive with only a bottom time has no rate', () async {
+      // Dividing a whole dive's gas by a bottom time reads high, so neither
+      // the card nor this line takes one for the end of the dive (#3304).
+      await insertDive('ccr', runtime: null);
+      await db.customStatement(
+        "UPDATE dives SET bottom_time = ${42 * 60} WHERE id = 'ccr'",
+      );
+      await insertTank('ccr', 'dil', 'diluent');
+
+      final trend = await repository.getCcrGasUsePerDive();
+
+      expect(trend.diluent, isEmpty);
+    });
+
     test('a single-sample profile still gives the card\'s dive end', () async {
       await insertDive('ccr', runtime: null);
       await insertTank('ccr', 'dil', 'diluent');

@@ -2,21 +2,21 @@ part of '../app_database_migrations.dart';
 
 /// Saved repetitive dive series (issue #3565, phase 3).
 extension DivePlanSeriesMigrations on AppDatabase {
-  /// Idempotent creation of the v339 `dive_plan_series` table. Its
+  /// Idempotent creation of the v340 `dive_plan_series` table. Its
   /// `dive_plans(series_id)` index is in the canonical performance set,
   /// which beforeOpen asserts on every open. Created even on a partial
   /// migration-test fixture that lacks `divers` or `dives`: `dive_plans`
   /// references this table, so without it nothing can write a plan there.
-  /// Safe from both the v339 rung and the beforeOpen backstop.
+  /// Safe from both the v340 rung and the beforeOpen backstop.
   Future<void> _assertDivePlanSeriesTable() async {
     await Migrator(this).createTable(divePlanSeries);
   }
 
-  /// The v339 columns that place a plan in a series and carry a tank over
+  /// The v340 columns that place a plan in a series and carry a tank over
   /// from the dive before. All nullable or defaulted, with no backfill: a
   /// plan with no series is a one-dive series. `source_tank_id` has no
   /// foreign key on purpose, since it names a logged dive's tank or a plan
-  /// tank. Safe from both the v339 rung and the beforeOpen backstop.
+  /// tank. Safe from both the v340 rung and the beforeOpen backstop.
   Future<void> _assertDivePlanSeriesColumns() async {
     await _addColumnIfMissing(
       'dive_plans',

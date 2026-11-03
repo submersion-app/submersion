@@ -47,7 +47,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.bottomTime:
         return dive.bottomTime;
       case DiveField.runtime:
-        return dive.effectiveRuntime;
+        return dive.measuredRuntime;
       case DiveField.waterTemp:
         return dive.waterTemp;
       case DiveField.airTemp:

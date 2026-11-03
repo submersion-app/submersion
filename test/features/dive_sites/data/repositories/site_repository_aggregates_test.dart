@@ -220,7 +220,7 @@ void main() {
       expect(site.averageDurationSeconds, equals(2700));
     });
 
-    test('falls back to bottom time when a dive has no runtime', () async {
+    test('has no duration for a dive with only a bottom time', () async {
       await _insertDive(
         database,
         id: 'd3',
@@ -232,8 +232,9 @@ void main() {
 
       final aggregates = await repository.getDiveAggregatesBySite();
 
-      expect(aggregates['site-b']!.longestDiveSeconds, equals(2400));
-      expect(aggregates['site-b']!.averageDurationSeconds, equals(2400));
+      expect(aggregates['site-b']!.diveCount, 1);
+      expect(aggregates['site-b']!.longestDiveSeconds, isNull);
+      expect(aggregates['site-b']!.averageDurationSeconds, isNull);
     });
 
     test('leaves the new figures null when no dive records them', () async {

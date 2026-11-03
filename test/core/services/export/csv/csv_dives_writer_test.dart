@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'csv_test_fixtures.dart';
@@ -84,6 +85,37 @@ void main() {
     expect(r['Weather Description'], "'=1+1");
     expect(r['Boat Name'], "'=cmd");
     expect(r['Water Temp (°C)'], '-2');
+  });
+
+  test('Runtime is what the dive measured, never its bottom time', () {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    Map<String, String> row(Dive dive) =>
+        rowOf(CsvDivesWriter(CsvExportUnits.metric).write([dive]), 1);
+
+    final stamped = Dive(
+      id: 'stamped',
+      dateTime: entry,
+      entryTime: entry,
+      exitTime: entry.add(const Duration(minutes: 40)),
+      bottomTime: const Duration(minutes: 30),
+    );
+    expect(row(stamped)['Runtime (min)'], '40');
+    expect(row(stamped)['Bottom Time (min)'], '30');
+
+    final logged = Dive(
+      id: 'logged',
+      dateTime: entry,
+      bottomTime: const Duration(minutes: 30),
+    );
+    expect(row(logged)['Runtime (min)'], '');
+
+    // The export reads the list form of a dive, which carries no samples.
+    final sampled = Dive(
+      id: 'sampled',
+      dateTime: entry,
+      profileSpan: const Duration(minutes: 20),
+    );
+    expect(row(sampled)['Runtime (min)'], '20');
   });
 
   test('a measured dive writes no range beside its measurement (#3226)', () {

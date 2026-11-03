@@ -69,11 +69,10 @@ void main() {
       expect(day.hasContent, isTrue);
     });
 
-    test('totalRuntime falls back to bottom time when runtime is absent', () {
-      // Hand-logged dives often carry only a bottom time. Dropping them from
-      // the total would under-report the day more badly than the bug this
-      // replaces, so bottom time remains the fallback -- mirroring the
-      // COALESCE(runtime, bottom_time) the SQL aggregates use.
+    test('totalRuntime adds no time for a dive with only a bottom time', () {
+      // Bottom time is derived from a depth threshold, so it is no runtime.
+      // This mirrors the measured runtime the SQL aggregates use, which keeps
+      // the day's rows adding up to the trip total (issue #3304).
       final day = TripStoryDay(
         date: date,
         dayNumber: 2,
@@ -92,7 +91,7 @@ void main() {
         ],
       );
 
-      expect(day.totalRuntime, const Duration(minutes: 80));
+      expect(day.totalRuntime, const Duration(minutes: 42));
     });
 
     test(
@@ -430,8 +429,8 @@ void main() {
       cloudCover: CloudCover.partlyCloudy,
     );
 
-    test('runtime sums runtime, falling back to bottom time', () {
-      expect(diveDayRuntime([d1, d2]), const Duration(minutes: 90));
+    test('runtime sums measured runtimes, never a bottom time', () {
+      expect(diveDayRuntime([d1, d2]), const Duration(minutes: 50));
       expect(diveDayRuntime(const []), Duration.zero);
     });
 

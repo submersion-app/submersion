@@ -2,6 +2,89 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 void main() {
+  group('Dive.measuredRuntime', () {
+    test('reads the runtime, then the times, then the profile', () {
+      final timed = Dive(
+        id: 'timed',
+        dateTime: DateTime(2024, 1, 1),
+        runtime: const Duration(minutes: 42),
+        entryTime: DateTime(2024, 1, 1, 10, 0),
+        exitTime: DateTime(2024, 1, 1, 10, 45),
+      );
+      final stamped = Dive(
+        id: 'stamped',
+        dateTime: DateTime(2024, 1, 1),
+        entryTime: DateTime(2024, 1, 1, 10, 0),
+        exitTime: DateTime(2024, 1, 1, 10, 45),
+      );
+      final sampled = Dive(
+        id: 'sampled',
+        dateTime: DateTime(2024, 1, 1),
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 2520, depth: 0),
+        ],
+      );
+      expect(timed.measuredRuntime, const Duration(minutes: 42));
+      expect(stamped.measuredRuntime, const Duration(minutes: 45));
+      expect(sampled.measuredRuntime, const Duration(seconds: 2520));
+    });
+
+    test('reads the profile span when the dive came without samples', () {
+      final listed = Dive(
+        id: 'listed',
+        dateTime: DateTime(2024, 1, 1),
+        bottomTime: const Duration(minutes: 30),
+        profileSpan: const Duration(minutes: 42),
+      );
+      expect(listed.measuredRuntime, const Duration(minutes: 42));
+      expect(listed.effectiveRuntime, const Duration(minutes: 42));
+      expect(
+        listed.copyWith(notes: 'kept').measuredRuntime,
+        const Duration(minutes: 42),
+      );
+    });
+
+    test('a loaded profile and a stored runtime outrank the span', () {
+      final loaded = Dive(
+        id: 'loaded',
+        dateTime: DateTime(2024, 1, 1),
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 2520, depth: 0),
+        ],
+        profileSpan: const Duration(minutes: 1),
+      );
+      expect(loaded.measuredRuntime, const Duration(seconds: 2520));
+      expect(
+        loaded.copyWith(runtime: const Duration(minutes: 50)).measuredRuntime,
+        const Duration(minutes: 50),
+      );
+    });
+
+    test('is null for a dive that only carries a bottom time', () {
+      final dive = Dive(
+        id: 'logged',
+        dateTime: DateTime(2024, 1, 1),
+        bottomTime: const Duration(minutes: 30),
+      );
+      expect(dive.measuredRuntime, isNull);
+      // A window still has something to go on.
+      expect(dive.effectiveRuntime, const Duration(minutes: 30));
+    });
+
+    test('ignores an exit that is not after the entry', () {
+      final dive = Dive(
+        id: 'backwards',
+        dateTime: DateTime(2024, 1, 1),
+        entryTime: DateTime(2024, 1, 1, 11, 0),
+        exitTime: DateTime(2024, 1, 1, 10, 0),
+        bottomTime: const Duration(minutes: 30),
+      );
+      expect(dive.measuredRuntime, isNull);
+    });
+  });
+
   group('Dive.effectiveRuntime', () {
     // --- Fallback chain priority tests ---
 

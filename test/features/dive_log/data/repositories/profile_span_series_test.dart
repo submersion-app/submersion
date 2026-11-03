@@ -76,6 +76,69 @@ void main() {
     expect(times!.effectiveRuntime, const Duration(seconds: 900));
   });
 
+  group('a list read', () {
+    Future<void> sampled(String id, {Duration? runtime}) async {
+      await repository.createDive(
+        domain.Dive(
+          id: id,
+          dateTime: DateTime.utc(2026, 8, 3, 10),
+          runtime: runtime,
+        ),
+      );
+      await series.insertSeries(
+        diveId: id,
+        isPrimary: true,
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 1200, depth: 0),
+        ],
+      );
+    }
+
+    test('measures a dive by its samples without loading them', () async {
+      await sampled('sampled');
+
+      final dive = (await repository.getAllDives()).single;
+
+      expect(dive.profile, isEmpty);
+      expect(dive.measuredRuntime, const Duration(minutes: 20));
+    });
+
+    test('agrees with the summary and the times projection', () async {
+      await sampled('sampled');
+
+      final dive = (await repository.getAllDives()).single;
+      final summary = (await repository.getDiveSummaries()).single;
+      final times = await repository.getDiveTimes('sampled');
+
+      expect(dive.measuredRuntime, summary.runtime);
+      expect(dive.measuredRuntime, times!.effectiveRuntime);
+    });
+
+    test('leaves the span off a dive its runtime already measures', () async {
+      await sampled('timed', runtime: const Duration(minutes: 45));
+
+      final dive = (await repository.getAllDives()).single;
+
+      expect(dive.measuredRuntime, const Duration(minutes: 45));
+      expect(dive.profileSpan, isNull);
+    });
+
+    test('a dive with no samples stays unmeasured', () async {
+      await repository.createDive(
+        domain.Dive(
+          id: 'logged',
+          dateTime: DateTime.utc(2026, 8, 3, 10),
+          bottomTime: const Duration(minutes: 30),
+        ),
+      );
+
+      final dive = (await repository.getAllDives()).single;
+
+      expect(dive.measuredRuntime, isNull);
+    });
+  });
+
   test('a single-sample series has a zero span and falls through to bottom '
       'time', () async {
     await repository.createDive(

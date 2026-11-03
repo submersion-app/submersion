@@ -354,6 +354,45 @@ void main() {
       expect(find.text('#7'), findsOneWidget);
     });
 
+    group('the default Bottom Time slot', () {
+      Widget tile({Duration? runtime, Duration? bottomTime}) => testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        child: CompactDiveListTile(
+          diveId: 'sum-1',
+          diveNumber: 7,
+          dateTime: DateTime(2026, 3, 15),
+          // As DiveListItem passes it: the runtime, else the bottom time.
+          duration: runtime ?? bottomTime,
+          summary: DiveSummary(
+            id: 'sum-1',
+            dateTime: DateTime(2026, 3, 15),
+            bottomTime: bottomTime,
+            runtime: runtime,
+            sortTimestamp: 0,
+          ),
+          onTap: () {},
+        ),
+      );
+
+      testWidgets('shows the bottom time, not the runtime', (tester) async {
+        await tester.pumpWidget(
+          tile(
+            bottomTime: const Duration(minutes: 37),
+            runtime: const Duration(minutes: 52),
+          ),
+        );
+        expect(find.textContaining('37'), findsOneWidget);
+        expect(find.textContaining('52'), findsNothing);
+      });
+
+      testWidgets('is empty for a dive with no bottom time', (tester) async {
+        await tester.pumpWidget(tile(runtime: const Duration(minutes: 52)));
+        expect(find.textContaining('52'), findsNothing);
+      });
+    });
+
     testWidgets('renders with selected state applying container color', (
       tester,
     ) async {

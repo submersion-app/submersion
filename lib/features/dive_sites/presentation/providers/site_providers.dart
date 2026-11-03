@@ -263,7 +263,9 @@ final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchSitesChanges());
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchMeasuredRuntimeChanges(),
+  );
   // Feature chips on the list card come from site_features, so a feature
   // placed on the site map must refresh the list too.
   ref.invalidateSelfWhen(
@@ -512,7 +514,7 @@ final siteEntryExitSuggestionProvider =
 final siteDiveStatisticsProvider =
     FutureProvider.family<SiteDiveStatistics, String>((ref, siteId) async {
       final diveRepository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+      ref.invalidateSelfWhen(diveRepository.watchMeasuredRuntimeChanges());
 
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       if (diverId == null) return SiteDiveStatistics.empty;

@@ -76,7 +76,7 @@ class _BlockedScanNotifier extends DiscoveryNotifier {
   }
 
   @override
-  Future<void> startScan() async {
+  Future<void> startScan({Object? owner}) async {
     state = state.copyWith(
       isScanning: false,
       errorMessage:
@@ -95,9 +95,9 @@ class _SlowStartNotifier extends DiscoveryNotifier {
   final Completer<void> permission = Completer<void>();
 
   @override
-  Future<void> startScan() async {
+  Future<void> startScan({Object? owner}) async {
     await permission.future;
-    await super.startScan();
+    await super.startScan(owner: owner);
   }
 }
 

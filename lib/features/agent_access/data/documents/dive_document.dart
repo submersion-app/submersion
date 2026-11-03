@@ -27,7 +27,7 @@ Map<String, Object?> diveDocument(Dive dive) {
     'entry_time': wallClockOrNull(dive.entryTime),
     'exit_time': wallClockOrNull(dive.exitTime),
     'bottom_time_s': dive.bottomTime?.inSeconds,
-    'runtime_s': dive.runtime?.inSeconds,
+    'runtime_s': dive.measuredRuntime?.inSeconds,
     'surface_interval_s': dive.surfaceInterval?.inSeconds,
     'max_depth_m': dive.maxDepth,
     'avg_depth_m': dive.avgDepth,

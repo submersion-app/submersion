@@ -35,7 +35,7 @@ extension InsightsRepositoryFocus on InsightsRepository {
           s.longitude AS site_longitude,
           d.max_depth,
           d.avg_depth,
-          ${effectiveRuntimeSecondsSql('d')} / 60.0 AS duration_minutes,
+          ${measuredRuntimeSecondsSql('d')} / 60.0 AS duration_minutes,
           d.water_temp,
           CASE
             ${VisibilityBandSql.whenBranches('d.')}

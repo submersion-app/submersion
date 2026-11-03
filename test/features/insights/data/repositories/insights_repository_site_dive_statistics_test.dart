@@ -231,7 +231,7 @@ void main() {
       },
     );
 
-    test('falls back to bottom time when runtime is null', () async {
+    test('has no duration for a dive with only a bottom time', () async {
       final siteId = await insertSite();
       await insertDive(
         siteId: siteId,
@@ -241,8 +241,9 @@ void main() {
 
       final stats = await repository.getSiteDiveStatistics(siteId: siteId);
 
-      expect(stats.longestDiveSeconds, equals(2100));
-      expect(stats.averageDurationSeconds, equals(2100.0));
+      expect(stats.diveCount, 1);
+      expect(stats.longestDiveSeconds, isNull);
+      expect(stats.averageDurationSeconds, isNull);
     });
 
     test(

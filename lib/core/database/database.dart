@@ -241,7 +241,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
-    // Saved repetitive dive series (v339, issue #3565)
+    // Saved repetitive dive series (v340, issue #3565)
     DivePlanSeries,
     // DPV mission planner (v244, issue #2086)
     DivePlanMissions,
@@ -313,7 +313,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 339;
+  static const int currentSchemaVersion = 340;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1530,7 +1530,7 @@ class AppDatabase extends _$AppDatabase {
     // v332: the per-device change log tables (issue #3922). Local only and
     // never synced, so the floor does not move.
     332,
-    // v338: dives.gas_switches_edited (issue #32). A defaulted column an
+    // v333: dives.gas_switches_edited (issue #32). A defaulted column an
     // older peer omits, so the compatibility floor does not move.
     333,
     // v334: equipment_locations.buddy_id, the buddy a Person place stands
@@ -1549,11 +1549,17 @@ class AppDatabase extends _$AppDatabase {
     // v338: incidents.observation_id, the gear check-in behind a near-miss
     // (issue #3062).
     338,
-    // v339: dive_plan_series, a saved repetitive dive series, and the
+    // v339: dive_computers.auto_download_disabled, the per-device opt-out
+    // for passive auto-connect/auto-download (issue #3361). Renumbered from
+    // 333, which upstream claimed first for issue #32, then from 338, which
+    // upstream claimed first for issue #3062.
+    339,
+    // v340: dive_plan_series, a saved repetitive dive series, and the
     // dive_plans / dive_plan_tanks columns that place a plan in one (issue
     // #3565). A new synced table plus nullable or defaulted columns an older
-    // peer omits, with no backfill, so the floor does not move.
-    339,
+    // peer omits, with no backfill, so the floor does not move. Renumbered
+    // from 339, which upstream claimed first for issue #3361.
+    340,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

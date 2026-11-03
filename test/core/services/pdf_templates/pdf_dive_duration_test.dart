@@ -1,6 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('pdfDiveDuration (#644)', () {
@@ -26,10 +28,10 @@ void main() {
       );
     });
 
-    test('falls back to bottom time when nothing better exists', () {
+    test('prints a dash for a dive with only a bottom time (#3304)', () {
       expect(
         pdfDiveDurationMinutes(dive(bottomTime: const Duration(minutes: 50))),
-        '50',
+        '-',
       );
     });
 
@@ -38,8 +40,30 @@ void main() {
     });
   });
 
+  group('pdfDiveDurationCompact', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    test('prints the minutes with their unit', () {
+      final dive = Dive(
+        id: 'd1',
+        dateTime: DateTime(2026, 1, 15, 9),
+        runtime: const Duration(minutes: 62),
+      );
+      expect(pdfDiveDurationCompact(dive, l10n), '62min');
+    });
+
+    test('prints a bare dash, with no unit, when no runtime is known', () {
+      final dive = Dive(
+        id: 'd1',
+        dateTime: DateTime(2026, 1, 15, 9),
+        bottomTime: const Duration(minutes: 50),
+      );
+      expect(pdfDiveDurationCompact(dive, l10n), '-');
+    });
+  });
+
   group('pdfTotalRuntime (#644)', () {
-    test('sums effective runtimes across dives', () {
+    test('sums measured runtimes across dives (#3304)', () {
       final dives = [
         Dive(
           id: 'a',
@@ -57,8 +81,8 @@ void main() {
       ];
       expect(
         pdfTotalRuntime(dives),
-        const Duration(minutes: 102),
-        reason: 'runtime (62) + bottomTime fallback (40), not 50 + 40',
+        const Duration(minutes: 62),
+        reason: 'the runtime (62), with no bottom time counted as one',
       );
     });
   });

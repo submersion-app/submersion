@@ -73,8 +73,8 @@ void main() {
       expect(winners.warmestId, 'shallow-warm');
     });
 
-    test('longest uses the full effectiveRuntime order, including the '
-        'profile-span fallback', () async {
+    test('longest uses the full measuredRuntime order, including the '
+        'profile span', () async {
       // Explicit runtime: 50 minutes.
       await repository.createDive(
         domain.Dive(
@@ -155,7 +155,7 @@ void main() {
       expect(winners.warmestId, 'newer-tie');
     });
 
-    test('longest falls through a zero-span profile to bottom time', () async {
+    test('a zero-span profile and a bottom time measure no runtime', () async {
       // A dive with an explicit 10-minute runtime.
       await repository.createDive(
         domain.Dive(
@@ -165,9 +165,8 @@ void main() {
         ),
       );
       // No runtime/exit; a single-point profile has a zero span, which Dart's
-      // calculateRuntimeFromProfile() treats as null -> falls through to the
-      // 40-minute bottom time. The SQL must NOT read the 0-span as a
-      // 0-second runtime (which would exclude it and let runtime-10 win).
+      // calculateRuntimeFromProfile() treats as null, and the 40-minute bottom
+      // time is no runtime, so this dive measured nothing to rank.
       await repository.createDive(
         domain.Dive(
           id: 'bottom-40',
@@ -178,7 +177,7 @@ void main() {
       );
 
       final winners = await repository.getPersonalRecordIds();
-      expect(winners.longestId, 'bottom-40');
+      expect(winners.longestId, 'runtime-10');
     });
 
     test('a most-visited-site count tie resolves to the site with the most '

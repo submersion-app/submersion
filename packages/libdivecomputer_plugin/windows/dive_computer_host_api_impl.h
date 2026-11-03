@@ -3,9 +3,13 @@
 
 #include <flutter/binary_messenger.h>
 #include <flutter/plugin_registrar.h>
+#include <windows.h>
 
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
+#include <queue>
 #include <string>
 #include <thread>
 
@@ -61,6 +65,33 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   void PerformDownload(const DiscoveredDevice& device,
                        const std::optional<std::string>& fingerprint = std::nullopt,
                        bool sync_clock = false);
+
+  // Scanner and transport callbacks arrive on WinRT thread-pool threads and
+  // the download thread, not the platform thread Flutter requires pigeon
+  // calls to run on (issue #4086). Every call into |flutter_api_| that can
+  // happen off the platform thread is queued through this and run once the
+  // platform thread's message loop picks up the wakeup message.
+  void PostToPlatformThread(std::function<void()> task);
+  void RunPendingTasks();
+  static LRESULT CALLBACK DispatchWindowProc(HWND hwnd, UINT message,
+                                             WPARAM wparam, LPARAM lparam);
+
+  // A message-only window owned by the plugin, created on the platform
+  // thread so its messages are handled there. Not the Flutter view's HWND:
+  // that is a child window, and top-level window-proc delegates never see
+  // messages posted to it, so every queued task was stranded.
+  HWND dispatch_window_ = nullptr;
+  // The three below are guarded by task_mutex_. shutting_down_ is set first
+  // thing in the destructor: a scanner callback still in flight then drops
+  // its task instead of reaching a window being destroyed, or running
+  // Flutter calls on the scanner thread. wakeup_pending_ keeps one wakeup
+  // message in the queue at a time, however many tasks wait behind it: a
+  // message per task could fill the thread's message quota during a
+  // download, and a post that fails then leaves the last tasks stranded.
+  std::mutex task_mutex_;
+  bool shutting_down_ = false;
+  bool wakeup_pending_ = false;
+  std::queue<std::function<void()>> pending_tasks_;
 
   std::unique_ptr<DiveComputerFlutterApi> flutter_api_;
   std::unique_ptr<BleScanner> ble_scanner_;

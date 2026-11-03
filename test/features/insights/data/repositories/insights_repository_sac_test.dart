@@ -120,7 +120,7 @@ void main() {
       expect(results.first.value, closeTo(12.40, 0.5));
     });
 
-    test('falls back to bottom_time when runtime is null', () async {
+    test('leaves out a dive with only a bottom time', () async {
       await insertDiveWithTank(
         id: 'dive-bt-only',
         bottomTimeSeconds: 35 * 60, // 35 min
@@ -131,11 +131,7 @@ void main() {
         volume: 11.1,
       );
 
-      final results = await repository.getSacVolumePerDive();
-
-      expect(results, hasLength(1));
-      // SAC with Z-factor: gasVol(200)-gasVol(50) at 11.1L / 35 / 3.0 ≈ 14.88 L/min
-      expect(results.first.value, closeTo(14.88, 0.5));
+      expect(await repository.getSacVolumePerDive(), isEmpty);
     });
 
     test('returns empty when no valid data', () async {
@@ -204,7 +200,7 @@ void main() {
       expect(results.first.value, closeTo(1.19, 0.1));
     });
 
-    test('falls back to bottom_time when runtime null', () async {
+    test('leaves out a dive with only a bottom time', () async {
       await insertDiveWithTank(
         id: 'dive-pressure-bt',
         bottomTimeSeconds: 35 * 60,
@@ -214,11 +210,7 @@ void main() {
         endPressure: 50,
       );
 
-      final results = await repository.getSacPressurePerDive();
-
-      expect(results, hasLength(1));
-      // pressure SAC = 150 / 35 / 3 = 1.43 bar/min
-      expect(results.first.value, closeTo(1.43, 0.1));
+      expect(await repository.getSacPressurePerDive(), isEmpty);
     });
 
     test('uses back gas tank only for multi-tank dive', () async {
@@ -391,7 +383,7 @@ void main() {
       expect(records.best!.value!, lessThan(records.worst!.value!));
     });
 
-    test('falls back to bottom_time', () async {
+    test('leaves out a dive with only a bottom time', () async {
       await insertDiveWithTank(
         id: 'dive-bt-rec',
         bottomTimeSeconds: 40 * 60,
@@ -402,8 +394,7 @@ void main() {
       );
 
       final records = await repository.getSacPressureRecords();
-      expect(records.best, isNotNull);
-      expect(records.best!.value!, greaterThan(0));
+      expect(records.best, isNull);
     });
 
     test('uses back gas tank only for multi-tank dive records', () async {
@@ -494,7 +485,7 @@ void main() {
       expect(sacByRole['backGas']!, greaterThan(0));
     });
 
-    test('falls back to bottom_time when runtime null', () async {
+    test('leaves out a dive with only a bottom time', () async {
       await insertDiveWithTank(
         id: 'dive-norunt',
         bottomTimeSeconds: 40 * 60,
@@ -506,10 +497,7 @@ void main() {
         volume: 12.0,
       );
 
-      final sacByRole = await repository.getSacVolumeByTankRole();
-
-      expect(sacByRole, isNotEmpty);
-      expect(sacByRole['backGas']!, greaterThan(0));
+      expect(await repository.getSacVolumeByTankRole(), isEmpty);
     });
 
     test('excludes tanks with zero volume', () async {
@@ -553,7 +541,7 @@ void main() {
       expect(sacByRole['backGas']!, greaterThan(0));
     });
 
-    test('falls back to bottom_time when runtime null', () async {
+    test('leaves out a dive with only a bottom time', () async {
       await insertDiveWithTank(
         id: 'dive-norunt',
         bottomTimeSeconds: 40 * 60,
@@ -564,10 +552,7 @@ void main() {
         tankRole: 'backGas',
       );
 
-      final sacByRole = await repository.getSacPressureByTankRole();
-
-      expect(sacByRole, isNotEmpty);
-      expect(sacByRole['backGas']!, greaterThan(0));
+      expect(await repository.getSacPressureByTankRole(), isEmpty);
     });
   });
 
@@ -651,6 +636,7 @@ void main() {
       await insertDiveWithTank(
         id: 'dive-1',
         bottomTimeSeconds: 40 * 60,
+        runtimeSeconds: 40 * 60,
         avgDepth: 20.0,
         startPressure: 200,
         endPressure: 50,
@@ -660,6 +646,7 @@ void main() {
       await insertDiveWithTank(
         id: 'dive-2',
         bottomTimeSeconds: 40 * 60,
+        runtimeSeconds: 40 * 60,
         avgDepth: 20.0,
         startPressure: 200,
         endPressure: 100,
@@ -679,6 +666,7 @@ void main() {
       final diveId = await insertDiveWithTank(
         id: 'dive-twin',
         bottomTimeSeconds: 40 * 60,
+        runtimeSeconds: 40 * 60,
         avgDepth: 20.0,
         startPressure: 200,
         endPressure: 100,
@@ -703,6 +691,7 @@ void main() {
       await insertDiveWithTank(
         id: 'ancient',
         bottomTimeSeconds: 40 * 60,
+        runtimeSeconds: 40 * 60,
         avgDepth: 20.0,
         startPressure: 200,
         endPressure: 50,
@@ -719,6 +708,7 @@ void main() {
       await insertDiveWithTank(
         id: 'dive-1',
         bottomTimeSeconds: 40 * 60,
+        runtimeSeconds: 40 * 60,
         avgDepth: 20.0,
         startPressure: 200,
         endPressure: 50,
@@ -727,6 +717,7 @@ void main() {
       await insertDiveWithTank(
         id: 'dive-2',
         bottomTimeSeconds: 40 * 60,
+        runtimeSeconds: 40 * 60,
         avgDepth: 20.0,
         startPressure: 200,
         endPressure: 100,
@@ -749,6 +740,7 @@ void main() {
       await insertDiveWithTank(
         id: 'ancient',
         bottomTimeSeconds: 40 * 60,
+        runtimeSeconds: 40 * 60,
         avgDepth: 20.0,
         startPressure: 200,
         endPressure: 50,

@@ -6,11 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/core/database/database.dart' show DiveTanksCompanion;
+import 'package:submersion/core/database/database.dart'
+    show DiveTanksCompanion, EquipmentCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -160,6 +162,135 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Already assigned to Stage'), findsOneWidget);
+  });
+
+  group('a serial a download registered on another item (#3367)', () {
+    const serial = '76287';
+
+    /// What a download leaves behind for [serial]; returns its item's id.
+    Future<String> registerFromDownload() async {
+      await TransmitterAutoRegistrar(
+        nameFor: (s) => 'Transmitter $s',
+      ).registerNewSerials([serial], diverId: 'diver-1');
+      final rows = await TransmitterRepository().getForDiver('diver-1');
+      return rows
+          .singleWhere((t) => t.transmitterSerial == serial)
+          .transmitterEquipmentId!;
+    }
+
+    Future<int> itemCount(String id) async {
+      final row = await DatabaseService.instance.database
+          .customSelect(
+            'SELECT COUNT(*) AS c FROM equipment WHERE id = ?',
+            variables: [Variable<String>(id)],
+          )
+          .getSingle();
+      return row.read<int>('c');
+    }
+
+    testWidgets('moves onto this item and the placeholder goes', (
+      tester,
+    ) async {
+      final placeholder = await registerFromDownload();
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+      await tester.enterText(
+        find.byKey(const Key('transmitter_serial')),
+        serial,
+      );
+      await tester.enterText(find.byKey(const Key('transmitter_volume')), '10');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('LIST'), findsOneWidget);
+      expect(find.text('Apply to existing dives'), findsOneWidget);
+      final key = (await TransmitterRepository().getForEquipment(
+        'tx-gear',
+      )).single;
+      expect(key.transmitterSerial, serial);
+      expect(key.isConfigured, isTrue);
+      expect(key.volumeL, 10);
+      expect(await itemCount(placeholder), 0);
+    });
+
+    testWidgets('editing a set-up key to it still offers the apply', (
+      tester,
+    ) async {
+      await registerFromDownload();
+      await TransmitterRepository().create(
+        Transmitter(
+          id: 'typed',
+          diverId: 'diver-1',
+          transmitterSerial: '076287',
+          label: 'Back gas tx',
+          volumeL: 10,
+          transmitterEquipmentId: 'tx-gear',
+          createdAt: DateTime.utc(2026, 9, 1),
+          updatedAt: DateTime.utc(2026, 9, 1),
+        ),
+      );
+      await _pumpPage(
+        tester,
+        _buildPage(diverIdNotifier, prefs, transmitterId: 'typed'),
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('transmitter_serial')),
+        serial,
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('LIST'), findsOneWidget);
+      expect(find.text('Apply to existing dives'), findsOneWidget);
+    });
+
+    testWidgets("keeps what the fold filled in on the item", (tester) async {
+      final placeholder = await registerFromDownload();
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "UPDATE equipment SET brand = 'Oceanic' WHERE id = ?",
+        [placeholder],
+      );
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+      await tester.enterText(
+        find.byKey(const Key('transmitter_serial')),
+        serial,
+      );
+      await tester.enterText(find.byKey(const Key('transmitter_volume')), '10');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final row = await db
+          .customSelect(
+            "SELECT brand, serial_number FROM equipment WHERE id = 'tx-gear'",
+          )
+          .getSingle();
+      expect(row.read<String?>('brand'), 'Oceanic');
+      expect(row.read<String?>('serial_number'), serial);
+    });
+
+    testWidgets('stays refused once another transmitter is set up with it', (
+      tester,
+    ) async {
+      final placeholder = await registerFromDownload();
+      final repo = TransmitterRepository();
+      final holder = (await repo.getForEquipment(placeholder)).single;
+      await repo.update(holder.copyWith(isConfigured: true, label: 'Stage'));
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+      await tester.enterText(
+        find.byKey(const Key('transmitter_serial')),
+        serial,
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Already assigned to Stage'), findsOneWidget);
+      expect(await repo.getForEquipment('tx-gear'), isEmpty);
+      expect(await itemCount(placeholder), 1);
+    });
   });
 
   testWidgets(
@@ -421,6 +552,30 @@ void main() {
         )
         .getSingle();
     expect(row.read<String?>('serial_number'), '555');
+  });
+
+  testWidgets('a serial the item gained while the page was open stays', (
+    tester,
+  ) async {
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+    // A sync gives the item a serial after the page read it.
+    final db = DatabaseService.instance.database;
+    await (db.update(db.equipment)..where((t) => t.id.equals('tx-gear'))).write(
+      const EquipmentCompanion(serialNumber: Value('9D0001')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '555');
+    await tester.enterText(find.byKey(const Key('transmitter_volume')), '11.1');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final row = await db
+        .customSelect(
+          "SELECT serial_number FROM equipment WHERE id = 'tx-gear'",
+        )
+        .getSingle();
+    expect(row.read<String?>('serial_number'), '9D0001');
   });
 
   testWidgets("a first key starts from the item's serial (#3676)", (

@@ -4,6 +4,7 @@ import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/dive_computer/data/clock_sync_preferences.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
@@ -77,6 +78,11 @@ List<dynamic> rootProviderOverrides({
     // their full-window behaviour; here it gains persistence (issue #3178).
     viewerFullscreenModeProvider.overrideWith(
       (ref) => ViewerFullscreenModeNotifier(prefs),
+    ),
+    // Unstored (enabled) by default so a container without prefs still
+    // scans; here it gains persistence (issue #3361).
+    autoConnectKnownComputersProvider.overrideWith(
+      (ref) => AutoConnectKnownComputersNotifier(prefs),
     ),
   ];
 }

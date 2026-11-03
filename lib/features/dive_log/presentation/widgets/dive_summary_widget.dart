@@ -366,15 +366,15 @@ class DiveSummaryWidget extends ConsumerWidget {
     }
 
     if (records.longestDive != null) {
-      final effectiveRuntime = records.longestDive!.effectiveRuntime;
-      if (effectiveRuntime != null) {
+      final runtime = records.longestDive!.runtime;
+      if (runtime != null) {
         recordItems.add(
           _buildRecordItem(
             context,
             units,
             icon: Icons.timer,
             title: context.l10n.diveLog_summary_record_longest,
-            value: '${effectiveRuntime.inMinutes} min',
+            value: '${runtime.inMinutes} min',
             diveId: records.longestDive!.diveId,
             date: records.longestDive!.dateTime,
           ),

@@ -1010,17 +1010,7 @@ class DiveListTile extends ConsumerWidget {
                           spacing: 16,
                           runSpacing: 4,
                           children: extraFields.map((field) {
-                            final value = fullDive != null
-                                ? field.extractFromDive(
-                                    fullDive!,
-                                    gasModel: units.settings.gasModel,
-                                    diveTypeLabel: diveTypeLabelResolver,
-                                  )
-                                : (field.extractFromSummary(
-                                        summary!,
-                                        diveTypeLabel: diveTypeLabelResolver,
-                                      ) ??
-                                      _fallbackValue(field));
+                            final value = _slotValue(field, summary, units);
                             final formatted = field.formatValue(value, units);
                             return SizedBox(
                               width: useOneColumn
@@ -1149,20 +1139,7 @@ class DiveListTile extends ConsumerWidget {
     Color accentColor,
     Color secondaryTextColor,
   ) {
-    // Use full Dive when available (has all fields), otherwise try summary
-    dynamic value = fullDive != null
-        ? field.extractFromDive(
-            fullDive!,
-            gasModel: units.settings.gasModel,
-            diveTypeLabel: diveTypeLabelResolver,
-          )
-        : summary != null
-        ? field.extractFromSummary(
-            summary,
-            diveTypeLabel: diveTypeLabelResolver,
-          )
-        : null;
-    value ??= _fallbackValue(field);
+    final value = _slotValue(field, summary, units);
     final formatted = field.formatValue(value, units);
     final color = value != null ? accentColor : secondaryTextColor;
     final icon = field.icon;
@@ -1173,6 +1150,31 @@ class DiveListTile extends ConsumerWidget {
           ? formatted
           : '${field.localizedShortLabel(context.l10n)}: $formatted',
       color: color,
+    );
+  }
+
+  /// The value of [field] for a stat slot or an extra field.
+  ///
+  /// Uses the full Dive when available (it has all fields), otherwise the
+  /// summary. The constructor params stand in only with neither: [duration]
+  /// is either of runtime and bottom time, so it would fill one slot with the
+  /// other (issue #3304).
+  dynamic _slotValue(
+    DiveField field,
+    DiveSummary? summary,
+    UnitFormatter units,
+  ) {
+    if (fullDive case final dive?) {
+      return field.extractFromDive(
+        dive,
+        gasModel: units.settings.gasModel,
+        diveTypeLabel: diveTypeLabelResolver,
+      );
+    }
+    if (summary == null) return _fallbackValue(field);
+    return field.extractFromSummary(
+      summary,
+      diveTypeLabel: diveTypeLabelResolver,
     );
   }
 

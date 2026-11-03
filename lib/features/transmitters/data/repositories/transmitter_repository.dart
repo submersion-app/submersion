@@ -176,14 +176,7 @@ class TransmitterRepository {
     ).copyWith(id: t.id.isEmpty ? _uuid.v4() : t.id);
     await _checkConflicts(normalized);
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db
-        .into(_db.transmitters)
-        .insert(_companion(normalized, now: now, createdAt: now));
-    await _syncRepository.markRecordPending(
-      entityType: _entity,
-      recordId: normalized.id,
-      localUpdatedAt: now,
-    );
+    await _insertRow(normalized, now);
     SyncEventBus.notifyLocalChange();
     await _rescanAffectedDives([normalized]);
     return normalized.copyWith(
@@ -304,23 +297,68 @@ class TransmitterRepository {
     // rescanned along with the dives it matches now.
     final previous = await getById(normalized.id);
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.transmitters)
-          ..where((r) => r.id.equals(normalized.id)))
-        .write(_companion(normalized, now: now));
-    await _syncRepository.markRecordPending(
-      entityType: _entity,
-      recordId: normalized.id,
-      localUpdatedAt: now,
-    );
+    await _writeRow(normalized, now);
     SyncEventBus.notifyLocalChange();
     await _rescanAffectedDives([normalized, ?previous]);
+  }
+
+  /// Writes [entry] onto [unclaimed]'s row, replacing the key [entry] edits
+  /// if it has one (issue #3367). The row is kept rather than replaced: its
+  /// id derives from the serial, so a peer downloading the same serial still
+  /// lands on it. Returns the saved key, whose id is [unclaimed]'s only when
+  /// the row was taken over.
+  ///
+  /// One transaction holds the checks, the delete and the write, and reads
+  /// the row afresh: one a sync has set up since the clash refuses as a clash
+  /// does, and one that is gone or no longer holds the serial has nothing to
+  /// take over, so [entry] is saved as it is.
+  Future<Transmitter> takeOverKey(
+    Transmitter entry,
+    Transmitter unclaimed,
+  ) async {
+    final normalized = _normalized(
+      entry,
+    ).copyWith(id: entry.id.isEmpty ? _uuid.v4() : entry.id);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    Transmitter? replaced;
+    var saved = normalized;
+    await _db.transaction(() async {
+      final row = await getById(unclaimed.id);
+      final holder =
+          row != null &&
+              normalizeTransmitterSerial(row.transmitterSerial) ==
+                  normalized.transmitterSerial
+          ? row
+          : null;
+      if (holder != null && holder.isConfigured) {
+        throw TransmitterConflictException(holder);
+      }
+      if (holder != null) saved = normalized.copyWith(id: holder.id);
+      await _checkConflicts(saved, ignoring: normalized.id);
+      replaced = await getById(normalized.id);
+      if (holder == null) {
+        if (replaced == null) {
+          await _insertRow(saved, now);
+        } else {
+          await _writeRow(saved, now);
+        }
+        return;
+      }
+      if (replaced != null) await _deleteRow(normalized.id);
+      await _writeRow(saved, now);
+    });
+    SyncEventBus.notifyLocalChange();
+    // The placeholder carried the same serial, so the saved key's dives
+    // already include its own; the replaced key's are rescanned as an
+    // edit's are.
+    await _rescanAffectedDives([saved, ?replaced]);
+    return saved;
   }
 
   Future<void> delete(String id) async {
     // Read before the row goes: its dives are rescanned by its key.
     final previous = await getById(id);
-    await (_db.delete(_db.transmitters)..where((t) => t.id.equals(id))).go();
-    await _syncRepository.logDeletion(entityType: _entity, recordId: id);
+    await _deleteRow(id);
     SyncEventBus.notifyLocalChange();
     if (previous != null) await _rescanAffectedDives([previous]);
   }
@@ -533,11 +571,42 @@ class TransmitterRepository {
     );
   }
 
-  Future<void> _checkConflicts(Transmitter t) async {
+  /// Inserts [t] and stages it, without the checks or notifications, so a
+  /// caller can hold it in a transaction.
+  Future<void> _insertRow(Transmitter t, int now) async {
+    await _db
+        .into(_db.transmitters)
+        .insert(_companion(t, now: now, createdAt: now));
+    await _syncRepository.markRecordPending(
+      entityType: _entity,
+      recordId: t.id,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Writes [t] over its stored row and stages it, as [_insertRow] does.
+  Future<void> _writeRow(Transmitter t, int now) async {
+    await (_db.update(
+      _db.transmitters,
+    )..where((r) => r.id.equals(t.id))).write(_companion(t, now: now));
+    await _syncRepository.markRecordPending(
+      entityType: _entity,
+      recordId: t.id,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Deletes row [id] and tombstones it, as [_insertRow] does.
+  Future<void> _deleteRow(String id) async {
+    await (_db.delete(_db.transmitters)..where((t) => t.id.equals(id))).go();
+    await _syncRepository.logDeletion(entityType: _entity, recordId: id);
+  }
+
+  Future<void> _checkConflicts(Transmitter t, {String? ignoring}) async {
     final siblings = await getForDiver(t.diverId);
     final serial = normalizeTransmitterSerial(t.transmitterSerial);
     for (final other in siblings) {
-      if (other.id == t.id) continue;
+      if (other.id == t.id || other.id == ignoring) continue;
       // The sibling may have been stored raw by a sync payload, so compare
       // canonical forms rather than trusting write-time normalization.
       final serialClash =
