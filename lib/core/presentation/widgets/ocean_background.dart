@@ -3,6 +3,9 @@ import 'dart:math' as math;
 
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+import 'package:submersion/core/presentation/widgets/frame_budget_watch.dart';
 
 /// Specification for a single animated bubble.
 class BubbleSpec {
@@ -88,6 +91,14 @@ class _OceanBackgroundState extends State<OceanBackground>
   bool _tickersEnabled = true;
   bool _disableAnimations = false;
 
+  /// Trips when the frames this animation drives keep running over budget,
+  /// and the effects then hold still for good (#4177).
+  final _frameBudget = FrameBudgetWatch();
+
+  /// Whether [_onFrameTimings] is registered, which it is only while the
+  /// effects animate.
+  bool _watchingFrames = false;
+
   /// Seconds for one conceptual animation cycle (controls bubble rise speed).
   static const _cyclePeriod = 10.0;
 
@@ -117,22 +128,42 @@ class _OceanBackgroundState extends State<OceanBackground>
 
   /// Animates only while the effects can be seen and are wanted: the app is
   /// focused in the foreground (a null state means the platform has not
-  /// reported one yet), the route is not covered, and reduce motion is off.
+  /// reported one yet), the route is not covered, reduce motion is off, and
+  /// the device has kept up with the frames so far.
   bool get _shouldAnimate =>
       (_lifecycleState == null ||
           _lifecycleState == AppLifecycleState.resumed) &&
       _tickersEnabled &&
-      !_disableAnimations;
+      !_disableAnimations &&
+      !_frameBudget.tripped;
 
   void _syncAnimation() {
     if (_shouldAnimate) {
+      _watchFrames(true);
       if (_frameTimer != null) return;
       _stopwatch.start();
       _frameTimer = Timer.periodic(_frameInterval, (_) => _onFrame());
     } else {
+      _watchFrames(false);
       _frameTimer?.cancel();
       _frameTimer = null;
       _stopwatch.stop();
+    }
+  }
+
+  void _watchFrames(bool watch) {
+    if (watch == _watchingFrames) return;
+    _watchingFrames = watch;
+    if (watch) {
+      SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
+    } else {
+      SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+    }
+  }
+
+  void _onFrameTimings(List<FrameTiming> timings) {
+    if (_frameBudget.record(timings.map((timing) => timing.totalSpan))) {
+      _syncAnimation();
     }
   }
 
@@ -144,6 +175,7 @@ class _OceanBackgroundState extends State<OceanBackground>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _watchFrames(false);
     _frameTimer?.cancel();
     _stopwatch.stop();
     _animationValue.dispose();

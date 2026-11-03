@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_list.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -240,6 +244,28 @@ void main() {
       );
       expect(stored!.name, 'Wall day');
       expect(stored.dives.map((d) => d.plan.name), everyElement('Wall day'));
+    });
+
+    testWidgets('Rename reaches a planner holding the series', (tester) async {
+      await saveSeries(tester);
+      await pumpLive(tester);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SavedPlansSheet)),
+      );
+      await tester.runAsync(() => openSavedPlan(container, 'b'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rename Plan'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Wall day');
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+
+      expect(container.read(divePlanNotifierProvider).name, 'Wall day');
+      expect(container.read(planSeriesDirtyProvider), isFalse);
     });
   });
 
