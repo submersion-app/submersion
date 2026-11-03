@@ -97,6 +97,10 @@ def client_warnings(bundle_dir, client_id, origin):
 
 def stage_site(zip_path, out_dir, domain, client_id, lock_path):
     """Stages the bundle in out_dir and returns its warnings."""
+    # A link, dangling or not, would carry the extraction to its target,
+    # past the containment check, which resolves the folder first.
+    if os.path.islink(out_dir):
+        raise StageError(f"{out_dir} is a symbolic link; stage into a real folder")
     if os.path.exists(out_dir) and (
         not os.path.isdir(out_dir) or os.listdir(out_dir)
     ):

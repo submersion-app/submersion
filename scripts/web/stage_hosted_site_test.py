@@ -116,6 +116,22 @@ class StageSiteTest(_TempDirTest):
         with self.assertRaises(stage.StageError):
             self._stage()
 
+    def test_a_symlinked_output_folder_is_refused(self):
+        _write_zip(self.zip, _bundle_files())
+        elsewhere = os.path.join(self.root, "elsewhere")
+        os.makedirs(elsewhere)
+        os.symlink(elsewhere, self.out)
+        with self.assertRaises(stage.StageError):
+            self._stage()
+        self.assertEqual(os.listdir(elsewhere), [])
+
+    def test_a_dangling_symlinked_output_folder_is_refused(self):
+        _write_zip(self.zip, _bundle_files())
+        os.symlink(os.path.join(self.root, "missing"), self.out)
+        with self.assertRaises(stage.StageError):
+            self._stage()
+        self.assertFalse(os.path.exists(os.path.join(self.root, "missing")))
+
     def test_a_missing_zip_is_refused(self):
         with self.assertRaises(stage.StageError):
             self._stage()
