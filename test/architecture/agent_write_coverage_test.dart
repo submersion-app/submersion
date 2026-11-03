@@ -100,6 +100,28 @@ void main() {
     'lib/features/tags/data/repositories/tag_repository.dart:updateTag': 'tags',
     'lib/features/tags/data/repositories/tag_repository.dart:deleteTag': 'tags',
     'lib/features/tags/data/repositories/tag_repository.dart:mergeTags': 'tags',
+    'lib/features/dive_types/data/repositories/dive_type_repository.dart:createDiveType':
+        'dive_types',
+    'lib/features/dive_types/data/repositories/dive_type_repository.dart:updateDiveType':
+        'dive_types',
+    'lib/features/dive_types/data/repositories/dive_type_repository.dart:setDiveTypeVisibility':
+        'dive_types',
+    'lib/features/dive_types/data/repositories/dive_type_repository.dart:deleteDiveType':
+        'dive_types',
+    'lib/features/dive_roles/data/repositories/dive_role_repository.dart:createDiveRole':
+        'dive_roles',
+    'lib/features/dive_roles/data/repositories/dive_role_repository.dart:renameDiveRole':
+        'dive_roles',
+    'lib/features/dive_roles/data/repositories/dive_role_repository.dart:deleteDiveRole':
+        'dive_roles',
+    'lib/features/site_types/data/repositories/site_type_repository.dart:createSiteType':
+        'site_types',
+    'lib/features/site_types/data/repositories/site_type_repository.dart:updateSiteType':
+        'site_types',
+    'lib/features/site_types/data/repositories/site_type_repository.dart:deleteSiteType':
+        'site_types',
+    'lib/features/site_types/data/repositories/site_type_repository.dart:deleteSiteTypesWithLinks':
+        'site_types',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

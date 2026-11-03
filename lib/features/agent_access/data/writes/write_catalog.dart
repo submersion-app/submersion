@@ -3,10 +3,13 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/writes/families/annotation_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/buddy_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/custom_field_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_role_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_type_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/gas_switch_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/scenario_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/sighting_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/site_type_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tag_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
@@ -37,6 +40,9 @@ class WriteCatalog {
       AnnotationWrites(repositories),
       ScenarioWrites(repositories),
       TagWrites(repositories),
+      DiveTypeWrites(repositories),
+      DiveRoleWrites(repositories),
+      SiteTypeWrites(repositories),
     ]);
   }
 

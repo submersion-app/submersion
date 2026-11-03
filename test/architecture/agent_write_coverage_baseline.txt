@@ -238,9 +238,6 @@ lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:deleteB
 lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:deleteBuddyRolesOnDives
 lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:restoreRows
 lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeBuddyRoles
-lib/features/dive_roles/data/repositories/dive_role_repository.dart:createDiveRole
-lib/features/dive_roles/data/repositories/dive_role_repository.dart:deleteDiveRole
-lib/features/dive_roles/data/repositories/dive_role_repository.dart:renameDiveRole
 lib/features/dive_sites/data/repositories/site_children.dart:restore
 lib/features/dive_sites/data/repositories/site_children.dart:restoreSiteChildren
 lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTags
@@ -266,10 +263,6 @@ lib/features/dive_sites/data/repositories/site_repository_impl.dart:undoMerge
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteAltitude
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteCoordinates
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteWithImportedMetadata
-lib/features/dive_types/data/repositories/dive_type_repository.dart:createDiveType
-lib/features/dive_types/data/repositories/dive_type_repository.dart:deleteDiveType
-lib/features/dive_types/data/repositories/dive_type_repository.dart:setDiveTypeVisibility
-lib/features/dive_types/data/repositories/dive_type_repository.dart:updateDiveType
 lib/features/divers/data/repositories/diver_delete_steps.dart:clearDiveLinksToDiverRows
 lib/features/divers/data/repositories/diver_delete_steps.dart:deleteDiverRows
 lib/features/divers/data/repositories/diver_location_retirement.dart:retireDiverEquipmentLocations
@@ -527,10 +520,6 @@ lib/features/safety/data/repositories/incident_repository.dart:createIncident
 lib/features/safety/data/repositories/incident_repository.dart:deleteIncident
 lib/features/safety/data/repositories/incident_repository.dart:unlinkFromDeletedEquipment
 lib/features/safety/data/repositories/incident_repository.dart:updateIncident
-lib/features/site_types/data/repositories/site_type_repository.dart:createSiteType
-lib/features/site_types/data/repositories/site_type_repository.dart:deleteSiteType
-lib/features/site_types/data/repositories/site_type_repository.dart:deleteSiteTypesWithLinks
-lib/features/site_types/data/repositories/site_type_repository.dart:updateSiteType
 lib/features/tags/data/repositories/tag_link_repository.dart:addTags
 lib/features/tags/data/repositories/tag_link_repository.dart:deleteLinksFor
 lib/features/tags/data/repositories/tag_link_repository.dart:removeTags
