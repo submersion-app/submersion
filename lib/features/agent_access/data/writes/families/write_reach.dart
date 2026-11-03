@@ -7,23 +7,19 @@ import 'package:submersion/features/documents/data/repositories/document_row_map
 import 'package:submersion/features/documents/domain/entities/document.dart'
     show DocumentOwner;
 
-/// Dive counts by owner, from [sql], which takes [id] as `?1` and yields
-/// `owner` and `n`. Dives in [deleting], which the same set deletes, are left
-/// out: they go rather than lose a link. A dive with no owner counts under an
-/// empty key.
+/// Dive counts by owner, from [sql], which reads [id] as `?1` and [more]
+/// from `?2` on, as [marksFrom2] writes them, and yields `owner` and `n`. A
+/// dive with no owner counts under an empty key.
 Future<Map<String, int>> countDivesByOwner(
   String sql,
-  String id, {
-  Set<String> deleting = const {},
-}) async {
+  String id, [
+  List<String> more = const [],
+]) async {
   final rows = await DatabaseService.instance.database
       .customSelect(
-        sql.replaceFirst(
-          '{deleting}',
-          'NOT IN (${marksFrom2(deleting.length)})',
-        ),
+        sql,
         variables: [
-          for (final value in [id, ...deleting]) Variable.withString(value),
+          for (final value in [id, ...more]) Variable.withString(value),
         ],
       )
       .get();

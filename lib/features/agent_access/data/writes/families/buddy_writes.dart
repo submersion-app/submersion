@@ -41,13 +41,15 @@ class BuddyWrites extends WritableEntry {
     Map<String, Set<String>> alongside = const {},
   }) async {
     final documents = await countDocuments(await deletedDocumentOwners(id));
+    // A dive the set deletes goes, rather than losing its buddy.
+    final dives = [...?alongside['dives']];
     return DeleteReach(
       linkedDives: await countDivesByOwner(
         'SELECT d.diver_id AS owner, COUNT(*) AS n FROM dive_buddies l '
-        'JOIN dives d ON d.id = l.dive_id '
-        'WHERE l.buddy_id = ?1 AND d.id {deleting} GROUP BY d.diver_id',
+        'JOIN dives d ON d.id = l.dive_id WHERE l.buddy_id = ?1 '
+        'AND d.id NOT IN (${marksFrom2(dives.length)}) GROUP BY d.diver_id',
         id,
-        deleting: {...?alongside['dives']},
+        dives,
       ),
       records: {
         ...await countOwned({'certifications': 'buddy_id'}, id),

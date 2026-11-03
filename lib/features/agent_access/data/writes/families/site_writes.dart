@@ -70,11 +70,12 @@ class SiteWrites extends WritableEntry {
           );
     final kept = media.unlinkIds.length - divesOwn;
     return DeleteReach(
+      // A dive the set deletes goes, rather than losing its site.
       linkedDives: await countDivesByOwner(
-        'SELECT diver_id AS owner, COUNT(*) AS n FROM dives '
-        'WHERE site_id = ?1 AND id {deleting} GROUP BY diver_id',
+        'SELECT diver_id AS owner, COUNT(*) AS n FROM dives WHERE site_id = ?1 '
+        'AND id NOT IN (${marksFrom2(dives.length)}) GROUP BY diver_id',
         id,
-        deleting: {...?alongside['dives']},
+        dives,
       ),
       records: {
         if (documents > 0) 'documents': documents,

@@ -144,9 +144,11 @@ has many. `countCascaded` and `countUnlinked` read these from the schema's
 foreign keys, so a table added later is counted without anyone remembering to.
 
 The change log covers rows in this database, and a rollback covers them too.
-What neither can take back is a blob that has left the media store, so a delete
-holds its remote media (`holdRemoteMedia`). The intent waits for the next drain
-and does nothing if the row has come back.
+What neither can take back is a blob that has left the media store. A blob
+delete is queued as an intent that waits for a drain and does nothing if its
+row has come back, so a rollback or revert before the drain loses nothing.
+Dive and site deletes pass `holdRemoteMedia`, so a coordinator wired to start
+the worker would still wait.
 
 ### Adding a writable entity
 
@@ -192,9 +194,10 @@ and does nothing if the row has come back.
   the agent reported as failed. While that dialog is open a second apply
   answers `confirmation_pending`, so a retry cannot queue the same change, and
   the `apply_changes` description tells agents to read the records first.
-- `holdRemoteMedia` does nothing on the plain `DiveRepository` the tools use,
-  so a deleted dive's remote blobs follow the usual drain. A revert re-queues
-  the upload through `repairRestoredMedia`.
+- The plain `DiveRepository` and `SiteRepository` the tools use never start
+  the media worker, so `holdRemoteMedia` changes nothing there: an intent
+  drains when anything next starts the worker, and a revert after that
+  re-queues the upload through `repairRestoredMedia`.
 - A change set cannot refer to a record it creates. Linking a new buddy to a
   dive takes two applies.
 
