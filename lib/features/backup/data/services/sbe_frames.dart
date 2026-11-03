@@ -40,7 +40,10 @@ abstract final class SbeFrames {
   /// AAD per frame: keyId(16) || uint64 BE frameIndex || finalFlag(1), so
   /// frames cannot be reordered, substituted or truncated undetected.
   static List<int> frameAad(List<int> keyId16, int index, bool isFinal) {
-    final b = ByteData(8)..setUint64(0, index);
+    // Two 32-bit halves: setUint64 throws compiled to JavaScript (#4194).
+    final b = ByteData(8)
+      ..setUint32(0, index ~/ 0x100000000)
+      ..setUint32(4, index % 0x100000000);
     return [...keyId16, ...b.buffer.asUint8List(), isFinal ? 1 : 0];
   }
 
