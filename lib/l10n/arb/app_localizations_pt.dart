@@ -27272,6 +27272,16 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_alsoAdds(String kind, int count) {
+    return 'Também adiciona $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoChanges(String kind, int count) {
+    return 'Também altera $kind: $count';
+  }
+
+  @override
   String settings_agentAccess_confirm_moves(String kind, int count) {
     return 'Move $kind: $count';
   }

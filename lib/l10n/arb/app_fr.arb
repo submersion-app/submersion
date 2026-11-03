@@ -7757,6 +7757,8 @@
   "settings_agentAccess_confirm_alsoDeletes": "Supprime aussi {kind} : {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Dissocie aussi {kind} : {count}",
   "settings_agentAccess_confirm_merge": "Fusionner avec {name}",
+  "settings_agentAccess_confirm_alsoAdds": "Ajoute aussi {kind} : {count}",
+  "settings_agentAccess_confirm_alsoChanges": "Modifie aussi {kind} : {count}",
   "settings_agentAccess_confirm_moves": "Déplace {kind} : {count}",
   "settings_agentAccess_confirm_title": "Autoriser cette modification ?",
   "settings_agentAccess_confirm_client": "{client} veut modifier votre carnet de plongée.",

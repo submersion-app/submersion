@@ -43743,6 +43743,18 @@ abstract class AppLocalizations {
   /// **'Merge into {name}'**
   String settings_agentAccess_confirm_merge(String name);
 
+  /// No description provided for @settings_agentAccess_confirm_alsoAdds.
+  ///
+  /// In en, this message translates to:
+  /// **'Also adds {kind}: {count}'**
+  String settings_agentAccess_confirm_alsoAdds(String kind, int count);
+
+  /// No description provided for @settings_agentAccess_confirm_alsoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Also changes {kind}: {count}'**
+  String settings_agentAccess_confirm_alsoChanges(String kind, int count);
+
   /// No description provided for @settings_agentAccess_confirm_moves.
   ///
   /// In en, this message translates to:

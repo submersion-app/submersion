@@ -162,6 +162,7 @@ class SideEffects {
     this.lost = const {},
     this.parts = const {},
     this.detached = const {},
+    this.touched = const {},
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -183,12 +184,17 @@ class SideEffects {
   /// change in the set reads those links as gone.
   final Map<String, Set<String>> detached;
 
+  /// Rows of other records the update rewrites, by table, such as the dive
+  /// computer a gear item's rename renames.
+  final Map<String, int> touched;
+
   bool get isEmpty =>
       fields.isEmpty &&
       relations.isEmpty &&
       lost.isEmpty &&
       parts.isEmpty &&
-      detached.isEmpty;
+      detached.isEmpty &&
+      touched.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -209,6 +215,7 @@ class SideEffects {
       for (final MapEntry(:key, :value) in detached.entries)
         key: (value.toList()..sort()),
     }),
+    'touched': _sorted(touched),
   });
 }
 
@@ -328,6 +335,13 @@ abstract class WritableEntry {
 
   /// A block when this change may not happen, null when it may.
   Future<PlanBlock?> refuse(WriteCheck check) async => null;
+
+  /// Rows of other tables a create of [values] for [diverId] adds alongside
+  /// the record, by table, such as the service clocks a gear item gets.
+  Future<Map<String, int>> alsoCreates(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => const {};
 
   /// What this change claims that no other record of its owner may hold, such
   /// as a tag's name as the name index keys it, or null when it claims

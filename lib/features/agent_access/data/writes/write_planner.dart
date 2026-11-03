@@ -279,6 +279,9 @@ class _Pass {
       fields: parsed.changes,
       values: parsed.values,
       names: await _referenceNames(entry, parsed.changes, diverId),
+      alsoCreates: block == null
+          ? await entry.alsoCreates(diverId, parsed.values)
+          : const {},
       block: block,
     );
   }
@@ -370,6 +373,7 @@ class _Pass {
       indirectRelations: effects.relations,
       indirectLost: effects.lost,
       reach: DeleteReach(parts: effects.parts),
+      alsoChanges: effects.touched,
       names: {
         ...await _names(entry, links.deltas, {
           ...effects.relations,
@@ -583,6 +587,8 @@ class _Pass {
     DeleteReach reach = const DeleteReach(),
     String? mergeInto,
     String? mergeTitle,
+    Map<String, int> alsoCreates = const {},
+    Map<String, int> alsoChanges = const {},
     PlanBlock? block,
   }) => items.add(
     PlanItem(
@@ -605,6 +611,8 @@ class _Pass {
       reach: reach,
       mergeInto: mergeInto,
       mergeTitle: mergeTitle,
+      alsoCreates: alsoCreates,
+      alsoChanges: alsoChanges,
       block: block,
     ),
   );

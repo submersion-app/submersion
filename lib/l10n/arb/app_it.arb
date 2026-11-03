@@ -7757,6 +7757,8 @@
   "settings_agentAccess_confirm_alsoDeletes": "Elimina anche {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Scollega anche {kind}: {count}",
   "settings_agentAccess_confirm_merge": "Unisci a {name}",
+  "settings_agentAccess_confirm_alsoAdds": "Aggiunge anche {kind}: {count}",
+  "settings_agentAccess_confirm_alsoChanges": "Modifica anche {kind}: {count}",
   "settings_agentAccess_confirm_moves": "Sposta {kind}: {count}",
   "settings_agentAccess_confirm_title": "Consentire questa modifica?",
   "settings_agentAccess_confirm_client": "{client} vuole modificare il tuo logbook.",
