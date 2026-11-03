@@ -74,18 +74,21 @@ class LoggedDiveDetailsCard extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
+                  style: _compact,
                   icon: const Icon(Icons.open_in_new),
                   tooltip: l10n.plannerSeries_openInLog,
                   onPressed: () => context.push('/dives/${logged.id}'),
                 ),
                 if (planned)
                   IconButton(
+                    style: _compact,
                     icon: const Icon(Icons.compare_arrows),
                     tooltip: l10n.plannerSeries_compareWithPlan,
                     onPressed: () => showDiveLab(context, logged.id),
                   ),
                 if (isFollowed)
                   IconButton(
+                    style: _compact,
                     icon: const Icon(Icons.link_off),
                     tooltip: l10n.plannerSeries_stopFollowing,
                     onPressed: () => ref
@@ -126,6 +129,13 @@ class LoggedDiveDetailsCard extends ConsumerWidget {
       ),
     );
   }
+
+  /// Small enough that three fit beside the title in the editor pane.
+  static final _compact = IconButton.styleFrom(
+    visualDensity: VisualDensity.compact,
+    minimumSize: const Size(36, 36),
+    padding: const EdgeInsets.all(6),
+  );
 
   static Duration _gap(SeriesLoggedDive before, SeriesLoggedDive dive) {
     final gap = dive.start.difference(before.end);

@@ -73,57 +73,66 @@ class PlanTankChip extends StatelessWidget {
       ...details,
     ].join(', ');
 
-    return Semantics(
-      label: tankLabel,
-      child: InputChip(
-        avatar: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: ExcludeSemantics(
-            child: Icon(
-              role.icon,
-              size: 16,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
-          ),
+    final avatar = CircleAvatar(
+      backgroundColor: theme.colorScheme.primaryContainer,
+      child: ExcludeSemantics(
+        child: Icon(
+          role.icon,
+          size: 16,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
-        label: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+    );
+    final label = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(tank.name ?? tank.gasMix.name),
+        Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(tank.name ?? tank.gasMix.name),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Flexible, so a long line still wraps in a narrow chip as
-                // it did before the warning icon shared its row.
-                Flexible(
-                  child: Text(
-                    [?roleBadge, ...details].join(' • '),
-                    style: modExceedsLimit
-                        ? theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.error,
-                          )
-                        : theme.textTheme.bodySmall,
-                  ),
-                ),
-                if (modExceedsLimit) ...[
-                  const SizedBox(width: 4),
-                  ExcludeSemantics(
-                    child: Icon(
-                      Icons.warning_amber_rounded,
-                      size: 14,
-                      color: theme.colorScheme.error,
-                    ),
-                  ),
-                ],
-              ],
+            // Flexible, so a long line still wraps in a narrow chip as
+            // it did before the warning icon shared its row.
+            Flexible(
+              child: Text(
+                [?roleBadge, ...details].join(' • '),
+                style: modExceedsLimit
+                    ? theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
+                      )
+                    : theme.textTheme.bodySmall,
+              ),
             ),
+            if (modExceedsLimit) ...[
+              const SizedBox(width: 4),
+              ExcludeSemantics(
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  size: 14,
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ],
           ],
         ),
-        onPressed: onEdit,
-        deleteIcon: onDelete != null ? const Icon(Icons.close, size: 18) : null,
-        onDeleted: onDelete,
-      ),
+      ],
+    );
+
+    return Semantics(
+      label: tankLabel,
+      child: onEdit == null
+          // Read-only, as on a logged dive: a plain chip, which does not grey
+          // itself out as an input chip with nothing to do would.
+          ? Chip(avatar: avatar, label: label)
+          : InputChip(
+              avatar: avatar,
+              label: label,
+              onPressed: onEdit,
+              deleteIcon: onDelete != null
+                  ? const Icon(Icons.close, size: 18)
+                  : null,
+              onDeleted: onDelete,
+            ),
     );
   }
 }
