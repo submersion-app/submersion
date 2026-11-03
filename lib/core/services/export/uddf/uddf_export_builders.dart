@@ -1754,9 +1754,12 @@ class UddfExportBuilders {
   /// can hold bytes and still get no dump when its encode failed.
   ///
   /// With [includeIdentity] false each entry leaves out the computer's model
-  /// and serial and the source's file name, which name the diver's gear: a
-  /// dives export shared without gear writes the rest of the row and no more.
-  /// Each recording still restores as its own source, with no computer.
+  /// and serial and the source's file name, which name the diver's gear, and
+  /// its descriptor unless the entry has a dump to re-parse: a dives export
+  /// shared without gear writes the rest of the row and no more. Each
+  /// recording still restores as its own source, with no computer. A dump
+  /// itself still holds the computer's identity, serial included, so a share
+  /// with raw data ticked carries it there.
   static void buildDataSources(
     XmlBuilder builder,
     List<DiveSourceExport> sources,
@@ -1777,9 +1780,12 @@ class UddfExportBuilders {
               'hasdump': '${encodedById[source.id] != null}',
             },
             nest: () {
-              if (source.descriptorVendor != null ||
-                  source.descriptorProduct != null ||
-                  source.descriptorModel != null) {
+              // The descriptor is what a re-parse of the dump needs; on an
+              // entry with none it would only name the computer.
+              if ((includeIdentity || encodedById[source.id] != null) &&
+                  (source.descriptorVendor != null ||
+                      source.descriptorProduct != null ||
+                      source.descriptorModel != null)) {
                 builder.element(
                   'descriptor',
                   attributes: {

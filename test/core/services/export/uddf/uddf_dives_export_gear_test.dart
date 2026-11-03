@@ -246,11 +246,12 @@ void main() {
       expect(written.findElements('computermodel'), isEmpty);
       expect(written.findElements('computerserial'), isEmpty);
       expect(written.findElements('sourcefilename'), isEmpty);
-      // The rest of the row still travels: a re-parse needs the descriptor,
-      // and the row its own values.
+      // The row's own values still travel. The descriptor goes only with
+      // the bytes, which a re-parse needs it for; without them it would only
+      // name the computer.
       expect(
-        written.getElement('descriptor')?.getAttribute('vendor'),
-        'Shearwater',
+        written.findElements('descriptor').map((d) => d.getAttribute('vendor')),
+        includeRawData ? ['Shearwater'] : isEmpty,
       );
       expect(written.getElement('maxdepth')?.innerText, '31.5');
 
