@@ -73,6 +73,10 @@ void main() {
     );
     expect(demoSealedFeatureFor('/shortcut/backup'), DemoSealedFeature.backup);
     expect(
+      demoSealedFeatureFor('/shortcut/cloud-sync/?x=1'),
+      DemoSealedFeature.sync,
+    );
+    expect(
       demoSealedFeatureFor('/shortcut/import-wizard'),
       DemoSealedFeature.fileImport,
     );

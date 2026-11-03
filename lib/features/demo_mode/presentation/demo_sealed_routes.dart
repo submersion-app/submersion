@@ -39,7 +39,8 @@ DemoSealedFeature? demoSealedFeatureFor(String location) {
   var path = Uri.tryParse(location)?.path ?? location;
   const shortcutPrefix = '$kShortcutLocationPrefix/';
   if (path.startsWith(shortcutPrefix)) {
-    final shortcut = navShortcutById(path.substring(shortcutPrefix.length));
+    final id = path.substring(shortcutPrefix.length).split('/').first;
+    final shortcut = navShortcutById(id);
     if (shortcut == null) return null;
     path = Uri.parse(shortcut.canonicalPath).path;
   }
