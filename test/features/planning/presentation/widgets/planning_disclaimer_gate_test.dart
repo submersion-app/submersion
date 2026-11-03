@@ -172,7 +172,7 @@ void main() {
     expect(find.text('Planning Tools Disclaimer'), findsOneWidget);
   });
 
-  // launchReportIssue (settings_page.dart) has its own coverage for the
+  // launchReportIssue (about_links.dart) has its own coverage for the
   // launch/fallback branches; this just checks the button is wired up and
   // tapping it is not a way to dismiss the still-unconfirmed dialog.
   testWidgets('tapping Report an Issue does not dismiss the dialog', (

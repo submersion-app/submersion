@@ -6375,7 +6375,6 @@
   "settings_about_header": "Über",
   "settings_about_openSourceLicenses": "Open-Source-Lizenzen",
   "settings_about_reportIssue": "Problem melden",
-  "settings_about_reportIssue_copy": "Link kopieren",
   "settings_about_reportIssue_snackbar": "Besuchen Sie github.com/submersion-app/submersion/issues",
   "settings_about_userGuide": "Benutzerhandbuch",
   "settings_about_userGuide_snackbar": "Besuchen Sie submersion.app/guide",

@@ -20972,9 +20972,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_about_reportIssue => 'דווח על בעיה';
 
   @override
-  String get settings_about_reportIssue_copy => 'העתקת קישור';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'בקר ב-github.com/submersion-app/submersion/issues';
 

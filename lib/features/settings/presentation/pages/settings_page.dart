@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -63,63 +62,12 @@ import 'package:submersion/features/settings/presentation/providers/debug_mode_p
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/settings/presentation/pages/network_settings_page.dart';
 import 'package:submersion/features/settings/presentation/format_enum_display.dart';
+import 'package:submersion/features/settings/presentation/about_links.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
-
-/// The URL for the GitHub issues page, used by [launchReportIssue].
-const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';
-
-/// The URL for the published user guide, used by [launchUserGuide].
-const userGuideUrl = 'https://submersion.app/guide/';
-
-/// Opens the GitHub issues page in an external browser. Falls back to a
-/// snackbar with a copy-link action if the launch fails.
-Future<void> launchReportIssue(BuildContext context) => _launchExternalLink(
-  context,
-  url: reportIssueUrl,
-  fallbackMessage: context.l10n.settings_about_reportIssue_snackbar,
-);
-
-/// Opens the user guide in an external browser, with the same copy-link
-/// fallback as [launchReportIssue] (issue #4145).
-Future<void> launchUserGuide(BuildContext context) => _launchExternalLink(
-  context,
-  url: userGuideUrl,
-  fallbackMessage: context.l10n.settings_about_userGuide_snackbar,
-);
-
-Future<void> _launchExternalLink(
-  BuildContext context, {
-  required String url,
-  required String fallbackMessage,
-}) async {
-  final uri = Uri.parse(url);
-  var didLaunch = false;
-
-  // No canLaunchUrl guard: it false-negatives for https on Android 11+
-  // unless the scheme is declared in the manifest <queries> block.
-  try {
-    didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
-  } catch (_) {
-    didLaunch = false;
-  }
-
-  if (!didLaunch && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(fallbackMessage),
-        persist: false,
-        action: SnackBarAction(
-          label: context.l10n.settings_about_reportIssue_copy,
-          onPressed: () => Clipboard.setData(ClipboardData(text: url)),
-        ),
-      ),
-    );
-  }
-}
 
 /// Main settings page with master-detail layout on desktop.
 ///

@@ -6141,7 +6141,6 @@
   "settings_about_header": "אודות",
   "settings_about_openSourceLicenses": "רישיונות קוד פתוח",
   "settings_about_reportIssue": "דווח על בעיה",
-  "settings_about_reportIssue_copy": "העתקת קישור",
   "settings_about_reportIssue_snackbar": "בקר ב-github.com/submersion-app/submersion/issues",
   "settings_about_userGuide": "מדריך למשתמש",
   "settings_about_userGuide_snackbar": "בקר ב-submersion.app/guide",

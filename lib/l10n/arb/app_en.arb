@@ -13410,7 +13410,6 @@
   "settings_about_header": "About",
   "settings_about_openSourceLicenses": "Open Source Licenses",
   "settings_about_reportIssue": "Report an Issue",
-  "settings_about_reportIssue_copy": "Copy link",
   "settings_about_reportIssue_snackbar": "Visit github.com/submersion-app/submersion/issues",
   "settings_about_userGuide": "User Guide",
   "settings_about_userGuide_snackbar": "Visit submersion.app/guide",

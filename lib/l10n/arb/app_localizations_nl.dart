@@ -21302,9 +21302,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_about_reportIssue => 'Probleem melden';
 
   @override
-  String get settings_about_reportIssue_copy => 'Link kopiëren';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Ga naar github.com/submersion-app/submersion/issues';
 

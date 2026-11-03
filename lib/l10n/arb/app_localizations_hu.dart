@@ -21365,9 +21365,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_about_reportIssue => 'Hiba bejelentése';
 
   @override
-  String get settings_about_reportIssue_copy => 'Link másolása';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Látogasson el: github.com/submersion-app/submersion/issues';
 

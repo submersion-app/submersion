@@ -6242,7 +6242,6 @@
   "settings_about_header": "Over",
   "settings_about_openSourceLicenses": "Open source-licenties",
   "settings_about_reportIssue": "Probleem melden",
-  "settings_about_reportIssue_copy": "Link kopiëren",
   "settings_about_reportIssue_snackbar": "Ga naar github.com/submersion-app/submersion/issues",
   "settings_about_userGuide": "Gebruikershandleiding",
   "settings_about_userGuide_snackbar": "Ga naar submersion.app/guide",

@@ -6393,7 +6393,6 @@
   "settings_about_header": "关于",
   "settings_about_openSourceLicenses": "开源许可证",
   "settings_about_reportIssue": "报告问题",
-  "settings_about_reportIssue_copy": "复制链接",
   "settings_about_reportIssue_snackbar": "请访问 github.com/submersion-app/submersion/issues",
   "settings_about_userGuide": "用户指南",
   "settings_about_userGuide_snackbar": "请访问 submersion.app/guide",
