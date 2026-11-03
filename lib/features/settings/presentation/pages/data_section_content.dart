@@ -213,7 +213,11 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             )
           else
             DataRowTile(
-              icon: Icons.folder,
+              // Warns, as the Sync page's row does, when nothing outlives
+              // the tab.
+              icon: webStorage?.persists == false
+                  ? Icons.warning_amber
+                  : Icons.folder,
               title: l10n.settings_data_databaseStorage,
               subtitle: webStorage == null
                   ? l10n.settings_data_appDefaultLocation

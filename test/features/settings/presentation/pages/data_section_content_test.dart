@@ -765,6 +765,25 @@ void main() {
       expect(find.text('App default location'), findsNothing);
     });
 
+    testWidgets('the storage row warns when nothing outlives the tab '
+        '(#4187)', (tester) async {
+      WebDatabaseStatusHolder.record(
+        const WebDatabaseStatus(storage: WebDatabaseStorage.inMemory),
+      );
+      addTearDown(WebDatabaseStatusHolder.clear);
+      await pumpData(tester, browser: true);
+      final en = lookupAppLocalizations(const Locale('en'));
+      final row = find.widgetWithText(
+        DataRowTile,
+        en.web_storage_memoryWarning,
+      );
+      expect(row, findsOneWidget);
+      expect(
+        find.descendant(of: row, matching: find.byIcon(Icons.warning_amber)),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('natively there is no Forget this device row (#4187)', (
       tester,
     ) async {
