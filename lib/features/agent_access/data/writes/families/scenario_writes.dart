@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_time_limit.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -53,6 +54,13 @@ class ScenarioWrites extends WritableEntry {
         'notes: send null to clear a scenario\'s notes.',
       );
     }
+    final diveId =
+        (check.values['dive_id'] ?? check.document?['dive_id']) as String?;
+    // The Dive Lab moves a branch only within the dive.
+    if (await beyondDive(_r, diveId, check.values, key: 'branch_s')
+        case final block?) {
+      return block;
+    }
     final encoded = check.values['interventions'];
     if (encoded is! String) return null;
     final interventions = decodeInterventionList(encoded);
@@ -63,8 +71,6 @@ class ScenarioWrites extends WritableEntry {
         'interventions: ${errors.map((e) => e.name).join(', ')}.',
       );
     }
-    final diveId =
-        (check.values['dive_id'] ?? check.document?['dive_id']) as String?;
     final cylinders = await _cylinders(diveId);
     final strangers = [
       for (final i in interventions)

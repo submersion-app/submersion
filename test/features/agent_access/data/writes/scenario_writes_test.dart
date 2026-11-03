@@ -72,6 +72,25 @@ void main() {
     expect(doc['interventions'], [gf]);
   });
 
+  // The Dive Lab moves a branch only within the dive, so a stored branch
+  // past its end is one the app never writes.
+  test('a branch past the end of the dive is blocked', () async {
+    await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+      const DivesCompanion(runtime: Value(2700)),
+    );
+    Map<String, Object?> scenario(int branch) => createOp('dive_scenarios', {
+      'dive_id': 'd1',
+      'name': 'Late branch',
+      'branch_s': branch,
+    });
+
+    final plan = await h.preview([scenario(2701), scenario(2700)]);
+
+    expect(plan.items.first.block!.reason, BlockReason.invalidValue);
+    expect(plan.items.first.block!.detail, contains('branch_s'));
+    expect(plan.items.last.block, isNull);
+  });
+
   test('interventions are held to the Dive Lab\'s rules', () async {
     final badShape = await h.preview([
       createOp('dive_scenarios', {

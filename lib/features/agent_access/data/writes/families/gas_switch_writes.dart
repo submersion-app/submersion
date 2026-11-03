@@ -63,7 +63,9 @@ class GasSwitchWrites extends WritableEntry {
     if (dive == null) return null;
     if (!gasSwitchesEditable(
       tankCount: dive.tanks,
-      mode: DiveMode.values.byName(dive.mode),
+      // As every dive read parses it: a mode the app does not know is open
+      // circuit, and the dive editor shows that dive's switches.
+      mode: DiveMode.fromCode(dive.mode),
       isPlanned: dive.planned,
     )) {
       return const PlanBlock(

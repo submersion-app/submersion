@@ -171,6 +171,20 @@ void main() {
     expect(plan.items.single.block!.reason, BlockReason.notPermitted);
   });
 
+  // A mode the app does not know reads as open circuit everywhere else, so
+  // the dive editor shows its switches; the plan must not throw on it.
+  test('a dive mode the app does not know reads as open circuit', () async {
+    await (db.update(db.dives)..where((d) => d.id.equals('d3'))).write(
+      const DivesCompanion(diveMode: Value('freedive')),
+    );
+
+    final plan = await h.preview([
+      update('g1', {'t_s': 600}),
+    ]);
+
+    expect(plan.items.single.block, isNull);
+  });
+
   test('a time past the end of the profile is blocked', () async {
     final switched = await h.preview([
       createOp('gas_switches', {
