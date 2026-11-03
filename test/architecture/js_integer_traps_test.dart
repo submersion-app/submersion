@@ -12,8 +12,8 @@ import 'source_mask.dart';
 ///   `Random().nextInt(1 << 32)` throws. Write the value as a literal
 ///   (`0x100000000`), which is exact up to 2^53.
 /// - ByteData's 64-bit accessors (`getInt64`, `setUint64` and the rest)
-///   throw "not supported by dart2js". Split the value into two 32-bit
-///   halves with `~/ 0x100000000` and `% 0x100000000`.
+///   throw "not supported by dart2js". Write a uint64 with
+///   `setUint64Halves` (lib/core/utils/uint64_halves.dart).
 ///
 /// A file the browser never reaches may keep them, listed in [nativeOnly]
 /// with the capability that keeps it off the web.
