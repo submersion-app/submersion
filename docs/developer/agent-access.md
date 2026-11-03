@@ -186,6 +186,45 @@ row has come back, so a rollback or revert before the drain loses nothing.
 Dive and site deletes pass `holdRemoteMedia`, so a coordinator wired to start
 the worker would still wait.
 
+### Catalogs and merges
+
+The diver's catalogs are writable as records of their own: `tags`,
+`dive_types`, `dive_roles`, `site_types`, `species`, `centers` with their
+`center_gear_notes`, `custom_agencies`, `custom_levels`, `tank_presets`,
+`weight_presets` and `cylinder_configs`. Each keeps the rules its own screen
+keeps, and blocks in the preview what the repository would otherwise do
+quietly:
+
+- A built-in dive type, role or site type is a constant of the app, so only
+  its visibility can change. A built-in species can be edited but not
+  deleted, and nor can a species, dive type, role, agency or level in use.
+- A tag name is unique per diver, trimmed and ignoring case. The app reuses
+  the old tag on a clash, so a writer would merge two tags without saying so;
+  the plan blocks it as `duplicate_record` instead. Turning a tag's scope off
+  unlinks it from that scope's records, which the plan lists.
+- A custom agency or level name must be free, checked by the same
+  `agencyNameTaken` and `levelNameTaken` the repository's own saves call. A
+  level's `agency_id` may name a built-in agency, which has no row.
+- A tank preset's internal name follows its display name, as the editor sets
+  it.
+
+A weight preset's `entries` and a cylinder config's `items` are written whole
+through `ObjectListCodec`, which compares a list as canonical JSON, so an
+unchanged list is no change. A read lists them only on request, so the entry
+fills them in through `stored`. A cylinder keeps the id of the one at its
+place before, and gas goes in as fractions and is stored as percent.
+
+Two relations join sites: `tags`, whose tags must apply to sites, and
+`expected_species`.
+
+A delete can name `merge_into` instead of going alone. The survivor takes the
+record's links, the plan lists them under `moved` and the dialog says which
+record it merges into. Only `tags` can merge so far: an entry opts in with
+`mergeable`, `mergeReach` and `merge`. The planner blocks a merge into the
+record itself, into a record that is gone or another profile's, and into one
+the same set deletes, and marks the survivor, so one that changes after the
+preview refuses the plan.
+
 ### Adding a writable entity
 
 1. Add a `WritableEntry` under `data/writes/families/` and list it in
@@ -233,7 +272,12 @@ the worker would still wait.
 10. Move the repository's methods from
    `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
    `agent_write_coverage_test.dart`. That guard fails on a new repository
-   write no entity reaches, and on a baseline line that has gone.
+   write no entity reaches, and on a baseline line that has gone. A write
+   that changes no record a diver keeps, such as a setting, a cache, a
+   backup or a dismissed finding, goes in the same file's `exempt` map
+   instead, as `path:method` or `path:*` for a whole repository, with the
+   reason. A shortcut that does what a covered method does, as
+   `createFromWeights` does, belongs there too.
 
 ### Known limits
 
