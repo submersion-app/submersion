@@ -16,6 +16,7 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 part 'write_planner_children.dart';
+part 'write_planner_merge.dart';
 
 /// Turns a change set into a plan by reading, and only reading. It opens no
 /// transaction and writes nothing, because the spec forbids even one that is
@@ -114,6 +115,10 @@ class _Pass {
       if (id == null) continue;
       if (writes.named(op.entity) case final entry?) {
         (ids[entry.name] ??= {}).add(id);
+        // A merge's survivor, whose owner the merge must share.
+        if (op case DeleteOp(:final mergeInto?)) {
+          ids[entry.name]!.add(mergeInto);
+        }
       }
     }
     for (final MapEntry(key: entity, value: wanted) in ids.entries) {
@@ -310,7 +315,9 @@ class _Pass {
     if (row == null) return;
     if (_orphaned(op, entry, row, ChangeKind.delete)) return;
     final document = await _document(entry, op.id, row.ownerId);
+    final into = op.mergeInto;
     final block =
+        (into == null ? null : _mergeBlock(op, entry, row)) ??
         _parentWritten(entry, row.parentId, ChangeKind.delete) ??
         await entry.refuse(
           WriteCheck(
@@ -323,10 +330,17 @@ class _Pass {
     // Held as a local, so the closure a marker keeps holds the map and not
     // this pass, whose database a plan must not keep alive.
     final alongside = _deletedByEntity;
-    Future<DeleteReach> readReach() =>
-        entry.deleteReach(op.id, alongside: alongside);
+    Future<DeleteReach> readReach() => into == null
+        ? entry.deleteReach(op.id, alongside: alongside)
+        : entry.mergeReach(op.id, into);
     final reach = block == null ? await readReach() : const DeleteReach();
     final parent = await _parentContext(entry, row.parentId, row.ownerId);
+    final mergeTitle = block == null && into != null
+        ? await _mergeTitle(op, entry)
+        : null;
+    // A survivor changed after the preview may no longer be the record the
+    // diver allowed the links to move to.
+    if (block == null && into != null) await _markReference(entry.table, into);
     if (block == null) {
       markers.add(
         await _marker(
@@ -351,6 +365,8 @@ class _Pass {
       date: document['date_time'] as String? ?? parent.date,
       context: _context(entry, document),
       reach: reach,
+      mergeInto: block == null ? into : null,
+      mergeTitle: mergeTitle,
       block: block,
     );
   }
@@ -688,6 +704,8 @@ class _Pass {
     Map<String, Set<String>> indirectLost = const {},
     Map<String, String> names = const {},
     DeleteReach reach = const DeleteReach(),
+    String? mergeInto,
+    String? mergeTitle,
     PlanBlock? block,
   }) => items.add(
     PlanItem(
@@ -708,6 +726,8 @@ class _Pass {
       indirectLost: indirectLost,
       names: names,
       reach: reach,
+      mergeInto: mergeInto,
+      mergeTitle: mergeTitle,
       block: block,
     ),
   );

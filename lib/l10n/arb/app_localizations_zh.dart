@@ -25760,6 +25760,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return '合并到 $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return '移动 $kind:$count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => '允许此更改吗?';
 
   @override

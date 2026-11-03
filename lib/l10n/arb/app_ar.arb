@@ -7857,6 +7857,8 @@
   "settings_agentAccess_confirm_linkedDives": "الغطسات التي ستفقد هذا الرابط ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "يحذف أيضًا {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "يلغي أيضًا ربط {kind}: {count}",
+  "settings_agentAccess_confirm_merge": "دمج في {name}",
+  "settings_agentAccess_confirm_moves": "ينقل {kind}: {count}",
   "settings_agentAccess_confirm_title": "هل تسمح بهذا التغيير؟",
   "settings_agentAccess_confirm_client": "يريد {client} تغيير سجل غوصك.",
   "settings_agentAccess_confirm_unknownClient": "يريد وكيل تغيير سجل غوصك.",

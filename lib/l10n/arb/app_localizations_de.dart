@@ -27222,6 +27222,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Zusammenführen mit $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Verschiebt $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'Diese Änderung zulassen?';
 
   @override

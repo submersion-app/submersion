@@ -104,6 +104,13 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
                     value,
                   ),
                 ),
+              for (final MapEntry(:key, :value) in _moved.entries)
+                Text(
+                  l.settings_agentAccess_confirm_moves(
+                    changeLogTableLabel(l, key),
+                    value,
+                  ),
+                ),
               ExpansionTile(
                 key: detailsKey,
                 tilePadding: EdgeInsets.zero,
@@ -142,6 +149,9 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
 
   /// Records that lose a link to the plan's own deletes, by table.
   Map<String, int> get _alsoUnlinked => _sum((reach) => reach.unlinked);
+
+  /// Links the plan's merges move to the records they merge into, by table.
+  Map<String, int> get _moved => _sum((reach) => reach.moved);
 
   Map<String, int> _sum(Map<String, int> Function(DeleteReach) counted) {
     final counts = <String, int>{};
@@ -257,6 +267,19 @@ class _PlanItemRow extends StatelessWidget {
             ),
           ),
           if (where.isNotEmpty) Text(where, style: theme.textTheme.bodySmall),
+          if (item.mergeInto case final into?)
+            Text(
+              l.settings_agentAccess_confirm_merge(item.mergeTitle ?? into),
+              style: theme.textTheme.bodySmall,
+            ),
+          for (final MapEntry(:key, :value) in item.reach.moved.entries)
+            Text(
+              l.settings_agentAccess_confirm_moves(
+                changeLogTableLabel(l, key),
+                value,
+              ),
+              style: theme.textTheme.bodySmall,
+            ),
           for (final MapEntry(:key, :value) in item.fields.entries)
             Text(
               '$key: ${shown(key, value.oldValue, oldPressure)} '

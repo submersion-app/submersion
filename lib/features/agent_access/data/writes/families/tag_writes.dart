@@ -84,6 +84,56 @@ class TagWrites extends WritableEntry {
   }) async => DeleteReach(unlinked: await _links(id, domain.TagScope.values));
 
   @override
+  bool get mergeable => true;
+
+  /// Every link of [id] moves to [intoId], except one whose item already
+  /// carries [intoId], which goes, as `mergeTags` does.
+  @override
+  Future<DeleteReach> mergeReach(String id, String intoId) async {
+    final moved = <String, int>{};
+    final parts = <String, int>{};
+    final db = DatabaseService.instance.database;
+    for (final scope in domain.TagScope.values) {
+      final junction = scope.table.junctionTable;
+      final item = scope.table.parentColumn;
+      final row = await db
+          .customSelect(
+            'SELECT SUM(CASE WHEN b.tag_id IS NULL THEN 1 ELSE 0 END) AS moved, '
+            'SUM(CASE WHEN b.tag_id IS NULL THEN 0 ELSE 1 END) AS gone '
+            'FROM "$junction" a LEFT JOIN "$junction" b '
+            'ON b."$item" = a."$item" AND b.tag_id = ?2 WHERE a.tag_id = ?1',
+            variables: [Variable.withString(id), Variable.withString(intoId)],
+          )
+          .getSingle();
+      if ((row.readNullable<int>('moved') ?? 0) > 0) {
+        moved[junction] = row.read<int>('moved');
+      }
+      if ((row.readNullable<int>('gone') ?? 0) > 0) {
+        parts[junction] = row.read<int>('gone');
+      }
+    }
+    return DeleteReach(moved: moved, parts: parts);
+  }
+
+  /// The survivor's name and colour are read now, so a change to it earlier
+  /// in the same set is what it keeps.
+  @override
+  Future<void> merge(String id, String intoId, String? ownerId) async {
+    final survivor = await _r.tags.getTagById(intoId) ?? _gone(intoId);
+    await _r.tags.mergeTags(
+      sourceTagIds: [id],
+      survivingTagId: intoId,
+      name: survivor.name,
+      colorHex: survivor.colorHex,
+    );
+  }
+
+  @override
+  String get note =>
+      'Delete a tag with merge_into set to another of the diver\'s tags to '
+      'merge it: its links move to that tag, as the tag page merges them';
+
+  @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
     final now = DateTime.now();
     final tag = await _r.tags.createTag(

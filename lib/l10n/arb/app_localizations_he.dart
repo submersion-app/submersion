@@ -26597,6 +26597,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'מיזוג לתוך $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'מעביר $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'לאשר את השינוי הזה?';
 
   @override

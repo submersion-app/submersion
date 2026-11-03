@@ -7857,6 +7857,8 @@
   "settings_agentAccess_confirm_linkedDives": "Duiken die deze koppeling verliezen ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Verwijdert ook {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Ontkoppelt ook {kind}: {count}",
+  "settings_agentAccess_confirm_merge": "Samenvoegen met {name}",
+  "settings_agentAccess_confirm_moves": "Verplaatst {kind}: {count}",
   "settings_agentAccess_confirm_title": "Deze wijziging toestaan?",
   "settings_agentAccess_confirm_client": "{client} wil je logboek wijzigen.",
   "settings_agentAccess_confirm_unknownClient": "Een agent wil je logboek wijzigen.",

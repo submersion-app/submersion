@@ -99,6 +99,7 @@ void main() {
     'lib/features/tags/data/repositories/tag_repository.dart:createTag': 'tags',
     'lib/features/tags/data/repositories/tag_repository.dart:updateTag': 'tags',
     'lib/features/tags/data/repositories/tag_repository.dart:deleteTag': 'tags',
+    'lib/features/tags/data/repositories/tag_repository.dart:mergeTags': 'tags',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

@@ -269,6 +269,39 @@ void main() {
     await _close(tester);
   });
 
+  testWidgets('a merge reads as merge into the survivor and lists what moves', (
+    tester,
+  ) async {
+    await _pump(tester);
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            const PlanItem(
+              operation: 0,
+              kind: ChangeKind.delete,
+              entity: 'tags',
+              id: 'wrecks',
+              diverId: 'diver-a',
+              title: 'Wrecks',
+              mergeInto: 'wreck',
+              mergeTitle: 'Wreck',
+              reach: DeleteReach(moved: {'dive_tags': 3}),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Merge into Wreck'), findsOneWidget);
+    expect(find.textContaining('Moves'), findsWidgets);
+    expect(find.textContaining('3'), findsWidgets);
+    await _close(tester);
+  });
+
   testWidgets('names the dives a delete reaches on another profile', (
     tester,
   ) async {

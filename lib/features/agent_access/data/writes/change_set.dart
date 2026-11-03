@@ -98,9 +98,14 @@ class DeleteOp extends ChangeOp {
     required super.index,
     required super.entity,
     required this.id,
+    this.mergeInto,
   });
 
   final String id;
+
+  /// The record that takes over this one's links, for an entity that can
+  /// merge, as the tag page merges tags. Null for a plain delete.
+  final String? mergeInto;
 }
 
 /// A change to what a record is linked to: either [set], the whole new list,
@@ -115,7 +120,7 @@ class RelationChange {
 
 const _createKeys = {'op', 'entity', 'diver_id', 'fields'};
 const _updateKeys = {'op', 'entity', 'id', 'fields', 'relations'};
-const _deleteKeys = {'op', 'entity', 'id'};
+const _deleteKeys = {'op', 'entity', 'id', 'merge_into'};
 const _relationKeys = {'add', 'remove', 'set'};
 
 ChangeOp _op(int index, Object? raw) {
@@ -154,7 +159,17 @@ ChangeOp _op(int index, Object? raw) {
       );
     case 'delete':
       _onlyKeys(index, op, _deleteKeys);
-      return DeleteOp(index: index, entity: entity, id: _id(index, op['id']));
+      final mergeInto = op['merge_into'];
+      if (op.containsKey('merge_into') &&
+          (mergeInto is! String || mergeInto.isEmpty)) {
+        throw _refused(index, 'merge_into must be the id of a record.');
+      }
+      return DeleteOp(
+        index: index,
+        entity: entity,
+        id: _id(index, op['id']),
+        mergeInto: mergeInto as String?,
+      );
   }
   throw _refused(index, 'op must be create, update or delete.');
 }

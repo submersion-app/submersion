@@ -162,6 +162,7 @@ class DeleteReach {
     this.records = const {},
     this.parts = const {},
     this.unlinked = const {},
+    this.moved = const {},
   });
 
   /// Dives that lose a link to this record, by owner. These can belong to
@@ -177,11 +178,15 @@ class DeleteReach {
   /// Records that stay but lose their link to it, by table.
   final Map<String, int> unlinked;
 
+  /// Links a merge moves to the surviving record, by table.
+  final Map<String, int> moved;
+
   bool get isEmpty =>
       linkedDives.isEmpty &&
       records.isEmpty &&
       parts.isEmpty &&
-      unlinked.isEmpty;
+      unlinked.isEmpty &&
+      moved.isEmpty;
 
   /// The same text for the same reach, to compare a preview with a later
   /// read.
@@ -190,6 +195,7 @@ class DeleteReach {
     'records': _sorted(records),
     'parts': _sorted(parts),
     'unlinked': _sorted(unlinked),
+    'moved': _sorted(moved),
   });
 }
 
@@ -273,6 +279,19 @@ abstract class WritableEntry {
     String id, {
     Map<String, Set<String>> alongside = const {},
   }) async => const DeleteReach();
+
+  /// Whether a delete may name `merge_into`: a record that takes over this
+  /// one's links, as the app merges these records.
+  bool get mergeable => false;
+
+  /// What merging [id] into [intoId] does to their links.
+  Future<DeleteReach> mergeReach(String id, String intoId) async =>
+      const DeleteReach();
+
+  /// Merges [id] into [intoId], through the app's own merge, and deletes
+  /// [id]. Only asked of a [mergeable] entity.
+  Future<void> merge(String id, String intoId, String? ownerId) =>
+      throw UnsupportedError('$name does not merge');
 
   /// What a diver knows this record by.
   String? titleOf(Map<String, Object?> document) => document['name'] as String?;
