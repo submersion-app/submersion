@@ -28,6 +28,7 @@ import 'package:submersion/features/import_wizard/presentation/widgets/import_pr
 import 'package:submersion/features/import_wizard/presentation/pages/step_indicator_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/wizard_message.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
 
 part 'unified_import_wizard_session.dart';
@@ -510,7 +511,7 @@ class _UnifiedImportWizardBodyState
             ),
           ),
           if (_advanceError != null && _currentPage < _reviewIndex)
-            _WizardMessage(
+            WizardMessage(
               message: _advanceError!,
               icon: Icons.error_outline,
               isError: true,
@@ -525,7 +526,7 @@ class _UnifiedImportWizardBodyState
                 ),
               ) &&
               _currentPage == _reviewIndex)
-            _WizardMessage(
+            WizardMessage(
               message: context.l10n.universalImport_error_duplicateCheckFailed,
               icon: Icons.warning_amber_outlined,
               isError: false,
@@ -573,51 +574,6 @@ class _UnifiedImportWizardBodyState
               ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Inline message strip shown between the step content and the bottom bar
-// ---------------------------------------------------------------------------
-
-class _WizardMessage extends StatelessWidget {
-  const _WizardMessage({
-    required this.message,
-    required this.icon,
-    required this.isError,
-  });
-
-  final String message;
-  final IconData icon;
-  final bool isError;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final foreground = isError
-        ? theme.colorScheme.onErrorContainer
-        : theme.colorScheme.onTertiaryContainer;
-
-    return Container(
-      width: double.infinity,
-      color: isError
-          ? theme.colorScheme.errorContainer
-          : theme.colorScheme.tertiaryContainer,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ExcludeSemantics(child: Icon(icon, size: 20, color: foreground)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: theme.textTheme.bodySmall?.copyWith(color: foreground),
-            ),
-          ),
-        ],
       ),
     );
   }
