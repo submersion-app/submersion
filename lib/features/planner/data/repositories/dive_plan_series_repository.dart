@@ -172,7 +172,13 @@ class DivePlanSeriesRepository {
     final planRows =
         await (_db.select(_db.divePlans)
               ..where((p) => p.seriesId.equals(id))
-              ..orderBy([(p) => OrderingTerm.asc(p.seriesIndex)]))
+              // Then by id: two devices can each add a dive at the same
+              // place before syncing, and the order must not flip between
+              // opens (the saved plans list breaks the tie the same way).
+              ..orderBy([
+                (p) => OrderingTerm.asc(p.seriesIndex),
+                (p) => OrderingTerm.asc(p.id),
+              ]))
             .get();
     // Every dive's tanks in one read, for the columns a plan does not carry.
     final tanksByPlan = <String, List<db.DivePlanTank>>{};

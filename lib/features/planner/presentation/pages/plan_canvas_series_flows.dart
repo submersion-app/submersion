@@ -36,7 +36,14 @@ mixin _PlanCanvasSeriesFlows on ConsumerState<PlanCanvasPage> {
           return _leaveUnopenedRoute();
       }
     }
-    await openSavedPlan(ref.container, planId);
+    try {
+      await openSavedPlan(ref.container, planId);
+    } catch (_) {
+      // Not opened, so the editor still holds another plan: staying would
+      // show it under this route, whose plan Delete prefers.
+      if (mounted) _leaveUnopenedRoute();
+      rethrow;
+    }
   }
 
   /// Backs out of a route whose plan was not opened: this page's [widget]

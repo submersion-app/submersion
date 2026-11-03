@@ -16,7 +16,6 @@ import 'package:submersion/features/dive_planner/presentation/widgets/simple_pla
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
-import 'package:submersion/features/planner/domain/services/plan_name_generator.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
@@ -33,6 +32,7 @@ import 'package:submersion/features/planner/presentation/widgets/follow_dive_she
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_first_save_name.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_dialog.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
@@ -43,7 +43,6 @@ import 'package:submersion/features/planner/presentation/widgets/plan_series_nav
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -825,42 +824,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
     // grow a modal.
     final series = ref.read(planSeriesNotifierProvider);
     if (!notifier.isPersisted && series.id == null) {
-      final l10n = context.l10n;
-      final units = UnitFormatter(ref.read(settingsProvider));
-      final siteId = ref.read(divePlanNotifierProvider).siteId;
-      final site = siteId == null
-          ? null
-          : await ref.read(siteProvider(siteId).future);
-      if (!mounted) return;
-
-      // Re-read after the site lookup rather than before it. No modal is up
-      // while that read resolves, so the diver can still edit the plan and the
-      // suggested name must describe what the plan is now.
-      final planState = ref.read(divePlanNotifierProvider);
-      final suggestedDepth = ref.read(planOutcomeProvider).maxDepth;
-      // The lookup was keyed on the pre-await id. If the diver switched sites
-      // while it resolved, the fetched name describes a site the plan no longer
-      // uses, so drop it rather than pair it with fresh depth and date.
-      final siteName = planState.siteId == siteId ? site?.name : null;
-
-      final entered = await showPlanNameDialog(
-        context,
-        initialName: generateDefaultPlanName(
-          siteName: siteName,
-          depthLabel: suggestedDepth > 0
-              ? units.formatDepth(suggestedDepth)
-              : null,
-          dateLabel: units.formatMonthDay(
-            planState.startDateTime ?? DateTime.now(),
-          ),
-          fallbackLabel: l10n.plannerCanvas_name_defaultFallback,
-        ),
-        title: l10n.plannerCanvas_name_dialogTitle,
-      );
-      // Cancel aborts the save entirely: nothing is written and the plan stays
-      // dirty, so the diver is never surprised by a name they rejected.
-      if (entered == null) return;
-      notifier.updateName(entered);
+      if (!await nameFirstSave(context, ref) || !mounted) return;
     }
 
     // Build the summary last so the denormalized depth/runtime always describe

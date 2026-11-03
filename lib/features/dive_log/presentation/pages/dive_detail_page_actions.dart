@@ -115,14 +115,9 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     switch (choice) {
       case UnsavedPlanChoice.save:
         // A first save asks for a name, as the planner's Save does.
-        if (ref.read(planSeriesNotifierProvider).id == null) {
-          final entered = await showPlanNameDialog(
-            context,
-            initialName: ref.read(divePlanNotifierProvider).name,
-            title: context.l10n.plannerCanvas_name_dialogTitle,
-          );
-          if (entered == null || !mounted) return false;
-          ref.read(divePlanNotifierProvider.notifier).updateName(entered);
+        if (ref.read(planSeriesNotifierProvider).id == null &&
+            (!await nameFirstSave(context, ref) || !mounted)) {
+          return false;
         }
         await saveCurrentSeries(ref.container);
         return mounted;

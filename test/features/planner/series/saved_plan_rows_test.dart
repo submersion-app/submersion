@@ -27,6 +27,19 @@ void main() {
     expect(rows.first.showsDives, isFalse);
   });
 
+  test('dives at the same place keep one order, by id', () {
+    for (final listed in [
+      [plan('y', series: 's', index: 1), plan('x', series: 's', index: 1)],
+      [plan('x', series: 's', index: 1), plan('y', series: 's', index: 1)],
+    ]) {
+      final rows = collapseSeries([
+        plan('a', series: 's', index: 0),
+        ...listed,
+      ]);
+      expect(rows.single.dives.map((d) => d.id), ['a', 'x', 'y']);
+    }
+  });
+
   test('a series is one row, its dives in order wherever they were', () {
     final rows = collapseSeries([
       plan('c', series: 's', index: 2),

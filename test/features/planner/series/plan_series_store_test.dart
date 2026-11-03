@@ -172,6 +172,37 @@ void main() {
     expect(after.stops.length, before.stops.length);
   });
 
+  test('a followed first dive is stored at its own pressure, not what the '
+      'logged dive left', () async {
+    final end = DateTime(2026, 10, 27, 8);
+    await c
+        .read(diveRepositoryProvider)
+        .createDive(loggedDive('logged', end, number: 7));
+    followed = SeriesFollow(
+      loggedDives: [seriesLoggedDive('logged', end, number: 7)],
+      endTanks: const [
+        DiveTank(
+          id: 'logged-back',
+          volume: 12,
+          startPressure: 220,
+          endPressure: 90,
+          gasMix: ean32,
+        ),
+      ],
+    );
+    series().followDive(followed!, surfaceInterval: const Duration(hours: 1));
+    expect(editor().tanks.single.startPressure, 90);
+
+    await saveCurrentSeries(c);
+
+    final stored = await c
+        .read(divePlanRepositoryProvider)
+        .getPlan(editor().id);
+    expect(stored!.tanks.single.startPressure, 220);
+    // The editor still plans from what the logged dive left.
+    expect(editor().tanks.single.startPressure, 90);
+  });
+
   test('a series deleted through the planner leaves no plans', () async {
     series().addDive();
     await saveCurrentSeries(c);

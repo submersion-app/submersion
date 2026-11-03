@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
@@ -55,6 +56,7 @@ Future<StoredSeries> currentStoredSeries(ProviderContainer container) async {
   final series = container.read(planSeriesNotifierProvider);
   final results = container.read(planSeriesResultsProvider);
 
+  final follow = series.follow;
   final dives = <StoredSeriesDive>[];
   for (var i = 0; i < series.dives.length; i++) {
     final dive = series.dives[i];
@@ -62,7 +64,9 @@ Future<StoredSeries> currentStoredSeries(ProviderContainer container) async {
     dives.add(
       StoredSeriesDive(
         plan: divePlanFromState(
-          result.state,
+          i == 0 && follow != null
+              ? _atOwnPressures(result.state, dive, follow)
+              : result.state,
           existing: await plans.getPlan(dive.state.id),
         ),
         name: dive.name,
@@ -83,6 +87,25 @@ Future<StoredSeries> currentStoredSeries(ProviderContainer container) async {
     dives: dives,
   );
 }
+
+/// The first dive's [state] with each tank it did not have typed in back at
+/// its own pressure. What the followed dive leaves in a tank is worked out
+/// again on opening; stored, it would outlive that dive, and a shared file,
+/// which leaves the dive out, would start from the sender's remaining gas.
+DivePlanState _atOwnPressures(
+  DivePlanState state,
+  PlanSeriesDive dive,
+  SeriesFollow follow,
+) => state.copyWith(
+  tanks: [
+    for (final tank in state.tanks)
+      if (!dive.pinnedTankIds.contains(tank.id) &&
+          follow.ownStartPressures[tank.id] != null)
+        tank.copyWith(startPressure: follow.ownStartPressures[tank.id])
+      else
+        tank,
+  ],
+);
 
 /// Opens the saved plan [planId]: its whole series with that dive selected
 /// when it has one, carrying in what the followed dive and earlier dives left

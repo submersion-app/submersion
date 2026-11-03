@@ -58,7 +58,12 @@ List<SavedPlanRow> collapseSeries(
     }
   }
   for (final dives in bySeries.values) {
-    dives.sort((a, b) => (a.seriesIndex ?? 0).compareTo(b.seriesIndex ?? 0));
+    // Ties (a dive added at the same place on two devices) break by id, as
+    // the planner opens them.
+    dives.sort((a, b) {
+      final byIndex = (a.seriesIndex ?? 0).compareTo(b.seriesIndex ?? 0);
+      return byIndex != 0 ? byIndex : a.id.compareTo(b.id);
+    });
   }
 
   final seen = <String>{};
