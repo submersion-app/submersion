@@ -26715,6 +26715,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Súly';
 
   @override
+  String get settings_conflict_ref_customField => 'Egyéni mező';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Gázcserélés';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Esemény';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Forgatókönyv';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Jeladó';
 
   @override

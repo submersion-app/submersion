@@ -48,6 +48,12 @@ class AnnotationWrites extends WritableEntry {
   };
 
   @override
+  String get note =>
+      'Annotations only: a create links its description in the dive\'s '
+      'Notes, a delete turns the link back into plain words, and an event a '
+      'dive computer recorded cannot be changed';
+
+  @override
   String? titleOf(Map<String, Object?> document) =>
       document['description'] as String?;
 

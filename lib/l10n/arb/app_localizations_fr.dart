@@ -26917,6 +26917,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Lest';
 
   @override
+  String get settings_conflict_ref_customField => 'Champ personnalisé';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Changement de gaz';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Événement';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Scénario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Émetteur';
 
   @override

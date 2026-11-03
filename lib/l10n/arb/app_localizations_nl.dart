@@ -26667,6 +26667,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Gewicht';
 
   @override
+  String get settings_conflict_ref_customField => 'Eigen veld';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Gaswisseling';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Gebeurtenis';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Scenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Zender';
 
   @override

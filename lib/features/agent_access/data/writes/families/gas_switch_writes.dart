@@ -43,6 +43,12 @@ class GasSwitchWrites extends WritableEntry {
   Set<String> get requiredOnCreate => const {'t_s', 'tank_id'};
 
   @override
+  String get note =>
+      'The switches the dive editor shows: the primary computer\'s and '
+      'untagged ones, on a dive with two or more cylinders; a moved switch '
+      'takes the profile\'s depth unless depth_m is given';
+
+  @override
   String? titleOf(Map<String, Object?> document) =>
       document['tank_name'] as String?;
 

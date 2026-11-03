@@ -26858,6 +26858,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Lastre';
 
   @override
+  String get settings_conflict_ref_customField => 'Campo personalizado';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Cambio de gas';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Evento';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Escenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Transmisor';
 
   @override

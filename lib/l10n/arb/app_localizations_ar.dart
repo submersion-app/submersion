@@ -27079,6 +27079,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_weight => 'ثقل';
 
   @override
+  String get settings_conflict_ref_customField => 'حقل مخصص';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'تبديل الغاز';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'حدث';
+
+  @override
+  String get settings_conflict_ref_scenario => 'سيناريو';
+
+  @override
   String get settings_conflict_ref_transmitter => 'المرسل';
 
   @override

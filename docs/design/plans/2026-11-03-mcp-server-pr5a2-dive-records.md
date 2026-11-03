@@ -27,7 +27,7 @@ An agent can change exactly what a diver can change in the app, and nothing a co
 - A gas switch change goes through `DiverGasSwitchWriter.save` with the editor's view of the list, so it also marks the dive's switches as diver-owned (a re-parse leaves them) and drops the stored safety review, as an editor save does. `tank_id` must be a tank of the same dive. A new time with no `depth_m` takes the profile's depth at that time, as the editor fills it, and the plan lists it as indirect.
 - Custom fields write one row at a time on `DiveChildRowRepository`, with sync marks and a dive stamp, as `updateDive`'s diff does (the repository's own `replaceFieldsForDive` marks nothing for sync). A key must not be blank, as the editor drops blank keys.
 - Scenarios write through `DiveScenarioRepository.saveScenario` and `deleteScenario`. `interventions` takes the list documents return; it is decoded with the Dive Lab codec and checked with `validateInterventions`. Defaults: `mode` `replay`, `branch_s` 0.
-- Diver roles are a `roles` relation on `dives`, written with `DiverRolesOp`. The primary role stays first unless removed; added roles follow in the order given.
+- Diver roles are a `roles` relation on `dives`, written with `DiverRolesOp`. The set is normalized as every role write stores it (`DiveRoleSet.normalize`: canonical order, Solo dropped beside any other role), so the plan lists a dropped Solo as lost. (An earlier draft of this ruling assumed the roles kept the order given; they have none.)
 - **Follow-up, Notes and annotations:** an agent's update of a dive's `notes` now runs `AnnotationRepository.reconcile`, as the editor's save does, so an annotation whose link the new Notes drop is deleted rather than left on the profile, and the cached words follow. The plan lists the annotations it deletes as parts (`SideEffects.parts`).
 
 ## File map
@@ -55,7 +55,7 @@ test/architecture/agent_write_coverage_test.dart, baseline
 
 ### Task 2: Diver roles
 
-- [ ] `roles` relation on `DiveWrites` (`dive_roles`), current from `DiveRoleLinkRepository.diverRoleIdsForDives`, written as one `DiverRolesOp` with the new ordered list. Tests: add keeps the primary first, remove of the primary promotes the next, another profile's custom role is blocked.
+- [ ] `roles` relation on `DiveWrites` (`dive_roles`), current from `DiveRoleLinkRepository.diverRoleIdsForDives`, written as one `DiverRolesOp` with the normalized set. Tests: add and remove, a role beside Solo drops it and the plan says so, another profile's custom role is blocked.
 - [ ] Commit `feat(agent-access): write a dive's diver roles`.
 
 ### Task 3: Gas switches

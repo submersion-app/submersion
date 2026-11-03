@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/gas_percent.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -299,6 +300,8 @@ String agentValueText(
   num? workingPressureBar,
 }) {
   if (value == null) return l.settings_agentAccess_confirm_none;
+  // A time into the dive, such as a switch's or an annotation's.
+  if (key.endsWith('_s') && value is int) return formatMinutesSeconds(value);
   if (value is num) {
     final number = value.toDouble();
     if (key.endsWith('_m')) return units.formatDepth(number);

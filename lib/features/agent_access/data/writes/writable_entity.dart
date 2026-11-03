@@ -212,6 +212,10 @@ abstract class WritableEntry {
   /// names it in [ChildOf.field] when it is created, and stays on it.
   ChildOf? get parent => null;
 
+  /// What an agent needs to know about writing this entity beyond its
+  /// fields, for the tool description. Null when nothing.
+  String? get note => null;
+
   /// The kinds of change to this record that also write its parent, as an
   /// annotation's create and delete rewrite its dive's Notes. Such a change
   /// cannot share a set with an update of that parent: whichever ran second

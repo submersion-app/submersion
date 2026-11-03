@@ -78,6 +78,24 @@ void main() {
         'sightings',
     'lib/features/marine_life/data/repositories/species_repository.dart:deleteSighting':
         'sightings',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addCustomField':
+        'dive_custom_fields',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateCustomField':
+        'dive_custom_fields',
+    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteCustomField':
+        'dive_custom_fields',
+    'lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeDiverRoles':
+        'dives',
+    'lib/features/dive_log/data/repositories/annotation_repository.dart:addAnnotation':
+        'dive_events',
+    'lib/features/dive_log/data/repositories/annotation_repository.dart:moveAnnotation':
+        'dive_events',
+    'lib/features/dive_log/data/repositories/annotation_repository.dart:removeAnnotation':
+        'dive_events',
+    'lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:saveScenario':
+        'dive_scenarios',
+    'lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:deleteScenario':
+        'dive_scenarios',
   };
 
   /// A public `Future` method on a repository. The return type may sit on the

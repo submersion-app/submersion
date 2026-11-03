@@ -223,7 +223,14 @@ the worker would still wait.
    any other field a create sets and an update may not change in
    `createOnly`, as a sighting's species. Write one row at a time: a
    repository's bulk replace re-inserts every sibling under a fresh id.
-9. Move the repository's methods from
+9. If a change also writes the parent, as an annotation's create rewrites
+   its dive's Notes, list those kinds in `writesParent`: the planner blocks
+   them beside an update of that parent. Say what an agent must know beyond
+   the fields in `note`, which the `preview_changes` description carries.
+   Write through the service the app's own screen uses, as gas switches go
+   through `DiverGasSwitchWriter`, so the agent's change does what the
+   diver's does.
+10. Move the repository's methods from
    `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
    `agent_write_coverage_test.dart`. That guard fails on a new repository
    write no entity reaches, and on a baseline line that has gone.

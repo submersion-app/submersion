@@ -132,16 +132,8 @@ lib/features/dive_centers/data/repositories/dive_center_repository.dart:deleteDi
 lib/features/dive_centers/data/repositories/dive_center_repository.dart:updateDiveCenter
 lib/features/dive_computer/data/repositories/dive_computer_connection_repository.dart:deleteForComputer
 lib/features/dive_computer/data/repositories/dive_computer_connection_repository.dart:recordConnection
-lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:deleteScenario
 lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:duplicateScenario
-lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:saveScenario
-lib/features/dive_log/data/repositories/annotation_repository.dart:addAnnotation
-lib/features/dive_log/data/repositories/annotation_repository.dart:moveAnnotation
-lib/features/dive_log/data/repositories/annotation_repository.dart:removeAnnotation
 lib/features/dive_log/data/repositories/derived_metrics_repository.dart:saveMetrics
-lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addCustomField
-lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteCustomField
-lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateCustomField
 lib/features/dive_log/data/repositories/dive_computer_merge_repository.dart:mergeComputers
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:addProfileEvent
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearEventsForDive
@@ -277,7 +269,6 @@ lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:deleteB
 lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:deleteBuddyRolesOnDives
 lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:restoreRows
 lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeBuddyRoles
-lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeDiverRoles
 lib/features/dive_roles/data/repositories/dive_role_repository.dart:createDiveRole
 lib/features/dive_roles/data/repositories/dive_role_repository.dart:deleteDiveRole
 lib/features/dive_roles/data/repositories/dive_role_repository.dart:renameDiveRole
