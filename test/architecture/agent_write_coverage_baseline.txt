@@ -78,10 +78,6 @@ lib/features/courses/data/repositories/course_requirement_repository.dart:linkDi
 lib/features/courses/data/repositories/course_requirement_repository.dart:setChecklistComplete
 lib/features/courses/data/repositories/course_requirement_repository.dart:unlinkDive
 lib/features/courses/data/repositories/course_requirement_repository.dart:updateRequirement
-lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:createConfig
-lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:deleteConfig
-lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:saveItems
-lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:updateConfig
 lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:create
 lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:delete
 lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:relinkToEquipment
@@ -507,9 +503,6 @@ lib/features/tags/data/repositories/tag_link_repository.dart:replaceTags
 lib/features/tags/data/repositories/tag_repository.dart:addTagToDive
 lib/features/tags/data/repositories/tag_repository.dart:removeTagFromDive
 lib/features/tags/data/repositories/tag_repository.dart:setTagsForDive
-lib/features/tank_presets/data/repositories/tank_preset_repository.dart:createPreset
-lib/features/tank_presets/data/repositories/tank_preset_repository.dart:deletePreset
-lib/features/tank_presets/data/repositories/tank_preset_repository.dart:updatePreset
 lib/features/tides/data/repositories/tide_record_repository.dart:createFromStatus
 lib/features/tides/data/repositories/tide_record_repository.dart:deleteTideRecordForDive
 lib/features/tides/data/repositories/tide_record_repository.dart:saveTideRecord
@@ -551,7 +544,3 @@ lib/features/trips/data/repositories/trip_repository.dart:removeDiveFromTrip
 lib/features/trips/data/repositories/trip_repository.dart:updateTrip
 lib/features/universal_import/data/repositories/csv_preset_repository.dart:deletePreset
 lib/features/universal_import/data/repositories/csv_preset_repository.dart:savePreset
-lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createPreset
-lib/features/weight_presets/data/repositories/weight_preset_repository.dart:deletePreset
-lib/features/weight_presets/data/repositories/weight_preset_repository.dart:renamePreset
-lib/features/weight_presets/data/repositories/weight_preset_repository.dart:updatePreset

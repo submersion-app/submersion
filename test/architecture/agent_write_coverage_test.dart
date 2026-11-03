@@ -162,6 +162,28 @@ void main() {
         'custom_levels',
     'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:reorderProgression':
         'custom_levels',
+    'lib/features/tank_presets/data/repositories/tank_preset_repository.dart:createPreset':
+        'tank_presets',
+    'lib/features/tank_presets/data/repositories/tank_preset_repository.dart:updatePreset':
+        'tank_presets',
+    'lib/features/tank_presets/data/repositories/tank_preset_repository.dart:deletePreset':
+        'tank_presets',
+    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createPreset':
+        'weight_presets',
+    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:updatePreset':
+        'weight_presets',
+    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:renamePreset':
+        'weight_presets',
+    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:deletePreset':
+        'weight_presets',
+    'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:createConfig':
+        'cylinder_configs',
+    'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:updateConfig':
+        'cylinder_configs',
+    'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:deleteConfig':
+        'cylinder_configs',
+    'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:saveItems':
+        'cylinder_configs',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
