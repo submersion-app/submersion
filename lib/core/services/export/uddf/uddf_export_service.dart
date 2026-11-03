@@ -659,6 +659,8 @@ class UddfExportService {
           customDiveRoles: customRoles,
           dataSources: sources,
           dataSourceDumps: encodedById,
+          // The computers are gear: a share without gear names none.
+          includeSourceIdentity: options.includeGear,
           attributedDives: dives,
           diveTankPressures: pressuresByDive,
           // The definitions the sites' type and tag references need.

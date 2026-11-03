@@ -710,6 +710,9 @@ class UddfExportBuilders {
     List<Course>? courses,
     List<DiveSourceExport>? dataSources,
     Map<String, String?> dataSourceDumps = const {},
+    // Whether each <source> names its computer and file; see
+    // [buildDataSources].
+    bool includeSourceIdentity = true,
     // The dives whose tank rows, tank pressure series and depth series the
     // per-source blocks beside <datasources> attribute (issues #2492, #3965),
     // and the pressure series; the depth series ride on [dataSources].
@@ -1699,7 +1702,12 @@ class UddfExportBuilders {
             }
 
             // Per-source provenance for the dumps in <divecomputercontrol>.
-            buildDataSources(builder, dataSources ?? const [], dataSourceDumps);
+            buildDataSources(
+              builder,
+              dataSources ?? const [],
+              dataSourceDumps,
+              includeIdentity: includeSourceIdentity,
+            );
             // Which of those sources recorded each tank and its pressures.
             UddfSourceAttribution.write(
               builder,
@@ -1744,11 +1752,17 @@ class UddfExportBuilders {
   /// claiming one, so a row that claims a dump it did not get would shift
   /// every later dump onto the wrong row, descriptor triple included. A row
   /// can hold bytes and still get no dump when its encode failed.
+  ///
+  /// With [includeIdentity] false each entry leaves out the computer's model
+  /// and serial and the source's file name, which name the diver's gear: a
+  /// dives export shared without gear writes the rest of the row and no more.
+  /// Each recording still restores as its own source, with no computer.
   static void buildDataSources(
     XmlBuilder builder,
     List<DiveSourceExport> sources,
-    Map<String, String?> encodedById,
-  ) {
+    Map<String, String?> encodedById, {
+    bool includeIdentity = true,
+  }) {
     if (sources.isEmpty) return;
 
     builder.element(
@@ -1794,10 +1808,14 @@ class UddfExportBuilders {
               builder.element('primary', nest: '${source.isPrimary}');
               _dsNumber(builder, 'mergesourceslot', source.mergeSourceSlot);
               _dsNumber(builder, 'timeoffsetseconds', source.timeOffsetSeconds);
-              _dsText(builder, 'computermodel', source.computerModel);
-              _dsText(builder, 'computerserial', source.computerSerial);
+              if (includeIdentity) {
+                _dsText(builder, 'computermodel', source.computerModel);
+                _dsText(builder, 'computerserial', source.computerSerial);
+              }
               _dsText(builder, 'sourceformat', source.sourceFormat);
-              _dsText(builder, 'sourcefilename', source.sourceFileName);
+              if (includeIdentity) {
+                _dsText(builder, 'sourcefilename', source.sourceFileName);
+              }
               _dsText(builder, 'sourcefileformat', source.sourceFileFormat);
               _dsDate(builder, 'importedat', source.importedAt);
               _dsDate(builder, 'createdat', source.createdAt);
