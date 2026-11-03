@@ -128,22 +128,22 @@ class CylinderConfigWrites extends WritableEntry {
           details: {'id': id},
         ));
     final v = update.values;
-    if (v.keys.any((k) => k != 'items')) {
-      await _r.cylinderConfigs.updateConfig(
-        CylinderConfig(
-          id: id,
-          diverId: current.diverId,
-          equipmentId: v.containsKey('equipment_id')
-              ? v['equipment_id'] as String?
-              : current.equipmentId,
-          name: v['name'] as String? ?? current.name,
-          description: v['description'] as String? ?? current.description,
-          sortOrder: v['sort_order'] as int? ?? current.sortOrder,
-          createdAt: current.createdAt,
-          updatedAt: current.updatedAt,
-        ),
-      );
-    }
+    // Saved even for a change to the cylinders alone, as the editor saves
+    // it, so the config's stamp moves with them.
+    await _r.cylinderConfigs.updateConfig(
+      CylinderConfig(
+        id: id,
+        diverId: current.diverId,
+        equipmentId: v.containsKey('equipment_id')
+            ? v['equipment_id'] as String?
+            : current.equipmentId,
+        name: v['name'] as String? ?? current.name,
+        description: v['description'] as String? ?? current.description,
+        sortOrder: v['sort_order'] as int? ?? current.sortOrder,
+        createdAt: current.createdAt,
+        updatedAt: current.updatedAt,
+      ),
+    );
     if (v.containsKey('items')) {
       await _r.cylinderConfigs.saveItems(
         id,

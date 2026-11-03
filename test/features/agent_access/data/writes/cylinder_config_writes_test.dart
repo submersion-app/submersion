@@ -110,6 +110,31 @@ void main() {
     expect(again.unchanged.single.id, id);
   });
 
+  // The editor stamps the config with every save, so a plan made before a
+  // cylinder change sees the config as changed.
+  test('a change to the cylinders alone stamps the config', () async {
+    final id = (await h.run([
+      createOp('cylinder_configs', {
+        'name': 'Deco pair',
+        'items': [cylinder('backGas', 0.32)],
+      }),
+    ])).created.single.id;
+    Future<int> stamp() async => (await (db.select(
+      db.cylinderConfigs,
+    )..where((c) => c.id.equals(id))).getSingle()).updatedAt;
+    await (db.update(db.cylinderConfigs)..where((c) => c.id.equals(id))).write(
+      const CylinderConfigsCompanion(updatedAt: Value(1)),
+    );
+
+    await h.run([
+      updateOp('cylinder_configs', id, {
+        'items': [cylinder('backGas', 0.36)],
+      }),
+    ]);
+
+    expect(await stamp(), greaterThan(1));
+  });
+
   test('gas fractions that pass 1 are refused', () async {
     final plan = await h.preview([
       createOp('cylinder_configs', {
