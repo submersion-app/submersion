@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 
 // double.tryParse SUCCEEDS on "NaN" and "Infinity", so a value read with it
 // and only null-checked reaches the database intact. A NaN weight silently
@@ -64,5 +65,13 @@ void main() {
       expect(before.dives.single['weightUsed'], closeTo(6.5, 0.001));
       expect(after.dives.single['weightUsed'], closeTo(12.0, 0.001));
     });
+  });
+
+  group('non-finite oxygen readings are rejected', () {
+    for (final value in ['NaN', 'Infinity', '-Infinity']) {
+      test('setpoint, loop ppO2 and cell: $value', () {
+        expect(UddfImportParsers.parsePartialPressureBar(value), isNull);
+      });
+    }
   });
 }

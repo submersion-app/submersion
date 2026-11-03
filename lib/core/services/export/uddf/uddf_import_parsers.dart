@@ -334,7 +334,8 @@ class UddfImportParsers {
   static double? parsePartialPressureBar(String? text) {
     if (text == null) return null;
     final value = double.tryParse(text.trim());
-    if (value == null || value <= 0) return null;
+    // double.tryParse accepts "NaN" and "Infinity", and neither is a reading.
+    if (value == null || !value.isFinite || value <= 0) return null;
     return value > 100 ? value / 100000 : value;
   }
 
