@@ -4,13 +4,16 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 
 /// Phase and gas breakdowns follow the data source in view, as the time chart
 /// does. `dive.profile` interleaves every computer's samples.
@@ -101,12 +104,14 @@ void main() {
     TankPressureRepository? pressures,
     double? altitude,
     WaterType? waterType,
+    ProfileAnalysis? analysis,
+    List<DiveProfilePoint>? profile,
   }) {
     final dive = Dive(
       id: diveId,
       dateTime: now,
       tanks: const [shared, theirs],
-      profile: samples(3600),
+      profile: profile ?? samples(3600),
       altitude: altitude,
       waterType: waterType,
     );
@@ -125,6 +130,11 @@ void main() {
         gasAnalysisServiceProvider.overrideWithValue(
           const GasAnalysisService(),
         ),
+        if (analysis != null)
+          sourceProfileAnalysisProvider((
+            diveId: diveId,
+            sourceId: null,
+          )).overrideWith((ref) async => analysis),
       ],
     );
     addTearDown(result.dispose);
@@ -187,6 +197,150 @@ void main() {
     ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
 
     expect(segments!.last.endTimestamp, greaterThan(1800));
+  });
+
+  test('phases name the deco stops the analysis found (#4079)', () async {
+    // 20 minutes at 20 m, then 6 minutes held at 5 m from 1210 s.
+    final segments = await container(
+      sources: [source('a', 'primary-dc', isPrimary: true)],
+      profiles: const {},
+      switches: const [],
+      profile: [
+        for (var t = 0; t <= 1200; t += 10)
+          DiveProfilePoint(timestamp: t, depth: 20),
+        for (var t = 1210; t <= 1570; t += 10)
+          DiveProfilePoint(timestamp: t, depth: 5),
+      ],
+      analysis: ProfileAnalysis.empty().copyWith(
+        decoStopWindows: const [(start: 1210, end: 1570)],
+      ),
+    ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
+
+    final phases = segments!.map((s) => s.phase);
+    expect(phases, contains(DivePhase.deco));
+    expect(phases, isNot(contains(DivePhase.safetyStop)));
+  });
+
+  test('phases read the analysis\'s NDL curve (#4079)', () async {
+    // 20 minutes at 20 m, then 6 minutes held at 5 m, all of it owing deco.
+    final points = [
+      for (var t = 0; t <= 1200; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 20),
+      for (var t = 1210; t <= 1570; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 5),
+    ];
+
+    final segments = await container(
+      sources: [source('a', 'primary-dc', isPrimary: true)],
+      profiles: const {},
+      switches: const [],
+      profile: points,
+      analysis: ProfileAnalysis.empty().copyWith(
+        ndlCurve: List.filled(points.length, -1),
+      ),
+    ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
+
+    expect(
+      segments!.map((s) => s.phase),
+      isNot(contains(DivePhase.safetyStop)),
+    );
+  });
+
+  test('a stop the chart keeps stays a safety stop (#4079)', () async {
+    // The NDL curve reads deco throughout, but the analysis kept the stop, as
+    // it does when the computer flagged a safety stop in the hold.
+    final points = [
+      for (var t = 0; t <= 1200; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 20),
+      for (var t = 1210; t <= 1570; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 5),
+    ];
+    ProfileEvent stopEvent(int timestamp, {required bool isStart}) =>
+        ProfileEvent.safetyStop(
+          id: 'stop-$timestamp',
+          diveId: diveId,
+          timestamp: timestamp,
+          depth: 5,
+          createdAt: now,
+          isStart: isStart,
+        );
+
+    final segments = await container(
+      sources: [source('a', 'primary-dc', isPrimary: true)],
+      profiles: const {},
+      switches: const [],
+      profile: points,
+      analysis: ProfileAnalysis.empty().copyWith(
+        ndlCurve: List.filled(points.length, -1),
+        events: [
+          stopEvent(1210, isStart: true),
+          stopEvent(1570, isStart: false),
+        ],
+      ),
+    ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
+
+    final phases = segments!.map((s) => s.phase);
+    expect(phases, contains(DivePhase.safetyStop));
+    expect(phases, isNot(contains(DivePhase.deco)));
+  });
+
+  group('a safety stop recorded by a computer (#4079)', () {
+    final points = [
+      for (var t = 0; t <= 1200; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 20),
+      for (var t = 1210; t <= 1570; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 5),
+    ];
+
+    /// The phases of the primary source, on an NDL curve that reads deco
+    /// throughout, with a stop on the 5 m hold recorded by [computerId]. As
+    /// every import writes one, it is a start with no end.
+    Future<Iterable<DivePhase?>> phasesWithStopFrom(String computerId) async {
+      final segments = await container(
+        sources: twoComputers,
+        profiles: {
+          'a': SourceProfile(
+            sourceId: 'a',
+            computerId: 'primary-dc',
+            isEdited: false,
+            points: points,
+          ),
+          'b': bucket('b', 'second-dc', 1200),
+        },
+        switches: const [],
+        analysis: ProfileAnalysis.empty().copyWith(
+          ndlCurve: List.filled(points.length, -1),
+          events: [
+            ProfileEvent.safetyStop(
+              id: 'recorded',
+              diveId: diveId,
+              timestamp: 1210,
+              depth: 5,
+              createdAt: now,
+              source: EventSource.imported,
+            ).copyWith(computerId: computerId),
+          ],
+        ),
+      ).read(phaseSegmentsProvider((diveId: diveId, sourceId: null)).future);
+
+      return segments!.map((s) => s.phase);
+    }
+
+    test('stays a safety stop on the computer that recorded it', () async {
+      final phases = await phasesWithStopFrom('primary-dc');
+
+      expect(phases, contains(DivePhase.safetyStop));
+      expect(phases, isNot(contains(DivePhase.deco)));
+    });
+
+    test('says nothing about the computer in view', () async {
+      // The chart hides this computer's events, so the hold in view is judged
+      // on its own NDL curve.
+      final phases = await phasesWithStopFrom('second-dc');
+
+      expect(phases, contains(DivePhase.deco));
+      expect(phases, isNot(contains(DivePhase.safetyStop)));
+    });
   });
 
   test('gas rows ignore another computer\'s switches', () async {

@@ -4,9 +4,10 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
-    show SacSegment;
+    show DivePhase, SacSegment;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 
 void main() {
   late GasAnalysisService service;
@@ -642,6 +643,100 @@ void main() {
       for (final seg in segments) {
         expect(seg.sacRate, greaterThan(0));
       }
+    });
+
+    group('a hold in the safety stop band (#4079)', () {
+      const tank = DiveTank(
+        id: 't1',
+        volume: 11.1,
+        startPressure: 200,
+        endPressure: 80,
+        gasMix: GasMix(o2: 21, he: 0),
+      );
+      // 10 minutes at 30 m, a minute up, then 6 minutes at 5 m from 660 s.
+      final profile = <DiveProfilePoint>[
+        for (var t = 0; t < 600; t += 10)
+          DiveProfilePoint(timestamp: t, depth: 30),
+        for (var t = 600; t < 660; t += 10)
+          DiveProfilePoint(timestamp: t, depth: 30 - 25 * (t - 600) / 60),
+        for (var t = 660; t <= 1020; t += 10)
+          DiveProfilePoint(timestamp: t, depth: 5),
+      ];
+      List<DivePhase?> phases(List<StopWindow> decoStops) => service
+          .calculatePhaseSegments(
+            profile: profile,
+            tanks: const [tank],
+            tankPressures: {'t1': linearPressure('t1', 200, 80, 1020)},
+            decoStops: decoStops,
+          )!
+          .map((s) => s.phase)
+          .toList();
+
+      test('is a safety stop by default', () {
+        expect(phases(const []), contains(DivePhase.safetyStop));
+        expect(phases(const []), isNot(contains(DivePhase.deco)));
+      });
+
+      test('is a deco stop inside a deco stop window', () {
+        final result = phases(const [(start: 660, end: 1020)]);
+
+        expect(result, contains(DivePhase.deco));
+        expect(result, isNot(contains(DivePhase.safetyStop)));
+      });
+
+      test('is a deco stop on a sample the NDL curve reads as in deco', () {
+        // Too short to be a window: a minute at 5 m, sampled every 2 seconds.
+        final short = <DiveProfilePoint>[
+          for (var t = 0; t < 600; t += 2)
+            DiveProfilePoint(timestamp: t, depth: 30),
+          for (var t = 600; t <= 660; t += 2)
+            DiveProfilePoint(timestamp: t, depth: 5),
+          for (var t = 662; t <= 720; t += 2)
+            DiveProfilePoint(timestamp: t, depth: 0),
+        ];
+        List<DivePhase?> shortPhases(List<int> ndlCurve) => service
+            .calculatePhaseSegments(
+              profile: short,
+              tanks: const [tank],
+              tankPressures: {'t1': linearPressure('t1', 200, 80, 720)},
+              ndlCurve: ndlCurve,
+            )!
+            .map((s) => s.phase)
+            .toList();
+
+        expect(shortPhases(const []), contains(DivePhase.safetyStop));
+        expect(
+          shortPhases(List.filled(short.length - 1, -1)),
+          contains(DivePhase.safetyStop),
+          reason: 'a curve of another length is another series',
+        );
+        expect(
+          shortPhases(List.filled(short.length, -1)),
+          isNot(contains(DivePhase.safetyStop)),
+        );
+      });
+
+      test('stays a safety stop inside a safety stop window', () {
+        final result = service
+            .calculatePhaseSegments(
+              profile: profile,
+              tanks: const [tank],
+              tankPressures: {'t1': linearPressure('t1', 200, 80, 1020)},
+              safetyStops: const [(start: 660, end: 1020)],
+              ndlCurve: List.filled(profile.length, -1),
+            )!
+            .map((s) => s.phase);
+
+        expect(result, contains(DivePhase.safetyStop));
+        expect(result, isNot(contains(DivePhase.deco)));
+      });
+
+      test('stays a safety stop outside every window', () {
+        final result = phases(const [(start: 0, end: 300)]);
+
+        expect(result, contains(DivePhase.safetyStop));
+        expect(result, isNot(contains(DivePhase.deco)));
+      });
     });
 
     test('falls back to whole-dive proration when no gas switches identify '
