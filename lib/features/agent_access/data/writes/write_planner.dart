@@ -75,6 +75,15 @@ class _Pass {
       if (op is DeleteOp) (op.entity, op.id),
   };
 
+  /// [_deleted] by entity, for a delete's reach.
+  late final _deletedByEntity = <String, Set<String>>{
+    for (final (entity, _) in _deleted)
+      entity: {
+        for (final (other, id) in _deleted)
+          if (other == entity) id,
+      },
+  };
+
   /// Records an update earlier in the set changes, as each is planned.
   final _changedSoFar = <(String, String)>{};
 
@@ -127,8 +136,10 @@ class _Pass {
       case CreateOp():
         await _create(op, entry);
       case UpdateOp():
+        final before = items.length;
         await _update(op, entry);
-        _changedSoFar.add((op.entity, op.id));
+        // An update that changes nothing leaves the record as it was.
+        if (items.length > before) _changedSoFar.add((op.entity, op.id));
       case DeleteOp():
         await _delete(op, entry);
     }
@@ -260,9 +271,9 @@ class _Pass {
         document: document,
       ),
     );
-    final reach = block == null
-        ? await entry.deleteReach(op.id)
-        : const DeleteReach();
+    Future<DeleteReach> readReach() =>
+        entry.deleteReach(op.id, alongside: _deletedByEntity);
+    final reach = block == null ? await readReach() : const DeleteReach();
     if (block == null) {
       markers.add(
         RecordMarker(
@@ -270,7 +281,7 @@ class _Pass {
           id: op.id,
           updatedAt: row.updatedAt,
           footprint: reach.footprint,
-          readFootprint: () async => (await entry.deleteReach(op.id)).footprint,
+          readFootprint: () async => (await readReach()).footprint,
         ),
       );
     }

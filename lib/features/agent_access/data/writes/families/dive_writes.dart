@@ -174,28 +174,52 @@ class DiveWrites extends WritableEntry {
   }
 
   @override
-  Future<DeleteReach> deleteReach(String id) async {
+  Future<DeleteReach> deleteReach(
+    String id, {
+    Map<String, Set<String>> alongside = const {},
+  }) async {
     final media = await _r.media.partitionMediaForDiveDeletion([id]);
     final documents = await countDocuments(await deletedDocumentOwners(id));
-    // The delete reclaims a stored import file once no other dive's source
-    // names it.
+    final others = [
+      for (final dive in alongside['dives'] ?? const <String>{})
+        if (dive != id) dive,
+    ];
+    // The delete reclaims a stored import file once no surviving dive's
+    // source names it. Several dives of the set can share one, and it is
+    // counted on the last of them by id.
     final files = await countRows(
       'imported_files',
       'id IN (SELECT imported_file_id FROM dive_data_sources '
           'WHERE dive_id = ?1) AND NOT EXISTS (SELECT 1 FROM dive_data_sources s '
-          'WHERE s.imported_file_id = imported_files.id AND s.dive_id <> ?1)',
+          'WHERE s.imported_file_id = imported_files.id AND s.dive_id <> ?1 '
+          'AND (s.dive_id > ?1 OR s.dive_id NOT IN (${marksFrom2(others.length)})))',
       id,
+      others,
     );
+    // A photo held by a site the set also deletes has no link left once both
+    // go, so it is counted here and the site leaves it out.
+    final sites = [...?alongside['sites']];
+    final freed = sites.isEmpty
+        ? 0
+        : await countRows(
+            'media',
+            '"dive_id" = ?1 AND "equipment_id" IS NULL '
+                'AND "site_id" IN (${marksFrom2(sites.length)})',
+            id,
+            sites,
+          );
+    final doomed = media.doomed.length + freed;
+    final kept = media.unlinkIds.length - freed;
     return DeleteReach(
       records: {
         if (documents > 0) 'documents': documents,
-        if (media.doomed.isNotEmpty) 'media': media.doomed.length,
+        if (doomed > 0) 'media': doomed,
         if (files > 0) 'imported_files': files,
       },
       parts: await countCascaded('dives', id),
       unlinked: {
         ...await countUnlinked('dives', id, except: _reportedApart),
-        if (media.unlinkIds.isNotEmpty) 'media': media.unlinkIds.length,
+        if (kept > 0) 'media': kept,
       },
     );
   }

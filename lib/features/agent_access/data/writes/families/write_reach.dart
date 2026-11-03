@@ -89,16 +89,28 @@ Future<Map<String, int>> _counted(
   };
 }
 
-/// How many rows of [table] match [where], which reads [id] as `?1`.
-Future<int> countRows(String table, String where, String id) async {
+/// How many rows of [table] match [where], which reads [id] as `?1` and
+/// [more] from `?2` on, as [marksFrom2] writes them.
+Future<int> countRows(
+  String table,
+  String where,
+  String id, [
+  List<String> more = const [],
+]) async {
   final row = await DatabaseService.instance.database
       .customSelect(
         'SELECT COUNT(*) AS n FROM "$table" WHERE $where',
-        variables: [Variable.withString(id)],
+        variables: [
+          for (final value in [id, ...more]) Variable.withString(value),
+        ],
       )
       .getSingle();
   return row.read<int>('n');
 }
+
+/// The placeholders for [count] values bound after the id: `?2, ?3, ...`.
+String marksFrom2(int count) =>
+    [for (var i = 0; i < count; i++) '?${i + 2}'].join(', ');
 
 typedef _ForeignKey = ({
   String child,

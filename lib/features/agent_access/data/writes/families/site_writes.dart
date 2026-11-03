@@ -52,9 +52,23 @@ class SiteWrites extends WritableEntry {
   Set<String> get requiredOnCreate => const {'name'};
 
   @override
-  Future<DeleteReach> deleteReach(String id) async {
+  Future<DeleteReach> deleteReach(
+    String id, {
+    Map<String, Set<String>> alongside = const {},
+  }) async {
     final media = await _r.media.partitionMediaForSiteDeletion([id]);
     final documents = await countDocuments(await deletedDocumentOwners(id));
+    // A photo of a dive the set also deletes is that dive's to count.
+    final dives = [...?alongside['dives']];
+    final divesOwn = dives.isEmpty
+        ? 0
+        : await countRows(
+            'media',
+            '"site_id" = ?1 AND "dive_id" IN (${marksFrom2(dives.length)})',
+            id,
+            dives,
+          );
+    final kept = media.unlinkIds.length - divesOwn;
     return DeleteReach(
       linkedDives: await countDivesByOwner(
         'SELECT diver_id AS owner, COUNT(*) AS n FROM dives WHERE site_id = ? '
@@ -72,7 +86,7 @@ class SiteWrites extends WritableEntry {
           id,
           except: const {'dives', 'documents', 'media'},
         ),
-        if (media.unlinkIds.isNotEmpty) 'media': media.unlinkIds.length,
+        if (kept > 0) 'media': kept,
       },
     );
   }

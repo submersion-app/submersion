@@ -167,7 +167,11 @@ and does nothing if the row has come back.
    beyond the columns it was given, or a diver allows a change they cannot see.
    Read a repository's delete for what it clears by hand: `countCascaded` sees
    the schema, not that code. A dive's delete also reclaims stored import
-   files no other dive uses, which no foreign key shows.
+   files no other dive uses, which no foreign key shows. A record that goes
+   only once everything holding it goes, such as an import file several
+   dives share or a photo of a dive and its site, depends on what else the
+   set deletes: read `alongside` and count it on one item, so the dialog's
+   totals add up.
    A relation whose write copies values from its target, as a dive's site
    does, sets `copiesTarget`, so it cannot follow a change to that target
    earlier in the same set: the plan works out the copy from the target as it

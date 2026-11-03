@@ -142,6 +142,28 @@ void main() {
         resolveDiver: (id) async => id ?? kDiverA,
       );
 
+  Future<WritePlan> previewDeletes(List<(String, String)> records) =>
+      WritePlanner(
+        writes: WriteCatalog(repositories),
+        records: RecordCatalog(repositories),
+      ).preview(
+        db,
+        ChangeSet.parse({
+          'label': 'Tidy',
+          'operations': [
+            for (final (entity, id) in records)
+              {'op': 'delete', 'entity': entity, 'id': id},
+          ],
+        }),
+        resolveDiver: (id) async => id ?? kDiverA,
+      );
+
+  /// One table's count across a plan's items, as the dialog adds them up.
+  int total(WritePlan plan, String table, {bool unlinked = false}) => [
+    for (final item in plan.items)
+      (unlinked ? item.reach.unlinked : item.reach.records)[table] ?? 0,
+  ].fold(0, (a, b) => a + b);
+
   Map<String, Object?> reachOf(WritePlan plan) =>
       plan.items.single.toJson()['also_reaches']! as Map<String, Object?>;
 
@@ -272,6 +294,18 @@ void main() {
       expect(reach.records, containsPair('imported_files', 1));
     });
 
+    test('counts a file once when every dive using it goes', () async {
+      await dive('d1');
+      await dive('d2');
+      await importedFile('f1');
+      await source('src1', 'd1', 'f1');
+      await source('src2', 'd2', 'f1');
+
+      final plan = await previewDeletes([('dives', 'd1'), ('dives', 'd2')]);
+
+      expect(total(plan, 'imported_files'), 1);
+    });
+
     test('leaves out a file another dive still uses', () async {
       await dive('d1');
       await dive('d2');
@@ -284,6 +318,26 @@ void main() {
       expect(reach.records.containsKey('imported_files'), isFalse);
     });
   });
+
+  test(
+    'a photo of a dive and its site, both deleted, is listed once as deleted '
+    'and never as unlinked',
+    () async {
+      await site('s1');
+      await dive('d1', site: 's1');
+      await media('both', diveId: 'd1', siteId: 's1');
+
+      for (final order in [
+        [('dives', 'd1'), ('sites', 's1')],
+        [('sites', 's1'), ('dives', 'd1')],
+      ]) {
+        final plan = await previewDeletes(order);
+
+        expect(total(plan, 'media'), 1, reason: '$order');
+        expect(total(plan, 'media', unlinked: true), 0, reason: '$order');
+      }
+    },
+  );
 
   test('a site lists its children, its media and its plans', () async {
     await site('s1');

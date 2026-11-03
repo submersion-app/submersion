@@ -178,6 +178,24 @@ void main() {
       },
     );
 
+    test('may follow an update to its site that changes nothing', () async {
+      await dive('d1', water: 'fresh');
+      await site('s1', water: 'fresh');
+
+      final plan = await preview([
+        {
+          'op': 'update',
+          'entity': 'sites',
+          'id': 's1',
+          'fields': {'water_type': 'fresh'},
+        },
+        linkSite('d1', 's1'),
+      ]);
+
+      expect(plan.unchanged.single.id, 's1');
+      expect(plan.applicable, isTrue);
+    });
+
     test('may come before a change to its site', () async {
       await dive('d1', water: 'fresh');
       await site('s1', water: 'fresh');

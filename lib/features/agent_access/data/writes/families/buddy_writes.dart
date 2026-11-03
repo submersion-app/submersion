@@ -36,7 +36,10 @@ class BuddyWrites extends WritableEntry {
   Set<String> get requiredOnCreate => const {'name'};
 
   @override
-  Future<DeleteReach> deleteReach(String id) async {
+  Future<DeleteReach> deleteReach(
+    String id, {
+    Map<String, Set<String>> alongside = const {},
+  }) async {
     final documents = await countDocuments(await deletedDocumentOwners(id));
     return DeleteReach(
       linkedDives: await countDivesByOwner(

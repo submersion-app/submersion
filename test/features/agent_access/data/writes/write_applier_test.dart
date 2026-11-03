@@ -77,7 +77,10 @@ class _Refusing extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) => _inner.refuse(check);
   @override
-  Future<DeleteReach> deleteReach(String id) => _inner.deleteReach(id);
+  Future<DeleteReach> deleteReach(
+    String id, {
+    Map<String, Set<String>> alongside = const {},
+  }) => _inner.deleteReach(id, alongside: alongside);
   @override
   Future<List<DocumentOwner>> deletedDocumentOwners(String id) =>
       _inner.deletedDocumentOwners(id);

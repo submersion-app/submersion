@@ -205,7 +205,14 @@ abstract class WritableEntry {
     Map<String, Object?> document,
   ) async => const SideEffects();
 
-  Future<DeleteReach> deleteReach(String id) async => const DeleteReach();
+  /// What deleting [id] takes with it. [alongside] holds every record the
+  /// change set deletes, by entity, [id] included: some records go only once
+  /// everything holding them goes, and each such record is counted on one
+  /// item, so a plan's totals add up.
+  Future<DeleteReach> deleteReach(
+    String id, {
+    Map<String, Set<String>> alongside = const {},
+  }) async => const DeleteReach();
 
   /// What a diver knows this record by.
   String? titleOf(Map<String, Object?> document) => document['name'] as String?;
