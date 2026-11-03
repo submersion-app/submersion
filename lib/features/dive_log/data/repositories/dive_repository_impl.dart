@@ -849,6 +849,7 @@ class DiveRepository {
   /// runtime and no exit after the entry, the steps of
   /// `measuredRuntimeSecondsSql` before the span. Most logs have none, and then
   /// this runs no statement.
+  // stats-scope-exempt: hydrates the dives of a list, and aggregates nothing
   Future<Map<String, Duration>> _profileSpansFor(List<Dive> rows) async {
     final ids = [
       for (final row in rows)
