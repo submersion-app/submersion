@@ -19,9 +19,12 @@ class TrackStat {
 /// three stats whose formatted length varies by locale and unit system, so
 /// it wraps ([Wrap]) rather than overflowing a rigid [Row].
 class TrackStatRow extends StatelessWidget {
-  const TrackStatRow({super.key, required this.stats});
+  const TrackStatRow({super.key, required this.stats, this.color});
 
   final List<TrackStat> stats;
+
+  /// The figures' colour; the theme's primary colour when null.
+  final Color? color;
 
   static const _iconSize = 14.0;
   static const _iconGap = 4.0;
@@ -29,7 +32,7 @@ class TrackStatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (stats.isEmpty) return const SizedBox.shrink();
-    final color = Theme.of(context).colorScheme.primary;
+    final color = this.color ?? Theme.of(context).colorScheme.primary;
     final style = Theme.of(
       context,
     ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: color);

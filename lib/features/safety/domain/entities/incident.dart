@@ -51,6 +51,10 @@ class Incident extends Equatable {
 
   /// v202: the item an equipment incident attributes to (condition phase 3a).
   final String? equipmentId;
+
+  /// v338: the gear check-in that recorded the fault (issue #3062). Names a
+  /// check-in on [equipmentId]; only an issue check-in is ever linked.
+  final String? observationId;
   final DateTime occurredAt;
   final IncidentCategory category;
   final IncidentSeverity severity;
@@ -65,6 +69,7 @@ class Incident extends Equatable {
     this.diverId,
     this.diveId,
     this.equipmentId,
+    this.observationId,
     required this.occurredAt,
     required this.category,
     required this.severity,
@@ -82,6 +87,8 @@ class Incident extends Equatable {
     bool clearDiveId = false,
     String? equipmentId,
     bool clearEquipmentId = false,
+    String? observationId,
+    bool clearObservationId = false,
     DateTime? occurredAt,
     IncidentCategory? category,
     IncidentSeverity? severity,
@@ -96,6 +103,9 @@ class Incident extends Equatable {
       diverId: diverId ?? this.diverId,
       diveId: clearDiveId ? null : (diveId ?? this.diveId),
       equipmentId: clearEquipmentId ? null : (equipmentId ?? this.equipmentId),
+      observationId: clearObservationId
+          ? null
+          : (observationId ?? this.observationId),
       occurredAt: occurredAt ?? this.occurredAt,
       category: category ?? this.category,
       severity: severity ?? this.severity,
@@ -113,6 +123,7 @@ class Incident extends Equatable {
     diverId,
     diveId,
     equipmentId,
+    observationId,
     occurredAt,
     category,
     severity,

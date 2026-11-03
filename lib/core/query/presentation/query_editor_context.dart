@@ -22,6 +22,7 @@ class QueryEditorContext {
     required this.names,
     required this.labels,
     required this.now,
+    this.language,
   });
 
   final QueryRegistry registry;
@@ -31,15 +32,20 @@ class QueryEditorContext {
   final QueryLabels labels;
   final DateTime Function() now;
 
+  /// The app's language code, for the filler words and month names of a plain
+  /// sentence.
+  final String? language;
+
   /// A parser for this moment: `last 7 days` is anchored on [now] when the
   /// text is parsed, not when the editor opened.
   QueryParser get parser => QueryParser(
     registry,
     root,
-    ParseContext(prefs: prefs, now: now(), names: names),
+    ParseContext(prefs: prefs, now: now(), names: names, language: language),
   );
 
-  QueryPrinter get printer => QueryPrinter(registry, root, prefs);
+  QueryPrinter get printer =>
+      QueryPrinter(registry, root, prefs, language: language);
 
   QueryEditorContext copyWith({
     QueryEntity? root,
@@ -53,5 +59,6 @@ class QueryEditorContext {
     names: names ?? this.names,
     labels: labels ?? this.labels,
     now: now,
+    language: language,
   );
 }

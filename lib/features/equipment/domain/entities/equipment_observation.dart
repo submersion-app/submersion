@@ -78,6 +78,11 @@ class EquipmentObservation extends Equatable {
 
   /// The dive the check-in belongs to; null for a bench observation.
   final String? diveId;
+
+  /// A wall clock in a UTC-flagged value, as a dive's times are, on or off a
+  /// dive: read its fields, never `toLocal`. A deleted dive leaves its check-in
+  /// looking like a bench note, so the two cannot be read differently. A bench
+  /// note saved before #3062 holds an instant, shown as its UTC day.
   final DateTime observedAt;
   final ObservationStatus status;
   final List<ObservationTag> issueTags;

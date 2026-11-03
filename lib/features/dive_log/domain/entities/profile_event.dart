@@ -372,6 +372,15 @@ class ProfileEvent extends Equatable {
     );
   }
 
+  /// Whether this event counts for [analyzedSource], the data source a
+  /// per-source analysis covers: that source's computer's events do, and so
+  /// do ones with no computer. A null [analyzedSource] is a dive-level
+  /// analysis, which every event counts for.
+  bool countsFor(({String? computerId})? analyzedSource) =>
+      analyzedSource == null ||
+      computerId == null ||
+      computerId == analyzedSource.computerId;
+
   ProfileEvent copyWith({
     String? id,
     String? diveId,

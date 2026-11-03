@@ -93,6 +93,7 @@ class _IncidentTile extends ConsumerWidget {
             incidentCategoryLabel(l10n, incident.category),
             incidentSeverityLabel(l10n, incident.severity),
             if (incident.diveId != null) l10n.incidents_linkedDive,
+            if (incident.observationId != null) l10n.incidents_linkedCheckIn,
           ].join(' - '),
         ),
         onTap: () => context.push('/incidents/${incident.id}'),

@@ -66,6 +66,7 @@ void main() {
       'courseRequirements': 'Course requirement',
       'serviceKinds': 'Service type',
       'equipmentLocations': 'Equipment location',
+      'equipmentObservations': 'Gear check-in',
       'importedFiles': 'Imported file',
       'species': 'Species',
       'sightings': 'Sighting',

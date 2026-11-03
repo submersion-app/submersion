@@ -10093,7 +10093,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'Mostrar inmersiones';
 
   @override
-  String get diveLog_search_fieldHint => 'Busca, p. ej. depth > 30m';
+  String get diveLog_search_fieldHint => 'Punto, compañero o fecha';
 
   @override
   String get diveLog_search_refineTooltip => 'Refinar';
@@ -26694,6 +26694,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => 'Ubicación del equipo';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'Revisión de equipo';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Conjunto de equipo';
 
   @override
@@ -40767,6 +40770,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get incidents_linkedDive => 'Vinculado a una inmersión';
 
   @override
+  String get incidents_linkedCheckIn => 'Vinculado a una revisión';
+
+  @override
   String get incidents_delete_confirm =>
       '¿Eliminar este informe de casi incidente?';
 
@@ -40832,6 +40838,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'Todo el equipo';
+
+  @override
+  String get incidentEdit_checkIn => 'Revisión de equipo';
+
+  @override
+  String get incidentEdit_checkIn_others => 'Otras revisiones';
 
   @override
   String get incidentCategory_buoyancy => 'Flotabilidad';
@@ -41644,6 +41656,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'Añadir revisión';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count casi incidentes vinculados',
+      one: 'Casi incidente vinculado',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {
@@ -55646,8 +55669,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return 'Batería: $start V -> $end V';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return 'Batería: $start V → $end V ($change V)';
   }
 
   @override

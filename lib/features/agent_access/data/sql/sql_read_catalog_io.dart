@@ -7,6 +7,7 @@ class SqlRoot {
   const SqlRoot({
     required this.table,
     this.denied = false,
+    this.indexOfReadableTable = false,
     this.deniedColumns = const {},
   });
 
@@ -14,6 +15,10 @@ class SqlRoot {
 
   /// No statement may open this b-tree.
   final bool denied;
+
+  /// A [denied] index on a table that is itself readable, so a statement can
+  /// still reach the table some other way.
+  final bool indexOfReadableTable;
 
   /// Column position to name, for a table that is readable but for these. An
   /// index cursor never carries one: an index holding a denied column is
@@ -65,21 +70,24 @@ class SqlReadCatalog {
       }
     }
 
-    // Indexes over a denied column, expression and partial indexes included:
-    // a NULL column name means an expression, and either that or a predicate
-    // might be over anything.
+    // Indexes over a denied column. A NULL column name means an expression,
+    // and neither that nor a predicate lists what it reads, so those are
+    // judged on their own definition: an index can only reach its table's
+    // columns by name. No definition to read is a refusal.
     final deniedIndexes = <String>{};
     for (final table in positions.keys) {
       for (final row in db.select(
-        'SELECT l.name AS idx, l.partial AS partial, x.name AS col '
+        'SELECT l.name AS idx, l.partial AS partial, x.name AS col, '
+        '(SELECT sql FROM sqlite_schema WHERE name = l.name) AS ddl '
         'FROM pragma_index_list(?) l, pragma_index_xinfo(l.name) x '
         'WHERE x.key = 1',
         [table],
       )) {
         final column = row['col'] as String?;
-        if (column == null ||
-            row['partial'] != 0 ||
-            kSqlDeniedColumns.contains(column)) {
+        final ddl = row['ddl'] as String?;
+        final opaque = column == null || row['partial'] != 0;
+        if (kSqlDeniedColumns.contains(column) ||
+            (opaque && (ddl == null || sqlNamesDeniedColumn(ddl)))) {
           deniedIndexes.add(row['idx'] as String);
         }
       }
@@ -93,13 +101,14 @@ class SqlReadCatalog {
       final table = row['tbl_name'] as String;
       final isIndex = row['type'] == 'index';
       final name = row['name'] as String;
-      final denied =
-          !sqlTableReadable(table) ||
-          wholeTable.contains(table) ||
-          (isIndex && deniedIndexes.contains(name));
+      final tableDenied =
+          !sqlTableReadable(table) || wholeTable.contains(table);
+      final indexDenied = isIndex && deniedIndexes.contains(name);
+      final denied = tableDenied || indexDenied;
       roots[row['rootpage'] as int] = SqlRoot(
         table: table,
         denied: denied,
+        indexOfReadableTable: indexDenied && !tableDenied,
         deniedColumns: isIndex || denied
             ? const {}
             : positions[table] ?? const {},

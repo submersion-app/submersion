@@ -17,7 +17,11 @@ SqlReadCatalog _catalog() => const SqlReadCatalog({
     table: 'media_subscriptions',
     deniedColumns: {6: 'credentials_host_id'},
   ),
-  _storesCredIndex: SqlRoot(table: 'media_subscriptions', denied: true),
+  _storesCredIndex: SqlRoot(
+    table: 'media_subscriptions',
+    denied: true,
+    indexOfReadableTable: true,
+  ),
   _storesNameIndex: SqlRoot(table: 'media_subscriptions'),
 });
 
@@ -65,7 +69,7 @@ void main() {
 
     test('an index holding a denied column is refused', () {
       final refusal = _inspect([_step('OpenRead', p2: _storesCredIndex)]);
-      expect(refusal?.message, contains('media_subscriptions'));
+      expect(refusal?.message, contains('index on media_subscriptions'));
     });
 
     test('an index without a denied column passes', () {

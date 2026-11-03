@@ -1,0 +1,68 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/shared/widgets/record_list_card.dart';
+
+/// One track entry's card, shared by [GpsTrackListTile] and
+/// [NavTrackListRow] so both kinds of entry in the Tracks list look and
+/// react like a dive entry (#4101): the same [RecordListCard], the same
+/// highlight fill, and the dive card's text colours for the [ListTile]
+/// [builder] returns. [builder] receives those colours for anything the
+/// tile theme does not reach, such as the stat row's accent.
+///
+/// The tile inside takes the dive card's 12px inner padding instead of
+/// ListTile's 16/24: the card's own 16px side margin would otherwise leave
+/// a German "Tauchgang #412" link chip too little width on a narrow phone
+/// and squeeze it into an ellipsis (#2692, #3749), which is why #4038 had
+/// dropped that margin.
+///
+/// The tile's `selected` stays the split layout's live pick alone: that is
+/// what tells assistive technology the entry is picked, which the entry
+/// merely last opened is not, and [highlighted]'s fill marks both. The fill
+/// is all that shows the pick, as on a dive entry, so a selected tile paints
+/// the same as any other: its title, subtitle and icons share the card's
+/// `selectedColor`, and the tile gives its title
+/// [RecordCardColors.primaryText] itself.
+class TrackListCard extends StatelessWidget {
+  const TrackListCard({
+    super.key,
+    required this.highlighted,
+    required this.onTap,
+    required this.builder,
+  });
+
+  /// Filled: the split layout's live pick, or the entry last opened.
+  final bool highlighted;
+
+  final VoidCallback onTap;
+  final Widget Function(RecordCardColors colors) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final fill = highlighted
+        ? recordCardSelectionFill(theme.colorScheme)
+        : null;
+    final colors = RecordCardColors.forFill(theme.colorScheme, fill);
+    return RecordListCard(
+      color: fill,
+      onTap: onTap,
+      child: ListTileTheme.merge(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+        // A tile without its own onTap reads as disabled to its mouse region
+        // and shows the basic cursor over the card's click one.
+        mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
+        // The dive card's title and date line.
+        titleTextStyle: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: colors.primaryText,
+        ),
+        subtitleTextStyle: theme.textTheme.bodyMedium?.copyWith(
+          color: colors.secondaryText,
+        ),
+        iconColor: colors.secondaryText,
+        selectedColor: colors.secondaryText,
+        child: builder(colors),
+      ),
+    );
+  }
+}

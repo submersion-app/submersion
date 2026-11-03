@@ -93,10 +93,7 @@ List<ProfileEvent> mergeEvents(
   // Build a set of keys from the DB events that win a tie
   final dbKeys = <(int, ProfileEventType)>{
     for (final event in dbEvents)
-      if (analyzedSource == null ||
-          event.computerId == null ||
-          event.computerId == analyzedSource.computerId)
-        (event.timestamp, event.eventType),
+      if (event.countsFor(analyzedSource)) (event.timestamp, event.eventType),
   };
 
   // Start with all DB events, add non-duplicate auto-detected events

@@ -67,7 +67,8 @@ read the text block for errors.
 Every entity an agent can read is one entry in the catalogue. To add one:
 
 1. Write its mapper in the family's file under `data/documents/`: metric,
-   unit-named keys, never bytes, no `created_at` or `updated_at`.
+   unit-named keys, never bytes, no `created_at` or `updated_at`, and no
+   column the SQL window denies.
 2. Add a `RecordEntity<T>` to the family under `data/records/families/`: the
    wire `name`, the `table`, a `scope`, a `load`, the `document`, and
    `summaryKeys`. Give it a `parentColumn` when `parent_id` makes sense, and
@@ -163,8 +164,11 @@ Classifying a table: a table the change log policy excludes must go in
 does. A table the policy does not know is refused at runtime. A new credential
 column goes in `changeLogCredentialColumns`, which the window reads too. A
 column the log should keep recording but an agent should not see goes in
-`kSqlDeniedColumns` directly, as `manifest_url` does: a private feed's URL can
-carry an access token.
+`kSqlDeniedColumns` directly, as `manifest_url`, `url` and `entry_key` do: any
+of them can carry an access token. An expression or partial index on such a table stays readable
+unless its own definition names a denied column. A statement SQLite would
+answer from a refused index is refused too, and the refusal says to write
+`NOT INDEXED` after the table name.
 
 `submersion://schema` comes from the live schema, so it cannot drift. Its notes
 come from the comments in `lib/core/database/tables/`, because Drift keeps no

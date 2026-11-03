@@ -9575,7 +9575,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => '显示潜水';
 
   @override
-  String get diveLog_search_fieldHint => '搜索，或试试 depth > 30m';
+  String get diveLog_search_fieldHint => '潜水点、潜伴、装备或日期';
 
   @override
   String get diveLog_search_refineTooltip => '细化';
@@ -25186,6 +25186,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => '装备位置';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => '装备检查记录';
+
+  @override
   String get settings_conflict_ref_equipmentSet => '装备套装';
 
   @override
@@ -38352,6 +38355,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get incidents_linkedDive => '已关联潜水';
 
   @override
+  String get incidents_linkedCheckIn => '已关联检查记录';
+
+  @override
   String get incidents_delete_confirm => '删除此未遂事件报告?';
 
   @override
@@ -38414,6 +38420,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => '全部装备';
+
+  @override
+  String get incidentEdit_checkIn => '装备检查记录';
+
+  @override
+  String get incidentEdit_checkIn_others => '其他检查记录';
 
   @override
   String get incidentCategory_buoyancy => '浮力';
@@ -39189,6 +39201,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => '添加检查';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已关联 $count 起未遂事件',
+      one: '已关联未遂事件',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {
@@ -52130,8 +52153,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return '电池：$start V -> $end V';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return '电池：$start V → $end V（$change V）';
   }
 
   @override

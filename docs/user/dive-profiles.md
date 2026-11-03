@@ -154,6 +154,9 @@ The event types Submersion recognises are:
 
 - **Ascent Start**: the start of the final ascent.
 - **Safety Stop Start** / **Safety Stop End**: entry into and exit from the safety-stop zone.
+  Submersion does not detect one on a hold you reached with decompression still
+  owed, since that hold is a deco stop. A safety stop your computer recorded
+  always shows.
 - **Deco Stop Start** / **Deco Stop End**: entry into and exit from a decompression stop.
 - **Decompression Dive**: the dive went into decompression obligation.
 - **Low No-Deco Time**: the no-decompression time ran low.
