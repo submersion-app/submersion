@@ -51342,13 +51342,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'Bijsnijmodus';
 
   @override
-  String get diveLog_profileEditor_deletionHeader => 'Verwijdering';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Verwijder het profiel of delen ervan.';
-
-  @override
   String get diveLog_profileEditor_trimEnd => 'Einde bijsnijden';
 
   @override

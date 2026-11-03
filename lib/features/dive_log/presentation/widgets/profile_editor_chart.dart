@@ -214,11 +214,11 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
     );
   }
 
-  /// The sample times this mode marks. Only Outlier and Draw mode mark any.
+  /// The sample times this mode marks. Only Cleanup and Draw mode mark any.
   Set<int> _markedTimestamps() => switch (widget.mode) {
     EditorMode.outlier => {...?widget.outliers?.map((o) => o.timestamp)},
     EditorMode.draw => {...?widget.waypoints?.map((w) => w.timestamp)},
-    EditorMode.select || EditorMode.smooth || EditorMode.delete => const {},
+    EditorMode.select || EditorMode.smooth => const {},
   };
 
   /// One painter serves every marked sample: it keeps nothing between draws.
@@ -231,15 +231,13 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
           strokeWidth: 2,
           strokeColor: backdropColorOf(context),
         ),
-        EditorMode.outlier ||
-        EditorMode.select ||
-        EditorMode.smooth ||
-        EditorMode.delete => FlDotCirclePainter(
-          radius: 5,
-          color: colorScheme.error,
-          strokeWidth: 1.5,
-          strokeColor: colorScheme.onError,
-        ),
+        EditorMode.outlier || EditorMode.select || EditorMode.smooth =>
+          FlDotCirclePainter(
+            radius: 5,
+            color: colorScheme.error,
+            strokeWidth: 1.5,
+            strokeColor: colorScheme.onError,
+          ),
       };
 
   FlTitlesData _buildTitles(UnitFormatter units) {

@@ -52342,12 +52342,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'وضع القص';
 
   @override
-  String get diveLog_profileEditor_deletionHeader => 'الحذف';
-
-  @override
-  String get diveLog_profileEditor_trimHint => 'احذف ملف الغوصة أو أجزاءً منه.';
-
-  @override
   String get diveLog_profileEditor_trimEnd => 'قص النهاية';
 
   @override

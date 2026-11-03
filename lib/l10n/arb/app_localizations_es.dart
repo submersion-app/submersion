@@ -51719,13 +51719,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'Modo recorte';
 
   @override
-  String get diveLog_profileEditor_deletionHeader => 'Eliminación';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Elimina el perfil o partes de él.';
-
-  @override
   String get diveLog_profileEditor_trimEnd => 'Recortar el final';
 
   @override

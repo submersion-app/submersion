@@ -5,8 +5,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Mode selector toolbar for the profile editor.
 ///
-/// Displays a segmented button with five editing modes:
-/// Select, Smooth, Outlier, Draw, and Trim.
+/// Displays a segmented button with four editing modes:
+/// Select, Smooth, Cleanup, and Draw.
 class EditorToolbar extends StatelessWidget {
   final EditorMode mode;
   final void Function(EditorMode) onModeChanged;
@@ -42,11 +42,6 @@ class EditorToolbar extends StatelessWidget {
             value: EditorMode.draw,
             icon: const Icon(Icons.draw),
             label: Text(context.l10n.diveLog_profileEditor_mode_draw),
-          ),
-          ButtonSegment(
-            value: EditorMode.delete,
-            icon: const Icon(Icons.cleaning_services),
-            label: Text(context.l10n.common_action_delete),
           ),
         ],
         selected: {mode},

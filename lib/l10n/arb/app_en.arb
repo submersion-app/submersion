@@ -29975,11 +29975,6 @@
   "diveLog_profileEditor_clearWaypoints": "Clear",
   "diveLog_profileEditor_generateProfile": "Generate Profile",
   "diveLog_profileEditor_trimMode": "Trim Mode",
-  "diveLog_profileEditor_deletionHeader": "Deletion",
-  "@diveLog_profileEditor_deletionHeader": {
-    "description": "Section header for profile editor actions that delete the entire profile or parts of it"
-  },
-  "diveLog_profileEditor_trimHint": "Delete the profile or parts of it.",
   "diveLog_profileEditor_trimEnd": "Trim End",
   "diveLog_profileEditor_mode_smooth": "Smooth",
   "diveLog_profileEditor_title": "Edit Profile",

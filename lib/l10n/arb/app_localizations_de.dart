@@ -51552,13 +51552,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'Zuschneidemodus';
 
   @override
-  String get diveLog_profileEditor_deletionHeader => 'Löschung';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Lösche das Profil oder Teile davon.';
-
-  @override
   String get diveLog_profileEditor_trimEnd => 'Ende zuschneiden';
 
   @override

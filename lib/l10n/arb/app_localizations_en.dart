@@ -50872,13 +50872,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'Trim Mode';
 
   @override
-  String get diveLog_profileEditor_deletionHeader => 'Deletion';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Delete the profile or parts of it.';
-
-  @override
   String get diveLog_profileEditor_trimEnd => 'Trim End';
 
   @override

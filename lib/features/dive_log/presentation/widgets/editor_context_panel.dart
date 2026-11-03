@@ -8,9 +8,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Renders different controls based on the current [EditorMode]:
 /// - Select: range shift/delete/smooth operations
 /// - Smooth: window size selection and apply buttons
-/// - Outlier: detect and remove outlier controls
+/// - Cleanup: detect and remove outlier controls, trim, and profile deletion
 /// - Draw: waypoint management and profile generation
-/// - Trim: profile trimming controls
 class EditorContextPanel extends StatefulWidget {
   final EditorMode mode;
   final ProfileEditorNotifier notifier;
@@ -72,7 +71,6 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
         EditorMode.smooth => _buildSmoothPanel(context),
         EditorMode.outlier => _buildOutlierPanel(context),
         EditorMode.draw => _buildDrawPanel(context),
-        EditorMode.delete => _buildTrimPanel(context),
       },
     );
   }
@@ -318,25 +316,4 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
     );
   }
 
-  Widget _buildTrimPanel(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          context.l10n.diveLog_profileEditor_deletionHeader,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            context.l10n.diveLog_profileEditor_trimHint,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

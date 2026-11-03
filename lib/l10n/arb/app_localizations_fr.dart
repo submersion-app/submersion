@@ -51791,13 +51791,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_profileEditor_trimMode => 'Mode rognage';
 
   @override
-  String get diveLog_profileEditor_deletionHeader => 'Suppression';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Supprimez le profil ou des parties de celui-ci.';
-
-  @override
   String get diveLog_profileEditor_trimEnd => 'Rogner la fin';
 
   @override
