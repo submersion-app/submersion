@@ -144,4 +144,22 @@ void main() {
     );
     expect(clock.canonical(null), isNull);
   });
+
+  // A set compares by its members, whatever order a document lists them in.
+  test('enumSet parses names into a sorted list', () {
+    final codec = FieldCodec.enumSet(_Mood.values);
+    final parsed = codec.parse(['rough', 'calm']);
+    expect(codec.wire(parsed), ['calm', 'rough']);
+    expect(parsed, codec.canonical(['calm', 'rough']));
+    expect(parsed, codec.canonical(['rough', 'calm']));
+    expect(codec.wire(codec.parse(<String>[])), isEmpty);
+  });
+
+  test('enumSet refuses an unknown name, a repeat or too few', () {
+    final codec = FieldCodec.enumSet(_Mood.values, min: 1);
+    expect(() => codec.parse(['calm', 'stormy']), _refused('calm, rough'));
+    expect(() => codec.parse(['calm', 'calm']), _refused('more than once'));
+    expect(() => codec.parse(<String>[]), _refused('at least 1'));
+    expect(() => codec.parse('calm'), _refused('list'));
+  });
 }

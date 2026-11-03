@@ -8,6 +8,7 @@ import 'package:submersion/features/agent_access/data/writes/families/gas_switch
 import 'package:submersion/features/agent_access/data/writes/families/scenario_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/sighting_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/tag_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/weight_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -35,6 +36,7 @@ class WriteCatalog {
       GasSwitchWrites(repositories),
       AnnotationWrites(repositories),
       ScenarioWrites(repositories),
+      TagWrites(repositories),
     ]);
   }
 

@@ -536,12 +536,9 @@ lib/features/tags/data/repositories/tag_link_repository.dart:deleteLinksFor
 lib/features/tags/data/repositories/tag_link_repository.dart:removeTags
 lib/features/tags/data/repositories/tag_link_repository.dart:replaceTags
 lib/features/tags/data/repositories/tag_repository.dart:addTagToDive
-lib/features/tags/data/repositories/tag_repository.dart:createTag
-lib/features/tags/data/repositories/tag_repository.dart:deleteTag
 lib/features/tags/data/repositories/tag_repository.dart:mergeTags
 lib/features/tags/data/repositories/tag_repository.dart:removeTagFromDive
 lib/features/tags/data/repositories/tag_repository.dart:setTagsForDive
-lib/features/tags/data/repositories/tag_repository.dart:updateTag
 lib/features/tank_presets/data/repositories/tank_preset_repository.dart:createPreset
 lib/features/tank_presets/data/repositories/tank_preset_repository.dart:deletePreset
 lib/features/tank_presets/data/repositories/tank_preset_repository.dart:updatePreset

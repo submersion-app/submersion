@@ -1,0 +1,177 @@
+import 'package:drift/drift.dart';
+
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
+import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
+
+/// A diver's tags, through the repository the tag page uses. A name is the
+/// diver's once, trimmed and case-folded, as the name index keys it, and a
+/// tag applies to at least one scope. Turning a scope off takes the tag off
+/// every item of that scope, as the page warns.
+class TagWrites extends WritableEntry {
+  TagWrites(this._r);
+
+  final RecordRepositories _r;
+
+  static final _colour = RegExp(r'^#[0-9A-Fa-f]{6}$');
+
+  @override
+  String get name => 'tags';
+
+  @override
+  String get table => 'tags';
+
+  @override
+  late final Map<String, FieldCodec> fields = {
+    'name': const FieldCodec.text(maxLength: 100),
+    'color_hex': const FieldCodec.text(maxLength: 7, nullable: true),
+    'scopes': FieldCodec.enumSet(domain.TagScope.values, min: 1),
+  };
+
+  @override
+  Set<String> get requiredOnCreate => const {'name'};
+
+  @override
+  Future<PlanBlock?> refuse(WriteCheck check) async {
+    final colour = check.values['color_hex'];
+    if (colour is String && !_colour.hasMatch(colour)) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'color_hex: a colour is written as #RRGGBB.',
+      );
+    }
+    final name = check.values['name'];
+    if (name is! String) return null;
+    final owner = check.ownerId ?? check.document?['diver_id'] as String?;
+    final holder = await _holderOf(name, owner, except: check.id);
+    if (holder == null) return null;
+    return PlanBlock(
+      BlockReason.duplicateRecord,
+      'name: tag ${holder.id} is already called "${holder.name}". Link that '
+      'tag instead, or delete this one with merge_into ${holder.id} to merge '
+      'them.',
+    );
+  }
+
+  /// The links a change of scopes takes off: every item of a scope it turns
+  /// off.
+  @override
+  Future<SideEffects> sideEffects(
+    String id,
+    String? ownerId,
+    RecordUpdate update,
+    Map<String, Object?> document,
+  ) async {
+    final after = fields['scopes']!.wire(update.values['scopes']);
+    if (after is! List) return const SideEffects();
+    final dropped = [
+      for (final scope in domain.TagScope.values)
+        if ((document['scopes'] as List).contains(scope.name) &&
+            !after.contains(scope.name))
+          scope,
+    ];
+    return SideEffects(parts: await _links(id, dropped));
+  }
+
+  @override
+  Future<DeleteReach> deleteReach(
+    String id, {
+    Map<String, Set<String>> alongside = const {},
+  }) async => DeleteReach(unlinked: await _links(id, domain.TagScope.values));
+
+  @override
+  Future<String> create(String diverId, Map<String, Object?> values) async {
+    final now = DateTime.now();
+    final tag = await _r.tags.createTag(
+      domain.Tag(
+        id: '',
+        diverId: diverId,
+        name: values['name']! as String,
+        colorHex: values['color_hex'] as String?,
+        scopes: _scopes(values['scopes']) ?? const {domain.TagScope.dives},
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    return tag.id;
+  }
+
+  @override
+  Future<void> update(String id, String? ownerId, RecordUpdate update) async {
+    final current = await _r.tags.getTagById(id) ?? _gone(id);
+    final v = update.values;
+    await _r.tags.updateTag(
+      domain.Tag(
+        id: id,
+        diverId: current.diverId,
+        name: v['name'] as String? ?? current.name,
+        colorHex: v.containsKey('color_hex')
+            ? v['color_hex'] as String?
+            : current.colorHex,
+        scopes: _scopes(v['scopes']) ?? current.scopes,
+        createdAt: current.createdAt,
+        updatedAt: current.updatedAt,
+      ),
+    );
+  }
+
+  @override
+  Future<void> delete(String id, String? ownerId) => _r.tags.deleteTag(id);
+
+  Set<domain.TagScope>? _scopes(Object? parsed) {
+    final names = fields['scopes']!.wire(parsed);
+    if (names is! List) return null;
+    return {for (final name in names) domain.TagScope.values.byName('$name')};
+  }
+
+  /// The tag of [ownerId] holding [name] as the name index keys it, other
+  /// than [except].
+  Future<({String id, String name})?> _holderOf(
+    String name,
+    String? ownerId, {
+    String? except,
+  }) async {
+    final db = DatabaseService.instance.database;
+    final query = db.select(db.tags)
+      ..where(
+        (t) =>
+            t.name.trim().unicodeLower().equals(name.trim().toLowerCase()) &
+            coalesce([t.diverId, const Constant('')]).equals(ownerId ?? '') &
+            (except == null ? const Constant(true) : t.id.equals(except).not()),
+      )
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row == null ? null : (id: row.id, name: row.name);
+  }
+
+  /// How many items of each of [scopes] carry tag [id], by junction table.
+  Future<Map<String, int>> _links(
+    String id,
+    Iterable<domain.TagScope> scopes,
+  ) async {
+    final counts = <String, int>{};
+    final db = DatabaseService.instance.database;
+    for (final scope in scopes) {
+      final junction = scope.table.junctionTable;
+      final row = await db
+          .customSelect(
+            'SELECT COUNT(*) AS n FROM "$junction" WHERE tag_id = ?',
+            variables: [Variable.withString(id)],
+          )
+          .getSingle();
+      final n = row.read<int>('n');
+      if (n > 0) counts[junction] = n;
+    }
+    return counts;
+  }
+
+  Never _gone(String id) => throw AgentToolException(
+    AgentToolErrorCode.writeRefused,
+    'Tag $id no longer exists.',
+    details: {'id': id},
+  );
+}

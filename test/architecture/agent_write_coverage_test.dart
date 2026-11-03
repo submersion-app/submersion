@@ -96,6 +96,9 @@ void main() {
         'dive_scenarios',
     'lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:deleteScenario':
         'dive_scenarios',
+    'lib/features/tags/data/repositories/tag_repository.dart:createTag': 'tags',
+    'lib/features/tags/data/repositories/tag_repository.dart:updateTag': 'tags',
+    'lib/features/tags/data/repositories/tag_repository.dart:deleteTag': 'tags',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

@@ -38,6 +38,11 @@ abstract class FieldCodec {
   factory FieldCodec.enumName(Iterable<Enum> values, {bool nullable}) =
       _EnumCodec;
 
+  /// A set of [values]' `.name`s, written as a list, at least [min] of them.
+  /// The parsed value is the sorted names joined with commas, so a set
+  /// compares with a document's list whatever order either is in.
+  factory FieldCodec.enumSet(Iterable<Enum> values, {int min}) = _EnumSetCodec;
+
   /// A wall clock, written as documents write it, with a nominal `Z`.
   const factory FieldCodec.wallClock() = _WallClockCodec;
 
@@ -164,6 +169,53 @@ class _EnumCodec extends FieldCodec {
     if (raw is String && _names.contains(raw)) return raw;
     throw FieldRefusal('This field takes one of ${_names.join(', ')}.');
   }
+}
+
+class _EnumSetCodec extends FieldCodec {
+  _EnumSetCodec(Iterable<Enum> values, {this.min = 0})
+    : _names = [for (final value in values) value.name];
+
+  final List<String> _names;
+  final int min;
+
+  @override
+  String get describe => 'a list of ${_names.join(', ')}';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! List) {
+      throw FieldRefusal('This field takes a list of ${_names.join(', ')}.');
+    }
+    final names = <String>{};
+    for (final name in raw) {
+      if (name is! String || !_names.contains(name)) {
+        throw FieldRefusal('This field takes ${_names.join(', ')}.');
+      }
+      if (!names.add(name)) {
+        throw FieldRefusal('$name is listed more than once.');
+      }
+    }
+    if (names.length < min) {
+      throw FieldRefusal('This field takes at least $min of them.');
+    }
+    return _joined(names);
+  }
+
+  @override
+  Object? canonical(Object? documentValue) => documentValue is List
+      ? _joined({for (final name in documentValue) '$name'})
+      : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String
+      ? [
+          for (final name in value.split(','))
+            if (name.isNotEmpty) name,
+        ]
+      : value;
+
+  static String _joined(Set<String> names) =>
+      (names.toList()..sort()).join(',');
 }
 
 class ReferenceCodec extends FieldCodec {
