@@ -35,7 +35,7 @@ class EditorToolbar extends StatelessWidget {
           ),
           ButtonSegment(
             value: EditorMode.outlier,
-            icon: const Icon(Icons.warning_amber),
+            icon: const Icon(Icons.cleaning_services),
             label: Text(context.l10n.diveLog_profileEditor_mode_cleanup),
           ),
           ButtonSegment(

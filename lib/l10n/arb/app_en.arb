@@ -29994,7 +29994,7 @@
   "diveLog_profileEditor_smoothTooFewBlocked": "Can't smooth: select at least three samples",
   "diveLog_profileEditor_undo": "Undo",
   "diveLog_profileEditor_mode_select": "Select",
-  "diveLog_profileEditor_mode_cleanup": "Outlier",
+  "diveLog_profileEditor_mode_cleanup": "Cleanup",
   "diveLog_profileEditor_mode_draw": "Draw",
   "diveLog_profileEditor_mode_trim": "Trim",
   "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
@@ -30379,7 +30379,7 @@
     "description": "Profile editor mode: select a range of the depth curve."
   },
   "@diveLog_profileEditor_mode_cleanup": {
-    "description": "Profile editor mode: find and remove suspect depth samples."
+    "description": "Profile editor mode: find and remove unnecessary depth samples or the entire profile."
   },
   "@diveLog_profileEditor_mode_draw": {
     "description": "Profile editor mode: draw the depth curve by placing waypoints."

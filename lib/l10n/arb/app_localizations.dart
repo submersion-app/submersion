@@ -81855,7 +81855,7 @@ abstract class AppLocalizations {
   /// Profile editor mode: find and remove suspect depth samples.
   ///
   /// In en, this message translates to:
-  /// **'Outlier'**
+  /// **'Cleanup'**
   String get diveLog_profileEditor_mode_cleanup;
 
   /// Profile editor mode: draw the depth curve by placing waypoints.
