@@ -195,16 +195,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
             selectedIds: checkedIds,
             isSelectionMode: selection.isActive,
           ),
-          MediaLibraryViewMode.byDive => MediaLibraryGroupedList(
-            groups: groups!,
-            hasMore: state.hasMore,
-            onLoadMore: loadMore,
-            onTileTap: handleTap,
-            columns: columns,
-            targetSize: targetSize,
-            selectedIds: checkedIds,
-            isSelectionMode: selection.isActive,
-          ),
+          MediaLibraryViewMode.byDive ||
           MediaLibraryViewMode.timeline => MediaLibraryGroupedList(
             groups: groups!,
             hasMore: state.hasMore,
