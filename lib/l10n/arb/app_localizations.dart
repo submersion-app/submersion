@@ -34170,6 +34170,18 @@ abstract class AppLocalizations {
   /// **'Visit github.com/submersion-app/submersion/issues'**
   String get settings_about_reportIssue_snackbar;
 
+  /// No description provided for @settings_about_userGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'User Guide'**
+  String get settings_about_userGuide;
+
+  /// No description provided for @settings_about_userGuide_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit submersion.app/guide'**
+  String get settings_about_userGuide_snackbar;
+
   /// No description provided for @settings_about_version.
   ///
   /// In en, this message translates to:

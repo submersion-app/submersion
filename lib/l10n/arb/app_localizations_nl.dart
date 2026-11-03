@@ -21309,6 +21309,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ga naar github.com/submersion-app/submersion/issues';
 
   @override
+  String get settings_about_userGuide => 'Gebruikershandleiding';
+
+  @override
+  String get settings_about_userGuide_snackbar =>
+      'Ga naar submersion.app/guide';
+
+  @override
   String settings_about_version(String version) {
     return 'Versie $version';
   }

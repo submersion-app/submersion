@@ -21372,6 +21372,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Látogasson el: github.com/submersion-app/submersion/issues';
 
   @override
+  String get settings_about_userGuide => 'Felhasználói útmutató';
+
+  @override
+  String get settings_about_userGuide_snackbar =>
+      'Látogasson el: submersion.app/guide';
+
+  @override
   String settings_about_version(String version) {
     return 'Verzió $version';
   }

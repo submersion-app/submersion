@@ -20398,6 +20398,12 @@ class AppLocalizationsZh extends AppLocalizations {
       '请访问 github.com/submersion-app/submersion/issues';
 
   @override
+  String get settings_about_userGuide => '用户指南';
+
+  @override
+  String get settings_about_userGuide_snackbar => '请访问 submersion.app/guide';
+
+  @override
   String settings_about_version(String version) {
     return '版本 $version';
   }

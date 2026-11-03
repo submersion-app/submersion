@@ -21438,6 +21438,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Visita github.com/submersion-app/submersion/issues';
 
   @override
+  String get settings_about_userGuide => 'Guía del usuario';
+
+  @override
+  String get settings_about_userGuide_snackbar => 'Visita submersion.app/guide';
+
+  @override
   String settings_about_version(String version) {
     return 'Versión $version';
   }

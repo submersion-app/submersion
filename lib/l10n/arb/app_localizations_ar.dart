@@ -21738,6 +21738,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'قم بزيارة github.com/submersion-app/submersion/issues';
 
   @override
+  String get settings_about_userGuide => 'دليل المستخدم';
+
+  @override
+  String get settings_about_userGuide_snackbar =>
+      'قم بزيارة submersion.app/guide';
+
+  @override
   String settings_about_version(String version) {
     return 'الإصدار $version';
   }
