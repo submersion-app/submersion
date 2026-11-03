@@ -144,6 +144,11 @@ final Map<String, ConflictField> peoplePlanningFields = {
     FieldKind.enumValue,
     enumLabel: planModeLabeler,
   ),
+  // A plan's own name within its repetitive series (issue #3565).
+  'diveName': ConflictField(
+    (l) => l.settings_conflict_field_diveName,
+    FieldKind.shortText,
+  ),
   'divingSince': ConflictField(
     (l) => l.settings_conflict_field_divingSince,
     FieldKind.number,
@@ -444,6 +449,11 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_section,
     FieldKind.shortText,
   ),
+  // A plan's 0-based position in its repetitive series (issue #3565).
+  'seriesIndex': ConflictField(
+    (l) => l.settings_conflict_field_seriesIndex,
+    FieldKind.number,
+  ),
   'setpointBar': ConflictField(
     (l) => l.settings_conflict_field_setpointBar,
     FieldKind.partialPressure,
@@ -472,6 +482,12 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_sourceItemId,
     FieldKind.opaque,
   ),
+  // A plan tank's carry-over source (issue #3565): a logged dive's tank or
+  // a plan tank, so not a reference the dialog can resolve.
+  'sourceTankId': ConflictField(
+    (l) => l.settings_conflict_field_sourceTankId,
+    FieldKind.opaque,
+  ),
   'sourceValueNumber': ConflictField(
     (l) => l.settings_conflict_field_sourceValueNumber,
     FieldKind.number,
@@ -487,6 +503,11 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'startDepth': ConflictField(
     (l) => l.settings_conflict_field_startDepth,
     FieldKind.depth,
+  ),
+  // True = a plan tank's start pressure was set by hand (issue #3565).
+  'startPressurePinned': ConflictField(
+    (l) => l.settings_conflict_field_startPressurePinned,
+    FieldKind.boolean,
   ),
   'startedAt': ConflictField(
     (l) => l.settings_conflict_field_startedAt,

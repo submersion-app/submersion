@@ -24511,6 +24511,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Légzési mód ebben a szakaszban';
 
   @override
+  String get settings_conflict_field_diveName => 'Merülés neve';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Merülésszervező';
 
   @override
@@ -25446,6 +25449,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_section => 'Szakasz';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Hely a sorozatban';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Szerviz típusa';
 
   @override
@@ -25638,6 +25644,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Forrásfájl vagy -eszköz';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Átvéve a palackból';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Palack száma a forrásnaplóban';
 
@@ -25665,6 +25674,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Kezdő mélység';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Kezdőnyomás kézzel megadva';
 
   @override
   String get settings_conflict_field_startTime => 'Kezdés ideje';
@@ -26533,6 +26546,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Merülési terv';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Merülési sorozat';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Merülési szerep';
 
   @override
@@ -26555,6 +26571,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Észrevétel';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Előző merülés';
 
   @override
   String get settings_conflict_ref_importedFile => 'Importált fájl';

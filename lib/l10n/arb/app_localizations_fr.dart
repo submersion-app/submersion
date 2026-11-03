@@ -24666,6 +24666,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mode respiratoire pour ce segment';
 
   @override
+  String get settings_conflict_field_diveName => 'Nom de la plongée';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Opérateur de plongée';
 
   @override
@@ -25635,6 +25638,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_section => 'Section';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Position dans la série';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Type d\'entretien';
 
   @override
@@ -25831,6 +25837,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Fichier ou appareil source';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Reprise du bloc';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Numéro du bloc dans le carnet source';
 
@@ -25858,6 +25867,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Profondeur de départ';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Pression de départ saisie manuellement';
 
   @override
   String get settings_conflict_field_startTime => 'Heure de début';
@@ -26734,6 +26747,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Plan de plongée';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Série de plongées';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Rôle de plongée';
 
   @override
@@ -26757,6 +26773,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Anomalie';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Plongée précédente';
 
   @override
   String get settings_conflict_ref_importedFile => 'Fichier importé';

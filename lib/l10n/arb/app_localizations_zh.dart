@@ -23270,6 +23270,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_diveModeOverride => '此段的呼吸模式';
 
   @override
+  String get settings_conflict_field_diveName => '潜水名称';
+
+  @override
   String get settings_conflict_field_diveOperator => '潜水运营商';
 
   @override
@@ -24145,6 +24148,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_section => '分区';
 
   @override
+  String get settings_conflict_field_seriesIndex => '在系列中的位置';
+
+  @override
   String get settings_conflict_field_serviceCategory => '保养类型';
 
   @override
@@ -24309,6 +24315,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_sourceRef => '源文件或设备';
 
   @override
+  String get settings_conflict_field_sourceTankId => '沿用自气瓶';
+
+  @override
   String get settings_conflict_field_sourceTankIndex => '源日志中的气瓶编号';
 
   @override
@@ -24334,6 +24343,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => '起始深度';
+
+  @override
+  String get settings_conflict_field_startPressurePinned => '手动设置的起始压力';
 
   @override
   String get settings_conflict_field_startTime => '开始时间';
@@ -25168,6 +25180,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_divePlan => '潜水计划';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => '潜水系列';
+
+  @override
   String get settings_conflict_ref_diveRole => '潜水角色';
 
   @override
@@ -25190,6 +25205,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => '发现项';
+
+  @override
+  String get settings_conflict_ref_followedDive => '前一次潜水';
 
   @override
   String get settings_conflict_ref_importedFile => '导入的文件';

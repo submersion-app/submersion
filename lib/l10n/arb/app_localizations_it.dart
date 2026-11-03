@@ -24606,6 +24606,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Modalità di respirazione per questo segmento';
 
   @override
+  String get settings_conflict_field_diveName => 'Nome dell\'immersione';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Operatore subacqueo';
 
   @override
@@ -25577,6 +25580,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_section => 'Sezione';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Posizione nella serie';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Tipo di manutenzione';
 
   @override
@@ -25776,6 +25782,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'File o dispositivo di origine';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Ripresa dalla bombola';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Numero della bombola nel logbook di origine';
 
@@ -25804,6 +25813,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Profondità iniziale';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Pressione iniziale impostata a mano';
 
   @override
   String get settings_conflict_field_startTime => 'Ora di inizio';
@@ -26679,6 +26692,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Piano di immersione';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Serie di immersioni';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Ruolo nell\'immersione';
 
   @override
@@ -26702,6 +26718,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Rilievo';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Immersione precedente';
 
   @override
   String get settings_conflict_ref_importedFile => 'File importato';

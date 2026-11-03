@@ -24554,6 +24554,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Atemmodus für diesen Abschnitt';
 
   @override
+  String get settings_conflict_field_diveName => 'Name des Tauchgangs';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Tauchanbieter';
 
   @override
@@ -25513,6 +25516,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_section => 'Abschnitt';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Position in der Serie';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Wartungsart';
 
   @override
@@ -25708,6 +25714,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Quelldatei oder Gerät';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Übernommen von Flasche';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Flaschennummer im Quell-Logbuch';
 
@@ -25735,6 +25744,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Anfangstiefe';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Startdruck manuell festgelegt';
 
   @override
   String get settings_conflict_field_startTime => 'Startzeit';
@@ -26607,6 +26620,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Tauchplan';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Tauchgangsserie';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Tauchrolle';
 
   @override
@@ -26629,6 +26645,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Befund';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Vorangehender Tauchgang';
 
   @override
   String get settings_conflict_ref_importedFile => 'Importierte Datei';

@@ -24873,6 +24873,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'وضع التنفس لهذا المقطع';
 
   @override
+  String get settings_conflict_field_diveName => 'اسم الغطسة';
+
+  @override
   String get settings_conflict_field_diveOperator => 'مشغل الغوص';
 
   @override
@@ -25796,6 +25799,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_section => 'القسم';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'الموضع في السلسلة';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'نوع الصيانة';
 
   @override
@@ -25982,6 +25988,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'الملف أو الجهاز المصدر';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'منقولة من الأسطوانة';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'رقم الأسطوانة في السجل المصدر';
 
@@ -26009,6 +26018,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'عمق البداية';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'ضغط البداية محدد يدويًا';
 
   @override
   String get settings_conflict_field_startTime => 'وقت البدء';
@@ -26888,6 +26901,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'خطة الغوص';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'سلسلة الغطسات';
+
+  @override
   String get settings_conflict_ref_diveRole => 'الدور في الغوص';
 
   @override
@@ -26910,6 +26926,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'الملاحظة';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'الغطسة السابقة';
 
   @override
   String get settings_conflict_ref_importedFile => 'ملف مستورد';

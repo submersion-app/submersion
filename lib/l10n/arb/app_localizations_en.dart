@@ -24212,6 +24212,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Breathing mode for this segment';
 
   @override
+  String get settings_conflict_field_diveName => 'Dive name';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Dive operator';
 
   @override
@@ -25135,6 +25138,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_section => 'Section';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Position in series';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Service type';
 
   @override
@@ -25324,6 +25330,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Source file or device';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Carried over from tank';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Tank number in the source log';
 
@@ -25351,6 +25360,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Start depth';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Start pressure set by hand';
 
   @override
   String get settings_conflict_field_startTime => 'Start time';
@@ -26210,6 +26223,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Dive plan';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Dive series';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Dive role';
 
   @override
@@ -26232,6 +26248,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Finding';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Followed dive';
 
   @override
   String get settings_conflict_ref_importedFile => 'Imported file';

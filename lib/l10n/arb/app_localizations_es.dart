@@ -24606,6 +24606,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Modo de respiración en este tramo';
 
   @override
+  String get settings_conflict_field_diveName => 'Nombre de la inmersión';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Operador de buceo';
 
   @override
@@ -25572,6 +25575,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_section => 'Sección';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Posición en la serie';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Tipo de mantenimiento';
 
   @override
@@ -25771,6 +25777,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Archivo o dispositivo de origen';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Traspasada de la botella';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Número de tanque en el registro de origen';
 
@@ -25798,6 +25807,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Profundidad inicial';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Presión inicial fijada a mano';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de inicio';
@@ -26676,6 +26689,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Plan de buceo';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Serie de inmersiones';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Función en la inmersión';
 
   @override
@@ -26698,6 +26714,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Hallazgo';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Inmersión anterior';
 
   @override
   String get settings_conflict_ref_importedFile => 'Archivo importado';
