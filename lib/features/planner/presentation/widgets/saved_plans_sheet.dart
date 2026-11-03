@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
@@ -225,9 +226,13 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
       final series = seriesFromSubplanJson(source);
       final String planId;
       if (series != null) {
+        // The file leaves the sender's diver out; an imported series is a
+        // first save, so it belongs to the diver importing it.
         final stored = await ref
             .read(divePlanSeriesRepositoryProvider)
-            .saveSeries(series);
+            .saveSeries(
+              series.copyWith(diverId: ref.read(currentDiverIdProvider)),
+            );
         planId = stored.dives.first.plan.id;
       } else {
         final plan = subplanFromJson(source);

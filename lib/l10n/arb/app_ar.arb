@@ -6028,7 +6028,7 @@
   "plannerSeries_unsaved_discard": "تجاهل",
   "plannerSeries_unsaved_titleDive": "هل تريد حفظ هذه الغطسة؟",
   "plannerSeries_unsaved_bodyDive": "تحتوي هذه الغطسة على تغييرات غير محفوظة.",
-  "plannerSeries_saved_diveCount": "{count, plural, two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
+  "plannerSeries_saved_diveCount": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "plannerSeries_fill": "ملء {tank}",
   "plannerSeries_fillAll": "ملء كل الأسطوانات",
   "plannerSeries_convertUnavailable": "لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد",

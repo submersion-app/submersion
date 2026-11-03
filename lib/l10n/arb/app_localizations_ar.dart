@@ -21367,6 +21367,7 @@ class AppLocalizationsAr extends AppLocalizations {
       many: '$count غطسة',
       few: '$count غطسات',
       two: 'غطستان',
+      one: 'غطسة واحدة',
     );
     return '$_temp0';
   }
