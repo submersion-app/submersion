@@ -100,6 +100,15 @@ void main() {
       expect(await diveVersion(), greaterThan(seeded));
     });
 
+    test('an add goes after the highest order, past a gap', () async {
+      await tank('t1', 0);
+      await tank('t3', 2);
+
+      final id = await repo.addTank('d1', const DiveTanksCompanion());
+
+      expect((await tankRow(id))!.tankOrder, 3);
+    });
+
     test('an add keeps an order it is given', () async {
       final id = await repo.addTank(
         'd1',

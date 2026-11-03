@@ -12,7 +12,8 @@ import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 /// drops every tank's pressure series and gas switches, and a dive save
 /// rewrites the dive from an entity, so a change to one row goes through here.
 /// Each write marks its own row pending, which moves the row's clock, in the
-/// same block as the write, and stamps the dive, as the dive editor's does. None opens a transaction or notifies: the caller owns both.
+/// same block as the write, and stamps the dive, as the dive editor's does.
+/// None opens a transaction or notifies: the caller owns both.
 class DiveChildRowRepository {
   DiveChildRowRepository({AppDatabase? database})
     : _database = database,
@@ -26,12 +27,13 @@ class DiveChildRowRepository {
   static const _uuid = Uuid();
 
   /// Adds a tank to [diveId] from [values], after the tanks it has unless
-  /// [values] names an order. Returns the new tank's id.
+  /// [values] names an order: one past the highest, since a delete leaves a
+  /// gap a count would land on. Returns the new tank's id.
   Future<String> addTank(String diveId, DiveTanksCompanion values) async {
     final id = _uuid.v4();
     final order = values.tankOrder.present
         ? values.tankOrder
-        : Value(await _count(_db.diveTanks, _db.diveTanks.diveId, diveId));
+        : Value(await _nextTankOrder(diveId));
     await _db
         .into(_db.diveTanks)
         .insert(
@@ -73,9 +75,9 @@ class DiveChildRowRepository {
   }
 
   /// Deletes [tankId] with its pressure series and gas switches, and clears
-  /// the profile events that name it. SQLite
-  /// cascades both without Drift seeing a write, so the series go through
-  /// their repository, which tombstones each, and the switches' tombstones are
+  /// the profile events that name it. SQLite cascades the series and the
+  /// switches without Drift seeing a write, so the series go through their
+  /// repository, which tombstones each, and the switches' tombstones are
   /// logged here, as a dive save does (issue #32). False when the tank has
   /// gone.
   Future<bool> deleteTank(String tankId) async {
@@ -114,16 +116,16 @@ class DiveChildRowRepository {
   /// Adds a weight to [diveId] from [values]. Returns the new weight's id.
   Future<String> addWeight(String diveId, DiveWeightsCompanion values) async {
     final id = _uuid.v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
     await _db
         .into(_db.diveWeights)
         .insert(
           _normalized(values).copyWith(
             id: Value(id),
             diveId: Value(diveId),
-            createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+            createdAt: Value(now),
           ),
         );
-    final now = DateTime.now().millisecondsSinceEpoch;
     await _sync.markRecordPending(
       entityType: 'diveWeights',
       recordId: id,
@@ -179,18 +181,15 @@ class DiveChildRowRepository {
     _db.diveTanks,
   )..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  Future<int> _count(
-    TableInfo<Table, Object?> table,
-    GeneratedColumn<String> column,
-    String value,
-  ) async {
-    final count = column.count();
+  Future<int> _nextTankOrder(String diveId) async {
+    final highest = _db.diveTanks.tankOrder.max();
     final row =
-        await (_db.selectOnly(table)
-              ..addColumns([count])
-              ..where(column.equals(value)))
+        await (_db.selectOnly(_db.diveTanks)
+              ..addColumns([highest])
+              ..where(_db.diveTanks.diveId.equals(diveId)))
             .getSingle();
-    return row.read(count) ?? 0;
+    final max = row.read(highest);
+    return max == null ? 0 : max + 1;
   }
 
   Future<void> _stampDive(String diveId, {int? now}) async {

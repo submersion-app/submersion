@@ -308,6 +308,18 @@ void main() {
 
     test('a revert brings a deleted tank back with its switches', () async {
       await gasSwitch('g1', 't1');
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'e1',
+              diveId: 'd1',
+              timestamp: 60,
+              eventType: 'gasChange',
+              createdAt: 0,
+              tankId: const Value('t1'),
+            ),
+          );
 
       final result = await h.run([deleteOp('dive_tanks', 't1')]);
       expect(await h.one('dive_tanks', 't1'), isNull);
@@ -317,6 +329,8 @@ void main() {
 
       expect((await h.one('dive_tanks', 't1'))!['name'], 'Tank t1');
       expect(await db.select(db.gasSwitches).get(), hasLength(1));
+      final event = await db.select(db.diveProfileEvents).getSingle();
+      expect(event.tankId, 't1');
     });
   });
 }
