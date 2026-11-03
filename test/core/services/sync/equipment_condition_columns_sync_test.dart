@@ -209,6 +209,39 @@ void main() {
       });
     });
 
+    group('a report that stops naming the check-in\'s item', () {
+      // A peer below v338 moves or clears the item and omits observationId, so
+      // the overlay keeps the link. It then points at another item's check-in.
+      test('loses its link when moved to another item', () async {
+        await seedCheckIn();
+        await serializer.upsertRecord('equipment', equipment('bcd'));
+        await serializer.upsertRecord('incidents', {
+          ...incident(observationId: 'o1'),
+          'equipmentId': 'bcd',
+        });
+
+        await serializer.repairDanglingForeignKeys();
+
+        final back = await serializer.fetchRecord('incidents', 'i1');
+        expect(back!['observationId'], isNull);
+        expect(back['equipmentId'], 'bcd');
+      });
+
+      test('loses its link when its item is cleared', () async {
+        await seedCheckIn();
+        await serializer.upsertRecord('incidents', {
+          ...incident(observationId: 'o1'),
+          'equipmentId': null,
+        });
+
+        await serializer.repairDanglingForeignKeys();
+
+        final back = await serializer.fetchRecord('incidents', 'i1');
+        expect(back, isNotNull);
+        expect(back!['observationId'], isNull);
+      });
+    });
+
     test('the merge guards the link as a nullable parent', () {
       expect(
         SyncService.parentRefs['incidents'],

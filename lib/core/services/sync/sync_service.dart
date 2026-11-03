@@ -4614,7 +4614,7 @@ class SyncService {
   Future<void> _applyConflictRow(String entityType, Map<String, dynamic> row) =>
       _serializer.applyInDeferredFkTransaction(() async {
         await _serializer.upsertRecord(entityType, row);
-        await _serializer.repairDanglingForeignKeys();
+        await _serializer.repairAfterRowWrite(entityType);
       });
 
   Future<void> _markPendingForConflict(

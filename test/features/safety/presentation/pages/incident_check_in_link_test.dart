@@ -80,9 +80,11 @@ void main() {
     ObservationTag tag = ObservationTag.freeFlow,
     String note = '',
     DateTime? observedAt,
+    String? diverId,
   }) => observations.create(
     equipmentId: equipmentId,
     diveId: diveId,
+    diverId: diverId,
     observedAt: observedAt ?? DateTime.utc(2026, 3, 1, 11),
     status: status,
     issueTags: [if (status == ObservationStatus.issue) tag],
@@ -93,6 +95,7 @@ void main() {
     WidgetTester tester,
     Widget page, {
     Size size = const Size(800, 1400),
+    String? activeDiver,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -115,7 +118,9 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
-          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => activeDiver,
+          ),
           equipmentObservationRepositoryProvider.overrideWithValue(
             observations,
           ),
@@ -199,6 +204,70 @@ void main() {
 
       expect(find.text('Log near-miss'), findsOneWidget);
       expect(find.text('Gear check-in'), findsNothing);
+    });
+  });
+
+  group('a check-in on shared gear', () {
+    setUp(() async {
+      for (final id in ['me', 'buddy']) {
+        await db.customStatement(
+          "INSERT INTO divers (id, name, created_at, updated_at) "
+          "VALUES ('$id', '$id', 1, 1)",
+        );
+      }
+      // The gear picker lists the active diver's items.
+      await db.customStatement(
+        "UPDATE equipment SET diver_id = 'me' WHERE id = 'reg'",
+      );
+    });
+
+    testWidgets('logging from another profile\'s keeps the report off their '
+        'dive, and links', (tester) async {
+      final observation = await checkIn(diverId: 'buddy', note: 'Their fault');
+
+      await pumpPage(
+        tester,
+        IncidentEditPage(observationId: observation.id),
+        activeDiver: 'me',
+      );
+      await save(tester);
+
+      final incident = await saved();
+      expect(incident.observationId, observation.id);
+      expect(incident.diveId, isNull);
+      expect(incident.diverId, 'me');
+    });
+
+    testWidgets('picking another profile\'s keeps the report off their dive', (
+      tester,
+    ) async {
+      final observation = await checkIn(diverId: 'buddy');
+
+      await pumpPage(tester, const IncidentEditPage(), activeDiver: 'me');
+      await pickGear(tester, 'Apeks XTX');
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Free flow').last);
+      await tester.pumpAndSettle();
+      await enterNarrative(tester);
+      await save(tester);
+
+      final incident = await saved();
+      expect(incident.observationId, observation.id);
+      expect(incident.diveId, isNull);
+    });
+
+    testWidgets('the active diver\'s own still fills the dive', (tester) async {
+      final observation = await checkIn(diverId: 'me', note: 'Mine');
+
+      await pumpPage(
+        tester,
+        IncidentEditPage(observationId: observation.id),
+        activeDiver: 'me',
+      );
+      await save(tester);
+
+      expect((await saved()).diveId, 'd1');
     });
   });
 
@@ -305,6 +374,51 @@ void main() {
       final incident = await saved();
       expect(incident.observationId, observation.id);
       expect(incident.diveId, 'd2');
+      expect(incident.occurredAt, DateTime.utc(2026, 2, 20));
+    });
+
+    testWidgets('a date that came with a check-in goes with it', (
+      tester,
+    ) async {
+      await checkIn(diveId: 'd2', observedAt: DateTime.utc(2026, 2, 20, 9));
+      final now = DateTime.now();
+
+      await pumpPage(tester, const IncidentEditPage());
+      await pickGear(tester, 'Apeks XTX');
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Free flow').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(SimpleDialogOption, 'None'));
+      await tester.pumpAndSettle();
+      await enterNarrative(tester);
+      await save(tester);
+
+      expect(
+        (await saved()).occurredAt,
+        DateTime.utc(now.year, now.month, now.day),
+      );
+    });
+
+    testWidgets('a report started from a check-in keeps its day without the '
+        'link', (tester) async {
+      final observation = await checkIn(
+        note: 'n',
+        observedAt: DateTime.utc(2026, 2, 20, 9),
+      );
+
+      await pumpPage(tester, IncidentEditPage(observationId: observation.id));
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(SimpleDialogOption, 'None'));
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      final incident = await saved();
+      expect(incident.observationId, isNull);
+      expect(incident.diveId, 'd1');
       expect(incident.occurredAt, DateTime.utc(2026, 2, 20));
     });
 

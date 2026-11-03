@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
@@ -39,13 +41,12 @@ final nearMissesByCheckInProvider =
       ref.invalidateSelfWhen(repo.watchChanges());
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       final reports = await repo.getIncidentsForEquipment(equipmentId);
-      final byCheckIn = <String, List<Incident>>{};
-      for (final report in reports) {
-        final checkIn = report.observationId;
-        if (checkIn == null) continue;
-        final owner = report.diverId;
-        if (diverId != null && owner != null && owner != diverId) continue;
-        (byCheckIn[checkIn] ??= []).add(report);
-      }
-      return byCheckIn;
+      return groupBy(
+        reports.where(
+          (r) =>
+              r.observationId != null &&
+              (diverId == null || r.diverId == null || r.diverId == diverId),
+        ),
+        (r) => r.observationId!,
+      );
     });

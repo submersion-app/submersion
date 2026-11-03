@@ -570,6 +570,38 @@ void main() {
         expect(back, isNotNull);
         expect(back!['observationId'], isNull);
       });
+
+      test('keeping a peer\'s row checks only that row\'s table: a diver '
+          'resolving a list must not scan the database once per row', () async {
+        final db = DatabaseService.instance.database;
+        final serializer = SyncDataSerializer();
+        await serializer.upsertRecord('equipmentObservations', checkIn());
+        await serializer.upsertRecord('incidents', incident());
+        // A dangling row in another table: the full repair would clear it, and
+        // a row this write did not touch cannot fail this write's COMMIT.
+        await db.customStatement('PRAGMA foreign_keys = OFF');
+        await db.customStatement(
+          "UPDATE incidents SET observation_id = 'gone' WHERE id = 'i1'",
+        );
+        await db.customStatement('PRAGMA foreign_keys = ON');
+        await raiseConflict(
+          'equipmentObservations',
+          'o1',
+          checkIn(status: 'issue'),
+        );
+
+        await buildService().resolveConflict(
+          'equipmentObservations',
+          'o1',
+          ConflictResolution.keepRemote,
+        );
+
+        expect(
+          (await serializer.fetchRecord('incidents', 'i1'))!['observationId'],
+          'gone',
+        );
+        expect(await buildService().getConflicts(), isEmpty);
+      });
     });
 
     test('keepBoth keeps the local row and duplicates the remote under a new '

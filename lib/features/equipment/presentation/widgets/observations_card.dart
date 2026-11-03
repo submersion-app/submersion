@@ -132,8 +132,7 @@ class _ObservationRow extends ConsumerWidget {
           if (note.isNotEmpty)
             Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
           Text(detail),
-          if (observation.isIssue)
-            ObservationNearMissAction(observation: observation),
+          ObservationNearMissAction(observation: observation),
         ],
       ),
       isThreeLine: note.isNotEmpty || observation.isIssue,

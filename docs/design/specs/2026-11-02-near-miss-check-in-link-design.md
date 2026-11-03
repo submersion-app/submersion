@@ -41,8 +41,8 @@ What is missing is a link between the two records themselves.
 ## Data model
 
 Add `incidents.observation_id`, nullable,
-`TEXT REFERENCES equipment_observations(id) ON DELETE SET NULL`, at schema v338
-(open PR #4120 holds v337). `minimumCompatibleSchemaVersion` stays at 336: this
+`TEXT REFERENCES equipment_observations(id) ON DELETE SET NULL`, at schema v338,
+the rung after #4120's v337. `minimumCompatibleSchemaVersion` stays at 336: this
 is an additive column and the sync overlay keeps it when an older peer omits it.
 
 The column goes on `incidents`, not on `equipment_observations`, for three
@@ -81,14 +81,17 @@ runs with deferred foreign keys, so a near-miss may apply before its check-in in
 one payload, and `repairDanglingForeignKeys` clears a link whose check-in was
 deleted on a peer. The check-in row itself does not change.
 
-The same repair clears a link whose check-in has become OK. The saving device
-normally clears it, but a peer below v338 does not know the link and two devices
-can link and resolve at once. Every device derives the same result from the same
-rows, so the repair stages nothing.
+The same repair clears a link whose check-in has become OK or names a different
+item from the report. The saving device normally clears it, but a peer below v338
+does not know the link and two devices can link and resolve at once. Every device
+derives the same result from the same rows, so the repair stages nothing.
 
 Resolving a conflict by keeping the peer's row, or a copy of it, runs the same
 deferred write and repair. That row can name a check-in this device has since
 deleted, since deleting one stages its near-miss and a peer's edit then conflicts.
+A diver resolves a list of conflicts one row at a time, so this path checks the
+written row's table and scans the whole database only when that table reports a
+dangling reference.
 
 ## Reaching the link
 
@@ -126,7 +129,10 @@ Linking fills gaps and never overwrites:
 - A near-miss with no dive takes the check-in's dive while the link stands. The
   form has no dive field, so that dive goes if the diver picks None, picks
   another check-in or changes the item.
-- A new near-miss whose date the diver has not touched takes the check-in's day.
+- A new near-miss whose date the diver has not touched takes the check-in's day
+  while the link stands. A report started from a check-in keeps that day.
+- Another profile's check-in on shared gear can be linked, but never fills the
+  dive: the report would show on that diver's dive, to them.
 
 ### Automatic match
 

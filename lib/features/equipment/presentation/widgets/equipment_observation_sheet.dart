@@ -509,7 +509,6 @@ class _ObservationTile extends ConsumerWidget {
     final title = observation.displayTitle(l10n);
     final note = observation.noteSummary;
     final when = units.formatDateTime(observation.observedAt, l10n: l10n);
-    final showNearMiss = offerNearMiss && observation.isIssue;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(
@@ -524,10 +523,11 @@ class _ObservationTile extends ConsumerWidget {
           if (note.isNotEmpty)
             Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
           Text(when),
-          if (showNearMiss) ObservationNearMissAction(observation: observation),
+          if (offerNearMiss)
+            ObservationNearMissAction(observation: observation),
         ],
       ),
-      isThreeLine: note.isNotEmpty || showNearMiss,
+      isThreeLine: note.isNotEmpty || (offerNearMiss && observation.isIssue),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,10 +29,11 @@ import '../../../../helpers/test_app.dart';
 /// fixed result (or throws) for `getIncidentById`, so every page path can be
 /// exercised without a database.
 class _FakeIncidentRepository extends IncidentRepository {
-  _FakeIncidentRepository({this.result, this.error});
+  _FakeIncidentRepository({this.result, this.error, this.writeError});
 
   final Incident? result;
   final Object? error;
+  final Object? writeError;
 
   Incident? created;
   Incident? updated;
@@ -55,6 +58,7 @@ class _FakeIncidentRepository extends IncidentRepository {
     String? equipmentId,
     String? observationId,
   }) async {
+    if (writeError != null) throw writeError!;
     final incident = Incident(
       id: 'created-id',
       diverId: diverId,
@@ -93,6 +97,27 @@ class _NoCheckIns extends EquipmentObservationRepository {
     String equipmentId,
     String diveId,
   ) async => const [];
+}
+
+/// Serves one issue check-in, and holds the read Save makes until [release],
+/// so a test can leave the page while the save is running.
+class _HeldCheckIn extends EquipmentObservationRepository {
+  final release = Completer<void>();
+  var _reads = 0;
+
+  @override
+  Future<EquipmentObservation?> getById(String id) async {
+    if (_reads++ > 0) await release.future;
+    return EquipmentObservation(
+      id: id,
+      equipmentId: 'reg',
+      observedAt: DateTime.utc(2026, 7, 10),
+      status: ObservationStatus.issue,
+      note: 'Free-flow',
+      createdAt: DateTime.utc(2026, 7, 10),
+      updatedAt: DateTime.utc(2026, 7, 10),
+    );
+  }
 }
 
 void main() {
@@ -203,6 +228,72 @@ void main() {
     await tester.pump();
 
     expect(find.text('Describe what happened'), findsOneWidget);
+  });
+
+  testWidgets('a save that fails says so and keeps the form', (tester) async {
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository(
+      writeError: Exception('database is locked'),
+    );
+
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        router: routerFor(const IncidentEditPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Lost a fin');
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Lost a fin'), findsOneWidget);
+    expect(find.text('LIST'), findsNothing);
+    final save = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Save'),
+    );
+    expect(save.onPressed, isNotNull);
+  });
+
+  testWidgets('leaving while a save runs still files the report', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository();
+    final checkIns = _HeldCheckIn();
+    final router = routerFor(const IncidentEditPage(observationId: 'o1'));
+
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          equipmentObservationRepositoryProvider.overrideWithValue(checkIns),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        router: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pump();
+
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('LIST'), findsOneWidget);
+    checkIns.release.complete();
+    await tester.pumpAndSettle();
+
+    expect(repo.created, isNotNull);
+    expect(repo.created!.observationId, 'o1');
   });
 
   testWidgets('loads an existing incident into the edit form', (tester) async {

@@ -3115,8 +3115,28 @@ class SyncDataSerializer {
   /// [alignLinkedRouteOwners]).
   Future<void> repairDanglingForeignKeys() async {
     await _repairDanglingReferences();
+    await _rederivePeerValues();
+  }
+
+  /// [repairDanglingForeignKeys] for one row just written from a peer, which a
+  /// diver resolving a list of conflicts runs once per row. PRAGMA
+  /// foreign_key_check reads every row of every table, and writing one row can
+  /// only leave its own table dangling, so the whole-database pass runs only
+  /// when that table reports something. Must run inside
+  /// [applyInDeferredFkTransaction].
+  Future<void> repairAfterRowWrite(String entityType) async {
+    final table = _syncTableFor(entityType).actualTableName;
+    final dangling = await _db
+        .customSelect('PRAGMA foreign_key_check("$table")')
+        .get();
+    if (dangling.isNotEmpty) await _repairDanglingReferences();
+    await _rederivePeerValues();
+  }
+
+  /// The values a peer's row may not carry, derived again after every apply.
+  Future<void> _rederivePeerValues() async {
     await alignLinkedRouteOwners();
-    await unlinkIncidentsFromOkCheckIns();
+    await clearUnlinkableCheckIns();
     await seedRepresentativeCourseLinks();
     await anchorTankInspectionClocks();
   }
@@ -3135,18 +3155,20 @@ class SyncDataSerializer {
     }
   }
 
-  /// Only an issue can stand behind a near-miss. The device that saves a
-  /// check-in as OK clears the link itself, but a peer below v338 never heard
-  /// of the link, and one device can link a check-in while another resolves it
-  /// (#3062). Marks nothing pending: every device derives the same result from
-  /// the same synced rows. Raw SQL that Drift cannot see, so it announces a
-  /// changed report itself, and only when one changed.
-  Future<void> unlinkIncidentsFromOkCheckIns() async {
+  /// A near-miss can only name an issue on its own item. The device that saves
+  /// a check-in as OK or moves a report clears the link itself, but a peer
+  /// below v338 never heard of the link, and one device can link a check-in
+  /// while another resolves it (#3062). Marks nothing pending: every device
+  /// derives the same result from the same synced rows. Raw SQL that Drift
+  /// cannot see, so it announces a changed report itself, and only when one
+  /// changed.
+  Future<void> clearUnlinkableCheckIns() async {
     final unlinked = await _db.customUpdate('''
       UPDATE incidents
       SET observation_id = NULL
       WHERE observation_id IN (
-        SELECT id FROM equipment_observations WHERE status <> 'issue'
+        SELECT id FROM equipment_observations
+        WHERE status <> 'issue' OR equipment_id IS NOT incidents.equipment_id
       )
     ''');
     if (unlinked > 0) {

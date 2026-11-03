@@ -21,8 +21,8 @@ final observationsForEquipmentProvider =
     });
 
 /// One check-in by id, or null when it no longer exists.
-final observationProvider =
-    FutureProvider.family<EquipmentObservation?, String>((ref, id) async {
+final observationProvider = FutureProvider.autoDispose
+    .family<EquipmentObservation?, String>((ref, id) async {
       final repo = ref.watch(equipmentObservationRepositoryProvider);
       ref.invalidateSelfWhen(repo.watchChanges());
       return repo.getById(id);
