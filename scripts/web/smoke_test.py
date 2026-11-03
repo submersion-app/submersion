@@ -8,6 +8,8 @@ edit one dive, sync, and check in the bucket that this browser published
 its own changes. Then, from a fresh first run each time, open the sample logbook
 the bundle ships, and restore that same database as a backup file, which is
 older than the app's schema and so runs the upgrade ladder in the browser.
+Every page asks for English, except one first run whose browser reports a
+language that is not a language tag, as Linux does under LANG=C.UTF-8.
 A browser that never renders fails on the wait for the semantics tree
 rather than passing on nothing.
 
@@ -54,6 +56,12 @@ SEED_SITE = "Seed Reef"
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BUNDLE_DIR = os.environ.get("SMOKE_BUNDLE_DIR", os.path.join(_REPO, "build", "web"))
 SAMPLE_TIMEOUT_MS = 120_000
+# The tests find controls by their English names, so the page asks for
+# English rather than whatever the runner's LANG gives the browser.
+TEST_LOCALE = "en-US"
+# What Chromium and Firefox report on Linux when LANG is C.UTF-8, as on
+# GitHub's runners: not a language tag, which Flutter's engine cannot parse.
+UNPARSEABLE_LOCALE = "C"
 
 # The wizard's later steps (backups, photos, finish) each move on with one of
 # these; Not now and Skip are left out on purpose, since they skip steps
@@ -280,6 +288,27 @@ def sample_database(folder):
     return path, site
 
 
+def continue_past_safety_review(page):
+    """A restore reviews every dive before it hands off, which takes minutes
+    for the sample logbook on a two-core runner. Skipping it loses nothing
+    (a dive is reviewed when it is opened), so Skip is taken whenever it
+    shows; the restore is done once Continue appears."""
+    proceed = button(page, exact("Continue"))
+    skip = button(page, exact("Skip"))
+    deadline = time.monotonic() + SAMPLE_TIMEOUT_MS / 1000
+    while time.monotonic() < deadline:
+        if proceed.count() and proceed.is_visible():
+            proceed.click()
+            return
+        if skip.count() and skip.is_visible():
+            try:
+                skip.click(timeout=2000)
+            except PlaywrightTimeout:
+                pass  # the review finished between the check and the click
+        page.wait_for_timeout(1000)
+    raise AssertionError("the restore never offered Continue")
+
+
 def wait_for_dives_at(page, site):
     """The dive list shows a dive at [site]: the library opened."""
     page.goto(BASE_URL + "/?a11y=1#/dives", wait_until="load")
@@ -301,11 +330,12 @@ def report_failure(page, request, heard):
         page.screenshot(path=os.path.join(folder, name + ".png"))
 
 
-@pytest.fixture(params=["chromium", "firefox", "webkit"])
-def page(request):
+def open_page(request, locale):
     with sync_playwright() as playwright:
         browser = getattr(playwright, request.param).launch()
-        context = browser.new_context(viewport={"width": 1280, "height": 900})
+        context = browser.new_context(
+            viewport={"width": 1280, "height": 900}, locale=locale
+        )
         page = context.new_page()
         page.set_default_timeout(STEP_TIMEOUT_MS)
         heard = []
@@ -322,6 +352,16 @@ def page(request):
         finally:
             context.close()
             browser.close()
+
+
+@pytest.fixture(params=["chromium", "firefox", "webkit"])
+def page(request):
+    yield from open_page(request, TEST_LOCALE)
+
+
+@pytest.fixture(params=["chromium", "firefox", "webkit"])
+def unparseable_locale_page(request):
+    yield from open_page(request, UNPARSEABLE_LOCALE)
 
 
 @pytest.fixture
@@ -342,6 +382,17 @@ def test_fresh_first_run(page):
     continue_without_store(page)
     fill_field(page, "Your Name", "Smoke Diver")
     finish_first_run(page)
+
+
+def test_unparseable_browser_locale(unparseable_locale_page):
+    """A browser whose language list holds something that is not a language
+    tag still starts, in English: the engine threw on it before the first
+    frame, a blank page in Chromium and Firefox."""
+    page = unparseable_locale_page
+    wait_for_flutter(page)
+    button(page, exact("Continue without a sync store")).wait_for(
+        timeout=STEP_TIMEOUT_MS
+    )
 
 
 def test_round_trip(page, clean_store):
@@ -386,5 +437,5 @@ def test_restore_backup(page, tmp_path):
         button(page, exact("Restore a backup file")).click()
     chooser.value.set_files(path)
     button(page, exact("Restore")).click()
-    button(page, exact("Continue")).click(timeout=SAMPLE_TIMEOUT_MS)
+    continue_past_safety_review(page)
     wait_for_dives_at(page, site)

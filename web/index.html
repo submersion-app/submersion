@@ -33,6 +33,40 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    // Flutter's engine builds an Intl.Locale from every entry in
+    // navigator.languages while it starts, before the app's own code runs, and
+    // stops on the first one that is not a language tag. Chromium and Firefox
+    // on Linux report "C" when LANG is C.UTF-8 (minimal desktops, containers,
+    // CI runners), which left a blank page. Keep only the entries Intl
+    // accepts; with none left, fall back to the engine's own default.
+    (function () {
+      try {
+        var reported = Array.prototype.slice.call(navigator.languages || []);
+        var valid = reported.filter(function (tag) {
+          try {
+            new Intl.Locale(tag);
+            return true;
+          } catch (error) {
+            return false;
+          }
+        });
+        if (valid.length === reported.length) return;
+        if (valid.length === 0) valid = ['en-US'];
+        Object.defineProperty(navigator, 'languages', {
+          configurable: true,
+          get: function () { return valid.slice(); }
+        });
+        Object.defineProperty(navigator, 'language', {
+          configurable: true,
+          get: function () { return valid[0]; }
+        });
+      } catch (error) {
+        // A browser without Intl.Locale is one the engine cannot start in
+        // either; leave navigator as it is.
+      }
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
