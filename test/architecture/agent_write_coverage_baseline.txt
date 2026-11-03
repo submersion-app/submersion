@@ -139,6 +139,9 @@ lib/features/dive_log/data/repositories/annotation_repository.dart:addAnnotation
 lib/features/dive_log/data/repositories/annotation_repository.dart:moveAnnotation
 lib/features/dive_log/data/repositories/annotation_repository.dart:removeAnnotation
 lib/features/dive_log/data/repositories/derived_metrics_repository.dart:saveMetrics
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addCustomField
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteCustomField
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateCustomField
 lib/features/dive_log/data/repositories/dive_computer_merge_repository.dart:mergeComputers
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:addProfileEvent
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearEventsForDive

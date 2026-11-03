@@ -1,6 +1,7 @@
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/buddy_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/custom_field_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/sighting_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
@@ -27,6 +28,7 @@ class WriteCatalog {
       TankWrites(rows: rows),
       WeightWrites(rows: rows),
       SightingWrites(repositories),
+      CustomFieldWrites(rows: rows),
     ]);
   }
 
