@@ -5,6 +5,7 @@
 // importer read as the total dive time, so a restored dive got its bottom
 // time as its runtime and its exit moved earlier to match.
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_durations.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -182,6 +183,31 @@ void main() {
 
       expect(restored.runtime, const Duration(minutes: 121));
       expect(restored.bottomTime, isNull);
+    });
+  });
+
+  group('reading an older file', () {
+    ({Duration? runtime, Duration? bottomTime}) read(String after) =>
+        UddfDiveDurations.read(
+          XmlDocument.parse(
+            '<uddf><generator><name>Submersion</name></generator>'
+            '<informationafterdive>$after</informationafterdive></uddf>',
+          ).findAllElements('informationafterdive').single,
+        );
+
+    test('a runtime with no duration is still the runtime', () {
+      // A dive with a runtime and no bottom time wrote only <runtime>.
+      expect(read('<runtime>2400</runtime>'), (
+        runtime: const Duration(minutes: 40),
+        bottomTime: null,
+      ));
+    });
+
+    test('a duration equal to the runtime states no bottom time', () {
+      expect(read('<diveduration>2400</diveduration><runtime>2400</runtime>'), (
+        runtime: const Duration(minutes: 40),
+        bottomTime: null,
+      ));
     });
   });
 }
