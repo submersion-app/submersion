@@ -6023,6 +6023,7 @@
   "plannerSeries_surfaceInterval_invalid": "Introduza uma duração como h:mm",
   "plannerSeries_surfaceInterval_decrease": "Menos 15 minutos",
   "plannerSeries_surfaceInterval_increase": "Mais 15 minutos",
+  "plannerSeries_saved_diveCount": "{count} mergulhos",
   "plannerSeries_fill": "Encher {tank}",
   "plannerSeries_fillAll": "Encher todas as garrafas",
   "plannerSeries_convertUnavailable": "Ainda não é possível converter uma série de mergulhos em mergulhos registados",

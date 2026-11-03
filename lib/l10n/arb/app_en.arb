@@ -13140,6 +13140,15 @@
   "plannerSeries_surfaceInterval_invalid": "Enter a time as h:mm",
   "plannerSeries_surfaceInterval_decrease": "15 minutes less",
   "plannerSeries_surfaceInterval_increase": "15 minutes more",
+  "plannerSeries_saved_diveCount": "{count} dives",
+  "@plannerSeries_saved_diveCount": {
+    "description": "How many dives a saved series has, in the saved plans list",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerSeries_fill": "Fill {tank}",
   "@plannerSeries_fill": {
     "description": "The tank's name or gas, such as EAN32",

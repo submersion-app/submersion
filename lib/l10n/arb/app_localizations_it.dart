@@ -21048,6 +21048,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minuti in più';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count immersioni';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Riempi $tank';
   }

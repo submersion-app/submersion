@@ -20021,6 +20021,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '增加 15 分钟';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count 次潜水';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return '加满 $tank';
   }

@@ -10,11 +10,14 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
 import 'package:submersion/features/planner/presentation/plan_link_actions.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
+import 'package:submersion/features/planner/presentation/widgets/saved_series_dive_lines.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
@@ -35,7 +38,8 @@ Future<void> showSavedPlansSheet(BuildContext context) {
 }
 
 /// Lists saved plans (newest first) with open, duplicate, share, delete,
-/// import, and a multi-select compare mode.
+/// import, and a multi-select compare mode. A saved series is one row with a
+/// line for each dive (issue #3565).
 class SavedPlansSheet extends ConsumerStatefulWidget {
   const SavedPlansSheet({super.key});
 
@@ -54,14 +58,25 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
     final units = ref.watch(unitFormatterProvider);
 
     // Render stale data during a reload rather than flashing a spinner.
-    final plans = summaries.valueOrNull;
+    final rows = summaries.valueOrNull == null
+        ? null
+        : collapseSeries(summaries.valueOrNull!);
+    // Comparing works on single plans: a series' later dives depend on the
+    // dives before them, which a side-by-side of plans would not carry in.
+    final comparable = rows?.where((row) => !row.isSeries).length ?? 0;
+    final plans = _selecting
+        ? rows?.where((row) => !row.isSeries).toList()
+        : rows;
 
     // The compare-mode toggle only renders with >=2 plans. If the count drops
     // below that while the sheet is open, actually leave compare mode (not
     // merely hide it) so the sheet can't silently re-enter it when the count
     // later climbs back to >=2 (e.g. via Import while the sheet is open).
     ref.listen(divePlanSummariesProvider, (_, next) {
-      if (_selecting && (next.valueOrNull?.length ?? 0) < 2) {
+      final comparable = collapseSeries(
+        next.valueOrNull ?? const [],
+      ).where((row) => !row.isSeries).length;
+      if (_selecting && comparable < 2) {
         setState(() {
           _selecting = false;
           _selected.clear();
@@ -84,7 +99,7 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                     style: theme.textTheme.titleMedium,
                   ),
                 ),
-                if ((plans?.length ?? 0) >= 2)
+                if (comparable >= 2)
                   TextButton.icon(
                     icon: Icon(
                       _selecting ? Icons.close : Icons.compare_arrows,
@@ -132,15 +147,15 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                       ? CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
                           controlAffinity: ListTileControlAffinity.leading,
-                          title: Text(plans[i].name),
-                          value: _selected.contains(plans[i].id),
+                          title: Text(plans[i].plan.name),
+                          value: _selected.contains(plans[i].plan.id),
                           onChanged: (checked) => setState(() {
                             if (checked ?? false) {
                               if (_selected.length < 3) {
-                                _selected.add(plans[i].id);
+                                _selected.add(plans[i].plan.id);
                               }
                             } else {
-                              _selected.remove(plans[i].id);
+                              _selected.remove(plans[i].plan.id);
                             }
                           }),
                           // No per-row trash while selecting: a destructive
@@ -148,7 +163,22 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                           // whose whole purpose is to gather rows for a
                           // different action. Delete stays on the normal row.
                         )
-                      : _PlanTile(summary: plans[i], units: units),
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _PlanTile(row: plans[i], units: units),
+                            if (plans[i].showsDives)
+                              SavedSeriesDiveLines(
+                                row: plans[i],
+                                units: units,
+                                linkActions: true,
+                                onOpen: (id) {
+                                  context.pop();
+                                  context.push('/planning/dive-planner/$id');
+                                },
+                              ),
+                          ],
+                        ),
                 ),
               ),
             if (_selecting)
@@ -222,21 +252,24 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
 }
 
 class _PlanTile extends ConsumerWidget {
-  const _PlanTile({required this.summary, required this.units});
+  const _PlanTile({required this.row, required this.units});
 
-  final DivePlanSummary summary;
+  final SavedPlanRow row;
   final UnitFormatter units;
+
+  DivePlanSummary get summary => row.plan;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final date = units.formatDate(summary.updatedAt);
     final subtitleParts = <String>[
       date,
-      if (summary.maxDepth != null) units.formatDepth(summary.maxDepth!),
-      if (summary.runtimeSeconds != null)
-        '${(summary.runtimeSeconds! / 60).ceil()}′',
-    ];
-    final badge = planLinkBadge(context.l10n, summary, units);
+      savedPlanRowSubtitle(context, row, units),
+    ].where((part) => part.isNotEmpty);
+    // A series shows each dive's link on that dive's line.
+    final links = !row.showsDives;
+    final badge = links ? planLinkBadge(context.l10n, summary, units) : null;
+    final seriesId = summary.seriesId;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -245,7 +278,7 @@ class _PlanTile extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(subtitleParts.join(' · ')),
-          if (badge != null) _PlanLinkBadge(label: badge),
+          if (badge != null) PlanLinkBadge(label: badge),
         ],
       ),
       onTap: () {
@@ -259,8 +292,13 @@ class _PlanTile extends ConsumerWidget {
             icon: const Icon(Icons.delete_outline),
             color: Theme.of(context).colorScheme.error,
             tooltip: context.l10n.common_action_delete,
-            onPressed: () =>
-                _confirmAndDeletePlan(context, ref, summary.id, summary.name),
+            onPressed: () => _confirmAndDeletePlan(
+              context,
+              ref,
+              summary.id,
+              summary.name,
+              seriesId: seriesId,
+            ),
           ),
           // A Builder so the share anchor resolves to the overflow button
           // rather than the whole row: it contributes no render object, so
@@ -269,7 +307,17 @@ class _PlanTile extends ConsumerWidget {
             builder: (menuContext) => PopupMenuButton<String>(
               onSelected: (value) async {
                 final repository = ref.read(divePlanRepositoryProvider);
-                if (value == 'rename') {
+                if (value == 'rename' && seriesId != null) {
+                  final entered = await showPlanNameDialog(
+                    context,
+                    initialName: summary.name,
+                    title: context.l10n.divePlanner_action_renamePlan,
+                  );
+                  if (entered == null) return;
+                  await ref
+                      .read(divePlanSeriesRepositoryProvider)
+                      .renameSeries(seriesId, entered);
+                } else if (value == 'rename') {
                   final plan = await repository.getPlan(summary.id);
                   if (plan == null || !context.mounted) return;
                   final entered = await showPlanNameDialog(
@@ -324,27 +372,33 @@ class _PlanTile extends ConsumerWidget {
                   value: 'rename',
                   child: Text(context.l10n.divePlanner_action_renamePlan),
                 ),
-                PopupMenuItem(
-                  value: 'duplicate',
-                  child: Text(context.l10n.plannerCanvas_saved_duplicate),
-                ),
-                PopupMenuItem(
-                  value: 'share',
-                  child: Text(context.l10n.plannerCanvas_share_menu),
-                ),
-                PopupMenuItem(
-                  value: 'link',
-                  child: Text(
-                    summary.linkedDiveId == null
-                        ? context.l10n.plannerCanvas_link_action
-                        : context.l10n.plannerCanvas_link_changeAction,
-                  ),
-                ),
-                if (summary.linkedDiveId != null)
+                // Copying or sharing one dive would lose what the dives
+                // before it carry in, so a series offers neither yet.
+                if (seriesId == null) ...[
                   PopupMenuItem(
-                    value: 'unlink',
-                    child: Text(context.l10n.plannerCanvas_unlink_action),
+                    value: 'duplicate',
+                    child: Text(context.l10n.plannerCanvas_saved_duplicate),
                   ),
+                  PopupMenuItem(
+                    value: 'share',
+                    child: Text(context.l10n.plannerCanvas_share_menu),
+                  ),
+                ],
+                if (links) ...[
+                  PopupMenuItem(
+                    value: 'link',
+                    child: Text(
+                      summary.linkedDiveId == null
+                          ? context.l10n.plannerCanvas_link_action
+                          : context.l10n.plannerCanvas_link_changeAction,
+                    ),
+                  ),
+                  if (summary.linkedDiveId != null)
+                    PopupMenuItem(
+                      value: 'unlink',
+                      child: Text(context.l10n.plannerCanvas_unlink_action),
+                    ),
+                ],
               ],
             ),
           ),
@@ -354,38 +408,8 @@ class _PlanTile extends ConsumerWidget {
   }
 }
 
-/// A linked plan's mark: what it was dived as. A linked plan is read as saved,
-/// so an edit changes the comparison, and this is how the diver knows.
-class _PlanLinkBadge extends StatelessWidget {
-  const _PlanLinkBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = theme.colorScheme.primary;
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.link, size: 14, color: color),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(color: color),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Confirms deletion of the plan named [name], then removes plan [id].
+/// Confirms deletion of the plan named [name], then removes plan [id], or
+/// the whole series [seriesId] when the row is one.
 ///
 /// Shared by the normal row's trash button and the compare-mode row's trash
 /// button so both modes delete through a single confirmation path. The
@@ -395,9 +419,11 @@ Future<void> _confirmAndDeletePlan(
   BuildContext context,
   WidgetRef ref,
   String id,
-  String name,
-) async {
+  String name, {
+  String? seriesId,
+}) async {
   final repository = ref.read(divePlanRepositoryProvider);
+  final seriesRepository = ref.read(divePlanSeriesRepositoryProvider);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -415,5 +441,10 @@ Future<void> _confirmAndDeletePlan(
       ],
     ),
   );
-  if (confirmed ?? false) await repository.deletePlan(id);
+  if (!(confirmed ?? false)) return;
+  if (seriesId != null) {
+    await seriesRepository.deleteSeries(seriesId);
+  } else {
+    await repository.deletePlan(id);
+  }
 }

@@ -6174,6 +6174,7 @@
   "plannerSeries_surfaceInterval_invalid": "请按 h:mm 输入时长",
   "plannerSeries_surfaceInterval_decrease": "减少 15 分钟",
   "plannerSeries_surfaceInterval_increase": "增加 15 分钟",
+  "plannerSeries_saved_diveCount": "{count} 次潜水",
   "plannerSeries_fill": "加满 {tank}",
   "plannerSeries_fillAll": "加满所有气瓶",
   "plannerSeries_convertUnavailable": "暂时无法将潜水系列转换为已记录的潜水",

@@ -9,15 +9,18 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/utils/plan_mode_grouping.dart';
 import 'package:submersion/features/planner/domain/utils/plan_summary_sort.dart';
+import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
 import 'package:submersion/features/planner/presentation/plan_link_actions.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/saved_series_dive_lines.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// The saved-plans list: every plan, grouped by [PlanMode] and sorted per
-/// [divePlanSortProvider].
+/// [divePlanSortProvider]. A saved series is one row, placed where its first
+/// dive sorts, with a line for each dive (issue #3565).
 ///
 /// Shared by the desktop detail pane (`PlanningSummaryWidget`'s "Saved
 /// plans" section) and the phone-only full page reached from the hub's own
@@ -65,19 +68,33 @@ class SavedPlansList extends ConsumerWidget {
     }
 
     final sort = ref.watch(divePlanSortProvider);
-    final groups = groupPlansByMode(sortPlanSummaries(plans, sort));
+    final rows = {
+      for (final row in collapseSeries(sortPlanSummaries(plans, sort)))
+        row.plan.id: row,
+    };
+    final groups = groupPlansByMode([for (final row in rows.values) row.plan]);
+
+    void open(String id) => context.push('/planning/dive-planner/$id');
 
     return Card(
       child: Column(
         children: [
           for (final group in groups) ...[
             _ModeHeader(group.mode),
-            for (final plan in group.plans)
+            for (final plan in group.plans) ...[
               SavedPlanTile(
                 plan: plan,
+                dives: rows[plan.id]!.dives,
                 units: units,
-                onTap: () => context.push('/planning/dive-planner/${plan.id}'),
+                onTap: () => open(plan.id),
               ),
+              if (rows[plan.id]!.showsDives)
+                SavedSeriesDiveLines(
+                  row: rows[plan.id]!,
+                  units: units,
+                  onOpen: open,
+                ),
+            ],
           ],
         ],
       ),
@@ -130,30 +147,39 @@ class _ModeHeader extends StatelessWidget {
 }
 
 /// A saved plan's row: its name, depth, runtime and the dive it is linked to.
+///
+/// For a saved series (issue #3565) it is the whole series' row, given every
+/// dive in [dives]: the dive count, the deepest dive and the total runtime.
+/// Each dive's link is shown on its own line then, not here.
 class SavedPlanTile extends StatelessWidget {
   const SavedPlanTile({
     super.key,
     required this.plan,
     required this.units,
     required this.onTap,
+    this.dives,
   });
 
   final DivePlanSummary plan;
+
+  /// The series' dives in order, when this row stands for a series.
+  final List<DivePlanSummary>? dives;
   final UnitFormatter units;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-    leading: const Icon(Icons.route),
-    title: Text(plan.name),
-    subtitle: Text(
-      [
-        if (plan.maxDepth != null) units.formatDepth(plan.maxDepth!),
-        if (plan.runtimeSeconds != null)
-          '${(plan.runtimeSeconds! / 60).ceil()}′',
-        ?planLinkBadge(context.l10n, plan, units),
-      ].join(' · '),
-    ),
-    onTap: onTap,
-  );
+  Widget build(BuildContext context) {
+    final row = SavedPlanRow(plan: plan, dives: dives ?? [plan]);
+    return ListTile(
+      leading: const Icon(Icons.route),
+      title: Text(plan.name),
+      subtitle: Text(
+        [
+          savedPlanRowSubtitle(context, row, units),
+          if (!row.showsDives) ?planLinkBadge(context.l10n, plan, units),
+        ].where((part) => part.isNotEmpty).join(' · '),
+      ),
+      onTap: onTap,
+    );
+  }
 }

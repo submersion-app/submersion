@@ -33507,6 +33507,12 @@ abstract class AppLocalizations {
   /// **'15 minutes more'**
   String get plannerSeries_surfaceInterval_increase;
 
+  /// How many dives a saved series has, in the saved plans list
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives'**
+  String plannerSeries_saved_diveCount(int count);
+
   /// The tank's name or gas, such as EAN32
   ///
   /// In en, this message translates to:

@@ -5922,6 +5922,7 @@
   "plannerSeries_surfaceInterval_invalid": "יש להזין זמן בתבנית ש:דד",
   "plannerSeries_surfaceInterval_decrease": "15 דקות פחות",
   "plannerSeries_surfaceInterval_increase": "15 דקות יותר",
+  "plannerSeries_saved_diveCount": "{count} צלילות",
   "plannerSeries_fill": "מילוי {tank}",
   "plannerSeries_fillAll": "מילוי כל המכלים",
   "plannerSeries_convertUnavailable": "עדיין לא ניתן להמיר סדרת צלילות לצלילות מתועדות",

@@ -5922,6 +5922,7 @@
   "plannerSeries_surfaceInterval_invalid": "Saisissez une durée au format h:mm",
   "plannerSeries_surfaceInterval_decrease": "15 minutes de moins",
   "plannerSeries_surfaceInterval_increase": "15 minutes de plus",
+  "plannerSeries_saved_diveCount": "{count} plongées",
   "plannerSeries_fill": "Remplir {tank}",
   "plannerSeries_fillAll": "Remplir tous les blocs",
   "plannerSeries_convertUnavailable": "Une série de plongées ne peut pas encore être convertie en plongées enregistrées",

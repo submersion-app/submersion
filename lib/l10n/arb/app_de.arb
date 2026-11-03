@@ -6150,6 +6150,7 @@
   "plannerSeries_surfaceInterval_invalid": "Zeit als h:mm eingeben",
   "plannerSeries_surfaceInterval_decrease": "15 Minuten weniger",
   "plannerSeries_surfaceInterval_increase": "15 Minuten mehr",
+  "plannerSeries_saved_diveCount": "{count} Tauchgänge",
   "plannerSeries_fill": "{tank} füllen",
   "plannerSeries_fillAll": "Alle Flaschen füllen",
   "plannerSeries_convertUnavailable": "Eine Tauchgangsserie kann noch nicht in geloggte Tauchgänge umgewandelt werden",

@@ -20972,6 +20972,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 perccel több';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count merülés';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank töltése';
   }

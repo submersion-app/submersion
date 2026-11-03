@@ -46,6 +46,8 @@ import 'package:submersion/features/marine_life/presentation/widgets/species_cat
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_list_row.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_list.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -134,10 +136,9 @@ class GlobalSearchRows extends ConsumerWidget {
         (entry) => entry.document.id,
         (entry, onTap) => _DocumentRow(entry: entry, onTap: onTap),
       ),
-      GlobalSearchKind.divePlans => _each(
+      GlobalSearchKind.divePlans => _planRows(
         ref.watch(divePlanSummariesProvider),
-        (plan) => plan.id,
-        (plan, onTap) => SavedPlanTile(plan: plan, units: units, onTap: onTap),
+        units,
       ),
       GlobalSearchKind.gpsTracks => _each(
         ref.watch(gpsTracksProvider),
@@ -165,6 +166,33 @@ class GlobalSearchRows extends ConsumerWidget {
     final byId = {for (final r in records.requireValue) idOf(r): r};
     return build([for (final id in ids) ?byId[id]]);
   }
+
+  /// The plans found, each saved series once (issue #3565): its first dive
+  /// found stands for it, with every dive of the series in its row, and
+  /// opens the series on that dive.
+  Widget _planRows(
+    AsyncValue<List<DivePlanSummary>> plans,
+    UnitFormatter units,
+  ) => _rows(
+    plans,
+    (plan) => plan.id,
+    (shown) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final row in collapseSeries(shown, all: plans.requireValue))
+          KeyedSubtree(
+            key: globalSearchRowKey(kind, row.plan.id),
+            child: SavedPlanTile(
+              plan: row.plan,
+              dives: row.dives,
+              units: units,
+              onTap: () => onOpen(row.plan.id),
+            ),
+          ),
+      ],
+    ),
+  );
 
   /// [_rows], one record's tile at a time.
   Widget _each<T>(

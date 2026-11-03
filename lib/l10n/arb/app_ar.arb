@@ -6023,6 +6023,7 @@
   "plannerSeries_surfaceInterval_invalid": "أدخل المدة بصيغة س:دد",
   "plannerSeries_surfaceInterval_decrease": "أقل بـ 15 دقيقة",
   "plannerSeries_surfaceInterval_increase": "أكثر بـ 15 دقيقة",
+  "plannerSeries_saved_diveCount": "{count, plural, two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "plannerSeries_fill": "ملء {tank}",
   "plannerSeries_fillAll": "ملء كل الأسطوانات",
   "plannerSeries_convertUnavailable": "لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد",

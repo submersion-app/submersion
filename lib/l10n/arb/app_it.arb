@@ -5922,6 +5922,7 @@
   "plannerSeries_surfaceInterval_invalid": "Inserisci una durata come h:mm",
   "plannerSeries_surfaceInterval_decrease": "15 minuti in meno",
   "plannerSeries_surfaceInterval_increase": "15 minuti in più",
+  "plannerSeries_saved_diveCount": "{count} immersioni",
   "plannerSeries_fill": "Riempi {tank}",
   "plannerSeries_fillAll": "Riempi tutte le bombole",
   "plannerSeries_convertUnavailable": "Non è ancora possibile convertire una serie di immersioni in immersioni registrate",

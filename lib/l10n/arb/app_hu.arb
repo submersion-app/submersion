@@ -5922,6 +5922,7 @@
   "plannerSeries_surfaceInterval_invalid": "Adja meg az időt ó:pp formában",
   "plannerSeries_surfaceInterval_decrease": "15 perccel kevesebb",
   "plannerSeries_surfaceInterval_increase": "15 perccel több",
+  "plannerSeries_saved_diveCount": "{count} merülés",
   "plannerSeries_fill": "{tank} töltése",
   "plannerSeries_fillAll": "Minden palack töltése",
   "plannerSeries_convertUnavailable": "Merülések sorozata még nem alakítható naplózott merülésekké",

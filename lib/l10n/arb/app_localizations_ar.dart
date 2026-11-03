@@ -21342,6 +21342,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => 'أكثر بـ 15 دقيقة';
 
   @override
+  String plannerSeries_saved_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'ملء $tank';
   }

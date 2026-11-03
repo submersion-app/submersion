@@ -6023,6 +6023,7 @@
   "plannerSeries_surfaceInterval_invalid": "Voer een tijd in als u:mm",
   "plannerSeries_surfaceInterval_decrease": "15 minuten minder",
   "plannerSeries_surfaceInterval_increase": "15 minuten meer",
+  "plannerSeries_saved_diveCount": "{count} duiken",
   "plannerSeries_fill": "{tank} vullen",
   "plannerSeries_fillAll": "Alle flessen vullen",
   "plannerSeries_convertUnavailable": "Een reeks duiken kan nog niet worden omgezet in gelogde duiken",
