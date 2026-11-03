@@ -30,6 +30,23 @@ and each issue needs its own keyword ("Closes #1, closes #2", not
 - [ ] `flutter analyze` passes
 - [ ] Manual testing on: <!-- list platforms tested -->
 
+## Browser
+
+<!--
+The web app builds from the same code as the installed apps. CI checks that
+it compiles and that its main flows run, not that a new feature behaves in
+a browser. Tick the first box, or tick each check below it that you made and
+delete the ones that do not apply. Details: docs/developer/web.md, "Platform
+seams".
+-->
+
+- [ ] Nothing device-only: no hardware, local files, background work, new plugin, media write or database swap
+- [ ] Gated on a `DeviceCapabilities` field that is false in `DeviceCapabilities.web`; a screen of its own is in `webUnavailableRoutePrefixes`
+- [ ] No plugin call without a web implementation, and no `dart:io` file or `path_provider` use that a browser reaches
+- [ ] Media writes check `mediaAttach`
+- [ ] A swap or wipe of the database runs under `SyncCoordinator.joinAcrossTabs`
+- [ ] Opened in a browser (`scripts/build_web.sh`, then `scripts/web/serve_bundle.py`)
+
 ## Screenshots
 
 <!--
