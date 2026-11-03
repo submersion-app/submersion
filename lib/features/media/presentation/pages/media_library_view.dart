@@ -24,7 +24,11 @@ import 'package:submersion/shared/selection/selection_state.dart';
 /// then the active view mode. The by-dive and timeline presentations reuse
 /// the same paged state.
 class MediaLibraryView extends ConsumerStatefulWidget {
-  const MediaLibraryView({super.key});
+  const MediaLibraryView({super.key, this.openViewer = openMediaViewer});
+
+  /// Opens the viewer on a tapped tile; a test passes one that records the
+  /// list it is handed.
+  final MediaViewerOpener openViewer;
 
   @override
   ConsumerState<MediaLibraryView> createState() => _MediaLibraryViewState();
@@ -51,7 +55,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     List<MediaLibraryEntry> entries,
     MediaLibraryEntry entry,
   ) {
-    openMediaViewer(
+    widget.openViewer(
       context,
       entries.map((e) => e.item).toList(),
       entry.item.id,
@@ -153,11 +157,24 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     void loadMore() =>
         ref.read(mediaLibraryNotifierProvider.notifier).loadMore();
 
+    // The grouped modes reorder the sorted page: a dive's photos come
+    // together and unlinked ones go last, days likewise. The viewer pages
+    // through what the gallery shows, so it gets the groups' order, not the
+    // page's (issue #4146).
+    final groups = switch (mode) {
+      MediaLibraryViewMode.byDive => groupByDive(state.entries),
+      MediaLibraryViewMode.timeline => groupByTimeline(state.entries),
+      MediaLibraryViewMode.grid || MediaLibraryViewMode.map => null,
+    };
+
     void handleTap(MediaLibraryEntry entry) {
       if (selection.isActive) {
         _selection.toggle(entry.item.id);
       } else {
-        _openViewer(context, state.entries, entry);
+        final shown = groups == null
+            ? state.entries
+            : [for (final group in groups) ...group.entries];
+        _openViewer(context, shown, entry);
       }
     }
 
@@ -178,18 +195,9 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
             selectedIds: checkedIds,
             isSelectionMode: selection.isActive,
           ),
-          MediaLibraryViewMode.byDive => MediaLibraryGroupedList(
-            groups: groupByDive(state.entries),
-            hasMore: state.hasMore,
-            onLoadMore: loadMore,
-            onTileTap: handleTap,
-            columns: columns,
-            targetSize: targetSize,
-            selectedIds: checkedIds,
-            isSelectionMode: selection.isActive,
-          ),
+          MediaLibraryViewMode.byDive ||
           MediaLibraryViewMode.timeline => MediaLibraryGroupedList(
-            groups: groupByTimeline(state.entries),
+            groups: groups!,
             hasMore: state.hasMore,
             onLoadMore: loadMore,
             onTileTap: handleTap,
