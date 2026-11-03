@@ -151,6 +151,9 @@ add_library(${PLUGIN_NAME} SHARED
     ble_connect_failure.cc
     ble_io_stream.cc
     ble_read_poll.cc
+    bluetooth_classic_io_stream.cc
+    bluetooth_connect.cc
+    bluetooth_route_policy.cc
     native_logger.cc
     serial_scanner.cc
     serial_io_stream.cc
@@ -188,8 +191,9 @@ target_include_directories(${PLUGIN_NAME} PRIVATE
 
 # hid.lib is the Win32 HID API (HidD_*, HidP_*) behind the USB HID transport
 # for the Scubapro G2 and Suunto EON Steel families (issue #1271). It ships in
-# the Windows SDK, so it needs no package.
+# the Windows SDK, so it needs no package. Ws2_32.lib is Winsock, behind
+# libdivecomputer's Bluetooth Classic RFCOMM socket (issue #4094).
 target_link_libraries(${PLUGIN_NAME} PRIVATE
     flutter flutter_wrapper_plugin divecomputer
-    WindowsApp.lib SetupAPI.lib hid.lib
+    WindowsApp.lib SetupAPI.lib hid.lib Ws2_32.lib
 )
