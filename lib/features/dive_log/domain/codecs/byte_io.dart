@@ -38,7 +38,6 @@ class ByteWriter {
   // float written to the same eight bytes.
   final BytesBuilder _builder = BytesBuilder();
   final ByteData _scratch = ByteData(8);
-  final Uint8List _varint = Uint8List(9);
 
   /// Throws [ArgumentError] outside 0 .. 255. Like [writeVarUint], this is
   /// not an assert: `addByte` keeps the low eight bits, so a release build
@@ -60,29 +59,26 @@ class ByteWriter {
   ///
   /// Also throws on a value past 63 bits, which the reader refuses. Only
   /// JavaScript can hold one, as a double: there the ends of the zigzag
-  /// range round up to 2^63. The bytes go to a scratch buffer first, so a
-  /// refused value leaves nothing behind.
+  /// range round up to 2^63. The length is counted before a byte is
+  /// written, so a refused value leaves nothing behind.
   void writeVarUint(int value) {
     if (value < 0) {
       throw ArgumentError.value(value, 'value', 'varuint cannot encode');
     }
-    if (value < 0x80) {
-      _builder.addByte(value);
-      return;
+    var length = 1;
+    for (var rest = value; rest >= 0x80; rest ~/= 0x80) {
+      length++;
     }
-    var length = 0;
+    // Nine bytes carry 63 bits.
+    if (length > 9) {
+      throw ArgumentError.value(value, 'value', 'varuint past 63 bits');
+    }
     var remaining = value;
     while (remaining >= 0x80) {
-      // Nine bytes carry 63 bits; a continuation from the ninth would need
-      // a tenth.
-      if (length == _varint.length - 1) {
-        throw ArgumentError.value(value, 'value', 'varuint past 63 bits');
-      }
-      _varint[length++] = remaining % 0x80 + 0x80;
+      _builder.addByte(remaining % 0x80 + 0x80);
       remaining ~/= 0x80;
     }
-    _varint[length++] = remaining;
-    _builder.add(Uint8List.sublistView(_varint, 0, length));
+    _builder.addByte(remaining);
   }
 
   /// Zigzag-mapped signed varint, so small negatives stay small: 0, -1, 1,
@@ -97,7 +93,10 @@ class ByteWriter {
     if (value < minVarInt || value > maxVarInt) {
       throw ArgumentError.value(value, 'value', 'varint out of zigzag range');
     }
-    writeVarUint(value < 0 ? -value * 2 - 1 : value * 2);
+    // `-(value + 1) * 2 + 1`, not `-value * 2 - 1`: at minVarInt the
+    // latter passes through 2^63, past the VM's int, and only lands on
+    // 2^63 - 1 by wrapping twice.
+    writeVarUint(value < 0 ? -(value + 1) * 2 + 1 : value * 2);
   }
 
   /// IEEE-754 binary64, little-endian, bit-exact.
