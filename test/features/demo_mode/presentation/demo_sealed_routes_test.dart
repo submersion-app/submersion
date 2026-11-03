@@ -66,6 +66,27 @@ void main() {
     );
   });
 
+  test('a nav shortcut takes the seal of the page it opens (#4187)', () {
+    expect(
+      demoSealedFeatureFor('/shortcut/cloud-sync'),
+      DemoSealedFeature.sync,
+    );
+    expect(demoSealedFeatureFor('/shortcut/backup'), DemoSealedFeature.backup);
+    expect(
+      demoSealedFeatureFor('/shortcut/import-wizard'),
+      DemoSealedFeature.fileImport,
+    );
+    // A shortcut to an unsealed page, and an id the catalog does not know.
+    expect(demoSealedFeatureFor('/shortcut/records'), isNull);
+    expect(demoSealedFeatureFor('/shortcut/no-such-page'), isNull);
+
+    DemoModeGate.instance.debugActive = true;
+    expect(
+      demoRedirect('/shortcut/cloud-sync'),
+      '$demoUnavailableLocation?feature=sync',
+    );
+  });
+
   test('an unsealed location such as /dives is never sealed', () {
     for (final location in [
       '/dives',
