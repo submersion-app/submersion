@@ -155,6 +155,7 @@ class _OceanBackgroundState extends State<OceanBackground>
     if (watch == _watchingFrames) return;
     _watchingFrames = watch;
     if (watch) {
+      _frameBudget.restartCadence();
       SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
     } else {
       SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
@@ -162,7 +163,7 @@ class _OceanBackgroundState extends State<OceanBackground>
   }
 
   void _onFrameTimings(List<FrameTiming> timings) {
-    if (_frameBudget.record(timings.map((timing) => timing.totalSpan))) {
+    if (_frameBudget.record(timings)) {
       _syncAnimation();
     }
   }

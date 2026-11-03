@@ -1218,16 +1218,6 @@ jobs:
           done
           curl -sfI http://127.0.0.1:8080/index.html | grep -i cross-origin-opener-policy
 
-      # Issue #4186: only on these runners, Chromium stays on the splash while
-      # drift creates the database. This times its first start under a few
-      # launch settings and reports; it never fails the job.
-      - name: Time Chromium's first start (diagnostic)
-        continue-on-error: true
-        timeout-minutes: 15
-        env:
-          SMOKE_BASE_URL: http://127.0.0.1:8080
-        run: xvfb-run -a python3 scripts/web/startup_probe.py
-
       - name: Run the smoke in Chromium, Firefox and WebKit
         env:
           SMOKE_BASE_URL: http://127.0.0.1:8080

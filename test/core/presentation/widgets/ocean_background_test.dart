@@ -172,15 +172,15 @@ void main() {
       expect(tester.binding.hasScheduledFrame, isFalse);
     });
 
-    FrameTiming frameTaking(Duration span) {
+    FrameTiming frameTaking(Duration span, {int vsyncStart = 0}) {
       final micros = span.inMicroseconds;
       return FrameTiming(
-        vsyncStart: 0,
-        buildStart: 0,
-        buildFinish: micros ~/ 2,
-        rasterStart: micros ~/ 2,
-        rasterFinish: micros,
-        rasterFinishWallTime: micros,
+        vsyncStart: vsyncStart,
+        buildStart: vsyncStart,
+        buildFinish: vsyncStart + micros ~/ 2,
+        rasterStart: vsyncStart + micros ~/ 2,
+        rasterFinish: vsyncStart + micros,
+        rasterFinishWallTime: vsyncStart + micros,
       );
     }
 
@@ -199,6 +199,25 @@ void main() {
       await pumpAnimated(tester);
 
       reportFrames(tester, const Duration(milliseconds: 120), 12);
+      await tester.pump();
+
+      expect(await countRepaintsOverOneSecond(tester), 0);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    // Chromium drawing WebGL in software does the drawing in its GPU process,
+    // after a frame's timings end: each frame looks quick, they arrive about
+    // half as often as asked, and the drawing starved drift's workers while
+    // the splash waited on the database (#4186).
+    testWidgets('holds still once its frames keep arriving late', (
+      tester,
+    ) async {
+      await pumpAnimated(tester);
+
+      tester.binding.platformDispatcher.onReportTimings!([
+        for (var i = 0; i < 13; i++)
+          frameTaking(const Duration(milliseconds: 8), vsyncStart: i * 60000),
+      ]);
       await tester.pump();
 
       expect(await countRepaintsOverOneSecond(tester), 0);
