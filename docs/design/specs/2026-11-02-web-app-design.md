@@ -43,6 +43,10 @@ later, safe for a single public copy to serve every user.
 | 11 | Testing | The existing suite guards native. New VM tests cover the seams, the connect flow and the diagnoser. CI gains a web build job, a headless Chrome job for the browser database and sync against a MinIO container with a real cross-origin policy, and a smoke run of the built bundle in Chromium, Firefox and WebKit |
 | 12 | Browsers | Chromium, Firefox and Safari are equal targets. Heavy work runs in a compiled web worker so a large library's first sync streams to disk in all three and never freezes the tab |
 | 13 | Google Drive on the web | Accepted as the browser allows it: sign in to Google on each visit, hour-long tokens renewed in the background while signed in, a click when the browser blocks the renewal popup. "Remember on this device" keeps the client id, not the sign-in |
+| 14 | Restore and the sample logbook (asked for during the build) | Both work as on desktop. See "Restore and the sample logbook" |
+| 15 | Where the sample logbook comes from | Shipped inside the site: the build adds the published package and its photos, about 22 MB, because a page cannot read GitHub release files |
+| 16 | Safety before a restore | A copy of the browser's library downloads first, as the desktop app backs up first. Skipped when the browser holds no dives |
+| 17 | Encrypted backups | Restored, with the browser's sync key when it matches or the passphrase or recovery code otherwise |
 
 ## Goals
 
@@ -112,19 +116,17 @@ crashes.
 - Scheduled background sync and reminders. Sync runs while the tab is open,
   on the existing foreground triggers.
 - Offline map tile caching. Maps load tiles from the network.
-- Restoring from a backup file. The browser's data comes from sync; backup
-  export (download) still works.
 - Importing from another app's SQLite database (MacDive, Subsurface, Diving
   Log and similar). My call, so the first release does not depend on opening
   an uploaded database inside the browser's SQLite. Text and XML formats
   (UDDF, CSV, FIT, SSRF, DL7) import normally through the browser file picker.
-- Demo mode. My call: the browser is for people who already have data in a
-  sync store. A follow-up can serve the demo package over HTTP.
 - Auto-update. The site shows its version; the host owner updates the bundle.
 
 **Different but equivalent**
 
 - File import and export use the browser file picker and download.
+- Restoring a backup reads the file through the picker, and the sample
+  logbook comes from the site itself (see "Restore and the sample logbook").
 - Printing and PDF export go through the browser.
 - Dive site location comes from the browser's location prompt. Reverse
   geocoding is a no-op, as it already is where the geocoder is missing.
@@ -444,6 +446,52 @@ No add, relink, remove, caption-edit of media, people tags or metadata
 write-back. The media section header, gallery and media map are read-only.
 Media statistics count what exists, as native does.
 
+### Restore and the sample logbook
+
+Added during the build at the owner's request: the site restores a backup
+and opens the sample logbook as the desktop app does.
+
+**One seam for both.** drift creates a browser database from bytes when the
+database does not exist yet (`initializeDatabase`).
+`BackgroundDatabaseConnection.installImage` writes an image under a name no
+tab has open, with the header's journal mode set to rollback (a browser file
+system has no shared memory for WAL), and checks that it opens.
+
+**Restore.** The picker reads the backup into memory. An encrypted backup
+(SBE1) opens with the browser's sync key when the key ids match, or with the
+passphrase or recovery code the dialog asks for: AES-GCM runs in Web Crypto
+and Argon2id in the compute worker. The image must be SQLite with a schema
+no newer than this build. When the browser's library holds dives, a copy of
+it downloads first as `submersion-backup-before-restore-<stamp>.db`. The
+image is installed under a new name (`submersion_<millis>`) and opened
+through the normal open, which runs the upgrade ladder for an older backup.
+Only then does a preference point the browser at it, so a tab closed
+halfway leaves the old library in place. The previous database is deleted
+on a later launch, once no tab holds it. Sync is re-baselined as on desktop:
+the device id and epoch are kept, and the merge or replace choice is the
+same dialog. The site's other tabs reload.
+
+The entry points are the desktop's: Settings > Backups, first run's
+"I have existing data", and Set up this device.
+
+**The sample logbook.** GitHub release files send no CORS header, so a page
+cannot download the package the desktop app does. `scripts/build_web.sh`
+fetches the newest package this build can open, verifies its SHA-256 and
+unpacks it into the bundle's `demo/` folder, with an index
+(`demo/demo.json`) naming the database, its size and hash, and the photos.
+The site reads the index from its own origin. Without one (a host who
+deleted the folder, or a build run with `SUBMERSION_WEB_SAMPLE_LOGBOOK=0`)
+the entry points stay hidden, as they do on desktop when the manifest
+cannot be reached.
+
+Entering fetches the database from the site, checks its hash, installs it
+as `submersion_demo` and prepares it as desktop does (dates moved, units
+applied). Sample photos become links to `demo/photos/` on the site, which
+the browser shows like any other web photo. The demo state and the
+preferences snapshot live in local storage instead of files. Entering and
+leaving reload the site's other tabs, since they share preferences. Sample
+mode seals the same features as on desktop.
+
 ## Hosting bundle
 
 Each release adds, next to the existing installers:
@@ -451,7 +499,8 @@ Each release adds, next to the existing installers:
 - `Submersion-<tag>-Web.zip`: the output of `flutter build web --release`
   plus header snippet files (`_headers` for Cloudflare Pages and Netlify,
   `nginx.conf` and `Caddyfile` fragments, a GitHub Pages note that headers
-  cannot be set there) and `HOSTING.md`.
+  cannot be set there) and `HOSTING.md`. The `demo/` folder holds the
+  sample logbook; deleting it hides sample mode.
 - A `Dockerfile` in the repository that serves the bundle with the headers
   set, for anyone who prefers an image. No image is published in this
   release; publishing one to GitHub Packages is a follow-up that needs
@@ -569,7 +618,6 @@ several sync-layer changes since. Worth reading there:
 - **A published container image** on GitHub Packages, once the organisation
   allows the workflow token to publish and the owner has made the package
   public after its first push.
-- **Demo mode on the web**, serving the demo package over HTTP.
 - **SQLite-based imports on the web**, by opening the uploaded file in the
   browser's SQLite.
 - **A read-only connection mode** for a read-only key, which the hosted copy
