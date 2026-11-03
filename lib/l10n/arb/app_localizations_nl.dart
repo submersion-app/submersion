@@ -59090,11 +59090,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get web_continueWithoutSync => 'Doorgaan zonder synchronisatieopslag';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Onthouden op dit apparaat';
+  String get web_rememberOnThisDevice_title =>
+      'Aanmelding onthouden op dit apparaat';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Bewaar de aanmeldgegevens en wachtwoordzin in deze browser. Uit: ze worden vergeten zodra het tabblad sluit.';
+      'Bewaar de aanmeldgegevens en wachtwoordzin in deze browser. Uit: ze worden vergeten zodra het tabblad sluit. Je duiken blijven hoe dan ook in deze browser tot je dit apparaat vergeet.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Bewaar de aanmeldgegevens en wachtwoordzin in deze browser. Uit: ze worden vergeten zodra het tabblad sluit. Deze browser bewaart geen duiken nadat het tabblad sluit, of dit nu aan of uit staat.';
 
   @override
   String get web_unavailable_offer_icloud =>

@@ -58221,11 +58221,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get web_continueWithoutSync => 'המשך ללא מאגר סנכרון';
 
   @override
-  String get web_rememberOnThisDevice_title => 'זכור במכשיר זה';
+  String get web_rememberOnThisDevice_title => 'זכור את הכניסה במכשיר זה';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה.';
+      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה. הצלילות שלך נשארות בדפדפן זה בכל מקרה, עד שתשכח את המכשיר הזה.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה. דפדפן זה אינו שומר צלילות לאחר סגירת הכרטיסייה, בין אם זה מופעל ובין אם לא.';
 
   @override
   String get web_unavailable_offer_icloud =>

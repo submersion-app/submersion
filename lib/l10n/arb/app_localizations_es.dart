@@ -59506,11 +59506,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Continuar sin un almacén de sincronización';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Recordar en este dispositivo';
+  String get web_rememberOnThisDevice_title =>
+      'Recordar el acceso en este dispositivo';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña.';
+      'Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña. Tus inmersiones permanecen en este navegador en cualquier caso, hasta que olvides este dispositivo.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña. Este navegador no conserva inmersiones al cerrar la pestaña, esté activado o no.';
 
   @override
   String get web_unavailable_offer_icloud =>

@@ -120,8 +120,8 @@ Once encryption is on, **End-to-end encryption** offers:
 
 [Submersion in a browser](web-app.md) asks for the passphrase when you
 connect, as a new device does, and keeps it only while the tab is open
-unless you turn on Remember on this device. The browser's own copy of your
-dives is not encrypted at rest; Forget this device removes it.
+unless you turn on Remember sign-in on this device. The browser's own copy
+of your dives is not encrypted at rest; Forget this device removes it.
 
 ## Encrypted Cloud Backups
 

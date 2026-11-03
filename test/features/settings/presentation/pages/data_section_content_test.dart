@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/web_database_status.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/settings/presentation/providers/account_grou
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/web_forget_device_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
@@ -79,6 +81,8 @@ void main() {
     // A browser (issue #4121): no offline map tiles, no folder to move the
     // database to, no sample logbook to download.
     bool browser = false,
+    // What a browser's Forget this device runs (issue #4187).
+    Future<void> Function()? forget,
   }) async {
     // MediaQuery follows the view, which the layout breakpoints read.
     tester.view.devicePixelRatio = 1;
@@ -144,6 +148,7 @@ void main() {
             deviceCapabilitiesProvider.overrideWithValue(
               DeviceCapabilities.web,
             ),
+          if (forget != null) webForgetDeviceProvider.overrideWithValue(forget),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -743,6 +748,83 @@ void main() {
         ),
         findsNothing,
       );
+    });
+
+    testWidgets('the storage row says the dives stay until the device is '
+        'forgotten (#4187)', (tester) async {
+      WebDatabaseStatusHolder.record(
+        const WebDatabaseStatus(storage: WebDatabaseStorage.opfsLocks),
+      );
+      addTearDown(WebDatabaseStatusHolder.clear);
+      await pumpData(tester, browser: true);
+      final en = lookupAppLocalizations(const Locale('en'));
+      expect(
+        find.widgetWithText(DataRowTile, en.web_storage_opfs),
+        findsOneWidget,
+      );
+      expect(find.text('App default location'), findsNothing);
+    });
+
+    testWidgets('the storage row warns when nothing outlives the tab '
+        '(#4187)', (tester) async {
+      WebDatabaseStatusHolder.record(
+        const WebDatabaseStatus(storage: WebDatabaseStorage.inMemory),
+      );
+      addTearDown(WebDatabaseStatusHolder.clear);
+      await pumpData(tester, browser: true);
+      final en = lookupAppLocalizations(const Locale('en'));
+      final row = find.widgetWithText(
+        DataRowTile,
+        en.web_storage_memoryWarning,
+      );
+      expect(row, findsOneWidget);
+      expect(
+        find.descendant(of: row, matching: find.byIcon(Icons.warning_amber)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('natively there is no Forget this device row (#4187)', (
+      tester,
+    ) async {
+      await pumpData(tester);
+      expect(find.text('Forget this device'), findsNothing);
+    });
+
+    testWidgets('Forget this device sits under Advanced and asks first '
+        '(#4187)', (tester) async {
+      var forgets = 0;
+      await pumpData(tester, browser: true, forget: () async => forgets++);
+      final row = find.widgetWithText(DataRowTile, 'Forget this device');
+      expect(row, findsOneWidget);
+      expect(
+        tester.getTopLeft(row).dy,
+        greaterThan(tester.getTopLeft(find.text('Database storage')).dy),
+      );
+      final en = lookupAppLocalizations(const Locale('en'));
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+      expect(find.text(en.web_forgetDevice_confirmBody), findsOneWidget);
+      await tester.tap(find.text(en.common_action_cancel));
+      await tester.pumpAndSettle();
+      expect(forgets, 0);
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.web_forgetDevice_confirm));
+      await tester.pumpAndSettle();
+      expect(forgets, 1);
+    });
+
+    testWidgets('Forget this device is unavailable in demo mode (#4187)', (
+      tester,
+    ) async {
+      DemoModeGate.instance.debugActive = true;
+      addTearDown(applyGlobalTestDefaults);
+      await pumpData(tester, browser: true, forget: () async {});
+      final row = tester.widget<DataRowTile>(
+        find.widgetWithText(DataRowTile, 'Forget this device'),
+      );
+      expect(row.enabled, isFalse);
     });
 
     testWidgets('the sample logbook is offered when the site ships one', (

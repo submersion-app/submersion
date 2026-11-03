@@ -58527,11 +58527,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get web_continueWithoutSync => 'Continue without a sync store';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Remember on this device';
+  String get web_rememberOnThisDevice_title =>
+      'Remember sign-in on this device';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes.';
+      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. Your dives stay in this browser either way, until you forget this device.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. This browser keeps no dives after the tab closes, whether this is on or off.';
 
   @override
   String get web_unavailable_offer_icloud =>
