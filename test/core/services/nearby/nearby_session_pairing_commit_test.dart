@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_frame.dart';
+import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 
 import '../../../support/forwarding_nearby_endpoint.dart';
@@ -40,6 +41,46 @@ class _RefusingSecrets extends MemoryNearbySecrets {
   @override
   Future<void> store(String peerDeviceId, Uint8List secret) async =>
       throw StateError('keychain refused the write');
+}
+
+/// Notes whether this side hung up.
+class _Closing extends ForwardingNearbyEndpoint {
+  _Closing(super.inner);
+
+  bool closed = false;
+
+  @override
+  Future<void> close() {
+    closed = true;
+    return super.close();
+  }
+}
+
+/// What a responder makes of a bare pair hello at [version].
+Future<Object?> _pairHelloAt(int version) async {
+  final (out, into) = await nearbyLink();
+  final incoming = NearbySession(
+    endpoint: into,
+    identity: nearbySessionIdentity('P'),
+    secrets: MemoryNearbySecrets(),
+    helloTimeout: _shortWait,
+  ).accept(allowPairing: true);
+  await out.send(
+    FrameEncoder.encode(
+      NearbyMessageType.hello,
+      NearbyHello(
+        protocolVersion: version,
+        intent: NearbyIntent.pair,
+        commitment: Uint8List(32),
+      ).toBytes(),
+    ),
+  );
+  try {
+    await incoming;
+    return null;
+  } on Object catch (e) {
+    return e;
+  }
 }
 
 const _shortWait = Duration(milliseconds: 300);
@@ -130,6 +171,38 @@ void main() {
       expect(r.phoneError, isNotNull);
       expect(r.phone.map, isEmpty);
     });
+
+    test('a device whose keychain refuses the secret hangs up', () async {
+      late _Closing laptopEnd;
+      await _confirmBoth(
+        wrapL: (e) => laptopEnd = _Closing(e),
+        laptopSecrets: _RefusingSecrets(),
+      );
+      expect(laptopEnd.closed, isTrue);
+    });
+
+    test('a pair hello from a build without the acknowledgement is refused '
+        'as older, before either side stores anything', () async {
+      final error = await _pairHelloAt(NearbyHello.pairProtocolVersion - 1);
+      expect(
+        error,
+        isA<NearbySessionRefused>().having(
+          (e) => e.code,
+          'code',
+          NearbyErrorCode.olderApp,
+        ),
+      );
+    });
+
+    test(
+      'a pair hello at the pairing version is not refused as newer',
+      () async {
+        // A bare commitment never reveals, so the responder times out on it
+        // instead: it read the hello and answered.
+        final error = await _pairHelloAt(NearbyHello.pairProtocolVersion);
+        expect(error, isA<NearbyHelloTimeout>());
+      },
+    );
 
     test('a re-pairing that does not complete leaves the old pairing as it '
         'was', () async {

@@ -207,16 +207,24 @@ different codes, matching codes confirm the two devices share a secret
 with each other and no one else. Each diver confirms "Same code" on their
 screen; the link waits for the other side's confirmation message, then
 both re-key with a **pair secret** (HKDF of the shared secret with the pair
-label) and exchange their full identities. Each then sends a second
-`pairConfirm`, sealed under the pair key, saying the other's identity
-arrived, and waits for the other's before storing anything: the secret
-under the peer's device id in secure storage, and a row in the
-paired-devices table. Without that last step a device whose identity was
-lost on the way kept a pairing the other never made (issue #4154): a
-Bluetooth peripheral's send returns once its bytes are queued, and a
-central's failed write was taken as sent. Only the last acknowledgement
-itself can still be lost, which leaves the pairing on the device that sent
-it alone; the other then refuses its syncs as `notPaired`.
+label) and exchange their full identities. Each then writes the secret
+under the peer's device id in secure storage, provisionally, and sends a
+second `pairConfirm`, sealed under the pair key, saying the other's
+identity arrived. A device keeps the secret, and adds the paired-devices
+row, only once the other's `pairConfirm` arrives; if it never does, the
+write is undone (a secret it replaced, active or revoked, is put back)
+and the link closed. Writing first means a keychain that refuses the
+secret fails this side before the peer hears it. Without the
+acknowledgement a device whose identity was lost on the way kept a
+pairing the other never made (issue #4154): a Bluetooth peripheral's send
+returns once its bytes are queued, and a central's failed write was taken
+as sent. Only the last acknowledgement itself can still be lost, which
+leaves the pairing on the device that sent it alone; the other then
+refuses its syncs as `notPaired`. Pair hellos carry protocol version 2
+for this, while sync hellos stay at 1: a build without the
+acknowledgement refuses a pair hello above 1 as newer, and this one
+refuses a pair hello below 2 as older, so the two fail before either
+stores anything.
 Until both confirm, each side sees only a preview: the other's display
 name, whether it holds dives, a random per-pairing nonce, and an epoch tag
 (an HMAC of its library epoch) that matches the other's only on the same

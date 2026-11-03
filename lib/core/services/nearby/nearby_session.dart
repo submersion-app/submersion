@@ -231,7 +231,7 @@ class NearbySession {
     final handshake = await NearbyHandshake.start();
     await _sendHello(
       NearbyHello(
-        protocolVersion: NearbyHello.currentProtocolVersion,
+        protocolVersion: NearbyHello.pairProtocolVersion,
         intent: NearbyIntent.pair,
         commitment: handshake.commitment,
       ),
@@ -285,14 +285,15 @@ class NearbySession {
       if (!allowCard) await _refuse(NearbyErrorCode.notSwapping);
     } else if (!allowPairing) {
       await _refuse(NearbyErrorCode.notPaired);
+    } else if (hello.protocolVersion < NearbyHello.pairProtocolVersion) {
+      // A build that would keep a pairing without the acknowledgement.
+      await _refuse(NearbyErrorCode.olderApp);
     }
 
     final handshake = await NearbyHandshake.start();
     await _sendHello(
       NearbyHello(
-        protocolVersion: hello.intent == NearbyIntent.card
-            ? NearbyHello.cardProtocolVersion
-            : NearbyHello.currentProtocolVersion,
+        protocolVersion: NearbyHello.versionFor(hello.intent),
         intent: hello.intent,
         publicKey: handshake.publicKey,
         tag: secret == null
@@ -494,10 +495,10 @@ class NearbySession {
       // Malformed in any way, typed or not: refuse rather than hang.
       return _refuse(NearbyErrorCode.protocol);
     }
-    // Only a card hello may go past the sync and pair version (issue
-    // #3728): a sync or pair hello above it is from a newer build.
-    if (hello.intent != NearbyIntent.card &&
-        hello.protocolVersion > NearbyHello.currentProtocolVersion) {
+    // Each intent has its own version (issue #3728 took card hellos to 2,
+    // issue #4154 pair hellos): a hello above its intent's is from a newer
+    // build.
+    if (hello.protocolVersion > NearbyHello.versionFor(hello.intent)) {
       await _refuse(NearbyErrorCode.newerApp);
     }
     return hello;
@@ -702,22 +703,33 @@ class NearbyPairing {
     // identities, which only now either device may know.
     final secret = await _shared.pairSecret();
     final cipher = await _shared.sessionCipher(pairSecret: secret);
-    final peer = await s._exchangeIdentity(cipher);
-    // Stored before acknowledging: a keychain that refuses the write then
-    // fails this side before the peer hears it may keep the pairing. A
-    // pairing it replaces comes back if the acknowledgement fails.
-    final previous = await s._secrets.secretFor(peer.deviceId);
-    final revoked = previous == null
-        ? (await s._secrets.revoked())[peer.deviceId]
-        : null;
-    await s._secrets.store(peer.deviceId, secret);
+    var stored = false;
+    String? peerId;
+    Uint8List? previous;
+    Uint8List? revoked;
     try {
+      final peer = await s._exchangeIdentity(cipher);
+      peerId = peer.deviceId;
+      // Stored before acknowledging: a keychain that refuses the write
+      // then fails this side before the peer hears it may keep the
+      // pairing. A pairing it replaces comes back if the acknowledgement
+      // fails.
+      previous = await s._secrets.secretFor(peerId);
+      revoked = previous == null ? (await s._secrets.revoked())[peerId] : null;
+      await s._secrets.store(peerId, secret);
+      stored = true;
       await _acknowledge(cipher);
+      return s._channel(peer, cipher);
     } on Object {
-      await _restore(peer.deviceId, previous: previous, revoked: revoked);
+      if (stored) {
+        await _restore(peerId!, previous: previous, revoked: revoked);
+      }
+      // Hung up whatever failed: a Bluetooth central that dropped on a
+      // failed send is still connected, and a stale link can keep the next
+      // pairing from finding this device.
+      await s._endpoint.close();
       rethrow;
     }
-    return s._channel(peer, cipher);
   }
 
   /// Puts back what this device held for [peerDeviceId] before a pairing

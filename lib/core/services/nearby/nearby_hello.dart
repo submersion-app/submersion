@@ -136,9 +136,22 @@ class NearbyHello {
     this.tag,
   });
 
-  /// The version sync and pair hellos carry. It stays at 1 so nearby sync
-  /// with builds that know nothing of card swaps keeps working.
+  /// The version sync hellos carry. It stays at 1 so nearby sync with
+  /// builds that know nothing of card swaps keeps working.
   static const currentProtocolVersion = 1;
+
+  /// The version pair hellos carry: 2 since pairing ends with a sealed
+  /// acknowledgement (issue #4154). A build without it refuses a pair hello
+  /// above 1 as newer, and this build refuses one below 2 as older, so the
+  /// two never reach a pairing only one of them keeps.
+  static const pairProtocolVersion = 2;
+
+  /// The highest version a hello of [intent] may carry.
+  static int versionFor(NearbyIntent intent) => switch (intent) {
+    NearbyIntent.sync => currentProtocolVersion,
+    NearbyIntent.pair => pairProtocolVersion,
+    NearbyIntent.card => cardProtocolVersion,
+  };
 
   /// The version a buddy card hello carries (issue #3728). A build that
   /// predates card swaps refuses it as newer, which is the answer it needs.
