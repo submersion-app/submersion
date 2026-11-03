@@ -10028,7 +10028,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'Duiken tonen';
 
   @override
-  String get diveLog_search_fieldHint => 'Zoek, bv. depth > 30m';
+  String get diveLog_search_fieldHint => 'Duikstek, buddy of datum';
 
   @override
   String get diveLog_search_refineTooltip => 'Verfijnen';

@@ -10093,7 +10093,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'Mostrar inmersiones';
 
   @override
-  String get diveLog_search_fieldHint => 'Busca, p. ej. depth > 30m';
+  String get diveLog_search_fieldHint => 'Punto, compañero o fecha';
 
   @override
   String get diveLog_search_refineTooltip => 'Refinar';

@@ -3055,7 +3055,7 @@
   "diveLog_refine_summaryCount": "{count, plural, =1{{count} beállítva} other{{count} beállítva}}",
   "diveLog_refine_showDives": "{count, plural, =1{{count} merülés megjelenítése} other{{count} merülés megjelenítése}}",
   "diveLog_refine_showDivesNoCount": "Merülések megjelenítése",
-  "diveLog_search_fieldHint": "Keresés, pl. depth > 30m",
+  "diveLog_search_fieldHint": "Hely, társ vagy dátum",
   "diveLog_search_refineTooltip": "Szűkítés",
   "diveLog_search_closeTooltip": "Keresés bezárása",
   "diveLog_search_scopeWithin": "A szűrőkön belül",

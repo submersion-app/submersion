@@ -10,12 +10,14 @@ import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dar
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
+import 'package:submersion/features/dive_log/query/dive_word_meanings.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/marine_life/query/sighting_text_search.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
 /// the ONLY place a dive filter axis is defined: the paginated list, its
@@ -53,6 +55,22 @@ final kDiveGearJoinSql =
     'UNION SELECT dt.equipment_id FROM dive_tanks dt '
     'WHERE dt.dive_id = {from}.id AND dt.equipment_id IS NOT NULL '
     'UNION ${tankRegulatorIdsOfDiveSql('{from}.id')})';
+
+const _gearWordMatchSql =
+    "SELECT teq.id FROM equipment teq WHERE unicode_lower(teq.name) LIKE ? "
+    "ESCAPE '\\' OR unicode_lower(teq.brand) LIKE ? ESCAPE '\\' "
+    "OR unicode_lower(teq.model) LIKE ? ESCAPE '\\'";
+
+/// A word that names gear a dive used: the same set as [kDiveGearJoinSql],
+/// walked from the matching gear to its dives, because that join is correlated
+/// and would read the equipment table once per dive.
+final _gearTextSearchSql =
+    '{r}.id IN (SELECT tde.dive_id FROM dive_equipment tde '
+    'WHERE tde.equipment_id IN ($_gearWordMatchSql) '
+    'UNION SELECT tdt.dive_id FROM dive_tanks tdt '
+    'WHERE tdt.equipment_id IN ($_gearWordMatchSql) '
+    'UNION SELECT dive_id FROM ($tankRegulatorPairsSql) '
+    'WHERE equipment_id IN ($_gearWordMatchSql))';
 
 /// A dive's effective water type: its own, else its site's (issue #3196).
 /// The SQL twin of `Dive.effectiveWaterType`, matching the insights water
@@ -219,7 +237,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
   table: 'dives',
   diverScopeColumn: 'diver_id',
   scopesHopsToDiver: true,
-  textSearchSql: const [
+  textSearchSql: [
     "unicode_lower({r}.notes) LIKE ? ESCAPE '\\'",
     "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
     "unicode_lower({r}.buddy) LIKE ? ESCAPE '\\'",
@@ -247,6 +265,28 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'EXISTS (SELECT 1 FROM dive_dive_types tddt JOIN dive_types tdty '
         'ON tdty.id = tddt.dive_type_id WHERE tddt.dive_id = {r}.id '
         "AND unicode_lower(tdty.name) LIKE ? ESCAPE '\\')",
+    // What a dive carries, so a brand or a trip finds it (#3457). Each of
+    // these reads its matches once rather than once per dive, which keeps a
+    // word that matches nothing cheap on a long log.
+    _gearTextSearchSql,
+    "{r}.trip_id IN (SELECT ttrp.id FROM trips ttrp WHERE "
+        "unicode_lower(ttrp.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(ttrp.location) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(ttrp.resort_name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(ttrp.liveaboard_name) LIKE ? ESCAPE '\\')",
+    '{r}.id IN (SELECT tsgt.dive_id FROM sightings tsgt WHERE tsgt.species_id '
+        'IN (SELECT tspc.id FROM species tspc WHERE '
+        "unicode_lower(tspc.common_name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tspc.scientific_name) LIKE ? ESCAPE '\\'))",
+    '{r}.id IN (SELECT tdcr.dive_id FROM dive_courses tdcr WHERE tdcr.course_id '
+        'IN (SELECT tcrs.id FROM courses tcrs WHERE '
+        "unicode_lower(tcrs.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tcrs.location) LIKE ? ESCAPE '\\'))",
+    "unicode_lower({r}.dive_computer_model) LIKE ? ESCAPE '\\'",
+    "{r}.computer_id IN (SELECT tcmp.id FROM dive_computers tcmp "
+        "WHERE unicode_lower(tcmp.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tcmp.manufacturer) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tcmp.model) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const [
     'dive_sites',
@@ -258,11 +298,26 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'dive_custom_fields',
     'dive_dive_types',
     'dive_types',
+    'equipment',
+    'dive_equipment',
+    'dive_tanks',
+    'trips',
+    'sightings',
+    'species',
+    'dive_courses',
+    'courses',
+    'dive_computers',
   ],
-  textSearchExpansions: const [
+  textSearchExpansions: [
     kDiveTypeTranslatedTextSearch,
     kDiveNumberTextSearch,
+    kSightingTranslatedTextSearch,
+    ...diveWordExpansions(
+      entryMethodSql: _effectiveEntryMethod,
+      waterTypeSql: _effectiveWaterType,
+    ),
   ],
+  plainWords: kDivePlainWords,
   fields: [
     QueryField(
       key: 'id',

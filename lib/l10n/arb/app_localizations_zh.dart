@@ -9575,7 +9575,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => '显示潜水';
 
   @override
-  String get diveLog_search_fieldHint => '搜索，或试试 depth > 30m';
+  String get diveLog_search_fieldHint => '潜水点、潜伴、装备或日期';
 
   @override
   String get diveLog_search_refineTooltip => '细化';

@@ -9,6 +9,7 @@ import 'package:submersion/features/global_search/data/global_search_plan.dart';
 import 'package:submersion/features/global_search/data/global_search_repository.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_language_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 
@@ -68,6 +69,7 @@ final globalSearchProvider = FutureProvider.autoDispose
           prefs: ref.watch(queryUnitPrefsProvider),
           now: DateTime.now(),
           names: names,
+          language: ref.watch(queryLanguageProvider),
         ),
         diverId: diverId,
       );

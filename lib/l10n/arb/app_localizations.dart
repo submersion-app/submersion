@@ -15991,7 +15991,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_search_fieldHint.
   ///
   /// In en, this message translates to:
-  /// **'Search, or try depth > 30m'**
+  /// **'Site, buddy, gear or date'**
   String get diveLog_search_fieldHint;
 
   /// No description provided for @diveLog_search_refineTooltip.
