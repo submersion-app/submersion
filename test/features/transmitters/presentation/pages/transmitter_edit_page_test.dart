@@ -6,7 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/core/database/database.dart' show DiveTanksCompanion;
+import 'package:submersion/core/database/database.dart'
+    show DiveTanksCompanion, EquipmentCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -551,6 +552,30 @@ void main() {
         )
         .getSingle();
     expect(row.read<String?>('serial_number'), '555');
+  });
+
+  testWidgets('a serial the item gained while the page was open stays', (
+    tester,
+  ) async {
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+    // A sync gives the item a serial after the page read it.
+    final db = DatabaseService.instance.database;
+    await (db.update(db.equipment)..where((t) => t.id.equals('tx-gear'))).write(
+      const EquipmentCompanion(serialNumber: Value('9D0001')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '555');
+    await tester.enterText(find.byKey(const Key('transmitter_volume')), '11.1');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final row = await db
+        .customSelect(
+          "SELECT serial_number FROM equipment WHERE id = 'tx-gear'",
+        )
+        .getSingle();
+    expect(row.read<String?>('serial_number'), '9D0001');
   });
 
   testWidgets("a first key starts from the item's serial (#3676)", (

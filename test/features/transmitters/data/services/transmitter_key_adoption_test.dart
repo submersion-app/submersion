@@ -151,6 +151,12 @@ void main() {
       expect(isUnclaimedKeyFor(keyOn('mine'), holder(item: null)), isFalse);
     });
 
+    test('an entry with no item of its own has nowhere to move it', () {
+      final entry = keyOn('mine').copyWith(clearTransmitterEquipmentId: true);
+      expect(entry.transmitterEquipmentId, isNull);
+      expect(isUnclaimedKeyFor(entry, holder()), isFalse);
+    });
+
     test('a clash on the channel alone is a real conflict', () {
       expect(
         isUnclaimedKeyFor(
@@ -327,7 +333,7 @@ void main() {
       expect(key.channelIndex, 3);
     });
 
-    test('a placeholder gone before the save leaves the edited key', () async {
+    test('a placeholder gone before the save saves the edited key', () async {
       await registerFromDownload();
       await repo.create(
         keyOn('mine', id: 'typed-key', transmitterSerial: '076287'),
@@ -339,22 +345,102 @@ void main() {
         db.transmitters,
       )..where((t) => t.id.equals(unclaimed.id))).go();
 
-      await expectLater(
-        adoptTransmitterKey(
-          editing!.copyWith(transmitterSerial: serial),
-          unclaimed,
-          repository: repo,
-        ),
-        throwsA(anything),
+      final saved = await adoptTransmitterKey(
+        editing!.copyWith(transmitterSerial: serial),
+        unclaimed,
+        repository: repo,
       );
 
-      final kept = await repo.getById('typed-key');
-      expect(kept?.transmitterSerial, '076287');
+      expect(saved.id, 'typed-key');
+      expect((await repo.getById('typed-key'))?.transmitterSerial, serial);
       final logged = await (db.select(
         db.deletionLog,
       )..where((t) => t.recordId.equals('typed-key'))).get();
       expect(logged, isEmpty);
     });
+
+    test('a placeholder gone before the save saves a new key', () async {
+      await registerFromDownload();
+      final unclaimed = await holderOfSerial();
+      await (db.delete(
+        db.transmitters,
+      )..where((t) => t.id.equals(unclaimed.id))).go();
+
+      final saved = await adoptTransmitterKey(
+        keyOn('mine'),
+        unclaimed,
+        repository: repo,
+      );
+
+      expect(saved.id, 'new-key');
+      expect((await repo.getById('new-key'))?.transmitterSerial, serial);
+    });
+
+    test('a placeholder set up meanwhile refuses the save', () async {
+      final placeholder = await registerFromDownload();
+      final unclaimed = await holderOfSerial();
+      // A peer's setup of the row syncs in between the clash and the save.
+      await (db.update(db.transmitters)
+            ..where((t) => t.id.equals(unclaimed.id)))
+          .write(const TransmittersCompanion(isConfigured: Value(true)));
+
+      await expectLater(
+        adoptTransmitterKey(keyOn('mine'), unclaimed, repository: repo),
+        throwsA(
+          isA<TransmitterConflictException>().having(
+            (e) => e.existing.id,
+            'existing',
+            unclaimed.id,
+          ),
+        ),
+      );
+
+      expect((await holderOfSerial()).transmitterEquipmentId, placeholder);
+      expect(await itemExists(placeholder), isTrue);
+      expect(await repo.getForEquipment('mine'), isEmpty);
+    });
+
+    test('a placeholder that let the serial go is left alone', () async {
+      final placeholder = await registerFromDownload();
+      final unclaimed = await holderOfSerial();
+      await (db.update(db.transmitters)
+            ..where((t) => t.id.equals(unclaimed.id)))
+          .write(const TransmittersCompanion(transmitterSerial: Value('99')));
+
+      await adoptTransmitterKey(keyOn('mine'), unclaimed, repository: repo);
+
+      expect((await repo.getById(unclaimed.id))?.transmitterSerial, '99');
+      expect(await itemExists(placeholder), isTrue);
+      expect(
+        (await repo.getForEquipment('mine')).single.transmitterSerial,
+        serial,
+      );
+    });
+
+    test(
+      'an item the diver made keeps its place, losing only the key',
+      () async {
+        // The diver's own item carries the serial, so the download put its
+        // unconfigured key there rather than minting a placeholder.
+        await insertItem('handmade', name: 'T2 left');
+        await (db.update(db.equipment)..where((t) => t.id.equals('handmade')))
+            .write(const EquipmentCompanion(serialNumber: Value(serial)));
+        expect(await registerFromDownload(), 'handmade');
+
+        await adoptTransmitterKey(
+          keyOn('mine'),
+          await holderOfSerial(),
+          repository: repo,
+        );
+
+        expect(await itemExists('handmade'), isTrue);
+        expect(await repo.getForEquipment('handmade'), isEmpty);
+        expect(
+          (await repo.getForEquipment('mine')).single.transmitterSerial,
+          serial,
+        );
+      },
+    );
 
     test('a fold that fails still saves the key', () async {
       await registerFromDownload();

@@ -362,12 +362,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       ).showSnackBar(SnackBar(content: Text('${l10n.common_label_error}: $e')));
       return;
     }
-    // A key taken from a placeholder folded that item into this one, so the
-    // copy read at load is stale and must not be written back over it.
     final tookOverKey = saved.id != entry.id;
-    if (tookOverKey && mounted) {
-      ref.invalidate(equipmentItemProvider(widget.equipmentId));
-    }
     // Outside the save's try: the entry is already written. An item with no
     // serial of its own takes the key's, as an item created from a serial
     // does (issue #3676); one it already has is never overwritten.
@@ -427,15 +422,21 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     }
   }
 
-  /// Writes [serial] onto the item, which has none. Through the list
-  /// notifier, as the equipment editor saves, so the lists refresh. A
-  /// failure is reported and swallowed: the key is already saved.
+  /// Writes [serial] onto the item, which had none at load. Through the list
+  /// notifier, as the equipment editor saves, so the lists refresh. The item
+  /// is read afresh, not from the copy read at load: a sync, or the fold of a
+  /// placeholder, may have given it a serial since, which stays, and the
+  /// write must not put back fields they changed. A failure is reported and
+  /// swallowed: the key is already saved.
   Future<void> _fillItemSerial(String serial) async {
     try {
-      final gear = await ref.read(
-        equipmentItemProvider(widget.equipmentId).future,
-      );
-      if (gear == null) return;
+      final gear = await ref
+          .read(equipmentRepositoryProvider)
+          .getEquipmentById(widget.equipmentId);
+      if (gear == null ||
+          normalizeTransmitterSerial(gear.serialNumber) != null) {
+        return;
+      }
       await ref
           .read(equipmentListNotifierProvider.notifier)
           .updateEquipment(gear.copyWith(serialNumber: serial));
