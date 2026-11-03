@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/cylinder_passports/data/services/tag_fill_importer.dart';
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
@@ -91,8 +92,10 @@ bool nfcPlatform() =>
         defaultTargetPlatform == TargetPlatform.android);
 
 final nfcTagServiceProvider = Provider<NfcTagService>(
-  (ref) =>
-      nfcPlatform() ? NfcManagerTagService() : const UnsupportedNfcTagService(),
+  // A browser has no NFC reader, whatever phone it runs on (issue #4121).
+  (ref) => ref.watch(deviceCapabilitiesProvider).nfc && nfcPlatform()
+      ? NfcManagerTagService()
+      : const UnsupportedNfcTagService(),
 );
 
 /// Re-checked when a screen first asks and whenever the app resumes (the

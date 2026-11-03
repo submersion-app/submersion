@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
-import 'package:submersion/features/agent_access/data/sql/sql_read_catalog.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_read_catalog_io.dart';
 
 void main() {
   late Directory directory;

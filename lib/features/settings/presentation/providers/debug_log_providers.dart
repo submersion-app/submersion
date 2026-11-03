@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/platform/file_saver.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/log_file_service.dart';
@@ -159,6 +161,35 @@ Future<Uint8List> buildLogExportBytes(File file, String header) async {
   return utf8.encode('$header${redactSecrets(content)}');
 }
 
+/// A browser's export: its log is lines in memory rather than a file.
+@visibleForTesting
+Uint8List buildBrowserLogExportBytes(List<String> lines, String header) =>
+    utf8.encode('$header${redactSecrets(lines.join('\n'))}');
+
+/// A browser has no temp file or save dialog, so an export is a download.
+Future<void> _downloadBrowserLogs(
+  LogFileService service,
+  LogEnvironment? environment,
+  String? mediaReport,
+) async {
+  final bytes = buildBrowserLogExportBytes(
+    await service.readLines(),
+    await _exportHeader(environment),
+  );
+  await FileSaver.saveBytes(
+    bytes,
+    fileName: _exportFileName,
+    mimeType: 'text/plain',
+  );
+  if (mediaReport != null) {
+    await FileSaver.saveBytes(
+      utf8.encode(mediaReport),
+      fileName: _mediaReportFileName,
+      mimeType: 'text/plain',
+    );
+  }
+}
+
 /// Share the full log file via system share sheet.
 ///
 /// Shares a header-prefixed copy rather than the log file itself, so the
@@ -178,6 +209,9 @@ Future<void> shareLogFile(
   Rect? sharePositionOrigin,
   String? mediaReport,
 }) async {
+  if (HostPlatform.isWeb) {
+    return _downloadBrowserLogs(service, environment, mediaReport);
+  }
   final file = File(service.logFilePath);
   if (!file.existsSync()) return;
 
@@ -231,6 +265,10 @@ Future<String?> saveLogFile(
   AppLocalizations l10n, {
   LogEnvironment? environment,
 }) async {
+  if (HostPlatform.isWeb) {
+    await _downloadBrowserLogs(service, environment, null);
+    return _exportFileName;
+  }
   final file = File(service.logFilePath);
   if (!file.existsSync()) return null;
 

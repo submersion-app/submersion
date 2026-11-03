@@ -2,7 +2,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
+
+import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 
 /// Writes [bytes] into a private temp directory, opens the copy read-only,
 /// runs [body], and always removes the directory.
@@ -18,13 +20,13 @@ import 'package:sqlite3/sqlite3.dart';
 Future<T> withTempSqliteCopy<T>(
   Uint8List bytes, {
   required String prefix,
-  required T Function(Database db) body,
+  required T Function(CommonDatabase db) body,
 }) async {
   final tmpDir = await Directory.systemTemp.createTemp(prefix);
   try {
     final tmpFile = File(p.join(tmpDir.path, 'import.sqlite'));
     await tmpFile.writeAsBytes(bytes);
-    final db = sqlite3.open(tmpFile.path, mode: OpenMode.readOnly);
+    final db = RawSqlite.open(tmpFile.path, mode: OpenMode.readOnly);
     try {
       final result = body(db);
       assert(result is! Future, 'body must not be async; the db closes first');

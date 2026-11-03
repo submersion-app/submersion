@@ -167,10 +167,10 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
       );
     }
 
-    // Set by the Sources section's "browse this source", not by the filter
-    // sheet. Without a chip the library sits filtered with nothing on screen
-    // saying why. Labelled through the same helper the Sources list uses, so
-    // the chip names the source the way the row the user just tapped did.
+    // Set by the Sources section's "browse this source" as well as by the
+    // filter sheet's Source row. Labelled through the same helper the Sources
+    // list uses, so the chip names the source the way the row the user just
+    // tapped did.
     final sourceType = filter.sourceType;
     if (sourceType != null) {
       chips.add(

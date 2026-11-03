@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// Hands a URL to the platform's URL launcher. Injectable so tests never
@@ -67,7 +68,7 @@ Future<bool> openInBrowser(
   BrowserSpawn? spawn,
   bool? onLinux,
 }) async {
-  final isLinux = onLinux ?? Platform.isLinux;
+  final isLinux = onLinux ?? HostPlatform.isLinux;
   try {
     if (await (launch ?? _launchExternally)(uri)) return true;
   } on Exception catch (e) {

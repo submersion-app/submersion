@@ -6,8 +6,10 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
@@ -53,17 +55,26 @@ Future<void> openDocumentPageExternally(
     messenger.showSnackBar(SnackBar(content: Text(unavailable)));
     return;
   }
+  // No temp folder or viewer to hand it to in a browser: it downloads.
+  if (HostPlatform.isWeb) {
+    await saveAndShareFileBytes(
+      bytes,
+      p.basename(page.fileName),
+      page.mimeType,
+    );
+    return;
+  }
   final dir = Directory(
     p.join((await getTemporaryDirectory()).path, 'documents', page.id),
   );
   await dir.create(recursive: true);
   final file = File(p.join(dir.path, p.basename(page.fileName)));
   await file.writeAsBytes(bytes);
-  if (Platform.isMacOS) {
+  if (HostPlatform.isMacOS) {
     await Process.run('open', [file.path]);
-  } else if (Platform.isWindows) {
+  } else if (HostPlatform.isWindows) {
     await Process.run('cmd', ['/c', 'start', '', file.path]);
-  } else if (Platform.isLinux) {
+  } else if (HostPlatform.isLinux) {
     await Process.run('xdg-open', [file.path]);
   } else {
     await SharePlus.instance.share(

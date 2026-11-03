@@ -6,6 +6,7 @@ import 'package:workmanager/workmanager.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
 import 'package:submersion/core/database/database_version_exception.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/headless_cloud_provider.dart';
 import 'package:submersion/core/services/database_location_service.dart';
@@ -364,7 +365,7 @@ Future<void> runScheduledBackup({
 /// Initialize background task registration
 Future<void> initializeBackgroundService() async {
   // Background service is mobile-only (iOS/Android)
-  if (!Platform.isIOS && !Platform.isAndroid) {
+  if (!HostPlatform.isIOS && !HostPlatform.isAndroid) {
     return;
   }
 

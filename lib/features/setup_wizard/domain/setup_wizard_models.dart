@@ -49,6 +49,10 @@ class SetupWizardDraft {
   /// step is asked for before Finish.
   final bool needsProfile;
 
+  /// The wizard runs in a browser (issue #4121): the first run opens on the
+  /// connect step, with no welcome fork or existing-data choice before it.
+  final bool browser;
+
   const SetupWizardDraft({
     required this.mode,
     this.path = SetupPath.undecided,
@@ -57,6 +61,7 @@ class SetupWizardDraft {
     this.name = '',
     this.settings = const AppSettings(),
     this.needsProfile = false,
+    this.browser = false,
   });
 
   SetupWizardDraft copyWith({
@@ -69,6 +74,7 @@ class SetupWizardDraft {
   }) {
     return SetupWizardDraft(
       mode: mode,
+      browser: browser,
       path: path ?? this.path,
       source: source ?? this.source,
       skipRequested: skipRequested ?? this.skipRequested,
@@ -112,8 +118,50 @@ class SetupWizardDraft {
   }
 }
 
+/// Whether a shared step offers to start without a sync store: natively the
+/// sync step on the existing-data path; in a browser the connect step it
+/// opens on as well (issue #4121). Once the user took the offer the path is
+/// fresh and the step keeps its native Not now, or the offer would send
+/// them round the profile steps again.
+bool offersNoLibrary(SetupWizardDraft draft, SetupStepId id) {
+  if (draft.path != SetupPath.existingData) return false;
+  return id == SetupStepId.setUpSync ||
+      (draft.browser && id == SetupStepId.setUpAccount);
+}
+
+/// The two Set up this device steps a browser keeps (issue #4121): it has
+/// no files to back up on a schedule and no photo library to sync.
+const kBrowserSetUpWizardSteps = [
+  SetupStepId.setUpAccount,
+  SetupStepId.setUpSync,
+];
+
 /// Computes the ordered step list for the current draft state.
 List<SetupStepId> computeSteps(SetupWizardDraft draft) {
+  final steps = _stepsForPath(draft);
+  if (!draft.browser) return steps;
+  // A browser drops the backups and photos steps in every mode, and its
+  // first run has no welcome fork and no existing-data choice before it: it
+  // opens on the connect step, and "Continue without a sync store" takes the
+  // fresh path from there (issue #4121).
+  final dropped = {
+    SetupStepId.setUpBackups,
+    SetupStepId.setUpPhotos,
+    if (draft.mode == SetupWizardMode.firstRun) ...[
+      SetupStepId.welcomeFork,
+      SetupStepId.existingChoice,
+    ],
+  };
+  final trimmed = [
+    for (final step in steps)
+      if (!dropped.contains(step)) step,
+  ];
+  return trimmed.isEmpty
+      ? const [...kBrowserSetUpWizardSteps, SetupStepId.finish]
+      : trimmed;
+}
+
+List<SetupStepId> _stepsForPath(SetupWizardDraft draft) {
   if (draft.mode == SetupWizardMode.settings) {
     return const [SetupStepId.units, ...kSetUpWizardSteps, SetupStepId.finish];
   }

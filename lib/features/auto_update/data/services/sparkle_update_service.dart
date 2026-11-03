@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:auto_updater/auto_updater.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/auto_update/data/services/update_service.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 
@@ -15,7 +14,7 @@ class SparkleUpdateService extends UpdateService {
     if (_initialized) return;
 
     // Only initialize on macOS or Windows
-    if (!Platform.isMacOS && !Platform.isWindows) return;
+    if (!HostPlatform.isMacOS && !HostPlatform.isWindows) return;
 
     await autoUpdater.setFeedURL(feedUrl);
     // Check every 4 hours (in seconds)
@@ -25,7 +24,7 @@ class SparkleUpdateService extends UpdateService {
 
   @override
   Future<UpdateStatus> checkForUpdate() async {
-    if (!Platform.isMacOS && !Platform.isWindows) {
+    if (!HostPlatform.isMacOS && !HostPlatform.isWindows) {
       return const UpToDate();
     }
 
@@ -43,7 +42,7 @@ class SparkleUpdateService extends UpdateService {
 
   @override
   Future<UpdateStatus> checkForUpdateInteractively() async {
-    if (!Platform.isMacOS && !Platform.isWindows) {
+    if (!HostPlatform.isMacOS && !HostPlatform.isWindows) {
       return const UpToDate();
     }
 

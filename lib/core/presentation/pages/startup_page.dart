@@ -8,16 +8,18 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart' as sqlite3;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/app.dart' show resolveAppLocale;
 import 'package:submersion/app.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/sync/changeset_log/local_only_tombstone_gc.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
+import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/database/compaction/database_compaction_prefs.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
@@ -238,6 +240,11 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final Future<DemoStartupDecision> Function()? demoStartupOverride;
 
+  /// Optional override for the platform question, so tests can run the
+  /// browser branches on the VM.
+  @visibleForTesting
+  final bool? isWebOverride;
+
   const StartupWrapper({
     super.key,
     required this.prefs,
@@ -259,6 +266,7 @@ class StartupWrapper extends StatefulWidget {
     this.availabilityServiceOverride,
     this.demoPaths,
     this.demoStartupOverride,
+    this.isWebOverride,
   });
 
   @override
@@ -282,6 +290,8 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// How far startup had got. Drives [classifyStartupFailure]: the same
   /// exception means different things depending on what was running.
   StartupPhase _phase = StartupPhase.preflight;
+
+  bool get _isWeb => widget.isWebOverride ?? HostPlatform.isWeb;
 
   /// Which class of failure the terminal error screen is reporting.
   StartupFailureKind _failureKind = StartupFailureKind.unknown;
@@ -406,7 +416,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       // create an empty dive log in its place, and the security gate reads a
       // missing file as a plaintext one and switches encryption off to match
       // (issue #2177).
-      if (!await _ensureDiveLogAvailable(dbPath, journal)) return;
+      if (!_isWeb && !await _ensureDiveLogAvailable(dbPath, journal)) return;
 
       // App Security gate: must resolve BEFORE the schema probe below, which
       // needs the cipher key to read an encrypted file.
@@ -416,10 +426,16 @@ class _StartupWrapperState extends State<StartupWrapper>
       // live path (missing, or a plaintext restored file) an encrypted
       // install read as an interrupted disable-encryption run and lost the
       // key the recovery probe below needs (issue #1901).
-      await _resolveSecurityGate(
-        dbPath,
-        headerPath: journal.pendingAsidePath ?? dbPath,
-      );
+      if (_isWeb) {
+        // No encryption at rest and no app lock in a browser; the service
+        // is still configured so the rest of startup can ask it.
+        await DatabaseSecurityService.instance.configure(prefs: widget.prefs);
+      } else {
+        await _resolveSecurityGate(
+          dbPath,
+          headerPath: journal.pendingAsidePath ?? dbPath,
+        );
+      }
 
       // An earlier restore that never settled left the previous database
       // aside. Checked after the security gate (probing an encrypted file
@@ -427,7 +443,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       // file would otherwise be created fresh by onCreate, and a rejected one
       // would route to the version-mismatch screen, neither of which is what
       // happened.
-      final interrupted = journal.findInterrupted();
+      final interrupted = _isWeb ? null : journal.findInterrupted();
       if (interrupted != null) {
         if (mounted) {
           setState(() {
@@ -453,13 +469,24 @@ class _StartupWrapperState extends State<StartupWrapper>
 
       // Sync stat on purpose, like _loadRecoveryOptions: a dart:io future
       // started in the widget-test zone never completes.
-      _schemaProbeReachedFile = File(openPath).existsSync();
+      _schemaProbeReachedFile = _isWeb || File(openPath).existsSync();
       if (widget.schemaVersionProbeOverride != null) {
         final probe = widget.schemaVersionProbeOverride!(openPath);
         needsMigration = probe.needsMigration;
         totalSteps = probe.totalSteps;
         storedVersion =
             null; // probe path doesn't expose storedVersion; backup uses 0 default
+      } else if (_isWeb) {
+        // The browser's probe is asynchronous: drift opens the file once
+        // more to read its stored version, so a pending upgrade shows its
+        // progress here as it does natively. The open below refuses a newer
+        // file and runs the upgrade itself.
+        final sv = await BackgroundDatabaseConnection.readStoredSchemaVersion(
+          openPath,
+        );
+        storedVersion = sv;
+        needsMigration = sv > 0 && sv < AppDatabase.currentSchemaVersion;
+        totalSteps = needsMigration ? AppDatabase.migrationStepCount(sv) : 0;
       } else {
         storedVersion = DatabaseService.getStoredSchemaVersion(
           openPath,
@@ -472,22 +499,26 @@ class _StartupWrapperState extends State<StartupWrapper>
       }
 
       if (needsMigration && demoPath == null) {
-        if (mounted) {
-          setState(() => _state = _StartupState.backingUp);
-        }
-        try {
-          await _runPreMigrationBackup(
-            dbPath: dbPath,
-            stored: storedVersion ?? 0,
-          );
-        } on BackupFailedException catch (e) {
+        // The browser has no file to copy aside: its upgrade runs without
+        // the pre-migration backup.
+        if (!_isWeb) {
           if (mounted) {
-            setState(() {
-              _state = _StartupState.backupFailed;
-              _backupError = e;
-            });
+            setState(() => _state = _StartupState.backingUp);
           }
-          return;
+          try {
+            await _runPreMigrationBackup(
+              dbPath: dbPath,
+              stored: storedVersion ?? 0,
+            );
+          } on BackupFailedException catch (e) {
+            if (mounted) {
+              setState(() {
+                _state = _StartupState.backupFailed;
+                _backupError = e;
+              });
+            }
+            return;
+          }
         }
         _phase = StartupPhase.upgrading;
         if (mounted) {
@@ -1050,26 +1081,32 @@ class _StartupWrapperState extends State<StartupWrapper>
       'notifications',
       NotificationService.instance.initialize,
     );
-    await timeStartupStep('backgroundService', initializeBackgroundService);
+    // No background isolate or OS scheduler in a browser.
+    if (!_isWeb) {
+      await timeStartupStep('backgroundService', initializeBackgroundService);
+    }
 
-    await timeStartupStep('tileCache', () async {
-      try {
-        await TileCacheService.instance.initialize();
-        // Age-sweep the browse cache. Not awaited: it is an indexed delete
-        // that nothing downstream depends on, and blocking first frame on
-        // housekeeping is how a splash screen grows a 20-second hang. Scoped
-        // to the browse store, so a downloaded offline region is never swept.
-        unawaited(
-          TileCacheService.instance
-              .removeOldTiles(TileCacheService.browseTileMaxAge)
-              .catchError((Object e) {
-                debugPrint('Browse tile age sweep failed (will retry): $e');
-              }),
-        );
-      } catch (e) {
-        debugPrint('Warning: Tile cache initialization failed: $e');
-      }
-    });
+    // No tile cache in a browser: tiles come straight from the network.
+    if (!_isWeb) {
+      await timeStartupStep('tileCache', () async {
+        try {
+          await TileCacheService.instance.initialize();
+          // Age-sweep the browse cache. Not awaited: it is an indexed delete
+          // that nothing downstream depends on, and blocking first frame on
+          // housekeeping is how a splash screen grows a 20-second hang. Scoped
+          // to the browse store, so a downloaded offline region is never swept.
+          unawaited(
+            TileCacheService.instance
+                .removeOldTiles(TileCacheService.browseTileMaxAge)
+                .catchError((Object e) {
+                  debugPrint('Browse tile age sweep failed (will retry): $e');
+                }),
+          );
+        } catch (e) {
+          debugPrint('Warning: Tile cache initialization failed: $e');
+        }
+      });
+    }
 
     await timeStartupStep('speciesSeed', () async {
       final speciesRepository = SpeciesRepository();
@@ -1838,7 +1875,7 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// True where "show me that folder" means something. Mobile file managers
   /// have no addressable folder concept to hand off to.
   bool get _canRevealBackupsFolder =>
-      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+      HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
 
   Future<void> _showBackupsFolder() async {
     final dir = _backupsDirectory;
@@ -1912,7 +1949,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       widget.closeAppOverride!();
       return;
     }
-    if (Platform.isIOS || Platform.isAndroid) {
+    if (HostPlatform.isIOS || HostPlatform.isAndroid) {
       SystemNavigator.pop();
     } else {
       exit(0);
@@ -1934,7 +1971,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       await LocalCacheDatabaseService.instance.close();
     } catch (_) {}
 
-    if (Platform.isIOS || Platform.isAndroid) {
+    if (HostPlatform.isIOS || HostPlatform.isAndroid) {
       SystemNavigator.pop();
     } else {
       exit(0);

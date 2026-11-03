@@ -5,22 +5,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/data/services/repair/watched_folder_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
-import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
-
-/// Counts per source type for the browse list.
-final sourceCountsProvider = FutureProvider<Map<MediaSourceType, int>>((
-  ref,
-) async {
-  final repo = ref.watch(mediaLibraryRepositoryProvider);
-  ref.invalidateSelfWhen(repo.watchMediaChanges());
-  return repo.countBySourceType();
-});
 
 // no-tick: reads watched_roots in the device-local cache database, which no
 // sync pull, merge, or repository bulk delete can touch, and which exposes no

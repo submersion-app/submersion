@@ -20479,6 +20479,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_library_filter_site => 'Duikstek';
 
   @override
+  String get media_library_filter_source => 'Bron';
+
+  @override
   String get media_library_filter_species => 'Soort';
 
   @override
@@ -20536,6 +20539,25 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Naamloze duik';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Duikstek: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Uitrusting: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Deze duikstek openen';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Deze uitrusting openen';
+
+  @override
+  String get media_library_untitledEquipment => 'Naamloze uitrusting';
 
   @override
   String get media_library_viewMode_byDive => 'Per duik';
@@ -21320,11 +21342,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_about_reportIssue => 'Probleem melden';
 
   @override
-  String get settings_about_reportIssue_copy => 'Link kopiëren';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Ga naar github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => 'Gebruikershandleiding';
+
+  @override
+  String get settings_about_userGuide_snackbar =>
+      'Ga naar submersion.app/guide';
 
   @override
   String settings_about_version(String version) {
@@ -58692,6 +58718,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => 'Inloggen met Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Meld je elke keer dat je de site opent aan met Google';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'Inloggen met Dropbox';
 
   @override
@@ -59017,6 +59047,183 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get demo_unavailable_body =>
       'De demomodus houdt het voorbeeldlogboek gescheiden van je gegevens, dus er kan niets worden geïmporteerd, geëxporteerd, geback-upt of gesynchroniseerd.';
+
+  @override
+  String get web_unavailable_title => 'Niet beschikbaar in een browser';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Hiervoor is hardware nodig die een webpagina niet kan bereiken, zoals Bluetooth, USB, NFC of de camera. Gebruik hiervoor de Submersion-app op een telefoon of computer.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Dit draait op de achtergrond of als lokale dienst, wat een webpagina niet kan. Gebruik hiervoor de Submersion-app op een telefoon of computer.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Dit werkt met bestanden op het apparaat, die een webpagina niet kan bereiken. Gebruik hiervoor de Submersion-app op een telefoon of computer.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud is alleen beschikbaar in de Submersion-app op Apple-apparaten.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Git-hosts accepteren geen verzoeken van een webpagina. Gebruik de Submersion-app op een telefoon of computer voor een Git-synchronisatieopslag.';
+
+  @override
+  String get web_continueWithoutSync => 'Doorgaan zonder synchronisatieopslag';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Onthouden op dit apparaat';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Bewaar de aanmeldgegevens en wachtwoordzin in deze browser. Uit: ze worden vergeten zodra het tabblad sluit.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Alleen de Submersion-app op een Apple-apparaat kan bij iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Git-hosts accepteren geen verzoeken van een webpagina.';
+
+  @override
+  String get web_googleClientId_title => 'Google-client-id';
+
+  @override
+  String get web_googleClientId_body =>
+      'Een webpagina meldt zich bij Google aan met een client-id uit je eigen Google Cloud-project: van het type Webtoepassing, met het adres van deze site als geautoriseerde JavaScript-oorsprong. Plak die hier. Hij wordt bij je andere aanmeldgegevens bewaard.';
+
+  @override
+  String get web_googleClientId_ownProjectNote =>
+      'Een eigen client-ID ziet alleen een Google Drive-bibliotheek die deze site zelf aanmaakt. Google houdt de Drive-map van elk project gescheiden, dus de bibliotheek die je telefoon en computer met Google Drive synchroniseren, kan hier niet worden geopend.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Dat ziet er niet uit als een Google-client-id. Die eindigt op .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'Zo maak je er een';
+
+  @override
+  String get web_cors_title_blockedByCors =>
+      'De opslag blokkeert browserverzoeken';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'De browser vroeg de opslag en kreeg geen antwoord dat hij mocht lezen. De CORS-regels van de opslag moeten het adres van deze site toestaan. Voeg de regel hieronder toe aan de opslag en controleer opnieuw.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'De opslag staat sommige verzoeken toe, niet alle';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'De opslag beantwoordt een eenvoudig verzoek van deze site maar weigert de methode die de app nodig heeft, zoals PROPFIND voor WebDAV. De CORS-regel moet elke methode hieronder vermelden.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'De opslag staat lezen toe, geen schrijven';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Lezen vanaf deze site werkt, maar een schrijfactie werd geweigerd. De CORS-regel moet ook PUT en DELETE toestaan; de regel hieronder bevat ze.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'De opslag weigerde de aanmeldgegevens';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'De opslag antwoordde 403: een verkeerde toegangssleutel of geheim, of een alleen-lezen sleutel waar synchronisatie moet schrijven. Controleer de aanmeldgegevens en de rechten van de sleutel.';
+
+  @override
+  String get web_cors_title_notFound => 'Niets gevonden op dit adres';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'De bucket, map of het pad bestaat niet, of de naam is verkeerd gespeld. Controleer het adres en de naam van de bucket of map.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'De browser vertrouwt de server niet of kan hem niet bereiken';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Een privéadres via HTTPS mislukte zonder antwoord. De browser, niet de app, bepaalt welke certificaten hij vertrouwt: open het serveradres in een nieuw tabblad en accepteer of installeer het certificaat, of zorg dat de server van hieruit bereikbaar is.';
+
+  @override
+  String get web_cors_title_ok => 'De verbinding werkt';
+
+  @override
+  String get web_cors_explain_ok =>
+      'De opslag accepteerde de test vanuit deze browser.';
+
+  @override
+  String get web_cors_title_unknown => 'De verbinding is mislukt';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'De browser meldde een fout die hij niet uitlegt. Meestal staan de CORS-regels van de opslag het adres van deze site niet toe; de regel hieronder is de gebruikelijke oplossing.';
+
+  @override
+  String get web_cors_copyRule => 'Regel kopiëren';
+
+  @override
+  String get web_cors_copied => 'Regel gekopieerd';
+
+  @override
+  String get web_storage_title => 'Browseropslag';
+
+  @override
+  String get web_storage_opfs =>
+      'Bestandsopslag van de browser. Je duiken blijven in deze browser tot je dit apparaat vergeet.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Browserdatabase (trager). Je duiken blijven in deze browser tot je dit apparaat vergeet.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'Er wordt niets bewaard nadat dit tabblad sluit. Deze browser geeft de site geen blijvende opslag; synchroniseer voordat je weggaat.';
+
+  @override
+  String get web_forgetDevice_title => 'Dit apparaat vergeten';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'Verwijder de duiken, aanmeldgegevens en apparaatidentiteit uit deze browser';
+
+  @override
+  String get web_forgetDevice_confirm => 'Vergeten';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'Dit verwijdert alles wat Submersion in deze browser bewaart: het duiklogboek, de aanmeldgegevens en wachtwoordzin, en de identiteit van dit apparaat in de synchronisatie. Je duiken blijven in de synchronisatieopslag en op je andere apparaten. De pagina herlaadt met een schone start.';
+
+  @override
+  String get web_forgetDevice_failed =>
+      'Deze browser heeft de database behouden. Sluit andere Submersion-tabbladen en probeer het opnieuw.';
+
+  @override
+  String get web_forgetDevice_incomplete =>
+      'Deze browser kon de inloggegevens en instellingen niet wissen. Probeer het opnieuw.';
+
+  @override
+  String get web_downloadBackup_failed => 'De back-up kon niet worden gemaakt.';
+
+  @override
+  String get web_downloadBackup_title => 'Back-up downloaden';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'Een kopie van je duiklogboek als databasebestand, opgeslagen door je browser';
 
   @override
   String get demo_row_unavailable => 'Niet beschikbaar in demomodus';

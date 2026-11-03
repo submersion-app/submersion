@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -41,12 +41,16 @@ Future<void> authenticateWithBrowserWait(
   CloudProviderType provider, {
   Future<void> Function()? signIn,
   @visibleForTesting bool? debugForceBrowserWait,
+  // A web page reporting a desktop OS has no loopback flow to wait for
+  // (issue #4121).
+  bool isBrowser = false,
 }) async {
   final authenticate = signIn ?? cloudProvider.authenticate;
   final needsDialog =
       debugForceBrowserWait ??
-      (provider == CloudProviderType.googledrive &&
-          (Platform.isWindows || Platform.isLinux));
+      (!isBrowser &&
+          provider == CloudProviderType.googledrive &&
+          (HostPlatform.isWindows || HostPlatform.isLinux));
   if (!needsDialog) {
     await authenticate();
     return;

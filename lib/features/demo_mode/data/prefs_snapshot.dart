@@ -17,7 +17,9 @@ class PrefsSnapshot {
 
   static const _version = 1;
 
-  static Future<void> capture(SharedPreferences prefs, File file) async {
+  /// Every preference as text, which a browser keeps in local storage
+  /// (issue #4121) and [capture] writes to a file.
+  static String encode(SharedPreferences prefs) {
     final values = <String, Object?>{};
     for (final key in prefs.getKeys()) {
       final value = prefs.get(key);
@@ -31,12 +33,13 @@ class PrefsSnapshot {
       };
       if (type != null) values[key] = {'t': type, 'v': value};
     }
+    return jsonEncode({'version': _version, 'values': values});
+  }
+
+  static Future<void> capture(SharedPreferences prefs, File file) async {
     await file.parent.create(recursive: true);
     final tmp = File('${file.path}.tmp');
-    await tmp.writeAsString(
-      jsonEncode({'version': _version, 'values': values}),
-      flush: true,
-    );
+    await tmp.writeAsString(encode(prefs), flush: true);
     await tmp.rename(file.path);
   }
 
@@ -46,7 +49,19 @@ class PrefsSnapshot {
   /// missing or unreadable: wiping the user's settings because a snapshot
   /// went astray would be worse than leaving demo values behind.
   static Future<void> restore(SharedPreferences prefs, File file) async {
-    final entries = await _read(file);
+    if (!await file.exists()) {
+      throw StateError('No preferences snapshot at ${file.path}');
+    }
+    await restoreEncoded(prefs, await file.readAsString());
+  }
+
+  /// [restore] from the text [encode] made. Throws [StateError] without
+  /// changing anything when the text cannot be read as a snapshot.
+  static Future<void> restoreEncoded(
+    SharedPreferences prefs,
+    String encoded,
+  ) async {
+    final entries = _decode(encoded);
     for (final key in prefs.getKeys().toList()) {
       if (!entries.containsKey(key)) await prefs.remove(key);
     }
@@ -66,12 +81,9 @@ class PrefsSnapshot {
     }
   }
 
-  static Future<Map<String, Object>> _read(File file) async {
-    if (!await file.exists()) {
-      throw StateError('No preferences snapshot at ${file.path}');
-    }
+  static Map<String, Object> _decode(String encoded) {
     try {
-      final json = jsonDecode(await file.readAsString());
+      final json = jsonDecode(encoded);
       if (json is! Map || json['version'] != _version) {
         throw const FormatException('unknown snapshot version');
       }

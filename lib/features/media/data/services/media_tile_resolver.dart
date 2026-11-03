@@ -124,8 +124,7 @@ class MediaTileResolver {
           // A thumbnail request whose thumb object is missing degrades to the
           // ORIGINAL, and for a document that original is the PDF. Only the
           // store knows which it handed back, and isPoster is how it says so.
-          documentRenderable:
-              thumbnail && served is FileData && served.isPoster,
+          documentRenderable: thumbnail && _isPoster(served),
           storeFallbackUsed: true,
           nativeFailure: nativeFailure,
         );
@@ -180,7 +179,7 @@ class MediaTileResolver {
       }
       return TileResolution(
         data: served,
-        documentRenderable: thumbnail && served is FileData && served.isPoster,
+        documentRenderable: thumbnail && _isPoster(served),
         storeFallbackUsed: true,
         nativeFailure: nativeFailure,
       );
@@ -193,3 +192,12 @@ class MediaTileResolver {
     }
   }
 }
+
+/// Whether [served] is a decodable stand-in for a row that is not itself an
+/// image ([FileData.isPoster]). A browser's store fetches serve bytes (issue
+/// #4121), so both kinds carry it.
+bool _isPoster(MediaSourceData served) => switch (served) {
+  FileData(:final isPoster) => isPoster,
+  BytesData(:final isPoster) => isPoster,
+  _ => false,
+};

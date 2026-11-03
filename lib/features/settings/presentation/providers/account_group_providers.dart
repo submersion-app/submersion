@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
@@ -208,17 +209,20 @@ enum AccountKindOffer { icloud, googleDrive, dropbox, ownServer, git }
 /// sync page gates its providers today.
 final offerableAccountKindsProvider =
     Provider.autoDispose<List<AccountKindOffer>>((ref) {
+      final caps = ref.watch(deviceCapabilitiesProvider);
       final icloud = ref.watch(iCloudAvailabilityProvider).value;
       return [
-        if (ref.watch(isApplePlatformProvider) &&
+        if (caps.cloudICloud &&
+            ref.watch(isApplePlatformProvider) &&
             icloud != null &&
             icloud != ICloudAvailability.unsupported)
           AccountKindOffer.icloud,
-        if (ref.watch(googleDriveAvailableProvider).value ?? false)
+        if (caps.cloudGoogleDrive &&
+            (ref.watch(googleDriveAvailableProvider).value ?? false))
           AccountKindOffer.googleDrive,
         if (ref.watch(dropboxConfiguredProvider)) AccountKindOffer.dropbox,
         AccountKindOffer.ownServer,
-        AccountKindOffer.git,
+        if (caps.cloudGit) AccountKindOffer.git,
       ];
     });
 

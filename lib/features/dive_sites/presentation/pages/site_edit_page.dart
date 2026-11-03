@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb, listEquals, setEquals;
 import 'package:flutter/material.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
@@ -1759,7 +1759,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
       if (result == null) {
         if (mounted) {
-          final isMobile = !kIsWeb && (Platform.isIOS || Platform.isAndroid);
+          final isMobile =
+              !kIsWeb && (HostPlatform.isIOS || HostPlatform.isAndroid);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(

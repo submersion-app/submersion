@@ -257,6 +257,9 @@ import 'package:submersion/features/certification_agencies/presentation/pages/ce
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agency_edit_page.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_sealed_routes.dart';
 import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailable_page.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/router/web_unavailable_routes.dart';
+import 'package:submersion/shared/widgets/web_unavailable_page.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
@@ -288,6 +291,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Demo mode (issue #3708): a sealed screen explains itself instead.
       final sealed = demoRedirect(state.uri.toString());
       if (sealed != null) return sealed;
+
+      // A browser cannot serve the hardware and file-bound screens; a
+      // bookmark or deep link to one lands on a page that says so.
+      final unavailable = webUnavailableRedirect(
+        ref.read(deviceCapabilitiesProvider),
+        state.uri.toString(),
+      );
+      if (unavailable != null) return unavailable;
 
       final hasDivers = await ref.read(hasAnyDiversProvider.future);
       final isOnWelcome = state.matchedLocation == '/welcome';
@@ -331,6 +342,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'demoUnavailable',
             builder: (context, state) => DemoUnavailablePage(
               feature: DemoUnavailablePage.featureFromQuery(
+                state.uri.queryParameters['feature'],
+              ),
+            ),
+          ),
+          GoRoute(
+            path: webUnavailableLocation,
+            name: 'webUnavailable',
+            builder: (context, state) => WebUnavailablePage(
+              feature: WebUnavailablePage.featureFromQuery(
                 state.uri.queryParameters['feature'],
               ),
             ),

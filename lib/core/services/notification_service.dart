@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/util/time_zone_database.dart';
 import 'package:submersion/features/documents/domain/document_reminder_plan.dart';
@@ -67,7 +66,7 @@ class NotificationService {
     if (_initialized) return;
 
     // Notifications are mobile-only (iOS/Android)
-    if (!Platform.isIOS && !Platform.isAndroid) {
+    if (!HostPlatform.isIOS && !HostPlatform.isAndroid) {
       _log.info('Notification service skipped on desktop platform');
       _initialized = true;
       return;
@@ -115,19 +114,19 @@ class NotificationService {
   }
 
   /// Check if we're on a mobile platform that supports notifications
-  bool get _isMobilePlatform => Platform.isIOS || Platform.isAndroid;
+  bool get _isMobilePlatform => HostPlatform.isIOS || HostPlatform.isAndroid;
 
   /// Request notification permissions
   Future<bool> requestPermission() async {
     if (!_isMobilePlatform) return true; // Desktop doesn't need permission
-    if (Platform.isIOS) {
+    if (HostPlatform.isIOS) {
       final result = await _plugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
       return result ?? false;
-    } else if (Platform.isAndroid) {
+    } else if (HostPlatform.isAndroid) {
       final impl = _plugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
@@ -141,14 +140,14 @@ class NotificationService {
   /// Check if notifications are permitted
   Future<bool> isPermissionGranted() async {
     if (!_isMobilePlatform) return true; // Desktop doesn't need permission
-    if (Platform.isIOS) {
+    if (HostPlatform.isIOS) {
       final impl = _plugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >();
       final settings = await impl?.checkPermissions();
       return settings?.isEnabled ?? false;
-    } else if (Platform.isAndroid) {
+    } else if (HostPlatform.isAndroid) {
       final impl = _plugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin

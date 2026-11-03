@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/agent_access/data/sql/sql_read_catalog.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_read_catalog_io.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_statement_guard.dart';
 
 const _dives = 10;

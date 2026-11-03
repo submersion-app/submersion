@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:submersion/shared/services/file_share_handler_io.dart'
-    if (dart.library.html) 'package:submersion/shared/services/file_share_handler_web.dart'
+    if (dart.library.js_interop) 'package:submersion/shared/services/file_share_handler_web.dart'
     as platform;
 import 'package:submersion/shared/services/shared_file_unreadable_exception.dart';
 

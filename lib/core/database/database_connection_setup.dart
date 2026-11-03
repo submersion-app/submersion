@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:sqlite3/sqlite3.dart' show Database, SqliteException;
+import 'package:sqlite3/common.dart' show CommonDatabase, SqliteException;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart';
@@ -40,7 +40,7 @@ const Duration kDatabaseBusyTimeout = Duration(seconds: 5);
 /// Deliberately lives next to [cipherKeyPragma] rather than on
 /// `DatabaseService`, so the drift worker isolate can call it without
 /// importing `database_service.dart` -- that file imports this one.
-String applyMainDatabaseSetup(Database db, {String? keyHex}) {
+String applyMainDatabaseSetup(CommonDatabase db, {String? keyHex}) {
   applyConnectionBasics(db, keyHex: keyHex);
   return _applyWalJournalMode(db);
 }
@@ -60,7 +60,7 @@ String applyMainDatabaseSetup(Database db, {String? keyHex}) {
 ///
 /// The app's SQL functions are registered here too: like the key, they live
 /// on the connection and leave nothing in the file.
-void applyConnectionBasics(Database db, {String? keyHex}) {
+void applyConnectionBasics(CommonDatabase db, {String? keyHex}) {
   if (keyHex != null) {
     db.execute(cipherKeyPragma(keyHex));
   }
@@ -96,7 +96,7 @@ void applyConnectionBasics(Database db, {String? keyHex}) {
 /// committed data lives in `<db>-wal` until a checkpoint folds it back, so a
 /// byte copy of `<db>` alone is missing the newest rows. See
 /// `vacuumIntoSnapshot`, which is how backups avoid that.
-String _applyWalJournalMode(Database db) {
+String _applyWalJournalMode(CommonDatabase db) {
   try {
     // Returns one row holding the resulting mode -- 'wal' on success, the
     // unchanged previous mode when SQLite declines.

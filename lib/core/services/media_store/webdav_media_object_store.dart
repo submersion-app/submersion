@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
@@ -107,6 +108,10 @@ class WebDavMediaObjectStore implements MediaObjectStore {
   }) => _guard(
     () => _client.getToFile(_path(key), destination, onProgress: onProgress),
   );
+
+  @override
+  Future<Uint8List> getBytes(String key) =>
+      _guard(() => _client.getBytes(_path(key)));
 
   @override
   Future<void> delete(String key) => _guard(() => _client.delete(_path(key)));

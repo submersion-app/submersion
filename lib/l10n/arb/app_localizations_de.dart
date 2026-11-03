@@ -20591,6 +20591,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_filter_site => 'Tauchplatz';
 
   @override
+  String get media_library_filter_source => 'Quelle';
+
+  @override
   String get media_library_filter_species => 'Art';
 
   @override
@@ -20648,6 +20651,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Unbenannter Tauchgang';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Tauchplatz: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Ausrüstung: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Diesen Tauchplatz öffnen';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Diese Ausrüstung öffnen';
+
+  @override
+  String get media_library_untitledEquipment => 'Unbenannte Ausrüstung';
 
   @override
   String get media_library_viewMode_byDive => 'Nach Tauchgang';
@@ -21432,11 +21454,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_about_reportIssue => 'Problem melden';
 
   @override
-  String get settings_about_reportIssue_copy => 'Link kopieren';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Besuchen Sie github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => 'Benutzerhandbuch';
+
+  @override
+  String get settings_about_userGuide_snackbar =>
+      'Besuchen Sie submersion.app/guide';
 
   @override
   String settings_about_version(String version) {
@@ -58935,6 +58961,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => 'Mit Google anmelden';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Bei jedem Öffnen der Seite mit Google anmelden';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'Mit Dropbox anmelden';
 
   @override
@@ -59262,6 +59292,185 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get demo_unavailable_body =>
       'Der Demomodus hält das Beispiel-Logbuch von deinen Daten getrennt, daher kann nichts importiert, exportiert, gesichert oder synchronisiert werden.';
+
+  @override
+  String get web_unavailable_title => 'Im Browser nicht verfügbar';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Dafür wird Hardware benötigt, die eine Webseite nicht erreichen kann, etwa Bluetooth, USB, NFC oder die Kamera. Nutze dafür die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Das läuft im Hintergrund oder als lokaler Dienst, was eine Webseite nicht kann. Nutze dafür die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Das arbeitet mit Dateien auf dem Gerät, die eine Webseite nicht erreichen kann. Nutze dafür die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud ist nur in der Submersion-App auf Apple-Geräten verfügbar.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Git-Hosts nehmen keine Anfragen von einer Webseite an. Nutze für einen Git-Sync-Speicher die Submersion-App auf einem Telefon oder Computer.';
+
+  @override
+  String get web_continueWithoutSync => 'Ohne Sync-Speicher fortfahren';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Auf diesem Gerät merken';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'iCloud erreicht nur die Submersion-App auf einem Apple-Gerät.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Git-Hosts nehmen keine Anfragen von einer Webseite an.';
+
+  @override
+  String get web_googleClientId_title => 'Google-Client-ID';
+
+  @override
+  String get web_googleClientId_body =>
+      'Eine Webseite meldet sich bei Google mit einer Client-ID aus deinem eigenen Google-Cloud-Projekt an: Typ Webanwendung, mit der Adresse dieser Seite als autorisiertem JavaScript-Ursprung. Füge sie hier ein. Sie wird mit deinen anderen Anmeldedaten aufbewahrt.';
+
+  @override
+  String get web_googleClientId_ownProjectNote =>
+      'Eine eigene Client-ID sieht nur eine Google-Drive-Bibliothek, die diese Seite selbst anlegt. Google hält den Drive-Ordner jedes Projekts getrennt, daher lässt sich die Bibliothek, die dein Handy und dein Computer mit Google Drive synchronisieren, hier nicht öffnen.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Das sieht nicht nach einer Google-Client-ID aus. Sie endet auf .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'So erstellst du eine';
+
+  @override
+  String get web_cors_title_blockedByCors =>
+      'Der Speicher blockiert Browser-Anfragen';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'Der Browser hat den Speicher gefragt und keine Antwort erhalten, die er lesen durfte. Die CORS-Regeln des Speichers müssen die Adresse dieser Seite erlauben. Füge die Regel unten im Speicher hinzu und prüfe erneut.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'Der Speicher erlaubt einige Anfragen, nicht alle';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'Der Speicher beantwortet eine einfache Anfrage dieser Seite, verweigert aber die Methode, die die App braucht, etwa PROPFIND bei WebDAV. Seine CORS-Regel muss jede Methode unten aufführen.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'Der Speicher erlaubt Lesen, nicht Schreiben';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Lesen von dieser Seite klappt, ein Schreibzugriff wurde aber verweigert. Die CORS-Regel muss auch PUT und DELETE erlauben; die Regel unten enthält sie.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'Der Speicher hat die Zugangsdaten abgelehnt';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'Der Speicher hat mit 403 geantwortet: falscher Zugriffsschlüssel oder falsches Geheimnis, oder ein Nur-Lese-Schlüssel, wo die Synchronisation schreiben muss. Prüfe die Zugangsdaten und die Berechtigungen des Schlüssels.';
+
+  @override
+  String get web_cors_title_notFound =>
+      'Unter dieser Adresse wurde nichts gefunden';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'Bucket, Ordner oder Pfad existiert nicht oder der Name ist falsch geschrieben. Prüfe die Adresse und den Bucket- oder Ordnernamen.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'Der Browser vertraut dem Server nicht oder erreicht ihn nicht';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Eine private Adresse über HTTPS ist ohne Antwort fehlgeschlagen. Der Browser, nicht die App, entscheidet, welchen Zertifikaten er vertraut: Öffne die Serveradresse in einem neuen Tab und akzeptiere oder installiere das Zertifikat, oder stelle sicher, dass der Server von hier erreichbar ist.';
+
+  @override
+  String get web_cors_title_ok => 'Die Verbindung funktioniert';
+
+  @override
+  String get web_cors_explain_ok =>
+      'Der Speicher hat den Test aus diesem Browser angenommen.';
+
+  @override
+  String get web_cors_title_unknown => 'Die Verbindung ist fehlgeschlagen';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'Der Browser hat einen Fehler gemeldet, den er nicht erklärt. Meist erlauben die CORS-Regeln des Speichers die Adresse dieser Seite nicht; die Regel unten ist die übliche Lösung.';
+
+  @override
+  String get web_cors_copyRule => 'Regel kopieren';
+
+  @override
+  String get web_cors_copied => 'Regel kopiert';
+
+  @override
+  String get web_storage_title => 'Browser-Speicher';
+
+  @override
+  String get web_storage_opfs =>
+      'Browser-Dateispeicher. Deine Tauchgänge bleiben in diesem Browser, bis du dieses Gerät vergisst.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Browser-Datenbank (langsamer). Deine Tauchgänge bleiben in diesem Browser, bis du dieses Gerät vergisst.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'Nach dem Schließen dieses Tabs wird nichts gespeichert. Dieser Browser gibt der Seite keinen dauerhaften Speicher; synchronisiere, bevor du gehst.';
+
+  @override
+  String get web_forgetDevice_title => 'Dieses Gerät vergessen';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'Tauchgänge, Anmeldedaten und Geräteidentität aus diesem Browser entfernen';
+
+  @override
+  String get web_forgetDevice_confirm => 'Vergessen';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'Das entfernt alles, was Submersion in diesem Browser aufbewahrt: das Logbuch, die Anmeldedaten und Passphrase sowie die Identität dieses Geräts in der Synchronisation. Deine Tauchgänge bleiben im Sync-Speicher und auf deinen anderen Geräten. Die Seite lädt neu und beginnt von vorn.';
+
+  @override
+  String get web_forgetDevice_failed =>
+      'Dieser Browser hat die Datenbank behalten. Schließe andere Submersion-Tabs und versuche es erneut.';
+
+  @override
+  String get web_forgetDevice_incomplete =>
+      'Dieser Browser konnte seine Anmeldedaten und Einstellungen nicht löschen. Versuche es erneut.';
+
+  @override
+  String get web_downloadBackup_failed =>
+      'Die Sicherung konnte nicht erstellt werden.';
+
+  @override
+  String get web_downloadBackup_title => 'Sicherung herunterladen';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'Eine Kopie deines Logbuchs als Datenbankdatei, gespeichert von deinem Browser';
 
   @override
   String get demo_row_unavailable => 'Im Demomodus nicht verfügbar';

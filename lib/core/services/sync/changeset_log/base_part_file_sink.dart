@@ -7,7 +7,9 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_hasher.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_hasher_logged.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 
 /// [BasePartFileSink.assemble] stopped for a reason that says nothing about the
@@ -63,15 +65,33 @@ class BasePartFileSink {
     required Future<Uint8List?> Function(int index) downloadPart,
     void Function(int downloaded, int total)? onPartDownloaded,
   }) async {
-    final Directory dir;
+    // The browser has one temp directory and ignores the provider, which
+    // would otherwise ask path_provider for a directory it does not have.
+    String? directoryPath;
     try {
-      dir = await _tempDir();
+      if (!HostPlatform.isWeb) directoryPath = (await _tempDir()).path;
     } catch (e, st) {
       Error.throwWithStackTrace(BaseFetchInterrupted(e), st);
     }
-    final path = basePartTempPath(dir.path, name, _uuid.v4());
-    final file = File(path);
-    final out = file.openWrite();
+
+    // Opened when the first part lands. A failed write is remembered rather
+    // than thrown, and the remaining parts are still fetched and checked:
+    // the cloud's copy failing stays the answer, so a local fault cannot
+    // upgrade a null into an interruption.
+    SyncTempSink? out;
+    (Object, StackTrace)? writeFailure;
+    Future<void> write(Uint8List part) async {
+      if (writeFailure != null) return;
+      try {
+        final sink = out ??= await SyncTempFiles.create(
+          basePartTempName(name, _uuid.v4()),
+          directoryPath: directoryPath,
+        );
+        await sink.add(part);
+      } catch (e, st) {
+        writeFailure = (e, st);
+      }
+    }
 
     // Created once the first part lands, as its size picks inline or worker.
     BasePartHasher? hasher;
@@ -92,13 +112,15 @@ class BasePartFileSink {
           ok = false;
           break;
         }
-        out.add(part);
+        await write(part);
         onPartDownloaded?.call(i + 1, partCount);
       }
       if (ok && wholeChecksum != null) {
         final whole = hasher ??= await _openHasher(0);
         if (await whole.finish() != wholeChecksum) ok = false;
       }
+      // No parts at all still assembles a file, as the stream sink did.
+      if (ok && out == null) await write(Uint8List(0));
     } on EnvelopeCorruptException {
       ok = false;
     } on SyncEncryptionRequired {
@@ -110,20 +132,22 @@ class BasePartFileSink {
     }
 
     try {
-      await out.close();
+      await out?.close();
     } catch (e, st) {
-      // A failed write surfaces here, as a local fault. The cloud's copy
-      // having already failed stays the answer, so this cannot upgrade a null.
-      if (ok) {
-        interruption = e;
-        interruptionStack = st;
-      }
-      ok = false;
+      writeFailure ??= (e, st);
     } finally {
       await hasher?.dispose();
     }
 
-    if (!ok) await deleteQuietly(path);
+    final failedWrite = writeFailure;
+    if (failedWrite != null && ok) {
+      interruption = failedWrite.$1;
+      interruptionStack = failedWrite.$2;
+      ok = false;
+    }
+
+    final path = out?.path;
+    if (!ok && path != null) await deleteQuietly(path);
     if (interruption != null) {
       Error.throwWithStackTrace(
         isAccessRefused(interruption)
@@ -137,13 +161,15 @@ class BasePartFileSink {
 
   Future<void> deleteQuietly(String path) async {
     try {
-      final f = File(path);
-      if (await f.exists()) await f.delete();
+      await SyncTempFiles.delete(path);
     } catch (_) {
-      // Best effort: a leftover temp file is harmless; the OS reaps systemTemp.
+      // Best effort: a leftover temp file is harmless; the sweep reaps it.
     }
   }
 }
+
+/// File name a downloaded base is assembled under: `<name>.<uuid>.base`.
+String basePartTempName(String name, String id) => '$name.$id.base';
 
 /// Path a downloaded base is assembled into: `<temp dir>/<name>.<uuid>.base`.
 ///
@@ -168,4 +194,4 @@ String basePartTempPath(
   String name,
   String id, {
   p.Context? context,
-}) => (context ?? p.context).join(dirPath, '$name.$id.base');
+}) => (context ?? p.context).join(dirPath, basePartTempName(name, id));

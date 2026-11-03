@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// Result of picking a backup folder on iOS: the chosen path plus a
 /// persistable security-scoped bookmark for regaining access after restart.
@@ -49,7 +49,7 @@ class BackupBookmarkService {
 
   /// Whether security-scoped bookmarks are supported on this platform.
   static bool get isSupported =>
-      debugSupportedOverride ?? (Platform.isIOS || Platform.isMacOS);
+      debugSupportedOverride ?? (HostPlatform.isIOS || HostPlatform.isMacOS);
 
   /// Presents the native folder picker (iOS) and returns the picked path plus
   /// a security-scoped bookmark captured while access is still live. Returns

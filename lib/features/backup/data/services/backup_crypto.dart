@@ -9,6 +9,7 @@ import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
+import 'package:submersion/features/backup/data/services/sbe_frames.dart';
 
 /// Framed, self-decrypting encrypted backup artifact (spec 3.4).
 ///
@@ -22,8 +23,6 @@ import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 abstract final class BackupCrypto {
   static const String fileExtension = '.sbe';
   static const int frameSize = 8 * 1024 * 1024;
-  static const int _flagFramed = 0x02;
-  static const int _headerFixedLength = 4 + 16 + 1 + 4;
 
   static final AesGcm _aesGcm = AesGcm.with256bits();
 
@@ -87,7 +86,7 @@ abstract final class BackupCrypto {
     try {
       out.writeFromSync(SyncEnvelope.magic);
       out.writeFromSync(keyIdBytes);
-      out.writeByteSync(_flagFramed);
+      out.writeByteSync(SbeFrames.flagFramed);
       out.writeFromSync(_uint32be(keyslotBytes.length));
       out.writeFromSync(keyslotBytes);
       final total = input.lengthSync();
@@ -101,7 +100,7 @@ abstract final class BackupCrypto {
         final box = await _aesGcm.encrypt(
           chunk,
           secretKey: dataKey,
-          aad: _frameAad(keyIdBytes, frameIndex, isFinal),
+          aad: SbeFrames.frameAad(keyIdBytes, frameIndex, isFinal),
         );
         final body = BytesBuilder(copy: false)
           ..add(box.nonce)
@@ -219,7 +218,7 @@ abstract final class BackupCrypto {
     if (!await file.exists()) return false;
     final raf = file.openSync();
     try {
-      if (raf.lengthSync() < _headerFixedLength) return false;
+      if (raf.lengthSync() < SbeFrames.headerFixedLength) return false;
       final head = raf.readSync(4);
       return SyncEnvelope.hasMagic(head);
     } finally {
@@ -241,27 +240,15 @@ abstract final class BackupCrypto {
     RandomAccessFile input,
   ) {
     input.setPositionSync(0);
-    if (input.lengthSync() < _headerFixedLength) {
-      throw const EnvelopeCorruptException('Not an encrypted backup');
-    }
-    final fixed = input.readSync(_headerFixedLength);
-    if (!SyncEnvelope.hasMagic(fixed)) {
-      throw const EnvelopeCorruptException('Not an encrypted backup');
-    }
-    final keyIdBytes = Uint8List.sublistView(fixed, 4, 20);
-    final flags = fixed[20];
-    if ((flags & _flagFramed) == 0) {
-      throw const EnvelopeCorruptException('Backup is not a framed envelope');
-    }
-    final slotLen = ByteData.sublistView(fixed, 21, 25).getUint32(0);
-    if (input.lengthSync() < _headerFixedLength + slotLen) {
+    final fixed = SbeFrames.readFixedHeader(
+      input.readSync(SbeFrames.headerFixedLength),
+    );
+    final slotLen = fixed.keyslotLength;
+    if (input.lengthSync() < SbeFrames.headerFixedLength + slotLen) {
       throw const EnvelopeCorruptException('Backup keyslot block truncated');
     }
     final keyslotBytes = input.readSync(slotLen);
-    return (
-      keyIdBytes: Uint8List.fromList(keyIdBytes),
-      keyslotBytes: keyslotBytes,
-    );
+    return (keyIdBytes: fixed.keyIdBytes, keyslotBytes: keyslotBytes);
   }
 
   static Future<void> _decryptFrames(
@@ -289,28 +276,17 @@ abstract final class BackupCrypto {
         }
         final bodyLen = ByteData.sublistView(lenBytes).getUint32(0);
         final body = input.readSync(bodyLen);
-        if (body.length < bodyLen || bodyLen < 12 + 16) {
+        if (body.length < bodyLen) {
           throw const EnvelopeCorruptException('Backup frame truncated');
         }
         final isFinal = input.positionSync() >= total;
-        final box = SecretBox(
-          Uint8List.sublistView(body, 12, body.length - 16),
-          nonce: Uint8List.sublistView(body, 0, 12),
-          mac: Mac(Uint8List.sublistView(body, body.length - 16)),
+        final plain = await SbeFrames.openFrame(
+          body,
+          dataKey: dataKey,
+          keyIdBytes: keyIdBytes,
+          index: frameIndex,
+          isFinal: isFinal,
         );
-        final List<int> plain;
-        try {
-          plain = await _aesGcm.decrypt(
-            box,
-            secretKey: dataKey,
-            aad: _frameAad(keyIdBytes, frameIndex, isFinal),
-          );
-        } on SecretBoxAuthenticationError {
-          throw const EnvelopeCorruptException(
-            'Backup frame failed authentication '
-            '(corrupt, tampered, reordered, or truncated)',
-          );
-        }
         out.writeFromSync(plain);
         if (isFinal) sawFinal = true;
         frameIndex++;
@@ -323,11 +299,6 @@ abstract final class BackupCrypto {
     } finally {
       out.closeSync();
     }
-  }
-
-  static List<int> _frameAad(List<int> keyId16, int index, bool isFinal) {
-    final b = ByteData(8)..setUint64(0, index);
-    return [...keyId16, ...b.buffer.asUint8List(), isFinal ? 1 : 0];
   }
 
   static Uint8List _uint32be(int v) =>

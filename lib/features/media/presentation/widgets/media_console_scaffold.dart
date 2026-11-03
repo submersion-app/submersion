@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -21,6 +22,14 @@ import 'package:submersion/shared/widgets/section_title_toggle.dart';
 /// pair below is a round trip through one TabController. A value may
 /// therefore be inserted wherever it belongs in the list.
 enum MediaConsoleSection { library, sources, transfers, importMedia }
+
+/// The sections a device with [caps] offers: a browser can neither watch
+/// folders nor import files, so it shows the library and the transfers
+/// (issue #4121).
+List<MediaConsoleSection> mediaConsoleSectionsFor(DeviceCapabilities caps) =>
+    caps.mediaAttach
+    ? MediaConsoleSection.values
+    : const [MediaConsoleSection.library, MediaConsoleSection.transfers];
 
 /// The Media section's page chrome: [headerTitle] over the section's tabs,
 /// over [child] at the full width of the page.
@@ -64,17 +73,22 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
   // to Library) left the indicator on the old tab. One controller also
   // carries the selection across a resize between the phone and desktop
   // layouts.
+  late final List<MediaConsoleSection> _sections = mediaConsoleSectionsFor(
+    ref.read(deviceCapabilitiesProvider),
+  );
+
   late final TabController _controller = TabController(
-    length: MediaConsoleSection.values.length,
-    initialIndex: widget.selected.index,
+    length: _sections.length,
+    initialIndex: math.max(0, _sections.indexOf(widget.selected)),
     vsync: this,
   );
 
   @override
   void didUpdateWidget(MediaConsoleScaffold oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selected.index != _controller.index) {
-      _controller.animateTo(widget.selected.index);
+    final index = _sections.indexOf(widget.selected);
+    if (index >= 0 && index != _controller.index) {
+      _controller.animateTo(index);
     }
   }
 
@@ -127,9 +141,9 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
       indicatorColor: colors.selected,
       overlayColor: colors.overlay,
       dividerColor: divider ? null : Colors.transparent,
-      onTap: (i) => widget.onSelect(MediaConsoleSection.values[i]),
+      onTap: (i) => widget.onSelect(_sections[i]),
       tabs: [
-        for (final section in MediaConsoleSection.values)
+        for (final section in _sections)
           Tab(child: _withBadge(section, Text(_label(context.l10n, section)))),
       ],
     );

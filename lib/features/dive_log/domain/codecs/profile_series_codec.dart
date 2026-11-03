@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/features/dive_log/domain/codecs/bounded_inflate.dart';
 import 'package:submersion/features/dive_log/domain/codecs/byte_io.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_field_table.dart';
@@ -57,8 +57,6 @@ class ProfileSeriesCodec {
 
   /// Field table per version byte this codec can read.
   final Map<int, List<ProfileField>> fieldTables;
-
-  static final ZLibCodec _zlib = ZLibCodec(level: 6);
 
   /// Encodes a non-empty, timestamp-ordered series.
   ///
@@ -119,7 +117,7 @@ class ProfileSeriesCodec {
       _writeColumn(writer, field.kind, column);
     }
     return EncodedProfileSeries(
-      bytes: Uint8List.fromList(_zlib.encode(writer.takeBytes())),
+      bytes: PlatformZlib.deflate(writer.takeBytes()),
       codecVersion: version,
       summary: summary,
     );

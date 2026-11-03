@@ -89,11 +89,12 @@ class TransferPage extends ConsumerWidget {
 }
 
 /// Mobile content showing section list for navigation.
-class TransferMobileContent extends StatelessWidget {
+class TransferMobileContent extends ConsumerWidget {
   const TransferMobileContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transferSections = ref.watch(transferSectionsProvider);
     return Scaffold(
       appBar: AppBar(
         title: FeatureAppBarTitle(
@@ -127,7 +128,8 @@ class _TransferSectionDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Find the section title
-    final section = transferSections
+    final section = ref
+        .watch(transferSectionsProvider)
         .where((s) => s.id == sectionId)
         .firstOrNull;
     final title =

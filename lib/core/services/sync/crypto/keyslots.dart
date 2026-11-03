@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
+import 'package:submersion/core/platform/compute/compute_jobs.dart';
 import 'package:submersion/core/services/sync/crypto/recovery_code.dart';
 
 /// Argon2id parameters, stored per slot so they can be raised later by
@@ -122,14 +123,19 @@ abstract final class Keyslots {
     required String secret,
     required Uint8List salt,
     required KdfParams kdf,
-  }) {
-    final argon2id = Argon2id(
-      parallelism: kdf.p,
-      memory: kdf.m,
+  }) async {
+    // Through the compute facade so the derivation (64 MiB of memory per
+    // pass by default) runs off the calling thread; the parameters and the
+    // bytes are unchanged.
+    final bytes = await ComputeJobs.argon2id(
+      password: Uint8List.fromList(utf8.encode(secret)),
+      salt: salt,
+      memoryKiB: kdf.m,
       iterations: kdf.t,
+      parallelism: kdf.p,
       hashLength: 32,
     );
-    return argon2id.deriveKeyFromPassword(password: secret, nonce: salt);
+    return SecretKey(bytes);
   }
 
   static Future<Keyslot> createSlot({

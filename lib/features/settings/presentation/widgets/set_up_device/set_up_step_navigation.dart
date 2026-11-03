@@ -31,7 +31,8 @@ class SetUpStepNavigation {
   final VoidCallback onNext;
 
   /// The previous step; from the first, the flow closes.
-  final VoidCallback onBack;
+  /// Null on a first step with nothing before it: the step shows no Back.
+  final VoidCallback? onBack;
 
   /// Leaves the step without doing it, changing nothing it had not already
   /// written: on the Settings page the flow closes, in the wizard it moves

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,6 +63,7 @@ void main() {
     DemoManifestClient? manifest,
     Future<void> Function()? endNearbySync,
     bool Function()? importRunning,
+    VoidCallback? announceSwitch,
   }) => DemoModeService(
     paths: paths,
     prefs: prefs,
@@ -78,6 +80,7 @@ void main() {
     restart: () => restarts++,
     endNearbySync: endNearbySync,
     importRunning: importRunning,
+    announceSwitch: announceSwitch,
     clock: () => DateTime(2026, 10, 26, 12),
   );
 
@@ -453,6 +456,30 @@ void main() {
     },
   );
 
+  test('entering and leaving tell the site\'s other tabs (#4121)', () async {
+    var announced = 0;
+    final demo = service(announceSwitch: () => announced++);
+
+    await demo.enter(fromFirstRun: false, package: testPackage);
+    expect(announced, 1);
+
+    await demo.exit();
+    expect(announced, 2);
+  });
+
+  test('a failed entry tells no one', () async {
+    var announced = 0;
+    await expectLater(
+      service(
+        hasPackage: true,
+        importRunning: () => true,
+        announceSwitch: () => announced++,
+      ).enter(fromFirstRun: false, package: testPackage),
+      throwsA(isA<DemoImportRunningException>()),
+    );
+    expect(announced, 0);
+  });
+
   test('exit with an unreadable preferences snapshot still finishes', () async {
     await service().enter(fromFirstRun: false, package: testPackage);
     File(paths.prefsSnapshotFile).writeAsStringSync('not a snapshot');
@@ -603,6 +630,7 @@ class _RecordingPreparer extends DemoDatabasePreparer {
     required DateTime now,
     required String photosDir,
     required String? deviceId,
+    Uri? photosUrl,
     DemoUnitSettings? units,
     void Function(int done, int total)? onProgress,
   }) async {
@@ -612,6 +640,7 @@ class _RecordingPreparer extends DemoDatabasePreparer {
       now: now,
       photosDir: photosDir,
       deviceId: deviceId,
+      photosUrl: photosUrl,
       units: units,
       onProgress: onProgress,
     );

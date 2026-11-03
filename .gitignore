@@ -40,6 +40,13 @@ packages/libdivecomputer_plugin/android/.cxx/
 packages/libdivecomputer_plugin/macos/build/
 packages/libdivecomputer_plugin/ios/build/
 
+# Web build inputs: fetched and compiled by scripts/build_web.sh, never committed
+web/sqlite3.wasm
+web/sqlite3.wasm.download
+web/drift_worker.js*
+web/compute_worker.js*
+test/web/assets/
+
 # Local dev
 *.db
 *.log

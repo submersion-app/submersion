@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart' show Size;
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -10,11 +11,19 @@ import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
 /// Canonical list of every nav destination, including the `more` sentinel.
 final navDestinationsProvider = Provider<List<NavDestination>>((ref) {
-  return kNavDestinations;
+  return availableNavDestinations(
+    kNavDestinations,
+    ref.watch(deviceCapabilitiesProvider),
+  );
 });
 
 /// Ids of destinations the user can reorder on either surface.
-final movableNavIdsProvider = Provider<List<String>>((ref) => movableNavIds);
+final movableNavIdsProvider = Provider<List<String>>(
+  (ref) => [
+    for (final d in ref.watch(navDestinationsProvider))
+      if (!d.isPinned) d.id,
+  ],
+);
 
 /// Computes the current phone primary slot count from the live view size and
 /// the label-visibility setting (#1424).

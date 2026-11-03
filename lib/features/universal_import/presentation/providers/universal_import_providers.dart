@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -146,6 +147,12 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     var detection = detector.detect(bytes);
 
     if (detection.format == ImportFormat.sqlite) {
+      // A browser has no SQLite engine to open the file with, so the probe
+      // that tells the flavours apart cannot run: the file stays a database
+      // this device cannot import, and the wizard says so (issue #4121).
+      if (!_ref.read(deviceCapabilitiesProvider).sqliteImport) {
+        return detection;
+      }
       // Probe the SQLite table set once and reuse for each DB flavor
       // check. Without this, every flavor would re-write the full byte
       // array to its own temp file and re-open sqlite — wasteful for

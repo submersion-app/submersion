@@ -6,7 +6,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart' as sqlite3;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -22,14 +22,18 @@ import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/library_replace_intent.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
+import 'package:submersion/core/database/database_image_header.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
+import 'package:submersion/features/backup/data/services/backup_crypto_image.dart';
+import 'package:submersion/features/backup/data/services/backup_image_inspection.dart';
 import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/core/services/database_service.dart'
-    show DatabaseService;
+    show DatabaseService, DatabaseServiceBrowserRestore;
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
@@ -54,6 +58,7 @@ export 'package:submersion/features/backup/data/services/backup_database_adapter
 
 part 'backup_service_cloud_copy.dart';
 part 'backup_service_copy_out.dart';
+part 'backup_service_image_restore.dart';
 part 'backup_service_pruning.dart';
 part 'backup_service_retention.dart';
 
@@ -158,6 +163,18 @@ class BackupService {
   /// SAF write/read/delete seam for Android custom (`content://`) backup
   /// locations. Defaults to the real platform channel; injectable for tests.
   final BackupSafPort _safPort;
+
+  /// A browser's swap of its library for a backup's bytes (issue #4121),
+  /// which returns the replaced library's path for [_retireLibrary].
+  final Future<String> Function(
+    Uint8List image, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  })
+  _restoreImage;
+
+  /// Moves a browser's other tabs onto the restored library and deletes the
+  /// one it replaced.
+  final Future<void> Function(String replacedPath) _retireLibrary;
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -178,6 +195,12 @@ class BackupService {
     BackupEncryptionKeyStore? backupEncryptionKeyStore,
     BuiltInSpeciesSeedVersionStore? seedVersionStore,
     String? copyAccountId,
+    Future<String> Function(
+      Uint8List image, {
+      void Function(int currentStep, int totalSteps)? onMigrationProgress,
+    })?
+    restoreImage,
+    Future<void> Function(String replacedPath)? retireLibrary,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
@@ -190,7 +213,10 @@ class BackupService {
        _syncPreferences = syncPreferences,
        _backupEncryptionKeyStore = backupEncryptionKeyStore,
        _seedVersionStore = seedVersionStore,
-       _pinnedCopyAccountId = copyAccountId;
+       _pinnedCopyAccountId = copyAccountId,
+       _restoreImage = restoreImage ?? DatabaseService.instance.restoreImage,
+       _retireLibrary =
+           retireLibrary ?? DatabaseService.instance.retireWebLibrary;
 
   // ===========================================================================
   // Backup
@@ -774,7 +800,7 @@ class BackupService {
 
         if (tables.isEmpty) {
           return const BackupValidationResult.invalid(
-            'File does not appear to be a Submersion backup (missing expected tables)',
+            _notSubmersionBackupMessage,
           );
         }
 
@@ -1012,6 +1038,22 @@ class BackupService {
     _log.info('Restore from file completed: ${p.basename(filePath)}');
   }
 
+  /// A browser's restore of a backup held in memory (issue #4121); see
+  /// `_BackupServiceImageRestore._restoreFromImage` for the order of steps.
+  Future<void> restoreFromImage(
+    Uint8List bytes, {
+    RestoreMode mode = RestoreMode.merge,
+    String? encryptionSecret,
+    Future<void> Function()? safetyCopy,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) => _restoreFromImage(
+    bytes,
+    mode: mode,
+    encryptionSecret: encryptionSecret,
+    safetyCopy: safetyCopy,
+    onMigrationProgress: onMigrationProgress,
+  );
+
   /// Restore the database from a copy the restore journal set aside next to
   /// the live database (issue #1923).
   ///
@@ -1104,7 +1146,17 @@ class BackupService {
   Future<void> _replaceDatabaseAndRebaselineSync(
     String sourcePath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
-  }) async {
+  }) => _replaceAndRebaselineSync(
+    () => _dbAdapter.restore(
+      sourcePath,
+      onMigrationProgress: onMigrationProgress,
+    ),
+  );
+
+  /// Runs [swap], which replaces the live database, between capturing the
+  /// live sync identity and re-baselining it; see
+  /// [_replaceDatabaseAndRebaselineSync].
+  Future<void> _replaceAndRebaselineSync(Future<void> Function() swap) async {
     // Marked BEFORE the replace: the marker is what holds the storage
     // cleanup's cloud deletes back until a sync after the restore has run,
     // so it must exist even if the app dies between the replace and the
@@ -1143,10 +1195,7 @@ class BackupService {
       liveEpochId = _epochStore?.lastAcceptedEpochId;
     }
 
-    await _dbAdapter.restore(
-      sourcePath,
-      onMigrationProgress: onMigrationProgress,
-    );
+    await swap();
 
     // The restored file carries whatever built-in species rows its backup
     // had; forgetting the applied catalog version makes the next launch run

@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/data/services/volume_status.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_sort_provider.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -303,6 +304,16 @@ final missingCountProvider = FutureProvider<int>((ref) async {
   final repo = ref.watch(mediaLibraryRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchMediaChanges());
   return repo.countMissing();
+});
+
+/// Counts per source type, for the Sources section's browse list and the
+/// filter sheet's Source row. Types with no rows are left out.
+final sourceCountsProvider = FutureProvider<Map<MediaSourceType, int>>((
+  ref,
+) async {
+  final repo = ref.watch(mediaLibraryRepositoryProvider);
+  ref.invalidateSelfWhen(repo.watchMediaChanges());
+  return repo.countBySourceType();
 });
 
 /// Of the rows currently shown by the Missing filter, how many sit on

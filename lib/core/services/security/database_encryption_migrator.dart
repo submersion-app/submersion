@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart';
 
 import 'package:submersion/core/database/sqlcipher_setup.dart';
+import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 
 typedef SqlcipherExporter =
     Future<void> Function({
@@ -17,7 +18,7 @@ typedef SqlcipherExporter =
 /// with sqlcipher_export, and carries user_version over explicitly —
 /// sqlcipher_export does NOT copy it.
 ///
-/// Opens sqlite3 directly (not via DatabaseService.openRaw) so this file has
+/// Opens the raw handle directly (not via DatabaseService.openRaw) so this file has
 /// no import of database_service.dart — DatabaseService imports the migrator
 /// for restore re-encryption, and the import must stay one-way.
 Future<void> sqlcipherExport({
@@ -31,7 +32,7 @@ Future<void> sqlcipherExport({
   // connection's open flags apply to every database it ATTACHes, so without
   // create the ATTACH below cannot bring the target file into existence and
   // the export fails before it starts.
-  final db = sqlite3.sqlite3.open(sourcePath);
+  final db = RawSqlite.open(sourcePath, mode: OpenMode.readWriteCreate);
   try {
     if (sourceKeyHex != null) {
       db.execute(cipherKeyPragma(sourceKeyHex));

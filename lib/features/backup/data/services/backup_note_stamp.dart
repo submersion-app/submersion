@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:characters/characters.dart';
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart' as sqlite3;
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -100,23 +100,27 @@ Future<String?> readBackupNote(String path) async {
     if (await BackupCrypto.isEncryptedBackup(path)) return null;
     final db = DatabaseService.openRaw(path, mode: sqlite3.OpenMode.readOnly);
     try {
-      final table = db.select(
-        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-        [backupInfoTable],
-      );
-      if (table.isEmpty) return null;
-      final rows = db.select(
-        'SELECT value FROM $backupInfoTable WHERE key = ?',
-        [_noteKey],
-      );
-      if (rows.isEmpty) return null;
-      return normalizeBackupNote(rows.first['value'] as String?);
+      return readBackupNoteFrom(db);
     } finally {
       db.close();
     }
   } catch (_) {
     return null;
   }
+}
+
+/// The note stamped into the open backup [db], or null when it has none.
+String? readBackupNoteFrom(sqlite3.CommonDatabase db) {
+  final table = db.select(
+    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+    [backupInfoTable],
+  );
+  if (table.isEmpty) return null;
+  final rows = db.select('SELECT value FROM $backupInfoTable WHERE key = ?', [
+    _noteKey,
+  ]);
+  if (rows.isEmpty) return null;
+  return normalizeBackupNote(rows.first['value'] as String?);
 }
 
 /// Makes a backup copy at [path] with [export], then stamps [note] into it.

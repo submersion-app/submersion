@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 import 'package:submersion/features/universal_import/data/services/sqlite_temp_copy.dart';
 
@@ -275,14 +275,14 @@ ORDER BY currentTime
 
   static const _tempPrefix = 'sw_import_';
 
-  static Set<String> _listTables(Database db) {
+  static Set<String> _listTables(CommonDatabase db) {
     final rows = db.select("SELECT name FROM sqlite_master WHERE type='table'");
     return rows.map<String>((r) => r['name'] as String).toSet();
   }
 
   /// Column names of [table]. PRAGMA takes no bind parameters; [table] is
   /// always one of this class's constants, never user input.
-  static Set<String> _listColumns(Database db, String table) {
+  static Set<String> _listColumns(CommonDatabase db, String table) {
     final rows = db.select('PRAGMA table_info($table)');
     return rows.map<String>((r) => r['name'] as String).toSet();
   }
@@ -292,7 +292,7 @@ ORDER BY currentTime
   /// columns, or the row is missing, so an export without them loses only
   /// the header values.
   static Row? _readDiveLogHeader(
-    Database db,
+    CommonDatabase db,
     Object? diveId,
     Set<String> availableColumns,
   ) {
@@ -309,7 +309,7 @@ ORDER BY currentTime
 
   /// The dive's GF99 series from `dive_log_records`, ordered by time.
   static List<ShearwaterGf99Sample> _readGf99Samples(
-    Database db,
+    CommonDatabase db,
     Object? diveId,
   ) {
     final rows = db.select(_gf99Query, [diveId]);

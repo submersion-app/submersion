@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/network/platform_http_client.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/web/cors_diagnoser.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_group_service.dart';
@@ -14,6 +18,7 @@ import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/cors_help_sheet.dart';
 import 'package:submersion/features/settings/presentation/widgets/s3_server_fields.dart';
 import 'package:submersion/features/settings/presentation/widgets/webdav_error_text.dart';
 import 'package:submersion/features/settings/presentation/widgets/webdav_server_fields.dart';
@@ -36,6 +41,8 @@ class OwnServerForm extends ConsumerStatefulWidget {
     this.showSyncFolder = false,
     this.webdavCheck,
     required this.onSaved,
+    @visibleForTesting this.browserOrigin,
+    @visibleForTesting this.optionsProbe,
   });
 
   final AccountGroup? existing;
@@ -48,6 +55,14 @@ class OwnServerForm extends ConsumerStatefulWidget {
   /// How a WebDAV server is checked on Check and Save; null runs the sync
   /// settings' write probe.
   final WebDavCheck? webdavCheck;
+
+  /// The page's origin for a browser's CORS diagnosis; null reads it from
+  /// the page (issue #4121).
+  final String? browserOrigin;
+
+  /// How a browser asks a WebDAV server whether it answers OPTIONS at all,
+  /// to tell a blocked method from a blocked origin; null sends the request.
+  final Future<bool> Function(Uri endpoint)? optionsProbe;
 
   /// The row the save wrote: the server's sync-role row for a new server,
   /// or the row of an existing account in the submitted folder. Awaited
@@ -161,8 +176,10 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
         _snack(l10n.settings_webdavConfig_test_success);
       }
     } on WebDavException catch (e) {
+      if (_browser) return _explainBrowserFailure(e);
       _snack(webDavErrorText(l10n, e), isError: true);
     } on CloudStorageException catch (e) {
+      if (_browser) return _explainBrowserFailure(e);
       _snack(e.displayMessage, isError: true);
     } catch (e) {
       _snack(
@@ -171,6 +188,63 @@ class _OwnServerFormState extends ConsumerState<OwnServerForm> {
       );
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  bool get _browser => ref.read(deviceCapabilitiesProvider).isBrowser;
+
+  /// A browser cannot read why a store refused it, so the failure's shape
+  /// is classified and the sheet says what to add to the store (#4121).
+  Future<void> _explainBrowserFailure(CloudStorageException error) async {
+    final isWebDav = _kind != AccountKind.s3;
+    final endpoint = isWebDav ? _webdav.build().davRoot : _s3Endpoint();
+    final failedOnWrite = isWebDav
+        ? ref.read(webdavStorageProviderInstanceProvider).lastProbeFailedOnWrite
+        : ref.read(s3StorageProviderInstanceProvider).lastProbeFailedOnWrite;
+    // A WebDAV server that serves GET but not PROPFIND looks like a blocked
+    // origin on the first request; an OPTIONS that gets through tells the
+    // two apart.
+    var optionsSucceeded = false;
+    if (isWebDav && isOpaqueBrowserFailure(error)) {
+      optionsSucceeded = await (widget.optionsProbe ?? _optionsReachable)(
+        endpoint,
+      );
+    }
+    if (!mounted) return;
+    await showCorsHelpSheet(
+      context,
+      diagnose(
+        error: error,
+        endpoint: endpoint,
+        origin: widget.browserOrigin ?? _pageOrigin(),
+        isWebDav: isWebDav,
+        failedOnWrite: failedOnWrite,
+        optionsSucceeded: optionsSucceeded,
+      ),
+    );
+  }
+
+  Uri _s3Endpoint() {
+    final config = _s3.build();
+    final typed = Uri.tryParse(config.endpoint);
+    if (typed != null && typed.host.isNotEmpty) return typed;
+    return Uri.https(config.displayHost);
+  }
+
+  /// The page's origin; a test runner has none.
+  static String _pageOrigin() => Uri.base.scheme.startsWith('http')
+      ? Uri.base.origin
+      : Uri.base.toString();
+
+  static Future<bool> _optionsReachable(Uri endpoint) async {
+    final client = createPlatformHttpClient();
+    try {
+      final response = await client.send(http.Request('OPTIONS', endpoint));
+      return response.statusCode < 500;
+    } catch (_) {
+      return false;
+    } finally {
+      client.close();
     }
   }
 

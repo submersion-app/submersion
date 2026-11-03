@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -7,8 +6,11 @@ import 'package:cryptography/dart.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid_value.dart';
 
+import 'package:submersion/core/platform/compute/compute_jobs.dart';
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
+import 'package:submersion/core/utils/concat_bytes.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 
 /// Single-shot SBE1 envelope: the byte form of every encrypted sync file.
@@ -168,7 +170,7 @@ abstract final class SyncEnvelope {
       );
     }
     if ((flags & _flagGzip) != 0) {
-      // Bounded and chunked. gzip.decode is a single native call that has
+      // Bounded and chunked. A whole-body gunzip is a single call that has
       // already allocated the whole body by the time it returns, so a
       // length check after the fact buys nothing; the guard has to abort
       // from inside the inflate.
@@ -209,12 +211,7 @@ abstract final class SyncEnvelope {
     Uint8List plaintext,
     int minBytes,
     OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => Uint8List.fromList(gzip.encode(plaintext)),
-    bytes: plaintext.length,
-    minBytes: minBytes,
-    runner: runner,
-  );
+  ) => ComputeJobs.gzip(plaintext, minBytes: minBytes, runner: runner);
 
   static Future<SecretBox> _encryptedOffIsolate(
     List<int> payload,
@@ -223,17 +220,22 @@ abstract final class SyncEnvelope {
     List<int> aad,
     int minBytes,
     OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => DartAesGcm.with256bits().encrypt(
-      payload,
-      secretKey: SecretKeyData(key),
+  ) async {
+    final sealed = await ComputeJobs.aesGcmEncrypt(
+      key: _bytes(key),
+      nonce: _bytes(nonce),
+      plaintext: _bytes(payload),
+      aad: _bytes(aad),
+      minBytes: minBytes,
+      runner: runner,
+    );
+    final split = sealed.length - 16;
+    return SecretBox(
+      Uint8List.sublistView(sealed, 0, split),
       nonce: nonce,
-      aad: aad,
-    ),
-    bytes: payload.length,
-    minBytes: minBytes,
-    runner: runner,
-  );
+      mac: Mac(Uint8List.sublistView(sealed, split)),
+    );
+  }
 
   static Future<List<int>> _decryptedOffIsolate(
     SecretBox box,
@@ -241,33 +243,48 @@ abstract final class SyncEnvelope {
     List<int> aad,
     int minBytes,
     OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => DartAesGcm.with256bits().decrypt(
-      box,
-      secretKey: SecretKeyData(key),
-      aad: aad,
-    ),
-    bytes: box.cipherText.length,
+  ) => ComputeJobs.aesGcmDecrypt(
+    key: _bytes(key),
+    nonce: _bytes(box.nonce),
+    ciphertextWithMac: concatBytes(box.cipherText, box.mac.bytes),
+    aad: _bytes(aad),
     minBytes: minBytes,
-    isExpected: (e) => e is SecretBoxAuthenticationError,
     runner: runner,
   );
 
+  /// The bounded gunzip of `inflateBounded`, with the blob cap checked here
+  /// and the zlib errors translated to the same [BoundedInflateException]
+  /// messages, so the envelope reads the same whichever side runs it.
   static Future<Uint8List> _inflatedOffIsolate(
     List<int> payload,
     int maxBytes,
     int minBytes,
     OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => inflateBounded(
-      payload,
-      decoder: gzip.decoder,
-      maxBytes: maxBytes,
-      maxBlobBytes: maxBytes,
-    ),
-    bytes: payload.length,
-    minBytes: minBytes,
-    isExpected: (e) => e is BoundedInflateException,
-    runner: runner,
-  );
+  ) async {
+    if (payload.length > maxBytes) {
+      throw BoundedInflateException(
+        'blob of ${payload.length} byte(s) exceeds the $maxBytes allowed',
+      );
+    }
+    try {
+      return await ComputeJobs.inflateBounded(
+        _bytes(payload),
+        maxBytes: maxBytes,
+        framing: ZlibFraming.gzip,
+        minBytes: minBytes,
+        runner: runner,
+      );
+    } on ZlibBoundExceeded {
+      throw BoundedInflateException(
+        'inflated body exceeds the $maxBytes byte(s) allowed',
+      );
+    } on ZlibFormatException catch (e) {
+      throw BoundedInflateException(
+        'not a valid compressed stream: ${e.message}',
+      );
+    }
+  }
+
+  static Uint8List _bytes(List<int> bytes) =>
+      bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
 }

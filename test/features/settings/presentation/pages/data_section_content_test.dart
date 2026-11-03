@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -23,6 +24,7 @@ import 'package:submersion/features/settings/presentation/providers/pending_setu
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
@@ -74,6 +76,9 @@ void main() {
     SetUpProgress? setUp,
     DemoPackage? demoPackage,
     Future<void> Function()? exitDemo,
+    // A browser (issue #4121): no offline map tiles, no folder to move the
+    // database to, no sample logbook to download.
+    bool browser = false,
   }) async {
     // MediaQuery follows the view, which the layout breakpoints read.
     tester.view.devicePixelRatio = 1;
@@ -135,6 +140,10 @@ void main() {
           accountGroupsProvider.overrideWith((ref) async => const []),
           if (exitDemo != null)
             demoExitActionProvider.overrideWithValue(exitDemo),
+          if (browser)
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -693,6 +702,54 @@ void main() {
       await tester.tap(find.text('Exit demo').last);
       await tester.pumpAndSettle();
       expect(exits, 1);
+    });
+  });
+
+  group('in a browser (#4121)', () {
+    final package = DemoPackage(
+      schemaVersion: 1,
+      url: Uri.parse('https://example.com/demo.zip'),
+      sha256: 'a' * 64,
+      size: 10,
+      generatedAt: DateTime.utc(2026, 10, 20),
+    );
+
+    testWidgets('natively offline maps and the storage folder are offered', (
+      tester,
+    ) async {
+      await pumpData(tester);
+      expect(find.text('Offline maps'), findsOneWidget);
+      final storage = tester.widget<DataRowTile>(
+        find.widgetWithText(DataRowTile, 'Database storage'),
+      );
+      expect(storage.enabled, isTrue);
+    });
+
+    testWidgets('offline maps are gone and the storage row only informs', (
+      tester,
+    ) async {
+      await pumpData(tester, browser: true);
+      expect(find.text('Offline maps'), findsNothing);
+      final storageRow = find.widgetWithText(DataRowTile, 'Database storage');
+      final storage = tester.widget<DataRowTile>(storageRow);
+      expect(storage.route, isNull);
+      expect(storage.onTap, isNull);
+      expect(storage.enabled, isTrue);
+      expect(find.text('App default location'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: storageRow,
+          matching: find.byIcon(Icons.chevron_right),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the sample logbook is offered when the site ships one', (
+      tester,
+    ) async {
+      await pumpData(tester, browser: true, demoPackage: package);
+      expect(find.text('Explore with sample data'), findsOneWidget);
     });
   });
 }

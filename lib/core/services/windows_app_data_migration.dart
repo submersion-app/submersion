@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 /// The `CompanyName` the Windows runner shipped with through v1.7.5. It came
 /// from the Flutter template and was never changed, so `path_provider_windows`
 /// placed every Windows user's application-support and cache data under the
@@ -210,7 +212,7 @@ Future<void> _copyTree(Directory from, Directory to) async {
 ///
 /// Returns an empty list off Windows. Never throws.
 Future<List<AppDataMigrationReport>> migrateWindowsAppDataDirectories() async {
-  if (!Platform.isWindows) return const <AppDataMigrationReport>[];
+  if (!HostPlatform.isWindows) return const <AppDataMigrationReport>[];
 
   // APPDATA backs getApplicationSupportDirectory (FOLDERID_RoamingAppData);
   // LOCALAPPDATA backs getApplicationCacheDirectory (FOLDERID_LocalAppData).
@@ -218,7 +220,7 @@ Future<List<AppDataMigrationReport>> migrateWindowsAppDataDirectories() async {
 
   final reports = <AppDataMigrationReport>[];
   for (final variable in roots) {
-    final root = Platform.environment[variable];
+    final root = HostPlatform.environment[variable];
     if (root == null || root.isEmpty) continue;
     reports.add(
       await migrateCompanyDirectory(

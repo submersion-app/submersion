@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
@@ -63,8 +65,19 @@ Widget transferSectionHeader(BuildContext context, String title) {
   );
 }
 
+/// The sections this device offers: every one natively, and no dive
+/// computers in a browser, which has no Bluetooth or USB to reach them.
+final transferSectionsProvider = Provider<List<TransferSection>>((ref) {
+  final caps = ref.watch(deviceCapabilitiesProvider);
+  if (caps.diveComputerDownload) return transferSections;
+  return [
+    for (final section in transferSections)
+      if (section.id != 'computers') section,
+  ];
+});
+
 /// Content widget for the transfer section list, used in master-detail layout.
-class TransferListContent extends StatelessWidget {
+class TransferListContent extends ConsumerWidget {
   final void Function(String?)? onItemSelected;
   final String? selectedId;
   final bool showAppBar;
@@ -77,7 +90,8 @@ class TransferListContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transferSections = ref.watch(transferSectionsProvider);
     final listContent = KeyboardListNavigator(
       keys: [for (final s in transferSections) s.id],
       currentKey: selectedId,

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_start_seconds.dart';
@@ -60,7 +60,7 @@ class MacDiveDbReader {
     return withTempSqliteCopy(bytes, prefix: _tempPrefix, body: _readLogbook);
   }
 
-  static MacDiveRawLogbook _readLogbook(Database db) {
+  static MacDiveRawLogbook _readLogbook(CommonDatabase db) {
     _validateRequiredTables(db);
     final unitsPreference = _readUnitsPreference(db);
     final sites = _readSites(db);
@@ -141,7 +141,7 @@ class MacDiveDbReader {
 
   // ---- per-table readers ----
 
-  static String? _readUnitsPreference(Database db) {
+  static String? _readUnitsPreference(CommonDatabase db) {
     try {
       final rows = db.select(
         "SELECT ZALL FROM ZMETADATA WHERE ZIDENTIFIER = 'SystemOfUnits'",
@@ -153,7 +153,7 @@ class MacDiveDbReader {
     }
   }
 
-  static List<MacDiveRawSite> _readSites(Database db) {
+  static List<MacDiveRawSite> _readSites(CommonDatabase db) {
     return db.select('SELECT * FROM ZDIVESITE').map((r) {
       return MacDiveRawSite(
         pk: r['Z_PK'] as int,
@@ -173,7 +173,7 @@ class MacDiveDbReader {
     }).toList();
   }
 
-  static List<MacDiveRawBuddy> _readBuddies(Database db) {
+  static List<MacDiveRawBuddy> _readBuddies(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawBuddy>(
       db,
       'SELECT Z_PK, ZUUID, ZNAME FROM ZBUDDY',
@@ -185,7 +185,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawTag> _readTags(Database db) {
+  static List<MacDiveRawTag> _readTags(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawTag>(
       db,
       'SELECT Z_PK, ZUUID, ZNAME FROM ZTAG',
@@ -197,7 +197,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawGear> _readGear(Database db) {
+  static List<MacDiveRawGear> _readGear(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawGear>(
       db,
       'SELECT * FROM ZGEARITEM',
@@ -222,7 +222,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawTank> _readTanks(Database db) {
+  static List<MacDiveRawTank> _readTanks(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawTank>(
       db,
       'SELECT * FROM ZTANK',
@@ -237,7 +237,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawGas> _readGases(Database db) {
+  static List<MacDiveRawGas> _readGases(CommonDatabase db) {
     return db.select('SELECT * FROM ZGAS').map((r) {
       return MacDiveRawGas(
         pk: r['Z_PK'] as int,
@@ -251,7 +251,7 @@ class MacDiveDbReader {
     }).toList();
   }
 
-  static List<MacDiveRawTankAndGas> _readTankAndGases(Database db) {
+  static List<MacDiveRawTankAndGas> _readTankAndGases(CommonDatabase db) {
     return db
         .select('SELECT * FROM ZTANKANDGAS')
         .where((r) {
@@ -276,7 +276,7 @@ class MacDiveDbReader {
         .toList();
   }
 
-  static List<MacDiveRawCritter> _readCritters(Database db) {
+  static List<MacDiveRawCritter> _readCritters(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawCritter>(
       db,
       'SELECT * FROM ZCRITTER',
@@ -292,7 +292,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawCertification> _readCertifications(Database db) {
+  static List<MacDiveRawCertification> _readCertifications(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawCertification>(
       db,
       'SELECT * FROM ZCERTIFICATION',
@@ -314,7 +314,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawServiceRecord> _readServiceRecords(Database db) {
+  static List<MacDiveRawServiceRecord> _readServiceRecords(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawServiceRecord>(
       db,
       'SELECT * FROM ZSERVICERECORD',
@@ -332,7 +332,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawDiveType> _readDiveTypes(Database db) {
+  static List<MacDiveRawDiveType> _readDiveTypes(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawDiveType>(
       db,
       'SELECT * FROM ZDIVETYPE',
@@ -344,7 +344,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawDiveLog> _readDiveLogs(Database db) {
+  static List<MacDiveRawDiveLog> _readDiveLogs(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawDiveLog>(
       db,
       'SELECT * FROM ZDIVELOG',
@@ -358,7 +358,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawDiver> _readDivers(Database db) {
+  static List<MacDiveRawDiver> _readDivers(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawDiver>(
       db,
       'SELECT * FROM ZDIVER',
@@ -379,7 +379,7 @@ class MacDiveDbReader {
 
   /// `ZDIVEIMAGE` is absent from some libraries, so this goes through
   /// [_selectOrEmpty] like the other optional tables: no table, no photos.
-  static List<MacDiveRawDiveImage> _readDiveImages(Database db) {
+  static List<MacDiveRawDiveImage> _readDiveImages(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawDiveImage>(
       db,
       'SELECT * FROM ZDIVEIMAGE',
@@ -395,7 +395,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawEvent> _readEvents(Database db) {
+  static List<MacDiveRawEvent> _readEvents(CommonDatabase db) {
     return _selectOrEmpty<MacDiveRawEvent>(
       db,
       'SELECT * FROM ZEVENT',
@@ -410,7 +410,7 @@ class MacDiveDbReader {
     );
   }
 
-  static List<MacDiveRawDive> _readDives(Database db) {
+  static List<MacDiveRawDive> _readDives(CommonDatabase db) {
     return db.select('SELECT * FROM ZDIVE').map((r) {
       final identifier = _str(r['ZIDENTIFIER']);
       final rawDate = _nsDateFromSeconds(_double(r['ZRAWDATE']));
@@ -469,7 +469,7 @@ class MacDiveDbReader {
   /// Absent tables (or query errors) return an empty map - the caller
   /// treats absence and emptiness identically.
   static Map<int, List<int>> _readJunction(
-    Database db, {
+    CommonDatabase db, {
     required String table,
     required String dividingColumn,
     required String relatedColumn,
@@ -491,7 +491,7 @@ class MacDiveDbReader {
   }
 
   static List<T> _selectOrEmpty<T>(
-    Database db,
+    CommonDatabase db,
     String query,
     T Function(Row r) map,
   ) {
@@ -507,7 +507,7 @@ class MacDiveDbReader {
   /// tables being present, and so that a missing-table failure surfaces
   /// as a clear error instead of a confusing "no such table" from a
   /// later query.
-  static void _validateRequiredTables(Database db) {
+  static void _validateRequiredTables(CommonDatabase db) {
     final rows = db.select("SELECT name FROM sqlite_master WHERE type='table'");
     final tables = rows.map<String>((r) => r['name'] as String).toSet();
     final missing = _requiredTables

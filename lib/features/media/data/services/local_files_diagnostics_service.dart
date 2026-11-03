@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/media_verification_sweep.dart';
@@ -79,7 +78,7 @@ class LocalFilesDiagnosticsService {
   /// a no-op there, so this short-circuit avoids a meaningless mock-stub
   /// trip in tests.
   Future<int> androidUriUsage() async {
-    if (!Platform.isAndroid) return 0;
+    if (!HostPlatform.isAndroid) return 0;
     // coverage:ignore-start
     // Android-only branch; test suite runs on macOS where the early-return
     // above prevents the platform mock from being consulted regardless of
