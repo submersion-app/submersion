@@ -170,8 +170,9 @@ void main() {
       expect(restored.bottomTime, const Duration(minutes: 48));
     });
 
-    test('reads another app\'s duration as the runtime', () async {
-      // Only Submersion ever wrote the bottom time there.
+    test('reads no bottom time from another app\'s duration', () async {
+      // Only Submersion ever wrote the bottom time in <diveduration>, so in
+      // another app's file it is not one; <runtime> still gives the runtime.
       final xml = (await oldBackup(
         _dive(
           runtime: const Duration(minutes: 121),
