@@ -205,6 +205,12 @@ abstract class WritableEntry {
   /// names it in [ChildOf.field] when it is created, and stays on it.
   ChildOf? get parent => null;
 
+  /// The kinds of change to this record that also write its parent, as an
+  /// annotation's create and delete rewrite its dive's Notes. Such a change
+  /// cannot share a set with an update of that parent: whichever ran second
+  /// would undo the other.
+  Set<ChangeKind> get writesParent => const {};
+
   /// Fields a create sets and an update may not change. A child's
   /// [ChildOf.field] is always one.
   Set<String> get createOnly => const {};

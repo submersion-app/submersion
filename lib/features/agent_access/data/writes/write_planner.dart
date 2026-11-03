@@ -79,6 +79,13 @@ class _Pass {
   final _seen = <(String, String)>{};
   final _referenced = <(String, String)>{};
   final _versionedTables = <String, bool>{};
+
+  /// Records an update in the set changes, wherever it sits.
+  late final _updated = {
+    for (final op in set.operations)
+      if (op is UpdateOp) (op.entity, op.id),
+  };
+
   late final _deleted = {
     for (final op in set.operations)
       if (op is DeleteOp) (op.entity, op.id),
@@ -175,7 +182,8 @@ class _Pass {
       );
     }
     final owner = await _owner(op, entry, parsed.values);
-    if (owner.block case final block?) {
+    if (owner.block ?? _parentWritten(entry, owner.parentId, ChangeKind.create)
+        case final block?) {
       return _add(op, entry, kind: ChangeKind.create, block: block);
     }
     final diverId = owner.diverId!;
@@ -300,14 +308,16 @@ class _Pass {
     if (row == null) return;
     if (_orphaned(op, entry, row, ChangeKind.delete)) return;
     final document = await _document(entry, op.id, row.ownerId);
-    final block = await entry.refuse(
-      WriteCheck(
-        kind: ChangeKind.delete,
-        id: op.id,
-        ownerId: row.ownerId,
-        document: document,
-      ),
-    );
+    final block =
+        _parentWritten(entry, row.parentId, ChangeKind.delete) ??
+        await entry.refuse(
+          WriteCheck(
+            kind: ChangeKind.delete,
+            id: op.id,
+            ownerId: row.ownerId,
+            document: document,
+          ),
+        );
     // Held as a local, so the closure a marker keeps holds the map and not
     // this pass, whose database a plan must not keep alive.
     final alongside = _deletedByEntity;
