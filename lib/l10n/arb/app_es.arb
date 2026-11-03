@@ -17403,6 +17403,7 @@
   "settings_photos_switchConsequenceUnnamed": "Este dispositivo deja de usar sus copias actuales y empieza o se une a copias en {choice}. No se elimina nada.",
   "settings_photos_switchHeldOnly": "{count, plural, =1{1 foto solo está en las copias actuales y no se abrirá en este dispositivo después del cambio.} other{{count} fotos solo están en las copias actuales y no se abrirán en este dispositivo después del cambio.}}",
   "settings_photos_startedSeparate": "No se encontraron copias en {account}, así que este dispositivo empezó copias independientes allí.",
+  "settings_photos_browserReadOnly": "Un navegador muestra las copias de fotos que guardan tus otros dispositivos, pero no puede empezarlas. Empiézalas en la app en un teléfono o un ordenador.",
   "settings_conflict_field_remoteStoreId": "Subido a",
   "tags_manage_scope_media": "Multimedia",
   "tags_manage_scope_documents": "Documentos",

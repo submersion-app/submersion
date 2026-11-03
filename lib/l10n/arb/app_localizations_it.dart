@@ -58685,6 +58685,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Un browser mostra le copie delle foto conservate dagli altri tuoi dispositivi, ma non può avviarle. Avviale nell\'app su un telefono o un computer.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Caricato in';
 
   @override

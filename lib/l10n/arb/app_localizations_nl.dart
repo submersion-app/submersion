@@ -58315,6 +58315,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Een browser toont de fotokopieën die je andere apparaten bewaren, maar kan er niet mee beginnen. Begin ermee in de app op een telefoon of computer.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Geüpload naar';
 
   @override

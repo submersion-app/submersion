@@ -57752,6 +57752,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'A browser shows the photo copies your other devices keep, but cannot start them. Start them in the app on a phone or computer.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Uploaded to';
 
   @override

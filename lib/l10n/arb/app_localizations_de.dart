@@ -58557,6 +58557,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Ein Browser zeigt die Fotokopien an, die Ihre anderen Geräte aufbewahren, kann sie aber nicht beginnen. Beginnen Sie sie in der App auf einem Telefon oder Computer.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Hochgeladen in';
 
   @override

@@ -17403,6 +17403,7 @@
   "settings_photos_switchConsequenceUnnamed": "Dit apparaat stopt met zijn huidige kopieën en begint of sluit aan bij kopieën in {choice}. Er wordt niets verwijderd.",
   "settings_photos_switchHeldOnly": "{count, plural, =1{1 foto staat alleen in de huidige kopieën en opent na de wijziging niet meer op dit apparaat.} other{{count} foto's staan alleen in de huidige kopieën en openen na de wijziging niet meer op dit apparaat.}}",
   "settings_photos_startedSeparate": "Er zijn geen kopieën gevonden in {account}, dus dit apparaat is daar met aparte kopieën begonnen.",
+  "settings_photos_browserReadOnly": "Een browser toont de fotokopieën die je andere apparaten bewaren, maar kan er niet mee beginnen. Begin ermee in de app op een telefoon of computer.",
   "settings_conflict_field_remoteStoreId": "Geüpload naar",
   "tags_manage_scope_media": "Media",
   "tags_manage_scope_documents": "Documenten",

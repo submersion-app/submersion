@@ -58666,6 +58666,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Um navegador mostra as cópias de fotos que os seus outros dispositivos guardam, mas não as pode iniciar. Inicie-as na app num telemóvel ou computador.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Enviado para';
 
   @override

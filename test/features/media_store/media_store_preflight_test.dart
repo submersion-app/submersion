@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -255,12 +255,8 @@ class _ReconnectsDuringRead extends InMemoryMediaObjectStore {
   final Future<void> Function() onRead;
 
   @override
-  Future<void> getFile(
-    String key,
-    File destination, {
-    TransferProgressCallback? onProgress,
-  }) async {
+  Future<Uint8List> getBytes(String key) async {
     await onRead();
-    return super.getFile(key, destination, onProgress: onProgress);
+    return super.getBytes(key);
   }
 }
