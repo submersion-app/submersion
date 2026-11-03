@@ -70,10 +70,18 @@ class TankWrites extends WritableEntry {
   Future<DeleteReach> deleteReach(
     String id, {
     Map<String, Set<String>> alongside = const {},
-  }) async => DeleteReach(
-    parts: await countCascaded('dive_tanks', id),
-    unlinked: await countUnlinked('dive_tanks', id),
-  );
+  }) async {
+    // A profile event names its tank with no foreign key, which
+    // countUnlinked cannot see; the delete clears it.
+    final events = await countRows('dive_profile_events', 'tank_id = ?1', id);
+    return DeleteReach(
+      parts: await countCascaded('dive_tanks', id),
+      unlinked: {
+        ...await countUnlinked('dive_tanks', id),
+        if (events > 0) 'dive_profile_events': events,
+      },
+    );
+  }
 
   /// Its name, else its preset, else its mix.
   @override
@@ -85,7 +93,9 @@ class TankWrites extends WritableEntry {
     }
     if (document['o2_fraction'] case final num o2) {
       final he = document['he_fraction'] as num? ?? 0;
-      return '${(o2 * 100).round()}/${(he * 100).round()}';
+      String percent(num fraction) =>
+          formatGasPercentValue(gasPercentOfFraction(fraction.toDouble()));
+      return '${percent(o2)}/${percent(he)}';
     }
     return null;
   }

@@ -122,6 +122,8 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
+part 'dive_repository_gear_preview.dart';
+
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
 ///
@@ -8063,34 +8065,6 @@ class DiveRepository {
       await _writeGearDiff(diveId, expanded, now);
     }
     await _bumpDives(diveIds, now);
-  }
-
-  /// The equipment ids [diveId] would carry after [bulkAddEquipment] adds
-  /// [add] and [bulkRemoveEquipment] then removes [remove]: assemblies bring
-  /// their active parts, and a removed item takes what is attached through
-  /// it. Reads only, so a preview can show it before anything is written.
-  Future<Set<String>> gearIdsAfter(
-    String diveId, {
-    List<String> add = const [],
-    List<String> remove = const [],
-  }) async {
-    var rows = await _provenanceOf(diveId);
-    if (add.isNotEmpty) {
-      final index = await _loadComponentsIndex();
-      final active = await _activeIdsAmong({
-        for (final id in add) ...[id, ...index.descendantsOf(id)],
-      });
-      rows = GearExpander.expand(
-        additions: [for (final id in add) (equipmentId: id, viaSetId: null)],
-        index: index,
-        existing: rows,
-        isActive: active.contains,
-      );
-    }
-    for (final id in remove) {
-      rows = GearExpander.removeSubtree(rows, id);
-    }
-    return {for (final row in rows) row.equipmentId};
   }
 
   /// Remove each equipment id, and everything attached through it, from

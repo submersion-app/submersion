@@ -201,6 +201,30 @@ void main() {
       },
     );
 
+    test('a delete clears the events that name the tank', () async {
+      await tank('t1', 0);
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'e1',
+              diveId: 'd1',
+              timestamp: 60,
+              eventType: 'gasChange',
+              createdAt: 0,
+              tankId: const Value('t1'),
+            ),
+          );
+
+      await repo.deleteTank('t1');
+
+      final event = await (db.select(
+        db.diveProfileEvents,
+      )..where((e) => e.id.equals('e1'))).getSingle();
+      expect(event.tankId, isNull);
+      expect(await pending('diveProfileEvents'), {'e1'});
+    });
+
     test('a delete of a tank that has gone finds nothing', () async {
       expect(await repo.deleteTank('gone'), isFalse);
       expect(await tombstones('diveTanks'), isEmpty);

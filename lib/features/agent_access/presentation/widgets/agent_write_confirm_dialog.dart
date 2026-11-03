@@ -209,6 +209,8 @@ class _PlanItemRow extends StatelessWidget {
     final name = item.title ?? item.id;
     final date = item.date;
     String named(String id) => item.names[id] ?? id;
+    // A cylinder's size reads by its working pressure when the plan sets it.
+    final pressure = item.fields['working_pressure_bar'];
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -227,8 +229,8 @@ class _PlanItemRow extends StatelessWidget {
             ),
           for (final MapEntry(:key, :value) in item.fields.entries)
             Text(
-              '$key: ${agentValueText(l, units, key, value.oldValue)} '
-              '→ ${agentValueText(l, units, key, value.newValue)}',
+              '$key: ${agentValueText(l, units, key, value.oldValue, workingPressureBar: pressure?.oldValue as num?)} '
+              '→ ${agentValueText(l, units, key, value.newValue, workingPressureBar: pressure?.newValue as num?)}',
               style: theme.textTheme.bodySmall,
             ),
           for (final MapEntry(:key, :value) in item.relations.entries)
@@ -264,8 +266,9 @@ String agentValueText(
   AppLocalizations l,
   UnitFormatter units,
   String key,
-  Object? value,
-) {
+  Object? value, {
+  num? workingPressureBar,
+}) {
   if (value == null) return l.settings_agentAccess_confirm_none;
   if (value is num) {
     final number = value.toDouble();
@@ -274,7 +277,9 @@ String agentValueText(
     if (key.endsWith('_bar')) return units.formatPressure(number);
     if (key.endsWith('_kg')) return units.formatWeight(number);
     // A cylinder's size, which imperial divers know by its gas capacity.
-    if (key == 'volume_l') return units.formatTankVolume(number, null);
+    if (key == 'volume_l') {
+      return units.formatTankVolume(number, workingPressureBar?.toDouble());
+    }
     if (key.endsWith('_fraction')) {
       return formatGasPercent(gasPercentOfFraction(number));
     }

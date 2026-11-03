@@ -81,6 +81,28 @@ void main() {
       expect(plan.markers.single.id, 'd2');
     });
 
+    test('creates on one dive mark it once', () async {
+      final plan = await h.preview([
+        create({'dive_id': 'd1'}),
+        create({'dive_id': 'd1', 'o2_fraction': 0.5}),
+      ]);
+
+      expect(plan.markers, hasLength(1));
+    });
+
+    test('a tank with no name is known by its mix', () async {
+      await tank('t2', o2: 18.5, he: 45);
+      await (db.update(db.diveTanks)..where((r) => r.id.equals('t2'))).write(
+        const DiveTanksCompanion(tankName: Value(null)),
+      );
+
+      final plan = await h.preview([
+        update('t2', {'volume_l': 12}),
+      ]);
+
+      expect(plan.items.single.title, '18.5/45');
+    });
+
     test('a profile other than the dive\'s is blocked', () async {
       final plan = await h.preview([
         create({'dive_id': 'd2'}, diver: kDiverA),
@@ -186,6 +208,25 @@ void main() {
         'gas_switches': 1,
         'tank_pressure_series': 1,
       });
+    });
+
+    test('a delete lists the events it unlinks', () async {
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'e1',
+              diveId: 'd1',
+              timestamp: 60,
+              eventType: 'gasChange',
+              createdAt: 0,
+              tankId: const Value('t1'),
+            ),
+          );
+
+      final plan = await h.preview([deleteOp('dive_tanks', 't1')]);
+
+      expect(plan.items.single.reach.unlinked['dive_profile_events'], 1);
     });
   });
 

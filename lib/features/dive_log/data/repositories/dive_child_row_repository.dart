@@ -72,7 +72,8 @@ class DiveChildRowRepository {
     return true;
   }
 
-  /// Deletes [tankId] with its pressure series and gas switches. SQLite
+  /// Deletes [tankId] with its pressure series and gas switches, and clears
+  /// the profile events that name it. SQLite
   /// cascades both without Drift seeing a write, so the series go through
   /// their repository, which tombstones each, and the switches' tombstones are
   /// logged here, as a dive save does (issue #32). False when the tank has
@@ -85,12 +86,28 @@ class DiveChildRowRepository {
       _db.gasSwitches,
     )..where((s) => s.tankId.equals(tankId))).get();
     await (_db.delete(_db.diveTanks)..where((t) => t.id.equals(tankId))).go();
+    // A profile event names its gas by tank with no foreign key, so nothing
+    // clears the link but this.
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final events = await (_db.select(
+      _db.diveProfileEvents,
+    )..where((e) => e.tankId.equals(tankId))).get();
+    for (final event in events) {
+      await (_db.update(_db.diveProfileEvents)
+            ..where((e) => e.id.equals(event.id)))
+          .write(const DiveProfileEventsCompanion(tankId: Value(null)));
+      await _sync.markRecordPending(
+        entityType: 'diveProfileEvents',
+        recordId: event.id,
+        localUpdatedAt: now,
+      );
+    }
     await _sync.logDeletion(entityType: 'diveTanks', recordId: tankId);
     await _sync.logDeletions(
       entityType: 'gasSwitches',
       recordIds: [for (final s in switches) s.id],
     );
-    await _stampDive(row.diveId);
+    await _stampDive(row.diveId, now: now);
     return true;
   }
 

@@ -11,6 +11,8 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
+    show DiveGearPreview;
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
@@ -122,15 +124,8 @@ class DiveWrites extends WritableEntry {
 
   /// A dive with no type links has its one legacy type, as a dive read says.
   Future<Set<String>> _types(String id) async {
-    final links = await DatabaseService.instance.database
-        .customSelect(
-          'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ?',
-          variables: [Variable.withString(id)],
-        )
-        .get();
-    if (links.isNotEmpty) {
-      return {for (final row in links) row.read<String>('dive_type_id')};
-    }
+    final links = await _ids('dive_dive_types', 'dive_type_id', id);
+    if (links.isNotEmpty) return links;
     return {?(await _row(id))?.diveType};
   }
 

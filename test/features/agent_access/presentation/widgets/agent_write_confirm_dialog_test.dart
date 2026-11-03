@@ -534,6 +534,37 @@ void main() {
     await _close(tester);
   });
 
+  testWidgets('a cylinder reads by the working pressure the plan sets', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      settings: const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+    );
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            _item(
+              fields: const {
+                'volume_l': FieldChange(null, 11.1),
+                'working_pressure_bar': FieldChange(null, 207.0),
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    // From its own pressure, not the 200 bar estimate a '~' marks.
+    expect(find.textContaining('cuft'), findsOneWidget);
+    expect(find.textContaining('~'), findsNothing);
+    await _close(tester);
+  });
+
   testWidgets('long values wrap at 2x text', (tester) async {
     tester.view.physicalSize = const Size(320, 640);
     tester.view.devicePixelRatio = 1;

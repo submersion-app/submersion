@@ -51,7 +51,7 @@ extension _ChildRules on _Pass {
     final table = _parentTable(entry);
     final row = await db
         .customSelect(
-          'SELECT diver_id, updated_at FROM $table WHERE id = ?',
+          'SELECT diver_id FROM $table WHERE id = ?',
           variables: [Variable.withString(parentId)],
         )
         .getSingleOrNull();
@@ -70,13 +70,7 @@ extension _ChildRules on _Pass {
       );
     }
     // A parent deleted after the preview refuses the plan.
-    markers.add(
-      RecordMarker(
-        table: table,
-        id: parentId,
-        updatedAt: row.read<int>('updated_at'),
-      ),
-    );
+    await _markReference(table, parentId);
     return (
       diverId: ownerId ?? await resolveDiver(null),
       parentId: parentId,
