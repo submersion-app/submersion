@@ -155,6 +155,46 @@ void main() {
       expect((await h.one('dives', 'd1'))!['water_type'], 'salt');
     });
 
+    test(
+      'cannot follow a change to the same site earlier in the set',
+      () async {
+        await dive('d1', water: 'fresh');
+        await site('s1', water: 'fresh');
+
+        final plan = await preview([
+          {
+            'op': 'update',
+            'entity': 'sites',
+            'id': 's1',
+            'fields': {'water_type': 'salt'},
+          },
+          linkSite('d1', 's1'),
+        ]);
+
+        // The write would snap salt from the changed site, which the plan
+        // could not list, so the link waits for a set of its own.
+        expect(plan.applicable, isFalse);
+        expect(plan.items[1].block?.reason, BlockReason.referenceChanged);
+      },
+    );
+
+    test('may come before a change to its site', () async {
+      await dive('d1', water: 'fresh');
+      await site('s1', water: 'fresh');
+
+      final plan = await preview([
+        linkSite('d1', 's1'),
+        {
+          'op': 'update',
+          'entity': 'sites',
+          'id': 's1',
+          'fields': {'water_type': 'salt'},
+        },
+      ]);
+
+      expect(plan.applicable, isTrue);
+    });
+
     test('writes what it listed', () async {
       await dive('d1', water: 'fresh');
       await site('s1', water: 'salt');

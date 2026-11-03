@@ -222,11 +222,15 @@ void main() {
     await expectLater(
       confirmer.confirm(_request()),
       throwsA(
-        isA<AgentToolException>().having(
-          (e) => e.code,
-          'code',
-          AgentToolErrorCode.confirmationPending,
-        ),
+        isA<AgentToolException>()
+            .having(
+              (e) => e.code,
+              'code',
+              AgentToolErrorCode.confirmationPending,
+            )
+            // apply_changes has used the plan up by now, so a retry of the
+            // same plan_id could only fail.
+            .having((e) => e.message, 'message', contains('preview_changes')),
       ),
     );
 
@@ -324,6 +328,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Site Tags: 4'), findsOneWidget);
+    await _close(tester);
+  });
+
+  testWidgets('a profile it cannot name is not called shared', (tester) async {
+    await _pump(tester);
+    unawaited(
+      _confirmer().confirm(
+        WriteConfirmation(
+          clientName: 'Test Agent',
+          label: 'Fix notes',
+          countsByEntity: const {'dives': 2},
+          countsByDiver: const {'diver-c': 1, '': 1},
+          items: [_item()],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('diver-c: 1'), findsOneWidget);
+    expect(find.text('Shared: 1'), findsOneWidget);
     await _close(tester);
   });
 

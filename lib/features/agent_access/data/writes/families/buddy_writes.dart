@@ -37,12 +37,7 @@ class BuddyWrites extends WritableEntry {
 
   @override
   Future<DeleteReach> deleteReach(String id) async {
-    final documents = await countRows(
-      'documents',
-      'buddy_id = ?1 OR certification_id IN '
-          '(SELECT id FROM certifications WHERE buddy_id = ?1)',
-      id,
-    );
+    final documents = await countDocuments(await deletedDocumentOwners(id));
     return DeleteReach(
       linkedDives: await countDivesByOwner(
         'SELECT d.diver_id AS owner, COUNT(*) AS n FROM dive_buddies l '

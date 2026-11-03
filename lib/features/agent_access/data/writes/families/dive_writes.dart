@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show Value, Variable;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
@@ -78,7 +78,7 @@ class DiveWrites extends WritableEntry {
     'buddies': RelationSpec(refEntity: 'buddies'),
     'tags': RelationSpec(refEntity: 'tags'),
     'types': RelationSpec(refEntity: 'dive_types'),
-    'site': RelationSpec(refEntity: 'sites', single: true),
+    'site': RelationSpec(refEntity: 'sites', single: true, copiesTarget: true),
   };
 
   @override
@@ -95,13 +95,28 @@ class DiveWrites extends WritableEntry {
         for (final b in await _r.buddies.getBuddiesForDive(id)) b.buddy.id,
       };
     }
-    final dive = await _r.dives.getDiveById(id);
+    // Each from its own rows: a full dive read decodes the profile, and a
+    // plan asks for these again at apply, inside the write transaction.
     return switch (relation) {
-      'tags' => {for (final t in dive?.tags ?? const []) t.id as String},
-      'types' => {...?dive?.diveTypeIds},
-      'site' => {?dive?.site?.id},
+      'tags' => {for (final t in await _r.tags.getTagsForDive(id)) t.id},
+      'types' => _types(id),
+      'site' => {?(await _row(id))?.siteId},
       _ => const {},
     };
+  }
+
+  /// A dive with no type links has its one legacy type, as a dive read says.
+  Future<Set<String>> _types(String id) async {
+    final links = await DatabaseService.instance.database
+        .customSelect(
+          'SELECT dive_type_id FROM dive_dive_types WHERE dive_id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .get();
+    if (links.isNotEmpty) {
+      return {for (final row in links) row.read<String>('dive_type_id')};
+    }
+    return {?(await _row(id))?.diveType};
   }
 
   /// A read fills an empty water temperature from the profile, and a plan
@@ -161,10 +176,21 @@ class DiveWrites extends WritableEntry {
   @override
   Future<DeleteReach> deleteReach(String id) async {
     final media = await _r.media.partitionMediaForDiveDeletion([id]);
+    final documents = await countDocuments(await deletedDocumentOwners(id));
+    // The delete reclaims a stored import file once no other dive's source
+    // names it.
+    final files = await countRows(
+      'imported_files',
+      'id IN (SELECT imported_file_id FROM dive_data_sources '
+          'WHERE dive_id = ?1) AND NOT EXISTS (SELECT 1 FROM dive_data_sources s '
+          'WHERE s.imported_file_id = imported_files.id AND s.dive_id <> ?1)',
+      id,
+    );
     return DeleteReach(
       records: {
-        ...await countOwned({'documents': 'dive_id'}, id),
+        if (documents > 0) 'documents': documents,
         if (media.doomed.isNotEmpty) 'media': media.doomed.length,
+        if (files > 0) 'imported_files': files,
       },
       parts: await countCascaded('dives', id),
       unlinked: {

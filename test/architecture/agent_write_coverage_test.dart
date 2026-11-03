@@ -53,12 +53,12 @@ void main() {
         'sites',
   };
 
-  /// A `Future` method on a repository whose name says it writes. The return
-  /// type may sit on the line above the name.
-  final writeMethod = RegExp(
-    r'^\s*Future<.*>\s+(?:\n\s*)?'
-    r'((?:create|add|insert|update|set|save|delete|remove|upsert|bulk|merge)'
-    r'(?:[A-Z]\w*)?)\s*[(<]',
+  /// A public `Future` method on a repository. The return type may sit on the
+  /// line above the name. The type stops at `=` and at the end of its line, or
+  /// on a line ending in `=>` it would run to that arrow and take the method
+  /// the body calls on the next line for this one.
+  final futureMethod = RegExp(
+    r'^\s*Future<[^=;\n]*>\s+(?:\n\s*)?([a-z]\w*)\s*[(<]',
     multiLine: true,
   );
 
@@ -68,12 +68,43 @@ void main() {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
       final path = entity.path.replaceAll(r'\', '/');
       if (!path.contains('/data/repositories/')) continue;
-      for (final match in writeMethod.allMatches(entity.readAsStringSync())) {
-        found.add('$path:${match.group(1)}');
+      for (final match in futureMethod.allMatches(entity.readAsStringSync())) {
+        final name = match.group(1)!;
+        if (isWriteName(name)) found.add('$path:$name');
       }
     }
     return found;
   }
+
+  test('a write is known by every verb repositories use for one', () {
+    for (final name in [
+      'createDive',
+      'renameDiveRole',
+      'assignDivesToTrip',
+      'linkDiveToCourse',
+      'unlinkDive',
+      'reorderCylinders',
+      'markAsServiced',
+      'clearDefault',
+      'replaceBuddyCertifications',
+      'retireEquipment',
+      'shareWith',
+      'shiftDiveTimes',
+      'fillNotesIfEmpty',
+      'recordConnection',
+    ]) {
+      expect(isWriteName(name), isTrue, reason: name);
+    }
+    for (final name in [
+      'getDiveById',
+      'recordExists',
+      'countDives',
+      'watchAll',
+      'partitionMediaForDiveDeletion',
+    ]) {
+      expect(isWriteName(name), isFalse, reason: name);
+    }
+  });
 
   Set<String> readBaseline() => File(baselinePath)
       .readAsLinesSync()
@@ -112,3 +143,68 @@ void main() {
     expect(covered.keys.toSet().difference(scanRepositories()), isEmpty);
   });
 }
+
+/// Whether a repository method's name says it writes. The verbs are the ones
+/// repositories here use for a write, so a new method under any of them is
+/// either reached by a write entity or listed in the baseline.
+bool isWriteName(String name) =>
+    !_readsNamedLikeWrites.contains(name) &&
+    RegExp('^(?:${_writeVerbs.join('|')})(?:[A-Z]\\w*)?\$').hasMatch(name);
+
+const _writeVerbs = [
+  'create',
+  'add',
+  'insert',
+  'update',
+  'set',
+  'save',
+  'delete',
+  'remove',
+  'upsert',
+  'bulk',
+  'merge',
+  'clear',
+  'restore',
+  'link',
+  'unlink',
+  'relink',
+  'repoint',
+  'apply',
+  'replace',
+  'rename',
+  'reorder',
+  'undo',
+  'mark',
+  'write',
+  'assign',
+  'reassign',
+  'unassign',
+  'fill',
+  'shift',
+  'retire',
+  'share',
+  'unshare',
+  'record',
+  'stamp',
+  'promote',
+  'archive',
+  'unarchive',
+  'toggle',
+  'hide',
+  'unhide',
+  'move',
+  'attach',
+  'detach',
+  'swap',
+  'duplicate',
+  'reset',
+  'dismiss',
+  'pin',
+  'unpin',
+  'purge',
+  'prune',
+  'wipe',
+];
+
+/// Methods whose name starts with a write verb but which only read.
+const _readsNamedLikeWrites = {'recordExists'};

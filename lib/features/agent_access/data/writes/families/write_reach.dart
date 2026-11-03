@@ -1,6 +1,11 @@
 import 'package:drift/drift.dart' show Variable;
 
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/documents/data/repositories/document_row_mapper.dart'
+    show kDocumentOwnerColumns;
+import 'package:submersion/features/documents/domain/entities/document.dart'
+    show DocumentOwner;
 
 /// Dive counts by owner, from [sql], which takes [id] and yields `owner` and
 /// `n`. A dive with no owner counts under an empty key.
@@ -30,9 +35,9 @@ Future<Map<String, int>> countCascaded(
       if (key.parent != parent || !key.cascades) continue;
       if (path.contains(key.child)) continue;
       final condition = scope == null
-          ? '${key.column} = ?1'
-          : '${key.column} IN '
-                '(SELECT ${key.target} FROM $parent WHERE $scope)';
+          ? '"${key.column}" = ?1'
+          : '"${key.column}" IN '
+                '(SELECT "${key.target}" FROM "$parent" WHERE $scope)';
       (conditions[key.child] ??= {}).add(condition);
       walk(key.child, condition, {...path, key.child});
     }
@@ -54,32 +59,41 @@ Future<Map<String, int>> countUnlinked(
   final conditions = <String, Set<String>>{};
   for (final key in await _foreignKeys()) {
     if (key.parent != table || key.cascades) continue;
-    (conditions[key.child] ??= {}).add('${key.column} = ?1');
+    (conditions[key.child] ??= {}).add('"${key.column}" = ?1');
   }
   return _counted(conditions, id, except);
 }
 
 /// Rows matching any of a table's conditions, so a row two links reach counts
-/// once.
+/// once. One statement for every table: a reach is read again at apply, inside
+/// the write transaction.
 Future<Map<String, int>> _counted(
   Map<String, Set<String>> conditions,
   String id,
   Set<String> except,
 ) async {
-  final counts = <String, int>{};
-  for (final MapEntry(key: table, value: where) in conditions.entries) {
-    if (except.contains(table)) continue;
-    final count = await countRows(table, where.join(' OR '), id);
-    if (count > 0) counts[table] = count;
-  }
-  return counts;
+  final tables = [
+    for (final MapEntry(key: table, value: where) in conditions.entries)
+      if (!except.contains(table)) (table: table, where: where.join(' OR ')),
+  ];
+  if (tables.isEmpty) return const {};
+  final row = await DatabaseService.instance.database
+      .customSelect(
+        'SELECT ${[for (final (i, t) in tables.indexed) '(SELECT COUNT(*) FROM "${t.table}" WHERE ${t.where}) AS c$i'].join(', ')}',
+        variables: [Variable.withString(id)],
+      )
+      .getSingle();
+  return {
+    for (final (i, t) in tables.indexed)
+      if (row.read<int>('c$i') > 0) t.table: row.read<int>('c$i'),
+  };
 }
 
 /// How many rows of [table] match [where], which reads [id] as `?1`.
 Future<int> countRows(String table, String where, String id) async {
   final row = await DatabaseService.instance.database
       .customSelect(
-        'SELECT COUNT(*) AS n FROM $table WHERE $where',
+        'SELECT COUNT(*) AS n FROM "$table" WHERE $where',
         variables: [Variable.withString(id)],
       )
       .getSingle();
@@ -96,29 +110,57 @@ typedef _ForeignKey = ({
 
 final _foreignKeysByDatabase = Expando<Future<List<_ForeignKey>>>();
 
-/// Every foreign key in the schema, read once per database.
+/// Every foreign key in the schema, read once per database. A read that fails
+/// is not kept, so the next delete tries again.
 Future<List<_ForeignKey>> _foreignKeys() {
   final db = DatabaseService.instance.database;
-  return _foreignKeysByDatabase[db] ??= db
-      .customSelect(
-        'SELECT m.name AS child, f."from" AS col, f."table" AS parent, '
-        "COALESCE(f.\"to\", 'id') AS target, f.on_delete AS action "
-        'FROM sqlite_master m, pragma_foreign_key_list(m.name) f '
-        "WHERE m.type = 'table'",
-      )
-      .get()
-      .then(
-        (rows) => [
-          for (final row in rows)
-            (
-              child: row.read<String>('child'),
-              column: row.read<String>('col'),
-              parent: row.read<String>('parent'),
-              target: row.read<String>('target'),
-              cascades: row.read<String>('action') == 'CASCADE',
-            ),
-        ],
-      );
+  final held = _foreignKeysByDatabase[db];
+  if (held != null) return held;
+  final read = _readForeignKeys(db);
+  _foreignKeysByDatabase[db] = read;
+  read.then(
+    (_) {},
+    onError: (Object _) {
+      if (identical(_foreignKeysByDatabase[db], read)) {
+        _foreignKeysByDatabase[db] = null;
+      }
+    },
+  );
+  return read;
+}
+
+Future<List<_ForeignKey>> _readForeignKeys(AppDatabase db) => db
+    .customSelect(
+      'SELECT m.name AS child, f."from" AS col, f."table" AS parent, '
+      "COALESCE(f.\"to\", 'id') AS target, f.on_delete AS action "
+      'FROM sqlite_master m, pragma_foreign_key_list(m.name) f '
+      "WHERE m.type = 'table'",
+    )
+    .get()
+    .then(
+      (rows) => [
+        for (final row in rows)
+          (
+            child: row.read<String>('child'),
+            column: row.read<String>('col'),
+            parent: row.read<String>('parent'),
+            target: row.read<String>('target'),
+            cascades: row.read<String>('action') == 'CASCADE',
+          ),
+      ],
+    );
+
+/// How many documents [owners] hold between them: the documents a delete
+/// takes with it.
+Future<int> countDocuments(List<DocumentOwner> owners) async {
+  var count = 0;
+  for (final owner in owners) {
+    final column = kDocumentOwnerColumns[owner.kind];
+    final id = owner.id;
+    if (column == null || id == null) continue;
+    count += await countRows('documents', '"$column" = ?1', id);
+  }
+  return count;
 }
 
 /// How many rows of each table hang off [id], from table to its link column.
@@ -129,7 +171,7 @@ Future<Map<String, int>> countOwned(
 ) async {
   final counts = <String, int>{};
   for (final MapEntry(key: table, value: column) in links.entries) {
-    final count = await countRows(table, '$column = ?1', id);
+    final count = await countRows(table, '"$column" = ?1', id);
     if (count > 0) counts[table] = count;
   }
   return counts;

@@ -332,7 +332,13 @@ void main() {
 
     await expectLater(
       applier(confirmer: _FakeConfirmer(answer: false)).apply(db, plan),
-      _refusedWith(AgentToolErrorCode.notConfirmed),
+      throwsA(
+        isA<AgentToolException>()
+            .having((e) => e.code, 'code', AgentToolErrorCode.notConfirmed)
+            // A dialog that timed out answers false too, and the diver may
+            // never have seen it.
+            .having((e) => e.message, 'message', contains('did not answer')),
+      ),
     );
     expect(await notes('d1'), 'seeded');
     expect(await feedRows(), isEmpty);

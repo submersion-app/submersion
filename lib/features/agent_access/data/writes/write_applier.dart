@@ -100,7 +100,8 @@ class WriteApplier {
       if (!allowed) {
         throw const AgentToolException(
           AgentToolErrorCode.notConfirmed,
-          'The diver did not allow this change. Nothing was changed.',
+          'The diver did not allow this change, or did not answer in time. '
+          'Nothing was changed.',
         );
       }
     }

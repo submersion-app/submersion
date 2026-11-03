@@ -96,6 +96,20 @@ void main() {
       () => const FieldCodec.wallClock().parse('yesterday'),
       _refused('Z'),
     );
+    // DateTime rolls a minute or second past 59 into the next one, which
+    // keeps the date, so only the whole clock read back catches it.
+    expect(
+      () => const FieldCodec.wallClock().parse('2024-03-14T10:75:00Z'),
+      _refused('Z'),
+    );
+    expect(
+      () => const FieldCodec.wallClock().parse('2024-03-14T10:15:99Z'),
+      _refused('Z'),
+    );
+    expect(
+      () => const FieldCodec.wallClock().parse('2024-03-14T10:75Z'),
+      _refused('Z'),
+    );
   });
 
   test('a date that does not exist is refused', () {

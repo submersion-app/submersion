@@ -63,8 +63,9 @@ class AppWriteConfirmer implements WriteConfirmer {
     if (_waiting) {
       throw const AgentToolException(
         AgentToolErrorCode.confirmationPending,
-        'The diver has not answered an earlier change yet. Wait for it, then '
-        'read the records before trying this again.',
+        'The diver has not answered an earlier change yet, and this plan is '
+        'used up. Once they have, read the records and call preview_changes '
+        'again.',
       );
     }
     _waiting = true;

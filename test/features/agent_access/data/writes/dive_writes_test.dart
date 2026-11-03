@@ -255,6 +255,92 @@ void main() {
     expect(await writes.currentRelation('d1', 'site'), {'s1'});
   });
 
+  group('currentRelation reads what a full dive read gives', () {
+    Future<Set<String>> fromDive(String relation) async {
+      final dive = await RecordRepositories().dives.getDiveById('d1');
+      return switch (relation) {
+        'tags' => {for (final t in dive!.tags) t.id},
+        'types' => dive!.diveTypeIds.toSet(),
+        _ => {?dive!.site?.id},
+      };
+    }
+
+    test('for tags', () async {
+      await tag('t1');
+      await db
+          .into(db.diveTags)
+          .insert(
+            DiveTagsCompanion.insert(
+              id: 'dt1',
+              diveId: 'd1',
+              tagId: 't1',
+              createdAt: t,
+            ),
+          );
+
+      expect(await writes.currentRelation('d1', 'tags'), {'t1'});
+      expect(
+        await writes.currentRelation('d1', 'tags'),
+        await fromDive('tags'),
+      );
+    });
+
+    test('for types, falling back to the legacy column', () async {
+      expect(
+        await writes.currentRelation('d1', 'types'),
+        await fromDive('types'),
+      );
+      expect(await writes.currentRelation('d1', 'types'), isNotEmpty);
+    });
+
+    test('for types held as links', () async {
+      for (final (id, type) in [('l1', 'wreck'), ('l2', 'night')]) {
+        await db
+            .into(db.diveDiveTypes)
+            .insert(
+              DiveDiveTypesCompanion.insert(
+                id: id,
+                diveId: 'd1',
+                diveTypeId: type,
+                createdAt: t,
+              ),
+            );
+      }
+
+      expect(await writes.currentRelation('d1', 'types'), {'wreck', 'night'});
+      expect(
+        await writes.currentRelation('d1', 'types'),
+        await fromDive('types'),
+      );
+    });
+
+    test('for the site, and nothing for a dive that has gone', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's1',
+              name: 'Blue Hole',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverA),
+            ),
+          );
+      await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+        const DivesCompanion(siteId: Value('s1')),
+      );
+
+      expect(await writes.currentRelation('d1', 'site'), {'s1'});
+      expect(
+        await writes.currentRelation('d1', 'site'),
+        await fromDive('site'),
+      );
+      for (final relation in ['tags', 'types', 'site']) {
+        expect(await writes.currentRelation('gone', relation), isEmpty);
+      }
+    });
+  });
+
   test('create returns an id the record reads back under', () async {
     final id = await writes.create(kDiverA, {
       'date_time': DateTime.utc(2025, 1, 2, 8),

@@ -18,6 +18,7 @@ enum BlockReason {
   otherProfileReference('other_profile_reference'),
   duplicateRecord('duplicate_record'),
   referenceDeleted('reference_deleted'),
+  referenceChanged('reference_changed'),
   notPermitted('not_permitted');
 
   const BlockReason(this.wire);
@@ -37,12 +38,21 @@ class PlanBlock {
 /// what it points at, so a reference passes that entity's own visibility
 /// rule: shared sites and built-in types count, another profile's do not.
 class RelationSpec {
-  const RelationSpec({required this.refEntity, this.single = false});
+  const RelationSpec({
+    required this.refEntity,
+    this.single = false,
+    this.copiesTarget = false,
+  });
 
   final String refEntity;
 
   /// At most one link, such as a dive's site.
   final bool single;
+
+  /// The link copies values from what it points at, as a dive takes a site's
+  /// water type, so it cannot follow a change to that record in the same set:
+  /// the plan would list the values the write no longer copies.
+  final bool copiesTarget;
 }
 
 /// The links an update adds and removes. A requested `set` arrives here

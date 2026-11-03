@@ -54,6 +54,7 @@ class SiteWrites extends WritableEntry {
   @override
   Future<DeleteReach> deleteReach(String id) async {
     final media = await _r.media.partitionMediaForSiteDeletion([id]);
+    final documents = await countDocuments(await deletedDocumentOwners(id));
     return DeleteReach(
       linkedDives: await countDivesByOwner(
         'SELECT diver_id AS owner, COUNT(*) AS n FROM dives WHERE site_id = ? '
@@ -61,7 +62,7 @@ class SiteWrites extends WritableEntry {
         id,
       ),
       records: {
-        ...await countOwned({'documents': 'site_id'}, id),
+        if (documents > 0) 'documents': documents,
         if (media.doomed.isNotEmpty) 'media': media.doomed.length,
       },
       parts: await countCascaded('dive_sites', id),

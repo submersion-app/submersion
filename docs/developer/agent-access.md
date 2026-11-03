@@ -166,7 +166,12 @@ and does nothing if the row has come back.
 5. Implement `sideEffects` and `deleteReach` for anything the write path does
    beyond the columns it was given, or a diver allows a change they cannot see.
    Read a repository's delete for what it clears by hand: `countCascaded` sees
-   the schema, not that code.
+   the schema, not that code. A dive's delete also reclaims stored import
+   files no other dive uses, which no foreign key shows.
+   A relation whose write copies values from its target, as a dive's site
+   does, sets `copiesTarget`, so it cannot follow a change to that target
+   earlier in the same set: the plan works out the copy from the target as it
+   stands, and the write would copy the changed one.
 6. Implement `deletedDocumentOwners` with every owner a delete takes documents
    from, so a refused plan can arm their reminders again. A buddy's lists their
    certifications too.

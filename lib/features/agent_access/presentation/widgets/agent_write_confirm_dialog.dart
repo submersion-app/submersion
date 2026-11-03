@@ -35,6 +35,10 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final divers = ref.watch(allDiversProvider).value ?? const <Diver>[];
     final names = {for (final diver in divers) diver.id: diver.name};
+    // Only a record with no owner is shared. A profile the list cannot name,
+    // as while it loads, shows its id rather than claiming to be shared.
+    String diverName(String id) =>
+        id.isEmpty ? l.settings_agentAccess_confirm_shared : names[id] ?? id;
     return AlertDialog(
       title: Text(l.settings_agentAccess_confirm_title),
       content: ConstrainedBox(
@@ -65,16 +69,13 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
               for (final MapEntry(:key, :value)
                   in request.countsByDiver.entries)
                 Text(
-                  l.settings_agentAccess_confirm_count(
-                    names[key] ?? l.settings_agentAccess_confirm_shared,
-                    value,
-                  ),
+                  l.settings_agentAccess_confirm_count(diverName(key), value),
                 ),
               for (final MapEntry(:key, :value)
                   in request.linkedDivesByDiver.entries)
                 Text(
                   l.settings_agentAccess_confirm_linkedDives(
-                    names[key] ?? l.settings_agentAccess_confirm_shared,
+                    diverName(key),
                     value,
                   ),
                   style: TextStyle(color: theme.colorScheme.error),

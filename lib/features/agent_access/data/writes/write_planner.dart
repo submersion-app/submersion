@@ -75,6 +75,9 @@ class _Pass {
       if (op is DeleteOp) (op.entity, op.id),
   };
 
+  /// Records an update earlier in the set changes, as each is planned.
+  final _changedSoFar = <(String, String)>{};
+
   /// Reads the owner and version of every record the set names, by table.
   Future<void> loadRows() async {
     final ids = <String, Set<String>>{};
@@ -120,11 +123,15 @@ class _Pass {
         '${op.entity} cannot be changed yet; these can: $names.',
       );
     }
-    return switch (op) {
-      CreateOp() => _create(op, entry),
-      UpdateOp() => _update(op, entry),
-      DeleteOp() => _delete(op, entry),
-    };
+    switch (op) {
+      case CreateOp():
+        await _create(op, entry);
+      case UpdateOp():
+        await _update(op, entry);
+        _changedSoFar.add((op.entity, op.id));
+      case DeleteOp():
+        await _delete(op, entry);
+    }
   }
 
   Future<void> _create(CreateOp op, WritableEntry entry) async {
@@ -492,6 +499,16 @@ class _Pass {
       return PlanBlock(
         BlockReason.referenceDeleted,
         '$name refers to ${deleted.join(', ')}, which this set deletes.',
+      );
+    }
+    final changed = spec.copiesTarget
+        ? ids.where((id) => _changedSoFar.contains((spec.refEntity, id)))
+        : const <String>[];
+    if (changed.isNotEmpty) {
+      return PlanBlock(
+        BlockReason.referenceChanged,
+        '$name copies values from ${changed.join(', ')}, which an earlier '
+        'operation in this set changes. Link it in a change set of its own.',
       );
     }
     final ref = records.named(spec.refEntity);

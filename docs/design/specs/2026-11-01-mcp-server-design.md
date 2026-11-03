@@ -641,5 +641,7 @@ TDD applies. Minimum coverage:
 | A marker carries a footprint of what the plan derived from rows with no version, a delete's reach or a site's types, and apply refuses if it no longer matches | review |
 | A delete's reach comes from the schema's foreign keys, split into records, parts and unlinked; the dialog keeps parts under the details | review |
 | Hides and shares of a deleted site are not listed; they are bookkeeping about the site and mean nothing without it | review |
+| A link that copies values from its target (a dive's site) is blocked after a change to that target earlier in the same set | review |
+| The write coverage guard knows a write by any verb repositories use for one, not only create, update and delete | review |
 | A second apply while a dialog is open is refused, not queued | design |
 | `revert_operation` keeps records changed since unless `include_changed_since` is set, and asks the diver nothing | design |

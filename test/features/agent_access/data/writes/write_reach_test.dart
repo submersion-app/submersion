@@ -250,6 +250,41 @@ void main() {
     expect(reachOf(plan_)['unlinked_records'], containsPair('dive_plans', 1));
   });
 
+  group('a dive delete and its stored import files', () {
+    Future<void> importedFile(String id) => db.customStatement(
+      'INSERT INTO imported_files (id, bytes, byte_count, created_at, '
+      "updated_at) VALUES ('$id', x'00', 1, 0, 0)",
+    );
+
+    Future<void> source(String id, String diveId, String fileId) =>
+        db.customStatement(
+          'INSERT INTO dive_data_sources (id, dive_id, imported_file_id, '
+          "imported_at, created_at) VALUES ('$id', '$diveId', '$fileId', 0, 0)",
+        );
+
+    test('counts a file only this dive uses', () async {
+      await dive('d1');
+      await importedFile('f1');
+      await source('src1', 'd1', 'f1');
+
+      final reach = (await previewDelete('dives', 'd1')).items.single.reach;
+
+      expect(reach.records, containsPair('imported_files', 1));
+    });
+
+    test('leaves out a file another dive still uses', () async {
+      await dive('d1');
+      await dive('d2');
+      await importedFile('f1');
+      await source('src1', 'd1', 'f1');
+      await source('src2', 'd2', 'f1');
+
+      final reach = (await previewDelete('dives', 'd1')).items.single.reach;
+
+      expect(reach.records.containsKey('imported_files'), isFalse);
+    });
+  });
+
   test('a site lists its children, its media and its plans', () async {
     await site('s1');
     await dive('d1', site: 's1');
