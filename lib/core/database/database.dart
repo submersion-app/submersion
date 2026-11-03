@@ -311,7 +311,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 339;
+  static const int currentSchemaVersion = 340;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1552,6 +1552,10 @@ class AppDatabase extends _$AppDatabase {
     // 333, which upstream claimed first for issue #32, then from 338, which
     // upstream claimed first for issue #3062.
     339,
+    // v340: a combined dive's water temperature, CNS at the end and OTU
+    // recomputed from its segments (issue #4136). Data only, so the floor does
+    // not move.
+    340,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

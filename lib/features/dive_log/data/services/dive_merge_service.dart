@@ -78,6 +78,30 @@ class DiveMergeService {
     return null;
   }
 
+  T? _lastNonNullDiveColumn<T>(
+    List<Dive> orderedRows,
+    T? Function(Dive) pick,
+  ) => _firstNonNullDiveColumn(orderedRows.reversed.toList(), pick);
+
+  /// The sum of every segment's value, or null when none has one: a dose
+  /// such as OTU accumulates over the whole combined dive (issue #4136).
+  double? _summedDiveColumn(
+    List<Dive> orderedRows,
+    double? Function(Dive) pick,
+  ) {
+    final values = orderedRows.map(pick).nonNulls;
+    return values.isEmpty ? null : values.reduce((a, b) => a + b);
+  }
+
+  /// The rows whose exposure was measured: the logged segments, so a plan's
+  /// computed CNS or OTU never lands on the logged dive (issue #3924), as
+  /// `DiveMergeBuilder` keeps a plan's values out of its summaries. Every
+  /// row when all of them are plans.
+  List<Dive> _loggedDiveRows(List<Dive> orderedRows) {
+    final logged = orderedRows.where((r) => !r.isPlanned).toList();
+    return logged.isEmpty ? orderedRows : logged;
+  }
+
   /// The draft that hosts a gap's surface samples: the segment's primary
   /// series, else one with a computer, else its first series.
   _SeriesDraft? _adjacentDraft(List<_SeriesDraft> drafts, String diveId) {
@@ -193,7 +217,9 @@ class DiveMergeService {
       //     importVersion, cnsStart/cnsEnd/otu) never travel through
       //     createDive's round-trip through the domain layer, so backfill
       //     them directly from the source rows here, chronologically
-      //     (sortedSources order), first-non-null wins per column. Same
+      //     (sortedSources order). An identity column takes the first
+      //     non-null value; a whole-dive one (CNS at the end, the OTU dose)
+      //     takes the last segment's or the sum (issue #4136). Same
       //     transaction/record as createDive's write above, so no separate
       //     markRecordPending is needed.
       final chronologicalDiveRows = [
@@ -215,10 +241,16 @@ class DiveMergeService {
           // is always the "first non-null" one.
           cnsStart: Value(chronologicalDiveRows.first.cnsStart),
           cnsEnd: Value(
-            _firstNonNullDiveColumn(chronologicalDiveRows, (r) => r.cnsEnd),
+            _lastNonNullDiveColumn(
+              _loggedDiveRows(chronologicalDiveRows),
+              (r) => r.cnsEnd,
+            ),
           ),
           otu: Value(
-            _firstNonNullDiveColumn(chronologicalDiveRows, (r) => r.otu),
+            _summedDiveColumn(
+              _loggedDiveRows(chronologicalDiveRows),
+              (r) => r.otu,
+            ),
           ),
         ),
       );
