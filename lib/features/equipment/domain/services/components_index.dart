@@ -58,6 +58,16 @@ class ComponentsIndex {
       edge.parentEquipmentId,
   ];
 
+  /// The ids in [offered] that are a part of another assembly in [offered]:
+  /// the rows a gear picker can leave out, since picking the assembly brings
+  /// them along (#2514). A part none of whose assemblies is offered (each is
+  /// on the dive already, Spare, or retired) stays, as the only way left to
+  /// add it.
+  Set<String> partsWithin(Set<String> offered) => {
+    for (final id in offered)
+      if (parentIdsOf(id).any((p) => p != id && offered.contains(p))) id,
+  };
+
   /// Every id reachable downward from [id], excluding [id] itself unless a
   /// corrupt loop leads back to it. A visited set guarantees termination.
   Set<String> descendantsOf(String id) => _walk(id, (current) sync* {

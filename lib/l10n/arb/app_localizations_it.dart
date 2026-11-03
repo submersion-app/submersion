@@ -8674,6 +8674,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tutta l\'attrezzatura già selezionata';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'L\'attrezzatura rimanente fa parte di un assieme';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'L\'attrezzatura rimanente è segnata come di scorta';
 
@@ -8688,6 +8692,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Rimuovi elementi per aggiungerne altri';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'Mostra i componenti degli assiemi';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>

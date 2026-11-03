@@ -8231,6 +8231,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => '所有装备已选择';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts => '剩余装备均属于某个组合';
+
+  @override
   String get diveLog_equipmentPicker_allSpare => '剩余装备均标记为备用';
 
   @override
@@ -8243,6 +8246,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => '移除项目以添加新项目';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts => '显示组合中的组件';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit => '显示已退役和已售出的装备';

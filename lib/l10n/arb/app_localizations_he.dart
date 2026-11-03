@@ -8490,6 +8490,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => 'כל הציוד כבר נבחר';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'הציוד הנותר הוא חלק ממכלול';
+
+  @override
   String get diveLog_equipmentPicker_allSpare => 'הציוד הנותר מסומן כרזרבי';
 
   @override
@@ -8502,6 +8506,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'הצג רכיבים של מכלולים';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>
