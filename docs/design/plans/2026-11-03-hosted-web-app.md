@@ -4,21 +4,23 @@
 
 **Goal:** Every stable release deploys its web bundle, with Submersion's Google web client built in, to `https://web.submersion.app` on GitHub Pages.
 
-**Architecture:** The release build passes the Google client to `scripts/build_web.sh` from a repository variable. A reusable workflow, `deploy-web.yml`, fetches a stable release's `Web.zip`, stages it with a tested Python script (bundle check, client warning, `CNAME`, `.nojekyll`, older-version guard), and force-pushes one orphan commit to `submersion-app/web` over SSH with a deploy key. `promote.yml` and the legacy `release.yml` path call it.
+**Architecture:** The release build passes the Google client to `scripts/build_web.sh` from a repository variable. A reusable workflow, `deploy-web.yml`, fetches a stable release's `Web.zip`, stages it with a tested Python script (bundle check, client warning, `CNAME`, `.nojekyll`, older-version guard), and force-pushes one orphan commit to `submersion-app/web` over HTTPS with a fine-grained token. `promote.yml` and the legacy `release.yml` path call it.
 
-**Tech Stack:** GitHub Actions, Python 3 (stdlib `unittest`, `zipfile`, `json`), git over SSH, GitHub Pages.
+**Tech Stack:** GitHub Actions, Python 3 (stdlib `unittest`, `zipfile`, `json`), git over HTTPS, GitHub Pages.
 
 **Spec:** `docs/design/specs/2026-11-03-hosted-web-app-design.md`
+
+> **Amended after the build:** the plan first had the deploy push over SSH with a deploy key (`WEB_DEPLOY_KEY`). The organization turns deploy keys off for every repository, so it pushes over HTTPS with a fine-grained token (`WEB_DEPLOY_TOKEN`) instead, spec decision 9. The steps below describe the token.
 
 ## Global Constraints
 
 - Site address: `https://web.submersion.app`; custom domain `web.submersion.app`.
 - Pages repository: `submersion-app/web`, branch `main`, root.
-- Repository variable `GOOGLE_WEB_CLIENT_ID` (public, a variable not a secret); secret `WEB_DEPLOY_KEY` (SSH private key).
+- Repository variable `GOOGLE_WEB_CLIENT_ID` (public, a variable not a secret); secret `WEB_DEPLOY_TOKEN` (a fine-grained token for `submersion-app/web` alone, Contents read and write).
 - Deploy only stable tags: a tag containing `-` is refused.
 - A bundle without the client deploys anyway, with a `::warning::` annotation (spec decision 7).
 - A bundle older than the deployed one is refused unless `force` (spec decision 8). Equal versions redeploy.
-- No deploy key: notice and success, never a failure (anti-goal: a release failing because setup is unfinished).
+- No deploy token: notice and success, never a failure (anti-goal: a release failing because setup is unfinished).
 - No em dashes, no AI attribution anywhere in repo text or commits.
 
 ## Review Focus
@@ -97,23 +99,23 @@ git commit -m "feat(web): stage a release bundle for Submersion's own site"
 
 **Interfaces:**
 - Consumes: the Task 1 CLI.
-- Produces: `deploy-web.yml` with `workflow_call` inputs `tag` (string, required) and `force` (boolean, default `false`), secret `WEB_DEPLOY_KEY` (required: false); `workflow_dispatch` with the same two inputs.
+- Produces: `deploy-web.yml` with `workflow_call` inputs `tag` (string, required) and `force` (boolean, default `false`), secret `WEB_DEPLOY_TOKEN` (required: false); `workflow_dispatch` with the same two inputs.
 
 - [ ] **Step 1: Build step.** In `build-all.yml`, give "Build the web bundle" an `env:` with `GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}` and `GOOGLE_WEB_CLIENT_ORIGINS: https://web.submersion.app`, with a comment: empty variable builds without the client (forks, before setup); the client is used only at that origin, so the same zip serves self-hosters (spec decision 4).
 
 - [ ] **Step 2: `deploy-web.yml`.** Header comment pointing at the spec. `permissions: contents: read`; `concurrency: {group: deploy-web, cancel-in-progress: false}`; one job, `ubuntu-latest`, `timeout-minutes: 20`. Steps:
-  1. **Configured?** (`id: configured`): with `WEB_DEPLOY_KEY` in `env`, empty means `::notice::` that the site is not set up (link `docs/developer/web-site-setup.md`) and `deploy=false`; else `deploy=true`. Every later step has `if: steps.configured.outputs.deploy == 'true'`.
+  1. **Configured?** (`id: configured`): with `WEB_DEPLOY_TOKEN` in `env`, empty means `::notice::` that the site is not set up (link `docs/developer/web-site-setup.md`) and `deploy=false`; else `deploy=true`. Every later step has `if: steps.configured.outputs.deploy == 'true'`.
   2. Refuse a tag containing `-` (`::error::`, exit 1).
   3. `actions/checkout@v7` with `sparse-checkout` of `scripts/check_web_bundle.py`, `scripts/web/stage_hosted_site.py`, `scripts/web/sqlite3_wasm.lock` (`sparse-checkout-cone-mode: false`), at `ref: ${{ inputs.tag }}` so the lock matches the release.
   4. `gh release download "$TAG" --repo ${{ github.repository }} --pattern "Submersion-${TAG}-Web.zip" --dir dl` with `GH_TOKEN: ${{ github.token }}`; when it finds nothing, `::error::` that the release has no web bundle (releases before PR #4142).
   5. `python3 scripts/web/stage_hosted_site.py stage "dl/Submersion-${TAG}-Web.zip" site --domain web.submersion.app --client-id "$CLIENT_ID"` with `CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}`.
-  6. SSH: write the key to `$RUNNER_TEMP/deploy_key` (mode 600); pin `github.com` host keys from `gh api meta --jq '.ssh_keys[]'` into a known_hosts file; export `GIT_SSH_COMMAND="ssh -i <key> -o IdentitiesOnly=yes -o UserKnownHostsFile=<file> -o StrictHostKeyChecking=yes"` through `$GITHUB_ENV`.
+  6. Token: send `WEB_DEPLOY_TOKEN` to git as an `AUTHORIZATION: basic` header through `GIT_CONFIG_COUNT`/`GIT_CONFIG_KEY_0`/`GIT_CONFIG_VALUE_0` in `$GITHUB_ENV` (masked with `::add-mask::`, never in a URL or a file), with `GIT_TERMINAL_PROMPT=0`; check out with `persist-credentials: false` so checkout's own header is not sent beside it. `PAGES_REMOTE` is `https://github.com/submersion-app/web.git`.
   7. Fetch the deployed `version.json`: `git init -q current && git -C current fetch --depth 1 git@github.com:submersion-app/web.git main` and `git -C current show FETCH_HEAD:version.json > current-version.json`, each tolerated to fail (empty repo or no file).
   8. `python3 scripts/web/stage_hosted_site.py check-newer site/version.json current-version.json` plus `--force` when `inputs.force`.
   9. Publish from `site/`: `git init -q -b main`, identity `github-actions[bot]` / `41898929+github-actions[bot]@users.noreply.github.com`, `git add -A`, `git commit -q -m "Deploy Submersion ${TAG}"`, `git push --force git@github.com:submersion-app/web.git main`; then `echo` the address to `$GITHUB_STEP_SUMMARY`.
   Pass `inputs.*` to shell through `env:`, never inline in `run:`.
 
-- [ ] **Step 3: Callers.** `promote.yml`: job `deploy-web`, `needs: promote`, `uses: ./.github/workflows/deploy-web.yml`, `with: {tag: ${{ needs.promote.outputs.tag }}}`, `secrets: {WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}}`; add `deploy-web` to `notify-failures.needs` and its issue body's list of independent jobs. `release.yml`: job `deploy-web`, `needs: [create-release]`, `if: ${{ !cancelled() && needs.create-release.result == 'success' && !contains(github.ref_name, '-') }}`, same `uses`/`secrets`, `tag: ${{ github.ref_name }}`.
+- [ ] **Step 3: Callers.** `promote.yml`: job `deploy-web`, `needs: promote`, `uses: ./.github/workflows/deploy-web.yml`, `with: {tag: ${{ needs.promote.outputs.tag }}}`, `secrets: {WEB_DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}}`; add `deploy-web` to `notify-failures.needs` and its issue body's list of independent jobs. `release.yml`: job `deploy-web`, `needs: [create-release]`, `if: ${{ !cancelled() && needs.create-release.result == 'success' && !contains(github.ref_name, '-') }}`, same `uses`/`secrets`, `tag: ${{ github.ref_name }}`.
 
 - [ ] **Step 4: Check the workflows.** Run `actionlint .github/workflows/deploy-web.yml .github/workflows/promote.yml .github/workflows/release.yml .github/workflows/build-all.yml` if installed (else a `yaml.safe_load` of each), then `python3.14 scripts/check_ci_success_gate.py` and `python3.14 scripts/check_flutter_setup_retried.py`. Expected: no new errors.
 
@@ -138,8 +140,8 @@ Outward-facing, approved by the owner (spec decision 5).
 - Create: `docs/developer/web-site-setup.md`
 - Modify: `docs/developer/README.md`, `docs/developer/release-secrets-setup.md`, `docs/developer/web.md`, `docs/user/web-app.md`, `web_hosting/HOSTING.md`
 
-- [ ] **Step 1:** `web-site-setup.md`: the spec's five one-time steps, in that order, each saying who does it, with exact commands (`ssh-keygen -t ed25519 -N "" -C web-deploy -f web_deploy_key`, `gh repo deploy-key add web_deploy_key.pub --repo submersion-app/web --allow-write --title "Deploy from submersion-app/submersion"`, `gh secret set WEB_DEPLOY_KEY --repo submersion-app/submersion < web_deploy_key`, `gh variable set GOOGLE_WEB_CLIENT_ID --repo submersion-app/submersion --body <id>`, then delete the local key files); how to deploy by hand and roll back (`gh workflow run deploy-web.yml -f tag=<tag>`, `-f force=true` with the schema warning); what a run without a key or without the client does.
-- [ ] **Step 2:** Index it in `docs/developer/README.md` beside "The Web Build"; one line in `release-secrets-setup.md` naming `WEB_DEPLOY_KEY` and `GOOGLE_WEB_CLIENT_ID` with a link.
+- [ ] **Step 1:** `web-site-setup.md`: the spec's five one-time steps, in that order, each saying who does it, with exact commands (the fine-grained token's settings, `gh secret set WEB_DEPLOY_TOKEN --repo submersion-app/submersion` reading the value from the prompt, `gh variable set GOOGLE_WEB_CLIENT_ID --repo submersion-app/submersion --body <id>`) and how to renew the token when it expires; how to deploy by hand and roll back (`gh workflow run deploy-web.yml -f tag=<tag>`, `-f force=true` with the schema warning); what a run without the token or without the client does.
+- [ ] **Step 2:** Index it in `docs/developer/README.md` beside "The Web Build"; one line in `release-secrets-setup.md` naming `WEB_DEPLOY_TOKEN` and `GOOGLE_WEB_CLIENT_ID` with a link.
 - [ ] **Step 3:** `web.md`: a short "Submersion's own site" section after "Building" (the build variable, the deploy workflow, the guard, the link). `docs/user/web-app.md`: the intro and "Opening it" lead with `https://web.submersion.app`, self-hosting second; the Google Drive section names the address. `HOSTING.md`: one sentence near the top that Submersion hosts its own copy there.
 - [ ] **Step 4:** `python3.14 scripts/check_docs_links.py`. Expected: OK. Scan every touched file for em dashes: `grep -nP "\x{2014}" <files>` gives nothing new.
 - [ ] **Step 5: Commit**

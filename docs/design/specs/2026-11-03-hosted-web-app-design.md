@@ -76,7 +76,8 @@ plus a `force` checkbox, for a redeploy or a rollback):
    ("Deploy Submersion <tag>") and force-push it to `main` of
    `submersion-app/web` over HTTPS with the deploy token. One commit, replaced
    each release, so the Pages repository never accumulates a history of
-   25 MB bundles.
+   bundles of about 160 MB each (the sample logbook, the compiled app and
+   the renderer).
 
 Callers:
 

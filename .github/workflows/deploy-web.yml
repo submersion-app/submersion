@@ -12,7 +12,7 @@ name: Deploy Web App
 #
 # The bundle is the release's own Submersion-<tag>-Web.zip, never a rebuild.
 # Each deploy force-pushes one orphan commit, so the Pages repository holds
-# a single copy of the site rather than a history of 25 MB bundles.
+# a single copy of the site rather than a history of 160 MB bundles.
 #
 # It pushes with WEB_DEPLOY_TOKEN, a fine-grained token for submersion-app/web
 # alone (Contents: read and write), as beta.yml publishes with
