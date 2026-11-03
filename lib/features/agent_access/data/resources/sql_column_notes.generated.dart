@@ -174,6 +174,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'deviation_depth_delta': 'Contingency config (Phase 5 UI)',
     'dive_name': 'The dive\'s own name within its series ("Dive 2", "Night dive")',
     'final_ascent_rate': 'Ascent rate from the last stop to the surface, m per minute',
+    'fixed_start': 'Whether the diver set this dive\'s start (startDateTime), so its surface interval is measured from it',
     'gas_switch_stop_seconds': 'Null = use the diver\'s Settings default',
     'gf_low': 'Null = use the diver\'s Settings default',
     'hypercapnia_amv': 'Hypercapnia-bailout overrides for this plan',

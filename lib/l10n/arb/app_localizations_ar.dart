@@ -21411,7 +21411,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String plannerSeries_saved_diveCount(int count) {
-    return '$count غطسات';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
   }
 
   @override
