@@ -170,7 +170,10 @@ extension _NearbyLinkPairing on NearbyLinkManager {
       NearbyLinkManager._log.info(
         'Nearby pairing with ${handle.transportId} did not complete: $e',
       );
-      // Dialling waited while the code was on screen.
+      // Dialling the other devices nearby waited while the code was on
+      // screen. This peer is not dialled again: a redial under its unchanged
+      // nonce would be dropped as a twin, and its diver reopening pairing
+      // makes a new attempt.
       unawaited(refresh());
       rethrow;
     } finally {
@@ -193,7 +196,8 @@ extension _NearbyLinkPairing on NearbyLinkManager {
     _pending.remove(handle);
     _emitPending();
     await handle._pairing.reject();
-    // Dialling waited while the code was on screen.
+    // Dialling the other devices nearby waited while the code was on
+    // screen; the one this diver turned away stays tried.
     if (_pairingMode) unawaited(refresh());
   }
 }

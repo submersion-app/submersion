@@ -716,8 +716,10 @@ class NearbyPairing {
       // fails.
       previous = await s._secrets.secretFor(peerId);
       revoked = previous == null ? (await s._secrets.revoked())[peerId] : null;
-      await s._secrets.store(peerId, secret);
+      // Set first: the keychain store writes the secret before its index,
+      // so one that throws may already have replaced the old secret.
       stored = true;
+      await s._secrets.store(peerId, secret);
       await _acknowledge(cipher);
       return s._channel(peer, cipher);
     } on Object {

@@ -43,6 +43,18 @@ class _RefusingSecrets extends MemoryNearbySecrets {
       throw StateError('keychain refused the write');
 }
 
+/// Writes the secret, then fails, as the keychain store does when its
+/// index write throws after the secret itself landed.
+class _HalfStoringSecrets extends MemoryNearbySecrets {
+  _HalfStoringSecrets(super.initial);
+
+  @override
+  Future<void> store(String peerDeviceId, Uint8List secret) async {
+    await super.store(peerDeviceId, secret);
+    throw StateError('index write failed');
+  }
+}
+
 /// Notes whether this side hung up.
 class _Closing extends ForwardingNearbyEndpoint {
   _Closing(super.inner);
@@ -203,6 +215,18 @@ void main() {
         expect(error, isA<NearbyHelloTimeout>());
       },
     );
+
+    test('a store that fails after writing the secret puts the old one '
+        'back', () async {
+      final old = Uint8List.fromList(List.filled(32, 7));
+      final secrets = _HalfStoringSecrets({'P': old});
+      final r = await _confirmBoth(laptopSecrets: secrets);
+      expect(r.laptopError, isA<StateError>());
+      expect(r.phone.map, isEmpty);
+      // The restore goes through the same failing store, so the old secret
+      // is back even though the call threw.
+      expect(secrets.map['P'], old);
+    });
 
     test('a re-pairing that does not complete leaves the old pairing as it '
         'was', () async {
