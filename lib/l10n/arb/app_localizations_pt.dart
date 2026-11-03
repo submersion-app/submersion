@@ -59450,6 +59450,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este navegador manteve o banco de dados. Feche as outras abas do Submersion e tente novamente.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'Este navegador não conseguiu apagar os dados de acesso e as configurações. Tente novamente.';
+
+  @override
   String get web_downloadBackup_failed => 'Não foi possível criar o backup.';
 
   @override

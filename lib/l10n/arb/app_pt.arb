@@ -17557,6 +17557,7 @@
   "web_forgetDevice_confirm": "Esquecer",
   "web_forgetDevice_confirmBody": "Isto remove tudo o que o Submersion guarda neste navegador: o registo de mergulhos, os dados de acesso e a frase-passe, e a identidade deste dispositivo na sincronização. Os seus mergulhos ficam no armazenamento de sincronização e nos seus outros dispositivos. A página recarrega do zero.",
   "web_forgetDevice_failed": "Este navegador manteve o banco de dados. Feche as outras abas do Submersion e tente novamente.",
+  "web_forgetDevice_incomplete": "Este navegador não conseguiu apagar os dados de acesso e as configurações. Tente novamente.",
   "web_downloadBackup_failed": "Não foi possível criar o backup.",
   "web_downloadBackup_title": "Transferir uma cópia de segurança",
   "web_downloadBackup_subtitle": "Uma cópia do seu registo de mergulhos como ficheiro de base de dados, guardada pelo navegador",

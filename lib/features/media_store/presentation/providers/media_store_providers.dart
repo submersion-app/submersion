@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_display_name.dart';
@@ -275,6 +276,8 @@ final orphanDeletePolicyFactoryProvider =
 final mediaTransferResumeProvider = Provider<Future<void> Function()>((ref) {
   return () async {
     try {
+      // A browser never writes the store (issue #4121): nothing to drain.
+      if (!ref.read(deviceCapabilitiesProvider).mediaAttach) return;
       if (!await ref.read(mediaStoreAttachedProvider.future)) return;
       final queue = ref.read(mediaTransferQueueRepositoryProvider);
       if (!await queue.hasOutstandingWork()) return;
@@ -533,14 +536,20 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       if (attachedId == null) return null;
       final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
-      // Fills in the account a store announced before descriptors recorded
-      // it, so other devices join it in its own folder. Best effort.
-      try {
-        await ref.read(mediaStoreServiceProvider).recordAttachedAccount();
-      } on Object catch (e) {
-        LoggerService.forClass(
-          MediaStoreService,
-        ).warning('Could not record the media store account: $e');
+      // A browser reads the store and never writes it (issue #4121): no
+      // account to record, no worker to drain and no sweep that uploads.
+      final readOnly = !ref.watch(deviceCapabilitiesProvider).mediaAttach;
+      if (!readOnly) {
+        // Fills in the account a store announced before descriptors
+        // recorded it, so other devices join it in its own folder. Best
+        // effort.
+        try {
+          await ref.read(mediaStoreServiceProvider).recordAttachedAccount();
+        } on Object catch (e) {
+          LoggerService.forClass(
+            MediaStoreService,
+          ).warning('Could not record the media store account: $e');
+        }
       }
 
       final cache = await openMediaCacheStore(mediaCachePrefsOrNull(ref));
@@ -549,6 +558,29 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       // leave its resolver's budget timers armed behind the one that
       // replaced it.
       ref.onDispose(resolver.dispose);
+
+      // Fire-and-forget: housekeeping must not delay the drain below.
+      //
+      // catchError is load-bearing, not decoration. A FutureProvider records
+      // the failure in its own AsyncError state, but the future handed back by
+      // .future still completes with that error, so an unawaited one surfaces
+      // as an unhandled async exception. Same shape as the tile sweep in
+      // startup_page.dart. Nothing surfaces this to the user and the retry is
+      // a whole launch away, so the log is the only diagnostic there will be.
+      unawaited(
+        ref.read(mediaCacheEvictionProvider.future).catchError((Object e) {
+          debugPrint('Media cache eviction failed (will retry): $e');
+        }),
+      );
+
+      if (readOnly) {
+        return MediaStoreRuntime(
+          storeId: attachedId,
+          store: store,
+          cache: cache,
+          resolver: resolver,
+        );
+      }
 
       final mediaRepository = ref.watch(mediaRepositoryProvider);
       final policies = ref.watch(mediaStorePoliciesProvider);
@@ -608,19 +640,6 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
           }
           return WorkerGate.proceed;
         },
-      );
-      // Fire-and-forget: housekeeping must not delay the drain below.
-      //
-      // catchError is load-bearing, not decoration. A FutureProvider records
-      // the failure in its own AsyncError state, but the future handed back by
-      // .future still completes with that error, so an unawaited one surfaces
-      // as an unhandled async exception. Same shape as the tile sweep in
-      // startup_page.dart. Nothing surfaces this to the user and the retry is
-      // a whole launch away, so the log is the only diagnostic there will be.
-      unawaited(
-        ref.read(mediaCacheEvictionProvider.future).catchError((Object e) {
-          debugPrint('Media cache eviction failed (will retry): $e');
-        }),
       );
 
       // Fire-and-forget, and contains its own failures. Checks the flag first:

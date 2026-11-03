@@ -59089,6 +59089,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze browser heeft de database behouden. Sluit andere Submersion-tabbladen en probeer het opnieuw.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'Deze browser kon de inloggegevens en instellingen niet wissen. Probeer het opnieuw.';
+
+  @override
   String get web_downloadBackup_failed => 'De back-up kon niet worden gemaakt.';
 
   @override

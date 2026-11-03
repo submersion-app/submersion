@@ -58217,6 +58217,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הדפדפן הזה שמר את מסד הנתונים. סגרו לשוניות Submersion אחרות ונסו שוב.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'הדפדפן הזה לא הצליח למחוק את פרטי הכניסה וההגדרות. נסו שוב.';
+
+  @override
   String get web_downloadBackup_failed => 'לא ניתן היה ליצור את הגיבוי.';
 
   @override

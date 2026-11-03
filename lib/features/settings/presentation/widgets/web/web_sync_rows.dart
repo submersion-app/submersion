@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
+import 'package:submersion/core/platform/web/web_forget_device_service.dart';
 import 'package:submersion/core/platform/web_database_status.dart';
 import 'package:submersion/features/settings/presentation/providers/web_forget_device_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -83,6 +84,12 @@ class WebSyncRows extends ConsumerWidget {
     if (confirmed != true) return;
     try {
       await ref.read(webForgetDeviceProvider)();
+    } on WebForgetIncompleteException {
+      // The sign-in details or settings survived: no reload over them.
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.web_forgetDevice_incomplete)));
     } catch (_) {
       // The database survived: say so rather than reload over it.
       if (!context.mounted) return;

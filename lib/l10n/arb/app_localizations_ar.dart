@@ -60258,6 +60258,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتفظ هذا المتصفح بقاعدة البيانات. أغلق علامات تبويب Submersion الأخرى وحاول مرة أخرى.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'تعذّر على هذا المتصفح مسح بيانات تسجيل الدخول والإعدادات. حاول مرة أخرى.';
+
+  @override
   String get web_downloadBackup_failed => 'تعذّر إنشاء النسخة الاحتياطية.';
 
   @override

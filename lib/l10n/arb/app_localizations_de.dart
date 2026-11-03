@@ -59335,6 +59335,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieser Browser hat die Datenbank behalten. Schließe andere Submersion-Tabs und versuche es erneut.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'Dieser Browser konnte seine Anmeldedaten und Einstellungen nicht löschen. Versuche es erneut.';
+
+  @override
   String get web_downloadBackup_failed =>
       'Die Sicherung konnte nicht erstellt werden.';
 

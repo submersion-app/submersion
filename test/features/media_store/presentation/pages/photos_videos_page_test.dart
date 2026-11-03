@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/features/media/data/services/media_health_report.dart';
 import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
@@ -51,6 +52,39 @@ void main() {
     expect(find.byKey(const Key('media-s3-disconnect')), findsOneWidget);
     // The status line says how many are moving.
     expect(find.textContaining('3 uploading'), findsOneWidget);
+  });
+
+  testWidgets('a browser, which never writes the store, offers no upload '
+      'or verify', (tester) async {
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        h.app(
+          statusHint: 'dive-media @ minio',
+          extraOverrides: [
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
+          ],
+        ),
+      );
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump();
+        if (find
+            .byKey(const Key('media-s3-disconnect'))
+            .evaluate()
+            .isNotEmpty) {
+          break;
+        }
+      }
+    });
+
+    expect(find.byKey(const Key('media-s3-disconnect')), findsOneWidget);
+    expect(find.byKey(const Key('media-s3-backfill')), findsNothing);
+    expect(find.byKey(const Key('media-verify-library')), findsNothing);
   });
 
   testWidgets('toggling the policy switches writes through to policies', (

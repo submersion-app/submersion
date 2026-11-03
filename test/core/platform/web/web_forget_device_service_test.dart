@@ -13,12 +13,16 @@ void main() {
 
   WebForgetDeviceService service(
     List<String> log, {
+    Future<void> Function()? clearSecureStorage,
+    Future<void> Function()? clearPreferences,
     Future<void> Function()? closeDatabase,
     Future<void> Function()? deleteDatabase,
   }) => WebForgetDeviceService(
     disableSync: () async => log.add('disableSync'),
-    clearSecureStorage: () async => log.add('clearSecureStorage'),
-    clearPreferences: () async => log.add('clearPreferences'),
+    clearSecureStorage:
+        clearSecureStorage ?? () async => log.add('clearSecureStorage'),
+    clearPreferences:
+        clearPreferences ?? () async => log.add('clearPreferences'),
     closeDatabase: closeDatabase ?? () async => log.add('closeDatabase'),
     deleteDatabase: deleteDatabase ?? () async => log.add('deleteDatabase'),
     removeStorageEntry: (name) async => log.add('remove $name'),
@@ -68,6 +72,29 @@ void main() {
     expect(log, contains('deleteDatabase'));
     expect(log.last, 'reload');
   });
+
+  for (final (step, failing) in [
+    ('the credentials', 'clearSecureStorage'),
+    ('the preferences', 'clearPreferences'),
+  ]) {
+    test('$step left behind: the rest is wiped and the other tabs told, but '
+        'this tab reports it instead of reloading', () async {
+      final log = <String>[];
+      Future<void> fail() async => throw StateError('storage refused');
+      await expectLater(
+        service(
+          log,
+          clearSecureStorage: failing == 'clearSecureStorage' ? fail : null,
+          clearPreferences: failing == 'clearPreferences' ? fail : null,
+        ).forget(),
+        throwsA(isA<WebForgetIncompleteException>()),
+      );
+      expect(log, contains('deleteDatabase'));
+      expect(log, contains('remove submersion-sync-tmp'));
+      expect(log, contains('announce'));
+      expect(log, isNot(contains('reload')));
+    });
+  }
 
   test('a database that survives stops the wipe before the reload', () async {
     final log = <String>[];

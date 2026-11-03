@@ -59592,6 +59592,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce navigateur a conservé la base de données. Fermez les autres onglets Submersion et réessayez.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'Ce navigateur n\'a pas pu effacer ses identifiants et ses réglages. Réessayez.';
+
+  @override
   String get web_downloadBackup_failed => 'Impossible de créer la sauvegarde.';
 
   @override

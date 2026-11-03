@@ -34754,6 +34754,8 @@
   "@web_forgetDevice_confirmBody": {"description": "Web app (issue #4121)"},
   "web_forgetDevice_failed": "This browser kept the database. Close other Submersion tabs and try again.",
   "@web_forgetDevice_failed": {"description": "Web app (issue #4121)"},
+  "web_forgetDevice_incomplete": "This browser could not clear its sign-in details and settings. Try again.",
+  "@web_forgetDevice_incomplete": {"description": "Web app (issue #4121)"},
   "web_downloadBackup_failed": "The backup could not be created.",
   "@web_downloadBackup_failed": {"description": "Web app (issue #4121)"},
   "web_downloadBackup_title": "Download a backup",

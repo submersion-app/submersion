@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/storage/gc/cloud_usage_measure.dart';
@@ -47,6 +48,9 @@ class _PhotosAdvancedSectionState extends ConsumerState<PhotosAdvancedSection> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final attached = widget.attached;
+    // A browser never writes the store (issue #4121): nothing to upload
+    // or repair from here.
+    final canWrite = ref.watch(deviceCapabilitiesProvider).mediaAttach;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -57,8 +61,8 @@ class _PhotosAdvancedSectionState extends ConsumerState<PhotosAdvancedSection> {
             l10n.settings_data_header_advanced,
           ),
         ),
-        if (attached) ...[
-          const PhotosQualitySettings(),
+        if (attached) const PhotosQualitySettings(),
+        if (attached && canWrite) ...[
           ListTile(
             key: const Key('media-s3-backfill'),
             leading: const Icon(Icons.upload_outlined),

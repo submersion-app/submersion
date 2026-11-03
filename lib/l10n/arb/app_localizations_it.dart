@@ -59465,6 +59465,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo browser ha conservato il database. Chiudi le altre schede di Submersion e riprova.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'Questo browser non è riuscito a cancellare le credenziali e le impostazioni. Riprova.';
+
+  @override
   String get web_downloadBackup_failed => 'Impossibile creare il backup.';
 
   @override

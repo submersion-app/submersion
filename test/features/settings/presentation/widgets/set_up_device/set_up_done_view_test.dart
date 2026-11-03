@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -80,6 +81,7 @@ void main() {
     DataRowStatus photos = _photosOn,
     bool attached = true,
     ({int copied, int total}) progress = (copied: 3, total: 10),
+    DeviceCapabilities? capabilities,
   }) async {
     backfill = _FakeBackfill();
     done = 0;
@@ -98,6 +100,8 @@ void main() {
           mediaUploadProgressProvider.overrideWith((ref) async => progress),
           mediaBackfillServiceProvider.overrideWithValue(backfill),
           mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+          if (capabilities != null)
+            deviceCapabilitiesProvider.overrideWithValue(capabilities),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -135,6 +139,13 @@ void main() {
     await pump(tester, photos: _photosOff, attached: false);
 
     expect(find.text(text(_photosOff)), findsOneWidget);
+    expect(find.text('Upload everything already attached'), findsNothing);
+  });
+
+  testWidgets('a browser, which never writes the store, offers no '
+      'upload', (tester) async {
+    await pump(tester, capabilities: DeviceCapabilities.web);
+
     expect(find.text('Upload everything already attached'), findsNothing);
   });
 

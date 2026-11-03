@@ -59504,6 +59504,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este navegador conservó la base de datos. Cierra las otras pestañas de Submersion e inténtalo de nuevo.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'Este navegador no pudo borrar sus datos de inicio de sesión y su configuración. Inténtalo de nuevo.';
+
+  @override
   String get web_downloadBackup_failed =>
       'No se pudo crear la copia de seguridad.';
 

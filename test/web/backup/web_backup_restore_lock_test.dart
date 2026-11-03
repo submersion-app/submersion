@@ -66,7 +66,7 @@ void main() {
   });
 
   test('a restore waits for a sync another tab holds the lock for, then '
-      'holds it until the other tabs are told', () async {
+      'holds it from the safety copy until the other tabs are told', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final events = <String>[];
@@ -92,13 +92,20 @@ void main() {
     final release = Completer<void>();
     final held = withCrossTabLock(kSyncCrossTabLock, () => release.future);
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    final restore = service.restoreFromImage(backup);
+    final restore = service.restoreFromImage(
+      backup,
+      safetyCopy: () async => events.add('safety copy, ${await lock()}'),
+    );
     await Future<void>.delayed(const Duration(milliseconds: 300));
     expect(events, isEmpty, reason: 'the other tab\'s sync still runs');
 
     release.complete();
     await held;
     await restore;
-    expect(events, ['swap, lock held', 'retire, lock held']);
+    expect(events, [
+      'safety copy, lock held',
+      'swap, lock held',
+      'retire, lock held',
+    ]);
   });
 }

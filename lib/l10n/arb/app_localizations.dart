@@ -93796,6 +93796,12 @@ abstract class AppLocalizations {
   /// Web app (issue #4121)
   ///
   /// In en, this message translates to:
+  /// **'This browser could not clear its sign-in details and settings. Try again.'**
+  String get web_forgetDevice_incomplete;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
   /// **'The backup could not be created.'**
   String get web_downloadBackup_failed;
 

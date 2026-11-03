@@ -1,6 +1,20 @@
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
+/// Thrown by [WebForgetDeviceService.forget] when the database went but
+/// the credentials or the preferences did not: the page does not reload, so
+/// it cannot look like a fresh start, and the user can try again.
+class WebForgetIncompleteException implements Exception {
+  const WebForgetIncompleteException(this.steps);
+
+  /// The steps that failed.
+  final List<String> steps;
+
+  @override
+  String toString() =>
+      'WebForgetIncompleteException: could not ${steps.join(', ')}';
+}
+
 /// Forget this device (issue #4121): everything the browser keeps goes, in
 /// an order that leaves no half state. Sync is turned off first so nothing
 /// re-pulls, then the secrets and preferences, then the open database is
@@ -50,11 +64,19 @@ class WebForgetDeviceService {
   /// Every step runs whatever the ones before it did, so a step that fails
   /// (a database still busy, say) does not leave the rest in place; the one
   /// exception is [deleteDatabase], whose failure stops the wipe before the
-  /// reload, as it documents.
+  /// reload, as it documents. The credentials and the preferences must go
+  /// too: when either stays, the other tabs are still told (the database is
+  /// gone under them), but this one throws [WebForgetIncompleteException]
+  /// instead of reloading.
   Future<void> _wipe() async {
+    final leftBehind = <String>[];
     await _step('disable sync', disableSync);
-    await _step('clear secure storage', clearSecureStorage);
-    await _step('clear preferences', clearPreferences);
+    if (!await _step('clear secure storage', clearSecureStorage)) {
+      leftBehind.add('clear secure storage');
+    }
+    if (!await _step('clear preferences', clearPreferences)) {
+      leftBehind.add('clear preferences');
+    }
     await _step('close database', closeDatabase);
     await deleteDatabase();
     await _step(
@@ -62,18 +84,23 @@ class WebForgetDeviceService {
       () => removeStorageEntry(syncTempEntry),
     );
     announce();
+    if (leftBehind.isNotEmpty) throw WebForgetIncompleteException(leftBehind);
     reload();
   }
 
-  Future<void> _step(String name, Future<void> Function() run) async {
+  /// Runs [run], logging a failure rather than throwing it; says whether it
+  /// succeeded.
+  Future<bool> _step(String name, Future<void> Function() run) async {
     try {
       await run();
+      return true;
     } catch (e, stackTrace) {
       _log.warning(
         'Forget this device: $name failed, carrying on',
         error: e,
         stackTrace: stackTrace,
       );
+      return false;
     }
   }
 }

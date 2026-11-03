@@ -17557,6 +17557,7 @@
   "web_forgetDevice_confirm": "שכח",
   "web_forgetDevice_confirmBody": "פעולה זו מסירה את כל מה ש-Submersion שומר בדפדפן זה: יומן הצלילות, פרטי הכניסה וביטוי הסיסמה, וזהות המכשיר הזה בסנכרון. הצלילות שלך נשארות במאגר הסנכרון ובמכשירים האחרים שלך. הדף נטען מחדש להתחלה נקייה.",
   "web_forgetDevice_failed": "הדפדפן הזה שמר את מסד הנתונים. סגרו לשוניות Submersion אחרות ונסו שוב.",
+  "web_forgetDevice_incomplete": "הדפדפן הזה לא הצליח למחוק את פרטי הכניסה וההגדרות. נסו שוב.",
   "web_downloadBackup_failed": "לא ניתן היה ליצור את הגיבוי.",
   "web_downloadBackup_title": "הורד גיבוי",
   "web_downloadBackup_subtitle": "עותק של יומן הצלילות שלך כקובץ מסד נתונים, שנשמר על ידי הדפדפן",

@@ -59130,6 +59130,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez a böngésző megtartotta az adatbázist. Zárd be a többi Submersion lapot, és próbáld újra.';
 
   @override
+  String get web_forgetDevice_incomplete =>
+      'Ez a böngésző nem tudta törölni a bejelentkezési adatokat és a beállításokat. Próbáld újra.';
+
+  @override
   String get web_downloadBackup_failed =>
       'A biztonsági mentés nem hozható létre.';
 

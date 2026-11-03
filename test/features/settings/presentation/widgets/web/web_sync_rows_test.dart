@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
+import 'package:submersion/core/platform/web/web_forget_device_service.dart';
 import 'package:submersion/core/platform/web_database_status.dart';
 import 'package:submersion/features/settings/presentation/providers/web_forget_device_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/web/web_sync_rows.dart';
@@ -113,5 +114,21 @@ void main() {
     await tester.tap(find.text(en.web_forgetDevice_confirm));
     await tester.pumpAndSettle();
     expect(find.text(en.web_forgetDevice_failed), findsOneWidget);
+  });
+
+  testWidgets('sign-in details that will not go are reported as such', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      forget: () async =>
+          throw const WebForgetIncompleteException(['clear secure storage']),
+    );
+    await tester.tap(find.text(en.web_forgetDevice_title));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(en.web_forgetDevice_confirm));
+    await tester.pumpAndSettle();
+    expect(find.text(en.web_forgetDevice_incomplete), findsOneWidget);
+    expect(find.text(en.web_forgetDevice_failed), findsNothing);
   });
 }

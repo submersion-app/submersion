@@ -17557,6 +17557,7 @@
   "web_forgetDevice_confirm": "Oublier",
   "web_forgetDevice_confirmBody": "Cela supprime tout ce que Submersion conserve dans ce navigateur : le carnet de plongées, les identifiants et la phrase secrète, et l'identité de cet appareil dans la synchronisation. Vos plongées restent dans l'espace de synchronisation et sur vos autres appareils. La page se recharge pour repartir de zéro.",
   "web_forgetDevice_failed": "Ce navigateur a conservé la base de données. Fermez les autres onglets Submersion et réessayez.",
+  "web_forgetDevice_incomplete": "Ce navigateur n'a pas pu effacer ses identifiants et ses réglages. Réessayez.",
   "web_downloadBackup_failed": "Impossible de créer la sauvegarde.",
   "web_downloadBackup_title": "Télécharger une sauvegarde",
   "web_downloadBackup_subtitle": "Une copie de votre carnet de plongées sous forme de fichier de base de données, enregistrée par votre navigateur",
