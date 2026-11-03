@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:submersion/core/network/proxy/system/channel_system_proxy_resolver.dart';
 import 'package:submersion/core/network/proxy/system/env_fallback_system_proxy_resolver.dart';
 import 'package:submersion/core/network/proxy/system/linux_system_proxy_resolver.dart';
 import 'package:submersion/core/network/proxy/system/windows_system_proxy_resolver.dart';
 import 'package:submersion/core/network/proxy/system_proxy_result.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// The URL system detection and the connection test ask about: the update
 /// check's host, a public name any network the app works on must reach. A
@@ -22,8 +21,8 @@ abstract class SystemProxyResolver {
   /// environment variables when the OS reports no proxy (Linux reads them
   /// first already).
   static SystemProxyResolver forPlatform() {
-    if (Platform.isLinux) return LinuxSystemProxyResolver();
-    if (Platform.isWindows) {
+    if (HostPlatform.isLinux) return LinuxSystemProxyResolver();
+    if (HostPlatform.isWindows) {
       return EnvFallbackSystemProxyResolver(WindowsSystemProxyResolver());
     }
     return EnvFallbackSystemProxyResolver(ChannelSystemProxyResolver());

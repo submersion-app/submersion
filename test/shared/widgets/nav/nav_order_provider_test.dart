@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -291,5 +292,21 @@ void main() {
         expect(rail, isNot(contains('more')));
       },
     );
+  });
+
+  group('in a browser (#4121)', () {
+    test('every destination and movable id is still offered', () {
+      final container = ProviderContainer(
+        overrides: [
+          appSettingsRepositoryProvider.overrideWithValue(
+            FakeAppSettingsRepository(),
+          ),
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(navDestinationsProvider), kNavDestinations);
+      expect(container.read(movableNavIdsProvider), movableNavIds);
+    });
   });
 }

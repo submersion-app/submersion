@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/providers/google_web_client_id_provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
@@ -22,6 +24,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/google_web_client_id_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -302,6 +305,22 @@ Future<bool> _signInGoogle(
   );
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l10n = context.l10n;
+  // A browser signs in with Submersion's own web client where the site is
+  // one it is authorised for, else with the user's own client id, asked
+  // for once before the first sign-in (issue #4121).
+  final browser = ref.read(deviceCapabilitiesProvider).isBrowser;
+  if (browser && ref.read(googleBuiltInWebClientIdProvider) == null) {
+    final stored = await ref.read(googleWebClientIdStoreProvider).read();
+    if (!context.mounted) return false;
+    if (stored == null) {
+      final entered = await showDialog<bool>(
+        context: context,
+        builder: (_) => const GoogleWebClientIdDialog(),
+      );
+      if (entered != true) return false;
+      if (!context.mounted) return false;
+    }
+  }
   try {
     await authenticateWithBrowserWait(
       context,
@@ -311,6 +330,7 @@ Future<bool> _signInGoogle(
       signIn: provider is GoogleDriveStorageProvider
           ? () => provider.authenticateAs(expectedAccount)
           : null,
+      isBrowser: browser,
     );
     return true;
   } on CloudAuthCancelled {

@@ -129,6 +129,12 @@ them.
 Submersion checks GitHub Releases for updates and shows a banner inside the
 app when a new version is available.
 
+## In a web browser
+
+Submersion also runs as a web page you host yourself, reading your dives
+from your own sync store: for the machines where you cannot install it.
+See [Submersion in a Browser](web-app.md).
+
 ## Keeping the app up to date
 
 How updates reach you depends on the platform:

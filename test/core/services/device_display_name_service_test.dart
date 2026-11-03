@@ -188,4 +188,33 @@ void main() {
       },
     );
   });
+
+  group('in a browser (#4121)', () {
+    const chromeOnMac =
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
+        '(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36';
+
+    test(
+      'the name comes off the user agent, not a channel or hostname',
+      () async {
+        final service = DeviceDisplayNameService(
+          isWeb: true,
+          readUserAgent: () => chromeOnMac,
+          readNativeIdentity: () async => throw StateError('no channel here'),
+          readHostname: () => throw StateError('no hostname here'),
+        );
+        expect(await service.resolve(), 'Chrome on macOS');
+      },
+    );
+
+    test('an unrecognised user agent still names the device', () async {
+      final service = DeviceDisplayNameService(
+        isWeb: true,
+        readUserAgent: () => 'something new',
+        readNativeIdentity: () async => null,
+        readHostname: () => 'ignored',
+      );
+      expect(await service.resolve(), 'Browser');
+    });
+  });
 }

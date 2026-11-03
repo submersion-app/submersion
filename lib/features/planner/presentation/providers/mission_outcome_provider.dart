@@ -1,5 +1,6 @@
 import 'dart:isolate';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -31,11 +32,12 @@ Future<MissionOutcome> runMissionEngineInIsolate(
   DpvMission mission,
   PlanEngineConfig config,
 ) {
-  return Isolate.run(
-    () => MissionEngine(
-      scenarios: MissionScenarioService(engine: PlanEngine(config: config)),
-    ).compute(plan: plan, mission: mission),
-  );
+  MissionOutcome compute() => MissionEngine(
+    scenarios: MissionScenarioService(engine: PlanEngine(config: config)),
+  ).compute(plan: plan, mission: mission);
+  // A browser has no isolates; the engine shares the main thread there.
+  if (HostPlatform.isWeb) return Future.sync(compute);
+  return Isolate.run(compute);
 }
 
 final missionEngineRunnerProvider = Provider<MissionEngineRunner>(

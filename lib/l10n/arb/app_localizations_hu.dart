@@ -58721,6 +58721,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Bejelentkezés Google-fiókkal';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Bejelentkezés a Google-fiókkal az oldal minden megnyitásakor';
+
+  @override
   String get settings_setUpDevice_offer_dropbox =>
       'Bejelentkezés Dropbox-fiókkal';
 
@@ -59048,6 +59052,185 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get demo_unavailable_body =>
       'A demó mód elkülöníti a mintanaplót az adataidtól, ezért semmit sem lehet importálni, exportálni, menteni vagy szinkronizálni.';
+
+  @override
+  String get web_unavailable_title => 'Böngészőben nem érhető el';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Ehhez olyan hardver kell, amelyet egy weboldal nem ér el, például Bluetooth, USB, NFC vagy a kamera. Ehhez használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Ez a háttérben vagy helyi szolgáltatásként fut, amire egy weboldal nem képes. Ehhez használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Ez az eszközön lévő fájlokkal dolgozik, amelyeket egy weboldal nem ér el. Ehhez használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'Az iCloud csak a Submersion alkalmazásban érhető el Apple-eszközökön.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'A Git-kiszolgálók nem fogadnak kéréseket weboldalról. Git szinkronizálási tárhoz használd a Submersion alkalmazást telefonon vagy számítógépen.';
+
+  @override
+  String get web_continueWithoutSync =>
+      'Folytatás szinkronizálási tároló nélkül';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Megjegyzés ezen az eszközön';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'A bejelentkezési adatok és a jelmondat megőrzése ebben a böngészőben. Kikapcsolva a lap bezárásakor elfelejtődnek.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Az iCloudot csak az Apple-eszközökön futó Submersion alkalmazás éri el.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'A Git-kiszolgálók nem fogadnak kéréseket weboldalról.';
+
+  @override
+  String get web_googleClientId_title => 'Google-ügyfélazonosító';
+
+  @override
+  String get web_googleClientId_body =>
+      'Egy weboldal a saját Google Cloud-projekted ügyfélazonosítójával jelentkezik be a Google-ba: Webalkalmazás típusú, ennek az oldalnak a címével engedélyezett JavaScript-forrásként. Illeszd be ide. A többi bejelentkezési adatoddal együtt tároljuk.';
+
+  @override
+  String get web_googleClientId_ownProjectNote =>
+      'A saját kliensazonosító csak olyan Google Drive-könyvtárat lát, amelyet ez a webhely hoz létre. A Google projektenként külön tartja a Drive-mappát, ezért a telefonod és a számítógéped által a Google Drive-val szinkronizált könyvtár itt nem nyitható meg.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Ez nem tűnik Google-ügyfélazonosítónak. A vége .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'Így hozhatsz létre egyet';
+
+  @override
+  String get web_cors_title_blockedByCors =>
+      'A tároló blokkolja a böngésző kéréseit';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'A böngésző megkérdezte a tárolót, de nem kapott olyan választ, amelyet olvashatott volna. A tároló CORS-szabályainak engedélyezniük kell ennek az oldalnak a címét. Add hozzá az alábbi szabályt a tárolóhoz, majd ellenőrizd újra.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'A tároló néhány kérést engedélyez, nem mindet';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'A tároló válaszol az oldal egyszerű kérésére, de elutasítja az alkalmazásnak szükséges metódust, például a PROPFIND-ot WebDAV esetén. A CORS-szabálynak minden alábbi metódust fel kell sorolnia.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'A tároló engedi az olvasást, az írást nem';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Az olvasás erről az oldalról működik, de egy írást elutasított. A CORS-szabálynak a PUT és a DELETE metódust is engedélyeznie kell; az alábbi szabály tartalmazza őket.';
+
+  @override
+  String get web_cors_title_forbidden =>
+      'A tároló elutasította a hitelesítő adatokat';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'A tároló 403-mal válaszolt: hibás hozzáférési kulcs vagy titok, vagy csak olvasható kulcs ott, ahol a szinkronizálásnak írnia kell. Ellenőrizd a hitelesítő adatokat és a kulcs jogosultságait.';
+
+  @override
+  String get web_cors_title_notFound => 'Ezen a címen nincs semmi';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'A tároló, a mappa vagy az útvonal nem létezik, vagy a neve hibásan van írva. Ellenőrizd a címet és a tároló vagy a mappa nevét.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'A böngésző nem bízik a kiszolgálóban, vagy nem éri el';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Egy privát HTTPS-cím válasz nélkül hibázott. A böngésző dönti el, nem az alkalmazás, mely tanúsítványokban bízik: nyisd meg a kiszolgáló címét új lapon, és fogadd el vagy telepítsd a tanúsítványát, vagy győződj meg róla, hogy a kiszolgáló innen elérhető.';
+
+  @override
+  String get web_cors_title_ok => 'A kapcsolat működik';
+
+  @override
+  String get web_cors_explain_ok =>
+      'A tároló elfogadta a tesztet ebből a böngészőből.';
+
+  @override
+  String get web_cors_title_unknown => 'A kapcsolat sikertelen';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'A böngésző olyan hibát jelzett, amelyet nem magyaráz meg. Leggyakrabban a tároló CORS-szabályai nem engedélyezik ennek az oldalnak a címét; az alábbi szabály a szokásos megoldás.';
+
+  @override
+  String get web_cors_copyRule => 'Szabály másolása';
+
+  @override
+  String get web_cors_copied => 'Szabály kimásolva';
+
+  @override
+  String get web_storage_title => 'Böngészőtároló';
+
+  @override
+  String get web_storage_opfs =>
+      'Böngésző fájltárolója. A merüléseid ebben a böngészőben maradnak, amíg el nem felejted ezt az eszközt.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Böngésző-adatbázis (lassabb). A merüléseid ebben a böngészőben maradnak, amíg el nem felejted ezt az eszközt.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'A lap bezárása után semmi sem marad meg. Ez a böngésző nem ad tartós tárhelyet az oldalnak; szinkronizálj, mielőtt elmész.';
+
+  @override
+  String get web_forgetDevice_title => 'Eszköz elfelejtése';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'A merülések, a bejelentkezési adatok és az eszközazonosság eltávolítása ebből a böngészőből';
+
+  @override
+  String get web_forgetDevice_confirm => 'Elfelejtés';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'Ez mindent eltávolít, amit a Submersion ebben a böngészőben tart: a merülésnaplót, a bejelentkezési adatokat és a jelmondatot, valamint ennek az eszköznek a szinkronizálási azonosságát. A merüléseid megmaradnak a szinkronizálási tárolóban és a többi eszközödön. Az oldal újratöltődik, tiszta lappal.';
+
+  @override
+  String get web_forgetDevice_failed =>
+      'Ez a böngésző megtartotta az adatbázist. Zárd be a többi Submersion lapot, és próbáld újra.';
+
+  @override
+  String get web_forgetDevice_incomplete =>
+      'Ez a böngésző nem tudta törölni a bejelentkezési adatokat és a beállításokat. Próbáld újra.';
+
+  @override
+  String get web_downloadBackup_failed =>
+      'A biztonsági mentés nem hozható létre.';
+
+  @override
+  String get web_downloadBackup_title => 'Biztonsági mentés letöltése';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'A merülésnaplód másolata adatbázisfájlként, a böngésződ menti el';
 
   @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';

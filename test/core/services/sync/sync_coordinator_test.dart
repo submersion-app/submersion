@@ -63,6 +63,19 @@ void main() {
     expect(SyncCoordinator.busy, isFalse);
   });
 
+  test('joinAcrossTabs takes a turn: a sync asked for during it waits for '
+      'it', () async {
+    final log = <String>[];
+    late Future<void> sync;
+    await SyncCoordinator.joinAcrossTabs(() async {
+      sync = SyncCoordinator.run(() async => log.add('sync'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      log.add('step');
+    });
+    await sync;
+    expect(log, ['step', 'sync']);
+  });
+
   test('join outside a turn queues like run', () async {
     final log = <String>[];
     final hold = Completer<void>();

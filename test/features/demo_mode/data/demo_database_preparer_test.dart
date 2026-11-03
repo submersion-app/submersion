@@ -263,6 +263,40 @@ void main() {
     },
   );
 
+  test(
+    'in a browser the sample photos become links to the site (#4121)',
+    () async {
+      await db.customStatement(
+        'INSERT INTO media (id, dive_id, file_path, local_path, source_type, '
+        'origin_device_id, created_at, updated_at) '
+        r"VALUES ('m1', 'b', 'C:\build\photos\reef.jpg', NULL, "
+        "'localFile', 'builder', 0, 0)",
+      );
+
+      await DemoDatabasePreparer().prepare(
+        db,
+        now: now,
+        photosDir: '/opfs/support/demo_mode/photos',
+        photosUrl: Uri.parse('https://dive.example/log/demo/photos/'),
+        deviceId: 'device-1',
+      );
+
+      final row = await db
+          .customSelect(
+            'SELECT source_type, url, file_path, local_path, origin_device_id '
+            "FROM media WHERE id = 'm1'",
+          )
+          .getSingle();
+      const url = 'https://dive.example/log/demo/photos/reef.jpg';
+      expect(row.read<String>('source_type'), 'networkUrl');
+      expect(row.read<String>('url'), url);
+      expect(row.read<String>('file_path'), url);
+      expect(row.read<String?>('local_path'), null);
+      // A link resolves the same on every device, so no device owns it.
+      expect(row.read<String?>('origin_device_id'), null);
+    },
+  );
+
   test('prepare copies the unit settings onto the demo diver', () async {
     await DemoDatabasePreparer().prepare(
       db,

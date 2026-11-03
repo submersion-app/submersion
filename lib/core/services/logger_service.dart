@@ -5,6 +5,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/log_redactor.dart';
 
@@ -368,11 +369,18 @@ class LoggerService {
   /// enclosing scope, and this one holds [work] alone.
   static Future<({R value, List<_HeldLine> lines})> _runHoldingLines<R>(
     FutureOr<R> Function() work,
-  ) => Isolate.run(() async {
-    bufferUntilFileAttached();
-    final value = await work();
-    return (value: value, lines: _startupBuffer!.toList(growable: false));
-  });
+  ) async {
+    // A browser has no isolates: the work runs here, so its lines are
+    // already recorded and there is nothing to carry back.
+    if (HostPlatform.isWeb) {
+      return (value: await work(), lines: const <_HeldLine>[]);
+    }
+    return Isolate.run(() async {
+      bufferUntilFileAttached();
+      final value = await work();
+      return (value: value, lines: _startupBuffer!.toList(growable: false));
+    });
+  }
 
   /// Create a logger for a specific class
   static LoggerService forClass(

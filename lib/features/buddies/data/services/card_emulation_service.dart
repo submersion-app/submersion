@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 /// An Android phone acting as an NFC tag (host card emulation) that holds
@@ -51,7 +52,7 @@ class UnsupportedCardEmulation implements CardEmulation {
 }
 
 final cardEmulationProvider = Provider<CardEmulation>((ref) {
-  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+  if (!HostPlatform.isWeb && defaultTargetPlatform == TargetPlatform.android) {
     return const ChannelCardEmulation();
   }
   return const UnsupportedCardEmulation();

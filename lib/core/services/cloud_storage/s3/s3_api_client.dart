@@ -6,9 +6,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/network/platform_http_client.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/sigv4_signer.dart';
@@ -104,7 +104,7 @@ class S3ApiClient {
   /// on some Windows configurations. The deadlines in [_send] bound a socket
   /// that connects and then stalls; this bounds one that never connects.
   static http.Client _defaultClient() =>
-      IOClient(HttpClient()..connectionTimeout = defaultConnectTimeout);
+      createPlatformHttpClient(connectionTimeout: defaultConnectTimeout);
 
   /// Attempts per request, including the first.
   ///

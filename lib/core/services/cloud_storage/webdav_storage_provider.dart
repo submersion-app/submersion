@@ -93,17 +93,34 @@ class WebDavStorageProvider
       throw WebDavException(error, code: WebDavErrorCode.invalidConfig);
     }
     final client = _clientFactory(config);
+    lastProbeFailedOnWrite = false;
     try {
-      await probe(client, config.folder);
+      await probe(
+        client,
+        config.folder,
+        onStep: (write) => lastProbeFailedOnWrite = write,
+      );
     } finally {
       client.close();
     }
     return config;
   }
 
+  /// Whether the last connection test failed on a write rather than a read,
+  /// for a browser's diagnosis of the failure (issue #4121).
+  bool lastProbeFailedOnWrite = false;
+
   /// The DAV root exists and is a collection; the folder can be created;
   /// a small file round-trips and is removed.
-  static Future<void> probe(WebDavClient client, String folder) async {
+  ///
+  /// [onStep] is told before each step whether it writes, so a caller can
+  /// say which kind of step a failure came from.
+  static Future<void> probe(
+    WebDavClient client,
+    String folder, {
+    void Function(bool write)? onStep,
+  }) async {
+    onStep?.call(false);
     final root = await client.stat('');
     if (root == null || !root.isCollection) {
       throw WebDavException(
@@ -111,6 +128,7 @@ class WebDavStorageProvider
         code: WebDavErrorCode.notFound,
       );
     }
+    onStep?.call(true);
     await client.ensureCollection(folder);
     // A name of its own, so a probe never overwrites or deletes a file the
     // user keeps there, nor one another device's probe is using right now.
@@ -120,6 +138,7 @@ class WebDavStorageProvider
         probePath,
         Uint8List.fromList(utf8.encode('probe')),
       );
+      onStep?.call(false);
       final back = await client.getBytes(probePath);
       if (utf8.decode(back, allowMalformed: true) != 'probe') {
         throw WebDavException(
@@ -128,6 +147,8 @@ class WebDavStorageProvider
         );
       }
     } finally {
+      // Not a step of its own: a failure here is swallowed below, so it is
+      // never the failure the caller hears about.
       try {
         await client.delete(probePath);
       } on WebDavException {

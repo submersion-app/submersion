@@ -1,7 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart';
+
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
 
 /// The at-rest encoding for `dive_data_sources.raw_data` (issue #227).
@@ -44,10 +45,10 @@ const int kRawDiveDataHeaderBytes = 8;
 /// records and far below anything that threatens memory.
 const int kMaxRawDiveBlobBytes = 8 * 1024 * 1024;
 
-/// Level 6. Level 9 was measured on all three committed fixtures and gained
-/// under 1.2%, which does not pay for its time. Not `const`: `ZLibCodec` has
-/// no const constructor.
-final ZLibCodec _zlib = ZLibCodec(level: 6);
+/// Level 6, [PlatformZlib.deflate]'s default. Level 9 was measured on all
+/// three committed fixtures and gained under 1.2%, which does not pay for its
+/// time.
+const int _deflateLevel = 6;
 
 /// True when [stored] carries the compressed header.
 ///
@@ -70,7 +71,7 @@ bool isCompressedRawDiveData(Uint8List stored) {
 Uint8List encodeRawDiveData(Uint8List raw) {
   if (raw.length > kMaxRawDiveBlobBytes) return raw;
 
-  final body = _zlib.encode(raw);
+  final body = PlatformZlib.deflate(raw, level: _deflateLevel);
   final total = kRawDiveDataHeaderBytes + body.length;
   if (total >= raw.length) return raw;
 
@@ -108,7 +109,7 @@ Uint8List decodeRawDiveData(Uint8List stored) {
   try {
     final inflated = inflateBounded(
       Uint8List.sublistView(stored, kRawDiveDataHeaderBytes),
-      decoder: _zlib.decoder,
+      framing: ZlibFraming.zlib,
       maxBytes: cap,
       maxBlobBytes: kMaxRawDiveBlobBytes,
     );

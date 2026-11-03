@@ -1,5 +1,5 @@
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:submersion/core/platform/app_directories.dart';
 
 /// Where demo mode keeps everything it creates. All of it lives in one
 /// directory under the app support directory, so exiting can remove every
@@ -22,6 +22,9 @@ class DemoPaths {
 
   String get photosDir => p.join(root, 'photos');
 
+  /// A browser's support directory is virtual: its demo state lives in
+  /// local storage and its logbook is named after [databaseFile] (issue
+  /// #4121).
   static Future<DemoPaths> resolve() async =>
-      DemoPaths((await getApplicationSupportDirectory()).path);
+      DemoPaths(await AppDirectories.support());
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
@@ -119,6 +120,8 @@ class MediaSelectionBar extends ConsumerWidget {
     // [maxInlineActions] is 2, so the two benign actions hold the inline
     // slots and the destructive one is reached by open-then-choose, the same
     // deliberate gesture the baseline delete entry requires.
+    // A browser shares what it has and changes no link or tag (#4121).
+    final canWrite = ref.watch(deviceCapabilitiesProvider).mediaAttach;
     return SelectionAppBar(
       controller: controller,
       selectableIds: selectableIds,
@@ -135,39 +138,42 @@ class MediaSelectionBar extends ConsumerWidget {
               ? BulkActionOutcome.completed
               : BulkActionOutcome.failed,
         ),
-        BulkAction(
-          id: 'move_to_dive',
-          icon: Icons.drive_file_move_outline,
-          label: l10n.media_library_moveToDive,
-          onInvoke: () => _moveToDive(context, ref),
-        ),
-        BulkAction(
-          id: 'edit_tags',
-          icon: Icons.label_outline,
-          label: l10n.tags_action_edit,
-          onInvoke: () => showBulkTagSheet(
-            context,
-            ref,
-            scope: TagScope.media,
-            service: BulkTagService(
-              ref.read(tagLinkRepositoryProvider(TagScope.media)),
-              itemTable: 'media',
-            ),
-            itemIds: _ids,
-            labels: (
-              confirmAdding: l10n.media_bulkTags_confirmAdding,
-              confirmRemoving: l10n.media_bulkTags_confirmRemoving,
-              empty: l10n.media_bulkTags_empty,
+        if (canWrite)
+          BulkAction(
+            id: 'move_to_dive',
+            icon: Icons.drive_file_move_outline,
+            label: l10n.media_library_moveToDive,
+            onInvoke: () => _moveToDive(context, ref),
+          ),
+        if (canWrite)
+          BulkAction(
+            id: 'edit_tags',
+            icon: Icons.label_outline,
+            label: l10n.tags_action_edit,
+            onInvoke: () => showBulkTagSheet(
+              context,
+              ref,
+              scope: TagScope.media,
+              service: BulkTagService(
+                ref.read(tagLinkRepositoryProvider(TagScope.media)),
+                itemTable: 'media',
+              ),
+              itemIds: _ids,
+              labels: (
+                confirmAdding: l10n.media_bulkTags_confirmAdding,
+                confirmRemoving: l10n.media_bulkTags_confirmRemoving,
+                empty: l10n.media_bulkTags_empty,
+              ),
             ),
           ),
-        ),
-        BulkAction(
-          id: 'unlink',
-          icon: Icons.link_off,
-          label: l10n.media_library_unlinkSelected,
-          isDestructive: true,
-          onInvoke: () => _unlinkSelected(context, ref),
-        ),
+        if (canWrite)
+          BulkAction(
+            id: 'unlink',
+            icon: Icons.link_off,
+            label: l10n.media_library_unlinkSelected,
+            isDestructive: true,
+            onInvoke: () => _unlinkSelected(context, ref),
+          ),
       ],
     );
   }

@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/shared_library/crypto/canonical_json.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
@@ -201,8 +201,9 @@ Future<List<SiteDocument>> dropUnverifiedAll(
             retiredKeys: retiredKeys,
           ),
       ]);
-  if (pairs.length < _parallelFrom) return run(pairs);
-  final workers = Platform.numberOfProcessors.clamp(2, 8);
+  // A browser has no isolates to spread the chunks over.
+  if (pairs.length < _parallelFrom || HostPlatform.isWeb) return run(pairs);
+  final workers = HostPlatform.numberOfProcessors.clamp(2, 8);
   final size = (pairs.length / workers).ceil();
   final parts = [
     for (var i = 0; i < pairs.length; i += size)

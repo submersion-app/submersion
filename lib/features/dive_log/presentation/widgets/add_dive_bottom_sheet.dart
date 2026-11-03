@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shows a bottom sheet with options for adding a dive:
@@ -14,6 +16,10 @@ void showAddDiveBottomSheet({
   required VoidCallback onLogManually,
   required VoidCallback onPlanDive,
 }) {
+  final caps = ProviderScope.containerOf(
+    context,
+    listen: false,
+  ).read(deviceCapabilitiesProvider);
   showModalBottomSheet(
     context: context,
     builder: (sheetContext) {
@@ -60,28 +66,30 @@ void showAddDiveBottomSheet({
                   onPlanDive();
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.bluetooth),
-                title: Text(
-                  sheetContext
-                      .l10n
-                      .diveLog_listPage_bottomSheet_importFromComputer,
+              if (caps.diveComputerDownload)
+                ListTile(
+                  leading: const Icon(Icons.bluetooth),
+                  title: Text(
+                    sheetContext
+                        .l10n
+                        .diveLog_listPage_bottomSheet_importFromComputer,
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    context.push('/dive-computers');
+                  },
                 ),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  context.push('/dive-computers');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.document_scanner_outlined),
-                title: Text(
-                  sheetContext.l10n.diveLog_listPage_bottomSheet_scanPaperLog,
+              if (caps.ocrImport)
+                ListTile(
+                  leading: const Icon(Icons.document_scanner_outlined),
+                  title: Text(
+                    sheetContext.l10n.diveLog_listPage_bottomSheet_scanPaperLog,
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    context.push('/dives/scan');
+                  },
                 ),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  context.push('/dives/scan');
-                },
-              ),
               ListTile(
                 leading: const Icon(Icons.fact_check),
                 title: Text(

@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_worker.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
 /// How long past the time cap a call waits before answering without the
@@ -27,10 +27,6 @@ Future<SqlDatabaseFile> liveSqlDatabaseFile() async => SqlDatabaseFile(
 typedef SqlWindowWorker =
     Future<SqlWindowOutcome> Function(SqlWindowRequest request);
 
-/// Top level, so the closure it hands to the isolate captures only [request].
-Future<SqlWindowOutcome> _runOnWorkerIsolate(SqlWindowRequest request) =>
-    Isolate.run(() => runSqlWindow(request));
-
 /// Runs statements off the UI isolate, one at a time.
 ///
 /// One runner serves the listener's whole life: the 2026 protocol builds a
@@ -44,7 +40,7 @@ Future<SqlWindowOutcome> _runOnWorkerIsolate(SqlWindowRequest request) =>
 class SqlWindowRunner {
   SqlWindowRunner({
     required Future<SqlDatabaseFile> Function() file,
-    SqlWindowWorker worker = _runOnWorkerIsolate,
+    SqlWindowWorker worker = runSqlWindowOnWorker,
     Duration timeCap = kSqlTimeCap,
     Duration replyGrace = kSqlReplyGrace,
   }) : _file = file,

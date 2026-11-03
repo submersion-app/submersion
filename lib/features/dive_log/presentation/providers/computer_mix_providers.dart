@@ -1,5 +1,6 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/data/services/computer_mix_reader.dart';
@@ -37,8 +38,13 @@ ComputerMixKey computerMixKeyFor(String diveId, DiveTank tank) => (
 /// The mix [ComputerMixKey]'s computer recorded, or null when it cannot be
 /// known (see [ComputerMixReader.recordedMix]).
 final recordedComputerMixProvider = FutureProvider.autoDispose
-    .family<GasMix?, ComputerMixKey>(
-      (ref, key) => ref
+    .family<GasMix?, ComputerMixKey>((ref, key) {
+      // The recording is read through the native parser; a browser has
+      // none, so a tank shows only the mix it stored (issue #4121).
+      if (!ref.watch(deviceCapabilitiesProvider).diveComputerDownload) {
+        return Future<GasMix?>.value(null);
+      }
+      return ref
           .watch(computerMixReaderProvider)
           .recordedMix(
             diveId: key.diveId,
@@ -49,5 +55,5 @@ final recordedComputerMixProvider = FutureProvider.autoDispose
               sourceTankIndex: key.sourceTankIndex,
               order: key.order,
             ),
-          ),
-    );
+          );
+    });

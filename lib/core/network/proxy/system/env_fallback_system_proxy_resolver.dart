@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:submersion/core/network/proxy/system/linux_proxy_parser.dart';
 import 'package:submersion/core/network/proxy/system/system_proxy_resolver.dart';
 import 'package:submersion/core/network/proxy/system_proxy_result.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// Uses the HTTPS_PROXY-style environment variables when the OS reports no
 /// proxy configured (never when a PAC script chose DIRECT). dart:io's default
@@ -13,7 +12,7 @@ class EnvFallbackSystemProxyResolver implements SystemProxyResolver {
   EnvFallbackSystemProxyResolver(
     this._inner, {
     Map<String, String>? environment,
-  }) : _environment = environment ?? Platform.environment;
+  }) : _environment = environment ?? HostPlatform.environment;
 
   final SystemProxyResolver _inner;
   final Map<String, String> _environment;

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
 
 import '../../support/compression_bombs.dart';
@@ -17,7 +18,7 @@ void main() {
       expect(
         inflateBounded(
           gz(body),
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 1 << 20,
           maxBlobBytes: 1 << 20,
         ),
@@ -32,7 +33,7 @@ void main() {
       expect(
         inflateBounded(
           zl(body),
-          decoder: zlib.decoder,
+          framing: ZlibFraming.zlib,
           maxBytes: 1 << 20,
           maxBlobBytes: 1 << 20,
         ),
@@ -45,7 +46,7 @@ void main() {
       expect(
         inflateBounded(
           gz(body),
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 4096,
           maxBlobBytes: 1 << 20,
         ),
@@ -58,7 +59,7 @@ void main() {
       expect(
         () => inflateBounded(
           gz(body),
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 4096,
           maxBlobBytes: 1 << 20,
         ),
@@ -86,7 +87,7 @@ void main() {
       expect(
         () => inflateBounded(
           bomb,
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 64 * 1024,
           maxBlobBytes: 1 << 20,
         ),
@@ -106,7 +107,7 @@ void main() {
       expect(
         () => inflateBounded(
           padded,
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 1 << 20,
           maxBlobBytes: 512,
         ),
@@ -129,7 +130,7 @@ void main() {
       expect(
         inflateBounded(
           zl(body),
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 1 << 20,
           maxBlobBytes: 1 << 20,
         ),
@@ -141,7 +142,7 @@ void main() {
       expect(
         () => inflateBounded(
           Uint8List.fromList([1, 2, 3, 4, 5]),
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 1 << 20,
           maxBlobBytes: 1 << 20,
         ),
@@ -162,7 +163,7 @@ void main() {
       expect(
         inflateBounded(
           Uint8List(0),
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 1 << 20,
           maxBlobBytes: 1 << 20,
         ),
@@ -179,7 +180,7 @@ void main() {
       final full = gz(List<int>.generate(300, (i) => i % 251));
       Uint8List inflate(Uint8List b) => inflateBounded(
         b,
-        decoder: gzip.decoder,
+        framing: ZlibFraming.gzip,
         maxBytes: 1 << 20,
         maxBlobBytes: 1 << 20,
       );
@@ -204,7 +205,7 @@ void main() {
       expect(
         () => inflateBounded(
           gz([1, 2, 3]),
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: -1,
           maxBlobBytes: 1 << 20,
         ),
@@ -213,7 +214,7 @@ void main() {
       expect(
         () => inflateBounded(
           gz([1, 2, 3]),
-          decoder: gzip.decoder,
+          framing: ZlibFraming.gzip,
           maxBytes: 1 << 20,
           maxBlobBytes: -1,
         ),

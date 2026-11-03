@@ -9,8 +9,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
+
+/// Where the browser's database lives.
+///
+/// A virtual path: the browser keeps the database in the origin private file
+/// system under drift's name for it (the file name without its extension),
+/// and nothing reads this string as a filesystem path. It exists so the code
+/// that passes a database path around has one, and so a log line names it.
+const String kWebDatabasePath = '/opfs/Submersion/submersion.db';
 
 /// Service for managing database file location
 ///
@@ -82,6 +91,9 @@ class DatabaseLocationService {
   static const _customPathKey = 'db_custom_path';
   static const _lastVerifiedKey = 'db_path_last_verified';
   static const _bookmarkDataKey = 'db_security_bookmark';
+
+  /// The browser's current library (issue #4121); see [webLibraryPath].
+  static const _webLibraryPathKey = 'web_library_database_path';
 
   // Database filename
   static const databaseFilename = 'submersion.db';
@@ -155,10 +167,11 @@ class DatabaseLocationService {
   /// unchanged; it exists purely so each worktree's dev run can point at a
   /// folder nothing else touches.
   Future<String> getDatabasePath() async {
-    final override = Platform.environment['SUBMERSION_DB_PATH'];
+    final override = HostPlatform.environment['SUBMERSION_DB_PATH'];
     if (override != null && override.isNotEmpty) {
       return override;
     }
+    if (HostPlatform.isWeb) return webLibraryPath;
 
     final config = await getStorageConfig();
 
@@ -169,6 +182,15 @@ class DatabaseLocationService {
 
     return getDefaultDatabasePath();
   }
+
+  /// The browser's library: [kWebDatabasePath] until a restore installs a
+  /// backup under a new name and points here (`web_library_paths.dart`).
+  String get webLibraryPath =>
+      _prefs.getString(_webLibraryPathKey) ?? kWebDatabasePath;
+
+  /// Points the browser at the library a restore installed, once it opens.
+  Future<void> setWebLibraryPath(String path) =>
+      _prefs.setString(_webLibraryPathKey, path);
 
   /// Get the default database path (app documents directory)
   Future<String> getDefaultDatabasePath() async {
@@ -191,11 +213,14 @@ class DatabaseLocationService {
   /// - Android: app-specific external storage (internal or SD card). The live
   ///   DB needs a real lockable path; arbitrary SAF folders cannot back a
   ///   SQLite file, so the choice is curated to writable app-specific volumes.
-  bool get isCustomFolderSupported => true;
+  ///
+  /// Not in a browser, where the database lives in the origin private file
+  /// system and no folder can be chosen.
+  bool get isCustomFolderSupported => !HostPlatform.isWeb;
 
   /// Check if we're running on a desktop platform
   bool get isDesktopPlatform =>
-      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+      HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
 
   /// Pick a custom folder for database storage
   ///
@@ -206,7 +231,7 @@ class DatabaseLocationService {
   /// bookmark data (iOS only), or null if cancelled.
   Future<FolderPickResultWithBookmark?> pickCustomFolder() async {
     // On iOS, use native picker to capture security-scoped URL
-    if (Platform.isIOS) {
+    if (HostPlatform.isIOS) {
       try {
         final result =
             await SecurityScopedBookmarkService.pickFolderWithSecurityScope();
@@ -229,7 +254,7 @@ class DatabaseLocationService {
     // The native volume query + platform gate are untestable in the host VM;
     // the selection/cancel logic lives in the unit-tested [resolveAndroidDbDir].
     // coverage:ignore-start
-    if (Platform.isAndroid) {
+    if (HostPlatform.isAndroid) {
       final dirs = await getExternalStorageDirectories();
       if (dirs == null || dirs.isEmpty) return null;
       final options = classifyExternalDirs(dirs.map((d) => d.path).toList());
@@ -273,7 +298,7 @@ class DatabaseLocationService {
       }
 
       // On iOS, use native security-scoped verification
-      if (Platform.isIOS) {
+      if (HostPlatform.isIOS) {
         final result = await SecurityScopedBookmarkService.verifyWriteAccess(
           folderPath,
         );

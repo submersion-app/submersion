@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
@@ -51,11 +52,19 @@ void main() {
     expect(tapped, isTrue);
   });
 
-  Future<void> pumpPage(WidgetTester tester, DemoPackage? available) async {
+  Future<void> pumpPage(
+    WidgetTester tester,
+    DemoPackage? available, {
+    bool browser = false,
+  }) async {
     await tester.pumpWidget(
       testApp(
         overrides: [
           ...await getBaseOverrides(demoPackage: available),
+          if (browser)
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
           demoEnterControllerProvider.overrideWith(_IdleController.new),
         ],
         child: const SetupWizardPage(mode: SetupWizardMode.firstRun),
@@ -79,6 +88,15 @@ void main() {
 
     expect(find.text('Explore with sample data'), findsOneWidget);
   });
+
+  testWidgets(
+    'no third card in a browser, even with a sample logbook (#4121)',
+    (tester) async {
+      await pumpPage(tester, _package, browser: true);
+
+      expect(find.text('Explore with sample data'), findsNothing);
+    },
+  );
 
   testWidgets('tapping it asks first, then Download opens the entering '
       'dialog', (tester) async {

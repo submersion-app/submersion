@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_actions.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_advanced_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_auto_row.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_copy_row.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_download_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_status_line.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -12,11 +15,27 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// where the copy goes, the two actions, History, and Advanced. Restore
 /// completion (RestoreCompletePage + restartApp) is handled app-wide in
 /// SubmersionApp, so it fires even if this page is disposed mid-restore.
-class BackupSettingsPage extends StatelessWidget {
+class BackupSettingsPage extends ConsumerWidget {
   const BackupSettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // A browser has no backup folders or schedules: its page downloads the
+    // database and restores one the picker reads (issue #4121).
+    if (ref.watch(deviceCapabilitiesProvider).isBrowser) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.settings_backups_title)),
+        body: ListView(
+          children: const [
+            SizedBox(height: 8),
+            BackupOperationMessage(),
+            BackupDownloadTile(),
+            RestoreFromFileTile(),
+            SizedBox(height: 24),
+          ],
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_backups_title)),
       body: ListView(

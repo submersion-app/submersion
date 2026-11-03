@@ -51,6 +51,7 @@
 **Setup & Data**
 - [Settings](settings.md)
 - [Set Up This Device](set-up-this-device.md)
+- [Submersion in a Browser](web-app.md)
 - [Update Channels](update-channels.md)
 - [Backups](backup-and-restore.md)
 - [Change Log](change-log.md)

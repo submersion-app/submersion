@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 /// Spawns a process. Injectable so tests never shell out for real.
 typedef ProcessRunner =
     Future<void> Function(String executable, List<String> arguments);
@@ -10,7 +12,7 @@ typedef ProcessRunner =
 /// a path in, so callers hide the affordance rather than offering one that
 /// does nothing.
 bool get canRevealInFileManager =>
-    Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
 
 /// Reveals [path] in the platform's native file manager.
 ///
@@ -30,11 +32,11 @@ Future<void> revealInFileManager(
   if (!canRevealInFileManager) return;
   final run = runProcess ?? _spawn;
   try {
-    if (Platform.isMacOS) {
+    if (HostPlatform.isMacOS) {
       await run('open', ['-R', path]);
-    } else if (Platform.isWindows) {
+    } else if (HostPlatform.isWindows) {
       await run('explorer', ['/select,', path]);
-    } else if (Platform.isLinux) {
+    } else if (HostPlatform.isLinux) {
       await run('xdg-open', [File(path).parent.path]);
     }
   } on ProcessException {

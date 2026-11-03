@@ -908,6 +908,20 @@ void main() {
       );
     });
 
+    test('a browser gets google_sign_in whatever OS it runs on (#4121)', () {
+      // The web variant of the host platform reports the OS of the browser,
+      // so a Windows browser would otherwise be handed the loopback flow,
+      // which needs a local listener a page cannot open.
+      expect(
+        GoogleDriveStorageProvider.authenticatorFor(
+          isWeb: true,
+          isLoopbackPlatform: true,
+          isMacOS: false,
+        ),
+        isA<GoogleSignInAuthenticator>(),
+      );
+    });
+
     test('macOS defers the choice to the keychain gate', () {
       // Neither flow works on every macOS build: google_sign_in needs the
       // data-protection keychain the Developer ID DMG cannot reach, and the

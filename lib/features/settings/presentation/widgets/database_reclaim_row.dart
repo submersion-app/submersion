@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
@@ -28,7 +29,9 @@ class DatabaseReclaimRow extends ConsumerStatefulWidget {
     @visibleForTesting this.quitOverride,
   }) : isDesktop =
            isDesktop ??
-           (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+           (HostPlatform.isMacOS ||
+               HostPlatform.isWindows ||
+               HostPlatform.isLinux);
 
   @override
   ConsumerState<DatabaseReclaimRow> createState() => _DatabaseReclaimRowState();

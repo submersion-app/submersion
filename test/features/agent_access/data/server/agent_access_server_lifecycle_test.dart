@@ -1,11 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mcp_dart/mcp_dart.dart';
+import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
+import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 
-McpServer _fakeFactory() =>
-    McpServer(const Implementation(name: 'fake', version: '0'));
+AgentServerSpec _fakeSpec() => AgentServerSpec(
+  registry: AgentToolRegistry(tools: const [], resources: const []),
+  gate: AgentToolGate(isLocked: () => false),
+  appVersion: '0',
+);
 
 void main() {
   tearDown(() => AgentAccessServer.instance.stop());
@@ -17,7 +21,7 @@ void main() {
       await AgentAccessServer.instance.start(
         port: blocker.port,
         token: () => 't',
-        serverFactory: _fakeFactory,
+        serverSpec: _fakeSpec,
       );
       final status = AgentAccessServer.instance.status;
       expect(status.listening, isFalse);
@@ -28,19 +32,11 @@ void main() {
 
     test('start waits for a pending stop on the same port', () async {
       final server = AgentAccessServer.instance;
-      await server.start(
-        port: 0,
-        token: () => 't',
-        serverFactory: _fakeFactory,
-      );
+      await server.start(port: 0, token: () => 't', serverSpec: _fakeSpec);
       final port = server.status.port;
       expect(server.status.listening, isTrue);
       final stopping = server.stop(); // deliberately not awaited first
-      await server.start(
-        port: port,
-        token: () => 't',
-        serverFactory: _fakeFactory,
-      );
+      await server.start(port: port, token: () => 't', serverSpec: _fakeSpec);
       expect(server.status.listening, isTrue);
       expect(server.status.port, port);
       expect(server.status.error, isNull);
@@ -52,7 +48,7 @@ void main() {
       final starting = server.start(
         port: 0,
         token: () => 't',
-        serverFactory: _fakeFactory,
+        serverSpec: _fakeSpec,
       );
       final stopping = server.stop(); // issued before the bind completes
       await Future.wait([starting, stopping]);
@@ -63,11 +59,7 @@ void main() {
 
     test('stop is idempotent and publishes a stopped status', () async {
       final server = AgentAccessServer.instance;
-      await server.start(
-        port: 0,
-        token: () => 't',
-        serverFactory: _fakeFactory,
-      );
+      await server.start(port: 0, token: () => 't', serverSpec: _fakeSpec);
       final seen = <bool>[];
       final sub = server.statusStream.listen((s) => seen.add(s.listening));
       addTearDown(sub.cancel);

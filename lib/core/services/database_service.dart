@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart' as sqlite3;
 
 import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/database/background_database_connection.dart';
@@ -17,6 +17,9 @@ import 'package:submersion/core/database/database_snapshot.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart'
     as sqlcipher_setup;
+import 'package:submersion/core/platform/browser_origin_storage.dart';
+import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -26,8 +29,11 @@ import 'package:submersion/core/services/security/database_encryption_migrator.d
 import 'package:submersion/core/services/security/database_locked_exception.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/web_library_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+
+part 'database_service_browser_restore.dart';
 
 /// Which executor path [DatabaseService] used for the most recent open.
 enum DatabaseOpenMode {
@@ -37,17 +43,6 @@ enum DatabaseOpenMode {
   /// A pending upgrade ladder ran on the synchronous main-isolate executor
   /// first, then the database reopened on the background executor.
   migrationThenBackground,
-}
-
-/// drift setup callback for a main-database connection: keys SQLCipher before
-/// any other statement, then applies the busy timeout and the WAL journal
-/// mode. Never null -- neither of those is conditional on encryption.
-///
-/// The single place WAL is turned on. Every other opener of a database file
-/// (the raw probes in [DatabaseService.openRaw], the backup exporters) is
-/// deliberately journal-mode-neutral.
-void Function(sqlite3.Database) _connectionSetup(String? keyHex) {
-  return (db) => applyMainDatabaseSetup(db, keyHex: keyHex);
 }
 
 /// Default for [DatabaseService._runUpgradeLadder]'s VACUUM ticket: a caller
@@ -214,10 +209,13 @@ class DatabaseService {
     final dbPath = pathOverride ?? await _resolveDatabasePath();
     _currentDatabasePath = dbPath;
 
-    // Ensure directory exists
-    final dbDir = Directory(p.dirname(dbPath));
-    if (!await dbDir.exists()) {
-      await dbDir.create(recursive: true);
+    // Ensure directory exists. A browser has no directory: its database
+    // lives in the origin private file system under drift's name for it.
+    if (!HostPlatform.isWeb) {
+      final dbDir = Directory(p.dirname(dbPath));
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+      }
     }
 
     _openAttempted = true;
@@ -229,7 +227,8 @@ class DatabaseService {
       onCompacting: onCompacting,
     );
 
-    await _assertCipherAvailable(_database!);
+    // No cipher in a browser: encryption at rest is not offered there.
+    if (!HostPlatform.isWeb) await _assertCipherAvailable(_database!);
   }
 
   /// Fails loudly if the native library behind the OPEN connection is not
@@ -247,7 +246,7 @@ class DatabaseService {
   /// SQLCipher through the sqlite3 build hook; see sqlcipher_setup_test.dart,
   /// which asserts exactly that.)
   Future<void> _assertCipherAvailable(AppDatabase db) async {
-    if (Platform.environment.containsKey('FLUTTER_TEST')) return;
+    if (HostPlatform.environment.containsKey('FLUTTER_TEST')) return;
     final rows = await db.customSelect('PRAGMA cipher_version').get();
     if (rows.isEmpty) {
       throw StateError(
@@ -267,13 +266,13 @@ class DatabaseService {
   ///
   /// Two phases:
   /// 1. If an upgrade ladder is PENDING, run it to completion on the
-  ///    synchronous main-isolate [NativeDatabase] exactly as before —
+  ///    synchronous main-isolate connection exactly as before —
   ///    progress callbacks, pre-migration backup close/reopen, and
   ///    hot-journal recovery are proven there, and closing a background
   ///    executor MID-migration has historically hung. The close happens
   ///    strictly after the ladder finishes.
   /// 2. Open with [BackgroundDatabaseConnection.open] (a
-  ///    [NativeDatabase.createInBackground] equivalent that owns the worker
+  ///    `NativeDatabase.createInBackground` equivalent that owns the worker
   ///    isolate, so [close] can wait for SQLite to actually finish closing):
   ///    every statement executes on drift's worker isolate. Migration
   ///    callbacks (onCreate for fresh files, the beforeOpen re-asserts)
@@ -293,6 +292,13 @@ class DatabaseService {
     DatabaseCompactionPrefs? compaction,
     void Function()? onCompacting,
   }) async {
+    if (HostPlatform.isWeb) {
+      return _openWebDatabase(
+        dbPath,
+        onMigrationProgress: onMigrationProgress,
+        allowSchemaUpgrade: allowSchemaUpgrade,
+      );
+    }
     final file = File(dbPath);
     final keyHex = databaseKeyHex;
     final stored = getStoredSchemaVersion(dbPath, keyHex: keyHex);
@@ -366,8 +372,42 @@ class DatabaseService {
     }
 
     return retryWhileDatabaseBusy(
-      () => _openOnBackgroundExecutor(file, keyHex, onMigrationProgress),
+      () => _openOnBackgroundExecutor(dbPath, keyHex, onMigrationProgress),
     );
+  }
+
+  /// The browser open: no file, no cipher and no upgrade ladder.
+  ///
+  /// The stored version is read through a probe connection with drift's
+  /// migrations off, so the newer-than-app guard and the upgrade refusal
+  /// apply as on native. drift then runs the schema migration itself on the
+  /// first statement, reporting through [onMigrationProgress]; the ladder's
+  /// pre-migration backup and VACUUM have no file to work on here.
+  Future<AppDatabase> _openWebDatabase(
+    String dbPath, {
+    required void Function(int currentStep, int totalSteps)?
+    onMigrationProgress,
+    required bool allowSchemaUpgrade,
+  }) async {
+    final stored = await BackgroundDatabaseConnection.readStoredSchemaVersion(
+      dbPath,
+    );
+    if (stored > AppDatabase.currentSchemaVersion) {
+      throw DatabaseVersionMismatchException(
+        storedSchemaVersion: stored,
+        supportedSchemaVersion: AppDatabase.currentSchemaVersion,
+      );
+    }
+    final migrationPending =
+        stored > 0 && stored < AppDatabase.currentSchemaVersion;
+    if (migrationPending && !allowSchemaUpgrade) {
+      throw SchemaUpgradePendingException(
+        storedSchemaVersion: stored,
+        supportedSchemaVersion: AppDatabase.currentSchemaVersion,
+      );
+    }
+    lastOpenMode = DatabaseOpenMode.background;
+    return _openOnBackgroundExecutor(dbPath, null, onMigrationProgress);
   }
 
   /// Test seam for the rewrite [_compactAsRequested] runs.
@@ -461,7 +501,7 @@ class DatabaseService {
     }
 
     final migrator = AppDatabase(
-      NativeDatabase(file, setup: _connectionSetup(keyHex)),
+      openMainIsolateConnection(file.path, keyHex: keyHex),
       onMigrationProgress: onMigrationProgress == null ? null : report,
     );
     try {
@@ -555,12 +595,12 @@ class DatabaseService {
   /// [_assertCipherAvailable]'s `PRAGMA cipher_version`, short-circuits under
   /// FLUTTER_TEST.)
   Future<AppDatabase> _openOnBackgroundExecutor(
-    File file,
+    String dbPath,
     String? keyHex,
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   ) async {
     final background = await BackgroundDatabaseConnection.open(
-      file,
+      dbPath,
       keyHex: keyHex,
     );
     final database = AppDatabase(
@@ -615,23 +655,32 @@ class DatabaseService {
   Future<void> reinitializeAtPath(String newPath) =>
       SyncCoordinator.join(() => _reinitializeAtPath(newPath));
 
-  Future<void> _reinitializeAtPath(String newPath) async {
+  Future<void> _reinitializeAtPath(
+    String newPath, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     // Strict close: this method reopens immediately, so it must not race a
     // background connection that timed out mid-close and is still holding
     // file locks. A stuck close throws here rather than being abandoned.
     await close(strict: true);
 
-    // Ensure directory exists
-    final dbDir = Directory(p.dirname(newPath));
-    if (!await dbDir.exists()) {
-      await dbDir.create(recursive: true);
+    // Ensure directory exists. A browser has none: its databases are named
+    // in the origin private file system.
+    if (!HostPlatform.isWeb) {
+      final dbDir = Directory(p.dirname(newPath));
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+      }
     }
 
     // Small delay to ensure any previous database connections are fully released
     // This helps prevent SQLite file locking issues, especially with WAL mode
     await Future.delayed(const Duration(milliseconds: 100));
 
-    _database = await _openDatabase(newPath);
+    _database = await _openDatabase(
+      newPath,
+      onMigrationProgress: onMigrationProgress,
+    );
 
     // Verify the database is ready by running a simple query
     // This ensures the connection is fully established before returning
@@ -798,17 +847,18 @@ class DatabaseService {
   /// The busy timeout matters as much here as on the drift connections: the
   /// version probe and the pre-migration WAL checkpoint both run at startup,
   /// the very moment a headless isolate is most likely to be holding a lock.
-  static sqlite3.Database openRaw(
+  static sqlite3.CommonDatabase openRaw(
     String path, {
     sqlite3.OpenMode mode = sqlite3.OpenMode.readWrite,
     String? keyHex,
   }) {
-    final db = sqlite3.sqlite3.open(path, mode: mode);
+    final db = RawSqlite.open(path, mode: mode);
     try {
       // Basics only, never the journal mode: this opens backup artifacts and
       // candidate files at other locations as well as the live database, and
       // a probe has no business rewriting the header of a file it is only
-      // looking at. WAL is set by _connectionSetup, on the real connection.
+      // looking at. WAL is set by applyMainDatabaseSetup, on the real
+      // connection.
       applyConnectionBasics(db, keyHex: keyHex);
     } catch (_) {
       db.close();

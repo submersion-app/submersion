@@ -7,7 +7,7 @@
 /// direct read. Matching names in the SQL text would miss all three.
 library;
 
-import 'package:submersion/features/agent_access/data/sql/sql_read_catalog.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_read_catalog_io.dart';
 
 /// The statements that return rows. `ATTACH`, `BEGIN` and `PRAGMA` all report
 /// read-only, so that flag cannot stand in for this list.

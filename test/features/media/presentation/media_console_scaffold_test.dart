@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
@@ -23,9 +24,14 @@ void main() {
     ThemeData? theme,
     double appBarHeight = kToolbarHeight,
     PreferredSizeWidget Function(PreferredSizeWidget bar)? appBarPin,
+    bool browser = false,
   }) {
     // The scaffold reads the header title's inset through a provider ref.
     return ProviderScope(
+      overrides: [
+        if (browser)
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+      ],
       child: MaterialApp(
         locale: const Locale('en'),
         theme: theme,
@@ -450,5 +456,21 @@ void main() {
         });
       }
     }
+  });
+
+  testWidgets('a browser has no Sources or Import tab (#4121)', (tester) async {
+    setWidth(tester, _desktopWidth);
+    await tester.pumpWidget(
+      host(
+        selected: MediaConsoleSection.library,
+        onSelect: (_) {},
+        browser: true,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Library'), findsOneWidget);
+    expect(find.text('Transfers'), findsOneWidget);
+    expect(find.text('Sources'), findsNothing);
+    expect(find.text('Import'), findsNothing);
   });
 }

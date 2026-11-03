@@ -143,7 +143,10 @@ bundle_suite() {
     if [ "${#SELECTED[@]}" -gt 0 ]; then
         subset=(--subset "$TEST_FILES_FROM")
     fi
+    # test/web is the browser suite (@TestOn('browser')): a VM run could
+    # only skip it. It runs through scripts/web/test_web.sh.
     list="$(python3 scripts/bundle_tests.py --total-shards 1 \
+        --exclude-dir test/web \
         --max-files "$1" --out "$BUNDLE_DIR" ${subset[@]+"${subset[@]}"} 2>/dev/null || true)"
     [ -n "$list" ] || return 0
     # A native Windows python3 under Git Bash ends each line with CRLF.

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_upload_progress_provider.dart';
@@ -65,8 +66,12 @@ class _SetUpDoneViewState extends ConsumerState<SetUpDoneView> {
     final progress = attached
         ? ref.watch(mediaUploadProgressProvider).value
         : null;
+    // A browser never writes the store (issue #4121).
     final offerUpload =
-        !_queued && progress != null && progress.total > progress.copied;
+        ref.watch(deviceCapabilitiesProvider).mediaAttach &&
+        !_queued &&
+        progress != null &&
+        progress.total > progress.copied;
 
     Widget outcome(IconData icon, String title, DataRowStatus status) =>
         ListTile(

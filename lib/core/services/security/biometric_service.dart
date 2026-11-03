@@ -1,8 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
+
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// Thin, non-throwing wrapper over local_auth. Platform support: iOS,
 /// Android, macOS (Touch ID), Windows (Hello). Linux has no local_auth
@@ -18,7 +18,7 @@ class BiometricService {
     LocalAuthentication? auth,
     @visibleForTesting bool? platformSupported,
   }) : _auth = auth ?? LocalAuthentication(),
-       _platformSupported = platformSupported ?? !Platform.isLinux;
+       _platformSupported = platformSupported ?? !HostPlatform.isLinux;
 
   Future<bool> isAvailable() async {
     if (!_platformSupported) return false;

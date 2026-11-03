@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart'
     show kDebugMode, kProfileMode, visibleForTesting;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/os_version.dart';
@@ -92,12 +91,12 @@ class LogEnvironment {
     var osVersion = _unknown;
     var locale = _unknown;
     try {
-      platform = Platform.operatingSystem;
+      platform = HostPlatform.operatingSystem;
       osVersion = normalizeOsVersion(
         platform: platform,
-        version: Platform.operatingSystemVersion,
+        version: HostPlatform.operatingSystemVersion,
       );
-      locale = Platform.localeName;
+      locale = HostPlatform.localeName;
     } on Object {
       // Platform getters throw on unsupported hosts (e.g. web).
     }

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 import 'package:submersion/features/universal_import/data/services/divemate_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divemate_schema.dart';
@@ -64,7 +64,7 @@ class DivingLogDbReader {
 
   /// Probes an already-open [db]. Split out so reads that already hold a
   /// handle do not reopen the file.
-  static DivingLogCapabilities probeCapabilities(Database db) {
+  static DivingLogCapabilities probeCapabilities(CommonDatabase db) {
     final tableRows = db.select(
       "SELECT name FROM sqlite_master WHERE type='table'",
     );
@@ -425,7 +425,10 @@ class DivingLogDbReader {
     return single == null || single <= 0 ? const [] : [single];
   }
 
-  static Set<String> _readTombstones(Database db, DivingLogCapabilities caps) {
+  static Set<String> _readTombstones(
+    CommonDatabase db,
+    DivingLogCapabilities caps,
+  ) {
     if (!caps.hasTable('DeletedRecords') ||
         !caps.hasColumn('DeletedRecords', 'UUID')) {
       return const {};
@@ -443,7 +446,7 @@ class DivingLogDbReader {
   }
 
   static Map<int, List<DivingLogRawTank>> _readTanks(
-    Database db,
+    CommonDatabase db,
     DivingLogCapabilities caps, {
     required bool isDiveMate,
   }) {

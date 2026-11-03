@@ -1,5 +1,5 @@
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 
 /// The migration finder for cylinders a diver may want to re-role as a twin
 /// set (issue #3374). Until the Twin Set role existed, the Tank

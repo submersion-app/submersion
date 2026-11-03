@@ -59840,6 +59840,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'سجّل الدخول باستخدام Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'سجّل الدخول بحساب Google في كل مرة تفتح فيها الموقع';
+
+  @override
   String get settings_setUpDevice_offer_dropbox =>
       'سجّل الدخول باستخدام Dropbox';
 
@@ -60178,6 +60182,180 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get demo_unavailable_body =>
       'يُبقي الوضع التجريبي السجل التجريبي منفصلًا عن بياناتك، لذا لا يمكن استيراد أي شيء أو تصديره أو نسخه احتياطيًا أو مزامنته.';
+
+  @override
+  String get web_unavailable_title => 'غير متاح في المتصفح';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'يحتاج هذا إلى عتاد لا تستطيع صفحة الويب الوصول إليه، مثل البلوتوث أو USB أو NFC أو الكاميرا. استخدم تطبيق Submersion على هاتف أو حاسوب لذلك.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'يعمل هذا في الخلفية أو كخدمة محلية، وهو ما لا تستطيع صفحة الويب فعله. استخدم تطبيق Submersion على هاتف أو حاسوب لذلك.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'يتعامل هذا مع ملفات على الجهاز لا تستطيع صفحة الويب الوصول إليها. استخدم تطبيق Submersion على هاتف أو حاسوب لذلك.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud متاح فقط في تطبيق Submersion على أجهزة Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'لا تقبل خوادم Git الطلبات الواردة من صفحة ويب. استخدم تطبيق Submersion على هاتف أو حاسوب لمخزن مزامنة Git.';
+
+  @override
+  String get web_continueWithoutSync => 'المتابعة بدون مخزن مزامنة';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'تذكّر على هذا الجهاز';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'لا يصل إلى iCloud سوى تطبيق Submersion على جهاز Apple.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'لا تقبل مستضيفات Git الطلبات من صفحة ويب.';
+
+  @override
+  String get web_googleClientId_title => 'معرّف عميل Google';
+
+  @override
+  String get web_googleClientId_body =>
+      'تسجّل صفحة الويب الدخول إلى Google بمعرّف عميل من مشروع Google Cloud الخاص بك: من نوع تطبيق ويب، مع عنوان هذا الموقع كأصل JavaScript مصرّح به. ألصقه هنا. يُحفظ مع بيانات تسجيل الدخول الأخرى.';
+
+  @override
+  String get web_googleClientId_ownProjectNote =>
+      'معرّف العميل الخاص بك لا يرى إلا مكتبة Google Drive التي يبدؤها هذا الموقع. تفصل Google مجلد Drive لكل مشروع، لذلك لا يمكن فتح المكتبة التي يزامنها هاتفك وحاسوبك مع Google Drive هنا.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'لا يبدو هذا معرّف عميل Google. ينتهي بـ .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'كيفية إنشاء واحد';
+
+  @override
+  String get web_cors_title_blockedByCors => 'المخزن يحظر طلبات المتصفح';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'سأل المتصفح المخزن ولم يحصل على إجابة يُسمح له بقراءتها. يجب أن تسمح قواعد CORS في المخزن بعنوان هذا الموقع. أضف القاعدة أدناه إلى المخزن ثم تحقق مجددًا.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'المخزن يسمح ببعض الطلبات لا كلها';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'يجيب المخزن على طلب بسيط من هذا الموقع لكنه يرفض الأسلوب الذي يحتاجه التطبيق، مثل PROPFIND في WebDAV. يجب أن تذكر قاعدة CORS كل الأساليب أدناه.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'المخزن يسمح بالقراءة لا بالكتابة';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'القراءة من هذا الموقع تعمل، لكن عملية كتابة رُفضت. يجب أن تسمح قاعدة CORS أيضًا بـ PUT وDELETE؛ القاعدة أدناه تتضمنهما.';
+
+  @override
+  String get web_cors_title_forbidden => 'رفض المخزن بيانات الاعتماد';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'أجاب المخزن بـ 403: مفتاح وصول أو سر خاطئ، أو مفتاح للقراءة فقط حيث تحتاج المزامنة إلى الكتابة. تحقق من بيانات الاعتماد وصلاحيات المفتاح.';
+
+  @override
+  String get web_cors_title_notFound => 'لا شيء في هذا العنوان';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'الدلو أو المجلد أو المسار غير موجود، أو الاسم مكتوب خطأ. تحقق من العنوان واسم الدلو أو المجلد.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'المتصفح لا يثق بالخادم أو لا يستطيع الوصول إليه';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'فشل عنوان خاص عبر HTTPS دون أي إجابة. المتصفح، لا التطبيق، هو من يقرر الشهادات الموثوقة: افتح عنوان الخادم في علامة تبويب جديدة واقبل شهادته أو ثبّتها، أو تأكد من إمكانية الوصول إلى الخادم من هنا.';
+
+  @override
+  String get web_cors_title_ok => 'الاتصال يعمل';
+
+  @override
+  String get web_cors_explain_ok => 'قبل المخزن الاختبار من هذا المتصفح.';
+
+  @override
+  String get web_cors_title_unknown => 'فشل الاتصال';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'أبلغ المتصفح عن فشل لا يشرحه. غالبًا لا تسمح قواعد CORS في المخزن بعنوان هذا الموقع؛ القاعدة أدناه هي الحل المعتاد.';
+
+  @override
+  String get web_cors_copyRule => 'نسخ القاعدة';
+
+  @override
+  String get web_cors_copied => 'تم نسخ القاعدة';
+
+  @override
+  String get web_storage_title => 'تخزين المتصفح';
+
+  @override
+  String get web_storage_opfs =>
+      'تخزين ملفات المتصفح. تبقى غوصاتك في هذا المتصفح حتى تنسى هذا الجهاز.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'قاعدة بيانات المتصفح (أبطأ). تبقى غوصاتك في هذا المتصفح حتى تنسى هذا الجهاز.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'لا يُحفظ شيء بعد إغلاق علامة التبويب هذه. لا يمنح هذا المتصفح الموقع تخزينًا دائمًا؛ زامن قبل المغادرة.';
+
+  @override
+  String get web_forgetDevice_title => 'نسيان هذا الجهاز';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'إزالة الغوصات وبيانات تسجيل الدخول وهوية الجهاز من هذا المتصفح';
+
+  @override
+  String get web_forgetDevice_confirm => 'نسيان';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'يزيل هذا كل ما يحتفظ به Submersion في هذا المتصفح: سجل الغوص، وبيانات تسجيل الدخول وعبارة المرور، وهوية هذا الجهاز في المزامنة. تبقى غوصاتك في مخزن المزامنة وعلى أجهزتك الأخرى. تُعاد تحميل الصفحة لبداية جديدة.';
+
+  @override
+  String get web_forgetDevice_failed =>
+      'احتفظ هذا المتصفح بقاعدة البيانات. أغلق علامات تبويب Submersion الأخرى وحاول مرة أخرى.';
+
+  @override
+  String get web_forgetDevice_incomplete =>
+      'تعذّر على هذا المتصفح مسح بيانات تسجيل الدخول والإعدادات. حاول مرة أخرى.';
+
+  @override
+  String get web_downloadBackup_failed => 'تعذّر إنشاء النسخة الاحتياطية.';
+
+  @override
+  String get web_downloadBackup_title => 'تنزيل نسخة احتياطية';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'نسخة من سجل الغوص كملف قاعدة بيانات يحفظه متصفحك';
 
   @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';

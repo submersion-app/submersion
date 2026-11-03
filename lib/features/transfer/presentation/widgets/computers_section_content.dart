@@ -1,8 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -279,7 +279,8 @@ class _ComputersSectionContentState
             error: (_, _) => const SizedBox.shrink(),
           ),
 
-          if (Platform.isIOS) ...[
+          if (HostPlatform.isIOS &&
+              ref.watch(deviceCapabilitiesProvider).healthImport) ...[
             const SizedBox(height: 16),
             transferSectionHeader(
               context,

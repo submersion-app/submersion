@@ -1006,4 +1006,14 @@ void main() {
       }
     });
   });
+
+  test('a browser export is the header, then the redacted lines', () {
+    final bytes = buildBrowserLogExportBytes([
+      'one',
+      'password=hunter2',
+    ], 'HEADER\n');
+    final text = utf8.decode(bytes);
+    expect(text, startsWith('HEADER\none\n'));
+    expect(text, isNot(contains('hunter2')));
+  });
 }

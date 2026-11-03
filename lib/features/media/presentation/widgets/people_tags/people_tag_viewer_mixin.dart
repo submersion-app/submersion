@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -32,7 +32,7 @@ bool canPlaceSpot(
 }) {
   if (imageSize == null || imageSize.isEmpty) return false;
   if (!item.isVideo) return true;
-  final onLinux = linux ?? (!kIsWeb && Platform.isLinux);
+  final onLinux = linux ?? (!kIsWeb && HostPlatform.isLinux);
   return videoReady &&
       !onLinux &&
       item.sourceType != MediaSourceType.serviceConnector;

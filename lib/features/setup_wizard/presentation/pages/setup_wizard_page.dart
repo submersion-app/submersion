@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -97,11 +98,13 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
     });
   }
 
-  void _goTo(SetupStepId id) {
-    final index = computeSteps(
-      ref.read(setupWizardProvider(widget.mode)),
-    ).indexOf(id);
-    if (index >= 0) _animateTo(index);
+  /// The step after [id] in the current list, when there is one: the list
+  /// differs by mode and in a browser (issue #4121), so a jump names the
+  /// step it skips, never the one it lands on.
+  void _goToAfter(SetupStepId id) {
+    final steps = computeSteps(ref.read(setupWizardProvider(widget.mode)));
+    final index = steps.indexOf(id);
+    if (index >= 0 && index < steps.length - 1) _animateTo(index + 1);
   }
 
   /// How a shared step leaves itself in the wizard: Not now moves on (step
@@ -109,20 +112,23 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   /// the existing-data path an empty account starts a new logbook instead.
   SetUpStepNavigation _navigationFor(SetupStepId id) {
     final notifier = ref.read(setupWizardProvider(widget.mode).notifier);
-    final existingData =
-        ref.read(setupWizardProvider(widget.mode)).path ==
-        SetupPath.existingData;
+    final draft = ref.read(setupWizardProvider(widget.mode));
+    // Natively the sync step offers to start a new logbook instead; a
+    // browser, which opens on the connect step, offers it there
+    // (issue #4121).
+    final noLibrary = offersNoLibrary(draft, id);
     return SetUpStepNavigation(
       host: widget.mode == SetupWizardMode.firstRun
           ? SetUpHost.firstRun
           : SetUpHost.assistant,
       onNext: _advance,
-      onBack: _back,
+      // A browser's first run opens on this step: nothing comes before it.
+      onBack: _currentIndex > 0 ? _back : null,
       onNotNow: id == SetupStepId.setUpAccount
-          ? () => _goTo(SetupStepId.setUpBackups)
+          ? () => _goToAfter(SetupStepId.setUpSync)
           : _advance,
       onSkip: id == SetupStepId.setUpPhotos ? _advance : null,
-      onNoLibrary: existingData && id == SetupStepId.setUpSync
+      onNoLibrary: noLibrary
           ? () {
               notifier.choosePath(SetupPath.fresh);
               _goToAfterRebuild(SetupStepId.profile);
@@ -173,6 +179,7 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   /// wizard rather than adding a step: entering restarts the app.
   VoidCallback? _tryDemo(SetupWizardMode mode, DemoPackage? package) {
     if (mode != SetupWizardMode.firstRun || package == null) return null;
+    if (!ref.read(deviceCapabilitiesProvider).demoMode) return null;
     return () => askAndEnterDemo(
       context,
       fromFirstRun: true,

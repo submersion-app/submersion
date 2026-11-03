@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
@@ -48,8 +49,10 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasRawData =
-        ref.watch(diveHasRawDataProvider(dive.id)).valueOrNull ?? false;
+    // Re-parsing runs the native parser, which a browser lacks (#4121).
+    final canReparse =
+        ref.watch(deviceCapabilitiesProvider).diveComputerDownload &&
+        (ref.watch(diveHasRawDataProvider(dive.id)).valueOrNull ?? false);
     final hasImportedFile =
         ref.watch(diveHasImportedFileProvider(dive.id)).valueOrNull ?? false;
     final linkedPreDive = ref
@@ -131,7 +134,7 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
               ),
             ),
           _preDiveLinkMenuItem(context, linkedPreDive),
-          if (hasRawData)
+          if (canReparse)
             PopupMenuItem(
               value: 'reparse',
               child: ListTile(

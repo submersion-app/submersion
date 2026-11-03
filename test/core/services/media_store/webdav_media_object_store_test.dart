@@ -66,6 +66,27 @@ void main() {
     },
   );
 
+  test('getBytes hands an object back in memory, and a missing one is '
+      'notFound', () async {
+    await store.putFile(
+      'smv1/objects/ab/m.jpg',
+      await fileWith([7, 8, 9]),
+      contentType: 'image/jpeg',
+    );
+
+    expect(await store.getBytes('smv1/objects/ab/m.jpg'), [7, 8, 9]);
+    await expectLater(
+      store.getBytes('smv1/objects/zz/none.jpg'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.notFound,
+        ),
+      ),
+    );
+  });
+
   test('getFile of a missing key is notFound', () async {
     await expectLater(
       store.getFile('smv1/objects/zz/none.jpg', File(p.join(tmp.path, 'out'))),

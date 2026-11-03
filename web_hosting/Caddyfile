@@ -1,0 +1,25 @@
+# Caddy site for the Submersion web bundle. Replace the address with your
+# own host name; Caddy obtains the certificate itself. See HOSTING.md.
+#
+# The two headers make the page cross-origin isolated, which lets the app
+# use the fastest browser storage; without them it still runs, on a slower
+# storage path shown in Settings.
+dive.example.com {
+	root * /srv/submersion-web
+	encode gzip
+	# A site whose users connect Google Drive needs Google's sign-in popup
+	# to talk back to the page, which same-origin forbids: use
+	# "same-origin-allow-popups" there and accept the slower storage.
+	header {
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Embedder-Policy "credentialless"
+	}
+	# These keep their names across releases, and the app, its workers and
+	# the SQLite module must all come from one release, so they are
+	# revalidated on every load. The bare / is listed because headers apply
+	# before try_files rewrites it.
+	@entry path / /index.html /flutter_bootstrap.js /main.dart.js /version.json /drift_worker.js /compute_worker.js /sqlite3.wasm
+	header @entry Cache-Control "no-cache"
+	try_files {path} /index.html
+	file_server
+}

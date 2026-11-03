@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 
 /// The largest sample count either series codec will encode or decode.
@@ -70,46 +70,21 @@ Uint8List inflateBounded(
       'must not be negative',
     );
   }
-  // Before the conversion, not inside the sink: the filter copies the whole
-  // input natively before it emits a first chunk, so a sink-side check
-  // never sees an oversized blob.
+  // Before the conversion, not inside the decoder: the native filter copies
+  // the whole input before it emits a first chunk, so a check on the output
+  // side never sees an oversized blob.
   if (bytes.length > maxBlobBytes) {
     throw ProfileSeriesCodecException(
       'blob of ${bytes.length} byte(s) exceeds the $maxBlobBytes allowed',
     );
   }
-  final sink = _BoundedByteSink(maxBytes);
   try {
-    final input = ZLibCodec().decoder.startChunkedConversion(sink);
-    input
-      ..add(bytes)
-      ..close();
-  } on FormatException catch (e) {
+    return PlatformZlib.inflateBounded(bytes, maxBytes: maxBytes);
+  } on ZlibBoundExceeded {
+    throw ProfileSeriesCodecException(
+      'inflated body exceeds the $maxBytes byte(s) allowed',
+    );
+  } on ZlibFormatException catch (e) {
     throw ProfileSeriesCodecException('not a zlib stream: ${e.message}');
   }
-  return sink.takeBytes();
-}
-
-/// Collects inflated chunks and throws as soon as they pass [_maxBytes].
-class _BoundedByteSink implements Sink<List<int>> {
-  _BoundedByteSink(this._maxBytes);
-
-  final int _maxBytes;
-  final BytesBuilder _builder = BytesBuilder(copy: false);
-
-  @override
-  void add(List<int> chunk) {
-    if (_builder.length + chunk.length > _maxBytes) {
-      // Thrown from inside the zlib filter's own add, which unwinds it.
-      throw ProfileSeriesCodecException(
-        'inflated body exceeds the $_maxBytes byte(s) allowed',
-      );
-    }
-    _builder.add(chunk);
-  }
-
-  @override
-  void close() {}
-
-  Uint8List takeBytes() => _builder.takeBytes();
 }

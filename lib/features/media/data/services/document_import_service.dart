@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
@@ -69,9 +68,9 @@ class DocumentImportService {
 
   /// The real per-platform strategy.
   static DocumentRefStrategy hostRefStrategy() {
-    if (Platform.isIOS) return DocumentRefStrategy.bookmark;
-    if (Platform.isMacOS) return DocumentRefStrategy.bookmarkWithPath;
-    if (Platform.isAndroid) return DocumentRefStrategy.persistableUri;
+    if (HostPlatform.isIOS) return DocumentRefStrategy.bookmark;
+    if (HostPlatform.isMacOS) return DocumentRefStrategy.bookmarkWithPath;
+    if (HostPlatform.isAndroid) return DocumentRefStrategy.persistableUri;
     return DocumentRefStrategy.plainPath;
   }
 

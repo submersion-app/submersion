@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart' show FlutterError;
 import 'package:flutter/services.dart' show MissingPluginException;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 /// Directory for streaming-sync temp files (base export + assembled base parts).
 ///
 /// Prefers the app-container temp dir via path_provider. A sandboxed or
@@ -30,6 +32,12 @@ import 'package:path_provider/path_provider.dart';
 /// which reliably have the dir -- were unaffected. `create(recursive: true)` is
 /// idempotent and always permitted inside the app's own container.
 Future<Directory> resolveSyncTempDir() async {
+  if (HostPlatform.isWeb) {
+    throw UnsupportedError(
+      'a browser keeps sync temp files in the origin private file system; '
+      'use SyncTempFiles',
+    );
+  }
   try {
     final dir = await getTemporaryDirectory();
     await dir.create(recursive: true);

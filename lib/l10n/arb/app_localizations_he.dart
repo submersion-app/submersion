@@ -57816,6 +57816,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => 'התחברות עם Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'התחבר עם Google בכל פעם שהאתר נפתח';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'התחברות עם Dropbox';
 
   @override
@@ -58137,6 +58141,179 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get demo_unavailable_body =>
       'מצב ההדגמה שומר את יומן הדוגמה בנפרד מהנתונים שלכם, ולכן אי אפשר לייבא, לייצא, לגבות או לסנכרן דבר.';
+
+  @override
+  String get web_unavailable_title => 'לא זמין בדפדפן';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'זה דורש חומרה שדף אינטרנט לא יכול להגיע אליה, כמו Bluetooth, USB, NFC או המצלמה. השתמשו באפליקציית Submersion בטלפון או במחשב לשם כך.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'זה פועל ברקע או כשירות מקומי, מה שדף אינטרנט לא יכול לעשות. השתמשו באפליקציית Submersion בטלפון או במחשב לשם כך.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'זה עובד עם קבצים במכשיר, שדף אינטרנט לא יכול להגיע אליהם. השתמשו באפליקציית Submersion בטלפון או במחשב לשם כך.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud זמין רק באפליקציית Submersion במכשירי Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'שרתי Git לא מקבלים בקשות מדף אינטרנט. השתמשו באפליקציית Submersion בטלפון או במחשב עבור מאגר סנכרון Git.';
+
+  @override
+  String get web_continueWithoutSync => 'המשך ללא מאגר סנכרון';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'זכור במכשיר זה';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'רק אפליקציית Submersion במכשיר Apple יכולה לגשת ל-iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'שרתי Git אינם מקבלים בקשות מדף אינטרנט.';
+
+  @override
+  String get web_googleClientId_title => 'מזהה לקוח של Google';
+
+  @override
+  String get web_googleClientId_body =>
+      'דף אינטרנט נכנס ל-Google עם מזהה לקוח מפרויקט Google Cloud שלך: מסוג אפליקציית אינטרנט, עם כתובת האתר הזה כמקור JavaScript מורשה. הדבק אותו כאן. הוא נשמר עם פרטי הכניסה האחרים שלך.';
+
+  @override
+  String get web_googleClientId_ownProjectNote =>
+      'מזהה לקוח משלכם רואה רק ספריית Google Drive שהאתר הזה יוצר. Google מפרידה בין תיקיות ה-Drive של כל פרויקט, ולכן את הספרייה שהטלפון והמחשב שלכם מסנכרנים עם Google Drive אי אפשר לפתוח כאן.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'זה לא נראה כמו מזהה לקוח של Google. הוא מסתיים ב-.apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'איך ליצור אחד';
+
+  @override
+  String get web_cors_title_blockedByCors => 'המאגר חוסם בקשות מהדפדפן';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'הדפדפן פנה למאגר ולא קיבל תשובה שהורשה לקרוא. כללי ה-CORS של המאגר חייבים להתיר את כתובת האתר הזה. הוסף את הכלל שלמטה למאגר ובדוק שוב.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'המאגר מתיר חלק מהבקשות, לא את כולן';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'המאגר עונה לבקשה פשוטה מהאתר הזה אך מסרב לשיטה שהאפליקציה צריכה, כמו PROPFIND ב-WebDAV. כלל ה-CORS שלו חייב לכלול כל שיטה שלמטה.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors => 'המאגר מתיר קריאה, לא כתיבה';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'קריאות מהאתר הזה עובדות, אך כתיבה נדחתה. כלל ה-CORS חייב להתיר גם PUT ו-DELETE; הכלל שלמטה כולל אותם.';
+
+  @override
+  String get web_cors_title_forbidden => 'המאגר דחה את פרטי הגישה';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'המאגר ענה 403: מפתח גישה או סוד שגויים, או מפתח לקריאה בלבד במקום שבו הסנכרון צריך לכתוב. בדוק את פרטי הגישה ואת הרשאות המפתח.';
+
+  @override
+  String get web_cors_title_notFound => 'לא נמצא דבר בכתובת זו';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'הדלי, התיקייה או הנתיב אינם קיימים, או שהשם שגוי. בדוק את הכתובת ואת שם הדלי או התיקייה.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'הדפדפן אינו בוטח בשרת או אינו מגיע אליו';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'כתובת פרטית ב-HTTPS נכשלה ללא תשובה. הדפדפן, לא האפליקציה, מחליט באילו אישורים לבטוח: פתח את כתובת השרת בכרטיסייה חדשה וקבל או התקן את האישור שלו, או ודא שהשרת נגיש מכאן.';
+
+  @override
+  String get web_cors_title_ok => 'החיבור עובד';
+
+  @override
+  String get web_cors_explain_ok => 'המאגר קיבל את הבדיקה מהדפדפן הזה.';
+
+  @override
+  String get web_cors_title_unknown => 'החיבור נכשל';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'הדפדפן דיווח על כשל שאינו מסביר. לרוב כללי ה-CORS של המאגר אינם מתירים את כתובת האתר הזה; הכלל שלמטה הוא התיקון המקובל.';
+
+  @override
+  String get web_cors_copyRule => 'העתק כלל';
+
+  @override
+  String get web_cors_copied => 'הכלל הועתק';
+
+  @override
+  String get web_storage_title => 'אחסון הדפדפן';
+
+  @override
+  String get web_storage_opfs =>
+      'אחסון קבצים של הדפדפן. הצלילות שלך נשארות בדפדפן זה עד שתשכח את המכשיר הזה.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'מסד נתונים של הדפדפן (איטי יותר). הצלילות שלך נשארות בדפדפן זה עד שתשכח את המכשיר הזה.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'דבר אינו נשמר לאחר סגירת הכרטיסייה. דפדפן זה אינו מעניק לאתר אחסון קבוע; סנכרן לפני שתעזוב.';
+
+  @override
+  String get web_forgetDevice_title => 'שכח מכשיר זה';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'הסר את הצלילות, פרטי הכניסה וזהות המכשיר מדפדפן זה';
+
+  @override
+  String get web_forgetDevice_confirm => 'שכח';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'פעולה זו מסירה את כל מה ש-Submersion שומר בדפדפן זה: יומן הצלילות, פרטי הכניסה וביטוי הסיסמה, וזהות המכשיר הזה בסנכרון. הצלילות שלך נשארות במאגר הסנכרון ובמכשירים האחרים שלך. הדף נטען מחדש להתחלה נקייה.';
+
+  @override
+  String get web_forgetDevice_failed =>
+      'הדפדפן הזה שמר את מסד הנתונים. סגרו לשוניות Submersion אחרות ונסו שוב.';
+
+  @override
+  String get web_forgetDevice_incomplete =>
+      'הדפדפן הזה לא הצליח למחוק את פרטי הכניסה וההגדרות. נסו שוב.';
+
+  @override
+  String get web_downloadBackup_failed => 'לא ניתן היה ליצור את הגיבוי.';
+
+  @override
+  String get web_downloadBackup_title => 'הורד גיבוי';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'עותק של יומן הצלילות שלך כקובץ מסד נתונים, שנשמר על ידי הדפדפן';
 
   @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';

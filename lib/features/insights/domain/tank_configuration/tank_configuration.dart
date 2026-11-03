@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 
 /// How a dive's cylinders were carried (issue #3421). Every dive has exactly
 /// one; `classifyTankConfiguration` sets the order the rules are checked.
