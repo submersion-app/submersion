@@ -107,18 +107,6 @@ void main() {
     });
 
     testWidgets('fallback snackbar copy action copies the URL', (tester) async {
-      const channel = MethodChannel('plugins.flutter.io/url_launcher');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'launch') return false;
-            if (methodCall.method == 'canLaunch') return false;
-            return null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-
       final platformCalls = <MethodCall>[];
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -162,18 +150,6 @@ void main() {
     });
 
     testWidgets('shows snackbar fallback when launch fails', (tester) async {
-      const channel = MethodChannel('plugins.flutter.io/url_launcher');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'launch') return false;
-            if (methodCall.method == 'canLaunch') return false;
-            return null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -196,20 +172,6 @@ void main() {
       expect(find.byType(SnackBar), findsOneWidget);
     });
     testWidgets('shows snackbar when the launch throws', (tester) async {
-      const channel = MethodChannel('plugins.flutter.io/url_launcher');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'canLaunch') return true;
-            if (methodCall.method == 'launch') {
-              throw PlatformException(code: 'ERROR');
-            }
-            return null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,

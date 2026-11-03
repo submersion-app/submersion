@@ -24,9 +24,8 @@ Widget _guideButton({UrlLaunch? launch}) {
     home: Builder(
       builder: (context) => Scaffold(
         body: ElevatedButton(
-          onPressed: () => launch == null
-              ? launchUserGuide(context)
-              : launchUserGuide(context, launch: launch),
+          onPressed: () =>
+              launchUserGuide(context, launch: launch ?? openInBrowser),
           child: const Text('Guide'),
         ),
       ),
