@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
+import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
@@ -523,6 +524,10 @@ List<double> _overlayComputerCns(
 /// possibly-overlaid ceiling curve, so choosing computer data for the
 /// ceiling line does not implicitly change the band's source too.
 ///
+/// Calculated safety stops that were really decompression come out here,
+/// rather than at detection, because only now is it known which NDL curve the
+/// analysis shows (see [splitOutDecoStops]).
+///
 /// Returns a tuple of the (possibly overlaid) [ProfileAnalysis] and a
 /// [MetricSourceInfo] reporting the actual source used per metric after
 /// fallback resolution.
@@ -609,9 +614,15 @@ List<double> _overlayComputerCns(
     // Millivolts stand alone: a dive can carry them with no ppO2, cells or
     // setpoint to overlay, and they must not be dropped on this path (#810).
     if (o2CellMvCurves != null) {
-      return (analysis.copyWith(o2CellMvCurves: o2CellMvCurves), sourceInfo);
+      return (
+        _withDecoStopsSplitOut(
+          analysis.copyWith(o2CellMvCurves: o2CellMvCurves),
+          profile,
+        ),
+        sourceInfo,
+      );
     }
-    return (analysis, sourceInfo);
+    return (_withDecoStopsSplitOut(analysis, profile), sourceInfo);
   }
 
   final overlaid = analysis.copyWith(
@@ -674,7 +685,22 @@ List<double> _overlayComputerCns(
     computerStopsWithCalculatedCeiling: useDecoStop && !useCeiling,
   );
 
-  return (overlaid, sourceInfo);
+  return (_withDecoStopsSplitOut(overlaid, profile), sourceInfo);
+}
+
+/// [analysis] with its deco stops moved from its events to its deco stop
+/// windows.
+ProfileAnalysis _withDecoStopsSplitOut(
+  ProfileAnalysis analysis,
+  List<DiveProfilePoint> profile,
+) {
+  final (:events, :windows) = splitOutDecoStops(
+    analysis.events,
+    profile: profile,
+    ndlCurve: analysis.ndlCurve,
+  );
+  if (windows.isEmpty) return analysis;
+  return analysis.copyWith(events: events, decoStopWindows: windows);
 }
 
 // Top-level cell accessors so they can form a `const` list of tear-offs.

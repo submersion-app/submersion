@@ -189,7 +189,9 @@ finding you have dealt with, and **Restore** it later from the dismissed list.
 
 **Check-ins** are your own notes on how an item behaved, on a dive or on the
 bench. Tap **Add check-in**, tag what happened, and add a note. Check-ins feed
-the recurring-issue findings.
+the recurring-issue findings. When a fault became a near-miss, choose **Log
+near-miss** on the issue to link the two (see
+[Linking a report to a gear check-in](safety.md#linking-a-report-to-a-gear-check-in)).
 
 ## Reports
 

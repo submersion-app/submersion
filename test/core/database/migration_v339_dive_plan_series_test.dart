@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v338: dive_plan_series, a saved repetitive dive series, and the
+/// Schema v339: dive_plan_series, a saved repetitive dive series, and the
 /// dive_plans / dive_plan_tanks columns that place a plan in one (issue
 /// #3565). No backfill: every existing plan is a one-dive series, and every
 /// existing plan tank keeps its own start pressure.
@@ -61,21 +61,21 @@ void main() {
           .map((c) => c.read<String>('name'))
           .toList();
 
-  test('v338 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(338));
-    expect(AppDatabase.migrationVersions, contains(338));
+  test('v339 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(339));
+    expect(AppDatabase.migrationVersions, contains(339));
     expect(
-      AppDatabase.migrationStepCount(337),
-      AppDatabase.migrationStepCount(338) + 1,
+      AppDatabase.migrationStepCount(338),
+      AppDatabase.migrationStepCount(339) + 1,
     );
   });
 
   test('the new table and columns are additive and kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(338));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(339));
   });
 
-  test('upgrading from v337 creates dive_plan_series', () async {
-    final db = AppDatabase(dbAt(337));
+  test('upgrading from v338 creates dive_plan_series', () async {
+    final db = AppDatabase(dbAt(338));
     addTearDown(db.close);
     expect(
       await columnsOf(db, 'dive_plan_series'),
@@ -97,7 +97,7 @@ void main() {
   });
 
   test('every existing plan is a one-dive series, tanks unpinned', () async {
-    final db = AppDatabase(dbAt(337));
+    final db = AppDatabase(dbAt(338));
     addTearDown(db.close);
     final plan = await db
         .customSelect(
@@ -122,7 +122,7 @@ void main() {
   test(
     'a plan references its series; a source tank references nothing',
     () async {
-      final db = AppDatabase(dbAt(337));
+      final db = AppDatabase(dbAt(338));
       addTearDown(db.close);
       final planKeys = await db
           .customSelect("PRAGMA foreign_key_list('dive_plans')")
@@ -153,7 +153,7 @@ void main() {
   );
 
   test('plans are indexed by series', () async {
-    final db = AppDatabase(dbAt(337));
+    final db = AppDatabase(dbAt(338));
     addTearDown(db.close);
     final rows = await db
         .customSelect(
@@ -165,7 +165,7 @@ void main() {
   });
 
   test('a database already carrying the schema is left alone', () async {
-    final db = AppDatabase(dbAt(337, withSeries: true));
+    final db = AppDatabase(dbAt(338, withSeries: true));
     addTearDown(db.close);
     final planColumns = await columnsOf(db, 'dive_plans');
     expect(planColumns.where((n) => n == 'series_id'), hasLength(1));
@@ -174,7 +174,7 @@ void main() {
     expect(tankColumns.where((n) => n == 'source_tank_id'), hasLength(1));
   });
 
-  test('the backstop restores the table and columns at v338', () async {
+  test('the backstop restores the table and columns at v339', () async {
     final db = AppDatabase(dbAt(AppDatabase.currentSchemaVersion));
     addTearDown(db.close);
     expect(await columnsOf(db, 'dive_plan_series'), contains('hlc'));

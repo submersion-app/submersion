@@ -103,6 +103,7 @@ class ConflictReferenceResolver {
     'instructorId': 'buddies',
     'signerId': 'buddies',
     'equipmentId': 'equipment',
+    'observationId': 'equipmentObservations',
     'scooterEquipmentId': 'equipment',
     'setId': 'equipmentSets',
     'equipmentSetId': 'equipmentSets',
@@ -208,6 +209,7 @@ class ConflictReferenceResolver {
     'diveDateTime',
     'startDateTime',
     'startDate',
+    'observedAt',
   ];
 
   /// Every entity type a foreign key can point at. Exposed so the dialog's

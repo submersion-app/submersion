@@ -5826,7 +5826,7 @@
   "diveLog_refine_showDives": "{count, plural, =1{Show {count} dive} other{Show {count} dives}}",
   "@diveLog_refine_showDives": {"placeholders": {"count": {"type": "int"}}},
   "diveLog_refine_showDivesNoCount": "Show dives",
-  "diveLog_search_fieldHint": "Search, or try depth > 30m",
+  "diveLog_search_fieldHint": "Site, buddy, gear or date",
   "diveLog_search_refineTooltip": "Refine",
   "diveLog_search_closeTooltip": "Close search",
   "diveLog_search_scopeWithin": "Within filters",
@@ -15561,6 +15561,7 @@
   "settings_conflict_ref_diver": "Diver",
   "settings_conflict_ref_equipment": "Equipment",
   "settings_conflict_ref_equipmentLocation": "Equipment location",
+  "settings_conflict_ref_gearCheckIn": "Gear check-in",
   "settings_conflict_ref_equipmentSet": "Equipment set",
   "settings_conflict_ref_finding": "Finding",
   "settings_conflict_ref_followedDive": "Followed dive",
@@ -24646,6 +24647,7 @@
   "incidents_empty": "No near-misses logged. Recording what almost went wrong - without judgment - is how patterns become visible before they become accidents.",
   "incidents_add": "Log near-miss",
   "incidents_linkedDive": "Linked to a dive",
+  "incidents_linkedCheckIn": "Linked to a check-in",
   "incidents_delete_confirm": "Delete this near-miss report?",
   "incidents_notFound": "Near-miss report not found",
   "incidentEdit_title_new": "Log near-miss",
@@ -24667,6 +24669,8 @@
   "incidentEdit_equipment_none": "None",
   "incidentEdit_equipment_onThisDive": "On this dive",
   "incidentEdit_equipment_allGear": "All gear",
+  "incidentEdit_checkIn": "Gear check-in",
+  "incidentEdit_checkIn_others": "Other check-ins",
   "incidentCategory_buoyancy": "Buoyancy",
   "incidentCategory_gasSupply": "Gas supply",
   "incidentCategory_equipment": "Equipment",
@@ -25214,6 +25218,14 @@
   "equipmentObservation_card_title": "Check-ins",
   "equipmentObservation_card_empty": "No check-ins recorded for this item.",
   "equipmentObservation_card_add": "Add check-in",
+  "equipmentObservation_card_nearMissLinked": "{count, plural, =1{Near-miss linked} other{{count} near-misses linked}}",
+  "@equipmentObservation_card_nearMissLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentObservation_card_onDive": "Dive #{number}",
   "@equipmentObservation_card_onDive": {
     "placeholders": {
@@ -32759,14 +32771,19 @@
       }
     }
   },
-  "navTrack_detail_battery": "Battery: {start} V -> {end} V",
+  "navTrack_detail_battery": "Battery: {start} V → {end} V ({change} V)",
   "@navTrack_detail_battery": {
+    "description": "The recording console's battery over the track: first reading, last reading, and the signed change between them.",
     "placeholders": {
       "start": {
         "type": "String"
       },
       "end": {
         "type": "String"
+      },
+      "change": {
+        "type": "String",
+        "example": "-0.12"
       }
     }
   },

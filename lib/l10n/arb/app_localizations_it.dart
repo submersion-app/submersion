@@ -10094,7 +10094,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'Mostra immersioni';
 
   @override
-  String get diveLog_search_fieldHint => 'Cerca o prova depth > 30m';
+  String get diveLog_search_fieldHint => 'Sito, compagno o data';
 
   @override
   String get diveLog_search_refineTooltip => 'Affina';
@@ -26732,6 +26732,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Posizione dell\'attrezzatura';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'Controllo attrezzatura';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Set di attrezzatura';
 
   @override
@@ -40781,6 +40784,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get incidents_linkedDive => 'Collegato a un\'immersione';
 
   @override
+  String get incidents_linkedCheckIn => 'Collegato a un controllo';
+
+  @override
   String get incidents_delete_confirm =>
       'Eliminare questo rapporto di quasi incidente?';
 
@@ -40848,6 +40854,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'Tutta l\'attrezzatura';
+
+  @override
+  String get incidentEdit_checkIn => 'Controllo attrezzatura';
+
+  @override
+  String get incidentEdit_checkIn_others => 'Altri controlli';
 
   @override
   String get incidentCategory_buoyancy => 'Assetto';
@@ -41660,6 +41672,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'Aggiungi controllo';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count quasi incidenti collegati',
+      one: 'Quasi incidente collegato',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {
@@ -55641,8 +55664,8 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return 'Batteria: $start V -> $end V';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return 'Batteria: $start V → $end V ($change V)';
   }
 
   @override

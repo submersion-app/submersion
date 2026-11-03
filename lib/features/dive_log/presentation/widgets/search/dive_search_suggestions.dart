@@ -64,6 +64,7 @@ class DiveSearchSuggestions extends ConsumerWidget {
       'manta',
       '"blue hole"',
       metric ? 'depth > 30m' : 'depth > 100ft',
+      'last year',
       if (buddy != null) 'buddy = "$buddy"',
     ];
     // Inside the field's tap region, like the jump rows: a desktop mouse

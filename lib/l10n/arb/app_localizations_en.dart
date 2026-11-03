@@ -9934,7 +9934,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'Show dives';
 
   @override
-  String get diveLog_search_fieldHint => 'Search, or try depth > 30m';
+  String get diveLog_search_fieldHint => 'Site, buddy, gear or date';
 
   @override
   String get diveLog_search_refineTooltip => 'Refine';
@@ -26262,6 +26262,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => 'Equipment location';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'Gear check-in';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Equipment set';
 
   @override
@@ -40097,6 +40100,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incidents_linkedDive => 'Linked to a dive';
 
   @override
+  String get incidents_linkedCheckIn => 'Linked to a check-in';
+
+  @override
   String get incidents_delete_confirm => 'Delete this near-miss report?';
 
   @override
@@ -40161,6 +40167,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'All gear';
+
+  @override
+  String get incidentEdit_checkIn => 'Gear check-in';
+
+  @override
+  String get incidentEdit_checkIn_others => 'Other check-ins';
 
   @override
   String get incidentCategory_buoyancy => 'Buoyancy';
@@ -40962,6 +40974,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'Add check-in';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count near-misses linked',
+      one: 'Near-miss linked',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {
@@ -54753,8 +54776,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return 'Battery: $start V -> $end V';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return 'Battery: $start V → $end V ($change V)';
   }
 
   @override

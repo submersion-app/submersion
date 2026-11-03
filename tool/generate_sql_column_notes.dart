@@ -139,7 +139,10 @@ bool _keep(String table, String column, String note) =>
     sqlTableReadable(table) &&
     column != 'hlc' &&
     !kSqlDeniedColumns.contains(column) &&
-    ![...kSqlDeniedTables, ...kSqlDeniedColumns].any(note.contains);
+    ![
+      ...kSqlDeniedTables,
+      ...kSqlDeniedColumns,
+    ].any((name) => sqlNamePattern(name).hasMatch(note));
 
 /// The generated file for [notes].
 String renderSqlColumnNotes(Map<String, Map<String, String>> notes) {

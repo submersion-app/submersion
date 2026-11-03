@@ -33,7 +33,7 @@ class SqlQueryTool implements AgentTool {
       'aggregates for a long time before its first row cannot be stopped: '
       'the tool answers with still_running true, and sql_busy continues '
       'until that statement ends. Add a LIMIT to recursive queries. '
-      'Credentials, keys, media feed URLs, sync state, the change log and '
+      'Credentials, keys, media URLs, sync state, the change log and '
       'virtual tables (pragma_ functions, json_each) are refused with '
       'sql_refused. Blobs come back as their size. A string or blob over '
       '${kSqlMaxValueBytes ~/ (1024 * 1024)} MiB can fail the statement with '

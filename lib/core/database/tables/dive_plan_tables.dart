@@ -36,7 +36,7 @@ class DivePlans extends Table {
   /// Executed dive this plan is linked to (plan-vs-actual, Phase 6).
   TextColumn get linkedDiveId => text().nullable().references(Dives, #id)();
 
-  /// The repetitive series this plan is one dive of (issue #3565, v338).
+  /// The repetitive series this plan is one dive of (issue #3565, v339).
   /// Null = a one-dive series of its own.
   TextColumn get seriesId =>
       text().nullable().references(DivePlanSeries, #id)();
@@ -193,7 +193,7 @@ class DivePlans extends Table {
   // coverage:ignore-end
 }
 
-/// A saved repetitive dive series (issue #3565, v338): the dives of one
+/// A saved repetitive dive series (issue #3565, v339): the dives of one
 /// diving day planned together. Its dives are the [DivePlans] rows whose
 /// `seriesId` names it, ordered by `seriesIndex`.
 @DataClassName('DivePlanSeriesRow')
@@ -246,7 +246,7 @@ class DivePlanTanks extends Table {
   /// descent before switching to its primary role's gas (v156).
   BoolColumn get isTravelGas => boolean().withDefault(const Constant(false))();
 
-  /// The tank this one carries over from (issue #3565, v338): a logged dive's
+  /// The tank this one carries over from (issue #3565, v339): a logged dive's
   /// tank or an earlier plan's tank in the series. Deliberately no foreign
   /// key, since it can name a row of either table.
   TextColumn get sourceTankId => text().nullable()();

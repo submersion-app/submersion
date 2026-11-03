@@ -15991,7 +15991,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_search_fieldHint.
   ///
   /// In en, this message translates to:
-  /// **'Search, or try depth > 30m'**
+  /// **'Site, buddy, gear or date'**
   String get diveLog_search_fieldHint;
 
   /// No description provided for @diveLog_search_refineTooltip.
@@ -42771,6 +42771,12 @@ abstract class AppLocalizations {
   /// **'Equipment location'**
   String get settings_conflict_ref_equipmentLocation;
 
+  /// No description provided for @settings_conflict_ref_gearCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-in'**
+  String get settings_conflict_ref_gearCheckIn;
+
   /// No description provided for @settings_conflict_ref_equipmentSet.
   ///
   /// In en, this message translates to:
@@ -64461,6 +64467,12 @@ abstract class AppLocalizations {
   /// **'Linked to a dive'**
   String get incidents_linkedDive;
 
+  /// No description provided for @incidents_linkedCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to a check-in'**
+  String get incidents_linkedCheckIn;
+
   /// No description provided for @incidents_delete_confirm.
   ///
   /// In en, this message translates to:
@@ -64586,6 +64598,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All gear'**
   String get incidentEdit_equipment_allGear;
+
+  /// No description provided for @incidentEdit_checkIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-in'**
+  String get incidentEdit_checkIn;
+
+  /// No description provided for @incidentEdit_checkIn_others.
+  ///
+  /// In en, this message translates to:
+  /// **'Other check-ins'**
+  String get incidentEdit_checkIn_others;
 
   /// No description provided for @incidentCategory_buoyancy.
   ///
@@ -65706,6 +65730,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add check-in'**
   String get equipmentObservation_card_add;
+
+  /// No description provided for @equipmentObservation_card_nearMissLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Near-miss linked} other{{count} near-misses linked}}'**
+  String equipmentObservation_card_nearMissLinked(int count);
 
   /// No description provided for @equipmentObservation_card_onDive.
   ///
@@ -87864,11 +87894,11 @@ abstract class AppLocalizations {
   /// **'Duration: {hours}h {minutes}min'**
   String navTrack_detail_duration(int hours, int minutes);
 
-  /// No description provided for @navTrack_detail_battery.
+  /// The recording console's battery over the track: first reading, last reading, and the signed change between them.
   ///
   /// In en, this message translates to:
-  /// **'Battery: {start} V -> {end} V'**
-  String navTrack_detail_battery(String start, String end);
+  /// **'Battery: {start} V → {end} V ({change} V)'**
+  String navTrack_detail_battery(String start, String end, String change);
 
   /// No description provided for @navTrack_detail_noDiveLinked.
   ///

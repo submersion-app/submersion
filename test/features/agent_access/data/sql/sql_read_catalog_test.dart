@@ -65,6 +65,12 @@ void main() {
       catalog.root(rootOf('sqlite_autoindex_connected_accounts_1'))!.denied,
       isTrue,
     );
+    expect(
+      catalog
+          .root(rootOf('sqlite_autoindex_connected_accounts_1'))!
+          .indexOfReadableTable,
+      isFalse,
+    );
   });
 
   test('reports where a denied column sits', () {
@@ -76,25 +82,42 @@ void main() {
   test('an index over a denied column is denied, others are not', () {
     final catalog = SqlReadCatalog.load(db);
     expect(catalog.root(rootOf('idx_sub_cred'))!.denied, isTrue);
+    expect(catalog.root(rootOf('idx_sub_cred'))!.indexOfReadableTable, isTrue);
     expect(catalog.root(rootOf('idx_sub_name'))!.denied, isFalse);
   });
 
-  test('an expression index on such a table is denied', () {
+  test('an expression index over a denied column is denied', () {
+    db.execute('''
+      CREATE INDEX idx_sub_plain ON media_subscriptions
+        (lower(credentials_host_id));
+      CREATE INDEX idx_sub_upper ON media_subscriptions
+        (LOWER(CREDENTIALS_HOST_ID));
+      CREATE INDEX idx_sub_quoted ON media_subscriptions
+        (lower("credentials_host_id"));
+    ''');
+    final catalog = SqlReadCatalog.load(db);
+    for (final index in ['idx_sub_plain', 'idx_sub_upper', 'idx_sub_quoted']) {
+      expect(catalog.root(rootOf(index))!.denied, isTrue, reason: index);
+    }
+  });
+
+  test('an expression index over other columns is not denied', () {
     expect(
       SqlReadCatalog.load(db).root(rootOf('idx_sub_expr'))!.denied,
-      isTrue,
+      isFalse,
     );
   });
 
-  test('a partial index on such a table is denied', () {
-    db.execute(
-      'CREATE INDEX idx_sub_partial ON media_subscriptions (display_name) '
-      'WHERE credentials_host_id IS NOT NULL',
-    );
-    expect(
-      SqlReadCatalog.load(db).root(rootOf('idx_sub_partial'))!.denied,
-      isTrue,
-    );
+  test('a partial index is denied when its predicate names one', () {
+    db.execute('''
+      CREATE INDEX idx_sub_partial ON media_subscriptions (display_name)
+        WHERE credentials_host_id IS NOT NULL;
+      CREATE INDEX idx_sub_clean ON media_subscriptions (display_name)
+        WHERE display_name IS NOT NULL;
+    ''');
+    final catalog = SqlReadCatalog.load(db);
+    expect(catalog.root(rootOf('idx_sub_partial'))!.denied, isTrue);
+    expect(catalog.root(rootOf('idx_sub_clean'))!.denied, isFalse);
   });
 
   test('a WITHOUT ROWID table holding a denied column is denied whole', () {

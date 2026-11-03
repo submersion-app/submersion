@@ -776,14 +776,20 @@ extension RungsFromV231 on AppDatabase {
     if (from < 337) await _repairWeatherFetchedAtSeconds();
     if (from < 337) await reportProgress();
 
-    // v338: dive_plan_series, a saved repetitive dive series, and the
+    // v338: incidents.observation_id, the gear check-in behind a near-miss
+    // (issue #3062). Column only, no backfill: nothing says which existing
+    // report goes with which check-in. Re-asserted in beforeOpen.
+    if (from < 338) await _assertIncidentObservationColumn();
+    if (from < 338) await reportProgress();
+
+    // v339: dive_plan_series, a saved repetitive dive series, and the
     // dive_plans / dive_plan_tanks columns that place a plan in one (issue
     // #3565). Table and columns only, no backfill: a plan with no series is
     // a one-dive series. Re-asserted in beforeOpen.
-    if (from < 338) {
+    if (from < 339) {
       await _assertDivePlanSeriesTable();
       await _assertDivePlanSeriesColumns();
     }
-    if (from < 338) await reportProgress();
+    if (from < 339) await reportProgress();
   }
 }

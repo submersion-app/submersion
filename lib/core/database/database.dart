@@ -241,7 +241,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
-    // Saved repetitive dive series (v338, issue #3565)
+    // Saved repetitive dive series (v339, issue #3565)
     DivePlanSeries,
     // DPV mission planner (v244, issue #2086)
     DivePlanMissions,
@@ -313,7 +313,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 338;
+  static const int currentSchemaVersion = 339;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1546,11 +1546,14 @@ class AppDatabase extends _$AppDatabase {
     // fill wrote milliseconds (issue #4119). Data only, so the floor does not
     // move.
     337,
-    // v338: dive_plan_series, a saved repetitive dive series, and the
+    // v338: incidents.observation_id, the gear check-in behind a near-miss
+    // (issue #3062).
+    338,
+    // v339: dive_plan_series, a saved repetitive dive series, and the
     // dive_plans / dive_plan_tanks columns that place a plan in one (issue
     // #3565). A new synced table plus nullable or defaulted columns an older
     // peer omits, with no backfill, so the floor does not move.
-    338,
+    339,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

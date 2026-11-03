@@ -3412,6 +3412,9 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: true),
       // v202: the item an equipment incident attributes to; nullable.
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+      // v338: the check-in behind a near-miss; nullable, so a deleted
+      // check-in only clears the link.
+      (field: 'observationId', parent: 'equipmentObservations', nullable: true),
     ],
     // v202: a gear check-in; the item is required, the dive optional.
     'equipmentObservations': [
@@ -4592,11 +4595,7 @@ class SyncService {
                   await _serializer.fetchRecord(entityType, recordId),
                 )
               : remoteData;
-          await _serializer.upsertRecord(entityType, toApply);
-          // The batch paths re-derive this in repairDanglingForeignKeys;
-          // this single-record write skips it.
-          await _serializer.alignLinkedRouteOwners();
-          await _serializer.seedRepresentativeCourseLinks();
+          await _applyConflictRow(entityType, toApply);
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -4607,9 +4606,7 @@ class SyncService {
       case ConflictResolution.keepBoth:
         if (keepBothMakesCopy(entityType, remoteData)) {
           remoteData['id'] = _uuid.v4();
-          await _serializer.upsertRecord(entityType, remoteData);
-          await _serializer.alignLinkedRouteOwners();
-          await _serializer.seedRepresentativeCourseLinks();
+          await _applyConflictRow(entityType, remoteData);
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -4619,6 +4616,18 @@ class SyncService {
         break;
     }
   }
+
+  /// Writes a peer's row the user chose to keep, as the batch paths would.
+  /// That row can name a parent this device has since deleted, or a check-in
+  /// it turns OK, so the write defers the FK checks and repairs before COMMIT
+  /// rather than failing with SqliteException(787) and leaving the conflict
+  /// unresolvable. The repaired rows are not marked pending: every device
+  /// derives the same result from the same rows.
+  Future<void> _applyConflictRow(String entityType, Map<String, dynamic> row) =>
+      _serializer.applyInDeferredFkTransaction(() async {
+        await _serializer.upsertRecord(entityType, row);
+        await _serializer.repairAfterRowWrite(entityType);
+      });
 
   Future<void> _markPendingForConflict(
     String entityType,

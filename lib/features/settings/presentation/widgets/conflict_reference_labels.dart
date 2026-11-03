@@ -107,6 +107,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_serviceKind;
     case 'equipmentLocations':
       return l10n.settings_conflict_ref_equipmentLocation;
+    case 'equipmentObservations':
+      return l10n.settings_conflict_ref_gearCheckIn;
     case 'species':
       return l10n.settings_conflict_ref_species;
     case 'sightings':

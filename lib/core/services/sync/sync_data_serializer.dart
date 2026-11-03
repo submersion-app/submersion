@@ -3124,6 +3124,26 @@ class SyncDataSerializer {
   /// [alignLinkedRouteOwners]).
   Future<void> repairDanglingForeignKeys() async {
     await _repairDanglingReferences();
+    await _rederivePeerValues();
+  }
+
+  /// [repairDanglingForeignKeys] for one row just written from a peer, which a
+  /// diver resolving a list of conflicts runs once per row. PRAGMA
+  /// foreign_key_check reads every row of every table, and writing one row can
+  /// only leave its own table dangling, so the whole-database pass runs only
+  /// when that table reports something. Must run inside
+  /// [applyInDeferredFkTransaction].
+  Future<void> repairAfterRowWrite(String entityType) async {
+    final table = _syncTableFor(entityType).actualTableName;
+    final dangling = await _db
+        .customSelect('PRAGMA foreign_key_check("$table")')
+        .get();
+    if (dangling.isNotEmpty) await _repairDanglingReferences();
+    await _rederivePeerValues();
+  }
+
+  /// The values a peer's row may not carry, derived again after every apply.
+  Future<void> _rederivePeerValues() async {
     await alignLinkedRouteOwners();
     await seedRepresentativeCourseLinks();
     await anchorTankInspectionClocks();

@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
-import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -31,6 +30,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_cor
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_recorder_card.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
 import 'package:submersion/features/tracks/presentation/track_item_location.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -357,7 +357,7 @@ class NavTrackDetailPage extends ConsumerWidget {
                     l10n.navTrack_detail_defaultTrackTitle,
               ),
               const SizedBox(height: 16),
-              _StatsCard(route: route, stats: stats, units: units),
+              _StatsCard(stats: stats, units: units),
               const SizedBox(height: 16),
               _LinkCard(
                 route: route,
@@ -373,6 +373,8 @@ class NavTrackDetailPage extends ConsumerWidget {
                 route: route,
                 onChangeDevice: () => _changeDevice(context, ref, route),
               ),
+              const SizedBox(height: 16),
+              NavTrackRecorderCard(route: route),
               const SizedBox(height: 16),
               NavTrackCorrectionCard(route: route),
               const SizedBox(height: 16),
@@ -514,13 +516,8 @@ class _TitleCard extends StatelessWidget {
 }
 
 class _StatsCard extends ConsumerWidget {
-  const _StatsCard({
-    required this.route,
-    required this.stats,
-    required this.units,
-  });
+  const _StatsCard({required this.stats, required this.units});
 
-  final NavTrack route;
   final NavTrackStats stats;
   final UnitFormatter units;
 
@@ -528,8 +525,6 @@ class _StatsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final duration = Duration(seconds: stats.durationSeconds);
     final l10n = context.l10n;
-    final firstBattery = _firstBattery(route);
-    final lastBattery = firstBattery == null ? null : _lastBattery(route);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -562,39 +557,10 @@ class _StatsCard extends ConsumerWidget {
                 duration.inMinutes.remainder(60),
               ),
             ),
-            if (firstBattery != null)
-              Text(
-                l10n.navTrack_detail_battery(
-                  formatFixedForDisplay(firstBattery, 2),
-                  lastBattery == null
-                      ? '?'
-                      : formatFixedForDisplay(lastBattery, 2),
-                ),
-              ),
           ],
         ),
       ),
     );
-  }
-
-  /// The first plausible battery reading. Plausible, not literal: the
-  /// first sample can read 0V before the sensor settles, which once showed
-  /// "0.00 V -> 3.78 V" for a pack never near empty (see
-  /// [NavTrackPoint.plausibleBatteryVolts]).
-  static double? _firstBattery(NavTrack route) {
-    for (final p in route.points) {
-      final volts = p.plausibleBatteryVolts;
-      if (volts != null) return volts;
-    }
-    return null;
-  }
-
-  static double? _lastBattery(NavTrack route) {
-    for (final p in route.points.reversed) {
-      final volts = p.plausibleBatteryVolts;
-      if (volts != null) return volts;
-    }
-    return null;
   }
 }
 

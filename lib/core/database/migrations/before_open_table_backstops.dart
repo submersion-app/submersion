@@ -135,7 +135,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // issue #3356).
     await _assertAndBackfillTripChecklists();
 
-    // v338 backstop: the dive_plan_series table (issue #3565; idempotent).
+    // v339 backstop: the dive_plan_series table (issue #3565; idempotent).
     await _assertDivePlanSeriesTable();
   }
 }

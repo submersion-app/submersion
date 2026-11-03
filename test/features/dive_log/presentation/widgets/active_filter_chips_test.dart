@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -354,6 +356,104 @@ void main() {
     expect(find.byType(Chip), findsOneWidget);
     expect(find.text('weights:none'), findsOneWidget);
     expect(container.read(diveFilterProvider).hasActiveFilters, isFalse);
+  });
+
+  group('a date in the query (#3457)', () {
+    // The month label comes from intl, which reads a process global that
+    // only app.dart sets, so pin it here and put it back.
+    late String? previousLocale;
+
+    setUpAll(() => initializeDateFormatting('en'));
+
+    setUp(() {
+      previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
+    });
+
+    tearDown(() => Intl.defaultLocale = previousLocale);
+
+    final date = ConditionNode(
+      FieldPath(['date']),
+      QueryOp.inList,
+      DateRangeValue(DateTime(2018, 10, 1), DateTime(2018, 10, 31)),
+    );
+
+    Future<void> pumpChips(WidgetTester tester, QueryNode query) async {
+      final provider = StateProvider<DiveFilterState>(
+        (ref) => DiveFilterState(query: query),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => Wrap(
+                  children: activeDiveFilterChips(context, ref, provider),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('shows in plain words with a calendar icon', (tester) async {
+      await pumpChips(
+        tester,
+        AndNode([
+          TextNode(['ressel']),
+          date,
+        ]),
+      );
+
+      expect(find.text('Oct 2018'), findsOneWidget);
+      expect(find.text('date in 2018-10'), findsNothing);
+      expect(find.byIcon(Icons.calendar_today), findsOneWidget);
+    });
+
+    testWidgets('a word chip has no calendar icon', (tester) async {
+      await pumpChips(tester, TextNode(['ressel']));
+
+      expect(find.text('ressel'), findsOneWidget);
+      expect(find.byIcon(Icons.calendar_today), findsNothing);
+    });
+
+    testWidgets('the date chip is tinted, a word chip is not', (tester) async {
+      await pumpChips(
+        tester,
+        AndNode([
+          TextNode(['ressel']),
+          date,
+        ]),
+      );
+
+      final chips = tester.widgetList<Chip>(find.byType(Chip)).toList();
+      final scheme = Theme.of(tester.element(find.byType(Wrap))).colorScheme;
+      expect(chips.first.backgroundColor, isNull);
+      expect(chips.last.backgroundColor, scheme.primaryContainer);
+      expect(chips.last.side?.color, scheme.primary);
+    });
+
+    testWidgets('removing the date leaves the words', (tester) async {
+      await pumpChips(
+        tester,
+        AndNode([
+          TextNode(['ressel']),
+          date,
+        ]),
+      );
+
+      await tester.tap(find.byIcon(Icons.close).last);
+      await tester.pump();
+
+      expect(find.text('Oct 2018'), findsNothing);
+      expect(find.text('ressel'), findsOneWidget);
+    });
   });
 
   testWidgets('suspended axis chips are dimmed and locked (#2773)', (

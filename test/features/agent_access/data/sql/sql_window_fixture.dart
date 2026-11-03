@@ -54,6 +54,19 @@ class SqlWindowFixture {
         VALUES ('sub-1', 'https://example.test/feed', 'atom', 'Feed',
                 'host-secret', 1, 1)
       ''');
+      // Only a database upgraded through the migrations has this index.
+      raw.execute('''
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_media_subscription_entry
+        ON media(subscription_id, entry_key)
+        WHERE subscription_id IS NOT NULL
+      ''');
+      raw.execute('''
+        INSERT INTO media
+          (id, file_path, url, entry_key, subscription_id, created_at,
+           updated_at)
+        VALUES ('media-1', '', 'https://example.test/item?token=secret',
+                'https://example.test/guid?token=secret', 'sub-1', 1, 1)
+      ''');
       raw.execute('''
         CREATE TABLE IF NOT EXISTS probe_unclassified (id INTEGER PRIMARY KEY)
       ''');
