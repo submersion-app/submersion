@@ -11,8 +11,8 @@ import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 /// they were. The bulk operations replace a whole list under fresh ids, which
 /// drops every tank's pressure series and gas switches, and a dive save
 /// rewrites the dive from an entity, so a change to one row goes through here.
-/// Each write marks its row pending and stamps the dive, as the dive editor's
-/// does. None opens a transaction or notifies: the caller owns both.
+/// Each write marks its own row pending, which moves the row's clock, in the
+/// same block as the write, and stamps the dive, as the dive editor's does. None opens a transaction or notifies: the caller owns both.
 class DiveChildRowRepository {
   DiveChildRowRepository({AppDatabase? database})
     : _database = database,
@@ -41,7 +41,13 @@ class DiveChildRowRepository {
             tankOrder: order,
           ),
         );
-    await _touch('diveTanks', id, diveId);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _sync.markRecordPending(
+      entityType: 'diveTanks',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    await _stampDive(diveId, now: now);
     return id;
   }
 
@@ -56,7 +62,13 @@ class DiveChildRowRepository {
           ? values.copyWith(roleSource: const Value(null))
           : values,
     );
-    await _touch('diveTanks', tankId, row.diveId);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _sync.markRecordPending(
+      entityType: 'diveTanks',
+      recordId: tankId,
+      localUpdatedAt: now,
+    );
+    await _stampDive(row.diveId, now: now);
     return true;
   }
 
@@ -94,7 +106,13 @@ class DiveChildRowRepository {
             createdAt: Value(DateTime.now().millisecondsSinceEpoch),
           ),
         );
-    await _touch('diveWeights', id, diveId);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _sync.markRecordPending(
+      entityType: 'diveWeights',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    await _stampDive(diveId, now: now);
     return id;
   }
 
@@ -110,7 +128,13 @@ class DiveChildRowRepository {
     await (_db.update(
       _db.diveWeights,
     )..where((w) => w.id.equals(weightId))).write(_normalized(values));
-    await _touch('diveWeights', weightId, row.diveId);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _sync.markRecordPending(
+      entityType: 'diveWeights',
+      recordId: weightId,
+      localUpdatedAt: now,
+    );
+    await _stampDive(row.diveId, now: now);
     return true;
   }
 
@@ -150,16 +174,6 @@ class DiveChildRowRepository {
               ..where(column.equals(value)))
             .getSingle();
     return row.read(count) ?? 0;
-  }
-
-  Future<void> _touch(String entityType, String id, String diveId) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _sync.markRecordPending(
-      entityType: entityType,
-      recordId: id,
-      localUpdatedAt: now,
-    );
-    await _stampDive(diveId, now: now);
   }
 
   Future<void> _stampDive(String diveId, {int? now}) async {
