@@ -138,24 +138,28 @@ class _Pass {
 
   /// Each unique key a change in the set claims, by entity and owner, to the
   /// operation that claimed it first.
-  final _claims = <(String, String?, String), int>{};
+  final _claims =
+      <(String, String), List<({String? owner, bool shared, int index})>>{};
 
   /// A block when an earlier change in the set claims [check]'s unique key,
   /// otherwise null, after claiming it for [op].
   PlanBlock? _claimUnique(ChangeOp op, WritableEntry entry, WriteCheck check) {
-    final key = entry.uniqueKey(check);
-    if (key == null) return null;
-    final earlier = _claims.putIfAbsent((
-      entry.name,
-      check.ownerId,
-      key,
-    ), () => op.index);
-    if (earlier == op.index) return null;
-    return PlanBlock(
-      BlockReason.duplicateRecord,
-      'operation $earlier of this set already claims "$key" for a '
-      '${entry.name} record; two records of one owner cannot share it.',
-    );
+    final claim = entry.uniqueKey(check);
+    if (claim == null) return null;
+    final earlier = _claims[(entry.name, claim.key)] ??= [];
+    final clash = earlier
+        .where((e) => claim.shared || e.shared || e.owner == check.ownerId)
+        .firstOrNull;
+    if (clash != null) {
+      return PlanBlock(
+        BlockReason.duplicateRecord,
+        'operation ${clash.index} of this set already claims '
+        '"${claim.key}" for a ${entry.name} record; two records that see '
+        'each other cannot share it.',
+      );
+    }
+    earlier.add((owner: check.ownerId, shared: claim.shared, index: op.index));
+    return null;
   }
 
   /// Reads the owner and version of every record the set names, by table.

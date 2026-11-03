@@ -309,6 +309,27 @@ void main() {
     expect(await divesWith('wreck'), {'d3'});
   });
 
+  // A link moving to another dive changes neither tag's row nor the counts,
+  // but it changes which links the merge moves.
+  test('a moved link after the preview refuses the apply', () async {
+    await h.dive('d4');
+    final plan = await h.preview([merge('wrecks', 'wreck')]);
+    await (db.update(db.diveTags)..where((l) => l.id.equals('dt1'))).write(
+      const DiveTagsCompanion(diveId: Value('d4')),
+    );
+
+    await expectLater(
+      h.apply(plan),
+      throwsA(
+        isA<AgentToolException>().having(
+          (e) => e.code,
+          'code',
+          AgentToolErrorCode.planStale,
+        ),
+      ),
+    );
+  });
+
   test(
     'a change to the survivor after the preview refuses the apply',
     () async {

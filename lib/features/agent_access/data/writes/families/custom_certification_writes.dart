@@ -36,6 +36,10 @@ bool _mayClash(WriteCheck check) {
   return check.kind == ChangeKind.create || renamed || shared;
 }
 
+/// Whether the record is shared once the change runs.
+bool _shared(WriteCheck check) =>
+    check.values['is_shared'] as bool? ?? check.document?['is_shared'] == true;
+
 /// The name a change claims, folded as the repository compares names, when
 /// it may clash.
 String? _nameKey(WriteCheck check) {
@@ -71,7 +75,10 @@ class CustomAgencyWrites extends WritableEntry {
   Set<String> get requiredOnCreate => const {'name'};
 
   @override
-  String? uniqueKey(WriteCheck check) => _nameKey(check);
+  UniqueClaim? uniqueKey(WriteCheck check) => switch (_nameKey(check)) {
+    final String name => UniqueClaim(name, shared: _shared(check)),
+    null => null,
+  };
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
@@ -187,13 +194,20 @@ class CustomLevelWrites extends WritableEntry {
       'one of the diver\'s custom agencies. sort_order moves a progression '
       'level into a slot its progression already holds';
 
-  /// A level's name is free or taken within its agency.
+  /// A level's name is free or taken within its agency. Under a custom
+  /// agency every diver's levels count, as levelNameTaken counts them.
   @override
-  String? uniqueKey(WriteCheck check) => switch (_nameKey(check)) {
-    final String name =>
-      '${check.values['agency_id'] ?? check.document!['agency_id']}/$name',
-    null => null,
-  };
+  UniqueClaim? uniqueKey(WriteCheck check) {
+    final name = _nameKey(check);
+    if (name == null) return null;
+    final agencyId =
+        check.values['agency_id'] as String? ??
+        check.document!['agency_id']! as String;
+    return UniqueClaim(
+      '$agencyId/$name',
+      shared: _shared(check) || CertificationAgency.fromId(agencyId) == null,
+    );
+  }
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {

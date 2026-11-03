@@ -109,6 +109,27 @@ void main() {
     },
   );
 
+  // The repository trims these and stores a blank label or size as null.
+  test('a gear note is planned as the repository stores it', () async {
+    final centerId = await center({'name': 'Reef Divers'});
+
+    final plan = await h.preview([
+      createOp('center_gear_notes', {
+        'center_id': centerId,
+        'gear_type': 'wetsuit',
+        'verdict': 'avoid',
+        'label': '  Shorty ',
+        'size': '   ',
+        'note': '  Runs small  ',
+      }),
+    ]);
+
+    final fields = plan.items.single.fields;
+    expect(fields['label']!.newValue, 'Shorty');
+    expect(fields['note']!.newValue, 'Runs small');
+    expect(fields.containsKey('size'), isFalse);
+  });
+
   test('a gear note cannot name another diver\'s dive', () async {
     final centerId = await center({'name': 'Reef Divers'});
     await h.dive('theirs', owner: kDiverB);

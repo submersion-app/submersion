@@ -236,9 +236,14 @@ places uses `FieldCodec.number(fractionDigits:)`, so an unchanged value
 compares equal. A create naming `sort_order` 0 is blocked where the
 repository reads 0 as "after the last".
 
-Two rules look past a single change. `uniqueKey` names what no two records
-of one owner may share, such as a tag's folded name, and the planner blocks
-a second claim within one set, which `refuse` cannot see in the database.
+Two rules look past a single change. `uniqueKey` returns a `UniqueClaim`: what no two records
+of one owner may share, such as a tag's folded name, and whether the claim
+is shared, as a shared agency's name is taken for every profile. The planner
+blocks a second claim within one set, which `refuse` cannot see in the
+database: a shared claim clashes with any other, an unshared one with a
+shared claim or the same owner's. A merge's `DeleteReach.basis` carries the
+exact links it moves, so a link that moves after the preview refuses the
+plan even when the counts stay the same.
 `WriteCheck.soFar` carries what the set deletes and what earlier updates
 write and unlink, so a rule that reads stored rows counts the set too: a
 site may take a tag the set first opens to sites, and a dive type the set

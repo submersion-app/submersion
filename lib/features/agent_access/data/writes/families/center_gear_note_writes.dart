@@ -31,15 +31,15 @@ class CenterGearNoteWrites extends WritableEntry {
     'center_id': const FieldCodec.reference('centers'),
     'gear_type': FieldCodec.enumName(EquipmentType.values),
     'verdict': FieldCodec.enumName(RentalVerdict.values),
-    'label': const FieldCodec.text(maxLength: 100, nullable: true),
-    'size': const FieldCodec.text(maxLength: 40, nullable: true),
+    'label': const FieldCodec.text(maxLength: 100, nullable: true, trim: true),
+    'size': const FieldCodec.text(maxLength: 40, nullable: true, trim: true),
     'lead_adjustment_kg': const FieldCodec.number(
       min: -30,
       max: 30,
       nullable: true,
     ),
     'volume_l': const FieldCodec.number(min: 0, max: 60, nullable: true),
-    'note': const FieldCodec.text(allowBlank: true),
+    'note': const FieldCodec.text(allowBlank: true, trim: true),
     'dive_id': const FieldCodec.reference('dives', nullable: true),
   };
 

@@ -59,8 +59,8 @@ class TagWrites extends WritableEntry {
   }
 
   @override
-  String? uniqueKey(WriteCheck check) => switch (check.values['name']) {
-    final String name => name.trim().toLowerCase(),
+  UniqueClaim? uniqueKey(WriteCheck check) => switch (check.values['name']) {
+    final String name => UniqueClaim(name.trim().toLowerCase()),
     _ => null,
   };
 
@@ -142,7 +142,34 @@ class TagWrites extends WritableEntry {
       moved: moved,
       parts: parts,
       survivor: await _widenedScopes(intoId, [id, ...mergedBefore]),
+      basis: await _linkRows([id, ...holders]),
     );
+  }
+
+  /// Every link the tags in [tagIds] hold, in a stable order, so a link that
+  /// moves between items after the preview refuses the plan even when the
+  /// counts stay the same.
+  Future<String> _linkRows(List<String> tagIds) async {
+    final db = DatabaseService.instance.database;
+    final marks = List.filled(tagIds.length, '?').join(', ');
+    final rows = <String>[];
+    for (final scope in domain.TagScope.values) {
+      final junction = scope.table.junctionTable;
+      final item = scope.table.parentColumn;
+      final found = await db
+          .customSelect(
+            'SELECT tag_id, "$item" AS item FROM "$junction" '
+            'WHERE tag_id IN ($marks) ORDER BY tag_id, "$item"',
+            variables: [for (final id in tagIds) Variable.withString(id)],
+          )
+          .get();
+      for (final row in found) {
+        rows.add(
+          '$junction:${row.read<String>('tag_id')}:${row.read<String>('item')}',
+        );
+      }
+    }
+    return rows.join('\n');
   }
 
   /// The survivor's scopes after a merge takes the union of the merged

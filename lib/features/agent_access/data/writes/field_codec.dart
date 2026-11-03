@@ -105,6 +105,14 @@ class _TextCodec extends FieldCodec {
   @override
   String get describe => 'text';
 
+  /// A repository that trims a nullable text stores a blank one as null, so
+  /// the plan does too.
+  @override
+  Object? parse(Object? raw) =>
+      trim && nullable && raw is String && raw.trim().isEmpty
+      ? null
+      : super.parse(raw);
+
   @override
   Object parseValue(Object raw) {
     if (raw is! String) throw const FieldRefusal('This field takes text.');

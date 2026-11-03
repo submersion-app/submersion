@@ -73,6 +73,13 @@ void main() {
     expect(const FieldCodec.text().parse(' Wreck '), ' Wreck ');
   });
 
+  // A repository that trims a nullable text stores a blank one as null.
+  test('a trimming nullable text reads a blank as null', () {
+    const codec = FieldCodec.text(nullable: true, trim: true);
+    expect(codec.parse('   '), isNull);
+    expect(codec.parse(' L '), 'L');
+  });
+
   // A table that keeps a tenth of a percent cannot hold a finer fraction.
   test('a number with fraction digits parses rounded', () {
     const codec = FieldCodec.number(min: 0, max: 1, fractionDigits: 3);

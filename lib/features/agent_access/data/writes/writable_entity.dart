@@ -121,6 +121,17 @@ class WriteCheck {
   final Map<String, Object?>? document;
 }
 
+/// A key a change claims, such as a folded name. A [shared] claim holds the
+/// key for every profile, as a shared certification agency's name does, so
+/// it clashes with any other claim on the key; an unshared one clashes with
+/// a shared claim or one of the same owner.
+class UniqueClaim {
+  const UniqueClaim(this.key, {this.shared = false});
+
+  final String key;
+  final bool shared;
+}
+
 /// What a change set does around the change a [WriteCheck] asks about. A set
 /// applies in order, so a rule that reads stored rows counts these too.
 class SetSoFar {
@@ -195,6 +206,7 @@ class DeleteReach {
     this.unlinked = const {},
     this.moved = const {},
     this.survivor = const {},
+    this.basis = '',
   });
 
   /// Dives that lose a link to this record, by owner. These can belong to
@@ -217,6 +229,11 @@ class DeleteReach {
   /// the value it will hold, as a document would read.
   final Map<String, Object?> survivor;
 
+  /// What the reach was worked out from, such as the exact links a merge
+  /// moves, when the counts alone would not show a change. The plan compares
+  /// it at apply and never shows it.
+  final String basis;
+
   bool get isEmpty =>
       linkedDives.isEmpty &&
       records.isEmpty &&
@@ -236,6 +253,7 @@ class DeleteReach {
     'survivor': _sorted({
       for (final MapEntry(:key, :value) in survivor.entries) key: '$value',
     }),
+    'basis': basis,
   });
 }
 
@@ -300,7 +318,7 @@ abstract class WritableEntry {
   /// as a tag's name as the name index keys it, or null when it claims
   /// nothing. [refuse] checks the stored records; the planner blocks a second
   /// claim on one key within the same set, which the database cannot see yet.
-  String? uniqueKey(WriteCheck check) => null;
+  UniqueClaim? uniqueKey(WriteCheck check) => null;
 
   /// [document] with stored values where a read shows a derived one, so a
   /// plan compares against what the row holds.

@@ -70,6 +70,40 @@ void main() {
     expect(plan.items[3].block!.reason, BlockReason.duplicateRecord);
   });
 
+  // A shared name is taken for every profile, so two profiles' claims on it
+  // in one set clash, and a private claim clashes with a shared one.
+  test('a shared name claimed by two profiles blocks the second', () async {
+    Map<String, Object?> agency(String diver, {bool shared = true}) => {
+      'op': 'create',
+      'entity': 'custom_agencies',
+      'diver_id': diver,
+      'fields': {'name': 'Cave Club', 'is_shared': shared},
+    };
+    Map<String, Object?> level(String diver, {bool shared = true}) => {
+      'op': 'create',
+      'entity': 'custom_levels',
+      'diver_id': diver,
+      'fields': {
+        'agency_id': 'padi',
+        'name': 'Sidemount Explorer',
+        'is_progression': false,
+        'is_shared': shared,
+      },
+    };
+
+    final plan = await h.preview([
+      agency(kDiverA),
+      agency(kDiverB, shared: false),
+      level(kDiverA, shared: false),
+      level(kDiverB),
+    ]);
+
+    expect(plan.items[0].block, isNull);
+    expect(plan.items[1].block!.reason, BlockReason.duplicateRecord);
+    expect(plan.items[2].block, isNull);
+    expect(plan.items[3].block!.reason, BlockReason.duplicateRecord);
+  });
+
   test(
     'a level goes under a built-in or the diver\'s own agency only',
     () async {
