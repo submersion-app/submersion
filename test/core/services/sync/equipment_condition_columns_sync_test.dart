@@ -171,12 +171,13 @@ void main() {
       expect(await serializer.fetchRecord('incidents', 'i1'), isNotNull);
     });
 
-    group('a check-in that arrives as OK', () {
-      // The device that saves a check-in as OK unlinks its near-misses, but a
-      // peer below v338 has never heard of the link, and two devices can link
-      // and resolve at once. Every apply ends in this repair, so each device
-      // reaches the same answer from the same rows.
-      test('loses its near-miss link, and the report stays', () async {
+    group('an apply leaves the stored link alone', () {
+      // A peer below v338 never clears the link, and two devices can link and
+      // resolve at once, so the rows can name a check-in that cannot stand
+      // behind the report. IncidentRepository reads such a link as none. A
+      // device that erased it here would keep it erased when the check-in
+      // came back as an issue, and part ways with its peers for good.
+      test('through a check-in that goes OK and back to an issue', () async {
         await seedCheckIn();
         await serializer.upsertRecord(
           'incidents',
@@ -185,34 +186,15 @@ void main() {
 
         await seedCheckIn(status: 'ok');
         await serializer.repairDanglingForeignKeys();
+        await seedCheckIn();
+        await serializer.repairDanglingForeignKeys();
 
         final back = await serializer.fetchRecord('incidents', 'i1');
-        expect(back, isNotNull);
-        expect(back!['observationId'], isNull);
-        expect(back['equipmentId'], 'reg');
+        expect(back!['observationId'], 'o1');
         expect(back['updatedAt'], 1000);
       });
 
-      test('an issue keeps its link', () async {
-        await seedCheckIn();
-        await serializer.upsertRecord(
-          'incidents',
-          incident(observationId: 'o1'),
-        );
-
-        await serializer.repairDanglingForeignKeys();
-
-        expect(
-          (await serializer.fetchRecord('incidents', 'i1'))!['observationId'],
-          'o1',
-        );
-      });
-    });
-
-    group('a report that stops naming the check-in\'s item', () {
-      // A peer below v338 moves or clears the item and omits observationId, so
-      // the overlay keeps the link. It then points at another item's check-in.
-      test('loses its link when moved to another item', () async {
+      test('when the report moves to another item', () async {
         await seedCheckIn();
         await serializer.upsertRecord('equipment', equipment('bcd'));
         await serializer.upsertRecord('incidents', {
@@ -223,23 +205,23 @@ void main() {
         await serializer.repairDanglingForeignKeys();
 
         final back = await serializer.fetchRecord('incidents', 'i1');
-        expect(back!['observationId'], isNull);
+        expect(back!['observationId'], 'o1');
         expect(back['equipmentId'], 'bcd');
       });
+    });
 
-      test('loses its link when its item is cleared', () async {
-        await seedCheckIn();
-        await serializer.upsertRecord('incidents', {
-          ...incident(observationId: 'o1'),
-          'equipmentId': null,
-        });
+    test('a deleted check-in still loses the link in the repair', () async {
+      await seedCheckIn();
+      await serializer.upsertRecord('incidents', incident(observationId: 'o1'));
 
+      await serializer.applyInDeferredFkTransaction(() async {
+        await serializer.deleteRecord('equipmentObservations', 'o1');
         await serializer.repairDanglingForeignKeys();
-
-        final back = await serializer.fetchRecord('incidents', 'i1');
-        expect(back, isNotNull);
-        expect(back!['observationId'], isNull);
       });
+
+      final back = await serializer.fetchRecord('incidents', 'i1');
+      expect(back, isNotNull);
+      expect(back!['observationId'], isNull);
     });
 
     test('the merge guards the link as a nullable parent', () {

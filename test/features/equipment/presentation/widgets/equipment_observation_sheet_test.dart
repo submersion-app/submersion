@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -299,6 +300,22 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect((await repo.getForEquipment('reg')).single.diveId, isNull);
+  });
+
+  testWidgets('a bench check-in holds the wall clock, as a dive one does', (
+    tester,
+  ) async {
+    await pumpAndOpen(tester);
+    await tester.tap(find.text('Add check-in'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = (await repo.getForEquipment('reg')).single.observedAt;
+    expect(
+      saved.difference(asWallClockUtc(DateTime.now())).abs(),
+      lessThan(const Duration(minutes: 5)),
+    );
   });
 
   testWidgets('a dive-linked check-in can go back to a bench note', (

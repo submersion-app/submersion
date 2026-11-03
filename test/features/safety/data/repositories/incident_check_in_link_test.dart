@@ -1,6 +1,9 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart'
+    show EquipmentObservationsCompanion, IncidentsCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
@@ -202,5 +205,117 @@ void main() {
     final read = await incidents.getIncidentsForEquipment(reg.id);
     expect(read.single.id, incident.id);
     expect(read.single.observationId, observation.id);
+  });
+
+  group('a link the synced rows no longer support', () {
+    // A peer below v338 never clears the link, and two devices can link and
+    // resolve at once. Writes here stand in for a sync apply: they change the
+    // row and stage nothing.
+    Future<void> setCheckInStatus(EquipmentObservation o, String status) {
+      final db = DatabaseService.instance.database;
+      return (db.update(db.equipmentObservations)
+            ..where((t) => t.id.equals(o.id)))
+          .write(EquipmentObservationsCompanion(status: Value(status)));
+    }
+
+    Future<void> setItem(Incident incident, String? equipmentId) {
+      final db = DatabaseService.instance.database;
+      return (db.update(db.incidents)..where((t) => t.id.equals(incident.id)))
+          .write(IncidentsCompanion(equipmentId: Value(equipmentId)));
+    }
+
+    Future<String?> storedLink(Incident incident) async {
+      final db = DatabaseService.instance.database;
+      final row = await (db.select(
+        db.incidents,
+      )..where((t) => t.id.equals(incident.id))).getSingle();
+      return row.observationId;
+    }
+
+    test('reads as no link on every read while the check-in is OK', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      final observation = await issue();
+      final incident = await linkedTo(observation);
+      await incidents.updateIncident(incident.copyWith(diveId: 'd1'));
+      await SyncRepository().clearAllSyncRecords();
+
+      await setCheckInStatus(observation, 'ok');
+
+      for (final read in [
+        (await incidents.getIncidents()).single,
+        (await incidents.getIncidentsForDive('d1')).single,
+        (await incidents.getIncidentsForEquipment(reg.id)).single,
+        (await incidents.getIncidentById(incident.id))!,
+      ]) {
+        expect(read.id, incident.id);
+        expect(read.observationId, isNull);
+      }
+    });
+
+    test('keeps the row, and reads as linked again with the issue', () async {
+      final observation = await issue();
+      final incident = await linkedTo(observation);
+
+      await setCheckInStatus(observation, 'ok');
+      expect(await storedLink(incident), observation.id);
+      expect(await pendingIncidents(), isEmpty);
+
+      await setCheckInStatus(observation, 'issue');
+      expect(
+        (await incidents.getIncidentById(incident.id))!.observationId,
+        observation.id,
+      );
+    });
+
+    test('reads as no link once the report names another item', () async {
+      final observation = await issue();
+      final incident = await linkedTo(observation);
+      final other = await EquipmentRepository().createEquipment(
+        const EquipmentItem(id: '', name: 'BCD', type: EquipmentType.bcd),
+      );
+
+      await setItem(incident, other.id);
+
+      final read = (await incidents.getIncidentById(incident.id))!;
+      expect(read.observationId, isNull);
+      expect(read.equipmentId, other.id);
+      expect(await storedLink(incident), observation.id);
+    });
+
+    test('reads as no link once the report names no item', () async {
+      final observation = await issue();
+      final incident = await linkedTo(observation);
+
+      await setItem(incident, null);
+
+      expect(
+        (await incidents.getIncidentById(incident.id))!.observationId,
+        isNull,
+      );
+    });
+
+    test('saving the report clears the link for every device', () async {
+      final observation = await issue();
+      final incident = await linkedTo(observation);
+      await setCheckInStatus(observation, 'ok');
+
+      final read = (await incidents.getIncidentById(incident.id))!;
+      await incidents.updateIncident(read.copyWith(narrative: 'Edited'));
+
+      expect(await storedLink(incident), isNull);
+      expect(await pendingIncidents(), [incident.id]);
+    });
+
+    test('a change to the check-in reaches a watcher of reports', () async {
+      final observation = await issue();
+      await linkedTo(observation);
+
+      final changed = incidents.watchChanges().first;
+      await observations.update(observation.copyWith(note: 'Looked again'));
+
+      await expectLater(changed, completes);
+    });
   });
 }

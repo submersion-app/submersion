@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -201,7 +202,7 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
               onPressed: () => _openEditor(
                 _Draft.fresh(
                   observedAt: dive == null
-                      ? DateTime.now().toUtc()
+                      ? asWallClockUtc(DateTime.now())
                       : defaultObservedAt(dive),
                   diveId: dive?.id,
                 ),

@@ -101,14 +101,10 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     return DateTime.utc(now.year, now.month, now.day);
   }
 
-  /// The day [checkIn] was made, in [_occurredAt]'s form. A check-in on a dive
-  /// holds the dive's wall clock; a bench note holds an instant, whose local
-  /// day is the one the diver saw. Never past today, which the date picker
-  /// refuses and a dive's own clock can read.
+  /// The day [checkIn] was made, in [_occurredAt]'s form. Never past today,
+  /// which the date picker refuses and a dive's own clock can read.
   static DateTime _dayOf(EquipmentObservation checkIn) {
-    final at = checkIn.diveId == null
-        ? checkIn.observedAt.toLocal()
-        : checkIn.observedAt;
+    final at = checkIn.observedAt;
     final day = DateTime.utc(at.year, at.month, at.day);
     final today = _todayWallClockUtc();
     return day.isAfter(today) ? today : day;

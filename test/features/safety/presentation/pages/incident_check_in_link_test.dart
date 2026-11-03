@@ -540,20 +540,26 @@ void main() {
       expect(after.observationId, isNull);
     });
 
-    testWidgets('a bench check-in dates the report on its local day', (
-      tester,
-    ) async {
-      final observation = await checkIn(
-        diveId: null,
-        note: 'n',
-        observedAt: DateTime(2026, 2, 20, 23, 30).toUtc(),
-      );
+    // One check-in near each end of the day, so a read through the local zone
+    // shifts one of them wherever the test runs, unless that zone is UTC.
+    for (final hour in [0, 23]) {
+      testWidgets('a check-in with no dive keeps its day at $hour:30', (
+        tester,
+      ) async {
+        // A deleted dive leaves its check-in looking like a bench note, and
+        // both hold a wall clock, so neither may be read as an instant.
+        final observation = await checkIn(
+          diveId: null,
+          note: 'n',
+          observedAt: DateTime.utc(2026, 2, 20, hour, 30),
+        );
 
-      await pumpPage(tester, IncidentEditPage(observationId: observation.id));
-      await save(tester);
+        await pumpPage(tester, IncidentEditPage(observationId: observation.id));
+        await save(tester);
 
-      expect((await saved()).occurredAt, DateTime.utc(2026, 2, 20));
-    });
+        expect((await saved()).occurredAt, DateTime.utc(2026, 2, 20));
+      });
+    }
 
     for (final (what, change) in [
       ('deleted', (EquipmentObservation o) => observations.delete(o.id)),

@@ -81,10 +81,15 @@ runs with deferred foreign keys, so a near-miss may apply before its check-in in
 one payload, and `repairDanglingForeignKeys` clears a link whose check-in was
 deleted on a peer. The check-in row itself does not change.
 
-The same repair clears a link whose check-in has become OK or names a different
-item from the report. The saving device normally clears it, but a peer below v338
-does not know the link and two devices can link and resolve at once. Every device
-derives the same result from the same rows, so the repair stages nothing.
+A link whose check-in has become OK, or names a different item from the report,
+can still reach a device: the saving device normally clears it, but a peer below
+v338 does not know the link and two devices can link and resolve at once.
+`IncidentRepository` reads such a link as none and leaves the row alone, and no
+apply or repair clears it. A check-in can go OK and return to an issue between one
+device's syncs, and a device that had erased the link would keep it erased while
+its peers kept it. Read from the synced rows, every device reaches the same answer
+and the link returns with the issue. The next save of the report writes the
+cleared link and stages it.
 
 Resolving a conflict by keeping the peer's row, or a copy of it, runs the same
 deferred write and repair. That row can name a check-in this device has since
@@ -115,6 +120,11 @@ OK rows show neither action.
 The new form starts with the item, category Equipment, the check-in's dive, the
 check-in's day, and the check-in's note as the narrative. All of it can be
 changed before saving.
+
+A check-in's time is a wall clock, on or off a dive, which is how every screen and
+export already reads it. A bench note used to hold an instant, and a check-in whose
+dive was deleted cannot be told from one, so new bench notes hold a wall clock too.
+A bench note saved earlier reads as the UTC day it has always shown.
 
 ### From a near-miss
 

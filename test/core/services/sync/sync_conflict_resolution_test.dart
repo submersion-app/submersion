@@ -12,6 +12,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
@@ -546,8 +547,8 @@ void main() {
         expect(await buildService().getConflicts(), isEmpty);
       });
 
-      test('keepRemote of a check-in that became OK drops the link at once, '
-          'and the report stays', () async {
+      test('keepRemote of a check-in that became OK reads as no link at once, '
+          'and the report stays as its peers hold it', () async {
         final serializer = SyncDataSerializer();
         await serializer.upsertRecord('equipmentObservations', checkIn());
         await serializer.upsertRecord(
@@ -567,8 +568,9 @@ void main() {
         );
 
         final back = await serializer.fetchRecord('incidents', 'i1');
-        expect(back, isNotNull);
-        expect(back!['observationId'], isNull);
+        expect(back!['observationId'], 'o1');
+        final read = await IncidentRepository().getIncidentById('i1');
+        expect(read!.observationId, isNull);
       });
 
       test('keeping a peer\'s row checks only that row\'s table: a diver '
