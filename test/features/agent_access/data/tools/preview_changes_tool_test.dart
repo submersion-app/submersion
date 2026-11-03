@@ -115,4 +115,14 @@ void main() {
     expect(tool.description, contains('apply_changes'));
     expect(tool.description, contains('dives'));
   });
+
+  test('says how a record that belongs to a dive is created', () {
+    expect(
+      tool.description,
+      contains(
+        'dive_tanks, dive_weights, sightings records belong to a dives '
+        'record: a create names it in dive_id',
+      ),
+    );
+  });
 }

@@ -50,7 +50,8 @@ lib/features/agent_access/data/writes/
   writable_entity.dart        ChildOf, createOnly, SideEffects.lost
   field_codec.dart            FieldCodec.reference
   write_planner.dart          child rows, owners, markers, references
-  families/dive_child_writes.dart   DiveTankWrites, DiveWeightWrites, SightingWrites
+  write_planner_children.dart the child rules, as a part file (the planner is at the size limit)
+  families/tank_writes.dart   families/weight_writes.dart   families/sighting_writes.dart
   families/dive_writes.dart   gear and courses relations
   write_catalog.dart          the three entries
 lib/features/agent_access/data/tools/preview_changes_tool.dart   the child rule in the description
@@ -94,7 +95,7 @@ Tests mirror these paths. Child planner tests go in a new `write_planner_childre
 
 ### Task 3: Tanks
 
-**Files:** create `families/dive_child_writes.dart` (`DiveTankWrites`), test `dive_child_writes_test.dart`.
+**Files:** create `families/tank_writes.dart` (`TankWrites`), test `tank_writes_test.dart`, with a shared `child_write_harness.dart`.
 
 Fields: `dive_id` (reference, required, create-only), `name` (text, 100, nullable), `volume_l` (0 to 60), `working_pressure_bar`, `start_pressure_bar`, `end_pressure_bar` (0 to 450, nullable), `o2_fraction` (0.05 to 1), `he_fraction` (0 to 0.95), `role` (`TankRole`), `material` (`TankMaterial`, nullable), `order` (0 to 99), `preset_name` (text, 60, nullable). Fractions are stored as percentages. `refuse` checks the mix on the tank after the change. `deleteReach` counts the tank's gas switches and pressure series as parts. `titleOf` is the name, else the preset, else the mix.
 

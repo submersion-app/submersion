@@ -150,6 +150,21 @@ except `parts`, which it keeps under the details, since a dive with a profile
 has many. `countCascaded` and `countUnlinked` read these from the schema's
 foreign keys, so a table added later is counted without anyone remembering to.
 
+A child entry, such as a tank, belongs to another record and says so in
+`parent`. A create names the parent in the parent's field, `dive_id` for a
+tank, and takes the parent's owner; a `diver_id` naming anyone else is
+blocked, and the field cannot change afterwards, so moving a tank is a delete
+and a create. A child has no `updated_at` of its own, so its parent's marks
+it: every write path for a dive's tanks, weights and sightings stamps the
+dive. The marker also compares the child's own document, because a sync merge
+can change the child row alone. A change to a child whose parent the same set
+deletes is blocked, as the delete takes the child with it. After an apply,
+the dives of the children it changed are refreshed as edited dives are.
+
+A field that holds an id uses `FieldCodec.reference`, and the planner checks
+it as it checks a relation's links. A reference into a table with no
+`updated_at`, such as `species`, is marked by whether the row still exists.
+
 The change log covers rows in this database, and a rollback covers them too.
 What neither can take back is a blob that has left the media store. A blob
 delete is queued as an intent that waits for a drain and does nothing if its
@@ -189,7 +204,12 @@ the worker would still wait.
    from, so a refused plan can arm their reminders again. A buddy's lists their
    certifications too.
 7. Hold remote media on any delete that cascades to it.
-8. Move the repository's methods from
+8. For a record that belongs to another, return a `ChildOf` from `parent`
+   and list its parent field in `fields` as a `FieldCodec.reference`. List
+   any other field a create sets and an update may not change in
+   `createOnly`, as a sighting's species. Write one row at a time: a
+   repository's bulk replace re-inserts every sibling under a fresh id.
+9. Move the repository's methods from
    `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
    `agent_write_coverage_test.dart`. That guard fails on a new repository
    write no entity reaches, and on a baseline line that has gone.
