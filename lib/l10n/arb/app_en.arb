@@ -15680,6 +15680,7 @@
   "settings_conflict_ref_species": "Species",
   "settings_conflict_ref_tag": "Tag",
   "settings_conflict_ref_tank": "Tank",
+  "settings_conflict_ref_weight": "Weight",
   "settings_conflict_ref_transmitter": "Transmitter",
   "settings_conflict_ref_trip": "Trip",
   "settings_conflict_ref_tripCylinder": "Trip cylinder",

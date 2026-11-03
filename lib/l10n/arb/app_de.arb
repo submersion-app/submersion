@@ -7207,6 +7207,7 @@
   "settings_conflict_ref_species": "Art",
   "settings_conflict_ref_tag": "Tag",
   "settings_conflict_ref_tank": "Flasche",
+  "settings_conflict_ref_weight": "Gewicht",
   "settings_conflict_ref_trip": "Reise",
   "settings_conflict_ref_tripCylinder": "Reiseflasche",
   "settings_conflict_resolved": "{count, plural, =1{1 Konflikt} other{{count} Konflikte}} gelöst",

@@ -26480,6 +26480,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_tank => 'Tank';
 
   @override
+  String get settings_conflict_ref_weight => 'Weight';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Transmitter';
 
   @override

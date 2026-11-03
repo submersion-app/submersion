@@ -150,6 +150,35 @@ except `parts`, which it keeps under the details, since a dive with a profile
 has many. `countCascaded` and `countUnlinked` read these from the schema's
 foreign keys, so a table added later is counted without anyone remembering to.
 
+A child entry, such as a tank, belongs to another record and says so in
+`parent`. A create names the parent in the parent's field, `dive_id` for a
+tank, and takes the parent's owner; a `diver_id` naming anyone else is
+blocked, and the field cannot change afterwards, so moving a tank is a delete
+and a create. A child has no `updated_at` of its own, so its parent's marks
+it: every write path for a dive's tanks, weights and sightings stamps the
+dive. The marker also compares the child's own document, because a sync merge
+can change the child row alone. A change to a child whose parent the same set
+deletes is blocked, as the delete takes the child with it. After an apply,
+the dives of the children it changed are refreshed as edited dives are. A
+parent with no owner, as an old dive can be, takes the profile a create names.
+
+A child item carries its parent's title and date, so the dialog says which dive
+a tank change is on, and an untitled record is named by its kind, never by its
+id. `displayContext` lists document values a change may leave alone but the
+dialog needs to show it, such as the working pressure that says what a tank's
+size holds for an imperial diver.
+
+A field that holds an id uses `FieldCodec.reference`, and the planner checks
+it as it checks a relation's links, and names what it points at so the dialog
+shows a dive's or a species' name. A reference into a table with no
+`updated_at`, such as `species`, is marked by whether the row still exists.
+
+A marker's `readFootprint` lives as long as the plan, up to 15 minutes, so it
+must not capture the preview pass: the pass holds the database strongly, and a
+plan keeps only a weak reference to it, so a restored logbook is not kept
+alive. Read through a top-level function and copy what the closure needs into
+locals first.
+
 The change log covers rows in this database, and a rollback covers them too.
 What neither can take back is a blob that has left the media store. A blob
 delete is queued as an intent that waits for a drain and does nothing if its
@@ -189,7 +218,12 @@ the worker would still wait.
    from, so a refused plan can arm their reminders again. A buddy's lists their
    certifications too.
 7. Hold remote media on any delete that cascades to it.
-8. Move the repository's methods from
+8. For a record that belongs to another, return a `ChildOf` from `parent`
+   and list its parent field in `fields` as a `FieldCodec.reference`. List
+   any other field a create sets and an update may not change in
+   `createOnly`, as a sighting's species. Write one row at a time: a
+   repository's bulk replace re-inserts every sibling under a fresh id.
+9. Move the repository's methods from
    `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
    `agent_write_coverage_test.dart`. That guard fails on a new repository
    write no entity reaches, and on a baseline line that has gone.

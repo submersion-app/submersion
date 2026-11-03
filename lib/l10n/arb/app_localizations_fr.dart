@@ -27010,6 +27010,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_tank => 'Bloc';
 
   @override
+  String get settings_conflict_ref_weight => 'Lest';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Émetteur';
 
   @override

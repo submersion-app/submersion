@@ -112,6 +112,10 @@ class WriteApplier {
         if (item.entity == 'dives' && item.kind == ChangeKind.update) item.id!,
       for (final record in written.created)
         if (record.entity == 'dives') record.id,
+      // A tank, weight or sighting feeds its dive's findings and figures.
+      for (final item in plan.items)
+        if (_catalog.named(item.entity)!.parent?.entity == 'dives')
+          item.parentId!,
     });
     // The settler files another diver's records under `operation:diver`, and
     // a revert straight after this needs the entries settled anyway.
@@ -273,11 +277,13 @@ class WriteApplier {
       plan.markers,
       (RecordMarker m) => m.table,
     ).entries) {
-      final versions = await _versions(db, table, [
-        for (final marker in markers) marker.id,
-      ]);
+      final versions = markers.first.versioned
+          ? await _versions(db, table, [
+              for (final marker in markers) marker.id,
+            ])
+          : const <String, int>{};
       for (final marker in markers) {
-        if (versions[marker.id] != marker.updatedAt ||
+        if ((marker.versioned && versions[marker.id] != marker.updatedAt) ||
             await _linksMoved(marker) ||
             await _footprintMoved(marker)) {
           stale.add(marker);
@@ -285,13 +291,15 @@ class WriteApplier {
       }
     }
     if (stale.isEmpty) return;
+    // Several items can mark one row, as tanks of one dive mark the dive.
+    final named = {for (final marker in stale) (marker.table, marker.id)};
     throw AgentToolException(
       AgentToolErrorCode.planStale,
       'These records changed after the preview, so nothing was applied. '
       'Read them and preview again.',
       details: {
         'records': [
-          for (final marker in stale) {'table': marker.table, 'id': marker.id},
+          for (final (table, id) in named) {'table': table, 'id': id},
         ],
       },
     );

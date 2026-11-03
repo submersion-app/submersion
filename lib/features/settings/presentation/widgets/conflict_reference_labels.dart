@@ -83,6 +83,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_importedFile;
     case 'diveTanks':
       return l10n.settings_conflict_ref_tank;
+    case 'diveWeights':
+      return l10n.settings_conflict_ref_weight;
     case 'divePlanTanks':
       return l10n.settings_conflict_ref_plannedTank;
     case 'divePlans':

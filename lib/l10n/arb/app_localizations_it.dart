@@ -26953,6 +26953,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_tank => 'Bombola';
 
   @override
+  String get settings_conflict_ref_weight => 'Zavorra';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Trasmettitore';
 
   @override

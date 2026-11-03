@@ -26759,6 +26759,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_tank => 'Fles';
 
   @override
+  String get settings_conflict_ref_weight => 'Gewicht';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Zender';
 
   @override

@@ -211,6 +211,15 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     _loadSelected();
   }
 
+  /// Takes [name], given to this plan or series in the store from elsewhere
+  /// (the saved plans sheet's Rename), without marking anything unsaved: the
+  /// store already holds it, and the next save must not write the old one
+  /// back.
+  void adoptStoredName(String name) {
+    state = edits.setPlanName(state, name);
+    _push(state.selected.state);
+  }
+
   /// Follows the logged dives in [follow]: the first dive starts from the
   /// followed one, after [surfaceInterval]. Ignored for a replan, which
   /// keeps the seed it was opened with (see [followAllowedProvider]).

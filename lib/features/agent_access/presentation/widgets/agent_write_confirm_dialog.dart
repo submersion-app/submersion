@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -105,10 +106,19 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
               ExpansionTile(
                 key: detailsKey,
                 tilePadding: EdgeInsets.zero,
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                expandedAlignment: AlignmentDirectional.centerStart,
                 title: Text(l.settings_agentAccess_confirm_details),
                 children: [
                   for (final item in request.items)
-                    _PlanItemRow(item: item, units: units),
+                    _PlanItemRow(
+                      item: item,
+                      units: units,
+                      kind: changeLogTableLabel(
+                        l,
+                        entityTables[item.entity] ?? item.entity,
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -193,39 +203,63 @@ String _verb(AppLocalizations l, String kind) => switch (kind) {
 };
 
 class _PlanItemRow extends StatelessWidget {
-  const _PlanItemRow({required this.item, required this.units});
+  const _PlanItemRow({
+    required this.item,
+    required this.units,
+    required this.kind,
+  });
 
   final PlanItem item;
   final UnitFormatter units;
+
+  /// What this kind of record is called, for one with no title: a diver
+  /// reads "Weight", not an id.
+  final String kind;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final verb = _verb(l, item.kind.name);
-    final name = item.title ?? item.id;
+    final name = item.title ?? kind;
     final date = item.date;
+    // A child names the record it is on, a tank its dive.
+    final where = [
+      ?item.parentTitle,
+      if (date != null) units.formatDateTime(DateTime.parse(date), l10n: l),
+    ].join(' \u00b7 ');
     String named(String id) => item.names[id] ?? id;
+    // A cylinder's size reads by its working pressure: the one the plan
+    // sets, else the one the tank holds.
+    final pressureChange = item.fields['working_pressure_bar'];
+    final storedPressure = item.context['working_pressure_bar'] as num?;
+    final oldPressure = pressureChange == null
+        ? storedPressure
+        : pressureChange.oldValue as num?;
+    final newPressure = pressureChange == null
+        ? storedPressure
+        : pressureChange.newValue as num?;
+    // A reference reads by the name of what it points at.
+    String shown(String key, Object? value, num? pressure) =>
+        value is String && item.names.containsKey(value)
+        ? item.names[value]!
+        : agentValueText(l, units, key, value, workingPressureBar: pressure);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            name == null ? verb : '$verb: $name',
+            '$verb: $name',
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
-          if (date != null)
-            Text(
-              units.formatDateTime(DateTime.parse(date), l10n: l),
-              style: theme.textTheme.bodySmall,
-            ),
+          if (where.isNotEmpty) Text(where, style: theme.textTheme.bodySmall),
           for (final MapEntry(:key, :value) in item.fields.entries)
             Text(
-              '$key: ${agentValueText(l, units, key, value.oldValue)} '
-              '→ ${agentValueText(l, units, key, value.newValue)}',
+              '$key: ${shown(key, value.oldValue, oldPressure)} '
+              '→ ${shown(key, value.newValue, newPressure)}',
               style: theme.textTheme.bodySmall,
             ),
           for (final MapEntry(:key, :value) in item.relations.entries)
@@ -233,9 +267,12 @@ class _PlanItemRow extends StatelessWidget {
               '$key: ${[for (final id in value.add) '+${named(id)}', for (final id in value.remove) '-${named(id)}'].join(', ')}',
               style: theme.textTheme.bodySmall,
             ),
-          for (final MapEntry(:key, :value) in item.indirectRelations.entries)
+          for (final key in {
+            ...item.indirectRelations.keys,
+            ...item.indirectLost.keys,
+          })
             Text(
-              '$key: ${[for (final id in value) '+${named(id)}'].join(', ')}',
+              '$key: ${[for (final id in item.indirectRelations[key] ?? const <String>{}) '+${named(id)}', for (final id in item.indirectLost[key] ?? const <String>{}) '-${named(id)}'].join(', ')}',
               style: theme.textTheme.bodySmall,
             ),
           for (final MapEntry(:key, :value) in item.reach.parts.entries)
@@ -258,12 +295,23 @@ String agentValueText(
   AppLocalizations l,
   UnitFormatter units,
   String key,
-  Object? value,
-) {
+  Object? value, {
+  num? workingPressureBar,
+}) {
   if (value == null) return l.settings_agentAccess_confirm_none;
   if (value is num) {
-    if (key.endsWith('_m')) return units.formatDepth(value.toDouble());
-    if (key.endsWith('_c')) return units.formatTemperature(value.toDouble());
+    final number = value.toDouble();
+    if (key.endsWith('_m')) return units.formatDepth(number);
+    if (key.endsWith('_c')) return units.formatTemperature(number);
+    if (key.endsWith('_bar')) return units.formatPressure(number);
+    if (key.endsWith('_kg')) return units.formatWeight(number);
+    // A cylinder's size, which imperial divers know by its gas capacity.
+    if (key == 'volume_l') {
+      return units.formatTankVolume(number, workingPressureBar?.toDouble());
+    }
+    if (key.endsWith('_fraction')) {
+      return formatGasPercent(gasPercentOfFraction(number));
+    }
   }
   if ((key == 'date_time' || key.endsWith('_time')) && value is String) {
     return units.formatDateTime(DateTime.parse(value), l10n: l);
