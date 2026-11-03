@@ -118,6 +118,10 @@ extension _NearbyLinkPairing on NearbyLinkManager {
   /// shown: then the one the lower pairing nonce started stays, on both.
   Future<void> _offer(NearbyPairingHandle handle) async {
     if (!_pairingMode || _disposed) {
+      NearbyLinkManager._log.info(
+        'Nearby pairing with ${handle.transportId} turned away: '
+        'pairing mode ended first',
+      );
       await handle._pairing.reject();
       return;
     }
@@ -135,6 +139,10 @@ extension _NearbyLinkPairing on NearbyLinkManager {
         _pending.remove(other);
         await other._pairing.reject();
       } else {
+        NearbyLinkManager._log.info(
+          'Nearby pairing with ${handle.transportId} dropped: the same '
+          'device is already offered',
+        );
         await handle._pairing.reject();
         return;
       }
@@ -148,6 +156,13 @@ extension _NearbyLinkPairing on NearbyLinkManager {
     handle._confirming = true;
     try {
       channel = await handle._pairing.confirm();
+    } on Object catch (e) {
+      NearbyLinkManager._log.info(
+        'Nearby pairing with ${handle.transportId} did not complete: $e',
+      );
+      // Dialling waited while the code was on screen.
+      unawaited(refresh());
+      rethrow;
     } finally {
       _pending.remove(handle);
       _emitPending();
@@ -168,5 +183,7 @@ extension _NearbyLinkPairing on NearbyLinkManager {
     _pending.remove(handle);
     _emitPending();
     await handle._pairing.reject();
+    // Dialling waited while the code was on screen.
+    if (_pairingMode) unawaited(refresh());
   }
 }

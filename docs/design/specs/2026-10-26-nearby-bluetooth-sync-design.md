@@ -207,8 +207,16 @@ different codes, matching codes confirm the two devices share a secret
 with each other and no one else. Each diver confirms "Same code" on their
 screen; the link waits for the other side's confirmation message, then
 both re-key with a **pair secret** (HKDF of the shared secret with the pair
-label), exchange their full identities, and store the secret under the
-peer's device id in secure storage, and a row in the paired-devices table.
+label) and exchange their full identities. Each then sends a second
+`pairConfirm`, sealed under the pair key, saying the other's identity
+arrived, and waits for the other's before storing anything: the secret
+under the peer's device id in secure storage, and a row in the
+paired-devices table. Without that last step a device whose identity was
+lost on the way kept a pairing the other never made (issue #4154): a
+Bluetooth peripheral's send returns once its bytes are queued, and a
+central's failed write was taken as sent. Only the last acknowledgement
+itself can still be lost, which leaves the pairing on the device that sent
+it alone; the other then refuses its syncs as `notPaired`.
 Until both confirm, each side sees only a preview: the other's display
 name, whether it holds dives, a random per-pairing nonce, and an epoch tag
 (an HMAC of its library epoch) that matches the other's only on the same
@@ -485,7 +493,11 @@ twice, and a second tap confirms nothing twice. When the two devices
 found each other from both sides, each keeps the pairing the lower nonce
 started, even over one its diver already confirmed: the other device
 cannot know that, and both must show the same code, so that diver
-confirms the one left. Bluetooth permission is requested
+confirms the one left. Twins arise only when both dial at once: a device
+showing a code dials no one until its diver answers (issue #4154), since a
+second link to the same device could only become a twin, and on Apple
+devices closing it can drop the shared Bluetooth link the pairing runs on.
+Bluetooth permission is requested
 the first time this page opens, with the OS prompt; if refused, the page
 explains and offers the system settings.
 

@@ -398,6 +398,11 @@ class NearbyLinkManager {
     final device = _deviceByTransport[transportId];
     if (device != null && _active.containsKey(device)) return;
     if (_pairingMode) {
+      // A code on screen means the other device is found. Another link
+      // could only become a twin, and on Apple devices closing one can drop
+      // the shared Bluetooth link the pairing runs on (issue #4154).
+      // Dialling resumes once the diver answers.
+      if (_pending.isNotEmpty) return;
       if (!_pairingTried.add(transportId)) return;
       unawaited(_openPairing(transportId));
       return;
@@ -585,6 +590,10 @@ class NearbyLinkManager {
     // A handshake that finished after the app left the foreground, after
     // demo mode closed the gate, or after this manager was disposed.
     if (_disposed || !_foreground || DemoModeGate.instance.isActive) {
+      _log.info(
+        'Nearby session with ${channel.peer.deviceId} closed: the link is '
+        'not running here',
+      );
       await channel.close();
       return null;
     }

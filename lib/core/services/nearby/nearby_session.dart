@@ -425,7 +425,11 @@ class NearbySession {
       );
     } on NearbyLinkClosed {
       // A peer that unpaired this device sends its sealed refusal and hangs
-      // up at once; the refusal is already in the inbox.
+      // up at once; the refusal is already in the inbox. Only a sync, which
+      // names the peer it expects, can meet one: a pairing whose identity
+      // never left must fail, or this device keeps a pairing the other
+      // never made (issue #4154).
+      if (expectedId == null) rethrow;
     }
     final message = await _expect(
       NearbyMessageType.identity,
@@ -699,8 +703,32 @@ class NearbyPairing {
     final secret = await _shared.pairSecret();
     final cipher = await _shared.sessionCipher(pairSecret: secret);
     final peer = await s._exchangeIdentity(cipher);
+    await _acknowledge(cipher);
     await s._secrets.store(peer.deviceId, secret);
     return s._channel(peer, cipher);
+  }
+
+  /// Each side says, sealed under the pair key, that the other's identity
+  /// arrived, and waits to hear the same before storing anything. Without
+  /// it a device whose identity was lost on the way keeps a pairing its
+  /// peer never made (issue #4154): a Bluetooth peripheral's send returns
+  /// once the bytes are queued, not once the central has read them.
+  Future<void> _acknowledge(NearbySessionCipher cipher) async {
+    final s = _session;
+    await s._sendFrame(
+      NearbyMessageType.pairConfirm,
+      await cipher.seal(Uint8List(0)),
+    );
+    final ack = await s._expect(
+      NearbyMessageType.pairConfirm,
+      hello: true,
+      cipher: cipher,
+    );
+    try {
+      await cipher.open(ack.body);
+    } on NearbyAuthFailure {
+      await s._refuse(NearbyErrorCode.protocol, cipher: cipher);
+    }
   }
 
   /// This diver tapped "Not mine": nothing is stored on either device.
