@@ -704,22 +704,51 @@ class NearbyPairing {
     final cipher = await _shared.sessionCipher(pairSecret: secret);
     final peer = await s._exchangeIdentity(cipher);
     // Stored before acknowledging: a keychain that refuses the write then
-    // fails this side before the peer hears it may keep the pairing.
+    // fails this side before the peer hears it may keep the pairing. A
+    // pairing it replaces comes back if the acknowledgement fails.
+    final previous = await s._secrets.secretFor(peer.deviceId);
+    final revoked = previous == null
+        ? (await s._secrets.revoked())[peer.deviceId]
+        : null;
     await s._secrets.store(peer.deviceId, secret);
     try {
       await _acknowledge(cipher);
     } on Object {
-      await s._secrets.remove(peer.deviceId);
+      await _restore(peer.deviceId, previous: previous, revoked: revoked);
       rethrow;
     }
     return s._channel(peer, cipher);
   }
 
+  /// Puts back what this device held for [peerDeviceId] before a pairing
+  /// that did not complete. A keychain that fails here too must not hide
+  /// why the pairing failed, so its error is dropped.
+  Future<void> _restore(
+    String peerDeviceId, {
+    required Uint8List? previous,
+    required Uint8List? revoked,
+  }) async {
+    final secrets = _session._secrets;
+    try {
+      if (previous != null) {
+        await secrets.store(peerDeviceId, previous);
+      } else if (revoked != null) {
+        await secrets.store(peerDeviceId, revoked);
+        await secrets.revoke(peerDeviceId);
+      } else {
+        await secrets.remove(peerDeviceId);
+      }
+    } on Object {
+      // The pairing failed either way; the next run prunes a stray secret.
+    }
+  }
+
   /// Each side says, sealed under the pair key, that the other's identity
-  /// arrived, and waits to hear the same before storing anything. Without
-  /// it a device whose identity was lost on the way keeps a pairing its
-  /// peer never made (issue #4154): a Bluetooth peripheral's send returns
-  /// once the bytes are queued, not once the central has read them.
+  /// arrived, and waits to hear the same, before either keeps the secret it
+  /// just stored. Without it a device whose identity was lost on the way
+  /// keeps a pairing its peer never made (issue #4154): a Bluetooth
+  /// peripheral's send returns once the bytes are queued, not once the
+  /// central has read them.
   Future<void> _acknowledge(NearbySessionCipher cipher) async {
     final s = _session;
     await s._sendFrame(

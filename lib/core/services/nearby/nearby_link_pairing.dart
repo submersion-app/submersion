@@ -155,6 +155,10 @@ extension _NearbyLinkPairing on NearbyLinkManager {
     }
     _pending.add(handle);
     _emitPending();
+    _dialPauseEnd?.cancel();
+    _dialPauseEnd = Timer(pairingDialPause, () {
+      if (_pairingMode && !_disposed) unawaited(refresh());
+    });
   }
 
   Future<void> _confirm(NearbyPairingHandle handle) async {

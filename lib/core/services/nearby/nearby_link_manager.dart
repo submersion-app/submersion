@@ -159,6 +159,11 @@ class NearbyLinkManager {
   bool _prunedSecrets = false;
   Future<void> _refreshTail = Future.value();
   Timer? _debounce;
+
+  /// Restarts the scan once a code on screen stops holding dials back:
+  /// Apple reports a device once per scan, so without it the pause would
+  /// last until something else refreshed.
+  Timer? _dialPauseEnd;
   DateTime? _scanStartedAt;
 
   /// The last availability check found Bluetooth off or not allowed.
@@ -757,6 +762,7 @@ class NearbyLinkManager {
     _disposed = true;
     _cardHost?.attach(null);
     _debounce?.cancel();
+    _dialPauseEnd?.cancel();
     for (final sub in _subs) {
       await sub.cancel();
     }

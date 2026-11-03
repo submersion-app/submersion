@@ -131,6 +131,17 @@ void main() {
       expect(r.phone.map, isEmpty);
     });
 
+    test('a re-pairing that does not complete leaves the old pairing as it '
+        'was', () async {
+      final old = Uint8List.fromList(List.filled(32, 7));
+      final r = await _confirmBoth(
+        wrapP: (e) => _LosesIdentity(e, failSend: false),
+        laptopSecrets: MemoryNearbySecrets({'P': old}),
+      );
+      expect(r.laptopError, isNotNull);
+      expect(r.laptop.map['P'], old);
+    });
+
     test('with nothing lost both keep the same secret', () async {
       final r = await _confirmBoth();
       expect(r.laptopError, isNull);

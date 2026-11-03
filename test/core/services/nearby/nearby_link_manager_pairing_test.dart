@@ -14,8 +14,9 @@ void main() {
   /// A and B in pairing mode with a code on both screens; returns them and
   /// their offers.
   Future<(NearbyTestDevice, NearbyTestDevice, List<List<NearbyPairingHandle>>)>
-  codesShowing() async {
-    final a = await joinNearbyTestDevice(hub, 'A');
+  codesShowing({Duration pause = const Duration(minutes: 2)}) async {
+    final a = await joinNearbyTestDevice(hub, 'A')
+      ..pairingDialPause = pause;
     final b = await joinNearbyTestDevice(hub, 'B');
     final aOffers = <List<NearbyPairingHandle>>[];
     a.manager.pendingPairings.listen(aOffers.add);
@@ -41,10 +42,13 @@ void main() {
 
   test('a code left on screen holds dialling back only for the pause, '
       'since a card whose peer left stays up', () async {
-    final (a, _, _) = await codesShowing();
+    final (a, _, _) = await codesShowing(
+      pause: const Duration(milliseconds: 800),
+    );
     final dialledC = await thirdDevice();
     a.now = a.now.add(a.manager.pairingDialPause);
-    await a.manager.refresh();
+    // No refresh from the test: the end of the pause restarts the scan.
+    await Future<void>.delayed(const Duration(milliseconds: 900));
     await settleNearby();
     expect(dialledC.where((id) => id == 'A'), isNotEmpty);
   });
