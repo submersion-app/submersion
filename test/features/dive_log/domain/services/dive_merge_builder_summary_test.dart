@@ -68,6 +68,17 @@ void main() {
       expect(merged.loopO2Avg, closeTo(1.15, 1e-9));
     });
 
+    test('a planned segment\'s values never become the logged dive\'s', () {
+      final a = _segment('a', firstEntry).copyWith(waterTemp: 14);
+      final b = _segment(
+        'b',
+        secondEntry,
+      ).copyWith(waterTemp: 10, loopO2Max: 1.6, isPlanned: true);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.waterTemp, 14);
+      expect(merged.loopO2Max, isNull);
+    });
+
     test('loop O2 average falls back to the only value when unweighted', () {
       final a = _segment(
         'a',

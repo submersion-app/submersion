@@ -119,7 +119,7 @@ class DiveMergeBuilder {
     required bool lowest,
   }) {
     double? result;
-    for (final d in sorted) {
+    for (final d in _measuredSegments(sorted)) {
       final v = pick(d);
       if (v == null) continue;
       if (result == null || (lowest ? v < result : v > result)) result = v;
@@ -132,16 +132,25 @@ class DiveMergeBuilder {
   /// that reports the value has a runtime to weigh it by, the first value
   /// stands in, which is what a Combine kept before (issue #4136).
   double? _runtimeWeightedMean(List<Dive> sorted, double? Function(Dive) pick) {
+    final measured = _measuredSegments(sorted);
     var area = 0.0;
     var span = 0;
-    for (final d in sorted) {
+    for (final d in measured) {
       final v = pick(d);
       final w = (d.effectiveRuntime ?? Duration.zero).inSeconds;
       if (v == null || w <= 0) continue;
       area += v * w;
       span += w;
     }
-    return span > 0 ? area / span : _firstNonNull(sorted, pick);
+    return span > 0 ? area / span : _firstNonNull(measured, pick);
+  }
+
+  /// The segments whose values were measured: the logged ones, so a plan's
+  /// assumed temperature or loop O2 never becomes the logged dive's summary
+  /// (issue #3924). Every segment when all of them are plans.
+  List<Dive> _measuredSegments(List<Dive> sorted) {
+    final logged = sorted.where((d) => !d.isPlanned).toList();
+    return logged.isEmpty ? sorted : logged;
   }
 
   /// A snapshot is a start/end pair, so the combined dive starts in the

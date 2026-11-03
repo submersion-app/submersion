@@ -19,6 +19,11 @@ import 'package:submersion/core/database/table_columns.dart';
 /// spans mean two computers recorded the same minutes, where a sum would
 /// count the dose twice.
 ///
+/// Only segments with a source row count. A segment logged by hand carries
+/// none, so a dive combined with one is repaired from its downloaded
+/// segments: closer than the first segment alone, though a fresh Combine
+/// would also weigh the hand-logged one.
+///
 /// A column is rewritten only while it still holds the first segment's value,
 /// which is what a Combine wrote. A diver's own edit, or a value a fixed
 /// Combine already wrote, no longer matches it, so the repair never touches

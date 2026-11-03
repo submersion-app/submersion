@@ -1455,8 +1455,10 @@ class SyncService {
 
   /// Runs the data rungs over what was just applied, because this database
   /// ran them before those rows arrived, or never ran them if it is new. Each
-  /// reads only rows still in the old shape, so it is a cheap no-op once every
-  /// peer is current, and each leaves the sync stamp alone, as its rung does:
+  /// writes only rows still in the old shape, so it changes nothing once every
+  /// peer is current; the combined dive repair still reads every combined
+  /// dive's sources to tell, an indexed scan. Each leaves the sync stamp
+  /// alone, as its rung does:
   /// the sending peer makes the same change when it upgrades.
   ///
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
