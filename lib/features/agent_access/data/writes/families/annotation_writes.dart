@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/constants/enums.dart' show ProfileEventType;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_time_limit.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -13,9 +15,10 @@ import 'package:submersion/features/dive_log/data/repositories/annotation_reposi
 /// paragraph there and a delete turns the link back into plain words, through
 /// the repository the dive page uses. Rewording one is a Notes edit.
 class AnnotationWrites extends WritableEntry {
-  AnnotationWrites({AnnotationRepository? annotations})
+  AnnotationWrites(this._r, {AnnotationRepository? annotations})
     : _annotations = annotations ?? AnnotationRepository();
 
+  final RecordRepositories _r;
   final AnnotationRepository _annotations;
 
   @override
@@ -62,9 +65,11 @@ class AnnotationWrites extends WritableEntry {
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
-    if (check.kind == ChangeKind.create) return null;
-    if (check.document?['type'] == ProfileEventType.annotation.name) {
-      return null;
+    if (check.kind == ChangeKind.create ||
+        check.document?['type'] == ProfileEventType.annotation.name) {
+      final diveId =
+          (check.values['dive_id'] ?? check.document?['dive_id']) as String?;
+      return beyondDive(_r, diveId, check.values);
     }
     return const PlanBlock(
       BlockReason.notPermitted,

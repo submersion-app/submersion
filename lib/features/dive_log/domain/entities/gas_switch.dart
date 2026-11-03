@@ -48,7 +48,14 @@ class GasSwitch extends Equatable {
   /// on a dive with no primary computer the untagged ones only. Another
   /// computer's are left alone.
   bool shownInEditor(String? primaryComputer) =>
-      primaryComputer == null ? computerId == null : appliesTo(primaryComputer);
+      shownFor(computerId, primaryComputer);
+
+  /// [shownInEditor] for a switch of [computerId], read without the rest
+  /// of the switch.
+  static bool shownFor(String? computerId, String? primaryComputer) =>
+      primaryComputer == null
+      ? computerId == null
+      : computerId == null || computerId == primaryComputer;
 
   /// Timestamp formatted as m:ss, the shape the switch editor reads back.
   String get timestampFormatted => formatMinutesSeconds(timestamp);

@@ -232,6 +232,7 @@ class _Pass {
             id: op.id,
             ownerId: row.ownerId,
             values: parsed.values,
+            relations: links.deltas,
             document: document,
           ),
         );

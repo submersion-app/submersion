@@ -130,6 +130,22 @@ class DiveWrites extends WritableEntry {
     return {for (final row in rows) row.read<String>(column)};
   }
 
+  /// A role normalize would drop, as it drops Solo beside any other role,
+  /// would be planned as added and never written.
+  @override
+  Future<PlanBlock?> refuse(WriteCheck check) async {
+    final roles = check.relations['roles'];
+    if (roles == null || check.id == null) return null;
+    final after = (await _rolesAfter(check.id!, roles)).toSet();
+    final dropped = roles.add.difference(after);
+    if (dropped.isEmpty) return null;
+    return PlanBlock(
+      BlockReason.invalidValue,
+      'roles: ${dropped.join(', ')} cannot sit beside the dive\'s other '
+      'roles. Remove those in the same change.',
+    );
+  }
+
   /// A dive with no type links has its one legacy type, as a dive read says.
   Future<Set<String>> _types(String id) async {
     final links = await _ids('dive_dive_types', 'dive_type_id', id);

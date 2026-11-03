@@ -33,7 +33,7 @@ class WriteCatalog {
       SightingWrites(repositories),
       CustomFieldWrites(rows: rows),
       GasSwitchWrites(repositories),
-      AnnotationWrites(),
+      AnnotationWrites(repositories),
       ScenarioWrites(repositories),
     ]);
   }

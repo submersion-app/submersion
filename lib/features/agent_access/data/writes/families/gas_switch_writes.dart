@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart' show DiveMode;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_time_limit.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -72,21 +73,16 @@ class GasSwitchWrites extends WritableEntry {
       );
     }
     if (check.id case final id?) {
-      final shown = GasSwitch(
-        id: id,
-        diveId: diveId,
-        timestamp: 0,
-        tankId: '',
-        createdAt: DateTime(0),
-        computerId: await _switchComputer(id),
-      ).shownInEditor(dive.computer);
-      if (!shown) {
+      if (!GasSwitch.shownFor(await _switchComputer(id), dive.computer)) {
         return const PlanBlock(
           BlockReason.notPermitted,
           'This switch is another dive computer\'s, which the dive editor '
           'does not show or change.',
         );
       }
+    }
+    if (await beyondDive(_r, diveId, check.values) case final block?) {
+      return block;
     }
     if (check.values['tank_id'] case final String tankId) {
       final tankDive = await _tankDive(tankId);

@@ -171,6 +171,28 @@ void main() {
     expect(plan.items.single.block!.reason, BlockReason.notPermitted);
   });
 
+  test('a time past the end of the profile is blocked', () async {
+    final switched = await h.preview([
+      createOp('gas_switches', {
+        'dive_id': 'd3',
+        't_s': 5000,
+        'tank_id': 't-deco',
+      }),
+    ]);
+    final annotated = await h.preview([
+      createOp('dive_events', {
+        'dive_id': 'd3',
+        't_s': 5000,
+        'description': 'Off the end',
+      }),
+    ]);
+
+    for (final plan in [switched, annotated]) {
+      expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+      expect(plan.items.single.block!.detail, contains('1200'));
+    }
+  });
+
   test('a delete removes the switch and a revert restores it', () async {
     final result = await h.run([deleteOp('gas_switches', 'g1')]);
     expect(await row('g1'), isNull);

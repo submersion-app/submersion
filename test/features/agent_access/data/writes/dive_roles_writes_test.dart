@@ -72,6 +72,23 @@ void main() {
     expect(await stored(), [DiveRole.studentId]);
   });
 
+  test('Solo added beside another role is blocked, not dropped', () async {
+    await h.run([
+      roles({
+        'add': [DiveRole.instructorId],
+      }),
+    ]);
+
+    final plan = await h.preview([
+      roles({
+        'add': [DiveRole.soloId],
+      }),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+    expect(plan.items.single.block!.detail, contains(DiveRole.soloId));
+  });
+
   test('a custom role of another profile is blocked', () async {
     await db
         .into(db.diveRoles)

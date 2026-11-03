@@ -92,6 +92,7 @@ class WriteCheck {
     this.id,
     this.ownerId,
     this.values = const {},
+    this.relations = const {},
     this.document,
   });
 
@@ -101,6 +102,9 @@ class WriteCheck {
 
   /// The fields this change sets, parsed.
   final Map<String, Object?> values;
+
+  /// The links an update adds and removes, against the current ones.
+  final Map<String, RelationDelta> relations;
 
   /// The record as it stands. Null for a create.
   final Map<String, Object?>? document;
