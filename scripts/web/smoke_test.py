@@ -397,7 +397,19 @@ PAGE_PROBE = """async () => {
   const locks = navigator.locks
     ? await within(settle(navigator.locks.query().then((s) => JSON.stringify(s))), 5000)
     : 'no Web Locks';
+  const nodes = [...document.querySelectorAll('flt-semantics')];
+  const semantics = {
+    hosts: document.querySelectorAll('flt-semantics-host').length,
+    placeholder: document.querySelectorAll('flt-semantics-placeholder').length,
+    nodes: nodes.length,
+    labels: nodes
+      .map((node) => (node.getAttribute('aria-label') || node.textContent || '').trim())
+      .filter((label) => label)
+      .slice(0, 15)
+      .map((label) => label.slice(0, 40)),
+  };
   return {
+    semantics,
     timerDelayMs: timerDelay,
     framesIn2s: frames,
     webgl,
@@ -429,17 +441,20 @@ def report_failure(page, request, heard):
         page.screenshot(path=os.path.join(folder, name + ".png"))
 
 
-# Firefox on the runner has no WebGL, and Flutter's CPU-only fallback draws
-# about one frame a second there, too slow for any step's timeout. Forcing
-# its software WebGL renders as Chromium's SwiftShader does. (A browser
-# without WebGL still starts: the ocean background stops animating once its
-# frames run over budget, which its widget tests cover.)
+# Firefox on the runner has no WebGL, and Flutter's CPU-only fallback is too
+# slow there for any step's timeout. Headless Firefox on Linux finds no GL
+# driver at all, so where a display is set (CI runs the smoke under
+# xvfb-run) it runs headed and gets Mesa's software GL, as Chromium gets
+# SwiftShader. (A browser without WebGL still starts: the ocean background
+# stops animating once its frames run over budget, which its widget tests
+# cover.)
 LAUNCH_OPTIONS = {
     "firefox": {
+        "headless": not os.environ.get("DISPLAY"),
         "firefox_user_prefs": {
             "webgl.force-enabled": True,
             "webgl.disable-fail-if-major-performance-caveat": True,
-        }
+        },
     },
 }
 
