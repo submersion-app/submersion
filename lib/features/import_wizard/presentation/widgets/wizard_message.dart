@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-final _log = LoggerService.forClass(WizardMessage);
+import 'package:submersion/shared/utils/clipboard_copy.dart';
 
 /// Inline message strip shown between a wizard step's content and its
 /// bottom bar.
@@ -22,33 +19,6 @@ class WizardMessage extends StatelessWidget {
   final String message;
   final IconData icon;
   final bool isError;
-
-  Future<void> _copy(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    try {
-      await Clipboard.setData(ClipboardData(text: message));
-    } on PlatformException catch (e, stackTrace) {
-      _log.error(
-        'Could not copy to the clipboard',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (messenger.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.common_error_tryAgain)),
-        );
-      }
-      return;
-    }
-    if (messenger.mounted) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(l10n.common_snackbar_copiedToClipboard)),
-        );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,10 +48,9 @@ class WizardMessage extends StatelessWidget {
             const SizedBox(width: 8),
             IconButton(
               tooltip: context.l10n.common_action_copy,
-              onPressed: () => _copy(context),
+              onPressed: () =>
+                  copyToClipboardWithConfirmation(context, message),
               iconSize: 18,
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
               color: foreground,
               icon: const Icon(Icons.content_copy),
             ),
