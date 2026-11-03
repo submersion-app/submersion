@@ -34,9 +34,23 @@ const webUnavailableRoutePrefixes = <String, WebUnavailableFeature>{
   '/settings/agent-access': WebUnavailableFeature.agentAccess,
 };
 
+/// Sections a browser cannot serve on a page it can, by the page's route and
+/// the `?selected=` value that opens each one. The page's own list leaves
+/// them out; this covers a bookmark or a typed link to one.
+const webUnavailableSections = <String, Map<String, WebUnavailableFeature>>{
+  // The section's auto-connect starts a Bluetooth scan as it opens.
+  '/transfer': {'computers': WebUnavailableFeature.diveComputers},
+};
+
 /// The feature [location] belongs to when a browser cannot serve it, or null.
 WebUnavailableFeature? webUnavailableFeatureFor(String location) {
-  final path = Uri.tryParse(location)?.path ?? location;
+  final uri = Uri.tryParse(location);
+  final path = uri?.path ?? location;
+  final section = uri?.queryParameters['selected'];
+  if (section != null) {
+    final feature = webUnavailableSections[path]?[section];
+    if (feature != null) return feature;
+  }
   final segments = path.split('/').where((s) => s.isNotEmpty).toList();
   for (final MapEntry(key: route, value: feature)
       in webUnavailableRoutePrefixes.entries) {

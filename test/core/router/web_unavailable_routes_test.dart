@@ -63,7 +63,10 @@ void main() {
         container.read(appRouterProvider).configuration.routes,
         '',
       );
-      for (final prefix in webUnavailableRoutePrefixes.keys) {
+      for (final prefix in [
+        ...webUnavailableRoutePrefixes.keys,
+        ...webUnavailableSections.keys,
+      ]) {
         expect(
           paths,
           contains(prefix),
@@ -112,6 +115,17 @@ void main() {
         webUnavailableFeatureFor('/settings/agent-access'),
         WebUnavailableFeature.agentAccess,
       );
+    });
+
+    test('matches a section a page selects that the browser cannot '
+        'serve', () {
+      // Transfer's dive computers section starts a Bluetooth scan.
+      expect(
+        webUnavailableFeatureFor('/transfer?selected=computers'),
+        WebUnavailableFeature.diveComputers,
+      );
+      expect(webUnavailableFeatureFor('/transfer?selected=import'), isNull);
+      expect(webUnavailableFeatureFor('/transfer'), isNull);
     });
 
     test('leaves every other route alone', () {
