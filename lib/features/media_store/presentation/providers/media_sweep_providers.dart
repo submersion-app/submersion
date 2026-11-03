@@ -30,12 +30,12 @@ final mediaStoreRuntimeWaitProvider = Provider<Duration>(
 ///
 /// Null when no store is attached, and in a browser, which reads the store
 /// and never writes it (issue #4193): no deletes, no repairs, and no marker
-/// check to flag a mismatch it could not act on. Throws when one is attached but cannot be
-/// built right now (a lapsed session, a missing credential), so a caller
-/// does not mistake it for "not set up"; and when the store fails the marker
-/// check the upload worker runs before every transfer (detached, wiped or
-/// repointed), since sweeping it would judge another library's objects, or
-/// an empty store, against this library's rows.
+/// check to flag a mismatch it could not act on. Throws when one is attached
+/// but cannot be built right now (a lapsed session, a missing credential), so
+/// a caller does not mistake it for "not set up"; and when the store fails
+/// the marker check the upload worker runs before every transfer (detached,
+/// wiped or repointed), since sweeping it would judge another library's
+/// objects, or an empty store, against this library's rows.
 Future<MediaStoreRuntime?> sweepableMediaStoreRuntime(Ref ref) async {
   if (!ref.read(deviceCapabilitiesProvider).mediaAttach) return null;
   final attachState = ref.read(mediaStoreAttachStateProvider);

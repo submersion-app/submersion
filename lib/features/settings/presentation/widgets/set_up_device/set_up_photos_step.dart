@@ -174,7 +174,7 @@ class _SetUpPhotosStepState extends ConsumerState<SetUpPhotosStep> {
     final canWrite = ref.watch(deviceCapabilitiesProvider).mediaAttach;
     if (copies.store == null) {
       if (!canWrite) {
-        return (null, [Text(l10n.settings_photos_browserReadOnly)]);
+        return (l10n.settings_photos_browserReadOnly, const <Widget>[]);
       }
       if (account == null || !photoAccountKinds.contains(account.kind)) {
         return (null, [note]);

@@ -123,7 +123,7 @@ void main() {
   });
 
   group('a device that only reads the store (issue #4193)', () {
-    Future<void> seed(InMemoryMediaObjectStore store) async {
+    void seed(InMemoryMediaObjectStore store) {
       store.objects[StoreKeys.markerKey] = utf8.encode(
         jsonEncode({
           'storeId': 'store-from-a-phone',
@@ -135,7 +135,7 @@ void main() {
 
     test('reads the marker in memory, with no file to download into', () async {
       final store = _NoFiles();
-      await seed(store);
+      seed(store);
 
       final marker = await StoreMarkerStore(store: store).read();
 
@@ -144,7 +144,7 @@ void main() {
 
     test('joins the marker that is there', () async {
       final store = _NoFiles();
-      await seed(store);
+      seed(store);
 
       final ensured = await StoreMarkerStore(
         store: store,
