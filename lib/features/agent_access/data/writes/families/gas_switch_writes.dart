@@ -9,6 +9,7 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/gas_switch_editing.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 
 /// A dive's gas switches, as the dive editor shows them: the primary
@@ -59,7 +60,11 @@ class GasSwitchWrites extends WritableEntry {
     if (diveId == null) return null;
     final dive = await _dive(diveId);
     if (dive == null) return null;
-    if (dive.tanks < 2 || dive.mode == DiveMode.gauge.name || dive.planned) {
+    if (!gasSwitchesEditable(
+      tankCount: dive.tanks,
+      mode: DiveMode.values.byName(dive.mode),
+      isPlanned: dive.planned,
+    )) {
       return const PlanBlock(
         BlockReason.notPermitted,
         'A dive has gas switches to change only with two or more cylinders, '
@@ -67,10 +72,14 @@ class GasSwitchWrites extends WritableEntry {
       );
     }
     if (check.id case final id?) {
-      final computer = await _switchComputer(id);
-      final shown = dive.computer == null
-          ? computer == null
-          : computer == null || computer == dive.computer;
+      final shown = GasSwitch(
+        id: id,
+        diveId: diveId,
+        timestamp: 0,
+        tankId: '',
+        createdAt: DateTime(0),
+        computerId: await _switchComputer(id),
+      ).shownInEditor(dive.computer);
       if (!shown) {
         return const PlanBlock(
           BlockReason.notPermitted,
@@ -100,16 +109,28 @@ class GasSwitchWrites extends WritableEntry {
     RecordUpdate update,
     Map<String, Object?> document,
   ) async {
-    final moved = update.values['t_s'];
-    if (moved is! int || update.values.containsKey('depth_m')) {
+    final fill = await _filledDepth(
+      document['dive_id']! as String,
+      update.values,
+    );
+    if (fill == null || fill.depth == document['depth_m']) {
       return const SideEffects();
     }
-    final dive = await _r.dives.getDiveById(document['dive_id']! as String);
-    final profile = dive?.profile ?? const [];
-    if (profile.isEmpty) return const SideEffects();
-    final depth = profileDepthAt(profile, moved);
-    if (depth == document['depth_m']) return const SideEffects();
-    return SideEffects(fields: {'depth_m': depth});
+    return SideEffects(fields: {'depth_m': fill.depth});
+  }
+
+  /// The depth the editor fills for a switch [values] moves without naming
+  /// one: the profile's at the new time. Null when nothing is filled, as
+  /// for a dive with no profile.
+  Future<({double? depth})?> _filledDepth(
+    String diveId,
+    Map<String, Object?> values,
+  ) async {
+    final moved = values['t_s'];
+    if (moved is! int || values.containsKey('depth_m')) return null;
+    final profile = await _r.dives.getDiveProfile(diveId);
+    if (profile.isEmpty) return null;
+    return (depth: profileDepthAt(profile, moved));
   }
 
   @override
@@ -138,14 +159,13 @@ class GasSwitchWrites extends WritableEntry {
     final shown = await _shown(diveId);
     final current = shown.where((s) => s.id == id).firstOrNull ?? _gone(id);
     // The planner's side effect is not in [v], so the depth is filled again
-    // here from the same profile, as the editor fills it.
-    var depth = v.containsKey('depth_m')
+    // here by the same rule.
+    final fill = await _filledDepth(diveId, v);
+    final depth = fill != null
+        ? fill.depth
+        : v.containsKey('depth_m')
         ? v['depth_m'] as double?
         : current.depth;
-    if (v['t_s'] case final int moved when !v.containsKey('depth_m')) {
-      final profile = (await _r.dives.getDiveById(diveId))?.profile ?? const [];
-      if (profile.isNotEmpty) depth = profileDepthAt(profile, moved);
-    }
     final next = GasSwitch(
       id: id,
       diveId: diveId,
@@ -184,10 +204,7 @@ class GasSwitchWrites extends WritableEntry {
     final computer = (await _dive(diveId))?.computer;
     return [
       for (final s in await _r.dives.getGasSwitchesForDive(diveId))
-        if (computer == null
-            ? s.gasSwitch.computerId == null
-            : s.gasSwitch.appliesTo(computer))
-          s.gasSwitch,
+        if (s.gasSwitch.shownInEditor(computer)) s.gasSwitch,
     ];
   }
 

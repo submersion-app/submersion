@@ -44,6 +44,15 @@ class ScenarioWrites extends WritableEntry {
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
+    // The repository stores no notes as '' and reads them back as null, so
+    // a blank would be listed as a change it never makes.
+    if (check.values['notes'] case final String notes
+        when notes.trim().isEmpty) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'notes: send null to clear a scenario\'s notes.',
+      );
+    }
     final encoded = check.values['interventions'];
     if (encoded is! String) return null;
     final interventions = decodeInterventionList(encoded);

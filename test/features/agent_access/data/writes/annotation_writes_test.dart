@@ -131,4 +131,19 @@ void main() {
 
     expect(plan.items.last.block!.reason, BlockReason.referenceChanged);
   });
+
+  test('a create beside an update that leaves the Notes alone runs', () async {
+    final plan = await h.preview([
+      updateOp('dives', 'd1', {'boat_name': 'Marlin'}),
+      createOp('dive_events', {
+        'dive_id': 'd1',
+        't_s': 600,
+        'description': 'Turtle',
+      }),
+    ]);
+
+    expect(plan.items.last.block, isNull);
+    await h.apply(plan);
+    expect(await notes(), contains('Turtle'));
+  });
 }

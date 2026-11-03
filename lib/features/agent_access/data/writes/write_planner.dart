@@ -80,10 +80,10 @@ class _Pass {
   final _referenced = <(String, String)>{};
   final _versionedTables = <String, bool>{};
 
-  /// Records an update in the set changes, wherever it sits.
-  late final _updated = {
+  /// The fields each update in the set names, by record, wherever it sits.
+  late final _updatedFields = {
     for (final op in set.operations)
-      if (op is UpdateOp) (op.entity, op.id),
+      if (op is UpdateOp) (op.entity, op.id): op.fields.keys.toSet(),
   };
 
   late final _deleted = {

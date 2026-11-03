@@ -102,7 +102,15 @@ void main() {
       }),
     ]);
 
-    for (final plan in [badShape, shiftAndAbort, otherDive]) {
+    final blankNotes = await h.preview([
+      createOp('dive_scenarios', {
+        'dive_id': 'd1',
+        'name': 'Blank',
+        'notes': ' ',
+      }),
+    ]);
+
+    for (final plan in [badShape, shiftAndAbort, otherDive, blankNotes]) {
       expect(plan.items.single.block!.reason, BlockReason.invalidValue);
     }
   });

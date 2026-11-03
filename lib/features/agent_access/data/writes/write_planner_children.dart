@@ -220,16 +220,18 @@ extension _ChildRules on _Pass {
   }
 
   /// A block when a [kind] change of [entry] writes its parent and the set
-  /// also updates that parent.
+  /// also updates the same fields of that parent.
   PlanBlock? _parentWritten(
     WritableEntry entry,
     String? parentId,
     ChangeKind kind,
   ) {
     final parent = entry.parent;
+    final named = _updatedFields[(parent?.entity, parentId)];
     if (parent == null ||
         !entry.writesParent.contains(kind) ||
-        !_updated.contains((parent.entity, parentId))) {
+        named == null ||
+        named.intersection(entry.parentFieldsWritten).isEmpty) {
       return null;
     }
     return PlanBlock(

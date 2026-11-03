@@ -218,9 +218,13 @@ abstract class WritableEntry {
 
   /// The kinds of change to this record that also write its parent, as an
   /// annotation's create and delete rewrite its dive's Notes. Such a change
-  /// cannot share a set with an update of that parent: whichever ran second
-  /// would undo the other.
+  /// cannot share a set with an update of that parent that names one of
+  /// [parentFieldsWritten]: whichever ran second would undo the other.
   Set<ChangeKind> get writesParent => const {};
+
+  /// The parent's document keys a [writesParent] change writes, `notes`
+  /// for an annotation.
+  Set<String> get parentFieldsWritten => const {};
 
   /// Fields a create sets and an update may not change. A child's
   /// [ChildOf.field] is always one.
