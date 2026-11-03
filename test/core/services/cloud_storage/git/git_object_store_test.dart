@@ -61,7 +61,9 @@ void main() {
   });
 
   group('FileGitObjectStore', () {
-    tearDown(FileGitObjectStore.debugResetRenameForTest);
+    tearDown(() {
+      FileGitObjectStore.debugRename = null;
+    });
 
     test('survives a new instance on the same directory', () async {
       final dir = tempDirForTest('git_store_');
@@ -170,14 +172,14 @@ void main() {
       final store = FileGitObjectStore(dir);
       final object = _blob('rename-race-put');
 
-      FileGitObjectStore.debugSetRenameForTest((source, path) async {
+      FileGitObjectStore.debugRename = (source, path) async {
         await File(path).writeAsBytes(await source.readAsBytes(), flush: true);
         throw FileSystemException(
           'simulated race',
           source.path,
           const OSError('', 1),
         );
-      });
+      };
 
       await store.put(object);
 
@@ -196,7 +198,7 @@ void main() {
         final store = FileGitObjectStore(dir);
         final body = Uint8List.fromList(utf8.encode('rename-race-adopt'));
 
-        FileGitObjectStore.debugSetRenameForTest((source, path) async {
+        FileGitObjectStore.debugRename = (source, path) async {
           await File(
             path,
           ).writeAsBytes(await source.readAsBytes(), flush: true);
@@ -205,7 +207,7 @@ void main() {
             source.path,
             const OSError('', 1),
           );
-        });
+        };
 
         final writer = store.create(GitObjectType.blob, body.length);
         writer.add(body);
