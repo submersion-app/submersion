@@ -530,7 +530,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
           identical(relabeled, computer)) {
         // Nothing to write on the computer itself, but the connection
         // record may still hold an address from before (issue #4087).
-        await _recordConnection(computer, device, null);
+        await _recordConnection(computer, device);
         return;
       }
       // A digits-only report that matches a stored hex serial (the other
@@ -557,7 +557,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       // onto the wrong one. Only the call that still owns the field may
       // refresh it.
       if (identical(_computer, computer)) _computer = updated;
-      await _recordConnection(updated, device, address);
+      await _recordConnection(updated, device);
     } catch (e, stackTrace) {
       _log.error(
         'Device info persist failed for ${computer.displayName}',
@@ -577,7 +577,6 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   Future<void> _recordConnection(
     DiveComputer computer,
     DiscoveredDevice? device,
-    String? rebindAddress,
   ) async {
     final connections = _connections;
     if (device == null || connections == null) return;
@@ -585,7 +584,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       await connections.recordConnection(
         computerId: computer.id,
         kind: DiveComputerConnectionKind.fromDevice(device.connectionType),
-        address: rebindAddress ?? device.address,
+        address: device.address,
       );
     } catch (e, stackTrace) {
       _log.error(

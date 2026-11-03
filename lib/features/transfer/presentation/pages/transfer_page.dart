@@ -1,27 +1,19 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:submersion/features/dive_computer/presentation/navigation/dive_computer_location.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/router/app_router.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
-import 'package:submersion/features/dive_computer/presentation/widgets/auto_connect_global_switch.dart';
-import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/documents/presentation/helpers/document_export_flow.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/transfer/presentation/widgets/cloud_section_content.dart';
+import 'package:submersion/features/transfer/presentation/widgets/computers_section_content.dart';
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/inventory_report_sheet.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
@@ -85,9 +77,9 @@ class TransferPage extends ConsumerWidget {
       case 'export':
         return _ExportSectionContent(ref: ref);
       case 'computers':
-        return _ComputersSectionContent(ref: ref);
+        return const ComputersSectionContent();
       case 'cloud':
-        return _CloudSectionContent(ref: ref);
+        return const CloudSectionContent();
       default:
         return Center(
           child: Text(context.l10n.transfer_unknownSection(sectionId)),
@@ -161,9 +153,9 @@ class _TransferSectionDetailPage extends ConsumerWidget {
       case 'export':
         return _ExportSectionContent(ref: ref);
       case 'computers':
-        return _ComputersSectionContent(ref: ref);
+        return const ComputersSectionContent();
       case 'cloud':
-        return _CloudSectionContent(ref: ref);
+        return const CloudSectionContent();
       default:
         return Center(
           child: Text(context.l10n.transfer_unknownSection(sectionId)),
@@ -236,7 +228,7 @@ class _ImportSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(
+          transferSectionHeader(
             context,
             context.l10n.transfer_import_sectionHeader,
           ),
@@ -321,7 +313,7 @@ class _ExportSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(
+          transferSectionHeader(
             context,
             context.l10n.transfer_export_sectionHeader,
           ),
@@ -379,7 +371,7 @@ class _ExportSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSectionHeader(
+          transferSectionHeader(
             context,
             context.l10n.transfer_export_multiFormatHeader,
           ),
@@ -678,507 +670,6 @@ class _ExportSectionContent extends ConsumerWidget {
   }
 }
 
-/// Dive Computers section content
-class _ComputersSectionContent extends ConsumerStatefulWidget {
-  final WidgetRef ref;
-
-  const _ComputersSectionContent({required this.ref});
-
-  @override
-  ConsumerState<_ComputersSectionContent> createState() =>
-      _ComputersSectionContentState();
-}
-
-/// Hosts the passive auto-connect scan for as long as this section stays
-/// mounted and on top (issue #3361): `initState`/`dispose` cover entering
-/// and leaving the section itself (a sibling-section switch, or leaving
-/// Transfer entirely, really disposes this widget); `RouteAware` covers a
-/// child route (the discovery wizard, a computer detail page, the download
-/// page) being pushed on top and later popped, which leaves this widget
-/// mounted but hidden underneath, so `dispose()` never runs for that case.
-class _ComputersSectionContentState
-    extends ConsumerState<_ComputersSectionContent>
-    with RouteAware {
-  // Cached, not read fresh via `ref` each time: `dispose()` runs after
-  // Riverpod has already marked this element's `ref` unsafe to use
-  // ("Using ref when a widget is about to or has been unmounted"), so the
-  // notifier reference itself - not just the `activate()`/`deactivate()`
-  // calls - has to be captured while `ref` is still valid.
-  late final AutoConnectController _autoConnectController;
-
-  @override
-  void initState() {
-    super.initState();
-    _autoConnectController = ref.read(autoConnectControllerProvider.notifier);
-    // Deferred: Riverpod forbids modifying a provider's state while the
-    // widget tree is still building, which `activate()` does (it starts the
-    // scan and writes `isActive`).
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _autoConnectController.activate();
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of<void>(context);
-    if (route != null) {
-      computersRouteObserver.subscribe(this, route);
-    }
-  }
-
-  @override
-  void dispose() {
-    computersRouteObserver.unsubscribe(this);
-    _autoConnectController.release();
-    super.dispose();
-  }
-
-  @override
-  void didPushNext() {
-    // Right away, not deferred: `release()` sets no provider state, which is
-    // what `RouteObserver` dispatching this from inside the navigator's
-    // rebuild forbids, and waiting a frame would let a match open a download
-    // page over the page just pushed.
-    _autoConnectController.release();
-  }
-
-  @override
-  void didPopNext() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _autoConnectController.activate();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    ref.listen<AutoConnectState>(autoConnectControllerProvider, (
-      previous,
-      next,
-    ) {
-      final computer = next.justTriggered;
-      if (computer == null) return;
-      // The same page the computer's own download button opens: it imports
-      // the dives, which a bare download here would not.
-      context.push('/dive-computers/${computer.id}/download');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.l10n.transfer_computers_autoConnect_downloadingSnackbar(
-              computer.displayName,
-            ),
-          ),
-        ),
-      );
-      ref.read(autoConnectControllerProvider.notifier).clearTriggerFeedback();
-    });
-
-    final isScanning = ref.watch(
-      autoConnectControllerProvider.select((s) => s.isActive),
-    );
-    final computersAsync = ref.watch(allDiveComputersProvider);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final units = ref.watch(unitFormatterProvider);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Same installation-wide switch as the Dive Computers page (#1910)
-          const Card(
-            clipBehavior: Clip.antiAlias,
-            child: ClockSyncGlobalSwitch(),
-          ),
-          const SizedBox(height: 8),
-
-          const Card(
-            clipBehavior: Clip.antiAlias,
-            child: AutoConnectGlobalSwitch(),
-          ),
-          if (isScanning) ...[
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.l10n.transfer_computers_autoConnect_searching,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 8),
-
-          // Connect new computer
-          Card(
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => context.push('/dive-computers/discover'),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.bluetooth_searching,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.l10n.transfer_computers_connectTitle,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            context.l10n.transfer_computers_connectSubtitle,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Known computers list
-          computersAsync.when(
-            data: (computers) {
-              if (computers.isEmpty) return const SizedBox.shrink();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  _buildSectionHeader(
-                    context,
-                    context.l10n.transfer_computers_knownComputersHeader,
-                  ),
-                  const SizedBox(height: 8),
-                  ...computers.map(
-                    (computer) => _buildComputerCard(
-                      context,
-                      computer,
-                      theme,
-                      colorScheme,
-                      units,
-                    ),
-                  ),
-                ],
-              );
-            },
-            loading: () => const Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (_, _) => const SizedBox.shrink(),
-          ),
-
-          if (Platform.isIOS) ...[
-            const SizedBox(height: 16),
-            _buildSectionHeader(
-              context,
-              context.l10n.transfer_computers_appleWatchHeader,
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.watch),
-                title: Text(context.l10n.transfer_computers_appleWatchTitle),
-                subtitle: Text(
-                  context.l10n.transfer_computers_appleWatchSubtitle,
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/settings/wearable-import'),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildComputerCard(
-    BuildContext context,
-    DiveComputer computer,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    UnitFormatter units,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: () => context.push(diveComputerLocation(computer)),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: computer.isFavorite
-                      ? colorScheme.primaryContainer
-                      : colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  _getConnectionIcon(computer.connectionType),
-                  size: 20,
-                  color: computer.isFavorite
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            computer.displayName,
-                            style: theme.textTheme.titleSmall,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (computer.isFavorite)
-                          Icon(
-                            Icons.star,
-                            size: 16,
-                            color: colorScheme.primary,
-                          ),
-                      ],
-                    ),
-                    Text(
-                      computer.fullName,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.scuba_diving,
-                          size: 12,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          context.l10n.transfer_computers_diveCount(
-                            computer.diveCount,
-                          ),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          Icons.access_time,
-                          size: 12,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          formatLastDownload(
-                            context,
-                            computer.lastDownload,
-                            units: units,
-                          ),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () =>
-                    context.push('/dive-computers/${computer.id}/download'),
-                icon: const Icon(Icons.download, size: 20),
-                tooltip: context.l10n.transfer_computers_downloadTooltip,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  IconData _getConnectionIcon(String? connectionType) {
-    switch (connectionType?.toLowerCase()) {
-      case 'bluetooth':
-        return Icons.bluetooth;
-      case 'ble':
-        return Icons.bluetooth;
-      case 'usb':
-        return Icons.usb;
-      default:
-        return Icons.watch;
-    }
-  }
-}
-
-/// Cloud import section content.
-///
-/// Lists dive-computer manufacturer cloud accounts and online logbook
-/// services (divelogs.de) that dives can be imported from directly (no file
-/// export/transfer needed). Additional providers (Shearwater Cloud, etc.)
-/// get their own card here as they're added.
-class _CloudSectionContent extends ConsumerWidget {
-  final WidgetRef ref;
-
-  const _CloudSectionContent({required this.ref});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-            context,
-            context.l10n.transfer_section_cloudTitle,
-          ),
-          const SizedBox(height: 8),
-          _CloudProviderCard(
-            title: context.l10n.transfer_importCloud_suuntoTitle,
-            subtitle: context.l10n.transfer_importCloud_suuntoSubtitle,
-            icon: Icons.watch,
-            onTap: () => context.push('/transfer/import-cloud/suunto'),
-          ),
-          const SizedBox(height: 8),
-          _CloudProviderCard(
-            title: context.l10n.transfer_importCloud_garminTitle,
-            subtitle: context.l10n.transfer_importCloud_garminSubtitle,
-            icon: Icons.watch,
-            onTap: () => context.push('/transfer/import-cloud/garmin'),
-          ),
-          const SizedBox(height: 8),
-          _CloudProviderCard(
-            title: context.l10n.transfer_importCloud_divelogsTitle,
-            subtitle: context.l10n.transfer_importCloud_divelogsSubtitle,
-            icon: Icons.menu_book,
-            onTap: () => context.push('/transfer/import-cloud/divelogs'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A single tappable cloud-provider entry within [_CloudSectionContent].
-class _CloudProviderCard extends StatelessWidget {
-  const _CloudProviderCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: colorScheme.primary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Summary widget shown when no section is selected (desktop)
 class _TransferSummaryWidget extends StatelessWidget {
   const _TransferSummaryWidget();
@@ -1226,16 +717,6 @@ class _TransferSummaryWidget extends StatelessWidget {
 // ============================================================================
 // HELPER WIDGETS
 // ============================================================================
-
-Widget _buildSectionHeader(BuildContext context, String title) {
-  return Text(
-    title,
-    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-      color: Theme.of(context).colorScheme.primary,
-      fontWeight: FontWeight.bold,
-    ),
-  );
-}
 
 Widget _buildInfoCard(
   BuildContext context,

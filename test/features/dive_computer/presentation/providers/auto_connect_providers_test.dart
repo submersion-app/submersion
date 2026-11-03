@@ -1,7 +1,10 @@
+import 'dart:async';
+
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/providers/root_overlay_providers.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_providers.dart';
@@ -68,13 +71,44 @@ class _FakeDownloadNotifier extends DownloadNotifier {
   }
 }
 
+/// Starts nothing by itself: the test finishes each start, in any order.
+class _GatedDiscoveryNotifier extends DiscoveryNotifier {
+  _GatedDiscoveryNotifier(pigeon.DiveComputerService service)
+    : super(service: service);
+
+  final List<Completer<void>> starts = [];
+
+  @override
+  Future<void> startScan({Object? owner}) {
+    final start = Completer<void>();
+    starts.add(start);
+    return start.future;
+  }
+
+  @override
+  Future<void> stopScanOwnedBy(Object? owner) async {}
+}
+
+/// Lets a test lock and unlock the app, which the real one does from the
+/// lifecycle and the unlock form.
+class _FakeAppLock extends AppLockNotifier {
+  // ignore: use_setters_to_change_properties
+  void setLocked(bool locked) => state = locked;
+}
+
 DiveComputer _computer(
   String id, {
   String? bluetoothAddress,
+  String? manufacturer,
+  String? model,
+  String? connectionType,
   bool autoDownloadDisabled = false,
 }) => DiveComputer(
   id: id,
   name: 'Computer $id',
+  manufacturer: manufacturer,
+  model: model,
+  connectionType: connectionType,
   bluetoothAddress: bluetoothAddress,
   autoDownloadDisabled: autoDownloadDisabled,
   createdAt: DateTime(2026, 1, 1),
@@ -103,18 +137,28 @@ void main() {
     List<DiveComputer> computers = const [],
     bool autoConnectEnabled = true,
     bool failToReadComputers = false,
+    Duration modelMatchWindow = Duration.zero,
+    DiscoveryNotifier Function(pigeon.DiveComputerService service)? discovery,
   }) {
     hostApi = _FakeHostApi();
     downloadNotifier = _FakeDownloadNotifier();
+    final service = pigeon.DiveComputerService(hostApi: hostApi);
     final container = ProviderContainer(
       overrides: [
+        autoConnectControllerProvider.overrideWith(
+          (ref) => AutoConnectController(
+            ref: ref,
+            modelMatchWindow: modelMatchWindow,
+          ),
+        ),
+        appLockNotifierProvider.overrideWith(_FakeAppLock.new),
         // The real `discoveryNotifierProvider` watches this to build its
         // `DiscoveryNotifier`, so overriding the service - not the
         // notifier - keeps the production wiring intact while swapping in
         // a host API that never touches a platform channel.
-        diveComputerServiceProvider.overrideWithValue(
-          pigeon.DiveComputerService(hostApi: hostApi),
-        ),
+        diveComputerServiceProvider.overrideWithValue(service),
+        if (discovery != null)
+          discoveryNotifierProvider.overrideWith((ref) => discovery(service)),
         downloadNotifierProvider.overrideWith((ref) => downloadNotifier),
         allDiveComputersProvider.overrideWith((ref) async {
           if (failToReadComputers) throw StateError('database unavailable');
@@ -361,10 +405,11 @@ void main() {
     expect(hostApi.stopDiscoveryCalls, 1);
     expect(notifications, 0);
 
-    // Nothing left listening: an overlay closing afterwards must not
+    // Nothing left listening: the switch flipping afterwards must not
     // restart the scan.
-    container.read(rootOverlayActiveProvider.notifier).state = true;
-    container.read(rootOverlayActiveProvider.notifier).state = false;
+    final enabled = container.read(autoConnectKnownComputersProvider.notifier);
+    await enabled.setEnabled(false);
+    await enabled.setEnabled(true);
     await pumpEventQueue();
     expect(hostApi.startDiscoveryCalls, 1);
   });
@@ -514,38 +559,257 @@ void main() {
     expect(container.read(autoConnectControllerProvider).isActive, isTrue);
   });
 
-  group('root-navigator overlay guard (issue #3361, Task 4b)', () {
-    test('pauses the scan while a root overlay is active', () async {
+  test('a start that finishes after a newer one began says nothing about '
+      'the newer scan', () async {
+    late _GatedDiscoveryNotifier discovery;
+    final container = makeContainer(
+      computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+      discovery: (service) => discovery = _GatedDiscoveryNotifier(service),
+    );
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    controller.activate();
+    await pumpEventQueue();
+
+    controller.release();
+    controller.activate();
+    await pumpEventQueue();
+    expect(discovery.starts, hasLength(2));
+
+    // The first start ends, say on a refused prompt, with the second still
+    // waiting on its own.
+    discovery.starts.first.complete();
+    await pumpEventQueue();
+
+    expect(container.read(autoConnectControllerProvider).isActive, isTrue);
+  });
+
+  group('while the app is locked', () {
+    test('pauses the scan, and resumes on unlock', () async {
       final container = makeContainer(
         computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
       );
       final controller = container.read(autoConnectControllerProvider.notifier);
+      final lock =
+          container.read(appLockNotifierProvider.notifier) as _FakeAppLock;
       controller.activate();
       await pumpEventQueue();
       expect(hostApi.startDiscoveryCalls, 1);
 
-      container.read(rootOverlayActiveProvider.notifier).state = true;
+      lock.setLocked(true);
       await pumpEventQueue();
-
       expect(hostApi.stopDiscoveryCalls, 1);
       expect(container.read(autoConnectControllerProvider).isActive, isFalse);
+
+      lock.setLocked(false);
+      await pumpEventQueue();
+      expect(hostApi.startDiscoveryCalls, 2);
+      expect(container.read(autoConnectControllerProvider).isActive, isTrue);
     });
 
-    test('resumes once the root overlay clears', () async {
+    test('coming back to a locked section starts no scan', () async {
       final container = makeContainer(
         computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
       );
       final controller = container.read(autoConnectControllerProvider.notifier);
+      (container.read(appLockNotifierProvider.notifier) as _FakeAppLock)
+          .setLocked(true);
+
       controller.activate();
       await pumpEventQueue();
 
-      container.read(rootOverlayActiveProvider.notifier).state = true;
+      expect(hostApi.startDiscoveryCalls, 0);
+    });
+  });
+
+  group('computers a scan cannot find start none (no Bluetooth prompt)', () {
+    Future<int> startsFor(DiveComputer computer) async {
+      final container = makeContainer(computers: [computer]);
+      container.read(autoConnectControllerProvider.notifier).activate();
       await pumpEventQueue();
-      container.read(rootOverlayActiveProvider.notifier).state = false;
+      return hostApi.startDiscoveryCalls;
+    }
+
+    test('a USB computer', () async {
+      expect(
+        await startsFor(
+          _computer('c1', connectionType: 'usb', bluetoothAddress: 'COM3'),
+        ),
+        0,
+      );
+    });
+
+    test('a Bluetooth Classic computer', () async {
+      expect(
+        await startsFor(
+          _computer(
+            'c1',
+            connectionType: 'bluetoothClassic',
+            bluetoothAddress: 'AA:BB',
+          ),
+        ),
+        0,
+      );
+    });
+
+    test('a file-imported record, with a model but no transport', () async {
+      expect(
+        await startsFor(
+          _computer('c1', manufacturer: 'Shearwater', model: 'Perdix'),
+        ),
+        0,
+      );
+    });
+
+    test('a Garmin saved on another device', () async {
+      expect(
+        await startsFor(
+          _computer(
+            'c1',
+            manufacturer: 'Garmin',
+            model: 'Descent Mk3',
+            connectionType: 'bluetooth',
+          ),
+        ),
+        0,
+      );
+    });
+
+    test('whereas a computer saved on another device, with no address here, '
+        'is searched for by model', () async {
+      expect(
+        await startsFor(
+          _computer(
+            'c1',
+            manufacturer: 'Shearwater',
+            model: 'Perdix',
+            connectionType: 'bluetooth',
+          ),
+        ),
+        1,
+      );
+    });
+  });
+
+  group('matching by make and model', () {
+    DiveComputer perdix(String id, String address, {bool optedOut = false}) =>
+        _computer(
+          id,
+          bluetoothAddress: address,
+          manufacturer: 'Shearwater',
+          model: 'Perdix',
+          connectionType: 'bluetooth',
+          autoDownloadDisabled: optedOut,
+        );
+
+    test('a computer whose address rotated is found once the window has '
+        'passed, not on the first sighting', () {
+      fakeAsync((async) {
+        final container = makeContainer(
+          computers: [perdix('c1', 'OLD')],
+          modelMatchWindow: const Duration(seconds: 15),
+        );
+        container.read(autoConnectControllerProvider.notifier).activate();
+        async.flushMicrotasks();
+
+        container
+            .read(diveComputerServiceProvider)
+            .onDeviceDiscovered(_advert('NEW'));
+        async.elapse(const Duration(seconds: 14));
+        expect(requested, isEmpty);
+
+        async.elapse(const Duration(seconds: 1));
+        expect(requested, ['c1']);
+      });
+    });
+
+    test('a window cut short matches nothing by model', () {
+      fakeAsync((async) {
+        final container = makeContainer(
+          computers: [perdix('c1', 'OLD')],
+          modelMatchWindow: const Duration(seconds: 15),
+        );
+        container.read(autoConnectControllerProvider.notifier).activate();
+        async.flushMicrotasks();
+
+        final service = container.read(diveComputerServiceProvider);
+        service.onDeviceDiscovered(_advert('NEW'));
+        async.elapse(const Duration(seconds: 1));
+        service.onDiscoveryComplete();
+        async.elapse(const Duration(seconds: 20));
+
+        expect(requested, isEmpty);
+      });
+    });
+
+    test('the exact address wins whichever computer comes first', () async {
+      final container = makeContainer(
+        computers: [perdix('other', 'BB'), perdix('mine', 'AA')],
+      );
+      container.read(autoConnectControllerProvider.notifier).activate();
       await pumpEventQueue();
 
-      expect(hostApi.startDiscoveryCalls, 2);
-      expect(container.read(autoConnectControllerProvider).isActive, isTrue);
+      container
+          .read(diveComputerServiceProvider)
+          .onDeviceDiscovered(_advert('AA'));
+      await pumpEventQueue();
+
+      expect(requested, ['mine']);
+    });
+
+    test('a device accounted for by its address does not count against the '
+        'one device left of that model', () async {
+      final container = makeContainer(
+        computers: [
+          perdix('rotated', 'OLD'),
+          perdix('out', 'AA', optedOut: true),
+        ],
+      );
+      container.read(autoConnectControllerProvider.notifier).activate();
+      await pumpEventQueue();
+
+      final service = container.read(diveComputerServiceProvider);
+      service.onDeviceDiscovered(_advert('AA'));
+      service.onDeviceDiscovered(_advert('NEW'));
+      await pumpEventQueue();
+
+      expect(requested, ['rotated']);
+    });
+
+    test("an opted-out computer's device stands in for no other", () async {
+      final container = makeContainer(
+        computers: [perdix('other', 'BB'), perdix('out', 'AA', optedOut: true)],
+      );
+      container.read(autoConnectControllerProvider.notifier).activate();
+      await pumpEventQueue();
+
+      container
+          .read(diveComputerServiceProvider)
+          .onDeviceDiscovered(_advert('AA'));
+      await pumpEventQueue();
+
+      expect(requested, isEmpty);
+    });
+
+    test("a computer already opened: its device stands in for no other when "
+        'the diver comes back', () async {
+      final container = makeContainer(
+        computers: [perdix('other', 'BB'), perdix('mine', 'AA')],
+      );
+      final controller = container.read(autoConnectControllerProvider.notifier);
+      final service = container.read(diveComputerServiceProvider);
+      controller.activate();
+      await pumpEventQueue();
+      service.onDeviceDiscovered(_advert('AA'));
+      await pumpEventQueue();
+      expect(requested, ['mine']);
+
+      controller.release();
+      controller.activate();
+      await pumpEventQueue();
+      service.onDeviceDiscovered(_advert('AA'));
+      await pumpEventQueue();
+
+      expect(requested, ['mine']);
     });
   });
 }

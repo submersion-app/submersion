@@ -3,7 +3,6 @@
 
 #include <flutter/binary_messenger.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter/plugin_registrar_windows.h>
 #include <windows.h>
 
 #include <atomic>
@@ -31,7 +30,7 @@ namespace libdivecomputer_plugin {
 class DiveComputerHostApiImpl : public DiveComputerHostApi,
                                 public flutter::Plugin {
  public:
-  explicit DiveComputerHostApiImpl(flutter::PluginRegistrarWindows* registrar);
+  explicit DiveComputerHostApiImpl(flutter::BinaryMessenger* messenger);
   ~DiveComputerHostApiImpl() override;
 
   void GetDeviceDescriptors(

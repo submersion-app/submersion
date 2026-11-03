@@ -288,6 +288,12 @@ overlap with `initState`/`dispose`, which already cover that case.
 
 ### Task 4b: Guard against root-navigator overlays (added 2026-10-31, second cross-examination)
 
+**Superseded in review:** the flag below missed anything not listed, such as a
+dropped buddy card or a plain dialog. The section now subscribes its
+`RouteAware` to the shell's route on the root navigator as well, which covers
+every root push with no call site to remember, so `rootOverlayActiveProvider`
+is gone.
+
 **Why this is needed:** Verified against the go_router 17.5.0 source
 (`route.dart`): `GoRouter.observers` are merged into every `ShellRoute`'s
 nested `Navigator` by default (`notifyRootObserver: true`, not overridden

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -232,9 +234,13 @@ void main() {
     /// push/pop pause-resume path, so only it pays for the extra route.
     /// [computers] defaults to one known Bluetooth computer: with none the
     /// section never scans at all.
+    ///
+    /// [rootNavigatorKey] puts the section inside a shell, with this key on
+    /// the root navigator above it, as the app does.
     Future<GoRouter> pumpWithRouteObserver(
       WidgetTester tester, {
       List<DiveComputer>? computers,
+      GlobalKey<NavigatorState>? rootNavigatorKey,
     }) async {
       final known =
           computers ?? [computer(bluetoothAddress: 'AA:BB:CC:DD:EE:FF')];
@@ -243,28 +249,37 @@ void main() {
 
       hostApi = _FakeHostApi();
       service = pigeon.DiveComputerService(hostApi: hostApi);
+      final routes = [
+        GoRoute(
+          path: '/transfer',
+          builder: (context, state) => const TransferPage(),
+          routes: [
+            GoRoute(
+              path: 'second',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Second page')),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/dive-computers/:id/download',
+          builder: (context, state) => Scaffold(
+            body: Text('Download page ${state.pathParameters['id']}'),
+          ),
+        ),
+      ];
       final router = GoRouter(
+        navigatorKey: rootNavigatorKey,
         initialLocation: '/transfer?selected=computers',
         observers: [computersRouteObserver],
-        routes: [
-          GoRoute(
-            path: '/transfer',
-            builder: (context, state) => const TransferPage(),
-            routes: [
-              GoRoute(
-                path: 'second',
-                builder: (context, state) =>
-                    const Scaffold(body: Text('Second page')),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: '/dive-computers/:id/download',
-            builder: (context, state) => Scaffold(
-              body: Text('Download page ${state.pathParameters['id']}'),
-            ),
-          ),
-        ],
+        routes: rootNavigatorKey == null
+            ? routes
+            : [
+                ShellRoute(
+                  builder: (context, state, child) => child,
+                  routes: routes,
+                ),
+              ],
       );
 
       await tester.pumpWidget(
@@ -307,6 +322,95 @@ void main() {
       router.pop();
       await pumpBriefly(tester);
       expect(hostApi.startDiscoveryCalls, 2);
+    });
+
+    testWidgets('a dialog on the root navigator above the shell pauses it '
+        'too, and resumes it once closed', (tester) async {
+      final rootKey = GlobalKey<NavigatorState>();
+      await pumpWithRouteObserver(tester, rootNavigatorKey: rootKey);
+      expect(hostApi.startDiscoveryCalls, 1);
+
+      unawaited(
+        showDialog<void>(
+          context: rootKey.currentContext!,
+          builder: (context) => const AlertDialog(title: Text('Over it all')),
+        ),
+      );
+      await pumpBriefly(tester);
+      expect(hostApi.stopDiscoveryCalls, 1);
+
+      rootKey.currentState!.pop();
+      await pumpBriefly(tester);
+      expect(hostApi.startDiscoveryCalls, 2);
+    });
+
+    testWidgets('closing what covers the shell leaves the scan paused while '
+        'a page still covers the section', (tester) async {
+      final rootKey = GlobalKey<NavigatorState>();
+      final router = await pumpWithRouteObserver(
+        tester,
+        rootNavigatorKey: rootKey,
+      );
+
+      router.push('/transfer/second');
+      await pumpBriefly(tester);
+      unawaited(
+        showDialog<void>(
+          context: rootKey.currentContext!,
+          builder: (context) => const AlertDialog(title: Text('Over it all')),
+        ),
+      );
+      await pumpBriefly(tester);
+
+      rootKey.currentState!.pop();
+      await pumpBriefly(tester);
+      expect(hostApi.startDiscoveryCalls, 1);
+
+      router.pop();
+      await pumpBriefly(tester);
+      expect(hostApi.startDiscoveryCalls, 2);
+    });
+
+    testWidgets('stops with the app out of the foreground, and starts again '
+        'when it returns', (tester) async {
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      await pumpWithRouteObserver(tester);
+      expect(hostApi.startDiscoveryCalls, 1);
+
+      // A permission prompt or a window losing focus is not leaving.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await pumpBriefly(tester);
+      expect(hostApi.stopDiscoveryCalls, 0);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      await pumpBriefly(tester);
+      expect(hostApi.stopDiscoveryCalls, 1);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await pumpBriefly(tester);
+      expect(hostApi.startDiscoveryCalls, 2);
+    });
+
+    testWidgets('the app returning does not start a scan under a covering '
+        'page', (tester) async {
+      addTearDown(
+        () => tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        ),
+      );
+      final router = await pumpWithRouteObserver(tester);
+      router.push('/transfer/second');
+      await pumpBriefly(tester);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await pumpBriefly(tester);
+
+      expect(hostApi.startDiscoveryCalls, 1);
     });
 
     testWidgets('leaving the section stops the scan without modifying a '

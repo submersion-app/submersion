@@ -13,7 +13,7 @@ void LibdivecomputerPluginCApiRegisterWithRegistrar(
 
   auto host_api =
       std::make_unique<libdivecomputer_plugin::DiveComputerHostApiImpl>(
-          plugin_registrar);
+          plugin_registrar->messenger());
 
   libdivecomputer_plugin::DiveComputerHostApi::SetUp(
       plugin_registrar->messenger(), host_api.get());

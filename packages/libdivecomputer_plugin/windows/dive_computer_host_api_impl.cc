@@ -29,11 +29,9 @@ constexpr UINT kRunPendingTasksMessage = WM_APP;
 namespace libdivecomputer_plugin {
 
 DiveComputerHostApiImpl::DiveComputerHostApiImpl(
-    flutter::PluginRegistrarWindows* registrar)
+    flutter::BinaryMessenger* messenger)
     : flutter_api_(
-          std::make_unique<DiveComputerFlutterApi>(registrar->messenger())) {
-    NativeLogger::SetFlutterApi(flutter_api_.get());
-
+          std::make_unique<DiveComputerFlutterApi>(messenger)) {
     // Registration runs on the platform thread, so this window, and every
     // message posted to it, belongs to that thread's message loop.
     HINSTANCE instance = GetModuleHandle(nullptr);
@@ -51,8 +49,14 @@ DiveComputerHostApiImpl::DiveComputerHostApiImpl(
     if (dispatch_window_) {
         SetWindowLongPtrW(dispatch_window_, GWLP_USERDATA,
                           reinterpret_cast<LONG_PTR>(this));
-    } else {
-        NativeLogger::Error("PLUGIN",
+    }
+
+    NativeLogger::SetFlutterApi(
+        flutter_api_.get(), [this](std::function<void()> task) {
+            PostToPlatformThread(std::move(task));
+        });
+    if (!dispatch_window_) {
+        NativeLogger::Error("APP",
                             "Could not create the dispatch window; callbacks "
                             "will run on the calling thread");
     }

@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/providers/root_overlay_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
@@ -63,11 +64,23 @@ class AutoConnectState {
 /// download started here directly would never reach the logbook.
 /// [activate] and [release] are called directly by the hosting widget - not
 /// left to Riverpod's own dispose - because they must also react to a route
-/// being pushed on top and popped back, not just widget mount/unmount.
+/// covering the section and to the app leaving the foreground, not just
+/// widget mount/unmount.
 class AutoConnectController extends StateNotifier<AutoConnectState> {
-  AutoConnectController({required Ref ref})
-    : _ref = ref,
-      super(const AutoConnectState());
+  AutoConnectController({
+    required Ref ref,
+    this.modelMatchWindow = defaultModelMatchWindow,
+  }) : _ref = ref,
+       super(const AutoConnectState());
+
+  /// As long as the download page's own search by make and model.
+  static const defaultModelMatchWindow = Duration(seconds: 15);
+
+  /// How long a scan runs before a computer can match by make and model.
+  /// Only a scan that ran this long can say that one device of a model is
+  /// nearby: on the first sighting, a buddy's computer of the same model
+  /// would open this diver's page and use up its one trigger of the visit.
+  final Duration modelMatchWindow;
 
   final Ref _ref;
 
@@ -76,10 +89,18 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
   /// controller released there has to start again on its next [activate].
   bool _active = false;
 
+  /// Which scan start is the current one: a start that finishes after a
+  /// newer one began says nothing about the newer scan.
+  int _scanRun = 0;
+
+  /// Whether the current scan has run for [modelMatchWindow].
+  bool _modelMatchOpen = false;
+  Timer? _modelMatchTimer;
+
   ProviderSubscription<bool>? _scanningSubscription;
   ProviderSubscription<List<DiscoveredDevice>>? _devicesSubscription;
   ProviderSubscription<bool>? _downloadingSubscription;
-  ProviderSubscription<bool>? _overlaySubscription;
+  ProviderSubscription<bool>? _lockSubscription;
   ProviderSubscription<bool>? _switchSubscription;
   ProviderSubscription<AsyncValue<List<DiveComputer>>>? _computersSubscription;
 
@@ -87,11 +108,10 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
   /// computer can be auto-downloaded. Safe to call repeatedly (coming back
   /// from a covering page is another `activate()` call).
   void activate() {
-    _overlaySubscription ??= _ref.listen(rootOverlayActiveProvider, (
-      _,
-      isOverlayActive,
-    ) {
-      if (isOverlayActive) {
+    // The lock barrier is no route, so the hosting widget's `RouteAware`
+    // never sees it, and a page opened behind it would hide any PIN prompt.
+    _lockSubscription ??= _ref.listen(appLockNotifierProvider, (_, isLocked) {
+      if (isLocked) {
         _pause();
       } else {
         _resume();
@@ -104,10 +124,10 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       _,
       isEnabled,
     ) {
-      if (!isEnabled) {
-        _pause();
-      } else if (!_ref.read(rootOverlayActiveProvider)) {
+      if (isEnabled) {
         _resume();
+      } else {
+        _pause();
       }
     });
 
@@ -123,23 +143,23 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       });
     });
 
-    if (!_ref.read(rootOverlayActiveProvider)) _resume();
+    _resume();
     // [release] leaves the shown state as it was; bring it in line now, or
     // "Searching..." would keep spinning without a scan behind it.
     if (!_active && state.isActive) state = state.copyWith(isActive: false);
   }
 
-  /// For a page covering the section and for the hosting widget's
-  /// `dispose()`: closes every listener and stops this controller's own
-  /// scan, but never sets [state]. A page is pushed from inside the
-  /// navigator's rebuild and `dispose()` runs while the tree is torn down,
-  /// both places where Riverpod rejects a provider change. Closing the
-  /// listeners right away also keeps a match from opening a download page
-  /// over the page just pushed; [activate] sets them up again.
+  /// For a route covering the section, the app leaving the foreground and
+  /// the hosting widget's `dispose()`: closes every listener and stops this
+  /// controller's own scan, but never sets [state]. A page is pushed from
+  /// inside the navigator's rebuild and `dispose()` runs while the tree is
+  /// torn down, both places where Riverpod rejects a provider change.
+  /// Closing the listeners right away also keeps a match from opening a
+  /// download page over the page just pushed; [activate] sets them up again.
   void release() {
     _closeScanListeners();
-    _overlaySubscription?.close();
-    _overlaySubscription = null;
+    _lockSubscription?.close();
+    _lockSubscription = null;
     _switchSubscription?.close();
     _switchSubscription = null;
     _computersSubscription?.close();
@@ -165,7 +185,7 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       // A computer added or opted back in may be one whose device the scan
       // already found, which produces no new scan event of its own.
       _tryTriggerNextMatch();
-    } else if (!_ref.read(rootOverlayActiveProvider)) {
+    } else {
       _resume();
     }
   }
@@ -179,11 +199,13 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
 
   void _resume() {
     if (_active) return;
+    if (_ref.read(appLockNotifierProvider)) return;
     if (!_ref.read(autoConnectKnownComputersProvider)) return;
     final computers = _ref.read(allDiveComputersProvider).valueOrNull;
     if (computers == null || !_hasEligibleComputer(computers)) return;
 
     _active = true;
+    final run = ++_scanRun;
     unawaited(
       _ref.read(discoveryNotifierProvider.notifier).startScan(owner: this).then(
         (_) {
@@ -193,6 +215,7 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
           // and the next resume would be refused.
           if (mounted &&
               _active &&
+              run == _scanRun &&
               !_ref.read(discoveryNotifierProvider).isScanning) {
             _onOwnScanEnded();
           }
@@ -217,6 +240,11 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       if (wasDownloading == true && isDownloading == false) {
         _scheduleMatch();
       }
+    });
+
+    _modelMatchTimer = Timer(modelMatchWindow, () {
+      _modelMatchOpen = true;
+      _scheduleMatch();
     });
 
     state = state.copyWith(isActive: true);
@@ -252,19 +280,27 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     _devicesSubscription = null;
     _downloadingSubscription?.close();
     _downloadingSubscription = null;
+    _modelMatchTimer?.cancel();
+    _modelMatchTimer = null;
+    _modelMatchOpen = false;
   }
 
   /// Stops the scan only if this controller started it, so a scan the
   /// wizard or a download page runs keeps running.
   void _stopOwnScan() {
     _active = false;
-    unawaited(
+    logFailure(
       _ref.read(discoveryNotifierProvider.notifier).stopScanOwnedBy(this),
+      AutoConnectController,
+      'stop the auto-connect scan',
     );
   }
 
+  static bool _isEligible(DiveComputer computer) =>
+      !computer.autoDownloadDisabled && canFindByScan(computer);
+
   static bool _hasEligibleComputer(List<DiveComputer> computers) =>
-      computers.any((computer) => !computer.autoDownloadDisabled);
+      computers.any(_isEligible);
 
   /// Consumed by the widget right after it shows the "Downloading from
   /// `name`..." feedback for [AutoConnectState.justTriggered].
@@ -308,41 +344,61 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     _pause();
   }
 
-  /// The eligible computer whose device appears earliest in [discovered],
-  /// which `DiscoveryNotifier` keeps in the order the devices were found.
+  /// The computer to open next: the one whose device appears earliest in
+  /// [discovered], which `DiscoveryNotifier` keeps in the order the devices
+  /// were found.
+  ///
+  /// Every known computer claims the device at its stored address first,
+  /// even one that cannot be opened now: that device is accounted for, and
+  /// must not stand in for another computer of the same model. What is left
+  /// goes to the manufacturer/model fallback the manual flow uses for a
+  /// computer whose address rotated or never synced to this device (issue
+  /// #1423, #3710), once [modelMatchWindow] has passed.
   DiveComputer? _firstMatchInDiscoveryOrder(
     List<DiveComputer> computers,
     List<DiscoveredDevice> discovered,
   ) {
-    final byDevice = Map<DiscoveredDevice, DiveComputer>.identity();
+    final owners = Map<DiscoveredDevice, DiveComputer>.identity();
     for (final computer in computers) {
-      if (state.triggeredComputerIds.contains(computer.id)) continue;
-      if (computer.autoDownloadDisabled) continue;
-      final device = _resolveDevice(computer, discovered);
-      if (device != null) byDevice.putIfAbsent(device, () => computer);
+      final address = computer.bluetoothAddress;
+      if (address == null) continue;
+      for (final device in discovered) {
+        if (bluetoothAddressesMatch(device.address, address)) {
+          owners.putIfAbsent(device, () => computer);
+        }
+      }
     }
+
+    if (_modelMatchOpen) {
+      final unclaimed = [
+        for (final device in discovered)
+          if (!owners.containsKey(device)) device,
+      ];
+      for (final computer in computers) {
+        if (!_canOpen(computer) || owners.containsValue(computer)) continue;
+        final device = sameModelFallbackDevice(
+          computer: computer,
+          discovered: unclaimed,
+        );
+        if (device != null) owners.putIfAbsent(device, () => computer);
+      }
+    }
+
     for (final device in discovered) {
-      final computer = byDevice[device];
-      if (computer != null) return computer;
+      final computer = owners[device];
+      if (computer != null && _canOpen(computer)) return computer;
     }
     return null;
   }
 
-  /// Resolves the discovered device for [computer]: an exact Bluetooth
-  /// address match first, then the same manufacturer/model fallback the
-  /// manual flow uses for a computer whose address rotated or never synced
-  /// to this device (issue #1423, #3710).
-  DiscoveredDevice? _resolveDevice(
-    DiveComputer computer,
-    List<DiscoveredDevice> discovered,
-  ) {
-    final address = computer.bluetoothAddress;
-    if (address != null) {
-      for (final device in discovered) {
-        if (bluetoothAddressesMatch(device.address, address)) return device;
-      }
-    }
-    return sameModelFallbackDevice(computer: computer, discovered: discovered);
+  bool _canOpen(DiveComputer computer) =>
+      _isEligible(computer) &&
+      !state.triggeredComputerIds.contains(computer.id);
+
+  @override
+  void dispose() {
+    _modelMatchTimer?.cancel();
+    super.dispose();
   }
 
   static final LoggerService _log = LoggerService.forClass(
@@ -350,8 +406,9 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
   );
 }
 
-/// `autoDispose` so leaving the Transfer tab entirely tears this down even
-/// if the hosting widget somehow failed to call `release()`.
+/// `autoDispose` so the computers opened during a visit are forgotten once
+/// nothing shows the section: the next visit re-arms every one of them. The
+/// scan itself is stopped by the hosting widget, through `release()`.
 final autoConnectControllerProvider =
     StateNotifierProvider.autoDispose<AutoConnectController, AutoConnectState>(
       (ref) => AutoConnectController(ref: ref),

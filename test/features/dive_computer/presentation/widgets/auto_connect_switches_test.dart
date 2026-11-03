@@ -56,6 +56,20 @@ void main() {
     expect(container.read(autoConnectKnownComputersProvider), isFalse);
   });
 
+  testWidgets('the switch is announced by its title, as a SwitchListTile '
+      'is (issue #4005)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(_host(const AutoConnectGlobalSwitch()));
+
+    expect(
+      tester.getSemantics(
+        find.byKey(const ValueKey('auto_connect_known_computers_switch')),
+      ),
+      isSemantics(label: 'Auto-connect known computers', isToggled: true),
+    );
+    semantics.dispose();
+  });
+
   testWidgets('DiveComputerAutoDownloadCard saves the per-computer opt-out '
       '(issue #3361)', (tester) async {
     final notifier = _RecordingDiveComputerNotifier();

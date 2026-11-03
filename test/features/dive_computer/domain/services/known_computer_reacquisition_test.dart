@@ -47,6 +47,58 @@ DiscoveredDevice _device(
 );
 
 void main() {
+  group('canFindByScan', () {
+    DiveComputer computer({
+      String? manufacturer = 'Shearwater',
+      String? model = 'Perdix',
+      String? connectionType = 'bluetooth',
+      String? address,
+    }) => DiveComputer(
+      id: 'dc-1',
+      name: 'Perdix',
+      manufacturer: manufacturer,
+      model: model,
+      connectionType: connectionType,
+      bluetoothAddress: address,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test('a BLE computer with an address', () {
+      expect(canFindByScan(computer(address: 'AA')), isTrue);
+    });
+
+    test('a record from before the type was written, with an address', () {
+      expect(
+        canFindByScan(computer(connectionType: null, address: 'AA')),
+        isTrue,
+      );
+    });
+
+    test('a BLE computer saved elsewhere, by its make and model', () {
+      expect(canFindByScan(computer()), isTrue);
+    });
+
+    test('not one with neither an address nor a model to look for', () {
+      expect(canFindByScan(computer(model: null)), isFalse);
+      expect(canFindByScan(computer(manufacturer: 'Garmin')), isFalse);
+    });
+
+    test('not a file-imported record, which has no type', () {
+      expect(canFindByScan(computer(connectionType: null)), isFalse);
+    });
+
+    test('not another transport, even with an address', () {
+      for (final type in ['usb', 'bluetoothClassic', 'infrared', 'cloud']) {
+        expect(
+          canFindByScan(computer(connectionType: type, address: 'AA')),
+          isFalse,
+          reason: type,
+        );
+      }
+    });
+  });
+
   // Issue #1423: a saved Ratio iX3M on iPhone stopped downloading once the
   // CoreBluetooth identifier stored as its address changed. The scan saw the
   // computer under its new identifier but only an exact address match was

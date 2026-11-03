@@ -28,8 +28,8 @@ class DiveComputerAutoDownloadCard extends ConsumerWidget {
           style: theme.textTheme.titleMedium,
         ),
         subtitle: Text(l10n.diveComputer_autoDownload_disableSubtitle),
-        // Inverted: the switch reads as "skip this computer", the field
-        // stores "is disabled" - same polarity, so no extra negation here.
+        // Same polarity: the switch reads as "skip this computer" and the
+        // field stores "is disabled", so neither side negates.
         value: computer.autoDownloadDisabled,
         onChanged: (value) => ref
             .read(diveComputerNotifierProvider.notifier)

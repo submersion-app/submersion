@@ -24,8 +24,8 @@ starts the download on its own.
 **In scope:**
 
 - Auto-scan active only while the Dive Computers section of the Transfer tab
-  is the visible screen (`_ComputersSectionContent`,
-  `lib/features/transfer/presentation/pages/transfer_page.dart:615`).
+  is the visible screen (`ComputersSectionContent`,
+  `lib/features/transfer/presentation/widgets/computers_section_content.dart`).
 - Auto-connect and auto-download when a scan match is found for an existing
   `DiveComputer` record.
 - A global on/off switch for this behavior, presented in the Dive Computers
@@ -76,17 +76,25 @@ starts the download on its own.
 ## Behavior
 
 1. The diver opens Transfer -> Dive Computers
-   (`_ComputersSectionContent`).
+   (`ComputersSectionContent`).
 2. If the global auto-scan switch is on, a passive BLE scan starts
    automatically - no tap needed. A small inline indicator shows that a scan
    is running (distinct from the existing "Connect new computer" wizard,
    which keeps its own explicit, user-initiated scan). With no known
    computer that can be auto-downloaded there is no scan at all, so a
-   diver who has none is never asked for Bluetooth access here.
+   diver who has none is never asked for Bluetooth access here. A computer
+   can be auto-downloaded when a BLE scan can find it, the same reach the
+   download page has: a USB, Bluetooth Classic, cloud or file-imported
+   record does not count.
 3. Each scan result is matched against the stored `DiveComputer` records
-   using the existing reacquisition matcher. A match that belongs to a
-   computer with auto-download opted out is ignored for this purpose (it
-   still shows up for manual download as today).
+   using the existing reacquisition matcher. A device at a computer's
+   stored address is that computer's, even if it cannot be opened now, and
+   stands in for no other. Any other device can match by make and model
+   only once the scan has run for 15 seconds, the window the download page
+   searches for, since nothing shorter can say that one device of a model
+   is nearby. A match that belongs to a computer with auto-download opted
+   out is ignored for this purpose (it still shows up for manual download
+   as today).
 4. On a match that is not opted out: open that computer's download page
    automatically (`/dive-computers/<id>/download`, the page its own
    "Download dives" button opens), and surface a snackbar/toast
@@ -107,7 +115,9 @@ starts the download on its own.
    progress when a match would otherwise trigger, the automatic trigger is
    suppressed for that cycle rather than interrupting the manual action.
 7. Leaving the Dive Computers section (navigating elsewhere in the app)
-   stops the passive scan.
+   stops the passive scan. So does anything covering it, on the shell's
+   navigator or the root one, the app locking, and the app leaving the
+   foreground; the scan starts again once the section is back in front.
 
 ---
 

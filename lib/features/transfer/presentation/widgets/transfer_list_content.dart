@@ -52,6 +52,17 @@ final transferSections = [
   ),
 ];
 
+/// The small heading over a group of cards in a Transfer section.
+Widget transferSectionHeader(BuildContext context, String title) {
+  return Text(
+    title,
+    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+      color: Theme.of(context).colorScheme.primary,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+}
+
 /// Content widget for the transfer section list, used in master-detail layout.
 class TransferListContent extends StatelessWidget {
   final void Function(String?)? onItemSelected;

@@ -59,6 +59,43 @@ bool canFindByModel(DiveComputer computer) {
       _normalize(computer.model).isNotEmpty;
 }
 
+/// The transport a saved computer's connection type names, or null for
+/// one the app cannot reopen directly, such as `cloud`. Every other value
+/// used to fall back to BLE, which dialed a cloud computer's stale address
+/// over Bluetooth (issue #3106). A missing type still means BLE: records
+/// saved before the type was always written carry an address and no type.
+DeviceConnectionType? storedConnectionType(String? type) {
+  switch (type?.toLowerCase()) {
+    case null:
+    case 'bluetooth':
+    case 'ble':
+      return DeviceConnectionType.ble;
+    case 'bluetoothclassic':
+      return DeviceConnectionType.bluetoothClassic;
+    case 'usb':
+      return DeviceConnectionType.usb;
+    case 'infrared':
+      return DeviceConnectionType.infrared;
+    default:
+      return null;
+  }
+}
+
+/// Whether a BLE scan can find [computer] again: it is saved as a BLE
+/// computer and either holds an address on this device or can be looked for
+/// by make and model. The same reach the saved-computer download has, so a
+/// USB, Bluetooth Classic, cloud or file-imported record never starts one.
+/// A missing type alone is no evidence of Bluetooth, since a file-imported
+/// record has neither a type nor an address.
+bool canFindByScan(DiveComputer computer) {
+  if (storedConnectionType(computer.connectionType) !=
+      DeviceConnectionType.ble) {
+    return false;
+  }
+  return computer.bluetoothAddress != null ||
+      (computer.connectionType != null && canFindByModel(computer));
+}
+
 bool _isBluetooth(DiscoveredDevice device) =>
     device.connectionType == DeviceConnectionType.ble ||
     device.connectionType == DeviceConnectionType.bluetoothClassic;

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/router/back_navigation.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -151,6 +153,11 @@ class _UnifiedImportWizardBodyState
   /// The step whose `onBeforeAdvance` is running, if any.
   WizardStepDef? _advancingStep;
 
+  /// Set for a dive computer import, whose scan runs on through the connect
+  /// (issue #3369), past the steps that started it, so the wizard stops it
+  /// as it closes (issue #4088). Cached because [ref] is unsafe in [dispose].
+  DiscoveryNotifier? _discovery;
+
   static const _log = LoggerService('UnifiedImportWizard');
 
   List<WizardStepDef> get _acquisitionSteps => widget.adapter.acquisitionSteps;
@@ -167,6 +174,7 @@ class _UnifiedImportWizardBodyState
     // navigate backward (e.g. the dive computer confirm step).
     final adapter = widget.adapter;
     if (adapter is DiveComputerAdapter) {
+      _discovery = ref.read(discoveryNotifierProvider.notifier);
       adapter.goBackFromConfirm = () {
         _navigatingForward = false;
         _animateToPage(_currentPage - 1);
@@ -216,6 +224,16 @@ class _UnifiedImportWizardBodyState
   @override
   void dispose() {
     _advancingStep?.onCancelAdvance?.call();
+    final discovery = _discovery;
+    if (discovery != null) {
+      // Leaves the auto-connect scan the Dive Computers section may already
+      // have restarted underneath this wizard running (issue #3361).
+      logFailure(
+        discovery.stopScan(),
+        UnifiedImportWizard,
+        'stop the dive computer scan',
+      );
+    }
     _pageController.dispose();
     super.dispose();
   }

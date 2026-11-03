@@ -49,6 +49,7 @@ void main() {
     String? bluetoothAddress,
     int diveCount = 0,
     bool isFavorite = false,
+    bool autoDownloadDisabled = false,
     String notes = '',
     int? lastDownloadTimestamp,
     String? lastDiveFingerprint,
@@ -69,6 +70,7 @@ void main() {
             bluetoothAddress: Value(bluetoothAddress),
             diveCount: Value(diveCount),
             isFavorite: Value(isFavorite),
+            autoDownloadDisabled: Value(autoDownloadDisabled),
             notes: Value(notes),
             lastDownloadTimestamp: Value(lastDownloadTimestamp),
             lastDiveFingerprint: Value(lastDiveFingerprint),
@@ -516,6 +518,24 @@ void main() {
         expect(await isPending('qualityFindings', 'q1'), isTrue);
         expect(await isPending('diveProfileSeries', 'ps1'), isTrue);
         expect(await isPending('tankPressureSeries', 'ts1'), isTrue);
+      },
+    );
+
+    test(
+      'keeps a duplicate\'s opt-out from auto-connect (issue #3361)',
+      () async {
+        await insertComputer(id: 'survivor');
+        await insertComputer(id: 'dup', autoDownloadDisabled: true);
+
+        await repository.mergeComputers(
+          survivorId: 'survivor',
+          duplicateIds: const ['dup'],
+        );
+
+        final survivor = await (db.select(
+          db.diveComputers,
+        )..where((t) => t.id.equals('survivor'))).getSingle();
+        expect(survivor.autoDownloadDisabled, isTrue);
       },
     );
 

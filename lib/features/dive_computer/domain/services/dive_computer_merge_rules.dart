@@ -190,6 +190,9 @@ DiveComputer mergedDiveComputer(
       (sum, d) => sum + d.diveCount,
     ),
     isFavorite: survivor.isFavorite || duplicates.any((d) => d.isFavorite),
+    autoDownloadDisabled:
+        survivor.autoDownloadDisabled ||
+        duplicates.any((d) => d.autoDownloadDisabled),
     notes: _mergedNotes(survivor.notes, duplicates.map((d) => d.notes)),
   );
 }
