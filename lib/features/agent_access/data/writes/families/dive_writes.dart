@@ -18,7 +18,9 @@ import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_servic
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart'
     show DocumentOwner, DocumentOwnerKind;
 
@@ -30,6 +32,7 @@ class DiveWrites extends WritableEntry {
 
   final RecordRepositories _r;
   late final _edits = BulkDiveEditService(_r.dives, _r.buddies, _r.species);
+  final _roleLinks = DiveRoleLinkRepository();
 
   @override
   String get name => 'dives';
@@ -83,6 +86,7 @@ class DiveWrites extends WritableEntry {
     'site': RelationSpec(refEntity: 'sites', single: true, copiesTarget: true),
     'gear': RelationSpec(refEntity: 'equipment'),
     'courses': RelationSpec(refEntity: 'courses'),
+    'roles': RelationSpec(refEntity: 'dive_roles'),
   };
 
   @override
@@ -107,6 +111,7 @@ class DiveWrites extends WritableEntry {
       'site' => {?(await _row(id))?.siteId},
       'gear' => _ids('dive_equipment', 'equipment_id', id),
       'courses' => _ids('dive_courses', 'course_id', id),
+      'roles' => (await _roles(id)).toSet(),
       _ => const {},
     };
   }
@@ -166,6 +171,14 @@ class DiveWrites extends WritableEntry {
       if (added.isNotEmpty) relations['types'] = added;
     }
     final lost = <String, Set<String>>{};
+    if (update.relations['roles'] case final roles?) {
+      // The set is normalized as every role write stores it, which drops
+      // Solo beside any other role.
+      final now = await currentRelation(id, 'roles');
+      final after = (await _rolesAfter(id, roles)).toSet();
+      final dropped = now.difference(after).difference(roles.remove);
+      if (dropped.isNotEmpty) lost['roles'] = dropped;
+    }
     if (update.relations['gear'] case final gear?) {
       // An assembly brings its active parts, and an item taken off takes
       // what is attached through it, as the bulk editor does.
@@ -315,7 +328,7 @@ class DiveWrites extends WritableEntry {
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
     final scalars = _scalars(update.values);
-    final ops = await _ops(update.relations);
+    final ops = await _ops(id, update.relations);
     if (scalars.toColumns(false).isNotEmpty || ops.isNotEmpty) {
       await _edits.apply(
         BulkEditRequest(diveIds: [id], scalars: scalars, ops: ops),
@@ -387,7 +400,10 @@ class DiveWrites extends WritableEntry {
     );
   }
 
-  Future<List<BulkCollectionOp>> _ops(Map<String, RelationDelta> deltas) async {
+  Future<List<BulkCollectionOp>> _ops(
+    String diveId,
+    Map<String, RelationDelta> deltas,
+  ) async {
     final ops = <BulkCollectionOp>[];
     for (final MapEntry(key: relation, value: delta) in deltas.entries) {
       if (delta.isEmpty) continue;
@@ -440,6 +456,8 @@ class DiveWrites extends WritableEntry {
               ),
             );
           }
+        case 'roles':
+          ops.add(DiverRolesOp(roleIds: await _rolesAfter(diveId, delta)));
         case 'courses':
           if (delta.add.isNotEmpty) {
             ops.add(
@@ -465,6 +483,19 @@ class DiveWrites extends WritableEntry {
     }
     return ops;
   }
+
+  /// The diver's roles on [diveId], as a dive read resolves them.
+  Future<List<String>> _roles(String diveId) async =>
+      (await _roleLinks.diverRoleIdsForDives([diveId]))[diveId] ?? const [];
+
+  /// The roles [delta] leaves on [diveId], normalized as every role write
+  /// stores them.
+  Future<List<String>> _rolesAfter(String diveId, RelationDelta delta) async =>
+      DiveRoleSet.normalize([
+        for (final role in await _roles(diveId))
+          if (!delta.remove.contains(role)) role,
+        ...delta.add,
+      ]);
 
   Future<List<BuddiesOp>> _buddyOps(RelationDelta delta) async {
     final role = await _buddyRole();
