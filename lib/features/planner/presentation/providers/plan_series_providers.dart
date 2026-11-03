@@ -143,6 +143,12 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     state = state.copyWith(id: id, structureChanged: true);
   }
 
+  /// Forgets the saved series this was, once it has been saved back as an
+  /// ordinary plan: one dive that follows nothing.
+  void leaveSavedSeries() {
+    state = state.copyWith(clearId: true, structureChanged: false);
+  }
+
   /// Follows the logged dives in [follow]: the first dive starts from the
   /// followed one, after [surfaceInterval]. Ignored for a replan, which
   /// keeps the seed it was opened with (see [followAllowedProvider]).

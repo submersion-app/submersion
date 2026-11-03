@@ -102,13 +102,14 @@ class PlanSeries extends Equatable {
     SeriesFollow? follow,
     bool clearFollow = false,
     String? id,
+    bool clearId = false,
     bool? structureChanged,
   }) {
     return PlanSeries(
       dives: dives ?? this.dives,
       selectedIndex: selectedIndex ?? this.selectedIndex,
       follow: clearFollow ? null : (follow ?? this.follow),
-      id: id ?? this.id,
+      id: clearId ? null : (id ?? this.id),
       structureChanged: structureChanged ?? this.structureChanged,
     );
   }

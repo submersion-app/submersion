@@ -310,6 +310,61 @@ class DivePlanSeriesRepository {
     }
   }
 
+  /// Turns the series [id] back into the ordinary plan [keepPlanId]: frees
+  /// that plan, and deletes the series row and every other dive still in it
+  /// (dives removed in the editor since the last save), with their
+  /// tombstones. The caller saves the kept plan itself afterwards.
+  Future<void> dissolveSeries(String id, {required String keepPlanId}) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    try {
+      var kept = false;
+      await _db.transaction(() async {
+        final rows = await (_db.select(
+          _db.divePlans,
+        )..where((p) => p.seriesId.equals(id))).get();
+        for (final row in rows) {
+          if (row.id == keepPlanId) {
+            kept = true;
+          } else {
+            await _plans.deletePlan(row.id);
+          }
+        }
+        await (_db.update(
+          _db.divePlans,
+        )..where((p) => p.id.equals(keepPlanId))).write(
+          db.DivePlansCompanion(
+            seriesId: const Value(null),
+            seriesIndex: const Value(null),
+            diveName: const Value(null),
+            updatedAt: Value(now),
+          ),
+        );
+        await (_db.delete(
+          _db.divePlanSeries,
+        )..where((s) => s.id.equals(id))).go();
+      });
+      if (kept) {
+        await _syncRepository.markRecordPending(
+          entityType: 'divePlans',
+          recordId: keepPlanId,
+          localUpdatedAt: now,
+        );
+      }
+      await _syncRepository.logDeletion(
+        entityType: 'divePlanSeries',
+        recordId: id,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to dissolve series $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Deletes the series [id] and every dive in it, with their tombstones.
   Future<void> deleteSeries(String id) async {
     try {

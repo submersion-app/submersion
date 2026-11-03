@@ -203,6 +203,57 @@ void main() {
     expect(editor().tanks.single.startPressure, 90);
   });
 
+  test(
+    'a saved series cut back to one dive saves as an ordinary plan',
+    () async {
+      series().addDive();
+      await saveCurrentSeries(c);
+      final seriesId = c.read(planSeriesNotifierProvider).id!;
+      final kept = c.read(planSeriesNotifierProvider).dives.first.state.id;
+
+      series().removeDive(1);
+      expect(c.read(planConvertAllowedProvider), isFalse);
+      await saveCurrentSeries(c);
+
+      expect(c.read(planSeriesNotifierProvider).id, isNull);
+      expect(c.read(planSeriesDirtyProvider), isFalse);
+      expect(c.read(planConvertAllowedProvider), isTrue);
+      expect(
+        await c.read(divePlanSeriesRepositoryProvider).getSeries(seriesId),
+        isNull,
+      );
+      final summaries = await c
+          .read(divePlanRepositoryProvider)
+          .getAllPlanSummaries();
+      expect(summaries.map((s) => s.id), [kept]);
+      expect(summaries.single.seriesId, isNull);
+    },
+  );
+
+  test('a saved followed dive that stops following saves as an ordinary '
+      'plan', () async {
+    final end = DateTime(2026, 10, 27, 8);
+    await c
+        .read(diveRepositoryProvider)
+        .createDive(loggedDive('logged', end, number: 7));
+    followed = SeriesFollow(
+      loggedDives: [seriesLoggedDive('logged', end, number: 7)],
+    );
+    series().followDive(followed!, surfaceInterval: const Duration(hours: 1));
+    await saveCurrentSeries(c);
+    expect(c.read(planSeriesNotifierProvider).id, isNotNull);
+
+    series().unfollow();
+    await saveCurrentSeries(c);
+
+    expect(c.read(planSeriesNotifierProvider).id, isNull);
+    expect(c.read(planConvertAllowedProvider), isTrue);
+    final summaries = await c
+        .read(divePlanRepositoryProvider)
+        .getAllPlanSummaries();
+    expect(summaries.single.seriesId, isNull);
+  });
+
   test('a series deleted through the planner leaves no plans', () async {
     series().addDive();
     await saveCurrentSeries(c);

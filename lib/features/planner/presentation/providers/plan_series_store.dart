@@ -9,6 +9,8 @@ import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
@@ -30,6 +32,13 @@ Future<void> saveCurrentSeries(ProviderContainer container) async {
   final repository = container.read(divePlanSeriesRepositoryProvider);
   final series = container.read(planSeriesNotifierProvider);
 
+  // One dive that follows nothing is an ordinary plan again: it leaves the
+  // series it was saved in, so it converts and compares like any plan.
+  if (series.id case final id? when !series.isSeries && series.follow == null) {
+    await _saveAsPlainPlan(container, id);
+    return;
+  }
+
   final stored = await repository.saveSeries(
     await currentStoredSeries(container),
   );
@@ -48,6 +57,31 @@ Future<void> saveCurrentSeries(ProviderContainer container) async {
       selectedIndex: series.selectedIndex,
     ),
   );
+}
+
+/// Saves the one dive in the editor as an ordinary plan, leaving the saved
+/// series [seriesId] it was in.
+Future<void> _saveAsPlainPlan(
+  ProviderContainer container,
+  String seriesId,
+) async {
+  final editor = container.read(divePlanNotifierProvider.notifier);
+  final notifier = container.read(planSeriesNotifierProvider.notifier);
+  final outcome = container.read(planOutcomeProvider);
+  await container
+      .read(divePlanSeriesRepositoryProvider)
+      .dissolveSeries(
+        seriesId,
+        keepPlanId: container.read(divePlanNotifierProvider).id,
+      );
+  await editor.save(
+    summary: PlanSummaryData(
+      maxDepth: outcome.maxDepth,
+      runtimeSeconds: outcome.runtimeSeconds,
+      ttsSeconds: outcome.ttsAtBottom,
+    ),
+  );
+  if (notifier.mounted) notifier.leaveSavedSeries();
 }
 
 /// The series in the editor as it would be stored, for saving or sharing.
