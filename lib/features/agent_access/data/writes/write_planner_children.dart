@@ -14,6 +14,14 @@ Future<Map<String, Object?>> _readDocument(
     ], RecordLoad(include: const {}, diverId: diverId)))[id] ??
     const {};
 
+/// What [stored] holds that [read] does not, as text: the data an entry adds
+/// to a plain read, such as a cylinder config's cylinders.
+String _storedExtras(Map<String, Object?> read, Map<String, Object?> stored) =>
+    jsonEncode({
+      for (final MapEntry(:key, :value) in stored.entries)
+        if (!read.containsKey(key)) key: value,
+    });
+
 /// Whether [table] still holds [id], read from the current database for the
 /// same reason.
 Future<String> _presence(String table, String id) async {

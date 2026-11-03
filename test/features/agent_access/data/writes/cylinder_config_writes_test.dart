@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -133,6 +135,37 @@ void main() {
     ]);
 
     expect(await stamp(), greaterThan(1));
+  });
+
+  // The planner's saved-tanks bar saves cylinders without stamping the
+  // config, so the plan must notice the cylinders themselves.
+  test('cylinders changed after the preview refuse the apply', () async {
+    final id = (await h.run([
+      createOp('cylinder_configs', {
+        'name': 'Deco pair',
+        'items': [cylinder('backGas', 0.32)],
+      }),
+    ])).created.single.id;
+    final plan = await h.preview([
+      updateOp('cylinder_configs', id, {'description': 'Trimix'}),
+    ]);
+    final repository = CylinderConfigRepository();
+    final config = (await repository.getConfigById(id))!;
+    await repository.saveItems(id, [
+      ...config.items,
+      config.items.single.copyWith(id: '', o2Percent: 50),
+    ]);
+
+    await expectLater(
+      h.apply(plan),
+      throwsA(
+        isA<AgentToolException>().having(
+          (e) => e.code,
+          'code',
+          AgentToolErrorCode.planStale,
+        ),
+      ),
+    );
   });
 
   test('gas fractions that pass 1 are refused', () async {

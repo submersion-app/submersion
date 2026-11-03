@@ -353,6 +353,37 @@ void main() {
     );
   });
 
+  // Swapping which album names the tag keeps the count but changes which
+  // album the merge rewrites.
+  test('a different album naming the tag refuses the apply', () async {
+    Future<void> album(String id, String tagId) => db
+        .into(db.mediaSmartAlbums)
+        .insertOnConflictUpdate(
+          MediaSmartAlbumsCompanion.insert(
+            id: id,
+            name: 'Album $id',
+            filterJson: '{"tagIds":["$tagId"]}',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await album('al1', 'wrecks');
+    final plan = await h.preview([merge('wrecks', 'wreck')]);
+    await album('al1', 'wreck');
+    await album('al2', 'wrecks');
+
+    await expectLater(
+      h.apply(plan),
+      throwsA(
+        isA<AgentToolException>().having(
+          (e) => e.code,
+          'code',
+          AgentToolErrorCode.planStale,
+        ),
+      ),
+    );
+  });
+
   test(
     'a change to the survivor after the preview refuses the apply',
     () async {

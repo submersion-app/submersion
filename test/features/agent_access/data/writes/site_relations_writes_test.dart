@@ -131,6 +131,29 @@ void main() {
     },
   );
 
+  // Closing a tag's site scope takes it off every site first, so a later
+  // link of that tag is a new link the site cannot take, not "already there".
+  test(
+    'a link a scope change takes away earlier in the set is not kept',
+    () async {
+      await tag('wall', 'Wall', sites: true);
+      await h.run([
+        link('tags', add: ['wall']),
+      ]);
+
+      final plan = await h.preview([
+        updateOp('tags', 'wall', {
+          'scopes': ['dives'],
+        }),
+        link('tags', add: ['wall']),
+      ]);
+
+      expect(plan.unchanged, isEmpty);
+      expect(plan.items.last.block!.reason, BlockReason.invalidValue);
+      expect(plan.items.last.block!.detail, contains('wall'));
+    },
+  );
+
   test('another diver\'s tag cannot link to a site', () async {
     await db
         .into(db.tags)

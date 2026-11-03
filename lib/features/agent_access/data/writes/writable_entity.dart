@@ -161,6 +161,7 @@ class SideEffects {
     this.relations = const {},
     this.lost = const {},
     this.parts = const {},
+    this.detached = const {},
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -177,8 +178,17 @@ class SideEffects {
   /// the annotations a Notes edit unlinks.
   final Map<String, int> parts;
 
+  /// Records of other entities that lose their link to this one, by entity
+  /// name, such as the sites a tag leaves when its site scope closes. A later
+  /// change in the set reads those links as gone.
+  final Map<String, Set<String>> detached;
+
   bool get isEmpty =>
-      fields.isEmpty && relations.isEmpty && lost.isEmpty && parts.isEmpty;
+      fields.isEmpty &&
+      relations.isEmpty &&
+      lost.isEmpty &&
+      parts.isEmpty &&
+      detached.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -195,6 +205,10 @@ class SideEffects {
         key: (value.toList()..sort()),
     }),
     'parts': _sorted(parts),
+    'detached': _sorted({
+      for (final MapEntry(:key, :value) in detached.entries)
+        key: (value.toList()..sort()),
+    }),
   });
 }
 

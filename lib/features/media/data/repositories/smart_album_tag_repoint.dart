@@ -72,16 +72,16 @@ Future<Map<String, String>> repointSmartAlbums(
   return previous;
 }
 
-/// How many saved smart albums have a filter that [names] something, read
-/// as [repointSmartAlbums] reads them, so a merge's plan counts the albums
-/// its repoint will rewrite.
-Future<int> countSmartAlbumsNaming(
+/// The ids of the saved smart albums whose filter [names] something, in
+/// id order, read as [repointSmartAlbums] reads them, so a merge's plan
+/// knows which albums its repoint will rewrite.
+Future<List<String>> smartAlbumIdsNaming(
   AppDatabase db,
   bool Function(MediaLibraryFilter filter) names,
 ) async => [
-  for (final (_, _, filter) in await _savedFilters(db))
-    if (names(filter)) filter,
-].length;
+  for (final (row, _, filter) in await _savedFilters(db))
+    if (names(filter)) row.id,
+]..sort();
 
 /// Each saved smart album with its decoded JSON and filter. An album whose
 /// filter does not parse is left out, so nothing rewrites it.

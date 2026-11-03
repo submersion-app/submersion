@@ -89,7 +89,33 @@ class TagWrites extends WritableEntry {
             !after.contains(scope.name))
           scope,
     ];
-    return SideEffects(parts: await _links(id, dropped));
+    return SideEffects(
+      parts: await _links(id, dropped),
+      detached: await _itemsOf(id, dropped),
+    );
+  }
+
+  /// The items of each of [scopes] carrying tag [id], by entity name.
+  Future<Map<String, Set<String>>> _itemsOf(
+    String id,
+    Iterable<domain.TagScope> scopes,
+  ) async {
+    final items = <String, Set<String>>{};
+    final db = DatabaseService.instance.database;
+    for (final scope in scopes) {
+      final item = scope.table.parentColumn;
+      final rows = await db
+          .customSelect(
+            'SELECT "$item" AS item FROM "${scope.table.junctionTable}" '
+            'WHERE tag_id = ?',
+            variables: [Variable.withString(id)],
+          )
+          .get();
+      if (rows.isNotEmpty) {
+        items[scope.name] = {for (final row in rows) row.read<String>('item')};
+      }
+    }
+    return items;
   }
 
   @override
@@ -141,16 +167,17 @@ class TagWrites extends WritableEntry {
         parts[junction] = row.read<int>('gone');
       }
     }
-    final albums = await countSmartAlbumsNaming(
+    final albums = await smartAlbumIdsNaming(
       db,
       (filter) => filter.tagIds.contains(id),
     );
-    if (albums > 0) moved['media_smart_albums'] = albums;
+    if (albums.isNotEmpty) moved['media_smart_albums'] = albums.length;
     return DeleteReach(
       moved: moved,
       parts: parts,
       survivor: await _widenedScopes(intoId, [id, ...mergedBefore]),
-      basis: await _linkRows([id, ...holders]),
+      // Which albums follow, not only how many.
+      basis: '${await _linkRows([id, ...holders])} ${albums.join(',')}',
     );
   }
 

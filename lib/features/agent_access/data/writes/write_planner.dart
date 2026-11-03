@@ -127,8 +127,12 @@ class _Pass {
     WritableEntry entry,
     Map<String, Object?> values,
     Map<String, RelationDelta> deltas,
+    Map<String, Set<String>> detached,
   ) {
     _valuesSoFar[(op.entity, op.id)] = values;
+    for (final MapEntry(key: entity, value: ids) in detached.entries) {
+      ((_unlinkedSoFar[(op.entity, op.id)] ??= {})[entity] ??= {}).addAll(ids);
+    }
     for (final MapEntry(key: name, value: delta) in deltas.entries) {
       final target = entry.relations[name]!.refEntity;
       for (final id in delta.remove) {
@@ -327,6 +331,10 @@ class _Pass {
       }
     }
     if (block == null) {
+      // What stored() adds beyond a plain read, such as a config's cylinders,
+      // can change without touching the row's version, so it is compared too.
+      Future<String> readStored() async =>
+          _storedExtras(read, await entry.stored(op.id, read));
       markers.add(
         await _marker(
           entry,
@@ -334,13 +342,14 @@ class _Pass {
           row,
           read,
           relations: links.current,
-          footprint: effects.footprint,
-          readFootprint: () async => (await readEffects()).footprint,
+          footprint: '${effects.footprint} ${_storedExtras(read, document)}',
+          readFootprint: () async =>
+              '${(await readEffects()).footprint} ${await readStored()}',
         ),
       );
       await _markReferences(entry, links.deltas);
       await _markFieldRefs(entry, parsed.values);
-      _recordSoFar(op, entry, parsed.values, links.deltas);
+      _recordSoFar(op, entry, parsed.values, links.deltas, effects.detached);
     }
     final parent = await _parentContext(entry, row.parentId, row.ownerId);
     _add(
@@ -554,7 +563,17 @@ class _Pass {
           ),
         );
       }
-      final links = current[name] = await entry.currentRelation(op.id, name);
+      final stored = current[name] = await entry.currentRelation(op.id, name);
+      // A link an earlier change in the set takes away, such as a tag whose
+      // scope closes, is gone by the time this change runs.
+      final links = {
+        for (final id in stored)
+          if (!(_unlinkedSoFar[(spec.refEntity, id)]?[op.entity]?.contains(
+                op.id,
+              ) ??
+              false))
+            id,
+      };
       final delta = _delta(change, links, spec);
       if (delta == null) {
         return _Links.blocked(
