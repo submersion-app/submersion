@@ -76,13 +76,13 @@ class _Pass {
   };
 
   /// [_deleted] by entity, for a delete's reach.
-  late final _deletedByEntity = <String, Set<String>>{
-    for (final (entity, _) in _deleted)
-      entity: {
-        for (final (other, id) in _deleted)
-          if (other == entity) id,
-      },
-  };
+  late final _deletedByEntity = () {
+    final byEntity = <String, Set<String>>{};
+    for (final (entity, id) in _deleted) {
+      (byEntity[entity] ??= {}).add(id);
+    }
+    return byEntity;
+  }();
 
   /// Records an update earlier in the set changes, as each is planned.
   final _changedSoFar = <(String, String)>{};

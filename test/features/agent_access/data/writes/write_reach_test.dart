@@ -339,6 +339,35 @@ void main() {
     },
   );
 
+  test('a dive the set deletes is not counted as losing its link', () async {
+    await site('s1');
+    await buddy('b1');
+    await dive('d1', site: 's1');
+    await dive('d2', site: 's1');
+    for (final (id, diveId) in [('l1', 'd1'), ('l2', 'd2')]) {
+      await db
+          .into(db.diveBuddies)
+          .insert(
+            DiveBuddiesCompanion.insert(
+              id: id,
+              diveId: diveId,
+              buddyId: 'b1',
+              createdAt: t,
+            ),
+          );
+    }
+
+    final plan = await previewDeletes([
+      ('sites', 's1'),
+      ('buddies', 'b1'),
+      ('dives', 'd1'),
+    ]);
+
+    // d2 survives and loses both links; d1 goes with them.
+    expect(plan.items[0].reach.linkedDives, {kDiverA: 1});
+    expect(plan.items[1].reach.linkedDives, {kDiverA: 1});
+  });
+
   test('a site lists its children, its media and its plans', () async {
     await site('s1');
     await dive('d1', site: 's1');

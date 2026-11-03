@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Every editable record must be writable by an agent before release (spec,
-/// "Coverage and release gate"), so a repository's create, update and delete
-/// methods are each accounted for: reached by a write entity, or listed in
-/// the baseline as not reached yet. The baseline only shrinks. A new method
+/// "Coverage and release gate"), so every repository method whose name says
+/// it writes ([isWriteName]: create, update and delete, and rename, assign,
+/// link, reorder and the rest) is accounted for: reached by a write entity,
+/// or listed in the baseline as not reached yet. The baseline only shrinks. A new method
 /// that a write entity does not reach fails here, which is what keeps "any
 /// record" true.
 ///

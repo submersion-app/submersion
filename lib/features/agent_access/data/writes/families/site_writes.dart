@@ -71,9 +71,10 @@ class SiteWrites extends WritableEntry {
     final kept = media.unlinkIds.length - divesOwn;
     return DeleteReach(
       linkedDives: await countDivesByOwner(
-        'SELECT diver_id AS owner, COUNT(*) AS n FROM dives WHERE site_id = ? '
-        'GROUP BY diver_id',
+        'SELECT diver_id AS owner, COUNT(*) AS n FROM dives '
+        'WHERE site_id = ?1 AND id {deleting} GROUP BY diver_id',
         id,
+        deleting: {...?alongside['dives']},
       ),
       records: {
         if (documents > 0) 'documents': documents,

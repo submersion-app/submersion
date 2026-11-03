@@ -44,9 +44,10 @@ class BuddyWrites extends WritableEntry {
     return DeleteReach(
       linkedDives: await countDivesByOwner(
         'SELECT d.diver_id AS owner, COUNT(*) AS n FROM dive_buddies l '
-        'JOIN dives d ON d.id = l.dive_id WHERE l.buddy_id = ? '
-        'GROUP BY d.diver_id',
+        'JOIN dives d ON d.id = l.dive_id '
+        'WHERE l.buddy_id = ?1 AND d.id {deleting} GROUP BY d.diver_id',
         id,
+        deleting: {...?alongside['dives']},
       ),
       records: {
         ...await countOwned({'certifications': 'buddy_id'}, id),
