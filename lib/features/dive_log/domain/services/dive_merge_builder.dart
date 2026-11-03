@@ -110,6 +110,49 @@ class DiveMergeBuilder {
     return null;
   }
 
+  /// The lowest or highest value any segment reports, for a summary that
+  /// describes the whole dive (issue #4136): the first segment's alone would
+  /// leave out every later one.
+  double? _extreme(
+    List<Dive> sorted,
+    double? Function(Dive) pick, {
+    required bool lowest,
+  }) {
+    double? result;
+    for (final d in _measuredSegments(sorted)) {
+      final v = pick(d);
+      if (v == null) continue;
+      if (result == null || (lowest ? v < result : v > result)) result = v;
+    }
+    return result;
+  }
+
+  /// A per-segment mean weighted by each segment's runtime, as
+  /// [_mergedAvgDepth] weighs a segment without a profile. When no segment
+  /// that reports the value has a runtime to weigh it by, the first value
+  /// stands in, which is what a Combine kept before (issue #4136).
+  double? _runtimeWeightedMean(List<Dive> sorted, double? Function(Dive) pick) {
+    final measured = _measuredSegments(sorted);
+    var area = 0.0;
+    var span = 0;
+    for (final d in measured) {
+      final v = pick(d);
+      final w = (d.effectiveRuntime ?? Duration.zero).inSeconds;
+      if (v == null || w <= 0) continue;
+      area += v * w;
+      span += w;
+    }
+    return span > 0 ? area / span : _firstNonNull(measured, pick);
+  }
+
+  /// The segments whose values were measured: the logged ones, so a plan's
+  /// assumed temperature or loop O2 never becomes the logged dive's summary
+  /// (issue #3924). Every segment when all of them are plans.
+  List<Dive> _measuredSegments(List<Dive> sorted) {
+    final logged = sorted.where((d) => !d.isPlanned).toList();
+    return logged.isEmpty ? sorted : logged;
+  }
+
   /// A snapshot is a start/end pair, so the combined dive starts in the
   /// earliest segment's start state and ends in the latest segment's end
   /// state. Another segment's state would sit in the middle of the combined
@@ -369,7 +412,10 @@ class DiveMergeBuilder {
       visibilityMeters: visibilitySource?.visibilityMeters,
       visibilityMinMeters: visibilitySource?.visibilityMinMeters,
       visibilityMaxMeters: visibilitySource?.visibilityMaxMeters,
-      waterTemp: _firstNonNull(sorted, (d) => d.waterTemp),
+      // A stored water temperature is the dive's minimum (every importer
+      // writes the computer's minimum), so the combined dive's is the
+      // coldest segment's (issue #4136).
+      waterTemp: _extreme(sorted, (d) => d.waterTemp, lowest: true),
       airTemp: _firstNonNull(sorted, (d) => d.airTemp),
       currentDirection: _firstNonNull(sorted, (d) => d.currentDirection),
       currentStrength: _firstNonNull(sorted, (d) => d.currentStrength),
@@ -403,9 +449,10 @@ class DiveMergeBuilder {
       scrOrificeSize: _firstNonNull(sorted, (d) => d.scrOrificeSize),
       assumedVo2: _firstNonNull(sorted, (d) => d.assumedVo2),
       diluentGas: _firstNonNull(sorted, (d) => d.diluentGas),
-      loopO2Min: _firstNonNull(sorted, (d) => d.loopO2Min),
-      loopO2Max: _firstNonNull(sorted, (d) => d.loopO2Max),
-      loopO2Avg: _firstNonNull(sorted, (d) => d.loopO2Avg),
+      // The loop's range and mean over the whole dive (issue #4136).
+      loopO2Min: _extreme(sorted, (d) => d.loopO2Min, lowest: true),
+      loopO2Max: _extreme(sorted, (d) => d.loopO2Max, lowest: false),
+      loopO2Avg: _runtimeWeightedMean(sorted, (d) => d.loopO2Avg),
       loopVolume: _firstNonNull(sorted, (d) => d.loopVolume),
       scrubber: _firstNonNull(sorted, (d) => d.scrubber),
       courseIds: mergedCourseIds,
