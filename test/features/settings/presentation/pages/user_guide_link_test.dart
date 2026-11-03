@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/settings/presentation/about_links.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/utils/browser_launch.dart';
 
 /// Routes url_launcher calls to [onLaunch] and restores the channel after.
 void _mockUrlLauncher(Future<Object?> Function(MethodCall call) onLaunch) {
@@ -15,7 +16,7 @@ void _mockUrlLauncher(Future<Object?> Function(MethodCall call) onLaunch) {
   );
 }
 
-Widget _guideButton() {
+Widget _guideButton({UrlLaunch? launch}) {
   return MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -23,7 +24,9 @@ Widget _guideButton() {
     home: Builder(
       builder: (context) => Scaffold(
         body: ElevatedButton(
-          onPressed: () => launchUserGuide(context),
+          onPressed: () => launch == null
+              ? launchUserGuide(context)
+              : launchUserGuide(context, launch: launch),
           child: const Text('Guide'),
         ),
       ),
@@ -65,8 +68,6 @@ void main() {
     testWidgets('a failed launch offers the guide link to copy', (
       tester,
     ) async {
-      _mockUrlLauncher((call) async => call.method == 'launch' ? false : null);
-
       final platformCalls = <MethodCall>[];
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -78,7 +79,7 @@ void main() {
             .setMockMethodCallHandler(SystemChannels.platform, null),
       );
 
-      await tester.pumpWidget(_guideButton());
+      await tester.pumpWidget(_guideButton(launch: (_) async => false));
       await tester.tap(find.text('Guide'));
       await tester.pumpAndSettle();
 
@@ -94,12 +95,11 @@ void main() {
     });
 
     testWidgets('a throwing launch still shows the fallback', (tester) async {
-      _mockUrlLauncher((call) async {
-        if (call.method == 'launch') throw PlatformException(code: 'ERROR');
-        return null;
-      });
-
-      await tester.pumpWidget(_guideButton());
+      await tester.pumpWidget(
+        _guideButton(
+          launch: (_) async => throw PlatformException(code: 'ERROR'),
+        ),
+      );
       await tester.tap(find.text('Guide'));
       await tester.pumpAndSettle();
 

@@ -137,7 +137,8 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: ElevatedButton(
-                onPressed: () => launchReportIssue(context),
+                onPressed: () =>
+                    launchReportIssue(context, launch: (_) async => false),
                 child: const Text('Report'),
               ),
             ),
@@ -180,7 +181,8 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: ElevatedButton(
-                onPressed: () => launchReportIssue(context),
+                onPressed: () =>
+                    launchReportIssue(context, launch: (_) async => false),
                 child: const Text('Report'),
               ),
             ),
@@ -193,7 +195,7 @@ void main() {
 
       expect(find.byType(SnackBar), findsOneWidget);
     });
-    testWidgets('shows snackbar when launchUrl throws', (tester) async {
+    testWidgets('shows snackbar when the launch throws', (tester) async {
       const channel = MethodChannel('plugins.flutter.io/url_launcher');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -215,7 +217,10 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: ElevatedButton(
-                onPressed: () => launchReportIssue(context),
+                onPressed: () => launchReportIssue(
+                  context,
+                  launch: (_) async => throw PlatformException(code: 'ERROR'),
+                ),
                 child: const Text('Report'),
               ),
             ),

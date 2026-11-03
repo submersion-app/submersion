@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -178,6 +179,15 @@ void main() {
   testWidgets('tapping Report an Issue does not dismiss the dialog', (
     tester,
   ) async {
+    // A launch that succeeds, so the Linux opener chain behind it never
+    // shells out on CI.
+    const channel = MethodChannel('plugins.flutter.io/url_launcher');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async => true);
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
     await pump(tester, hasAcceptedPlanningDisclaimer: false);
 
     await tester.tap(find.text('Report an Issue'));
