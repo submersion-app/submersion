@@ -33,4 +33,16 @@ extension DivePlanSeriesMigrations on AppDatabase {
           'CHECK (start_pressure_pinned IN (0, 1))',
     );
   }
+
+  /// The v342 column that says a dive's start was set by the diver rather
+  /// than following from its surface interval. Defaulted false, with no
+  /// backfill: every saved dive keeps its interval leading. Safe from both
+  /// the v342 rung and the beforeOpen backstop.
+  Future<void> _assertDivePlanFixedStartColumn() async {
+    await _addColumnIfMissing(
+      'dive_plans',
+      'fixed_start',
+      'INTEGER NOT NULL DEFAULT 0 CHECK (fixed_start IN (0, 1))',
+    );
+  }
 }

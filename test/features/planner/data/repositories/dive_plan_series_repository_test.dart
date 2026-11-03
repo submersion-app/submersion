@@ -64,6 +64,28 @@ void main() {
     expect(b.plan.surfaceInterval, const Duration(hours: 2));
   });
 
+  test('a dive keeps its start and whether the diver set it', () async {
+    final start = DateTime.utc(2026, 11, 3, 13, 30);
+    final series = twoDives();
+    await repo.saveSeries(
+      series.copyWith(
+        dives: [
+          series.dives[0],
+          series.dives[1].copyWith(
+            plan: series.dives[1].plan.copyWith(startDateTime: start),
+            fixedStart: true,
+          ),
+        ],
+      ),
+    );
+
+    final loaded = (await repo.getSeries('s1'))!;
+
+    expect(loaded.dives[0].fixedStart, isFalse);
+    expect(loaded.dives[1].fixedStart, isTrue);
+    expect(loaded.dives[1].plan.startDateTime, start);
+  });
+
   test('a plan knows its series; one saved alone has none', () async {
     await repo.saveSeries(twoDives());
     await plans.savePlan(divePlanFromState(seriesDiveState(id: 'alone')));

@@ -21395,6 +21395,32 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_start => 'البداية';
+
+  @override
+  String get plannerSeries_start_notSet => 'غير محدد';
+
+  @override
+  String get plannerSeries_start_clear => 'مسح وقت البداية';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'حدّد أولاً وقت بداية الغطسة الأولى';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'فترة السطح مستمدة من وقت البداية هذا';
+
+  @override
+  String get plannerSeries_site => 'الموقع';
+
+  @override
+  String get plannerSeries_site_none => 'بلا موقع';
+
+  @override
+  String get plannerSeries_site_clear => 'مسح الموقع';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'ملء $tank';
   }
@@ -26076,6 +26102,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'ضغط البداية محدد يدويًا';
+
+  @override
+  String get settings_conflict_field_fixedStart => 'وقت البدء محدد يدويًا';
 
   @override
   String get settings_conflict_field_startTime => 'وقت البدء';

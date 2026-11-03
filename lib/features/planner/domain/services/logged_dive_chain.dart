@@ -57,17 +57,23 @@ List<Dive> loggedDiveChain(
 }
 
 /// The surface interval a plan starts with when it follows a dive that ended
-/// at [end]: the time since, when the dive was recent, so the plan is for
-/// now; else [defaultSeriesSurfaceInterval]. Under ten minutes reads as a
-/// clock mismatch rather than a real interval, as it always has. [end] and
-/// [now] are true instants; see [diveEndInstant].
+/// at [end]: [defaultSeriesSurfaceInterval] when it ended less than that long
+/// ago, so the plan starts that long after the dive; else the time since,
+/// rounded up to the minute, so by default the plan starts now and never in
+/// the past, however old the dive. The diver can still type a shorter one.
+/// [end] and [now] are true instants; see [diveEndInstant].
 Duration followSurfaceInterval(DateTime end, {required DateTime now}) {
   final elapsed = now.difference(end);
-  if (elapsed < const Duration(minutes: 10) || elapsed >= followLookback) {
+  if (elapsed < defaultSeriesSurfaceInterval) {
     return defaultSeriesSurfaceInterval;
   }
-  return Duration(minutes: elapsed.inMinutes);
+  return elapsedToTheMinute(end, now: now);
 }
+
+/// The time from [end] to [now], rounded up to the minute: what the Follow
+/// prompt says and what following then sets, so the two agree.
+Duration elapsedToTheMinute(DateTime end, {required DateTime now}) =>
+    Duration(minutes: (now.difference(end).inSeconds + 59) ~/ 60);
 
 /// [tanks] with what [follow] carries into the first planned dive: each tank
 /// not in [pinned] that [sources] links to a logged tank (by id) starts at

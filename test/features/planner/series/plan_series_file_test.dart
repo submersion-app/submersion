@@ -57,6 +57,32 @@ void main() {
     );
   });
 
+  test('starts and fixed starts travel in the file as clock digits', () {
+    final aStart = DateTime.utc(2026, 11, 3, 9, 30);
+    final bStart = DateTime.utc(2026, 11, 3, 13);
+    final source = series();
+    final timed = source.copyWith(
+      dives: [
+        source.dives[0].copyWith(
+          plan: source.dives[0].plan.copyWith(startDateTime: aStart),
+        ),
+        source.dives[1].copyWith(
+          plan: source.dives[1].plan.copyWith(startDateTime: bStart),
+          fixedStart: true,
+        ),
+      ],
+    );
+    final json = seriesToSubplanJson(timed);
+    final file = jsonDecode(json) as Map<String, dynamic>;
+
+    expect((file['plan'] as Map)['startDateTime'], '2026-11-03T09:30:00.000');
+    final read = seriesFromSubplanJson(json)!;
+    expect(read.dives[0].plan.startDateTime, aStart);
+    expect(read.dives[0].fixedStart, isFalse);
+    expect(read.dives[1].plan.startDateTime, bStart);
+    expect(read.dives[1].fixedStart, isTrue);
+  });
+
   test('a series file reads as its first dive to the single-plan reader', () {
     final plan = subplanFromJson(seriesToSubplanJson(series()));
 

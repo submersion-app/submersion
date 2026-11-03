@@ -21016,6 +21016,32 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_start => 'Kezdés';
+
+  @override
+  String get plannerSeries_start_notSet => 'Nincs megadva';
+
+  @override
+  String get plannerSeries_start_clear => 'Kezdési idő törlése';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Először adj kezdési időt az első merülésnek';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'A felszíni idő ebből a kezdésből adódik';
+
+  @override
+  String get plannerSeries_site => 'Merülőhely';
+
+  @override
+  String get plannerSeries_site_none => 'Nincs merülőhely';
+
+  @override
+  String get plannerSeries_site_clear => 'Merülőhely törlése';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank töltése';
   }
@@ -25722,6 +25748,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Kezdőnyomás kézzel megadva';
+
+  @override
+  String get settings_conflict_field_fixedStart => 'Kezdési idő kézzel megadva';
 
   @override
   String get settings_conflict_field_startTime => 'Kezdés ideje';

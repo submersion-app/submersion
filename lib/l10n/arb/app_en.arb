@@ -13190,6 +13190,14 @@
       }
     }
   },
+  "plannerSeries_start": "Start",
+  "plannerSeries_start_notSet": "Not set",
+  "plannerSeries_start_clear": "Clear the start time",
+  "plannerSeries_start_needsFirst": "Give the first dive a start time first",
+  "plannerSeries_start_fixed": "The surface interval follows from this start",
+  "plannerSeries_site": "Site",
+  "plannerSeries_site_none": "No site",
+  "plannerSeries_site_clear": "Clear the site",
   "plannerSeries_fill": "Fill {tank}",
   "@plannerSeries_fill": {
     "description": "The tank's name or gas, such as EAN32",
@@ -15197,6 +15205,7 @@
   "settings_conflict_field_startDateTime": "Planned start",
   "settings_conflict_field_startDepth": "Start depth",
   "settings_conflict_field_startPressurePinned": "Start pressure set by hand",
+  "settings_conflict_field_fixedStart": "Start time set by hand",
   "settings_conflict_field_startTime": "Start time",
   "settings_conflict_field_startTimestamp": "Starts at (time into dive)",
   "settings_conflict_field_startedAt": "Started",

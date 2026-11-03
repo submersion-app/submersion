@@ -122,6 +122,7 @@ class DivePlanSeriesRepository {
               seriesIndex: Value(i),
               diverId: owner == null ? const Value.absent() : Value(owner),
               diveName: Value(dive.name),
+              fixedStart: Value(dive.fixedStart),
             ),
           );
           for (final tank in plan.tanks) {
@@ -212,6 +213,7 @@ class DivePlanSeriesRepository {
         StoredSeriesDive(
           plan: plan,
           name: planRow.diveName,
+          fixedStart: planRow.fixedStart,
           sourceTankIds: {
             for (final tank in tankRows) tank.id: ?tank.sourceTankId,
           },
@@ -351,6 +353,7 @@ class DivePlanSeriesRepository {
             seriesId: const Value(null),
             seriesIndex: const Value(null),
             diveName: const Value(null),
+            fixedStart: const Value(false),
             updatedAt: Value(now),
           ),
         );

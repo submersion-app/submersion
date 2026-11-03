@@ -20778,6 +20778,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_start => 'Start';
+
+  @override
+  String get plannerSeries_start_notSet => 'Not set';
+
+  @override
+  String get plannerSeries_start_clear => 'Clear the start time';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Give the first dive a start time first';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'The surface interval follows from this start';
+
+  @override
+  String get plannerSeries_site => 'Site';
+
+  @override
+  String get plannerSeries_site_none => 'No site';
+
+  @override
+  String get plannerSeries_site_clear => 'Clear the site';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Fill $tank';
   }
@@ -25407,6 +25433,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Start pressure set by hand';
+
+  @override
+  String get settings_conflict_field_fixedStart => 'Start time set by hand';
 
   @override
   String get settings_conflict_field_startTime => 'Start time';

@@ -21066,6 +21066,32 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_start => 'Beginn';
+
+  @override
+  String get plannerSeries_start_notSet => 'Nicht festgelegt';
+
+  @override
+  String get plannerSeries_start_clear => 'Beginn löschen';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Gib zuerst dem ersten Tauchgang einen Beginn';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'Die Oberflächenpause ergibt sich aus diesem Beginn';
+
+  @override
+  String get plannerSeries_site => 'Tauchplatz';
+
+  @override
+  String get plannerSeries_site_none => 'Kein Tauchplatz';
+
+  @override
+  String get plannerSeries_site_clear => 'Tauchplatz löschen';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank füllen';
   }
@@ -25792,6 +25818,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Startdruck manuell festgelegt';
+
+  @override
+  String get settings_conflict_field_fixedStart =>
+      'Startzeit manuell festgelegt';
 
   @override
   String get settings_conflict_field_startTime => 'Startzeit';

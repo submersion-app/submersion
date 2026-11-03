@@ -65,6 +65,19 @@ reuse from plan to plan.
 
 A new plan starts with one 11.1 L tank at 200 bar on air.
 
+### Start time and site
+
+**Dive details** (above the tanks) holds the dive's name, its **Start**, the
+**Surface interval** and its **Site**. Start and site are optional. On a
+series of dives, a dive's start and its surface interval set each other:
+change the interval and the start follows, or set the start and the interval
+is measured from the end of the dive before. Whichever you set last holds
+when an earlier dive gets longer or shorter. A later dive's start can be set
+once the first dive has one, or follows a logged dive.
+
+The planner doesn't use the site; a dive you convert from the plan takes it,
+with the start time (or now, if there is none).
+
 ### Building the profile
 
 Under **Dive Segments**, each segment is a point you want to reach: a
@@ -169,14 +182,15 @@ From the menu you can also:
   at least one segment, since an empty plan has no schedule to print.
 - **Export plan file:** a `.subplan` file another Submersion user can import.
   A series goes in one file, without the logged dive it follows, which is in
-  your log rather than theirs.
+  your log rather than theirs. Start times go in the file; sites stay out.
 - **Reset Plan** or **Delete plan**.
 
 ### Plans and logged dives
 
 - **Follow a dive** plans a repetitive dive: pick one of your last 30 dives, and
   the planner starts from the tissue loading that dive left, with the surface
-  interval set to the time since it ended. The dive needs a recorded profile.
+  interval set to the time since it ended, so the plan starts now. A dive that
+  ended less than an hour ago gets an hour. The dive needs a recorded profile.
   A plan following a dive saves with it, and reopens from that dive's tissue
   loading, CNS and OTU. It can't be converted to a dive yet; **Stop
   following** gives that back.

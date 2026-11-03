@@ -47,6 +47,11 @@ class DivePlans extends Table {
   /// The dive's own name within its series ("Dive 2", "Night dive"); null =
   /// derived from its position.
   TextColumn get diveName => text().nullable()();
+
+  /// Whether the diver set this dive's start ([startDateTime]), so its
+  /// surface interval is measured from it; otherwise the interval leads and
+  /// the start follows from the dive before.
+  BoolColumn get fixedStart => boolean().withDefault(const Constant(false))();
   RealColumn get altitude => real().nullable()();
 
   /// WaterType enum name; null = unspecified (EN13319 density).

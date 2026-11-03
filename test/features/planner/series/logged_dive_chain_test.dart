@@ -120,14 +120,51 @@ void main() {
       );
     });
 
-    test('is an hour for a dive that only just ended or long ago', () {
+    test('is an hour for a dive that ended less than an hour ago', () {
+      for (final minutes in const [5, 30, 59]) {
+        expect(
+          followSurfaceInterval(end, now: end.add(Duration(minutes: minutes))),
+          const Duration(hours: 1),
+        );
+      }
+    });
+
+    test('is the time since from an hour on', () {
       expect(
-        followSurfaceInterval(end, now: end.add(const Duration(minutes: 5))),
+        followSurfaceInterval(end, now: end.add(const Duration(hours: 1))),
         const Duration(hours: 1),
       );
       expect(
-        followSurfaceInterval(end, now: end.add(followLookback)),
-        const Duration(hours: 1),
+        followSurfaceInterval(
+          end,
+          now: end.add(const Duration(hours: 1, minutes: 20)),
+        ),
+        const Duration(hours: 1, minutes: 20),
+      );
+    });
+
+    test('starts the plan now for a dive long ago, not in the past', () {
+      expect(
+        followSurfaceInterval(end, now: end.add(const Duration(days: 3))),
+        const Duration(days: 3),
+      );
+    });
+
+    test('rounds as the Follow prompt does', () {
+      final now = end.add(const Duration(hours: 2, seconds: 1));
+      expect(
+        followSurfaceInterval(end, now: now),
+        elapsedToTheMinute(end, now: now),
+      );
+    });
+
+    test('rounds up, so the start is not a few seconds in the past', () {
+      expect(
+        followSurfaceInterval(
+          end,
+          now: end.add(const Duration(hours: 2, seconds: 1)),
+        ),
+        const Duration(hours: 2, minutes: 1),
       );
     });
   });

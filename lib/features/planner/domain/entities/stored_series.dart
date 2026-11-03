@@ -16,6 +16,9 @@ class StoredSeriesDive extends Equatable {
   final Map<String, String> sourceTankIds;
   final Set<String> pinnedTankIds;
 
+  /// See `PlanSeriesDive.fixedStart`.
+  final bool fixedStart;
+
   /// What the saved-plans list shows for the dive.
   final double? summaryMaxDepth;
   final int? summaryRuntimeSeconds;
@@ -26,6 +29,7 @@ class StoredSeriesDive extends Equatable {
     this.name,
     this.sourceTankIds = const {},
     this.pinnedTankIds = const {},
+    this.fixedStart = false,
     this.summaryMaxDepth,
     this.summaryRuntimeSeconds,
     this.summaryTtsSeconds,
@@ -37,6 +41,7 @@ class StoredSeriesDive extends Equatable {
     bool clearName = false,
     Map<String, String>? sourceTankIds,
     Set<String>? pinnedTankIds,
+    bool? fixedStart,
     double? summaryMaxDepth,
     int? summaryRuntimeSeconds,
     int? summaryTtsSeconds,
@@ -46,6 +51,7 @@ class StoredSeriesDive extends Equatable {
       name: clearName ? null : (name ?? this.name),
       sourceTankIds: sourceTankIds ?? this.sourceTankIds,
       pinnedTankIds: pinnedTankIds ?? this.pinnedTankIds,
+      fixedStart: fixedStart ?? this.fixedStart,
       summaryMaxDepth: summaryMaxDepth ?? this.summaryMaxDepth,
       summaryRuntimeSeconds:
           summaryRuntimeSeconds ?? this.summaryRuntimeSeconds,
@@ -59,6 +65,7 @@ class StoredSeriesDive extends Equatable {
     name,
     sourceTankIds,
     pinnedTankIds,
+    fixedStart,
     summaryMaxDepth,
     summaryRuntimeSeconds,
     summaryTtsSeconds,

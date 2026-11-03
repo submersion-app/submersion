@@ -21082,6 +21082,32 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_start => 'Inicio';
+
+  @override
+  String get plannerSeries_start_notSet => 'Sin definir';
+
+  @override
+  String get plannerSeries_start_clear => 'Borrar la hora de inicio';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Primero da una hora de inicio a la primera inmersión';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'El intervalo en superficie se deriva de este inicio';
+
+  @override
+  String get plannerSeries_site => 'Sitio';
+
+  @override
+  String get plannerSeries_site_none => 'Sin sitio';
+
+  @override
+  String get plannerSeries_site_clear => 'Borrar el sitio';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Llenar $tank';
   }
@@ -25854,6 +25880,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Presión inicial fijada a mano';
+
+  @override
+  String get settings_conflict_field_fixedStart =>
+      'Hora de inicio fijada a mano';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de inicio';
