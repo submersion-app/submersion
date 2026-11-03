@@ -26389,6 +26389,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Weight';
 
   @override
+  String get settings_conflict_ref_customField => 'Custom field';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Gas switch';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Profile event';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Scenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Transmitter';
 
   @override

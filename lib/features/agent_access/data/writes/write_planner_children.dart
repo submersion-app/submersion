@@ -219,6 +219,29 @@ extension _ChildRules on _Pass {
     return true;
   }
 
+  /// A block when a [kind] change of [entry] writes its parent and the set
+  /// also updates the same fields of that parent.
+  PlanBlock? _parentWritten(
+    WritableEntry entry,
+    String? parentId,
+    ChangeKind kind,
+  ) {
+    final parent = entry.parent;
+    final named = _updatedFields[(parent?.entity, parentId)];
+    if (parent == null ||
+        !entry.writesParent.contains(kind) ||
+        named == null ||
+        named.intersection(entry.parentFieldsWritten).isEmpty) {
+      return null;
+    }
+    return PlanBlock(
+      BlockReason.referenceChanged,
+      'This ${kind.name} also writes ${parent.entity} $parentId, which '
+      'another operation in this set changes. Put them in sets of their '
+      'own.',
+    );
+  }
+
   /// A block when an update changes a field only a create may set.
   PlanBlock? _fixed(WritableEntry entry, _Parsed parsed) {
     final fixed = [

@@ -26860,6 +26860,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Zavorra';
 
   @override
+  String get settings_conflict_ref_customField => 'Campo personalizzato';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Cambio gas';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Evento';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Scenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Trasmettitore';
 
   @override

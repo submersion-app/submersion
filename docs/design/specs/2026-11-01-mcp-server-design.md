@@ -654,4 +654,10 @@ TDD applies. Minimum coverage:
 | A weight label with spaces at either end is blocked, since every weight write stores it trimmed | design |
 | Adding an assembly to a dive's gear lists its active parts as indirect, and removing an item lists what goes with it | design |
 | The confirmation dialog shows pressures, weights, cylinder sizes and gas fractions in the diver's units | design |
+| An agent can change exactly what a diver can change in the app, and nothing a computer recorded that the app protects: gas switches as the dive editor shows them, annotations but not computer events, custom fields, roles and scenarios in full | Eric |
+| Gas switch writes go through `DiverGasSwitchWriter`, so they mark the dive's switches as the diver's and drop its safety review; a moved switch takes the profile's depth unless the change names one | design |
+| An annotation's words live in the dive's Notes: a create links them, a delete unlinks them, rewording is a Notes edit, and a create or delete cannot share a set with an update of its dive | design |
+| An agent's Notes edit reconciles annotations as the editor's save does, and the plan lists the annotations it deletes | design |
+| Diver roles are normalized as every role write stores them, so a role beside Solo drops it and the plan says so | design |
+| A scenario's interventions are held to the Dive Lab's rules, and a cylinder they name must be one of the scenario's dive | design |
 | `revert_operation` keeps records changed since unless `include_changed_since` is set, and asks the diver nothing | design |

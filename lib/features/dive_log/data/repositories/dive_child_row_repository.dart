@@ -171,6 +171,85 @@ class DiveChildRowRepository {
     return true;
   }
 
+  /// Adds a custom field to [diveId] from [values], after the fields it has
+  /// unless [values] names an order. The repository's own
+  /// `replaceFieldsForDive` marks nothing for sync, so a field written one at
+  /// a time goes through here, as the dive save's diff does. Returns its id.
+  Future<String> addCustomField(
+    String diveId,
+    DiveCustomFieldsCompanion values,
+  ) async {
+    final id = _uuid.v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final order = values.sortOrder.present
+        ? values.sortOrder
+        : Value(await _nextFieldOrder(diveId));
+    await _db
+        .into(_db.diveCustomFields)
+        .insert(
+          values.copyWith(
+            id: Value(id),
+            diveId: Value(diveId),
+            sortOrder: order,
+            createdAt: Value(now),
+          ),
+        );
+    await _sync.markRecordPending(
+      entityType: 'diveCustomFields',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    await _stampDive(diveId, now: now);
+    return id;
+  }
+
+  /// Writes the columns [values] names on [fieldId]. False when it has gone.
+  Future<bool> updateCustomField(
+    String fieldId,
+    DiveCustomFieldsCompanion values,
+  ) async {
+    final row = await _customField(fieldId);
+    if (row == null) return false;
+    await (_db.update(
+      _db.diveCustomFields,
+    )..where((f) => f.id.equals(fieldId))).write(values);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _sync.markRecordPending(
+      entityType: 'diveCustomFields',
+      recordId: fieldId,
+      localUpdatedAt: now,
+    );
+    await _stampDive(row.diveId, now: now);
+    return true;
+  }
+
+  /// Deletes [fieldId]. False when it has gone.
+  Future<bool> deleteCustomField(String fieldId) async {
+    final row = await _customField(fieldId);
+    if (row == null) return false;
+    await (_db.delete(
+      _db.diveCustomFields,
+    )..where((f) => f.id.equals(fieldId))).go();
+    await _sync.logDeletion(entityType: 'diveCustomFields', recordId: fieldId);
+    await _stampDive(row.diveId);
+    return true;
+  }
+
+  Future<DiveCustomField?> _customField(String id) => (_db.select(
+    _db.diveCustomFields,
+  )..where((f) => f.id.equals(id))).getSingleOrNull();
+
+  Future<int> _nextFieldOrder(String diveId) async {
+    final highest = _db.diveCustomFields.sortOrder.max();
+    final row =
+        await (_db.selectOnly(_db.diveCustomFields)
+              ..addColumns([highest])
+              ..where(_db.diveCustomFields.diveId.equals(diveId)))
+            .getSingle();
+    final max = row.read(highest);
+    return max == null ? 0 : max + 1;
+  }
+
   /// A label as every weight write stores it.
   DiveWeightsCompanion _normalized(DiveWeightsCompanion values) =>
       values.label.present

@@ -26834,6 +26834,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Lastro';
 
   @override
+  String get settings_conflict_ref_customField => 'Campo personalizado';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Troca de gás';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Evento';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Cenário';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Transmissor';
 
   @override

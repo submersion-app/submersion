@@ -43005,6 +43005,30 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get settings_conflict_ref_weight;
 
+  /// No description provided for @settings_conflict_ref_customField.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom field'**
+  String get settings_conflict_ref_customField;
+
+  /// No description provided for @settings_conflict_ref_gasSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switch'**
+  String get settings_conflict_ref_gasSwitch;
+
+  /// No description provided for @settings_conflict_ref_profileEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile event'**
+  String get settings_conflict_ref_profileEvent;
+
+  /// No description provided for @settings_conflict_ref_scenario.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario'**
+  String get settings_conflict_ref_scenario;
+
   /// No description provided for @settings_conflict_ref_transmitter.
   ///
   /// In en, this message translates to:

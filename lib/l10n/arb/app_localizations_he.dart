@@ -26168,6 +26168,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_weight => 'משקולת';
 
   @override
+  String get settings_conflict_ref_customField => 'שדה מותאם';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'החלפת גז';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'אירוע';
+
+  @override
+  String get settings_conflict_ref_scenario => 'תרחיש';
+
+  @override
   String get settings_conflict_ref_transmitter => 'משדר';
 
   @override

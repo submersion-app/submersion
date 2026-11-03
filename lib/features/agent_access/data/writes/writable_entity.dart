@@ -92,6 +92,7 @@ class WriteCheck {
     this.id,
     this.ownerId,
     this.values = const {},
+    this.relations = const {},
     this.document,
   });
 
@@ -101,6 +102,9 @@ class WriteCheck {
 
   /// The fields this change sets, parsed.
   final Map<String, Object?> values;
+
+  /// The links an update adds and removes, against the current ones.
+  final Map<String, RelationDelta> relations;
 
   /// The record as it stands. Null for a create.
   final Map<String, Object?>? document;
@@ -113,6 +117,7 @@ class SideEffects {
     this.fields = const {},
     this.relations = const {},
     this.lost = const {},
+    this.parts = const {},
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -125,7 +130,12 @@ class SideEffects {
   /// dive with their assembly.
   final Map<String, Set<String>> lost;
 
-  bool get isEmpty => fields.isEmpty && relations.isEmpty && lost.isEmpty;
+  /// Rows the update deletes, by table, as a delete's parts are counted:
+  /// the annotations a Notes edit unlinks.
+  final Map<String, int> parts;
+
+  bool get isEmpty =>
+      fields.isEmpty && relations.isEmpty && lost.isEmpty && parts.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -141,6 +151,7 @@ class SideEffects {
       for (final MapEntry(:key, :value) in lost.entries)
         key: (value.toList()..sort()),
     }),
+    'parts': _sorted(parts),
   });
 }
 
@@ -204,6 +215,20 @@ abstract class WritableEntry {
   /// The record this one belongs to. A child takes its parent's owner,
   /// names it in [ChildOf.field] when it is created, and stays on it.
   ChildOf? get parent => null;
+
+  /// What an agent needs to know about writing this entity beyond its
+  /// fields, for the tool description. Null when nothing.
+  String? get note => null;
+
+  /// The kinds of change to this record that also write its parent, as an
+  /// annotation's create and delete rewrite its dive's Notes. Such a change
+  /// cannot share a set with an update of that parent that names one of
+  /// [parentFieldsWritten]: whichever ran second would undo the other.
+  Set<ChangeKind> get writesParent => const {};
+
+  /// The parent's document keys a [writesParent] change writes, `notes`
+  /// for an annotation.
+  Set<String> get parentFieldsWritten => const {};
 
   /// Fields a create sets and an update may not change. A child's
   /// [ChildOf.field] is always one.
