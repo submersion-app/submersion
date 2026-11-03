@@ -163,6 +163,24 @@ void main() {
       expect(c.read(planSeriesNotifierProvider).isSeries, isFalse);
     });
 
+    testWidgets('a planner over another planner goes back without asking; '
+        'the one beneath still asks', (tester) async {
+      await pumpPushed(tester);
+      Navigator.of(
+        tester.element(find.byType(PlanCanvasPage)),
+      ).push(MaterialPageRoute<void>(builder: (_) => const PlanCanvasPage()));
+      await tester.pumpAndSettle();
+      await addSeriesDive(tester);
+
+      await back(tester);
+      expect(find.text('Save this series?'), findsNothing);
+      expect(find.byType(PlanCanvasPage), findsOneWidget);
+      expect(containerOf(tester).read(planSeriesDirtyProvider), isTrue);
+
+      await back(tester);
+      expect(find.text('Save this series?'), findsOneWidget);
+    });
+
     testWidgets('an ordinary plan leaves without asking', (tester) async {
       await pumpPushed(tester);
       containerOf(tester)

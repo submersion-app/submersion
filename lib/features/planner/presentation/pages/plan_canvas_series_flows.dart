@@ -4,8 +4,48 @@ part of 'plan_canvas_page.dart';
 /// the route's plan over unsaved work, leaving with unsaved changes, and
 /// deleting a series as a whole.
 mixin _PlanCanvasSeriesFlows on ConsumerState<PlanCanvasPage> {
+  /// The planner pages open, oldest first. The editor is app-wide, so a
+  /// planner page under this one on the same navigator still shows the
+  /// series once this one goes.
+  static final List<_PlanCanvasSeriesFlows> _openPages = [];
+
+  /// This page's navigator, for [_plannerBelow].
+  NavigatorState? _navigator;
+
   /// The page's own Save, guarded against a second save running at once.
   Future<void> _savePlan();
+
+  @override
+  void initState() {
+    super.initState();
+    _openPages.add(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _navigator = Navigator.maybeOf(context);
+  }
+
+  @override
+  void dispose() {
+    _openPages.remove(this);
+    super.dispose();
+  }
+
+  /// Whether a planner page opened before this one is on the same
+  /// navigator, so going back from this one leaves the series on screen
+  /// there rather than leaving the planner (a saved plan opened from the
+  /// saved plans sheet is pushed over the planner it was opened from).
+  bool get _plannerBelow {
+    for (final page in _openPages) {
+      if (identical(page, this)) return false;
+      if (page._navigator != null && page._navigator == _navigator) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /// Opens the saved plan this page was pushed for, asking first when that
   /// would replace unsaved work: the editor is app-wide, so what it holds may

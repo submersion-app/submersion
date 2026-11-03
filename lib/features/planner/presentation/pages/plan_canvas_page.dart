@@ -305,7 +305,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
       ),
       // Leaving a series with unsaved changes asks first (issue #3565).
       body: PopScope(
-        canPop: !(isDirty && ref.watch(planSeriesSavesAsSeriesProvider)),
+        // Not over another planner page, which still shows the series.
+        canPop:
+            !(isDirty &&
+                ref.watch(planSeriesSavesAsSeriesProvider) &&
+                !_plannerBelow),
         onPopInvokedWithResult: (didPop, _) {
           if (!didPop) {
             logFailure(
