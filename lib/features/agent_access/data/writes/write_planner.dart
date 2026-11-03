@@ -77,6 +77,7 @@ class _Pass {
   final _rows = <String, Map<String, _Row>>{};
   final _seen = <(String, String)>{};
   final _referenced = <(String, String)>{};
+  final _versionedTables = <String, bool>{};
   late final _deleted = {
     for (final op in set.operations)
       if (op is DeleteOp) (op.entity, op.id),
@@ -336,6 +337,30 @@ class _Pass {
 
   Future<void> _markReference(String table, String id) async {
     if (!_referenced.add((table, id))) return;
+    if (!await _versioned(table)) {
+      // Nothing to compare but whether the row is still there.
+      Future<String> present() async {
+        final row = await db
+            .customSelect(
+              'SELECT 1 FROM $table WHERE id = ?',
+              variables: [Variable.withString(id)],
+            )
+            .getSingleOrNull();
+        return row == null ? 'gone' : 'present';
+      }
+
+      markers.add(
+        RecordMarker(
+          table: table,
+          id: id,
+          updatedAt: null,
+          versioned: false,
+          footprint: await present(),
+          readFootprint: present,
+        ),
+      );
+      return;
+    }
     final row = await db
         .customSelect(
           'SELECT updated_at FROM $table WHERE id = ?',
@@ -350,6 +375,16 @@ class _Pass {
       ),
     );
   }
+
+  /// Whether [table] has an `updated_at` column.
+  Future<bool> _versioned(String table) async => _versionedTables[table] ??=
+      (await db
+          .customSelect(
+            "SELECT 1 FROM pragma_table_info(?) WHERE name = 'updated_at'",
+            variables: [Variable.withString(table)],
+          )
+          .getSingleOrNull()) !=
+      null;
 
   /// The names of what a change links, so a diver reads names, not ids.
   Future<Map<String, String>> _names(

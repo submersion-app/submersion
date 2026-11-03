@@ -134,6 +134,7 @@ class RecordMarker {
     required this.table,
     required this.id,
     required this.updatedAt,
+    this.versioned = true,
     this.relations = const {},
     this.readRelation,
     this.footprint,
@@ -145,6 +146,10 @@ class RecordMarker {
 
   /// Null when the row has gone.
   final int? updatedAt;
+
+  /// Whether [table] has an `updated_at` to compare. A table with none, such
+  /// as `species`, is checked by [footprint] alone.
+  final bool versioned;
 
   /// The links this plan changes, by relation.
   final Map<String, Set<String>> relations;

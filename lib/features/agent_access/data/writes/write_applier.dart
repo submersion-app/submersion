@@ -277,11 +277,13 @@ class WriteApplier {
       plan.markers,
       (RecordMarker m) => m.table,
     ).entries) {
-      final versions = await _versions(db, table, [
-        for (final marker in markers) marker.id,
-      ]);
+      final versions = markers.first.versioned
+          ? await _versions(db, table, [
+              for (final marker in markers) marker.id,
+            ])
+          : const <String, int>{};
       for (final marker in markers) {
-        if (versions[marker.id] != marker.updatedAt ||
+        if ((marker.versioned && versions[marker.id] != marker.updatedAt) ||
             await _linksMoved(marker) ||
             await _footprintMoved(marker)) {
           stale.add(marker);
