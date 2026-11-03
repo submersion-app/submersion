@@ -98,6 +98,13 @@ void main() {
     );
   });
 
+  test('a date that does not exist is refused', () {
+    expect(
+      () => const FieldCodec.wallClock().parse('2024-02-31T10:00:00Z'),
+      _refused('Z'),
+    );
+  });
+
   test('canonical makes a document value comparable with a parsed one', () {
     const number = FieldCodec.number();
     expect(number.canonical(24), number.parse(24.0));

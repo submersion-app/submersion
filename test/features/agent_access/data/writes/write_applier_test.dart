@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart' hide Dive;
+import 'package:submersion/core/database/database.dart' hide Dive, Document;
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -17,6 +17,7 @@ import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -55,7 +56,7 @@ class _RefusingCatalog extends WriteCatalog {
   }
 }
 
-class _Refusing implements WritableEntry {
+class _Refusing extends WritableEntry {
   _Refusing(this._inner);
 
   final WritableEntry _inner;
@@ -80,7 +81,13 @@ class _Refusing implements WritableEntry {
       _inner.create(diverId, values);
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) =>
-      throw StateError('refused by the repository');
+      // A real failure in a nested transaction, as a repository would raise.
+      DatabaseService.instance.database.transaction(
+        () => DatabaseService.instance.database.customStatement(
+          'INSERT INTO dive_tags (id, dive_id, tag_id, created_at) '
+          "VALUES ('x', 'no-dive', 'no-tag', 0)",
+        ),
+      );
   @override
   Future<void> delete(String id, String? ownerId) => _inner.delete(id, ownerId);
 }
@@ -147,12 +154,14 @@ void main() {
     WriteConfirmer? confirmer,
     bool confirm = true,
     WriteCatalog? catalog,
+    Future<void> Function(Iterable<Document>)? rearm,
   }) => WriteApplier(
     catalog: catalog ?? writes,
     changeLog: changeLog,
     confirmer: confirmer ?? _FakeConfirmer(),
     confirmEnabled: () => confirm,
     afterDiveWrites: (ids) => refreshed.add(ids.toSet()),
+    rearmDocuments: rearm ?? (_) async {},
   );
 
   Future<String?> notes(String id) async =>
@@ -372,6 +381,98 @@ void main() {
     );
     expect(await notes('d1'), 'seeded');
     expect(refreshed, isEmpty);
+  });
+
+  test('a delete before a refusal comes back with its tanks', () async {
+    await buddy('b1');
+    await db
+        .into(db.diveTanks)
+        .insert(DiveTanksCompanion.insert(id: 'tank-1', diveId: 'd1'));
+    final catalog = _RefusingCatalog(repositories);
+    final plan = await preview([
+      {'op': 'delete', 'entity': 'dives', 'id': 'd1'},
+      {
+        'op': 'update',
+        'entity': 'buddies',
+        'id': 'b1',
+        'fields': {'notes': 'x'},
+      },
+    ], catalog: catalog);
+
+    await expectLater(
+      applier(catalog: catalog).apply(db, plan),
+      _refusedWith(AgentToolErrorCode.writeRefused),
+    );
+
+    final doc = await h.one('dives', 'd1', include: ['tanks']);
+    expect((doc!['tanks']! as List).single, containsPair('id', 'tank-1'));
+  });
+
+  test('a refusal answers without SQL', () async {
+    await buddy('b1');
+    final catalog = _RefusingCatalog(repositories);
+    final plan = await preview([
+      {
+        'op': 'update',
+        'entity': 'buddies',
+        'id': 'b1',
+        'fields': {'notes': 'x'},
+      },
+    ], catalog: catalog);
+
+    await expectLater(
+      applier(catalog: catalog).apply(db, plan),
+      throwsA(
+        isA<AgentToolException>()
+            .having((e) => e.message, 'message', isNot(contains('INSERT')))
+            .having((e) => e.message, 'message', isNot(contains('no-tag'))),
+      ),
+    );
+  });
+
+  test('a refused delete arms the reminders it cancelled again', () async {
+    await buddy('b1');
+    await db
+        .into(db.documents)
+        .insert(
+          DocumentsCompanion.insert(
+            id: 'doc-1',
+            diverId: kDiverA,
+            diveId: const Value('d1'),
+            type: 'other',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    final catalog = _RefusingCatalog(repositories);
+    final plan = await preview([
+      {'op': 'delete', 'entity': 'dives', 'id': 'd1'},
+      {
+        'op': 'update',
+        'entity': 'buddies',
+        'id': 'b1',
+        'fields': {'notes': 'x'},
+      },
+    ], catalog: catalog);
+    final armed = <String>[];
+
+    await expectLater(
+      applier(
+        catalog: catalog,
+        rearm: (documents) async => armed.addAll(documents.map((d) => d.id)),
+      ).apply(db, plan),
+      _refusedWith(AgentToolErrorCode.writeRefused),
+    );
+
+    expect(armed, ['doc-1']);
+  });
+
+  test('the result names the client', () async {
+    final plan = await preview([note('d1', 'agent')]);
+
+    final result = await applier().apply(db, plan);
+
+    expect(result.toJson()['client'], 'Test Client');
   });
 
   test('a refused apply leaves no entry in the feed', () async {

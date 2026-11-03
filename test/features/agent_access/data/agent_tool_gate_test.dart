@@ -81,6 +81,7 @@ void main() {
         'plan_expired',
         'plan_stale',
         'not_confirmed',
+        'confirmation_pending',
         'write_refused',
         'internal',
       ]);

@@ -2,12 +2,15 @@ import 'package:drift/drift.dart' show Value;
 
 import 'package:submersion/core/database/database.dart' show BuddiesCompanion;
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/documents/domain/entities/document.dart'
+    show DocumentOwnerKind;
 
-class BuddyWrites implements WritableEntry {
+class BuddyWrites extends WritableEntry {
   BuddyWrites(this._r);
 
   final RecordRepositories _r;
@@ -30,17 +33,24 @@ class BuddyWrites implements WritableEntry {
   };
 
   @override
-  Map<String, RelationSpec> get relations => const {};
-
-  @override
   Set<String> get requiredOnCreate => const {'name'};
 
   @override
-  Future<Set<String>> currentRelation(String id, String relation) async =>
-      const {};
+  Future<DeleteReach> deleteReach(String id) async => DeleteReach(
+    linkedDives: await countDivesByOwner(
+      'SELECT d.diver_id AS owner, COUNT(*) AS n FROM dive_buddies l '
+      'JOIN dives d ON d.id = l.dive_id WHERE l.buddy_id = ? '
+      'GROUP BY d.diver_id',
+      id,
+    ),
+    records: await countOwned({
+      'certifications': 'buddy_id',
+      'documents': 'buddy_id',
+    }, id),
+  );
 
   @override
-  Future<PlanBlock?> refuse(WriteCheck check) async => null;
+  DocumentOwnerKind get documentOwner => DocumentOwnerKind.buddy;
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {

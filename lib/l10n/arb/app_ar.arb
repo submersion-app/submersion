@@ -7830,6 +7830,8 @@
   "settings_data_dataTools": "أدوات البيانات",
   "settings_data_dataTools_subtitle": "تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول",
   "settings_agentAccess_title": "وصول الوكلاء",
+  "settings_agentAccess_confirm_linkedDives": "الغطسات التي ستفقد هذا الرابط ({diver}): {count}",
+  "settings_agentAccess_confirm_alsoDeletes": "يحذف أيضًا {kind}: {count}",
   "settings_agentAccess_confirm_title": "هل تسمح بهذا التغيير؟",
   "settings_agentAccess_confirm_client": "يريد {client} تغيير سجل غوصك.",
   "settings_agentAccess_confirm_unknownClient": "يريد وكيل تغيير سجل غوصك.",

@@ -43575,6 +43575,18 @@ abstract class AppLocalizations {
   /// **'Agent access'**
   String get settings_agentAccess_title;
 
+  /// No description provided for @settings_agentAccess_confirm_linkedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives that lose this link ({diver}): {count}'**
+  String settings_agentAccess_confirm_linkedDives(String diver, int count);
+
+  /// No description provided for @settings_agentAccess_confirm_alsoDeletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Also deletes {kind}: {count}'**
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count);
+
   /// No description provided for @settings_agentAccess_confirm_title.
   ///
   /// In en, this message translates to:

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -10,6 +12,7 @@ class _RecordingRepo implements DerivedMetricsRepository {
   final List<({String id, bool force})> calls = [];
   final List<String> stale;
   final List<String?> sweptDiverIds = [];
+  final List<Zone> sweptZones = [];
   bool throwOnce = false;
   bool sweepThrows = false;
 
@@ -36,6 +39,7 @@ class _RecordingRepo implements DerivedMetricsRepository {
   @override
   Future<List<String>> staleDiveIds({String? diverId}) async {
     sweptDiverIds.add(diverId);
+    sweptZones.add(Zone.current);
     if (sweepThrows) throw StateError('sweep failed');
     return stale;
   }
@@ -63,6 +67,17 @@ void main() {
     DerivedMetricsScheduler.instance.repositoryFactory =
         DerivedMetricsScheduler.defaultRepositoryFactory;
     DerivedMetricsScheduler.instance.requestListener = null;
+  });
+
+  test('a sweep asked for inside a zone runs outside it', () async {
+    // A transaction is a zone: work that binds to it reads through a
+    // transaction that has closed by the time the queue reaches it.
+    final inner = Zone.current.fork();
+
+    inner.run(() => DerivedMetricsScheduler.instance.scheduleStaleSweep());
+    await DerivedMetricsScheduler.instance.idle;
+
+    expect(repo.sweptZones.single, Zone.root);
   });
 
   test('a scheduled dive is refreshed once', () async {

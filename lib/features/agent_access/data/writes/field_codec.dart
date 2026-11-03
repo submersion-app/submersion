@@ -179,7 +179,12 @@ class _WallClockCodec extends FieldCodec {
     final parsed = raw is String && _shape.hasMatch(raw)
         ? DateTime.tryParse(raw)
         : null;
-    if (parsed == null) {
+    // DateTime rolls an impossible date over, so 31 February reads as 2 March
+    // unless the date it landed on is compared with the one asked for.
+    if (parsed == null ||
+        !parsed.toIso8601String().startsWith(
+          (raw as String).substring(0, 10),
+        )) {
       throw const FieldRefusal(
         'This field takes a wall clock with a nominal Z, such as '
         '2024-03-14T09:30:00Z.',

@@ -1,4 +1,6 @@
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart'
+    show DocumentOwnerKind;
 
 enum ChangeKind { create, update, delete }
 
@@ -81,10 +83,36 @@ class WriteCheck {
   final Map<String, Object?>? document;
 }
 
+/// What an update does beyond what it names, through a repository's own
+/// rules. The planner lists these, so a diver sees everything a plan does.
+class SideEffects {
+  const SideEffects({this.fields = const {}, this.relations = const {}});
+
+  /// Document key to the value it will hold, as a document would read.
+  final Map<String, Object?> fields;
+
+  /// Relation name to the ids it gains.
+  final Map<String, Set<String>> relations;
+}
+
+/// What a delete takes with it, for the diver to weigh.
+class DeleteReach {
+  const DeleteReach({this.linkedDives = const {}, this.records = const {}});
+
+  /// Dives that lose a link to this record, by owner. These can belong to
+  /// profiles other than the record's own.
+  final Map<String, int> linkedDives;
+
+  /// Records deleted with it, by table.
+  final Map<String, int> records;
+
+  bool get isEmpty => linkedDives.isEmpty && records.isEmpty;
+}
+
 /// One entity an agent can change. Its [name], and the keys of [fields], are
 /// those of the read catalogue, so a document can be edited and sent back.
 /// Writes go through a repository or service, never a table.
-abstract interface class WritableEntry {
+abstract class WritableEntry {
   String get name;
 
   /// The table `id` and `updated_at` are read from.
@@ -93,16 +121,40 @@ abstract interface class WritableEntry {
   /// The fields a change may set. A document key not listed here is
   /// read-only, usually because it is derived or owned by a device.
   Map<String, FieldCodec> get fields;
-  Map<String, RelationSpec> get relations;
+  Map<String, RelationSpec> get relations => const {};
 
   /// Fields a create must carry.
   Set<String> get requiredOnCreate;
 
   /// The ids [relation] holds now.
-  Future<Set<String>> currentRelation(String id, String relation);
+  Future<Set<String>> currentRelation(String id, String relation) async =>
+      const {};
 
   /// A block when this change may not happen, null when it may.
-  Future<PlanBlock?> refuse(WriteCheck check);
+  Future<PlanBlock?> refuse(WriteCheck check) async => null;
+
+  /// [document] with stored values where a read shows a derived one, so a
+  /// plan compares against what the row holds.
+  Future<Map<String, Object?>> stored(
+    String id,
+    Map<String, Object?> document,
+  ) async => document;
+
+  /// What [update] also changes. Only asked of an update that can run.
+  Future<SideEffects> sideEffects(
+    String id,
+    String? ownerId,
+    RecordUpdate update,
+    Map<String, Object?> document,
+  ) async => const SideEffects();
+
+  Future<DeleteReach> deleteReach(String id) async => const DeleteReach();
+
+  /// What a diver knows this record by.
+  String? titleOf(Map<String, Object?> document) => document['name'] as String?;
+
+  /// Whose documents go with a delete of this record, when any can.
+  DocumentOwnerKind? get documentOwner => null;
 
   /// Creates a record for [diverId] and returns its id.
   Future<String> create(String diverId, Map<String, Object?> values);

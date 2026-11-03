@@ -7995,6 +7995,8 @@
   "settings_data_dataTools": "数据工具",
   "settings_data_dataTools_subtitle": "修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器",
   "settings_agentAccess_title": "代理访问",
+  "settings_agentAccess_confirm_linkedDives": "将失去此关联的潜水({diver}):{count}",
+  "settings_agentAccess_confirm_alsoDeletes": "同时删除 {kind}:{count}",
   "settings_agentAccess_confirm_title": "允许此更改吗?",
   "settings_agentAccess_confirm_client": "{client} 想要更改您的潜水日志。",
   "settings_agentAccess_confirm_unknownClient": "一个智能体想要更改您的潜水日志。",

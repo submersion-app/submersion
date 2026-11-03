@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_write_providers.dart';
 import 'package:submersion/features/agent_access/presentation/widgets/agent_write_confirm_dialog.dart';
@@ -117,7 +118,11 @@ Future<void> _close(WidgetTester tester) async {
 void main() {
   testWidgets('shows the client, label and counts', (tester) async {
     await _pump(tester);
-    unawaited(_confirmer().confirm(_request()));
+    unawaited(
+      _confirmer().confirm(
+        _request(items: [for (var i = 0; i < 40; i++) _item(id: 'd$i')]),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Claude Code'), findsOneWidget);
@@ -208,31 +213,114 @@ void main() {
     expect(await answer, isFalse);
   });
 
-  testWidgets('two requests show one at a time', (tester) async {
+  testWidgets('a second request while one is open is refused', (tester) async {
     await _pump(tester);
     final confirmer = _confirmer();
     final first = confirmer.confirm(_request());
-    final second = confirmer.confirm(
-      WriteConfirmation(
-        clientName: 'Second',
-        label: 'Second change',
-        countsByEntity: const {'dives': 1},
-        countsByDiver: const {'diver-a': 1},
-        items: [_item()],
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      confirmer.confirm(_request()),
+      throwsA(
+        isA<AgentToolException>().having(
+          (e) => e.code,
+          'code',
+          AgentToolErrorCode.confirmationPending,
+        ),
       ),
     );
-    await tester.pumpAndSettle();
-    expect(find.text('Fix buddy names'), findsOneWidget);
-    expect(find.text('Second change'), findsNothing);
 
     await tester.tap(_allow);
     await tester.pumpAndSettle();
     expect(await first, isTrue);
-    expect(find.text('Second change'), findsOneWidget);
 
+    final next = confirmer.confirm(_request());
+    await tester.pumpAndSettle();
     await tester.tap(_deny);
     await tester.pumpAndSettle();
-    expect(await second, isFalse);
+    expect(await next, isFalse);
+  });
+
+  testWidgets('a delete says so without opening the details', (tester) async {
+    await _pump(tester);
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            _item(kind: ChangeKind.delete),
+            _item(id: 'd2', kind: ChangeKind.delete),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Delete'), findsOneWidget);
+    await _close(tester);
+  });
+
+  testWidgets('names the dives a delete reaches on another profile', (
+    tester,
+  ) async {
+    await _pump(tester);
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            const PlanItem(
+              operation: 0,
+              kind: ChangeKind.delete,
+              entity: 'sites',
+              id: 's1',
+              diverId: 'diver-a',
+              title: 'Blue Hole',
+              reach: DeleteReach(
+                linkedDives: {'diver-b': 3},
+                records: {'documents': 2},
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Rui'), findsWidgets);
+    expect(find.textContaining('3'), findsOneWidget);
+    await _close(tester);
+  });
+
+  testWidgets('links show names, not ids', (tester) async {
+    await _pump(tester);
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            const PlanItem(
+              operation: 0,
+              kind: ChangeKind.update,
+              entity: 'dives',
+              id: 'd1',
+              relations: {
+                'buddies': RelationDelta(add: {'uuid-1'}),
+              },
+              indirectRelations: {
+                'types': {'uuid-2'},
+              },
+              names: {'uuid-1': 'Ana', 'uuid-2': 'Wreck'},
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Ana'), findsWidgets);
+    expect(find.textContaining('Wreck'), findsOneWidget);
+    expect(find.textContaining('uuid-1'), findsNothing);
+    await _close(tester);
   });
 
   testWidgets('no navigator answers false', (tester) async {

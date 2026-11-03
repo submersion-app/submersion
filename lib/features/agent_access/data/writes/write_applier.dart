@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Variable;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
@@ -13,6 +14,8 @@ import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 
 /// A record an apply made.
@@ -36,6 +39,7 @@ class WriteResult {
     required this.countsByEntity,
     required this.countsByDiver,
     required this.created,
+    this.clientName,
   });
 
   final List<({String operationId, String? diverId})> operations;
@@ -43,7 +47,11 @@ class WriteResult {
   final Map<String, int> countsByDiver;
   final List<CreatedRecord> created;
 
+  /// The change log keeps no client name, so this is where it is reported.
+  final String? clientName;
+
   Map<String, Object?> toJson() => {
+    'client': ?clientName,
     'operations': [
       for (final o in operations)
         {'operation_id': o.operationId, 'diver_id': o.diverId},
@@ -59,23 +67,31 @@ class WriteResult {
 /// Runs a plan: all of it or none. Every write goes through a repository, so
 /// validation, sync stamping and change notifications stay theirs.
 class WriteApplier {
+  static const _log = LoggerService('AgentAccess');
+
   WriteApplier({
     required WriteCatalog catalog,
     required ChangeLogRepository changeLog,
     required WriteConfirmer confirmer,
     required bool Function() confirmEnabled,
     void Function(Iterable<String>) afterDiveWrites = refreshAfterRuleWrites,
+    Future<void> Function(Iterable<Document>)? rearmDocuments,
+    DocumentRepository? documents,
   }) : _catalog = catalog,
        _changeLog = changeLog,
        _confirmer = confirmer,
        _confirmEnabled = confirmEnabled,
-       _afterDiveWrites = afterDiveWrites;
+       _afterDiveWrites = afterDiveWrites,
+       _rearmDocuments = rearmDocuments,
+       _documents = documents ?? DocumentRepository();
 
   final WriteCatalog _catalog;
   final ChangeLogRepository _changeLog;
   final WriteConfirmer _confirmer;
   final bool Function() _confirmEnabled;
   final void Function(Iterable<String>) _afterDiveWrites;
+  final Future<void> Function(Iterable<Document>)? _rearmDocuments;
+  final DocumentRepository _documents;
 
   Future<WriteResult> apply(AppDatabase db, WritePlan plan) async {
     await _ensureCurrent(db, plan);
@@ -88,13 +104,7 @@ class WriteApplier {
         );
       }
     }
-    final written = await SyncCoordinator.run(() async {
-      // The wait above can last minutes, and a merge can land in this queue,
-      // so what the diver allowed is checked once more where nothing can
-      // come between the check and the write.
-      await _ensureCurrent(db, plan);
-      return _write(db, plan);
-    });
+    final written = await SyncCoordinator.run(() => _writeOrRestore(db, plan));
     SyncEventBus.notifyLocalChange();
     _afterDiveWrites({
       for (final item in plan.items)
@@ -110,7 +120,35 @@ class WriteApplier {
       countsByEntity: plan.countsByEntity,
       countsByDiver: plan.countsByDiver,
       created: written.created,
+      clientName: plan.clientName,
     );
+  }
+
+  /// A delete cancels its documents' reminders as it goes, which a rollback
+  /// cannot undo, so they are armed again when the plan fails.
+  Future<({String operationId, List<CreatedRecord> created})> _writeOrRestore(
+    AppDatabase db,
+    WritePlan plan,
+  ) async {
+    final documents = await _documentsDeletedBy(plan);
+    try {
+      return await _write(db, plan);
+    } catch (_) {
+      await _rearmDocuments?.call(documents);
+      rethrow;
+    }
+  }
+
+  Future<List<Document>> _documentsDeletedBy(WritePlan plan) async {
+    final found = <Document>[];
+    for (final item in plan.items) {
+      if (item.kind != ChangeKind.delete) continue;
+      final kind = _catalog.named(item.entity)!.documentOwner;
+      if (kind == null) continue;
+      final held = await _documents.getForOwner(DocumentOwner(kind, item.id!));
+      found.addAll(held);
+    }
+    return found;
   }
 
   Future<({String operationId, List<CreatedRecord> created})> _write(
@@ -120,12 +158,19 @@ class WriteApplier {
     db,
     source: ChangeLogSource.agent,
     label: plan.label,
+    // A renewal cannot run until the transaction ends, and a large plan can
+    // outlast the short lease.
+    lease: kChangeLogLongLease,
     // The scope stays outside the transaction, as its documentation asks, and
     // holds the writes and nothing else, so a save the diver makes around it
     // is not filed here.
     body: () async {
       final created = <CreatedRecord>[];
       await db.transaction(() async {
+        // The dialog can last minutes and a merge can land in the queue, so
+        // what the diver allowed is checked once more, where a diver's own
+        // save cannot come between the check and the write.
+        await _ensureCurrent(db, plan);
         for (final item in plan.items) {
           await _writeItem(item, created);
         }
@@ -165,11 +210,17 @@ class WriteApplier {
         '${refusal.message} Nothing was changed.',
         details: _where(item),
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
+      // The error names SQL and values, which belong in the log, not a reply.
+      _log.error(
+        'Agent ${item.kind.name} of ${item.entity} failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
       throw AgentToolException(
         AgentToolErrorCode.writeRefused,
-        'The ${item.kind.name} of this ${item.entity} record was refused '
-        '($error). Nothing was changed.',
+        'The ${item.kind.name} of this ${item.entity} record was refused. '
+        'Nothing was changed.',
         details: _where(item),
       );
     }

@@ -69,6 +69,7 @@ class _Pass {
 
   final _rows = <String, Map<String, _Row>>{};
   final _seen = <(String, String)>{};
+  final _referenced = <(String, String)>{};
   late final _deleted = {
     for (final op in set.operations)
       if (op is DeleteOp) (op.entity, op.id),
@@ -167,7 +168,10 @@ class _Pass {
   Future<void> _update(UpdateOp op, WritableEntry entry) async {
     final row = _claim(op, op.id, entry, ChangeKind.update);
     if (row == null) return;
-    final document = await _document(entry, op.id, row.ownerId);
+    final document = await entry.stored(
+      op.id,
+      await _document(entry, op.id, row.ownerId),
+    );
     final parsed = _parse(op.index, entry, op.fields, document);
     final links = await _relations(op, entry, row.ownerId);
     final block =
@@ -188,6 +192,25 @@ class _Pass {
       );
       return;
     }
+    final effects = block != null
+        ? const SideEffects()
+        : await entry.sideEffects(
+            op.id,
+            row.ownerId,
+            RecordUpdate(values: parsed.values, relations: links.deltas),
+            document,
+          );
+    final fields = {...parsed.changes};
+    final values = {...parsed.values};
+    for (final MapEntry(key: key, value: value) in effects.fields.entries) {
+      if (parsed.named.containsKey(key)) {
+        // The set names this field, so its value is written after the effect
+        // and wins, even when it equals what the row holds now.
+        values[key] = parsed.named[key];
+      } else {
+        fields[key] = FieldChange(document[key], value, indirect: true);
+      }
+    }
     if (block == null) {
       markers.add(
         RecordMarker(
@@ -198,6 +221,7 @@ class _Pass {
           readRelation: (relation) => entry.currentRelation(op.id, relation),
         ),
       );
+      await _markReferences(entry, links.deltas);
     }
     _add(
       op,
@@ -205,10 +229,13 @@ class _Pass {
       kind: ChangeKind.update,
       id: op.id,
       diverId: row.ownerId,
-      title: _title(document),
-      fields: parsed.changes,
-      values: parsed.values,
+      title: entry.titleOf(document),
+      date: document['date_time'] as String?,
+      fields: fields,
+      values: values,
       relations: links.deltas,
+      indirectRelations: effects.relations,
+      names: await _names(entry, links.deltas, effects.relations),
       block: block,
     );
   }
@@ -236,9 +263,68 @@ class _Pass {
       kind: ChangeKind.delete,
       id: op.id,
       diverId: row.ownerId,
-      title: _title(document),
+      title: entry.titleOf(document),
+      date: document['date_time'] as String?,
+      reach: block == null
+          ? await entry.deleteReach(op.id)
+          : const DeleteReach(),
       block: block,
     );
+  }
+
+  /// Adds a marker for each record a plan links to, so one that goes away
+  /// after the preview refuses the plan instead of quietly not linking.
+  Future<void> _markReferences(
+    WritableEntry entry,
+    Map<String, RelationDelta> deltas,
+  ) async {
+    for (final MapEntry(key: name, value: delta) in deltas.entries) {
+      final table = records.named(entry.relations[name]!.refEntity).table;
+      for (final id in delta.add) {
+        if (!_referenced.add((table, id))) continue;
+        final row = await db
+            .customSelect(
+              'SELECT updated_at FROM $table WHERE id = ?',
+              variables: [Variable.withString(id)],
+            )
+            .getSingleOrNull();
+        markers.add(
+          RecordMarker(
+            table: table,
+            id: id,
+            updatedAt: row?.read<int>('updated_at'),
+          ),
+        );
+      }
+    }
+  }
+
+  /// The names of what a change links, so a diver reads names, not ids.
+  Future<Map<String, String>> _names(
+    WritableEntry entry,
+    Map<String, RelationDelta> deltas,
+    Map<String, Set<String>> indirect,
+  ) async {
+    final names = <String, String>{};
+    for (final relation in {...deltas.keys, ...indirect.keys}) {
+      final delta = deltas[relation];
+      final ids = {...?delta?.add, ...?delta?.remove, ...?indirect[relation]};
+      if (ids.isEmpty) continue;
+      final table = records.named(entry.relations[relation]!.refEntity).table;
+      for (final chunk in seriesIdChunks(ids.toList())) {
+        final marks = List.filled(chunk.length, '?').join(', ');
+        final rows = await db
+            .customSelect(
+              'SELECT id, name FROM $table WHERE id IN ($marks)',
+              variables: [for (final id in chunk) Variable.withString(id)],
+            )
+            .get();
+        for (final row in rows) {
+          names[row.read<String>('id')] = row.read<String>('name');
+        }
+      }
+    }
+    return names;
   }
 
   /// The row for a record the set may change, or null after blocking it.
@@ -294,6 +380,7 @@ class _Pass {
   ) {
     final changes = <String, FieldChange>{};
     final values = <String, Object?>{};
+    final named = <String, Object?>{};
     final problems = <String>[];
     final unknown = <String>[];
     for (final MapEntry(key: key, value: raw) in requested.entries) {
@@ -304,6 +391,7 @@ class _Pass {
       }
       try {
         final next = codec.parse(raw);
+        named[key] = next;
         final current = codec.canonical(document[key]);
         if (next == current) continue;
         values[key] = next;
@@ -326,7 +414,7 @@ class _Pass {
         PlanBlock(BlockReason.invalidValue, problems.join(' ')),
       );
     }
-    return _Parsed(changes: changes, values: values);
+    return _Parsed(changes: changes, values: values, named: named);
   }
 
   Future<_Links> _relations(
@@ -455,9 +543,13 @@ class _Pass {
     String? id,
     String? diverId,
     String? title,
+    String? date,
     Map<String, FieldChange> fields = const {},
     Map<String, Object?> values = const {},
     Map<String, RelationDelta> relations = const {},
+    Map<String, Set<String>> indirectRelations = const {},
+    Map<String, String> names = const {},
+    DeleteReach reach = const DeleteReach(),
     PlanBlock? block,
   }) => items.add(
     PlanItem(
@@ -467,26 +559,35 @@ class _Pass {
       id: id,
       diverId: diverId,
       title: title,
+      date: date,
       fields: fields,
       values: values,
       relations: relations,
+      indirectRelations: indirectRelations,
+      names: names,
+      reach: reach,
       block: block,
     ),
   );
-
-  String? _title(Map<String, Object?> document) => document['name'] as String?;
 }
 
 class _Parsed {
-  const _Parsed({this.changes = const {}, this.values = const {}})
-    : block = null;
+  const _Parsed({
+    this.changes = const {},
+    this.values = const {},
+    this.named = const {},
+  }) : block = null;
 
   const _Parsed.blocked(PlanBlock this.block)
     : changes = const {},
-      values = const {};
+      values = const {},
+      named = const {};
 
   final Map<String, FieldChange> changes;
   final Map<String, Object?> values;
+
+  /// Every field the set named, whether or not it differs from the row.
+  final Map<String, Object?> named;
   final PlanBlock? block;
 }
 

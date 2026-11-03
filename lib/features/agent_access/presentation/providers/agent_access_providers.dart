@@ -21,6 +21,7 @@ import 'package:submersion/features/agent_access/data/writes/agent_write_service
 import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_write_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -258,6 +259,7 @@ class AgentAccessController {
           confirmer: _ref.read(agentWriteConfirmerProvider),
           confirmEnabled: () =>
               _ref.read(agentAccessSettingsProvider).confirmWrites,
+          rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
         ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),

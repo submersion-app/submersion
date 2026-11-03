@@ -5,12 +5,19 @@ const kWritePlanLifetime = Duration(minutes: 15);
 
 /// One field a plan changes. Both values are as the agent would read them.
 class FieldChange {
-  const FieldChange(this.oldValue, this.newValue);
+  const FieldChange(this.oldValue, this.newValue, {this.indirect = false});
 
   final Object? oldValue;
   final Object? newValue;
 
-  Map<String, Object?> toJson() => {'old': oldValue, 'new': newValue};
+  /// Follows from another change in the plan rather than being asked for.
+  final bool indirect;
+
+  Map<String, Object?> toJson() => {
+    'old': oldValue,
+    'new': newValue,
+    if (indirect) 'indirect': true,
+  };
 }
 
 /// One record a plan touches, or would touch but for [block].
@@ -25,6 +32,10 @@ class PlanItem {
     this.fields = const {},
     this.values = const {},
     this.relations = const {},
+    this.indirectRelations = const {},
+    this.names = const {},
+    this.date,
+    this.reach = const DeleteReach(),
     this.block,
   });
 
@@ -44,6 +55,19 @@ class PlanItem {
   /// The parsed new values, which the write uses.
   final Map<String, Object?> values;
   final Map<String, RelationDelta> relations;
+
+  /// Links a repository adds because of another change. Listed, not written:
+  /// the write that causes them makes them.
+  final Map<String, Set<String>> indirectRelations;
+
+  /// The names of the records [relations] refers to, by id.
+  final Map<String, String> names;
+
+  /// The record's date, when it has one, as a document writes it.
+  final String? date;
+
+  /// What a delete takes with it.
+  final DeleteReach reach;
   final PlanBlock? block;
 
   Map<String, Object?> toJson() => {
@@ -62,6 +86,16 @@ class PlanItem {
       'relations': {
         for (final MapEntry(:key, :value) in relations.entries)
           key: {'add': value.add.toList(), 'remove': value.remove.toList()},
+      },
+    if (indirectRelations.isNotEmpty)
+      'indirect_relations': {
+        for (final MapEntry(:key, :value) in indirectRelations.entries)
+          key: {'add': value.toList()},
+      },
+    if (!reach.isEmpty)
+      'also_reaches': {
+        'linked_dives_by_diver': reach.linkedDives,
+        'deleted_records': reach.records,
       },
     if (block case final block?)
       'blocked': {'reason': block.reason.wire, 'detail': block.detail},
@@ -142,6 +176,37 @@ class WritePlan {
   /// counted under an empty key.
   Map<String, int> get countsByDiver => _counts((item) => item.diverId ?? '');
 
+  /// Changes of each kind, per entity: a diver allowing 40 changes should
+  /// know that they are deletes.
+  Map<String, Map<String, int>> get countsByChange => countChanges(items);
+
+  /// Dives that would lose a link, by owner, across the plan. These can be
+  /// another profile's, even when the record deleted is not.
+  Map<String, int> get linkedDivesByDiver => countLinkedDives(items);
+
+  static Map<String, Map<String, int>> countChanges(List<PlanItem> items) {
+    final counts = <String, Map<String, int>>{};
+    for (final item in items) {
+      if (item.block != null) continue;
+      (counts[item.entity] ??= {}).update(
+        item.kind.name,
+        (n) => n + 1,
+        ifAbsent: () => 1,
+      );
+    }
+    return counts;
+  }
+
+  static Map<String, int> countLinkedDives(List<PlanItem> items) {
+    final counts = <String, int>{};
+    for (final item in items) {
+      for (final MapEntry(:key, :value) in item.reach.linkedDives.entries) {
+        counts.update(key, (n) => n + value, ifAbsent: () => value);
+      }
+    }
+    return counts;
+  }
+
   Map<String, int> _counts(String Function(PlanItem) keyOf) {
     final counts = <String, int>{};
     for (final item in items) {
@@ -158,6 +223,12 @@ class WritePlan {
     'label': label,
     'items': [for (final item in items) item.toJson()],
     'unchanged': [for (final record in unchanged) record.toJson()],
-    'counts': {'by_entity': countsByEntity, 'by_diver': countsByDiver},
+    'counts': {
+      'by_entity': countsByEntity,
+      'by_change': countsByChange,
+      'by_diver': countsByDiver,
+      if (linkedDivesByDiver.isNotEmpty)
+        'linked_dives_by_diver': linkedDivesByDiver,
+    },
   };
 }

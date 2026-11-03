@@ -27052,6 +27052,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_agentAccess_title => 'Ügynökhozzáférés';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'A hivatkozást elveszítő merülések ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'Ezt is törli: $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title =>
       'Engedélyezi ezt a módosítást?';
 

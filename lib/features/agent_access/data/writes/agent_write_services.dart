@@ -5,6 +5,7 @@ import 'package:submersion/features/agent_access/data/writes/write_plan_store.da
 import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 
 /// What the write tools need. Built per request on the stateless protocol,
@@ -17,6 +18,7 @@ class AgentWriteServices {
     required WriteConfirmer confirmer,
     required bool Function() confirmEnabled,
     void Function(Iterable<String>) afterDiveWrites = refreshAfterRuleWrites,
+    this.rearmDocuments,
   }) : catalog = WriteCatalog(records),
        _confirmer = confirmer,
        _confirmEnabled = confirmEnabled,
@@ -27,6 +29,9 @@ class AgentWriteServices {
   final WriteConfirmer _confirmer;
   final bool Function() _confirmEnabled;
   final void Function(Iterable<String>) _afterDiveWrites;
+
+  /// Arms the reminders of documents a failed or reverted delete brought back.
+  final Future<void> Function(Iterable<Document>)? rearmDocuments;
 
   late final changeLog = ChangeLogRepository();
 
@@ -41,5 +46,6 @@ class AgentWriteServices {
     confirmer: _confirmer,
     confirmEnabled: _confirmEnabled,
     afterDiveWrites: _afterDiveWrites,
+    rearmDocuments: rearmDocuments,
   );
 }

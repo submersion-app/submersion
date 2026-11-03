@@ -26502,6 +26502,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_agentAccess_title => 'גישת סוכנים';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'צלילות שיאבדו את הקישור הזה ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'מוחק גם $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'לאשר את השינוי הזה?';
 
   @override

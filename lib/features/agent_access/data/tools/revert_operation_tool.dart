@@ -3,17 +3,25 @@ import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// Undoes a change log operation the way the app's own Revert does.
 class RevertOperationTool implements AgentTool {
   RevertOperationTool({
     required ChangeLogRevertService revert,
     required ChangeLogRepository changeLog,
+    Future<void> Function(Iterable<Document>)? rearmDocuments,
+    DocumentRepository? documents,
   }) : _revert = revert,
-       _changeLog = changeLog;
+       _changeLog = changeLog,
+       _rearmDocuments = rearmDocuments,
+       _documents = documents ?? DocumentRepository();
 
   final ChangeLogRevertService _revert;
   final ChangeLogRepository _changeLog;
+  final Future<void> Function(Iterable<Document>)? _rearmDocuments;
+  final DocumentRepository _documents;
 
   @override
   String get name => 'revert_operation';
@@ -78,12 +86,33 @@ class RevertOperationTool implements AgentTool {
       plan,
       includeChangedSince: args['include_changed_since'] == true,
     );
+    await _rearmRestored(plan, result);
     return {
       'reverted': result.reverted,
       'kept': result.kept,
       'kept_items': [for (final item in result.keptItems) _kept(item)],
       'operation_id': result.operationId,
     };
+  }
+
+  /// Restored rows do not bring back the reminders their delete cancelled.
+  Future<void> _rearmRestored(
+    ChangeLogRevertPlan plan,
+    ChangeLogRevertResult result,
+  ) async {
+    final rearm = _rearmDocuments;
+    if (rearm == null) return;
+    final kept = {for (final item in result.keptItems) item.event.recordId};
+    final restored = <Document>[];
+    for (final item in plan.items) {
+      final id = item.event.recordId;
+      if (!item.restoresRecord || item.event.table != 'documents') continue;
+      if (kept.contains(id)) continue;
+      if (await _documents.getById(id) case final document?) {
+        restored.add(document);
+      }
+    }
+    if (restored.isNotEmpty) await rearm(restored);
   }
 
   Map<String, Object?> _kept(ChangeLogRevertItem item) => {

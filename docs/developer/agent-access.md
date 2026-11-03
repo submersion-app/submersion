@@ -119,7 +119,16 @@ Plans live in `agentWritePlanStoreProvider`, not in the registry, because the
 protocol builds a server per request.
 
 A version marker is `updated_at` plus the current ids of each relation the
-plan changes, since a link can change without touching its parent row.
+plan changes, since a link can change without touching its parent row. A record
+a plan links to gets a marker too, so one that goes away refuses the plan.
+
+What a plan lists is what a write does. An entity reports what an update does
+beyond what it names through `sideEffects`: a site link snaps on water type,
+entry and exit methods and dive types, a visibility band clears the measured
+values, and a moved dive takes its entry and exit times along. A field the set
+names is written after the snap and wins, even if it equals the current value.
+`deleteReach` reports what a delete takes with it, including dives of other
+profiles that lose a link, and the dialog shows those without being opened.
 
 ### Adding a writable entity
 
@@ -136,7 +145,9 @@ plan changes, since a link can change without touching its parent row.
 4. Implement `refuse` for what the repository would quietly ignore.
    `updateSite` keeps a library's values and reports success, so
    `SiteWrites.refuse` blocks that case in the preview.
-5. Move the repository's methods from
+5. Implement `sideEffects` and `deleteReach` for anything the write path does
+   beyond the columns it was given, or a diver allows a change they cannot see.
+6. Move the repository's methods from
    `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
    `agent_write_coverage_test.dart`. That guard fails on a new repository
    write no entity reaches, and on a baseline line that has gone.
@@ -145,10 +156,12 @@ plan changes, since a link can change without touching its parent row.
 
 - Many MCP clients time out a request after about a minute, which is shorter
   than the dialog. The server keeps asking, so a later Allow applies a change
-  the agent reported as failed. The `apply_changes` description tells agents
-  to read the records before trying again.
-- `bulkDeleteDives` holds a deleted dive's remote media blobs so a revert
-  finds them, and nothing releases them, the same as the logbook's own delete.
+  the agent reported as failed. While that dialog is open a second apply
+  answers `confirmation_pending`, so a retry cannot queue the same change, and
+  the `apply_changes` description tells agents to read the records first.
+- `holdRemoteMedia` does nothing on the plain `DiveRepository` the tools use,
+  so a deleted dive's remote blobs follow the usual drain. A revert re-queues
+  the upload through `repairRestoredMedia`.
 - A change set cannot refer to a record it creates. Linking a new buddy to a
   dive takes two applies.
 

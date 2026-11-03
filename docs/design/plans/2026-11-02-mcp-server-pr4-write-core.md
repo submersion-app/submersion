@@ -37,7 +37,7 @@ Spec gaps this plan settles. Each is recorded in the spec's decision record in T
 
 - A plan with any blocked item gets no `plan_id`. The agent re-previews without those items, so a diver never confirms something that cannot run.
 - Field writes use a partial companion, not `copyWith`. Most `copyWith` methods use `??`, so they cannot clear a field, and building a whole entity loses any field the mapper forgets.
-- Dives write through `BulkDiveEditService.apply`, so an agent edit behaves as the diver's bulk edit does: site snap, trip stretch, tank link cleanup.
+- Dives write through `BulkDiveEditService.apply`, so an agent edit behaves as the diver's bulk edit does, including the site snap.
 - `date_time` writes through `bulkShiftDiveTimes` with the difference, so entry and exit move with it.
 - Version marker: `updated_at` plus the current ids of each relation the plan changes.
 - Markers are checked again inside the sync turn, after the diver confirms. The spec checks before the wait, but the wait can last five minutes.

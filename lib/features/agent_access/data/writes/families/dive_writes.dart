@@ -1,22 +1,29 @@
 import 'package:drift/drift.dart' show Value;
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/database/database.dart' show DivesCompanion;
+import 'package:submersion/core/database/database.dart'
+    show Dive, DivesCompanion;
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart'
+    show DocumentOwnerKind;
 
 /// Dives write through the bulk edit service, so an agent's change behaves as
 /// the diver's own bulk edit does: the site's values snap on, a tank keeps no
 /// link into a trip the dive left, and sync hears once.
-class DiveWrites implements WritableEntry {
+class DiveWrites extends WritableEntry {
   DiveWrites(this._r);
 
   final RecordRepositories _r;
@@ -93,8 +100,83 @@ class DiveWrites implements WritableEntry {
     };
   }
 
+  /// A read fills an empty water temperature from the profile, and a plan
+  /// must compare with what the column holds: clearing a value only a sample
+  /// shows would change nothing.
   @override
-  Future<PlanBlock?> refuse(WriteCheck check) async => null;
+  Future<Map<String, Object?>> stored(
+    String id,
+    Map<String, Object?> document,
+  ) async {
+    final row = await _row(id);
+    return {...document, 'water_temp_c': row?.waterTemp};
+  }
+
+  @override
+  Future<SideEffects> sideEffects(
+    String id,
+    String? ownerId,
+    RecordUpdate update,
+    Map<String, Object?> document,
+  ) async {
+    final fields = <String, Object?>{};
+    final relations = <String, Set<String>>{};
+    final siteId = update.relations['site']?.add.firstOrNull;
+    final row = siteId == null ? null : await _row(id);
+    if (siteId != null && row != null) {
+      final snap = siteSnapColumns(row, await _r.sites.getSiteById(siteId));
+      if (snap.waterType.present) fields['water_type'] = snap.waterType.value;
+      if (snap.entryMethod.present) {
+        fields['entry_method'] = snap.entryMethod.value;
+      }
+      if (snap.exitMethod.present) {
+        fields['exit_method'] = snap.exitMethod.value;
+      }
+      final types = (await diveTypeIdsForSite(siteId, ownerId)).toSet();
+      final added = types.difference(await currentRelation(id, 'types'));
+      if (added.isNotEmpty) relations['types'] = added;
+    }
+    if (update.values['visibility'] != null) {
+      for (final key in _measuredVisibility) {
+        if (document[key] != null) fields[key] = null;
+      }
+    }
+    if (update.values['date_time'] case final DateTime moved) {
+      final offset = moved.difference(
+        DateTime.parse(document['date_time']! as String),
+      );
+      for (final key in const ['entry_time', 'exit_time']) {
+        if (document[key] case final String clock) {
+          fields[key] = wallClock(DateTime.parse(clock).add(offset));
+        }
+      }
+    }
+    return SideEffects(fields: fields, relations: relations);
+  }
+
+  @override
+  Future<DeleteReach> deleteReach(String id) async =>
+      DeleteReach(records: await countOwned({'documents': 'dive_id'}, id));
+
+  @override
+  String? titleOf(Map<String, Object?> document) {
+    final name = document['name'] as String?;
+    if (name != null && name.trim().isNotEmpty) return name;
+    final number = document['dive_number'];
+    final site = (document['site'] as Map?)?['name'];
+    final title = [if (number != null) '#$number', ?site].join(' ');
+    return title.isEmpty ? null : title;
+  }
+
+  @override
+  DocumentOwnerKind get documentOwner => DocumentOwnerKind.dive;
+
+  Future<Dive?> _row(String id) {
+    final db = DatabaseService.instance.database;
+    return (db.select(
+      db.dives,
+    )..where((d) => d.id.equals(id))).getSingleOrNull();
+  }
 
   @override
   Future<String> create(String diverId, Map<String, Object?> v) async {
@@ -175,7 +257,15 @@ class DiveWrites implements WritableEntry {
   DivesCompanion _scalars(Map<String, Object?> v) {
     Value<T> field<T>(String key) =>
         v.containsKey(key) ? Value(v[key] as T) : const Value.absent();
+    // A band and a measurement contradict each other, so bulk edit never
+    // leaves both, and a later save would drop the band anyway.
+    final band = v['visibility'] != null;
+    Value<double?> measurement() =>
+        band ? const Value(null) : const Value.absent();
     return DivesCompanion(
+      visibilityMeters: measurement(),
+      visibilityMinMeters: measurement(),
+      visibilityMaxMeters: measurement(),
       name: field('name'),
       notes: field('notes'),
       maxDepth: field('max_depth_m'),
@@ -253,8 +343,7 @@ class DiveWrites implements WritableEntry {
     final role = await _buddyRole();
     Future<List<BuddyWithRole>> withRole(Set<String> ids) async => [
       for (final id in ids)
-        if (await _r.buddies.getBuddyById(id) case final buddy?)
-          BuddyWithRole(buddy: buddy, roles: [role]),
+        BuddyWithRole(buddy: await _buddy(id), roles: [role]),
     ];
     return [
       if (delta.add.isNotEmpty)
@@ -271,11 +360,27 @@ class DiveWrites implements WritableEntry {
     ];
   }
 
+  Future<Buddy> _buddy(String id) async {
+    final buddy = await _r.buddies.getBuddyById(id);
+    if (buddy != null) return buddy;
+    throw AgentToolException(
+      AgentToolErrorCode.writeRefused,
+      'Buddy $id no longer exists.',
+      details: {'id': id},
+    );
+  }
+
   Future<DiveRole> _buddyRole() async {
     final roles = await _r.diveRoles.getAllDiveRoles();
     return roles.firstWhere((role) => role.id == DiveRole.buddyId);
   }
 }
+
+const _measuredVisibility = [
+  'visibility_m',
+  'visibility_min_m',
+  'visibility_max_m',
+];
 
 T? _enum<T extends Enum>(List<T> values, Object? name) =>
     name == null ? null : values.byName(name as String);

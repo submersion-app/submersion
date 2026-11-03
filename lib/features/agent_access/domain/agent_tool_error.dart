@@ -15,6 +15,7 @@ enum AgentToolErrorCode {
   planExpired,
   planStale,
   notConfirmed,
+  confirmationPending,
   writeRefused,
   internal;
 
@@ -35,6 +36,7 @@ enum AgentToolErrorCode {
     planExpired => 'plan_expired',
     planStale => 'plan_stale',
     notConfirmed => 'not_confirmed',
+    confirmationPending => 'confirmation_pending',
     writeRefused => 'write_refused',
     internal => 'internal',
   };

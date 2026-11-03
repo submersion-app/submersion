@@ -107,6 +107,18 @@ void main() {
         ),
       );
 
+  Future<void> site(String id, {String owner = kDiverA}) => db
+      .into(db.diveSites)
+      .insert(
+        DiveSitesCompanion.insert(
+          id: id,
+          name: 'Site $id',
+          createdAt: t,
+          updatedAt: t,
+          diverId: Value(owner),
+        ),
+      );
+
   Future<WritePlan> preview(List<Map<String, Object?>> operations) =>
       planner.preview(
         db,
@@ -163,6 +175,12 @@ void main() {
 
   test('a preview opens no transaction and ticks no table', () async {
     await buddy('b1');
+    await buddy('b2');
+    await tag('t1');
+    await site('s1');
+    for (final id in ['d2', 'd3', 'd4']) {
+      await dive(id);
+    }
     final ticks = <Set<TableUpdate>>[];
     final sub = db.tableUpdates().listen(ticks.add);
     counter
@@ -185,7 +203,24 @@ void main() {
           },
         },
       ),
-      {'op': 'delete', 'entity': 'buddies', 'id': 'b1'},
+      update(
+        'dives',
+        'd2',
+        relations: {
+          'tags': {
+            'add': ['t1'],
+          },
+          'types': {
+            'add': ['wreck'],
+          },
+          'site': {
+            'set': ['s1'],
+          },
+        },
+      ),
+      update('dives', 'd3', fields: {'date_time': '2024-03-14T11:30:00Z'}),
+      {'op': 'delete', 'entity': 'dives', 'id': 'd4'},
+      {'op': 'delete', 'entity': 'buddies', 'id': 'b2'},
     ]);
     await Future<void>.delayed(Duration.zero);
     await sub.cancel();
@@ -414,6 +449,120 @@ void main() {
     expect(plan.items.single.block?.reason, BlockReason.otherProfileReference);
   });
 
+  test('a tag of another profile is blocked', () async {
+    await tag('t-other', owner: kDiverB);
+
+    final plan = await preview([
+      update(
+        'dives',
+        'd1',
+        relations: {
+          'tags': {
+            'add': ['t-other'],
+          },
+        },
+      ),
+    ]);
+
+    expect(plan.items.single.block?.reason, BlockReason.otherProfileReference);
+  });
+
+  test('deleting a site lists the dives of every profile it reaches', () async {
+    await site('s1');
+    await dive('other', owner: kDiverB);
+    await db.customStatement(
+      "UPDATE dives SET site_id = 's1' WHERE id IN ('d1', 'other')",
+    );
+
+    final plan = await preview([
+      {'op': 'delete', 'entity': 'sites', 'id': 's1'},
+    ]);
+
+    expect(plan.countsByDiver, {kDiverA: 1});
+    expect(plan.linkedDivesByDiver, {kDiverA: 1, kDiverB: 1});
+    expect(plan.items.single.reach.linkedDives, {kDiverA: 1, kDiverB: 1});
+  });
+
+  test('deleting a buddy lists its dives and certifications', () async {
+    await buddy('b1');
+    await db
+        .into(db.diveBuddies)
+        .insert(
+          DiveBuddiesCompanion.insert(
+            id: 'link',
+            diveId: 'd1',
+            buddyId: 'b1',
+            createdAt: t,
+          ),
+        );
+    await db
+        .into(db.certifications)
+        .insert(
+          CertificationsCompanion.insert(
+            id: 'cert-1',
+            name: 'Rescue',
+            agency: 'padi',
+            createdAt: t,
+            updatedAt: t,
+            buddyId: const Value('b1'),
+          ),
+        );
+
+    final plan = await preview([
+      {'op': 'delete', 'entity': 'buddies', 'id': 'b1'},
+    ]);
+
+    final reach = plan.items.single.reach;
+    expect(reach.linkedDives, {kDiverA: 1});
+    expect(reach.records, {'certifications': 1});
+  });
+
+  test('a dive with no name is known by its number and site', () async {
+    await site('s1');
+    await db.customStatement(
+      "UPDATE dives SET site_id = 's1', dive_number = 12 WHERE id = 'd1'",
+    );
+
+    final plan = await preview([
+      {'op': 'delete', 'entity': 'dives', 'id': 'd1'},
+    ]);
+
+    expect(plan.items.single.title, '#12 Site s1');
+    expect(plan.items.single.date, '2024-03-14T09:30:00.000Z');
+  });
+
+  test('links are named', () async {
+    await buddy('b1');
+
+    final plan = await preview([
+      update(
+        'dives',
+        'd1',
+        relations: {
+          'buddies': {
+            'add': ['b1'],
+          },
+        },
+      ),
+    ]);
+
+    expect(plan.items.single.names, {'b1': 'b1'});
+  });
+
+  test('counts say what kind of change each is', () async {
+    await buddy('b1');
+
+    final plan = await preview([
+      update('dives', 'd1', fields: {'notes': 'a'}),
+      {'op': 'delete', 'entity': 'buddies', 'id': 'b1'},
+    ]);
+
+    expect(plan.countsByChange, {
+      'dives': {'update': 1},
+      'buddies': {'delete': 1},
+    });
+  });
+
   test('an unknown reference is blocked', () async {
     final plan = await preview([
       update(
@@ -534,7 +683,12 @@ void main() {
       ),
     ]);
 
-    final marker = plan.markers.single;
+    expect(plan.markers, hasLength(2));
+    final linked = plan.markers.last;
+    expect(linked.table, 'tags');
+    expect(linked.id, 't1');
+    expect(linked.updatedAt, t);
+    final marker = plan.markers.first;
     expect(marker.table, 'dives');
     expect(marker.id, 'd1');
     expect(marker.updatedAt, t);

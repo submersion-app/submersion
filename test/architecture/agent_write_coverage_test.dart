@@ -27,6 +27,14 @@ void main() {
         'dives',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkSetSite':
         'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddTags':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveTags':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddDiveTypes':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveDiveTypes':
+        'dives',
     'lib/features/buddies/data/repositories/buddy_repository.dart:createBuddy':
         'buddies',
     'lib/features/buddies/data/repositories/buddy_repository.dart:updateFields':

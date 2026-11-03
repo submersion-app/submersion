@@ -27414,6 +27414,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_agentAccess_title => 'وصول الوكلاء';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'الغطسات التي ستفقد هذا الرابط ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'يحذف أيضًا $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'هل تسمح بهذا التغيير؟';
 
   @override

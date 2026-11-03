@@ -25667,6 +25667,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_agentAccess_title => '代理访问';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return '将失去此关联的潜水($diver):$count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return '同时删除 $kind:$count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => '允许此更改吗?';
 
   @override

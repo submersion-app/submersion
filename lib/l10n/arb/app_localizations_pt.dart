@@ -27172,6 +27172,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_agentAccess_title => 'Acesso de agentes';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'Mergulhos que perdem esta ligação ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'Também elimina $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'Permitir esta alteração?';
 
   @override

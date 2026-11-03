@@ -27003,6 +27003,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_agentAccess_title => 'Agenttoegang';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'Duiken die deze koppeling verliezen ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'Verwijdert ook $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'Deze wijziging toestaan?';
 
   @override

@@ -10,6 +10,7 @@ import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan_store.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/agent_access/presentation/widgets/agent_write_confirm_dialog.dart';
 
@@ -22,7 +23,7 @@ final agentWritePlanStoreProvider = Provider<WritePlanStore>(
   (ref) => WritePlanStore(),
 );
 
-/// One confirmer for the app, so requests from any session queue together.
+/// One confirmer for the app, so it sees every request from every session.
 final agentWriteConfirmerProvider = Provider<WriteConfirmer>(
   (ref) => AppWriteConfirmer(
     context: () => rootNavigatorKey.currentContext,
@@ -33,8 +34,10 @@ final agentWriteConfirmerProvider = Provider<WriteConfirmer>(
   ),
 );
 
-/// Shows [AgentWriteConfirmDialog] over whatever the diver is doing. One
-/// request at a time, so a second agent call waits for the first answer.
+/// Shows [AgentWriteConfirmDialog] over whatever the diver is doing, one
+/// request at a time. A second request is refused rather than queued: a
+/// client that times out and retries would otherwise stack the same change
+/// behind the first, and the diver would allow both.
 class AppWriteConfirmer implements WriteConfirmer {
   AppWriteConfirmer({
     required BuildContext? Function() context,
@@ -53,13 +56,23 @@ class AppWriteConfirmer implements WriteConfirmer {
   final Duration _timeout;
   final Future<void> Function() _raiseWindow;
 
-  Future<void> _queue = Future.value();
+  bool _waiting = false;
 
   @override
-  Future<bool> confirm(WriteConfirmation request) {
-    final answer = _queue.then((_) => _ask(request));
-    _queue = answer.then((_) {}, onError: (_) {});
-    return answer;
+  Future<bool> confirm(WriteConfirmation request) async {
+    if (_waiting) {
+      throw const AgentToolException(
+        AgentToolErrorCode.confirmationPending,
+        'The diver has not answered an earlier change yet. Wait for it, then '
+        'read the records before trying this again.',
+      );
+    }
+    _waiting = true;
+    try {
+      return await _ask(request);
+    } finally {
+      _waiting = false;
+    }
   }
 
   Future<bool> _ask(WriteConfirmation request) async {

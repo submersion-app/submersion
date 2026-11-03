@@ -48,14 +48,19 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
               const SizedBox(height: 12),
               Text(request.label, style: theme.textTheme.titleMedium),
               const SizedBox(height: 12),
-              for (final MapEntry(:key, :value)
-                  in request.countsByEntity.entries)
-                Text(
-                  l.settings_agentAccess_confirm_count(
-                    changeLogTableLabel(l, entityTables[key] ?? key),
-                    value,
+              for (final MapEntry(key: entity, value: kinds)
+                  in request.countsByChange.entries)
+                for (final MapEntry(key: kind, value: count) in kinds.entries)
+                  Text(
+                    l.settings_agentAccess_confirm_count(
+                      '${_verb(l, kind)} \u00b7 '
+                      '${changeLogTableLabel(l, entityTables[entity] ?? entity)}',
+                      count,
+                    ),
+                    style: kind == ChangeKind.delete.name
+                        ? TextStyle(color: theme.colorScheme.error)
+                        : null,
                   ),
-                ),
               if (request.countsByDiver.length > 1) ...[
                 const SizedBox(height: 8),
                 for (final MapEntry(:key, :value)
@@ -69,6 +74,23 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
               ] else if (names[request.countsByDiver.keys.firstOrNull]
                   case final name?)
                 Text(name),
+              for (final MapEntry(:key, :value)
+                  in request.linkedDivesByDiver.entries)
+                Text(
+                  l.settings_agentAccess_confirm_linkedDives(
+                    names[key] ?? l.settings_agentAccess_confirm_shared,
+                    value,
+                  ),
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
+              for (final MapEntry(:key, :value) in _alsoDeleted.entries)
+                Text(
+                  l.settings_agentAccess_confirm_alsoDeletes(
+                    changeLogTableLabel(l, key),
+                    value,
+                  ),
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
               ExpansionTile(
                 key: detailsKey,
                 tilePadding: EdgeInsets.zero,
@@ -97,12 +119,29 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
     );
   }
 
+  /// Records deleted alongside the plan's own deletes, by table.
+  Map<String, int> get _alsoDeleted {
+    final counts = <String, int>{};
+    for (final item in request.items) {
+      for (final MapEntry(:key, :value) in item.reach.records.entries) {
+        counts.update(key, (n) => n + value, ifAbsent: () => value);
+      }
+    }
+    return counts;
+  }
+
   String _clientLine(AppLocalizations l) => switch (request.clientName) {
     final client? when client.trim().isNotEmpty =>
       l.settings_agentAccess_confirm_client(client),
     _ => l.settings_agentAccess_confirm_unknownClient,
   };
 }
+
+String _verb(AppLocalizations l, String kind) => switch (kind) {
+  'create' => l.settings_agentAccess_confirm_create,
+  'delete' => l.settings_agentAccess_confirm_delete,
+  _ => l.settings_agentAccess_confirm_update,
+};
 
 class _PlanItemRow extends StatelessWidget {
   const _PlanItemRow({required this.item, required this.units});
@@ -114,12 +153,10 @@ class _PlanItemRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final verb = switch (item.kind) {
-      ChangeKind.create => l.settings_agentAccess_confirm_create,
-      ChangeKind.update => l.settings_agentAccess_confirm_update,
-      ChangeKind.delete => l.settings_agentAccess_confirm_delete,
-    };
+    final verb = _verb(l, item.kind.name);
     final name = item.title ?? item.id;
+    final date = item.date;
+    String named(String id) => item.names[id] ?? id;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -131,6 +168,11 @@ class _PlanItemRow extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          if (date != null)
+            Text(
+              units.formatDateTime(DateTime.parse(date), l10n: l),
+              style: theme.textTheme.bodySmall,
+            ),
           for (final MapEntry(:key, :value) in item.fields.entries)
             Text(
               '$key: ${agentValueText(l, units, key, value.oldValue)} '
@@ -139,7 +181,12 @@ class _PlanItemRow extends StatelessWidget {
             ),
           for (final MapEntry(:key, :value) in item.relations.entries)
             Text(
-              '$key: ${[for (final id in value.add) '+$id', for (final id in value.remove) '-$id'].join(', ')}',
+              '$key: ${[for (final id in value.add) '+${named(id)}', for (final id in value.remove) '-${named(id)}'].join(', ')}',
+              style: theme.textTheme.bodySmall,
+            ),
+          for (final MapEntry(:key, :value) in item.indirectRelations.entries)
+            Text(
+              '$key: ${[for (final id in value) '+${named(id)}'].join(', ')}',
               style: theme.textTheme.bodySmall,
             ),
         ],
@@ -161,7 +208,7 @@ String agentValueText(
     if (key.endsWith('_m')) return units.formatDepth(value.toDouble());
     if (key.endsWith('_c')) return units.formatTemperature(value.toDouble());
   }
-  if (key == 'date_time' && value is String) {
+  if ((key == 'date_time' || key.endsWith('_time')) && value is String) {
     return units.formatDateTime(DateTime.parse(value), l10n: l);
   }
   return '$value';

@@ -1,15 +1,18 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart'
+    show DocumentOwnerKind;
 
 /// What a library reader may change: never in the library, kept per profile.
 const _privateKeys = {'notes', 'rating'};
 
-class SiteWrites implements WritableEntry {
+class SiteWrites extends WritableEntry {
   SiteWrites(this._r, {LibraryEditStamper? stamper})
     : _stamper = stamper ?? LibraryEditStamper();
 
@@ -46,14 +49,20 @@ class SiteWrites implements WritableEntry {
   };
 
   @override
-  Map<String, RelationSpec> get relations => const {};
-
-  @override
   Set<String> get requiredOnCreate => const {'name'};
 
   @override
-  Future<Set<String>> currentRelation(String id, String relation) async =>
-      const {};
+  Future<DeleteReach> deleteReach(String id) async => DeleteReach(
+    linkedDives: await countDivesByOwner(
+      'SELECT diver_id AS owner, COUNT(*) AS n FROM dives WHERE site_id = ? '
+      'GROUP BY diver_id',
+      id,
+    ),
+    records: await countOwned({'documents': 'site_id'}, id),
+  );
+
+  @override
+  DocumentOwnerKind get documentOwner => DocumentOwnerKind.site;
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
@@ -62,6 +71,15 @@ class SiteWrites implements WritableEntry {
     if (check.kind == ChangeKind.create) return null;
     final library = check.document?['shared_library_id'] != null;
     if (!library) return null;
+    // A local delete would drop the row for every profile here and leave the
+    // library holding it. The app removes these through the library itself.
+    if (check.kind == ChangeKind.delete) {
+      return const PlanBlock(
+        BlockReason.notPermitted,
+        'This site belongs to a shared library. Remove it from the library '
+        'in the app.',
+      );
+    }
     final mayEdit = await _stamper.mayEdit(
       check.id!,
       actingDiverId: check.ownerId,

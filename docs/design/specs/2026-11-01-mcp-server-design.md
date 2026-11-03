@@ -635,4 +635,8 @@ TDD applies. Minimum coverage:
 | A version marker is `updated_at` plus the current ids of each changed relation | design |
 | Markers are checked again inside the sync turn, after the diver confirms, and apply refuses if the database was replaced | design |
 | A record appears once per change set; a reference to a record the set deletes is blocked; no placeholder ids | design |
+| A plan lists what a write does indirectly (site snap, cleared visibility, moved entry and exit, a delete's reach), and a field the set names wins over a snap | design |
+| Deleting a shared library site is blocked; the app removes these through the library | design |
+| A record a plan links to has a marker, so one that goes away refuses the plan | design |
+| A second apply while a dialog is open is refused, not queued | design |
 | `revert_operation` keeps records changed since unless `include_changed_since` is set, and asks the diver nothing | design |

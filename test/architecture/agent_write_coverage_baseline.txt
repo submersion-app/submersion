@@ -112,17 +112,13 @@ lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updat
 lib/features/dive_log/data/repositories/dive_fill_if_empty_repository.dart:addCustomFieldsIfMissing
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:addWeightIfNone
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddCourses
-lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddDiveTypes
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddEquipment
-lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddTags
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddTank
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddTanks
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddWeights
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAppendNotes
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveCourses
-lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveDiveTypes
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveEquipment
-lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveTags
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceCourses
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceDiveTypes
 lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceEquipment

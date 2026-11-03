@@ -102,6 +102,56 @@ void main() {
     );
   });
 
+  test('a relation key it does not take is refused', () {
+    expect(
+      () => ChangeSet.parse(
+        _set([
+          {
+            'op': 'update',
+            'entity': 'dives',
+            'id': 'd1',
+            'relations': {
+              'tags': {
+                'replace': ['t1'],
+              },
+            },
+          },
+        ]),
+      ),
+      throwsA(_refused('replace')),
+    );
+  });
+
+  test('a null set is refused rather than clearing every link', () {
+    expect(
+      () => ChangeSet.parse(
+        _set([
+          {
+            'op': 'update',
+            'entity': 'dives',
+            'id': 'd1',
+            'relations': {
+              'tags': {'set': null},
+            },
+          },
+        ]),
+      ),
+      throwsA(_refused('set')),
+    );
+  });
+
+  test('a label over its limit is refused', () {
+    expect(
+      () => ChangeSet.parse({
+        'label': 'x' * (kMaxChangeSetLabelLength + 1),
+        'operations': [
+          {'op': 'delete', 'entity': 'dives', 'id': 'd1'},
+        ],
+      }),
+      throwsA(_refused('label')),
+    );
+  });
+
   test('an update with nothing to change is refused', () {
     expect(
       () => ChangeSet.parse(

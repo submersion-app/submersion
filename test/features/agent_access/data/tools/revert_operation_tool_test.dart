@@ -32,6 +32,7 @@ void main() {
   late ChangeLogRepository changeLog;
   late RevertOperationTool tool;
   late AgentToolContext context;
+  late List<String> armed;
 
   Future<void> dive(String id, {String owner = kDiverA}) => db
       .into(db.dives)
@@ -90,7 +91,10 @@ void main() {
         afterDiveWrites: (_) {},
       ),
       changeLog: changeLog,
+      rearmDocuments: (documents) async =>
+          armed.addAll(documents.map((d) => d.id)),
     );
+    armed = [];
     context = AgentToolContext(db: db, clientName: 'test');
     await dive('d1');
   });
@@ -123,6 +127,84 @@ void main() {
     final doc = await h.one('dives', 'd1', include: ['tanks']);
     expect(doc!['notes'], 'seeded');
     expect((doc['tanks']! as List).single, containsPair('id', 'tank-1'));
+  });
+
+  test('a reverted site delete brings back its dives\' link', () async {
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 's1',
+            name: 'Reef',
+            createdAt: kSeedTime,
+            updatedAt: kSeedTime,
+            diverId: const Value(kDiverA),
+          ),
+        );
+    await db.customStatement("UPDATE dives SET site_id = 's1' WHERE id = 'd1'");
+    final ids = await apply([
+      {'op': 'delete', 'entity': 'sites', 'id': 's1'},
+    ]);
+    expect((await h.one('dives', 'd1'))!['site'], isNull);
+
+    await tool.call({'operation_id': ids.single}, context);
+
+    expect((await h.one('dives', 'd1'))!['site'], containsPair('id', 's1'));
+  });
+
+  test('a reverted buddy delete brings back the buddy on its dives', () async {
+    await db
+        .into(db.buddies)
+        .insert(
+          BuddiesCompanion.insert(
+            id: 'b1',
+            name: 'Ana',
+            createdAt: kSeedTime,
+            updatedAt: kSeedTime,
+            diverId: const Value(kDiverA),
+          ),
+        );
+    await db
+        .into(db.diveBuddies)
+        .insert(
+          DiveBuddiesCompanion.insert(
+            id: 'link',
+            diveId: 'd1',
+            buddyId: 'b1',
+            createdAt: kSeedTime,
+          ),
+        );
+    final ids = await apply([
+      {'op': 'delete', 'entity': 'buddies', 'id': 'b1'},
+    ]);
+
+    await tool.call({'operation_id': ids.single}, context);
+
+    expect((await h.one('buddies', 'b1'))!['name'], 'Ana');
+    final links = await repositories.buddies.getBuddiesForDive('d1');
+    expect(links.single.buddy.id, 'b1');
+  });
+
+  test('a reverted delete arms its documents\' reminders', () async {
+    await db
+        .into(db.documents)
+        .insert(
+          DocumentsCompanion.insert(
+            id: 'doc-1',
+            diverId: kDiverA,
+            diveId: const Value('d1'),
+            type: 'other',
+            createdAt: kSeedTime,
+            updatedAt: kSeedTime,
+          ),
+        );
+    final ids = await apply([
+      {'op': 'delete', 'entity': 'dives', 'id': 'd1'},
+    ]);
+
+    await tool.call({'operation_id': ids.single}, context);
+
+    expect(armed, ['doc-1']);
   });
 
   test('an applied create is removed', () async {

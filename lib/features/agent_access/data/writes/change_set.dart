@@ -3,6 +3,9 @@ import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 /// Keeps one apply's transaction short enough for the UI and sync.
 const kMaxChangeSetOperations = 500;
 
+/// The diver reads this in a dialog and a feed row.
+const kMaxChangeSetLabelLength = 200;
+
 /// What an agent asks to change, as `preview_changes` receives it. Field
 /// names and units are those of the `get_records` documents, so an agent can
 /// read a record, edit the JSON and send it back.
@@ -20,6 +23,12 @@ class ChangeSet {
       throw const AgentToolException(
         AgentToolErrorCode.invalidArgument,
         'label is required: a short description in the diver\'s language.',
+      );
+    }
+    if (label.trim().length > kMaxChangeSetLabelLength) {
+      throw const AgentToolException(
+        AgentToolErrorCode.invalidArgument,
+        'label holds at most $kMaxChangeSetLabelLength characters.',
       );
     }
     final operations = args['operations'];
@@ -107,6 +116,7 @@ class RelationChange {
 const _createKeys = {'op', 'entity', 'diver_id', 'fields'};
 const _updateKeys = {'op', 'entity', 'id', 'fields', 'relations'};
 const _deleteKeys = {'op', 'entity', 'id'};
+const _relationKeys = {'add', 'remove', 'set'};
 
 ChangeOp _op(int index, Object? raw) {
   if (raw is! Map) throw _refused(index, 'must be an object.');
@@ -178,6 +188,14 @@ Map<String, RelationChange> _relations(int index, Object? raw) {
 
 RelationChange _relation(int index, String name, Object? raw) {
   if (raw is! Map) throw _refused(index, 'relation $name must be an object.');
+  final extra = raw.keys.where((key) => !_relationKeys.contains(key));
+  if (extra.isNotEmpty) {
+    throw _refused(index, 'relation $name does not take ${extra.join(', ')}.');
+  }
+  // A client that writes an empty value as null must not wipe every link.
+  if (raw.containsKey('set') && raw['set'] == null) {
+    throw _refused(index, 'relation $name: set must be a list of ids.');
+  }
   final add = _ids(index, name, raw['add']);
   final remove = _ids(index, name, raw['remove']);
   final set = raw.containsKey('set') ? _ids(index, name, raw['set']) : null;
