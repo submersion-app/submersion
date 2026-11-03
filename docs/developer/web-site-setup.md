@@ -90,8 +90,8 @@ The Pages repository itself already exists, with Pages turned on from
 
 ## Before the setup is finished
 
-- **No `WEB_DEPLOY_TOKEN`:** the deploy job writes a notice and succeeds
-  without deploying. A promotion is never held up or reported as failed
+- **No `WEB_DEPLOY_TOKEN`:** the workflow writes a notice, skips the
+  deploy job and succeeds. A promotion is never held up or reported as failed
   by the site's setup.
 - **No Google client in the bundle** (a beta built before step 1): the
   bundle still deploys, with a warning in the run. Google Drive on the
