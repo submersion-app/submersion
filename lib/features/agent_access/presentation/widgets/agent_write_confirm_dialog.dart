@@ -61,19 +61,15 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
                         ? TextStyle(color: theme.colorScheme.error)
                         : null,
                   ),
-              if (request.countsByDiver.length > 1) ...[
-                const SizedBox(height: 8),
-                for (final MapEntry(:key, :value)
-                    in request.countsByDiver.entries)
-                  Text(
-                    l.settings_agentAccess_confirm_count(
-                      names[key] ?? l.settings_agentAccess_confirm_shared,
-                      value,
-                    ),
+              const SizedBox(height: 8),
+              for (final MapEntry(:key, :value)
+                  in request.countsByDiver.entries)
+                Text(
+                  l.settings_agentAccess_confirm_count(
+                    names[key] ?? l.settings_agentAccess_confirm_shared,
+                    value,
                   ),
-              ] else if (names[request.countsByDiver.keys.firstOrNull]
-                  case final name?)
-                Text(name),
+                ),
               for (final MapEntry(:key, :value)
                   in request.linkedDivesByDiver.entries)
                 Text(
