@@ -14,15 +14,21 @@ extension RungsFromV340 on AppDatabase {
     int from,
     Future<void> Function() reportProgress,
   ) async {
-    // v340: dive_plan_series, a saved repetitive dive series, and the
+    // v340: a combined dive's water temperature, CNS at the end and OTU
+    // describe the whole dive again rather than its first segment (issue
+    // #4136). Data only, so the compatibility floor does not move.
+    if (from < 340) await repairCombinedDiveSummaries(this);
+    if (from < 340) await reportProgress();
+
+    // v341: dive_plan_series, a saved repetitive dive series, and the
     // dive_plans / dive_plan_tanks columns that place a plan in one (issue
     // #3565). Table and columns only, no backfill: a plan with no series is
-    // a one-dive series. Re-asserted in beforeOpen. Renumbered from 339,
-    // which upstream claimed first for issue #3361.
-    if (from < 340) {
+    // a one-dive series. Re-asserted in beforeOpen. Renumbered from 339 and
+    // then 340, which upstream claimed first for issues #3361 and #4136.
+    if (from < 341) {
       await _assertDivePlanSeriesTable();
       await _assertDivePlanSeriesColumns();
     }
-    if (from < 340) await reportProgress();
+    if (from < 341) await reportProgress();
   }
 }

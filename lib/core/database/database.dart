@@ -241,7 +241,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
-    // Saved repetitive dive series (v340, issue #3565)
+    // Saved repetitive dive series (v341, issue #3565)
     DivePlanSeries,
     // DPV mission planner (v244, issue #2086)
     DivePlanMissions,
@@ -313,7 +313,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 340;
+  static const int currentSchemaVersion = 341;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1554,12 +1554,17 @@ class AppDatabase extends _$AppDatabase {
     // 333, which upstream claimed first for issue #32, then from 338, which
     // upstream claimed first for issue #3062.
     339,
-    // v340: dive_plan_series, a saved repetitive dive series, and the
+    // v340: a combined dive's water temperature, CNS at the end and OTU
+    // recomputed from its segments (issue #4136). Data only, so the floor does
+    // not move.
+    340,
+    // v341: dive_plan_series, a saved repetitive dive series, and the
     // dive_plans / dive_plan_tanks columns that place a plan in one (issue
     // #3565). A new synced table plus nullable or defaulted columns an older
     // peer omits, with no backfill, so the floor does not move. Renumbered
-    // from 339, which upstream claimed first for issue #3361.
-    340,
+    // from 339 and then 340, which upstream claimed first for issues #3361
+    // and #4136.
+    341,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

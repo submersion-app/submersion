@@ -735,9 +735,13 @@ class SiteRepository {
   /// Returns false, with nothing changed, for a site another profile owns
   /// (issue #2594). A site already gone (deleted on another device) counts
   /// as deleted and returns true.
+  ///
+  /// [holdRemoteMedia] leaves the media's remote blobs alone for now, for a
+  /// delete that can still go back.
   Future<bool> deleteSite(
     String id, {
     bool cascadeMedia = true,
+    bool holdRemoteMedia = false,
     String? actingDiverId,
     bool? logTombstones,
   }) => ChangeLogScope.bulk(
@@ -746,6 +750,7 @@ class SiteRepository {
     body: () => _deleteSiteInner(
       id,
       cascadeMedia: cascadeMedia,
+      holdRemoteMedia: holdRemoteMedia,
       actingDiverId: actingDiverId,
       logTombstones: logTombstones,
     ),
@@ -754,6 +759,7 @@ class SiteRepository {
   Future<bool> _deleteSiteInner(
     String id, {
     bool cascadeMedia = true,
+    bool holdRemoteMedia = false,
     String? actingDiverId,
     bool? logTombstones,
   }) async {
@@ -774,6 +780,7 @@ class SiteRepository {
       await _deleteSiteRows(
         [id],
         cascadeMedia: cascadeMedia,
+        undoable: holdRemoteMedia,
         skipTombstones: tombstone ? const {} : {id},
       );
       SyncEventBus.notifyLocalChange();

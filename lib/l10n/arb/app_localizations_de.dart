@@ -27166,6 +27166,62 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_agentAccess_title => 'Agentenzugriff';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'Tauchgänge, die diese Verknüpfung verlieren ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'Löscht außerdem $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'Löst außerdem $kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_title => 'Diese Änderung zulassen?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return '$client möchte dein Logbuch ändern.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'Ein Agent möchte dein Logbuch ändern.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'Geteilt';
+
+  @override
+  String get settings_agentAccess_confirm_details => 'Alle Änderungen anzeigen';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'Zulassen';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'Ablehnen';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'keine';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'Neu';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'Ändern';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'Löschen';
+
+  @override
   String get settings_agentAccess_subtitle =>
       'Einem KI-Agenten auf diesem Computer erlauben, dein Logbuch zu lesen und zu ändern';
 
@@ -59306,6 +59362,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get changeLog_source_system => 'System';
+
+  @override
+  String get changeLog_source_agent => 'Agent';
 
   @override
   String get changeLog_thisDevice => 'Dieses Gerät';

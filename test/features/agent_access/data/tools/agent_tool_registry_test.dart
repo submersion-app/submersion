@@ -6,13 +6,21 @@ import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
+import 'package:submersion/features/agent_access/data/writes/agent_write_services.dart';
+import 'package:submersion/features/agent_access/data/writes/write_plan_store.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../sql/sql_window_fixture.dart';
+
+class _Allow implements WriteConfirmer {
+  @override
+  Future<bool> confirm(WriteConfirmation request) async => true;
+}
 
 void main() {
   late AppDatabase db;
@@ -56,11 +64,17 @@ void main() {
       sql: SqlWindowRunner(
         file: () async => SqlDatabaseFile(path: sqlFixture.path),
       ),
+      writes: AgentWriteServices(
+        records: RecordRepositories(),
+        plans: WritePlanStore(),
+        confirmer: _Allow(),
+        confirmEnabled: () => true,
+      ),
     );
   }
 
   group('AgentToolRegistry', () {
-    test('standard registry exposes the read tools', () {
+    test('standard registry exposes the read and write tools', () {
       expect(
         registry().tools.map((t) => t.name),
         unorderedEquals([
@@ -69,6 +83,9 @@ void main() {
           'get_records',
           'list_records',
           'sql_query',
+          'preview_changes',
+          'apply_changes',
+          'revert_operation',
         ]),
       );
     });

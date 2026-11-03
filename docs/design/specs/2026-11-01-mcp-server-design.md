@@ -631,3 +631,19 @@ TDD applies. Minimum coverage:
 | Documents carry everything but bytes and media URLs, contact and ID fields included | Eric |
 | Every editable entity is readable, not only the write checklist | Eric |
 | Diver profiles and settings are readable records; `list_divers` stays a short view | Eric |
+| A plan with a blocked item gets no `plan_id` | design |
+| Fields write through a partial companion or clear flags, because `copyWith` cannot clear and a rebuilt entity loses what a mapper forgets | design |
+| Dives write through `BulkDiveEditService`; `date_time` writes as a shift, so entry and exit move with it | design |
+| A version marker is `updated_at` plus the current ids of each changed relation | design |
+| Markers are checked again inside the sync turn, after the diver confirms, and apply refuses if the database was replaced | design |
+| A record appears once per change set; a reference to a record the set deletes is blocked; no placeholder ids | design |
+| A plan lists what a write does indirectly (site snap, cleared visibility, moved entry and exit, a delete's reach), and a field the set names wins over a snap | design |
+| Deleting a shared library site is blocked; the app removes these through the library | design |
+| A record a plan links to has a marker, so one that goes away refuses the plan | design |
+| A marker carries a footprint of what the plan derived from rows with no version, a delete's reach or a site's types, and apply refuses if it no longer matches | review |
+| A delete's reach comes from the schema's foreign keys, split into records, parts and unlinked; the dialog keeps parts under the details | review |
+| Hides and shares of a deleted site are not listed; they are bookkeeping about the site and mean nothing without it | review |
+| A link that copies values from its target (a dive's site) is blocked after a change to that target earlier in the same set | review |
+| The write coverage guard knows a write by any verb repositories use for one, not only create, update and delete | review |
+| A second apply while a dialog is open is refused, not queued | design |
+| `revert_operation` keeps records changed since unless `include_changed_since` is set, and asks the diver nothing | design |
