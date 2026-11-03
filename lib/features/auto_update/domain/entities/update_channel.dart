@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// Distribution channels for the application.
 enum UpdateChannel { github, appstore, playstore, msstore, snapstore }
@@ -38,8 +38,11 @@ class UpdateChannelConfig {
   /// Linux does; the Play bundle is built with UPDATE_CHANNEL=playstore and
   /// turns the updater off. Treating Android as store-only left every APK
   /// install with no update path at all while Submersion is not on Play.
-  static bool get isAutoUpdateEnabled =>
-      isAutoUpdateEnabledFor(isIOS: Platform.isIOS, channel: current);
+  static bool get isAutoUpdateEnabled => isAutoUpdateEnabledFor(
+    isIOS: HostPlatform.isIOS,
+    isWeb: HostPlatform.isWeb,
+    channel: current,
+  );
 
   /// The rule behind [isAutoUpdateEnabled], with the host platform and the
   /// distribution channel passed in rather than read from the environment.
@@ -47,9 +50,11 @@ class UpdateChannelConfig {
   /// form to reach combinations the host platform cannot produce.
   static bool isAutoUpdateEnabledFor({
     required bool isIOS,
+    bool isWeb = false,
     required UpdateChannel channel,
   }) {
-    if (isIOS) return false;
+    // A browser runs whatever the host serves, so there is nothing to fetch.
+    if (isIOS || isWeb) return false;
     return !isStoreChannel(channel);
   }
 

@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show sqlite3;
 import 'package:submersion/features/agent_access/data/sql/sql_denied_set.dart';
-import 'package:submersion/features/agent_access/data/sql/sql_value_limit.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_value_limit_io.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_io.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
 import 'sql_window_fixture.dart';

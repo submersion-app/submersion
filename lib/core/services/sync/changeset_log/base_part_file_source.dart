@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_hasher.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 
 typedef BasePartUploadResult = ({
   int partCount,
@@ -70,11 +70,10 @@ class BasePartFileSource {
     void Function(int uploaded, int total)? onPartUploaded,
     bool Function(int index)? skipPart,
   }) async {
-    final raf = await File(path).open();
     final partChecksums = <String>[];
     BasePartHasher? hasher;
     try {
-      final length = await raf.length();
+      final length = await SyncTempFiles.length(path);
       final total = partCountFor(length, partSize: partSize);
       final parts = hasher = await _openHasher(min(length, partSize));
       var index = 0;
@@ -88,7 +87,7 @@ class BasePartFileSource {
       } else {
         for (var off = 0; off < length; off += partSize) {
           final n = (off + partSize < length) ? partSize : length - off;
-          final buf = await raf.read(n);
+          final buf = await SyncTempFiles.read(path, off, n);
           partChecksums.add(await parts.addPart(buf));
           if (skipPart?.call(index) != true) await upload(index, buf);
           index++;
@@ -103,7 +102,6 @@ class BasePartFileSource {
       );
     } finally {
       await hasher?.dispose();
-      await raf.close();
     }
   }
 }

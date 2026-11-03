@@ -54,4 +54,132 @@ void main() {
       );
     });
   });
+
+  group('builtInWebClientIdFor (#4121)', () {
+    const id = '433819313354-official.apps.googleusercontent.com';
+
+    test('applies on an address the client is authorised for', () {
+      expect(
+        GoogleDriveClientConfig.builtInWebClientIdFor(
+          id: id,
+          origins: 'https://web.submersion.app',
+          pageOrigin: 'https://web.submersion.app',
+        ),
+        id,
+      );
+    });
+
+    test('reads a comma-separated list, ignoring case, spaces and a '
+        'trailing slash', () {
+      expect(
+        GoogleDriveClientConfig.builtInWebClientIdFor(
+          id: id,
+          origins: 'https://a.example.com, HTTPS://Web.Submersion.App/',
+          pageOrigin: 'https://web.submersion.app',
+        ),
+        id,
+      );
+    });
+
+    test('does not apply at any other address, where Google would refuse '
+        'it', () {
+      expect(
+        GoogleDriveClientConfig.builtInWebClientIdFor(
+          id: id,
+          origins: 'https://web.submersion.app',
+          pageOrigin: 'https://dive.example.com',
+        ),
+        isNull,
+      );
+    });
+
+    test('a build without the id or its addresses has none', () {
+      expect(
+        GoogleDriveClientConfig.builtInWebClientIdFor(
+          id: '',
+          origins: 'https://web.submersion.app',
+          pageOrigin: 'https://web.submersion.app',
+        ),
+        isNull,
+      );
+      expect(
+        GoogleDriveClientConfig.builtInWebClientIdFor(
+          id: id,
+          origins: '',
+          pageOrigin: 'https://web.submersion.app',
+        ),
+        isNull,
+      );
+    });
+
+    test('nothing is built in outside a browser', () {
+      expect(GoogleDriveClientConfig.builtInWebClientId, isNull);
+    });
+  });
+
+  group('resolveWebClientId (#4121)', () {
+    test('the built-in id wins over one pasted earlier, which could not '
+        'see the library', () async {
+      expect(
+        await GoogleDriveClientConfig.resolveWebClientId(
+          builtIn: 'built-in',
+          stored: () async => 'pasted',
+        ),
+        'built-in',
+      );
+    });
+
+    test('without one, the pasted id is used', () async {
+      expect(
+        await GoogleDriveClientConfig.resolveWebClientId(
+          builtIn: null,
+          stored: () async => 'pasted',
+        ),
+        'pasted',
+      );
+    });
+  });
+
+  group('supportedOn (#4121)', () {
+    test('a browser offers Drive whatever OS it runs on', () {
+      expect(
+        GoogleDriveClientConfig.supportedOn(
+          web: true,
+          loopbackPlatform: true,
+          hasDesktopClient: false,
+        ),
+        isTrue,
+      );
+    });
+
+    test('a native loopback platform still needs the desktop client', () {
+      expect(
+        GoogleDriveClientConfig.supportedOn(
+          web: false,
+          loopbackPlatform: true,
+          hasDesktopClient: false,
+        ),
+        isFalse,
+      );
+      expect(
+        GoogleDriveClientConfig.supportedOn(
+          web: false,
+          loopbackPlatform: true,
+          hasDesktopClient: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('phones and Macs never needed it', () {
+      expect(
+        GoogleDriveClientConfig.supportedOn(
+          web: false,
+          loopbackPlatform: false,
+          hasDesktopClient: false,
+        ),
+        isTrue,
+      );
+    });
+  });
 }

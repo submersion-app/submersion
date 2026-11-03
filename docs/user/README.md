@@ -2,7 +2,7 @@
 
 **Dive safe. Log everything.**
 
-Submersion is a free, open-source dive log for scuba divers: one app for iOS, Android, macOS, Windows, and Linux. Your logbook lives on your own device, no account and no subscription required, and you can export all of it to open standards at any time.
+Submersion is a free, open-source dive log for scuba divers: one app for iOS, Android, macOS, Windows, and Linux, and any modern web browser. Your logbook lives on your own device, no account and no subscription required, and you can export all of it to open standards at any time.
 
 > [!NOTE]
 > New here? Jump straight to [Installation](installation.md) to get the app, then log your first dive with [Your First Dive](first-dive.md). Want to get one thing done, step by step? The [How-To Guides](how-to-guides.md) walk you through setting up sync, moving from another app, and more.
@@ -13,7 +13,7 @@ Submersion is a free, open-source dive log for scuba divers: one app for iOS, An
 
 - **You own your data.** Every dive is stored locally on your device in a standard SQLite database. The app works fully offline, and there is no Submersion server in the middle.
 - **No account, no lock-in.** Use the app the moment you install it: no sign-up, no email, no tracking. Export your entire logbook to UDDF or CSV whenever you want and take it elsewhere.
-- **Truly cross-platform.** The same logbook, with the same details and analytics, runs on iOS, Android, macOS, Windows, and Linux. Optional, opt-in sync keeps your devices in step using cloud storage you control (see [Multi-Device Sync](multi-device-sync.md)).
+- **Truly cross-platform.** The same logbook, with the same details and analytics, runs on iOS, Android, macOS, Windows, and Linux, and in a web browser you host yourself (see [Submersion in a Browser](web-app.md)). Optional, opt-in sync keeps your devices in step using cloud storage you control (see [Multi-Device Sync](multi-device-sync.md)).
 - **Free and open-source, forever.** Released under GPL-3.0. No premium tiers for core features, no ads.
 
 ## The app at a glance

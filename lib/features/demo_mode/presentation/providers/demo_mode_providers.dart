@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/platform/browser_origin_storage.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
+import 'package:submersion/features/demo_mode/data/bundled_demo.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_switcher.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
@@ -31,8 +34,12 @@ final demoModeActiveProvider = Provider<bool>(
   (ref) => DemoModeGate.instance.isActive,
 );
 
+/// The release manifest natively; in a browser, the index of the sample
+/// logbook the site ships (issue #4121).
 final demoManifestClientProvider = Provider<DemoManifestClient>(
-  (ref) => DemoManifestClient(),
+  (ref) => ref.watch(deviceCapabilitiesProvider).isBrowser
+      ? BundledDemoManifestClient()
+      : DemoManifestClient(),
 );
 
 /// The sample logbook this app can open, or null when none is reachable.
@@ -46,11 +53,18 @@ final demoAvailabilityProvider = FutureProvider<DemoPackage?>(
 final demoModeServiceProvider = FutureProvider<DemoModeService>((ref) async {
   final prefs = ref.read(sharedPreferencesProvider);
   final paths = await DemoPaths.resolve();
+  final browser = ref.read(deviceCapabilitiesProvider).isBrowser;
   return DemoModeService(
     paths: paths,
     prefs: prefs,
     store: DemoStateStore(paths),
     manifest: ref.read(demoManifestClientProvider),
+    // A browser takes the site's own copy, its photos staying on the site.
+    installer: browser
+        ? BundledDemoPackageInstaller(
+            photosUrl: Uri.base.resolve(kBundledDemoIndex).resolve('photos/'),
+          )
+        : null,
     downloader: DemoDownloader(),
     extractor: DemoPackageExtractor(),
     preparer: DemoDatabasePreparer(),
@@ -62,8 +76,15 @@ final demoModeServiceProvider = FutureProvider<DemoModeService>((ref) async {
     cancelDeviceNotifications:
         NotificationService.instance.cancelAllNotifications,
     restart: restartApp,
-    // With the gate closed, a refresh ends the running sessions (#3731).
-    endNearbySync: () => ref.read(nearbyLinkManagerProvider).refresh(),
+    // With the gate closed, a refresh ends the running sessions (#3731). A
+    // browser has no nearby sessions.
+    endNearbySync: browser
+        ? null
+        : () => ref.read(nearbyLinkManagerProvider).refresh(),
+    // The site's other tabs share the preferences and hold the old logbook.
+    announceSwitch: browser
+        ? BrowserOriginStorage.announceLibraryChanged
+        : null,
     // An import running on after its wizard closed (#3554), or a dive
     // computer download still saving, would write its remaining dives into
     // the sample logbook (#3798). A download notifier never built has never

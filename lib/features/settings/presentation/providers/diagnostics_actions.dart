@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/services.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/log_redactor.dart';
@@ -26,7 +24,7 @@ typedef FolderLauncher = Future<bool> Function(Uri uri);
 /// have no addressable folder to open (same rule as the startup backups
 /// folder in `startup_page.dart`).
 bool get canOpenLogFolder =>
-    Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
 
 /// Build the text "Copy diagnostics" puts on the clipboard: the build and
 /// device header, whether verbose logging is on, then as many of the newest
@@ -48,18 +46,9 @@ Future<String> buildDiagnosticsReport(
       '${resolved.toExportHeader()}'
       'verbose logging: ${verboseLogging ? 'on' : 'off'}\n';
 
-  final lines = await _readLines(File(service.logFilePath));
+  final lines = await service.readLines();
   if (lines.isEmpty) return '$header(no log entries recorded)';
   return header + _newestThatFit(lines, maxChars - header.length);
-}
-
-Future<List<String>> _readLines(File file) async {
-  if (!await file.exists()) return const [];
-  final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
-  return const LineSplitter()
-      .convert(text)
-      .where((line) => line.isNotEmpty)
-      .toList();
 }
 
 /// The newest [lines], redacted, that fit in [budget] characters joined by

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 
 /// How long a sender keeps a full copy, and a receiver keeps its partial
@@ -149,7 +150,7 @@ class NearbyTransferFiles {
   /// Static so that the closure holds [bytes] alone, not this object's [_now].
   static Future<List<int>> _gzipped(Uint8List bytes, OffIsolateRunner runner) =>
       runOffIsolate(
-        () => gzip.encode(bytes),
+        () => PlatformZlib.gzip(bytes),
         bytes: bytes.length,
         runner: runner,
       );

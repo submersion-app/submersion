@@ -121,6 +121,29 @@ void main() {
     );
   });
 
+  test('getBytes hands an object back in memory, and a missing one is '
+      'notFound', () async {
+    final store = build();
+    final src = File('${tmp.path}/m.bin')..writeAsBytesSync([4, 5, 6]);
+    await store.putFile(
+      'smv1/objects/aa/m.bin',
+      src,
+      contentType: 'application/octet-stream',
+    );
+
+    expect(await store.getBytes('smv1/objects/aa/m.bin'), [4, 5, 6]);
+    await expectLater(
+      store.getBytes('smv1/objects/aa/missing.bin'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.notFound,
+        ),
+      ),
+    );
+  });
+
   test('list strips the configured prefix from returned keys', () async {
     final store = build();
     final src = File('${tmp.path}/c.bin')..writeAsBytesSync([7]);

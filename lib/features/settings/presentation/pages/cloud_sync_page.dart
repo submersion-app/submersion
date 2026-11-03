@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
@@ -31,6 +32,7 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/sign_
 import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
+import 'package:submersion/features/settings/presentation/widgets/web/web_sync_rows.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -110,10 +112,18 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
                       .setAutoSyncEnabled(value),
           ),
           const Divider(),
+          // A browser's own rows: where its database lives, the remember
+          // switch, Forget this device (issue #4121).
+          if (ref.watch(deviceCapabilitiesProvider).isBrowser) ...[
+            const WebSyncRows(),
+            const Divider(),
+          ],
           // Device-to-device sync over Bluetooth, beside the cloud account
-          // rather than instead of it (issue #3731).
-          const NearbyDevicesSection(),
-          const Divider(),
+          // rather than instead of it (issue #3731); not in a browser.
+          if (ref.watch(deviceCapabilitiesProvider).nearby) ...[
+            const NearbyDevicesSection(),
+            const Divider(),
+          ],
           SyncAdvancedSection(hasProvider: hasProvider),
         ],
       ),

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 const _log = LoggerService('cacheLocation');
@@ -177,7 +178,7 @@ Future<_Lookup> _lookUpOnce() async {
 
 Future<CacheLocation> _resolveAndMove() async {
   final location = await resolveCacheLocation(
-    osManagesCaches: Platform.isIOS || Platform.isAndroid,
+    osManagesCaches: HostPlatform.isIOS || HostPlatform.isAndroid,
     cacheDirectory: getApplicationCacheDirectory,
     supportDirectory: getApplicationSupportDirectory,
   );

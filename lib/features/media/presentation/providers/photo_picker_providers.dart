@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show ValueNotifier;
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
@@ -24,7 +24,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 /// Returns PhotoPickerServiceMobile on iOS, Android, and macOS.
 /// Returns PhotoPickerServiceDesktop on Windows and Linux.
 final photoPickerServiceProvider = Provider<PhotoPickerService>((ref) {
-  if (Platform.isWindows || Platform.isLinux) {
+  if (HostPlatform.isWindows || HostPlatform.isLinux) {
     return PhotoPickerServiceDesktop();
   }
   return PhotoPickerServiceMobile();

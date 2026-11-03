@@ -1,6 +1,7 @@
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart';
 
 import 'package:submersion/core/database/database_connection_setup.dart';
+import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 
 /// Writes a consistent copy of one database file to another path. Test seam
 /// for the callers that need to drive a failure; [vacuumIntoSnapshot] is the
@@ -35,7 +36,7 @@ typedef DatabaseSnapshotter =
 /// transaction does hold writers off for the duration -- one more reason the
 /// journal-mode switch and this belong in the same change.
 ///
-/// Opens `package:sqlite3` directly rather than through
+/// Opens the raw handle directly rather than through
 /// `DatabaseService.openRaw` so this file has no import of
 /// `database_service.dart`: DatabaseService imports it for `backup`, and the
 /// import has to stay one-way.
@@ -47,7 +48,7 @@ Future<void> vacuumIntoSnapshot({
   required String targetPath,
 }) async {
   // readWrite, deliberately, and NOT the readWriteCreate that
-  // `sqlite3.open` defaults to.
+  // `RawSqlite.open` defaults to.
   //
   // Write, because a database left with a hot rollback journal is only
   // recoverable by a connection that can write and a read-only open would fail
@@ -60,7 +61,7 @@ Future<void> vacuumIntoSnapshot({
   // empty database at the live path and export that: a backup reporting
   // success while holding nothing, which is the exact silent loss the SQL
   // export exists to prevent.
-  final db = sqlite3.sqlite3.open(sourcePath, mode: sqlite3.OpenMode.readWrite);
+  final db = RawSqlite.open(sourcePath, mode: OpenMode.readWrite);
   try {
     // Before anything else touches a page: the source may be open in another
     // isolate, and without this the first statement to meet a lock fails

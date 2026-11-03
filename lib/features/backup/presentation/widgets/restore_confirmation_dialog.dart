@@ -20,11 +20,17 @@ class RestoreConfirmationDialog extends ConsumerStatefulWidget {
   final int currentSchemaVersion;
   final bool offerReplace;
 
+  /// Whether [BackupRecord.timestamp] says when the backup was made. A
+  /// browser's picker gives no file date (issue #4121), so the dialog names
+  /// the file instead.
+  final bool knownTime;
+
   const RestoreConfirmationDialog({
     super.key,
     required this.record,
     required this.currentSchemaVersion,
     this.offerReplace = false,
+    this.knownTime = true,
   });
 
   /// Shows the dialog. Returns the chosen restore mode, or null on cancel.
@@ -33,6 +39,7 @@ class RestoreConfirmationDialog extends ConsumerStatefulWidget {
     BackupRecord record, {
     required int currentSchemaVersion,
     bool offerReplace = false,
+    bool knownTime = true,
   }) {
     return showDialog<RestoreMode>(
       context: context,
@@ -40,6 +47,7 @@ class RestoreConfirmationDialog extends ConsumerStatefulWidget {
         record: record,
         currentSchemaVersion: currentSchemaVersion,
         offerReplace: offerReplace,
+        knownTime: knownTime,
       ),
     );
   }
@@ -84,7 +92,12 @@ class _RestoreConfirmationDialogState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    units.formatDateTime(record.timestamp, l10n: context.l10n),
+                    widget.knownTime
+                        ? units.formatDateTime(
+                            record.timestamp,
+                            l10n: context.l10n,
+                          )
+                        : record.filename,
                     style: theme.textTheme.titleSmall,
                   ),
                   if (record.note != null) ...[

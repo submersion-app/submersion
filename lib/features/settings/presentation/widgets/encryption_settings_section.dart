@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/git_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -200,7 +200,7 @@ class _EncryptionSettingsSectionState
     }
     String? deviceName;
     try {
-      deviceName = Platform.localHostname;
+      deviceName = HostPlatform.localHostname;
     } catch (_) {
       deviceName = null;
     }

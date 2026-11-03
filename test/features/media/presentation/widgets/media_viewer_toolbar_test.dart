@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -64,45 +66,54 @@ void main() {
       WidgetTester tester,
       double width, {
       double textScale = 1.0,
+      bool browser = false,
     }) async {
       tester.view.physicalSize = Size(width, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
       final calls = <String>[];
       await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(textScaler: TextScaler.linear(textScale)),
-            child: child!,
-          ),
-          home: Scaffold(
-            body: Stack(
-              children: [
-                MediaViewerToolbar(
-                  item: item,
-                  currentIndex: 11,
-                  totalCount: 345,
-                  onClose: () => calls.add('close'),
-                  onEnterFullscreen: () => calls.add('fullscreen'),
-                  onShare: (_) => calls.add('share'),
-                  onShowInfo: () => calls.add('info'),
-                  onWriteMetadata: () => calls.add('write_metadata'),
-                  onTagSpecies: () => calls.add('species'),
-                  canWriteMetadata: true,
-                  showPerdixToggle: true,
-                  perdixEnabled: false,
-                  onTogglePerdix: () => calls.add('perdix'),
-                  onOpenInLightroom: () => calls.add('lightroom'),
-                  onGoToDive: () => calls.add('go_to_dive'),
-                  onReupload: (_) => calls.add('reupload'),
-                  onAdjustColor: () => calls.add('adjust_color'),
-                ),
-              ],
+        ProviderScope(
+          overrides: [
+            if (browser)
+              deviceCapabilitiesProvider.overrideWithValue(
+                DeviceCapabilities.web,
+              ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: child!,
+            ),
+            home: Scaffold(
+              body: Stack(
+                children: [
+                  MediaViewerToolbar(
+                    item: item,
+                    currentIndex: 11,
+                    totalCount: 345,
+                    onClose: () => calls.add('close'),
+                    onEnterFullscreen: () => calls.add('fullscreen'),
+                    onShare: (_) => calls.add('share'),
+                    onShowInfo: () => calls.add('info'),
+                    onWriteMetadata: () => calls.add('write_metadata'),
+                    onTagSpecies: () => calls.add('species'),
+                    canWriteMetadata: true,
+                    showPerdixToggle: true,
+                    perdixEnabled: false,
+                    onTogglePerdix: () => calls.add('perdix'),
+                    onOpenInLightroom: () => calls.add('lightroom'),
+                    onGoToDive: () => calls.add('go_to_dive'),
+                    onReupload: (_) => calls.add('reupload'),
+                    onAdjustColor: () => calls.add('adjust_color'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -110,6 +121,25 @@ void main() {
       await tester.pump();
       return calls;
     }
+
+    testWidgets('a browser keeps only the viewing actions (#4121)', (
+      tester,
+    ) async {
+      await pumpFull(tester, 1024, browser: true);
+      for (final id in ['go_to_dive', 'perdix', 'info', 'share']) {
+        expect(find.byKey(ValueKey('viewer_$id')), findsOneWidget, reason: id);
+      }
+      for (final id in [
+        'write_metadata',
+        'lightroom',
+        'species',
+        'adjust_color',
+        'reupload',
+      ]) {
+        expect(find.byKey(ValueKey('viewer_$id')), findsNothing, reason: id);
+      }
+      expect(find.byKey(const ValueKey('viewer_overflow')), findsNothing);
+    });
 
     testWidgets('a 360 px phone fits the full set without overflowing', (
       tester,

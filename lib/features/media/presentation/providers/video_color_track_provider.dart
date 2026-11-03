@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 import 'package:submersion_transcoder/submersion_transcoder.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
@@ -70,7 +71,7 @@ typedef VideoFileAccess =
 
 /// Whether this platform links files through security-scoped bookmarks.
 final videoBookmarksApplyProvider = Provider<bool>(
-  (ref) => Platform.isIOS || Platform.isMacOS,
+  (ref) => HostPlatform.isIOS || HostPlatform.isMacOS,
 );
 
 final videoFileAccessProvider = Provider<VideoFileAccess>((ref) {

@@ -536,7 +536,7 @@ void main() {
       ).accept(allowPairing: true);
       // Commit to one key, then reveal another.
       final hello = NearbyHello(
-        protocolVersion: NearbyHello.currentProtocolVersion,
+        protocolVersion: NearbyHello.pairProtocolVersion,
         intent: NearbyIntent.pair,
         commitment: Uint8List(32),
       );

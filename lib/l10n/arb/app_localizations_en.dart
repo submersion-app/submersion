@@ -20303,6 +20303,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_filter_site => 'Site';
 
   @override
+  String get media_library_filter_source => 'Source';
+
+  @override
   String get media_library_filter_species => 'Species';
 
   @override
@@ -20360,6 +20363,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Untitled dive';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Site: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Equipment: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Open this site';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Open this equipment';
+
+  @override
+  String get media_library_untitledEquipment => 'Untitled equipment';
 
   @override
   String get media_library_viewMode_byDive => 'By dive';
@@ -21142,11 +21164,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_about_reportIssue => 'Report an Issue';
 
   @override
-  String get settings_about_reportIssue_copy => 'Copy link';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Visit github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => 'User Guide';
+
+  @override
+  String get settings_about_userGuide_snackbar => 'Visit submersion.app/guide';
 
   @override
   String settings_about_version(String version) {
@@ -58130,6 +58155,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => 'Sign in with Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Sign in with Google each time you open the site';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'Sign in with Dropbox';
 
   @override
@@ -58455,6 +58484,182 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get demo_unavailable_body =>
       'Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.';
+
+  @override
+  String get web_unavailable_title => 'Not available in a browser';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'This needs hardware a web page cannot reach, such as Bluetooth, USB, NFC or the camera. Use the Submersion app on a phone or computer for it.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'This runs in the background or as a local service, which a web page cannot do. Use the Submersion app on a phone or computer for it.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'This works with files on the device, which a web page cannot reach. Use the Submersion app on a phone or computer for it.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud is only available in the Submersion app on Apple devices.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Git hosts do not accept requests from a web page. Use the Submersion app on a phone or computer for a Git sync store.';
+
+  @override
+  String get web_continueWithoutSync => 'Continue without a sync store';
+
+  @override
+  String get web_rememberOnThisDevice_title => 'Remember on this device';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Only the Submersion app on an Apple device can reach iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Git hosts do not accept requests from a web page.';
+
+  @override
+  String get web_googleClientId_title => 'Google client id';
+
+  @override
+  String get web_googleClientId_body =>
+      'A web page signs in to Google with a client id from your own Google Cloud project: type Web application, with this site\'s address as an authorised JavaScript origin. Paste it here. It is kept with your other sign-in details.';
+
+  @override
+  String get web_googleClientId_ownProjectNote =>
+      'A client id of your own sees only a Google Drive library this site starts. Google keeps each project\'s Drive folder apart, so the library your phone and computer sync to Google Drive cannot open here.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'That does not look like a Google client id. It ends in .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'How to create one';
+
+  @override
+  String get web_cors_title_blockedByCors =>
+      'The store blocks browser requests';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'The browser asked the store and got no answer it was allowed to read. The store\'s CORS rules must allow this site\'s address. Add the rule below to the store, then check again.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'The store allows some requests, not all';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'The store answers a plain request from this site but refuses the method the app needs, such as PROPFIND for WebDAV. Its CORS rule must list every method below.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'The store allows reading, not writing';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Reads from this site work, but a write was refused. The CORS rule must also allow PUT and DELETE; the rule below includes them.';
+
+  @override
+  String get web_cors_title_forbidden => 'The store refused the credentials';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'The store answered 403: a wrong access key or secret, or a read-only key where sync needs to write. Check the credentials and the key\'s permissions.';
+
+  @override
+  String get web_cors_title_notFound => 'Nothing found at this address';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'The bucket, folder or path does not exist, or the name is misspelt. Check the address and the bucket or folder name.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'The browser does not trust or cannot reach the server';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'A private address over HTTPS failed before any answer. The browser, not the app, decides which certificates to trust: open the server\'s address in a new tab and accept or install its certificate, or make sure the server is reachable from here.';
+
+  @override
+  String get web_cors_title_ok => 'The connection works';
+
+  @override
+  String get web_cors_explain_ok =>
+      'The store accepted the test from this browser.';
+
+  @override
+  String get web_cors_title_unknown => 'The connection failed';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'The browser reported a failure it does not explain. Most often the store\'s CORS rules do not allow this site\'s address; the rule below is the usual fix.';
+
+  @override
+  String get web_cors_copyRule => 'Copy rule';
+
+  @override
+  String get web_cors_copied => 'Rule copied';
+
+  @override
+  String get web_storage_title => 'Browser storage';
+
+  @override
+  String get web_storage_opfs =>
+      'Browser file storage. Your dives stay in this browser until you forget this device.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Browser database (slower). Your dives stay in this browser until you forget this device.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'Nothing is saved after this tab closes. This browser gives the site no lasting storage; sync before you leave.';
+
+  @override
+  String get web_forgetDevice_title => 'Forget this device';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'Remove the dives, sign-in details and device identity from this browser';
+
+  @override
+  String get web_forgetDevice_confirm => 'Forget';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'This removes everything Submersion keeps in this browser: the dive log, the sign-in details and passphrase, and this device\'s identity in sync. Your dives stay in the sync store and on your other devices. The page reloads to a fresh start.';
+
+  @override
+  String get web_forgetDevice_failed =>
+      'This browser kept the database. Close other Submersion tabs and try again.';
+
+  @override
+  String get web_forgetDevice_incomplete =>
+      'This browser could not clear its sign-in details and settings. Try again.';
+
+  @override
+  String get web_downloadBackup_failed => 'The backup could not be created.';
+
+  @override
+  String get web_downloadBackup_title => 'Download a backup';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'A copy of your dive log as a database file, saved by your browser';
 
   @override
   String get demo_row_unavailable => 'Unavailable in demo mode';

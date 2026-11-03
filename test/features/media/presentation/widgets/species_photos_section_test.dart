@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -13,6 +14,7 @@ Future<void> _pump(
   List<MediaItem> items, {
   VoidCallback? onTagPhotos,
   VoidCallback? onAddPhotos,
+  bool browser = false,
 }) async {
   await tester.pumpWidget(
     await mediaTestApp(
@@ -27,6 +29,8 @@ Future<void> _pump(
       ),
       overrides: [
         mediaForSpeciesProvider('sp_x').overrideWith((ref) async => items),
+        if (browser)
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
       ],
     ),
   );
@@ -95,5 +99,19 @@ void main() {
     );
     expect(viewer.speciesId, 'sp_x');
     expect(viewer.initialMediaId, 'p2');
+  });
+
+  testWidgets('a browser can tag the photos it has, not add any (#4121)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      items,
+      onTagPhotos: () {},
+      onAddPhotos: () {},
+      browser: true,
+    );
+    expect(find.byKey(const ValueKey('species_tag_photos')), findsOneWidget);
+    expect(find.byKey(const ValueKey('species_add_photos')), findsNothing);
   });
 }

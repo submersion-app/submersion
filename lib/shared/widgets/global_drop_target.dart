@@ -2,14 +2,14 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart'
-    show compute, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart' show compute, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -64,7 +64,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
   bool _isDragging = false;
 
   static bool get _isDesktop {
-    if (kIsWeb) return false;
+    if (HostPlatform.isWeb) return false;
     final platform = defaultTargetPlatform;
     return platform == TargetPlatform.windows ||
         platform == TargetPlatform.macOS ||

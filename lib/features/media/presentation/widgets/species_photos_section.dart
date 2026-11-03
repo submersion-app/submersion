@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
@@ -53,7 +54,9 @@ class SpeciesPhotosSection extends ConsumerWidget {
                 icon: const Icon(Icons.sell_outlined),
                 label: Text(l10n.marineLife_speciesPhotos_tagPhotos),
               ),
-            if (onAddPhotos != null)
+            // A browser links no new media (issue #4121).
+            if (onAddPhotos != null &&
+                ref.watch(deviceCapabilitiesProvider).mediaAttach)
               TextButton.icon(
                 key: const ValueKey('species_add_photos'),
                 onPressed: onAddPhotos,

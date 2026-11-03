@@ -5,7 +5,13 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:submersion/core/database/background_database_connection.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+
+/// Where the browser keeps the per-device local cache: a virtual path, see
+/// `kWebDatabasePath`.
+const String kWebLocalCacheDatabasePath =
+    '/opfs/Submersion/submersion_local.db';
 
 /// Singleton service managing the local-only cache database.
 ///
@@ -55,18 +61,21 @@ class LocalCacheDatabaseService {
   Future<void> initialize() async {
     if (_database != null) return;
 
-    final supportDir = await getApplicationSupportDirectory();
-    final dbPath = p.join(supportDir.path, 'Submersion', 'submersion_local.db');
+    final String dbPath;
+    if (HostPlatform.isWeb) {
+      dbPath = kWebLocalCacheDatabasePath;
+    } else {
+      final supportDir = await getApplicationSupportDirectory();
+      dbPath = p.join(supportDir.path, 'Submersion', 'submersion_local.db');
 
-    // Ensure directory exists
-    final dbDir = Directory(p.dirname(dbPath));
-    if (!await dbDir.exists()) {
-      await dbDir.create(recursive: true);
+      // Ensure directory exists
+      final dbDir = Directory(p.dirname(dbPath));
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+      }
     }
 
-    final background = await BackgroundDatabaseConnection.openPlain(
-      File(dbPath),
-    );
+    final background = await BackgroundDatabaseConnection.openPlain(dbPath);
     _background = background;
     _database = LocalCacheDatabase(background.connection);
   }

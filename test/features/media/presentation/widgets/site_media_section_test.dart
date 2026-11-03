@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -716,5 +717,24 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Attachment details'), findsOneWidget);
     });
+  });
+
+  testWidgets('a browser offers neither adding nor selecting (#4121)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      await host(
+        onPhotos: () {},
+        onDoc: () {},
+        attachments: [photoA, photoB],
+        extraOverrides: [
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.add_photo_alternate), findsNothing);
+    expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
+    expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
   });
 }

@@ -133,4 +133,23 @@ void main() {
     );
     handle.dispose();
   });
+
+  testWidgets('a row with no target informs: no chevron, no tap', (
+    tester,
+  ) async {
+    await pumpTile(
+      tester,
+      const DataRowTile(
+        icon: Icons.folder,
+        title: 'Database storage',
+        subtitle: 'App default location',
+      ),
+    );
+    expect(find.text('App default location'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    expect(tester.widget<ListTile>(find.byType(ListTile)).onTap, isNull);
+    await tester.tap(find.text('Database storage'));
+    await tester.pumpAndSettle();
+    expect(find.text('feature'), findsNothing);
+  });
 }

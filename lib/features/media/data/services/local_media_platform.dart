@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/services.dart';
+
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// Result of a successful bookmark resolution. The [bookmarkRef] is a
 /// session-local key that callers must pass to [LocalMediaPlatform.releaseBookmark]
@@ -31,7 +31,7 @@ class LocalMediaPlatform {
   /// (via flutter_secure_storage) and pass it back to [resolveBookmark]
   /// when they need to read the file.
   Future<Uint8List> createBookmark(String filePath) async {
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) {
       throw UnsupportedError('createBookmark is only supported on iOS / macOS');
     }
     // coverage:ignore-start
@@ -50,7 +50,7 @@ class LocalMediaPlatform {
   /// ref + the resolved file path. Callers MUST invoke [releaseBookmark]
   /// when done.
   Future<ResolvedBookmark> resolveBookmark(Uint8List blob) async {
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) {
       throw UnsupportedError(
         'resolveBookmark is only supported on iOS / macOS',
       );
@@ -72,7 +72,7 @@ class LocalMediaPlatform {
   /// Releases the security-scoped resource access started by [resolveBookmark].
   /// Safe to call on any platform; no-ops on Android.
   Future<void> releaseBookmark(String bookmarkRef) async {
-    if (!Platform.isIOS && !Platform.isMacOS) return;
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) return;
     // coverage:ignore-start
     await _channel.invokeMethod<void>('releaseBookmark', {
       'bookmarkRef': bookmarkRef,
@@ -85,7 +85,7 @@ class LocalMediaPlatform {
   /// `startAccessingSecurityScopedResource()` calls don't leak for the rest
   /// of the process lifetime.
   Future<void> releaseAllBookmarks() async {
-    if (!Platform.isIOS && !Platform.isMacOS) return;
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) return;
     // coverage:ignore-line
     await _channel.invokeMethod<void>('releaseAllBookmarks');
   }
@@ -105,7 +105,7 @@ class LocalMediaPlatform {
   /// returns the URI string itself (which becomes the bookmarkRef stored in
   /// the [MediaItem.bookmarkRef] column).
   Future<String> takePersistableUri(String uri) async {
-    if (!Platform.isAndroid) {
+    if (!HostPlatform.isAndroid) {
       throw UnsupportedError('takePersistableUri is only supported on Android');
     }
     // coverage:ignore-start
@@ -119,7 +119,7 @@ class LocalMediaPlatform {
 
   /// Android only. Releases a previously persistable URI permission.
   Future<void> releasePersistableUri(String uri) async {
-    if (!Platform.isAndroid) return;
+    if (!HostPlatform.isAndroid) return;
     // coverage:ignore-start
     await _channel.invokeMethod<void>(
       'releaseBookmark', // Android-side handler reuses this method name
@@ -131,7 +131,7 @@ class LocalMediaPlatform {
   /// Android only. Lists all persisted URI permissions (used by the Settings
   /// page to show the user's URI budget — Android caps at 128 per app).
   Future<List<String>> listPersistedUris() async {
-    if (!Platform.isAndroid) return const [];
+    if (!HostPlatform.isAndroid) return const [];
     // coverage:ignore-start
     final r = await _channel.invokeListMethod<String>('listPersistedUris');
     return r ?? const [];
@@ -148,7 +148,7 @@ class LocalMediaPlatform {
   /// On Android use [readUriBytes] instead — Android URIs don't go through
   /// the bookmark API.
   Future<Uint8List> readBookmarkBytes(Uint8List bookmarkBlob) async {
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) {
       // coverage:ignore-start
       // UnsupportedError throw — exercised by
       // local_media_platform_linux_test.dart on Linux CI hosts; on the
@@ -173,7 +173,7 @@ class LocalMediaPlatform {
   /// On iOS / macOS use [readBookmarkBytes] instead — those platforms use
   /// the security-scoped bookmark API.
   Future<Uint8List> readUriBytes(String uri) async {
-    if (!Platform.isAndroid) {
+    if (!HostPlatform.isAndroid) {
       throw UnsupportedError('readUriBytes is only supported on Android');
     }
     // coverage:ignore-start

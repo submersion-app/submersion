@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -174,6 +175,42 @@ void main() {
     expect(find.text('Explore insights about your diving'), findsOneWidget);
     expect(find.byIcon(Icons.insights), findsOneWidget);
     expect(find.byIcon(Icons.query_stats), findsNothing);
+  });
+
+  testWidgets('a browser is not offered the dive computer download', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/wizard',
+      routes: [
+        GoRoute(
+          path: '/wizard',
+          builder: (context, state) => Consumer(
+            builder: (context, ref, _) {
+              ref.watch(setupWizardProvider(SetupWizardMode.firstRun));
+              return const Scaffold(
+                body: FinishStep(mode: SetupWizardMode.firstRun),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        ],
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Download dives from your dive computer'), findsNothing);
+    expect(find.text('Import logs from files and other apps'), findsOneWidget);
   });
 
   testWidgets('with no diver and no name, Finish asks for the profile '

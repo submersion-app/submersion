@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
@@ -31,6 +32,9 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
   /// expensive object (a whole video) was never downloaded, which a null
   /// return value alone cannot distinguish from a download-then-discard.
   final getFileKeys = <String>[];
+
+  /// Every key getBytes was asked for, in order: a browser's downloads.
+  final getBytesKeys = <String>[];
 
   void _maybeFail() {
     final e = failNextWith;
@@ -97,6 +101,20 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
     }
     await destination.writeAsBytes(bytes, flush: true);
     onProgress?.call(bytes.length, bytes.length);
+  }
+
+  @override
+  Future<Uint8List> getBytes(String key) async {
+    getBytesKeys.add(key);
+    _maybeFail();
+    final bytes = objects[key];
+    if (bytes == null) {
+      throw MediaStoreException(
+        'not found: $key',
+        kind: MediaStoreErrorKind.notFound,
+      );
+    }
+    return Uint8List.fromList(bytes);
   }
 
   /// Called after each successful delete, so a test can change state

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_display_name.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -162,12 +163,14 @@ class _FileSection extends ConsumerWidget {
     final size = item.contentSizeBytes;
     final lat = item.latitude;
     final lon = item.longitude;
+    // A browser reads the media facts and changes none (issue #4121).
+    final canEdit = ref.watch(deviceCapabilitiesProvider).mediaAttach;
 
     return _Section(
       title: l10n.media_info_fileSection,
       actions: [
         // Pinning needs a profile to pin against.
-        if (diveId != null && profile.isNotEmpty)
+        if (diveId != null && profile.isNotEmpty && canEdit)
           _SetTimeButton(
             item: item,
             profile: profile,
@@ -273,11 +276,13 @@ class _OriginSection extends ConsumerWidget {
         : null;
     final pointer = origin.pointer;
     final isLocalFile = origin.sourceType == MediaSourceType.localFile;
+    // A browser has no file to check or locate (issue #4121).
+    final canEdit = ref.watch(deviceCapabilitiesProvider).mediaAttach;
 
     return _Section(
       title: l10n.media_info_originSection,
       actions: [
-        _CheckNowButton(item: item),
+        if (canEdit) _CheckNowButton(item: item),
         // Under limited photo access a gallery photo may be outside what the
         // user allowed (spec 6.3). Offered whenever access is limited: the
         // panel reads stored facts, not this device's live verdict.
@@ -293,7 +298,7 @@ class _OriginSection extends ConsumerWidget {
         // points at a path, so this is not offered for a missing gallery
         // asset, where picking a file would relink it to the wrong source
         // type.
-        if (origin.health == OriginHealth.missing && isLocalFile)
+        if (origin.health == OriginHealth.missing && isLocalFile && canEdit)
           _LocateButton(item: item),
         if (pointer != null && isLocalFile && canRevealInFileManager)
           TextButton(
@@ -397,7 +402,8 @@ class _BackupSection extends ConsumerWidget {
     return _Section(
       title: l10n.settings_photos_cloudHeader,
       actions: [
-        if (_offerUpload)
+        // A browser has no local copy to back up (issue #4121).
+        if (_offerUpload && ref.watch(deviceCapabilitiesProvider).mediaAttach)
           _BackUpButton(item: item, isRetry: backup.queueState == 'failed'),
       ],
       children: [

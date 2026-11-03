@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/entities/media_smart_album.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
@@ -80,6 +81,7 @@ void main() {
         sitesProvider.overrideWith((ref) async => []),
         allTripsProvider.overrideWith((ref) async => []),
         mediaSmartAlbumRepositoryProvider.overrideWithValue(repo),
+        sourceCountsProvider.overrideWith((ref) async => const {}),
       ],
     );
     addTearDown(container.dispose);
@@ -235,6 +237,50 @@ void main() {
 
       final filter = container.read(mediaLibraryFilterProvider);
       expect(filter.siteId, 'site-1');
+      expect(filter.mediaType, MediaType.video);
+    });
+
+    testWidgets('an album brings its own source, or none (#4149)', (
+      tester,
+    ) async {
+      repo = _FakeAlbumRepo([
+        album(
+          'a1',
+          'Gallery photos',
+          const MediaLibraryFilter(sourceType: MediaSourceType.platformGallery),
+        ),
+        album(
+          'a2',
+          'All videos',
+          const MediaLibraryFilter(mediaType: MediaType.video),
+        ),
+      ]);
+      await openSheet(tester);
+
+      await tester.tap(find.text('Load album'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Gallery photos'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+      expect(
+        container.read(mediaLibraryFilterProvider).sourceType,
+        MediaSourceType.platformGallery,
+      );
+
+      // Loading an album with no source must not keep the one already live:
+      // the album would then show less than it was saved to show.
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Load album'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('All videos'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      final filter = container.read(mediaLibraryFilterProvider);
+      expect(filter.sourceType, isNull);
       expect(filter.mediaType, MediaType.video);
     });
 

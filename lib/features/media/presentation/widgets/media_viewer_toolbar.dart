@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -83,7 +85,7 @@ ToolbarActionSplit splitToolbarActions(
 /// The viewer's top bar: close, fullscreen, the page indicator, and the
 /// actions, with whatever does not fit in an overflow menu. A [Positioned],
 /// so it goes straight into the viewer's [Stack].
-class MediaViewerToolbar extends StatelessWidget {
+class MediaViewerToolbar extends ConsumerWidget {
   const MediaViewerToolbar({
     super.key,
     required this.item,
@@ -149,7 +151,12 @@ class MediaViewerToolbar extends StatelessWidget {
   /// Opens the Adjust color panel (issue #3520); null hides the action.
   final VoidCallback? onAdjustColor;
 
-  List<MediaViewerAction> _actions(BuildContext context) {
+  /// [readOnly] drops every action that changes the media or its links:
+  /// a browser views and shares, and nothing more (issue #4121).
+  List<MediaViewerAction> _actions(
+    BuildContext context, {
+    required bool readOnly,
+  }) {
     final l10n = context.l10n;
     return [
       if (onGoToDive != null)
@@ -160,7 +167,7 @@ class MediaViewerToolbar extends StatelessWidget {
           priority: 0,
           onPressed: (_) => onGoToDive!(),
         ),
-      if (canWriteMetadata)
+      if (canWriteMetadata && !readOnly)
         MediaViewerAction(
           id: 'write_metadata',
           icon: Icons.edit_note,
@@ -179,7 +186,7 @@ class MediaViewerToolbar extends StatelessWidget {
               : null,
           onPressed: (_) => onTogglePerdix(),
         ),
-      if (onOpenInLightroom != null)
+      if (onOpenInLightroom != null && !readOnly)
         MediaViewerAction(
           id: 'lightroom',
           icon: Icons.open_in_new,
@@ -187,14 +194,15 @@ class MediaViewerToolbar extends StatelessWidget {
           priority: 7,
           onPressed: (_) => onOpenInLightroom!(),
         ),
-      MediaViewerAction(
-        id: 'species',
-        icon: Icons.sell_outlined,
-        label: l10n.media_species_actionTooltip,
-        priority: 4,
-        onPressed: (_) => onTagSpecies(),
-      ),
-      if (onTagPeople != null)
+      if (!readOnly)
+        MediaViewerAction(
+          id: 'species',
+          icon: Icons.sell_outlined,
+          label: l10n.media_species_actionTooltip,
+          priority: 4,
+          onPressed: (_) => onTagSpecies(),
+        ),
+      if (onTagPeople != null && !readOnly)
         MediaViewerAction(
           id: 'people',
           icon: Icons.person_add_alt_1,
@@ -214,7 +222,7 @@ class MediaViewerToolbar extends StatelessWidget {
         priority: 2,
         onPressed: (_) => onShowInfo(),
       ),
-      if (onAdjustColor != null)
+      if (onAdjustColor != null && !readOnly)
         MediaViewerAction(
           id: 'adjust_color',
           icon: Icons.palette_outlined,
@@ -233,7 +241,7 @@ class MediaViewerToolbar extends StatelessWidget {
         // points at it (or at the overflow button when shared from the menu).
         onPressed: (anchor) => onShare(shareAnchorFrom(anchor)),
       ),
-      if (onReupload != null)
+      if (onReupload != null && !readOnly)
         MediaViewerAction(
           id: 'reupload',
           icon: Icons.tune,
@@ -245,9 +253,12 @@ class MediaViewerToolbar extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final actions = _actions(context);
+    final actions = _actions(
+      context,
+      readOnly: !ref.watch(deviceCapabilitiesProvider).mediaAttach,
+    );
     return Positioned(
       top: 0,
       left: 0,

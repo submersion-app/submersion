@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:cryptography/cryptography.dart' show SecretKey;
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
+import 'package:submersion/core/platform/cross_tab_lock.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
@@ -94,13 +95,13 @@ final iCloudAvailabilityProvider = FutureProvider<ICloudAvailability>((
 /// platforms (even transiently while [iCloudAvailabilityProvider] loads), and so
 /// widget tests can simulate an Apple platform on a non-Apple CI host.
 final isApplePlatformProvider = Provider<bool>(
-  (ref) => Platform.isIOS || Platform.isMacOS,
+  (ref) => HostPlatform.isIOS || HostPlatform.isMacOS,
 );
 
 /// Whether the host is Linux, where video transcoding depends on a system
 /// ffmpeg. A provider (not Platform.isLinux inline) so widget tests can
 /// simulate Linux on any CI host — same pattern as [isApplePlatformProvider].
-final isLinuxPlatformProvider = Provider<bool>((ref) => Platform.isLinux);
+final isLinuxPlatformProvider = Provider<bool>((ref) => HostPlatform.isLinux);
 
 /// Sync preferences provider
 final syncPreferencesProvider = Provider<SyncPreferences>((ref) {
@@ -1497,8 +1498,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
       while (true) {
         // One merge into the database at a time, shared with the library
         // library sync (issue #2567).
+        // And one tab at a time in a browser: two tabs share the database
+        // and would otherwise reuse one changeset sequence.
         final succeeded = await SyncCoordinator.run(
-          () => _runSyncOnce(auto: runAuto),
+          () => withCrossTabLock(
+            kSyncCrossTabLock,
+            () => _runSyncOnce(auto: runAuto),
+          ),
         );
         if (!mounted) return;
         final queued = _queuedSyncAuto;

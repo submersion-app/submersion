@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 /// Listing/head entry for a media store object.
 class StoreObjectInfo {
@@ -119,6 +120,11 @@ abstract class MediaObjectStore {
     File destination, {
     TransferProgressCallback? onProgress,
   });
+
+  /// The bytes at [key], in memory: for a browser, which has no file to
+  /// download into (issue #4121). Throws a [MediaStoreException] with
+  /// [MediaStoreErrorKind.notFound] when the object is absent.
+  Future<Uint8List> getBytes(String key);
 
   /// Idempotent delete: absent keys succeed.
   Future<void> delete(String key);

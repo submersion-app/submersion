@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 enum BackupFailureCause { diskFull, permissionDenied, sourceMissing, unknown }
 
 /// Thrown by PreMigrationBackupService when a backup cannot be completed.
@@ -32,7 +34,7 @@ class BackupFailedException implements Exception {
       final code = error.osError?.errorCode;
       final classified = _classifyFileSystemCode(
         code,
-        isWindows: debugIsWindows ?? Platform.isWindows,
+        isWindows: debugIsWindows ?? HostPlatform.isWindows,
       );
       if (classified != null) {
         return BackupFailedException(

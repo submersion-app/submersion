@@ -213,7 +213,7 @@ jobs:
           # store-only artifact deliberately not re-hosted on the stable
           # release, matching the historical stable asset list).
           sha256sum -c --ignore-missing checksums-sha256.txt
-          for suffix in macOS.dmg Windows-Setup.exe Linux.tar.gz Android.apk Android.aab iOS.ipa; do
+          for suffix in macOS.dmg Windows-Setup.exe Linux.tar.gz Android.apk Android.aab iOS.ipa Web.zip; do
             ls Submersion-*-$suffix >/dev/null || { echo "::error::Missing $suffix"; exit 1; }
           done
           test -s appcast.xml

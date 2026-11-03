@@ -19599,6 +19599,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_filter_site => '潜点';
 
   @override
+  String get media_library_filter_source => '来源';
+
+  @override
   String get media_library_filter_species => '物种';
 
   @override
@@ -19656,6 +19659,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => '未命名潜水';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return '潜点：$name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return '装备：$name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => '打开此潜点';
+
+  @override
+  String get media_library_equipmentHeaderHint => '打开此装备';
+
+  @override
+  String get media_library_untitledEquipment => '未命名装备';
 
   @override
   String get media_library_viewMode_byDive => '按潜水';
@@ -20408,11 +20430,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_about_reportIssue => '报告问题';
 
   @override
-  String get settings_about_reportIssue_copy => '复制链接';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       '请访问 github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => '用户指南';
+
+  @override
+  String get settings_about_userGuide_snackbar => '请访问 submersion.app/guide';
 
   @override
   String settings_about_version(String version) {
@@ -55451,6 +55476,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_setUpDevice_offer_googleDrive => '使用 Google 登录';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      '每次打开本站时都需使用 Google 登录';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => '使用 Dropbox 登录';
 
   @override
@@ -55750,6 +55779,170 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get demo_unavailable_body =>
       '演示模式会将示例日志与你的数据分开保存，因此无法导入、导出、备份或同步任何内容。';
+
+  @override
+  String get web_unavailable_title => '浏览器中不可用';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      '这需要网页无法访问的硬件，例如蓝牙、USB、NFC 或相机。请在手机或电脑上使用 Submersion 应用。';
+
+  @override
+  String get web_unavailable_reason_background =>
+      '这需要在后台运行或作为本地服务运行，网页无法做到。请在手机或电脑上使用 Submersion 应用。';
+
+  @override
+  String get web_unavailable_reason_files =>
+      '这需要访问设备上的文件，网页无法做到。请在手机或电脑上使用 Submersion 应用。';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud 仅在 Apple 设备上的 Submersion 应用中可用。';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Git 托管服务不接受来自网页的请求。要使用 Git 同步存储，请在手机或电脑上使用 Submersion 应用。';
+
+  @override
+  String get web_continueWithoutSync => '不使用同步存储继续';
+
+  @override
+  String get web_rememberOnThisDevice_title => '在此设备上记住';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      '将登录信息和密码短语保存在此浏览器中。关闭后，关闭标签页时即被忘记。';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      '只有 Apple 设备上的 Submersion 应用才能访问 iCloud。';
+
+  @override
+  String get web_unavailable_offer_git => 'Git 托管服务不接受来自网页的请求。';
+
+  @override
+  String get web_googleClientId_title => 'Google 客户端 ID';
+
+  @override
+  String get web_googleClientId_body =>
+      '网页使用您自己的 Google Cloud 项目中的客户端 ID 登录 Google：类型为 Web 应用，并将本站地址设为已获授权的 JavaScript 来源。请粘贴到此处。它会与您的其他登录信息一起保存。';
+
+  @override
+  String get web_googleClientId_ownProjectNote =>
+      '您自己的客户端 ID 只能看到由本网站创建的 Google Drive 资料库。Google 会将每个项目的 Drive 文件夹分开，因此您的手机和电脑同步到 Google Drive 的资料库无法在此打开。';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      '这看起来不像 Google 客户端 ID。它应以 .apps.googleusercontent.com 结尾。';
+
+  @override
+  String get web_googleClientId_help => '如何创建';
+
+  @override
+  String get web_cors_title_blockedByCors => '存储服务阻止了浏览器请求';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      '浏览器向存储服务发出了请求，但没有收到允许读取的回应。存储服务的 CORS 规则必须允许本站地址。请将下方规则添加到存储服务，然后重新检查。';
+
+  @override
+  String get web_cors_title_methodBlockedByCors => '存储服务只允许部分请求';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      '存储服务回应了本站的简单请求，却拒绝了应用所需的方法，例如 WebDAV 的 PROPFIND。其 CORS 规则必须列出下方的所有方法。';
+
+  @override
+  String get web_cors_title_writeBlockedByCors => '存储服务允许读取，不允许写入';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      '从本站读取正常，但写入被拒绝。CORS 规则还必须允许 PUT 和 DELETE；下方规则已包含它们。';
+
+  @override
+  String get web_cors_title_forbidden => '存储服务拒绝了凭据';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      '存储服务返回 403：访问密钥或密钥错误，或者在同步需要写入的地方使用了只读密钥。请检查凭据和密钥权限。';
+
+  @override
+  String get web_cors_title_notFound => '此地址下没有任何内容';
+
+  @override
+  String get web_cors_explain_notFound =>
+      '存储桶、文件夹或路径不存在，或者名称拼写有误。请检查地址以及存储桶或文件夹名称。';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable => '浏览器不信任该服务器或无法访问它';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      '通过 HTTPS 访问私有地址时在收到任何回应前就失败了。决定信任哪些证书的是浏览器而不是应用：请在新标签页中打开服务器地址并接受或安装其证书，或确认服务器可从此处访问。';
+
+  @override
+  String get web_cors_title_ok => '连接正常';
+
+  @override
+  String get web_cors_explain_ok => '存储服务接受了来自此浏览器的测试。';
+
+  @override
+  String get web_cors_title_unknown => '连接失败';
+
+  @override
+  String get web_cors_explain_unknown =>
+      '浏览器报告了一个它无法解释的失败。最常见的原因是存储服务的 CORS 规则未允许本站地址；下方规则通常可以解决。';
+
+  @override
+  String get web_cors_copyRule => '复制规则';
+
+  @override
+  String get web_cors_copied => '规则已复制';
+
+  @override
+  String get web_storage_title => '浏览器存储';
+
+  @override
+  String get web_storage_opfs => '浏览器文件存储。您的潜水记录会保存在此浏览器中，直到您忘记此设备。';
+
+  @override
+  String get web_storage_indexedDb => '浏览器数据库（较慢）。您的潜水记录会保存在此浏览器中，直到您忘记此设备。';
+
+  @override
+  String get web_storage_memoryWarning =>
+      '关闭此标签页后不会保存任何内容。此浏览器未向本站提供持久存储；离开前请先同步。';
+
+  @override
+  String get web_forgetDevice_title => '忘记此设备';
+
+  @override
+  String get web_forgetDevice_subtitle => '从此浏览器中移除潜水记录、登录信息和设备身份';
+
+  @override
+  String get web_forgetDevice_confirm => '忘记';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      '这将移除 Submersion 在此浏览器中保存的全部内容：潜水日志、登录信息和密码短语，以及此设备在同步中的身份。您的潜水记录仍保留在同步存储和其他设备上。页面将重新加载并重新开始。';
+
+  @override
+  String get web_forgetDevice_failed => '此浏览器保留了数据库。请关闭其他 Submersion 标签页后重试。';
+
+  @override
+  String get web_forgetDevice_incomplete => '此浏览器无法清除登录信息和设置。请重试。';
+
+  @override
+  String get web_downloadBackup_failed => '无法创建备份。';
+
+  @override
+  String get web_downloadBackup_title => '下载备份';
+
+  @override
+  String get web_downloadBackup_subtitle => '将潜水日志的副本保存为数据库文件，由浏览器下载';
 
   @override
   String get demo_row_unavailable => '演示模式下不可用';

@@ -348,6 +348,16 @@ class S3MediaObjectStore implements MediaObjectStore {
   }
 
   @override
+  Future<Uint8List> getBytes(String key) async {
+    try {
+      // A missing object answers 404, which getObject reports as not found.
+      return await _client.getObject(_wire(key));
+    } on CloudStorageException catch (e) {
+      throw _map('get', key, e);
+    }
+  }
+
+  @override
   Future<void> delete(String key) async {
     try {
       await _client.deleteObject(_wire(key));

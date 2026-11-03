@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -36,6 +37,7 @@ void main() {
     String? selectedId,
     List<Diver> divers = const [],
     Locale? locale,
+    bool browser = false,
   }) async {
     SharedPreferences.setMockInitialValues(
       debugEnabled ? {'debug_mode_enabled': true} : {},
@@ -47,6 +49,8 @@ void main() {
         logFileServiceProvider.overrideWithValue(logFileService),
         sharedPreferencesProvider.overrideWithValue(prefs),
         allDiversProvider.overrideWith((ref) async => divers),
+        if (browser)
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
       ],
       child: MaterialApp(
         locale: locale,
@@ -268,6 +272,47 @@ void main() {
       expect(opened, hasLength(3));
       expect(opened[1], isNot(opened[0]));
       expect(opened[2], opened[0]);
+    });
+  });
+
+  group('in a browser (#4121)', () {
+    test('visibleSettingsSections drops security and data sources', () {
+      final web = visibleSettingsSections(
+        caps: DeviceCapabilities.web,
+        diverCount: 1,
+      ).map((s) => s.id);
+      expect(web, isNot(contains('security')));
+      expect(web, isNot(contains('dataSources')));
+      expect(web, containsAll(['data', 'appearance', 'about']));
+      final native = visibleSettingsSections(
+        caps: currentDeviceCapabilities(),
+        diverCount: 1,
+      ).map((s) => s.id);
+      expect(native, contains('security'));
+    });
+
+    testWidgets('App Security is listed natively', (tester) async {
+      await tester.pumpWidget(await buildWidget(debugEnabled: false));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('App Security'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('App Security'), findsOneWidget);
+    });
+
+    testWidgets('a browser lists no App Security section', (tester) async {
+      await tester.pumpWidget(
+        await buildWidget(debugEnabled: false, browser: true),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('About'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('App Security'), findsNothing);
     });
   });
 }

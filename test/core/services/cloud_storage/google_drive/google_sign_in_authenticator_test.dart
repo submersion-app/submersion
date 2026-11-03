@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 // The app-facing google_sign_in package is driven indirectly here: the
@@ -6,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 // GoogleSignInPlatform.instance is set to. Only the platform interface needs
 // importing (it re-exports the exception and result types used below).
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -50,12 +53,18 @@ class _FakePlatform extends GoogleSignInPlatform
   /// token refresh must not depend on it.
   int lightweightCalls = 0;
 
+  /// Mirrors google_sign_in_web 1.1.3: supportsAuthenticate() is false,
+  /// authenticate() throws, and the lightweight sign-in only starts One
+  /// Tap and answers null rather than a future.
+  bool webPlugin = false;
+
   @override
   Future<AuthenticationResults?>? attemptLightweightAuthentication(
     AttemptLightweightAuthenticationParameters params,
-  ) async {
+  ) {
     lightweightCalls++;
-    return lightweightResult;
+    if (webPlugin) return null;
+    return Future.value(lightweightResult);
   }
 
   /// Access tokens handed to clearAuthorizationToken, in call order.
@@ -79,12 +88,18 @@ class _FakePlatform extends GoogleSignInPlatform
   }
 
   @override
-  bool supportsAuthenticate() => true;
+  bool supportsAuthenticate() => !webPlugin;
 
   @override
   Future<AuthenticationResults> authenticate(
     AuthenticateParameters params,
   ) async {
+    if (webPlugin) {
+      throw UnimplementedError(
+        'authenticate is not supported on the web. '
+        'Instead, use renderButton to create a sign-in widget.',
+      );
+    }
     final error = authenticateError;
     if (error != null) throw error;
     return authenticateResult!;
@@ -103,11 +118,18 @@ class _FakePlatform extends GoogleSignInPlatform
   /// scopes, and the prompting path returns whatever token consent produced.
   bool scopeGranted = true;
 
+  /// How many times a scope authorization was requested with a prompt: the
+  /// browser's sign-in, where the web plugin has no authenticate().
+  int promptedAuthorizations = 0;
+
   @override
   Future<ClientAuthorizationTokenData?> clientAuthorizationTokensForScopes(
     ClientAuthorizationTokensForScopesParameters params,
   ) async {
-    if (params.request.promptIfUnauthorized) return authorizationToken;
+    if (params.request.promptIfUnauthorized) {
+      promptedAuthorizations++;
+      return authorizationToken;
+    }
     authorizationCalls++;
     final error = authorizationError;
     if (error != null) throw error;
@@ -615,6 +637,154 @@ void main() {
       expect(await auth.attemptSilentAuth(), isTrue);
     });
   });
+
+  group('in a browser (#4121)', () {
+    const clientId = '433819313354-abc123def.apps.googleusercontent.com';
+
+    // Against the real web plugin's surface: no authenticate(), and One
+    // Tap only through events. The Drive About resource names the account.
+    MockClient driveAbout(String email) => MockClient((request) async {
+      if (request.url.host == 'www.googleapis.com' &&
+          request.url.path == '/drive/v3/about') {
+        return http.Response(
+          jsonEncode({
+            'user': {'emailAddress': email},
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      return http.Response('not served by this test', 404);
+    });
+
+    GoogleSignInAuthenticator webAuth(String email) =>
+        GoogleSignInAuthenticator(
+          isWeb: true,
+          webClientId: () async => clientId,
+          baseClient: () => driveAbout(email),
+        );
+
+    test('initialize carries the stored web client id', () async {
+      platform.webPlugin = true;
+      final web = webAuth('a@b.c');
+      expect(await web.attemptSilentAuth(), isTrue);
+      expect(await web.userEmail, 'a@b.c');
+      expect(platform.initCalls.single.clientId, clientId);
+      expect(platform.initCalls.single.serverClientId, isNull);
+    });
+
+    test(
+      'with no client id the sign-in fails before the SDK is touched',
+      () async {
+        final web = GoogleSignInAuthenticator(
+          isWeb: true,
+          webClientId: () async => null,
+        );
+        await expectLater(
+          web.authenticate(),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.toString(),
+              'message',
+              contains('client id'),
+            ),
+          ),
+        );
+        expect(platform.initCalls, isEmpty);
+        expect(await web.attemptSilentAuth(), isFalse);
+      },
+    );
+
+    test('signs in through the client authorization, since the web plugin '
+        'has no authenticate, and names the account from Drive', () async {
+      platform.webPlugin = true;
+      final web = webAuth('diver@example.com');
+      await web.authenticate();
+      expect(platform.promptedAuthorizations, 1);
+      expect(platform.lightweightCalls, 0);
+      expect(web.authClient, isA<TimeoutHttpClient>());
+      expect(await web.userEmail, 'diver@example.com');
+    });
+
+    test('another account is refused in a browser too', () async {
+      platform.webPlugin = true;
+      final web = webAuth('other@example.com');
+      await expectLater(
+        web.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(
+          isA<CloudAccountMismatchException>().having(
+            (e) => e.signedInAs,
+            'signedInAs',
+            'other@example.com',
+          ),
+        ),
+      );
+      expect(platform.signOutCalls, 1);
+      expect(web.authClient, isNull);
+      expect(await web.userEmail, isNull);
+    });
+
+    test('a rejected token is renewed from the authorization Google still '
+        'holds, without One Tap', () async {
+      platform.webPlugin = true;
+      final web = webAuth('diver@example.com');
+      await web.authenticate();
+      await web.handleAuthFailure();
+      expect(web.authClient, isNull);
+      expect(await web.attemptSilentAuth(), isTrue);
+      expect(platform.lightweightCalls, 0);
+      expect(platform.authorizationCalls, 1);
+      expect(web.authClient, isNotNull);
+      expect(await web.userEmail, 'diver@example.com');
+    });
+
+    test('with nothing granted the browser needs a sign-in', () async {
+      platform.webPlugin = true;
+      platform.scopeGranted = false;
+      final web = webAuth('diver@example.com');
+      expect(await web.attemptSilentAuth(), isFalse);
+      expect(web.lastSilentAuthThrew, isFalse);
+      expect(platform.authorizationCalls, 1);
+      expect(platform.lightweightCalls, 0);
+    });
+
+    test(
+      'a renewal whose account read fails closes the client it built',
+      () async {
+        platform.webPlugin = true;
+        final transport = _ClosingClient(
+          MockClient((request) async => throw http.ClientException('offline')),
+        );
+        final web = GoogleSignInAuthenticator(
+          isWeb: true,
+          webClientId: () async => clientId,
+          baseClient: () => transport,
+        );
+        expect(await web.attemptSilentAuth(), isFalse);
+        expect(web.lastSilentAuthThrew, isTrue);
+        expect(web.authClient, isNull);
+        expect(transport.closed, isTrue);
+      },
+    );
+  });
+}
+
+/// A transport that records whether the authenticator closed it.
+class _ClosingClient extends http.BaseClient {
+  _ClosingClient(this._inner);
+
+  final http.Client _inner;
+  bool closed = false;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      _inner.send(request);
+
+  @override
+  void close() {
+    closed = true;
+    _inner.close();
+  }
 }
 
 /// Platform whose init() throws, to exercise attemptSilentAuth's catch.

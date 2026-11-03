@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 
+import '../../../../helpers/mock_providers.dart' show Override;
 import '../support/media_widget_harness.dart';
 
 void main() {
@@ -31,9 +33,11 @@ void main() {
     VoidCallback? onAddDocument,
     List<MediaItem> media = const [],
     void Function(MediaItem)? onOpenDocument,
+    List<Override> overrides = const [],
   }) => mediaTestApp(
     overrides: [
       mediaForDiveProvider('dive-1').overrideWith((ref) async => media),
+      ...overrides,
     ],
     home: Scaffold(
       body: SingleChildScrollView(
@@ -205,5 +209,23 @@ void main() {
 
     expect(opened, isEmpty);
     expect(find.byType(PhotoViewerPage), findsOneWidget);
+  });
+
+  testWidgets('a browser shows the media but offers neither adding nor '
+      'selecting (#4121)', (tester) async {
+    await tester.pumpWidget(
+      await host(
+        onAdd: () {},
+        onAddDocument: () {},
+        media: [testMediaItem(id: 'm1', originalFilename: 'reef.png')],
+        overrides: [
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaThumbnailTile), findsOneWidget);
+    expect(find.byIcon(Icons.add_photo_alternate), findsNothing);
+    expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
   });
 }

@@ -14,6 +14,7 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dar
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/resumable_base_publish.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
@@ -342,6 +343,72 @@ void main() {
   ///
   /// The host running these tests is POSIX, so the Windows style is pinned
   /// explicitly rather than inherited from the platform.
+  group('where an export cannot outlive the page (a browser)', () {
+    // A browser has no directory, and touching one throws there.
+    ResumableBasePublishStore pageStore() => ResumableBasePublishStore(
+      persistent: false,
+      directory: () async =>
+          throw UnsupportedError('a browser has no directory'),
+    );
+
+    test('nothing is found, recorded or cleared', () async {
+      final page = pageStore();
+      expect(page.persistent, isFalse);
+      expect(
+        await page.find(providerId: 'p', deviceId: 'd', epochId: null),
+        isNull,
+      );
+      await page.save(record(dataPath: 'unused', byteLength: 1));
+      await page.clearForProvider('p');
+    });
+
+    test('discard removes the export where it lies', () async {
+      final data = File(p.join(publishDir.path, 'export.base'));
+      await data.writeAsString('bytes');
+      await pageStore().discard(record(dataPath: data.path, byteLength: 5));
+      expect(await data.exists(), isFalse);
+    });
+
+    test('a base publishes and leaves no export behind', () async {
+      await DatabaseService.instance.database.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('d1', 'Page Diver', 1, 1)",
+      );
+      final repo = SyncRepository();
+      final deviceId = await repo.getDeviceId();
+      final provider = FakeCloudStorageProvider();
+      final folder = await provider.getOrCreateSyncFolder();
+      final writer = ChangesetWriter(
+        SyncDataSerializer(),
+        const ChangesetCodec(),
+        PublishStateStore(DatabaseService.instance.database),
+        resumableStore: pageStore(),
+      );
+      final result = await writer.publish(
+        provider: provider,
+        deviceId: deviceId,
+        folderId: folder,
+        deletions: await repo.getAllDeletions(),
+      );
+      expect(result.kind, isNot(ChangesetWriteKind.noop));
+      final names = [
+        for (final file in await provider.listFiles(
+          folderId: folder,
+          namePattern: ChangesetLogLayout.prefix,
+        ))
+          file.name,
+      ];
+      expect(names, anyElement(contains('.base.')));
+      // By device id: test files running beside this one share the folder.
+      final tempDir = await resolveSyncTempDir();
+      expect(
+        tempDir.listSync().where((file) => file.path.contains(deviceId)),
+        isEmpty,
+        reason: 'the export is gone',
+      );
+    });
+  });
+
   group('basePublishTargetPath', () {
     final windows = p.Context(style: p.Style.windows);
     const name =

@@ -10,6 +10,7 @@ the manifest, and never write outside the directory it was given.
 """
 
 import contextlib
+import gzip
 import hashlib
 import importlib.util
 import io
@@ -144,6 +145,57 @@ class MainTest(unittest.TestCase):
             with open(os.path.join(out, fetch.DATABASE_NAME), "rb") as f:
                 self.assertEqual(f.read(), b"db")
             self.assertTrue(os.path.exists(os.path.join(out, "photos", "reef.jpg")))
+
+    def test_a_web_bundle_gets_an_index_of_what_it_serves(self):
+        # The browser reads the sample logbook from its own site (issue
+        # #4121): the index names the database, its size and hash, and the
+        # photos beside it.
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest_url, dart = self._publish(tmp)
+            out = os.path.join(tmp, "demo")
+            quiet = io.StringIO()
+            with contextlib.redirect_stdout(quiet), contextlib.redirect_stderr(quiet):
+                code = fetch.main(
+                    [
+                        out,
+                        "--manifest-url",
+                        manifest_url,
+                        "--database-dart",
+                        dart,
+                        "--web-index",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            with open(os.path.join(out, fetch.WEB_INDEX_NAME), encoding="utf-8") as f:
+                index = json.load(f)
+            self.assertEqual(index["formatVersion"], 1)
+            self.assertEqual(index["schemaVersion"], 318)
+            self.assertEqual(index["generatedAt"], "2026-10-26T00:00:00Z")
+            # Shipped gzipped, a third of the size to download; the size and
+            # hash are the database's own, checked once it is inflated.
+            gz_name = fetch.DATABASE_NAME + ".gz"
+            gz_path = os.path.join(out, gz_name)
+            self.assertEqual(
+                index["database"],
+                {
+                    "path": gz_name,
+                    "size": 2,
+                    "sha256": hashlib.sha256(b"db").hexdigest(),
+                    "compressedSize": os.path.getsize(gz_path),
+                },
+            )
+            with gzip.open(gz_path, "rb") as f:
+                self.assertEqual(f.read(), b"db")
+            self.assertFalse(os.path.exists(os.path.join(out, fetch.DATABASE_NAME)))
+            self.assertEqual(index["photos"], ["photos/reef.jpg"])
+
+    def test_without_the_flag_no_index_is_written(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest_url, dart = self._publish(tmp)
+            out = os.path.join(tmp, "out")
+            self.assertEqual(self._run(out, manifest_url, dart), 0)
+            self.assertFalse(os.path.exists(os.path.join(out, fetch.WEB_INDEX_NAME)))
 
     def test_a_checksum_mismatch_fails_and_extracts_nothing(self):
         with tempfile.TemporaryDirectory() as tmp:

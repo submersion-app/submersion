@@ -2,9 +2,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
 
-import 'package:submersion/core/network/proxy/app_http_overrides.dart';
+import 'package:submersion/core/network/platform_http_client.dart';
 import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 
@@ -121,17 +120,18 @@ class CertificateTrustRecorder {
 }
 
 /// A transport whose TCP connect is bounded and whose TLS layer consults
-/// [recorder]. Built with `HttpClient()`, so `AppHttpOverrides` (the
-/// Windows root store) still applies. Response and idle deadlines are the
-/// WebDavClient's: a WebDAV upload is one request for the whole file, so the
-/// shared TimeoutHttpClient's fixed ten-minute upload cap would fail every
-/// large upload on a slow link.
-http.Client createWebDavHttpClient(CertificateTrustRecorder recorder) {
-  final inner = HttpClient()
-    ..connectionTimeout = TimeoutHttpClient.defaultConnectTimeout;
-  // Through AppHttpOverrides, not the client's own setter: the app's proxy
-  // support opens direct and SOCKS5 TLS sockets itself, where dart:io never
-  // consults HttpClient.badCertificateCallback.
-  AppHttpOverrides.setBadCertificateCallback(inner, recorder.onBadCertificate);
-  return IOClient(inner);
-}
+/// [recorder]. Built on the platform client, so on a native build
+/// `AppHttpOverrides` (the Windows root store) still applies and the
+/// certificate check reaches the proxy sockets too. Response and idle
+/// deadlines are the WebDavClient's: a WebDAV upload is one request for the
+/// whole file, so the shared TimeoutHttpClient's fixed ten-minute upload cap
+/// would fail every large upload on a slow link.
+///
+/// In a browser the recorder is never consulted: the browser owns
+/// certificate trust, and a server it does not trust fails before the app
+/// sees a response.
+http.Client createWebDavHttpClient(CertificateTrustRecorder recorder) =>
+    createPlatformHttpClient(
+      connectionTimeout: TimeoutHttpClient.defaultConnectTimeout,
+      onBadCertificate: recorder.onBadCertificate,
+    );

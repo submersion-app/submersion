@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
@@ -1456,6 +1457,38 @@ void main() {
         expect(detection.format, ImportFormat.diveMateDdb);
         expect(detection.sourceApp, SourceApp.diveMate);
       });
+
+      test(
+        'a browser leaves a SQLite file generic and unsupported (#4121)',
+        () async {
+          // No SQLite engine to open the file with: the probe that tells
+          // the flavours apart cannot run, so the file is reported as a
+          // database the browser cannot import and the wizard stays put.
+          SharedPreferences.setMockInitialValues({});
+          final prefs = await SharedPreferences.getInstance();
+          final browser = ProviderContainer(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              deviceCapabilitiesProvider.overrideWithValue(
+                DeviceCapabilities.web,
+              ),
+            ],
+          );
+          addTearDown(browser.dispose);
+          final webNotifier = browser.read(
+            universalImportNotifierProvider.notifier,
+          );
+
+          final detection = await webNotifier.loadFileFromBytes(
+            buildDiveMateDdb(),
+            'DiveMate.ddb',
+          );
+
+          expect(detection.format, ImportFormat.sqlite);
+          expect(detection.isFormatSupported, isFalse);
+          expect(webNotifier.state.currentStep, ImportWizardStep.fileSelection);
+        },
+      );
     });
 
     group('UniversalImportNotifier - MacDive SQLite', () {

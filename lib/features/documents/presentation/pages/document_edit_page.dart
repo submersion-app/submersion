@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -210,7 +209,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
     }
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final canUseCamera = Platform.isAndroid || Platform.isIOS;
+    final canUseCamera = HostPlatform.isAndroid || HostPlatform.isIOS;
     final source = await showModalBottomSheet<String>(
       context: context,
       builder: (ctx) => SafeArea(

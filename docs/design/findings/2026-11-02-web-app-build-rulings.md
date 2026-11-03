@@ -1,0 +1,264 @@
+# Web app build: rulings and deferred findings
+
+The web app (issue #4121) was built from the spec
+[2026-11-02-web-app-design.md](../specs/2026-11-02-web-app-design.md) and four
+plans under [docs/design/plans/](../plans/). Each plan was executed task by
+task; where a plan step contradicted the spec, the code or a library, the
+executor ruled and recorded the ruling, and each plan's final review left a
+few minor findings deferred to the owner. This record keeps both lists,
+since the working ledgers they came from were scratch files.
+
+Each ruling ends with what it costs if it turns out wrong.
+
+## Plan 1: compile seams
+
+### Rulings
+
+- **Task 1**: RawSqlite.open default mode is OpenMode.readWriteCreate, not the plan's readWrite: it wraps sqlite3.open transparently and database_encryption_migrator relies on create for its ATTACH; every other caller passes an explicit mode. Cost if wrong: a probe could create an empty file where the plan meant it to fail, but no caller uses the default without meaning create
+- **Task 1**: web stub's closeDatabaseForAppShutdown and awaitWorkerShutdown are real no-worker implementations rather than throwing: the plan says every member throws, but a shutdown helper that throws would make Plan 2's first boot fail on page unload for no gain, and the logic is the native one minus the isolate. Cost if wrong: Plan 2 rewrites this file anyway
+- **Task 2**: PlatformZlib.inflateBounded takes `framing: ZlibFraming` (zlib or gzip) instead of being zlib-only: sync_envelope and both GPS track codecs inflate gzip through the shared bounded helper, so a zlib-only method would have left three gzip bombs unbounded on the web. Cost if wrong: one extra enum parameter
+- **Task 2**: core/utils/bounded_inflate.dart's `decoder: Converter` parameter becomes `framing: ZlibFraming` and its test follows: a dart:io Converter cannot be built in a browser, so the plan's "keep public functions" could not hold for that parameter; exception types and messages are unchanged. Cost if wrong: callers outside lib (none) would need the same rename
+- **Task 2**: track_point_codec.dart and nav_track_point_codec.dart join the caller list: they call the generic bounded helper with gzip.decoder and the plan's inventory missed them. Cost if wrong: none, same change as the listed callers
+- **Task 2**: pure path drives archive's Inflate.stream (4.0.9 has no Inflate.buffer) with a guarded input and a bounded output, and verifies Adler-32 / CRC-32 trailers when present: archive's own decoders buffer the whole body and return nothing on a bad header. Cost if wrong: a stream with a wrong trailer that dart:io would also reject is refused on the web
+- **Task 3**: AgentAccessServer.start takes `AgentServerSpec Function() serverSpec` (registry, gate, appVersion) and the io file builds the McpServer from it: the plan's "type the provider against Object" would still have left the provider importing mcp_server_builder, which imports mcp_dart. Cost if wrong: three test call sites renamed
+- **Task 3**: AgentAccessStatus moved to agent_access_status.dart and re-exported from the facade so io and web share one class. Cost if wrong: none, pure move
+- **Task 3**: VM tests added for every web stub (Windows seams, MCP listener, and retroactively the Task 1 sqlite and background connection stubs) although the plan named only existing tests: TDD requires a failing test before the stub exists. Cost if wrong: a few extra fast tests
+- **Task 4**: createPlatformHttpClient also takes `bool omitDefaultUserAgent` and `BadCertificateCallback? onBadCertificate`, and `connectionTimeout` is nullable: the tile cache site clears the user agent with no connect timeout and the WebDAV site installs a certificate recorder, so the plan's single-parameter signature could not keep native behaviour at two of the four sites. Cost if wrong: two extra optional parameters the web file ignores
+- **Task 4**: the web HTTP client file imports `dart:io show BadCertificateCallback` for the shared signature; dart:io compiles in a browser as a throwing stub and only the type is named. Cost if wrong: none at runtime
+- **Task 4**: main.dart's log directory joins with p.join instead of a literal slash (CLAUDE.md path rule). Cost if wrong: none, Windows accepts both separators
+- **Task 5**: the process proxy controller holder moves from a private in main.dart to `processProxyController` in bootstrap_shared.dart: the io bootstrap sets it and SubmersionRestart (still in main.dart) reads it, and a private cannot cross files. Cost if wrong: one public mutable global replacing a private one
+- **Task 5**: applyStartupPreferences runs the quality-toggle hydration together with the image-cache cap, a few statements earlier than before (ahead of proxyController.initialize): the two reads are independent of the proxy. Cost if wrong: none observable
+- **Task 5**: attachFileLogging takes an injectable `logEnvironment` step and the web bootstrap test runs under tester.runAsync: the session environment line uses a platform channel and the log directory is real I/O, neither completes in a widget test's fake-async zone. Cost if wrong: one test-only parameter
+- **Task 6**: HostPlatform.localHostname is String? (null in a browser), so device_display_name_service falls back to '' until the connect-and-capabilities plan names the browser. Cost if wrong: an empty device name on the web for the span of this plan only
+- **Task 6**: dive_media_section's three-flag desktop check became HostPlatform.isDesktop (identical predicate) after the formatter split the swept line and the brace lint fired. Cost if wrong: none
+- **Task 9**: mcp_server_builder.dart renamed to mcp_server_builder_io.dart: the guard bans mcp_dart outside *_io.dart by name and the builder is reached only from the io listener, so the rename keeps the rule simple instead of teaching the guard reachability. Cost if wrong: none, pure rename
+- **Final review**: intermediate commit 93368d1cb83 does not compile on its own (the Task 3 git mv renames were staged with the stub-test commit): re-graded Minor: the repo squash-merges feature PRs, and rewriting ten commits under a live branch risks more than it buys; named in the PR description instead. Cost if wrong: git bisect across this branch's history skips one commit
+
+### Deferred minors
+
+- pure path accepts a corrupt stream with a short tail as an empty body (native throws); stricter trailer handling would change the pinned truncation leniency
+- ZlibFraming.gzip on the pure path rejects a zlib body where dart:io's gzip decoder accepts one; no writer emits that
+- tile_cache_service.dart was rewritten from CRLF to LF by the Task 4 edit; blame shows the whole file
+- web hostname fallback is '' until Plan 3 names the browser; the spec's word is "Browser"
+- windows_root_store_io.dart doc still says [Platform.isWindows]; dart:io import kept only for doc references
+- web_compile_seams_test import regex matches single-quoted URIs only
+- pure-path tests lack FDICT, truncated header and gzip optional-field cases beyond the three probe vectors added
+
+## Plan 2: the browser database
+
+### Rulings
+
+- **Pre-flight**: Task 1 caller list is incomplete; multi_cylinder_consumption.dart and tank_usage_range.dart (reached from tank_configuration_classifier) import dive.dart and use only DiveTank, so they switch to dive_tank.dart too. Cost if wrong: none, same change as the listed callers
+- **Task 1**: dive_tank.dart imports buhlmann_coefficients.dart (airN2Fraction) and not gas_model, dive_environment or gas_compressibility, which the analyzer showed unused for the moved classes. Cost if wrong: none, analyzer-verified
+- **Task 4**: no VM test for base_part_hasher_web.dart: Flutter's VM test platform refuses dart:js_interop outright, so files that import package:web are browser-only; the web hasher is covered through Task 6's browser tests of the base sink. Cost if wrong: the inline fallback path of the web hasher is unobserved until the browser suite runs
+- **Task 4**: a stateful ComputeJobHandler class replaces the plan's top-level handleComputeJob: hash sessions and paused parse sessions need state between calls. Cost if wrong: none, one object per worker
+- **Task 4**: hashStart/hashAddPart/hashFinish/hashDispose session jobs replace the one-shot hashBaseParts: both consumers (the base sink and source) stream parts one at a time and never hold the whole base. Cost if wrong: four small jobs instead of one
+- **Task 4**: OpfsFiles is async and gains exists(); the native facade passes a throwing UnavailableOpfsFiles since no native caller reaches the file jobs. Cost if wrong: none
+- **Task 4**: ComputeJobs keeps the callers' minBytes and runner test seams as optional parameters so the existing envelope, key-slot and checksum tests stay green byte for byte; the web facade ignores runner. Cost if wrong: two optional parameters per method
+- **Task 4**: argon2id's threshold is measured against memoryKiB, so the production 64 MiB derivation runs off the UI isolate natively (it ran on the UI isolate before). Cost if wrong: an isolate spawn per key derivation
+- **Task 4**: the serializer's checksum keeps the native closure verbatim and only the web branch hashes the pre-encoded JSON in the worker, since a Dart object cannot cross postMessage. Cost if wrong: the JSON encode stays on the web main thread
+- **Task 4**: requests and replies are cloned, never transferred, so callers keep using the bytes they passed (the envelope reads plaintext after gzip). Cost if wrong: one copy per message
+- **Task 5**: WebDatabaseStatus is one pure file (enum, class, ValueNotifier holder, provider) instead of an io/web facade pair: drift's enums are mapped to names so the VM can test it. Cost if wrong: none
+- **Task 5**: assertDatabaseEngineAvailable returns early on the web (no probe) and the web connection converts a failed WasmDatabase.open into DatabaseEngineUnavailableException: the preflight is synchronous and WasmDatabase.probe is not. Cost if wrong: an OPFS quota failure is also reported as an engine failure
+- **Task 5**: the VM test of the database service's web branches is replaced by the browser suite running the real connection; HostPlatform.isWeb is a static the VM cannot fake and the branches are exercised in Chrome. Cost if wrong: the DatabaseService web branch itself is covered only once Task 9's browser startup test runs
+- **Task 5**: background_database_connection_web_test.dart (Plan 1's stub test) removed: the web file now imports drift/wasm.dart, which the VM cannot load. Cost if wrong: the no-worker close path is unobserved on the VM
+- **Task 5**: readStoredSchemaVersion returns 0 for a database drift has not created (plan said null); the io half declares it and throws since native reads through DatabaseService. Cost if wrong: none, 0 and null take the same branch
+- **Task 6**: SyncTempSink gains `path` (known from creation) and `writeAt` (the base export patches its checksum over a placeholder after the data streamed past), and SyncTempFiles gains `read(path, offset, length)` for the part source: the plan's add/close-only sink could not carry the publish side. Cost if wrong: two extra members
+- **Task 6**: the OPFS job set gains opfsWriteAt for the same reason. Cost if wrong: one job
+- **Task 6**: the part sink no longer buffers writes as IOSink did; it remembers a write failure, keeps fetching and checking the cloud's parts, and reports the failure only when the cloud copy was fine, which is the contract the existing test pins. Cost if wrong: parts keep downloading after a local write failure
+- **Task 6**: sweepLeftoverSyncTempFiles is a no-op on the web (no directory to list; Plan 3's "Forget this device" clears the whole OPFS directory). Cost if wrong: an orphaned OPFS temp file survives until the device is forgotten
+- **Task 6**: the browser parse client confirms the file exists through the worker at spawn and throws BaseParseException when the worker is unavailable; it cannot be VM-tested (package:web) and is covered by the browser test. Cost if wrong: none observed
+- **Task 7**: the plan runner's web variant is named MainThreadPlanResultRunner, not InlinePlanResultRunner, because test/helpers already defines an InlinePlanResultRunner that tests import alongside the provider file. Cost if wrong: a name
+- **Task 7**: the constants and OffIsolateRunner typedef move to off_isolate_types.dart so the io and web halves share one definition: the io body is otherwise verbatim. Cost if wrong: none
+- **Task 8**: the web lock hands the body's own future back to the caller with the lock-holding promise as its first listener, instead of a Completer completed inside the callback, which the zone reported as an unhandled error before the caller awaited. Cost if wrong: none
+- **Task 8**: the lock name is the constant kSyncCrossTabLock in the facade. Cost if wrong: none
+- **Task 9**: besides the plan's two skips (security gate, background service) the web branch also skips the restore journal checks, the dive-log availability check, the File.existsSync probe, the synchronous schema probe and the tile cache step, each of which reaches dart:io or a native plugin: found by running the real startup page in Chrome. Cost if wrong: the browser never offers the interrupted-restore screen, which has no file to recover
+- **Task 9**: the web bootstrap passes demoPaths: null (demo mode reads sample files from disk; Plan 3 hides it) and buildStartupWrapper accepts a null. Cost if wrong: none
+- **Task 9**: the browser test stops at the open database and never builds the app: the initializer is narrowed to the database step, the page is unmounted before the splash ends, and every worker-bound await (the close included) runs inside runAsync, because a close in tearDown outside runAsync hung the suite and the harness reported "did not complete"; the wizard route is driven by Plan 4's Playwright smoke test instead. Cost if wrong: the first-run redirect on the web is unproven until the smoke test runs
+- **Task 9**: the VM web test takes the page down before the one second splash because its stubbed initializer opens no database for the router. Cost if wrong: none
+- **Final review**: the browser startup probe opens the database once more (and _openWebDatabase once again): kept, minor 15's beforeOpen versionBefore read is the follow-up. Cost if wrong: about 100 ms per launch
+- **Final review**: the browser sweep runs only when the sync lock is free and never waits, since Web Locks are not reentrant and Repair sync calls the sweep from inside a sync. Cost if wrong: a launch during a sync leaves leftovers to the next launch
+- **Final review**: WebOpfsFiles.exists answers from a plain file handle so a locked file counts as present, and delete swallows only a file that is gone (the part of minor 7 the sweep needs). Cost if wrong: none
+- **Final review**: the VM web startup test stubs the version probe (the io variant throws) and the Chrome startup test exercises the real probe on a fresh database. Cost if wrong: the migrating path on a real old browser database is proven only by the stubbed VM test
+
+### Deferred minors
+
+- 7 remainder, close() not in try/finally and write() byte count unchecked in WebOpfsFiles
+- 8 a worker failure latches for the page lifetime; no reply timeout on the worker client
+- 9 a bound error without maxBytes reads back as ZlibBoundExceeded(0); doc line on computeErrorKindOf
+- 10 handler replies not passed through _isWireValue in tests
+- 11 native base_part_file_source opens the file once per part
+- 12 import ordering in touched sync files; export between imports in dive.dart
+- 14 remainder, web_startup_test leaves DatabaseSecurityService.instance configured
+- 15 readStoredSchemaVersion spawns a second drift worker per launch
+- 16 flutter build web ships worker sources and sidecars (Plan 4 bundle check)
+
+## Plan 3: connect and capabilities
+
+### Rulings
+
+- **Pre-flight**: DeviceCapabilities class lives in device_capabilities_model.dart and device_capabilities.dart exports it plus the provider, because the io and web halves must import the class without a cycle. Cost if wrong: one extra file
+- **Task 2**: an ungated first cut of the Group 1 surfaces was applied before its tests existed; it was reverted to a patch, the twelve absent/present tests were watched fail (only the browser cases red, every native case green), then the patch was re-applied. Cost if wrong: none, the RED and GREEN runs are both on record
+- **Task 2**: the Apple Watch health row keeps `HostPlatform.isIOS && caps.healthImport` with no VM test, since HostPlatform has no test override and the row never renders on a macOS VM; the gate matters for Safari on an iPhone, where isIOS is true. Cost if wrong: an iPhone browser shows a health import row that fails on tap
+- **Task 2**: the tile providers change nothing: `tileProviderFor` already hands maps null when the cache never initialized (flutter_map's own network provider, which on the web is the browser fetch) and the storage usage provider already turns the StateError from `getTotalCacheSize` into null; the plan's NetworkTileProvider and return-type widening are unnecessary. Cost if wrong: none observed, the existing 'an uninitialized cache hands maps no provider' test covers it
+- **Task 2**: SQLite imports are gated at detection, not in the parser registry: without `caps.sqliteImport` a SQLite file stays the generic `sqlite` format, which `isSupported` already rejects, so the wizard's existing unsupported path says so and the probe that would throw on the web never runs. Cost if wrong: the message is the generic "unsupported format" text rather than one naming the desktop app (deferred minor)
+- **Task 2**: the buddy card swap counts as a nearby feature in a browser (its QR and file fallbacks live on a page that also needs dart:io, permissions and the nearby host): the button hides and `/buddies/swap` joins the unavailable prefixes. Cost if wrong: a browser user cannot show a QR card
+- **Task 2**: the dashboard backup chips (gauge_strip 436/454) open /settings/backup, a page that exists on the web, so they are not gated; the plan's "restore shortcuts" were these chips. Cost if wrong: none
+- **Task 2**: DataRowTile gains an informational mode (no route, no onTap: no chevron, no tap) for the browser's database storage row; the disabled mode says "unavailable in demo mode", which is the wrong sentence here. Cost if wrong: none
+- **Task 2**: `agentAccessAvailableProvider` reads `caps.agentAccess` (natively `hasDesktopWindow()`), so one gate serves desktop, phone and browser. Cost if wrong: none
+- **Task 2**: the navigation hook is `NavDestination.availableWhen` plus `availableNavDestinations(all, caps)`, with nothing in kNavDestinations hardware-only, as the plan says. Cost if wrong: none
+- **Task 2**: the native capability object keeps the OS (HostPlatform) as its source; a first cut on Flutter's defaultTargetPlatform was reverted because the test runner reports Android by default, which would have turned every native test into a phone. Tests that simulate a phone override the provider with `currentDeviceCapabilities().copyWith(nfc: true)`, the seam the Global Constraint names; copyWith was added to the model for it. Cost if wrong: none at runtime, where both sources agree
+- **Task 3**: the stored values are base64 of the UTF-8 bytes, the "light obfuscation" the spec names, so a credential is not plain text at a glance in the dev tools; the plan's core sketch left it out. Cost if wrong: none, it is not secrecy and the test says so
+- **Task 3**: the keychain probe moved from FallbackSecureStorage into the io backend so the wrapper has no `if (browser)` branches; its public API, the legacyKeychainOptions test seam and its tests are unchanged. Cost if wrong: none
+- **Task 3**: the native backend's remember reads false and setRemember does nothing, and clearAll throws; Forget this device is a browser action. Cost if wrong: a native caller of clearAll fails loudly rather than silently
+- **Task 3**: the browser store is end-to-end tested in Chrome against real window.localStorage (test/web/platform/web_secure_storage_test.dart), since the VM cannot load package:web. Cost if wrong: none
+- **Task 4**: the draft carries a `browser` flag set by the notifier from the capability object, and computeSteps trims the fork and the existing-data choice from whatever list the path gives; an undecided browser draft still opens on the connect step. Cost if wrong: none
+- **Task 4**: the unavailable iCloud and Git tiles show only where the chooser explains kinds (`offerHints`), i.e. the set-up flows, not in every account picker; the offerable list also drops them so no kind is listed twice. Cost if wrong: a browser's other pickers simply do not list the two kinds
+- **Task 4**: the account step's secondary button is "Continue without a sync store" whenever the navigation offers onNoLibrary, which only a browser's connect step does, so native keeps Not now untouched. Cost if wrong: none
+- **Task 5**: no `CloudAuthRequired` and no `SyncState.needsSignIn`: a browser's silent token renewal that needs a click comes back from attemptSilentAuth as false, which the existing sign-in-needed state already turns into the "Sign in needed" title and the Sign in again row (syncHealth syncSignedOut), so the plan's new state would duplicate it. Cost if wrong: the row's wording is the native one, not a browser-specific sentence
+- **Task 5**: the dialog's help link opens the repository's docs/user/web-app.md at `#google-drive`; Plan 4's user guide must carry that heading. Cost if wrong: a link to a page without the anchor, still the right page
+- **Task 5**: `authenticateWithBrowserWait` gains an `isBrowser` parameter rather than production code reaching for its test-only flag; a browser reporting a desktop OS would otherwise get the loopback waiting dialog. Cost if wrong: none
+- **Task 5**: a `web_googleClientId_body` string explains what to create, beyond the plan's four keys; the `web_signInAgain_*` pair is not added (see the first ruling). Cost if wrong: none
+- **Task 5**: `GoogleDriveClientConfig.isSupportedOnThisPlatform` is true on the web whatever OS the browser reports (the web host platform reports the browser's OS, so a Windows browser would otherwise hide Drive for lack of the desktop client); `authenticatorFor` picks google_sign_in there. Cost if wrong: none
+- **Task 6**: which probe step failed is recorded on the provider instance (`lastProbeFailedOnWrite` on the S3 and WebDAV providers) rather than as a field on the thrown exception: the subclasses (CloudAccessRefusedException, WebDavException) are caught by type upstream and a wrapper would slip past those catches. Cost if wrong: a form that checks one provider and reads the flag of another; the form reads the provider it probed
+- **Task 6**: the WebDAV probe's best-effort delete in its finally block is not a recorded step, since its failure is swallowed and never the one reported; marking it overwrote a read failure as a write failure. Cost if wrong: none
+- **Task 6**: the MinIO template carries both the per-bucket `mc cors set` form with the S3 JSON (recent releases) and the server-wide `cors_allow_origin` line (older ones), so a read-only rule differs from a full one as for every other kind. Cost if wrong: an older MinIO user ignores the first block
+- **Task 6**: the page origin is read from `Uri.base` only when it is http(s); the form takes `browserOrigin` and `optionsProbe` as test seams, since a test runner has a file: base and no network. Cost if wrong: none
+- **Task 6**: opaque failures are recognised through the cause chain the storage clients wrap them in (`CloudStorageException.cause`), and NetworkError joins the two messages the plan names. Cost if wrong: none
+- **Task 6**: a `web_cors_copied` string confirms the copy, beyond the plan's keys. Cost if wrong: none
+- **Task 7**: the display-name service takes `isWeb` and `readUserAgent` seams for the VM; production reads the web host platform's operatingSystemVersion, which is the user agent. Cost if wrong: none
+- **Task 7**: an unrecognised browser on a known OS reads "Browser on <OS>", keeping the platform; the plan named only the fully unknown case. Cost if wrong: none
+- **Task 8**: the forget service takes every step as an injected function (sync off, secrets, preferences, database close, storage entry removal, reload) so the VM proves the order and the sync-turn wait; the web glue in webForgetDeviceProvider supplies the real ones through a browser_origin_storage facade whose native file throws. Cost if wrong: none
+- **Task 8**: a step that fails is logged and the wipe carries on to the reload, since a half-removed browser is worse than a logged failure and the reload drops whatever stayed open. Cost if wrong: a failed OPFS removal leaves a stale directory the next first run overwrites
+- **Task 8**: the storage row reads `unknown` drift storage as the browser-database wording rather than a fourth string. Cost if wrong: a rare storage kind is described as the slower one
+- **Task 9**: each media section reads one capability (`mediaAttach`) through a getter on its state and hides its add button, scan and Lightroom buttons, the selection entry (whose only actions change links) and the item menu's Replace link; the grid itself stays. Cost if wrong: none
+- **Task 9**: the viewer toolbar became a ConsumerWidget with a `readOnly` flag that keeps go to dive, the Perdix overlay toggle, info and share (the plan did not name the overlay toggle; it changes the view, not the media). Cost if wrong: none
+- **Task 9**: the media console lists its sections through `mediaConsoleSectionsFor(caps)`; a browser gets the library and the transfers, since it can neither watch folders nor import files. Cost if wrong: none
+- **Task 9**: the local file resolver takes an `isWeb` seam and answers from-another-device before any read; the gallery resolver's `hasPhotoLibrary` is now also gated by `caps.devicePhotoLibrary`, so its existing no-library path (already tested) serves the browser, with no new provider test. Cost if wrong: none
+- **Task 9**: the info panel's Set time, Check now, Locate and Back up go in a browser; Limited photo access actions stay gated by their own provider, which a browser never sets. Cost if wrong: none
+- **Task 10**: the backup image is a copy, not a file read: the plan's `VACUUM INTO` an OPFS file cannot work under drift's opfsShared storage (sqlite3's SimpleOpfsFileSystem persists only `/database` and its journal; any other name lands in a memory VFS inside the worker) and the `sqlite_dbpage` page table is compiled into neither sqlite3.wasm nor the native engine; `readDatabaseImage` replays `sqlite_master` (tables, then every row in rowid pieces of `rowsPerRead`, whole for a WITHOUT ROWID table such as change_log_fields, then indexes, triggers and views) into a scratch database behind `withScratchDatabase` (native: a temp file; web: a second sqlite3.wasm over an in-memory VFS in the page) and returns its bytes. Cost if wrong: a backup is a logical copy, so page-level details (free pages, the planner's sqlite_stat1) are not carried; the restored file is equivalent, not identical
+- **Task 10**: triggers and indexes are created after the rows so the change-log triggers do not fire on the copy, and the scratch's sqlite_sequence is cleared before the live counters are copied, since inserting rows with explicit ids had already filled it and the table has no unique key. Cost if wrong: none; both are pinned by database_image_test
+- **Task 10**: `FileSaver` on the native side throws from `saveBytes` and answers `isBrowserDownload == false`; exports reach a browser download only through `file_export_utils`' share-or-save seam, so call sites that still use share_plus directly keep share_plus's own web behaviour. Cost if wrong: an export path outside file_export_utils shares instead of downloading in a browser
+- **Task 10**: the browser's Backups page shows only the download tile (`BackupDownloadTile`, `submersion-backup-<yyyyMMdd>-<HHmm>.db`); the automatic backup rows and the auto row are hidden at page level rather than inside each row, since none of them can work without files or background tasks. Cost if wrong: none
+- **Task 11**: the seeder is `tool/seed_sync_library_test.dart`, a flutter test run as a tool (precedent tool/demo_data/pack_test.dart) reading the same four MINIO_* dart-defines as the browser test, not a `dart run` script with --endpoint flags: the sync stack needs the Flutter binding, the shared-preferences mock and the repositories' service locator, and the test binding's 400-for-everything HttpOverrides is set to null so the tool reaches a real store. Cost if wrong: none; the CI invocation is Plan 4's to write
+- **Task 11**: the seed publishes through SyncService.performSync rather than ChangesetWriter.publish, since the writer wants a codec, a publish state, deletions and an epoch the service assembles itself; the site is linked to every dive, the buddy is seeded standalone. Cost if wrong: the seed exercises the real publish path, so none
+- **Task 11**: no MinIO on this machine and no local containers for verification (standing preference), so Step 2 ran the skip path only: both files compile for their platform and skip with `MINIO_ENDPOINT not set`; the round trip itself first runs in Plan 4's CI job, which must start MinIO with MINIO_API_CORS_ALLOW_ORIGIN=* for the test page's origin. Cost if wrong: a failure in the browser's S3 path surfaces in CI rather than here
+- **Final review**: two tabs with "remember" off do not share credentials: the spec defines the session store as page memory, and a tab is the unit a user reasons about. Cost if wrong: a second tab asks for the credentials again
+- **Final review**: the Google client id is forgotten with "remember" off, since it lives in the session store the spec names for remembered entries: a public id could persist regardless, which is the owner's call; raised in the PR's follow-ups. Cost if wrong: the id is pasted again on the next visit
+- **Final review**: Save in OwnServerForm does not open the CORS sheet, only Check does: the plan scoped the diagnoser to the check step and Save follows a check. Cost if wrong: a user who saves without checking learns of a CORS block at the first sync's error
+- **Final review**: Dropbox in a browser has no test here: the plan's self-review records it; the owner verification in Plan 4 Task 8 covers it. Cost if wrong: a Dropbox-only browser failure surfaces at the owner's check
+- **Final review**: MediaSectionPage's watcher kick on the web returns with no roots: Plan 2 territory, swallowed by design. Cost if wrong: none observed
+- **Final review**: commit 2e89bbafaae (Plan 2's review fixes) rides in this range and was reviewed under Plan 2. Cost if wrong: none
+- **Final review**: the plan's NetworkTileProvider widening, SyncState.needsSignIn, CloudAuthRequired, the health row's VM test and the generic SQLite-import message stand as ledgered under their tasks: the reviewer accepted them. Cost if wrong: as recorded there
+- **Final review**: the spec's "rename the browser device" line is corrected in the plan's self-review and the PR will say so. Cost if wrong: none
+- **Final review**: the Plan 3 workspace stays until the PR description has collected its rulings, then both plan workspaces go. Cost if wrong: none
+
+### Deferred minors
+
+- transfer_list_content.dart was CRLF at the base and the commit normalised it to LF; the PR description says so
+- backup_download_tile.dart reports a failed download with settings_cloudSync_message_syncFailed ("Sync failed"); a backup-specific sentence would be better
+- google_web_client_id_dialog.dart never resets _saving when write throws; wrap in try/finally
+- own_server_form.dart reads lastProbeFailedOnWrite from the provider instance even when webdavCheck is injected, where the flag is stale
+- media_console_scaffold.dart clamps the initial index to _sections.length rather than length - 1 (harmless today)
+- iPadOS Safari reports a Macintosh user agent, so an iPad reads "Safari on macOS"; a line for the user guide
+- tool/seed_sync_library_test.dart sets HttpOverrides.global = null without restoring it; fine as a standalone tool
+
+## Plan 4: bundle, CI, release and docs
+
+### Rulings
+
+- **Pre-flight**: Task 1 scripts/build_web.sh (fetch, compile, build, copy hosting files, check) -> Tasks 3, 5, 8 call it by that path: consistent. Task 1 copies web_hosting/HOSTING.md into the bundle but Task 2 writes it -> Task 1 creates a short HOSTING.md stub so the bundle check can require it; Task 2 replaces the stub with the guide. Cost if wrong: none
+- **Pre-flight**: Task 3 and Task 4 seed with `dart run tool/seed_sync_library.dart --endpoint ... --prefix ci` -> Plan 3 Task 11 shipped the seeder as `flutter test tool/seed_sync_library_test.dart --dart-define=MINIO_ENDPOINT/BUCKET/ACCESS_KEY/SECRET_KEY` with S3Config's default prefix `submersion-sync/` -> the CI jobs run the flutter-test form with the four defines, and every object pattern (Task 4's smoke assertion) uses the `submersion-sync/` prefix. Cost if wrong: none; one prefix everywhere
+- **Task 1**: the bundle check also refuses `*.dart`, `*.map` and `*.deps` anywhere in the bundle, and the build script removes them after `flutter build web`, because web/ holds the worker sources and the .deps/.map sidecars dart compile js writes beside them and flutter build web copies everything under web/. Cost if wrong: none; a release build emits no maps unless asked
+- **Task 1**: `flutter build web --pwa-strategy=none` still writes flutter_service_worker.js (the first local build failed the check on it); the built flutter_bootstrap.js calls load() with no serviceWorkerSettings, so nothing registers it and the build script deletes the file; the check keeps refusing it as the plan's Review Focus 1 asks. Cost if wrong: none
+- **Task 1**: script-tests gains a step running scripts/web/check_sqlite3_wasm_lock.py, which the plan only added to the coverage list; a guard CI never runs guards nothing. Cost if wrong: none
+- **Task 1**: the guide's commit (Task 2) landed before this one, since the first build failed the bundle check and the chain that followed committed the guide on its own; nothing was pushed and the order is harmless in a single PR. Cost if wrong: none
+- **Task 3**: the two MinIO stores run as containers started by a step with `docker run ... server /data` and a health wait, not as `services:` entries, because a services entry cannot pass the command the minio image needs. Cost if wrong: a step that forgets to stop them; the runner is discarded after the job
+- **Task 3**: the seed runs as `flutter test tool/seed_sync_library_test.dart` with the four MINIO_* defines (Plan 3 Task 11's form), its report joining the no-skipped check so a seed that silently skipped fails the job. Cost if wrong: none
+- **Task 3**: scripts/run_all_tests.sh also passes --exclude-dir test/web, since the local full run would otherwise bundle the browser files only to skip them. Cost if wrong: none
+- **Task 3**: CI runs only on pushes to main and on pull requests, so Step 3's "push the branch and read both jobs' logs" is deferred to a draft pull request opened after Tasks 4 and 5 (which need the same push); the task's local checks are recorded here and the CI reading is recorded when it lands. Cost if wrong: a CI-only failure surfaces one push later
+- **Task 4**: the smoke's junit count is checked inline with python -c rather than a new check script with its own _test.py; the assertion is one line. Cost if wrong: none
+- **Task 4**: the smoke advances the wizard by clicking whichever known step action shows (Next, Skip, Not now, Done, Finish, Get started) until the Dives destination appears, since the later steps' labels are not pinned here and the flow is only exercised in CI. Cost if wrong: a label the runner does not know stalls the smoke, which CI reports
+- **Task 4**: web-smoke's MinIO starts with docker run, as web-tests' does, and seeds through the flutter-test tool. Cost if wrong: none
+- **Task 4**: the browser suite runs one directory per Chrome (scripts/web/test_web.sh) because one Chrome loading all of test/web loses its connection after nine suites, --concurrency=1 included, while every directory passes alone; the script rides in this commit with web-tests' step change. Cost if wrong: a cross-directory interaction would go unseen; none is known
+- **Task 5**: generate_changelog.sh enumerates no assets (checked), so the notes need no change; the workflow_dispatch of build-all on this branch waits for the push that opens the draft PR. Cost if wrong: a zip-step mistake surfaces at that dispatch
+- **Task 6**: the pull request guide's screenshot paths gain web/ and lib/core/platform/device_capabilities*.dart; web_hosting/ is left out, since nothing in it is a screen. Cost if wrong: none
+- **Task 7**: the roadmap's three web rows read Implemented/[x] for v1.8.4 with "no backend", and the Platform Support row reads Supported with the self-hosted requirement. Cost if wrong: none
+- **Task 8**: origin/main is merged rather than rebased onto: main moved 13 commits and 613 files, 36 overlapping this branch's 446, among them the eleven ARBs and their generated files that every i18n commit here touches, so a 51-commit rebase would resolve the same conflicts many times; one merge resolves each once and the PR lands as one squash. Cost if wrong: a merge commit in the branch history
+
+- **Final review**: the first run's commit stall on an isolated page was drift issue #3870, not a storage choice. Drift never offers the shared-worker OPFS mode in Chromium (a shared worker cannot spawn a dedicated worker there), its locked OPFS mode exists only on a cross-origin isolated page (it needs `SharedArrayBuffer`), and on drift 2.34.3 that mode hung the first nested write transaction: the inner commit released the navigator lock, the outer commit threw after the worker had committed, and the rollback waited forever. The same drift kept IndexedDB's transaction writes in memory until a later statement ran (#3864), which every Chrome without the headers would have hit. The fix is drift 2.35.3 (2.35.2 and 2.35.1 carry the two fixes), the hosting headers stay as the spec says, and the smoke runner's fresh first-run test guards the commit in the three browsers. Cost if wrong: a drift minor upgrade mid-build can change generated code, and 2.35.3 makes result-row maps read-only; the whole-repo analyze and the suites are the check
+- **Final review**: the smoke runner is rewritten on the reviewer's findings (the Download library step, anchored names, role locators, the Remember switch, the hash route), the entry files are marked no-cache by each host file so a replaced bundle is picked up on the next load, and the Google sign-in popup's conflict with `Cross-Origin-Opener-Policy: same-origin` is documented beside each host file with the `same-origin-allow-popups` alternative. Cost if wrong: a host that follows the Google alternative runs Chrome on IndexedDB, which the guide says
+- **Final review**: the wizard in a browser also drops the backups and photos steps in every mode and the finish step's dive-computer card (found in the screenshot pass): a browser has no files to back up on a schedule, no photo library and no Bluetooth or USB, so each would lead to a dead end. Not now on the connect step, which jumped to the backups step by id and so stopped moving in a browser (the smoke runner's fresh first-run test caught it), now lands on the step after sync. Cost if wrong: a browser user who wanted the photo step's settings reaches them from Settings instead
+- **Final review**: Back is hidden on a browser's first step, where nothing comes before it (found in the screenshot pass): the set up steps' `onBack` is nullable and the wizard passes it only past the first step. Cost if wrong: none
+- **Final review**: the smoke helper types keys rather than using Playwright's `fill`, which dropped the value of every other field of the connect form, since a Flutter text field is a DOM input only while it holds focus. Cost if wrong: none
+- **Final review**: main's SQL read tool arrived mid-build with `dart:ffi`, `dart:isolate` and native SQLite on the path the browser compiles. The constants and result types stay in `sql_window.dart`, the execution, catalog and value limit move to `_io` files, and `sql_window_worker.dart` is a facade whose web half refuses, since a page cannot bind the listener that would call it. Main's runner and tool are otherwise unchanged. Cost if wrong: none; the seam guard and the web build check it
+- **Final review**: MinIO's community image and binaries were withdrawn (Docker Hub has no repository, dl.min.io answers 410), so `web-tests` and `web-smoke` run `pgsty/minio` pinned by digest, the community fork from before its rename to Silo, and create the bucket with the runners' AWS CLI, since `mc` went too. Fidelity to the server the design assumed outweighs freshness for a throwaway test store. Cost if wrong: one image line, if the fork disappears
+- **Final review**: a review of the finished branch found the Settings assistant never marked as a browser, Forget leaving the local cache database, the workers and sqlite3.wasm cacheable across releases, the engine loading from gstatic.com, WebKit's fetch failure text unrecognised, and the update check running in a browser. Each is fixed; the request log and a real press of Forget in Chromium confirmed the last and the second. Cost if wrong: none
+- **Final review**: the Google renewal in a browser closes the client it built when the account read throws, and the OAuth client is told to close its transport, which it leaves open by default. Cost if wrong: none
+
+### Deferred minors
+
+- Dispose the bootstrap semantics handle in addTearDown: impossible as asked, since the framework checks handles before tear-downs run, so the test disposes it in its body.
+- A .dockerignore beside web_hosting/Dockerfile.
+- Sharing a media item in a browser fails with its message; documents and certifications download instead, and media could do the same.
+- google_sign_in_web loads Google's sign-in script on every visit, also for a user who never connects Google Drive. It comes from the plugin's registration; deferring it needs a change there. The hosting guide says so.
+- The Google client id cannot be corrected once stored, short of Forget this device: a well-formed id from the wrong project keeps failing with Remember on. It needs a Change client id row, which is a design choice.
+- A failed Forget leaves the tab on a closed database until the retry or a reload; pressing Forget again works, since each step tolerates what the last run did.
+- The scanned logs migration calls path_provider in a browser and logs one MissingPluginException line at startup. It fails soft and moves nothing, so it is noise rather than a fault; gating it on the capability would quiet it.
+
+## Plan 5: restore and the sample logbook
+
+Asked for by the owner during the CI rounds. Their answers: the sample
+logbook ships inside the site, a copy of the library downloads before a
+restore, encrypted backups restore, and on a browser's first run both are
+offered on the connect step.
+
+### Rulings
+
+- **Task 1**: an image is installed under a name nothing has open, through drift's `initializeDatabase`, with the header's write and read versions set to rollback first, since a browser file system has no shared memory for WAL and a desktop backup can carry the WAL flag. Cost if wrong: none; pinned by a VM test on the header and a browser install test with a WAL-flagged image
+- **Task 2**: a restore installs under `submersion_<millis>` and moves a preference to it only after the open succeeds, instead of deleting the live database first: in IndexedDB mode the shared worker keeps another tab's connection open and a delete waits on it, and a tab closed between delete and install would lose the library. The replaced library is deleted at once when nothing holds it and swept at a later launch otherwise. Cost if wrong: one leftover database until the next launch
+- **Task 2**: drift's probe lists every OPFS database but only the IndexedDB database it is asked about, so a listing built on the probe alone came back empty in IndexedDB mode and the first Forget-everything, sweep and demo tests passed on nothing. The listing now asks `indexedDB.databases()` too and probes the names the app knows for a browser without it. Cost if wrong: a restored library left behind in Firefox before 126 when another tab held it
+- **Task 2**: a tab now ignores its own reload announcement: two channel objects in one page hear each other, so the restoring tab reloaded itself in the middle of the restore it announced (found by the new test). Cost if wrong: none
+- **Task 2**: the backup checks run the native queries in an in-memory SQLite in the page (`readScratchImage`), the SBE1 frame rules move into `SbeFrames` for the file and in-memory decryptors to share, and every restore entry point shares the notifier's tail, which also brought `backup_providers.dart` back under 800 lines. Cost if wrong: none; the native restore tests pass unchanged
+- **Task 2**: the browser's safety copy is a download of the library taken after the checks and before the swap, skipped when it holds no dives; a download that fails stops the restore, as a failed pre-restore backup does natively. Cost if wrong: a restore refused in a browser that blocks the download
+- **Task 3**: the restore branch keys on the browser capability, not on a missing path, since an Android SAF pick has no path either. The picker gives no file date in a browser, so the dialog names the file instead of a date. Cost if wrong: none
+- **Task 4**: `fetch_demo_db.py` gains `--web-index` rather than a new script: it already picks the newest package this build can open, checks it and unpacks it. The database ships gzipped (25 MB to 8 MB) and the index carries the inflated size and hash. `build_web.sh` fails without it unless `SUBMERSION_WEB_SAMPLE_LOGBOOK=0`. Cost if wrong: a build needs the network to fetch the package
+- **Task 5**: the demo service keeps its downloader and extractor parameters and gains an optional installer, so its tests are unchanged; every file it touched moves behind `DemoStateStore`, whose browser half uses local storage and drift's databases. The sample photos become links to the site, which the network photo resolver shows. Cost if wrong: none
+- **Task 5**: the first-run links reuse the desktop's translated strings ("Restore a backup file", "Explore with sample data"), so nothing new is translated. Cost if wrong: none
+- **Task 6**: the smoke run restores the bundle's own sample database as the backup file, which is several schema versions old and so runs the upgrade ladder in each browser. Cost if wrong: none
+- **CI**: the Chrome round trip stalled in the publish because `PackageInfo.fromPlatform()` never answers in a test page, where no plugin is registered; the test mocks the version. Its profile assertion read the dive list, which leaves profiles out, and had never run. Cost if wrong: none
+- **CI**: the browser data tools test still expected four tools after main's table editor made it five. Cost if wrong: none
+
+### Deferred minors
+
+- A demo database left behind when another tab held it at exit stays until the next entry replaces it or Forget removes it.
+
+## Google Drive's app folder
+
+Found while answering whether the site can be served from GitHub Pages:
+the installed apps sync through Drive's app folder, which Google keeps
+apart per Cloud project, so the guide's own-project client id could never
+see their library. The owner's answers: Submersion's own site signs in
+without asking, and a copy hosted elsewhere keeps Google Drive with a plain
+warning.
+
+### Rulings
+
+- The built-in client arrives at build time (`GOOGLE_WEB_CLIENT_ID` and `GOOGLE_WEB_CLIENT_ORIGINS`, passed on by `build_web.sh`) rather than committed beside the other ids, since it does not exist yet and a release build sets it without a code change. Cost if wrong: one line to commit instead
+- It applies only when the page's origin is one it is authorised for, so the release bundle a self-hoster serves elsewhere asks for an id of their own instead of failing at Google's sign-in. Cost if wrong: none
+- On the site it belongs to, the built-in id wins over an id pasted earlier, which could not see the library. Cost if wrong: someone who wants their own project there cannot choose it
+
+## Media store photos in a browser
+
+Raised in review: the store's resolver and its cache were built on device
+files, so a page could show none of the store's photos, and a browser's
+dive and viewer pages wrote synced enrichment rows. The owner chose to make
+the photos show in this PR.
+
+### Rulings
+
+- The resolver keeps its tiers, gates and probes; only the fetch step moves behind `MediaStoreFetches`, the disk code verbatim into `DiskMediaStoreFetches` and a browser's into `MemoryMediaStoreFetches`. Cost if wrong: none, the disk resolver's suites pass unchanged
+- A browser downloads thumbnails for every row and full bytes only for photos: a video or document needs a file to play or render, so its full download would buy nothing. Cost if wrong: videos play only on devices, until a signed-URL path is built
+- What a browser fetched stays in a 64 MB in-page cache, least recently used first, shared by the runtime and the probe resolver. Cost if wrong: a large gallery re-downloads thumbnails it scrolled past
+- A browser's dive media enricher writes nothing, at the provider, so the dive section, the viewer and the time pinner all skip it. Cost if wrong: a browser shows no profile markers for photos no device has enriched yet
+

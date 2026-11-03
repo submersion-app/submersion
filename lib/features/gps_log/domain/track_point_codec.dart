@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 
@@ -89,7 +89,7 @@ Uint8List encodeTrackPoints(List<GpsTrackPoint> points) {
   final json = jsonEncode([
     for (final p in points) [p.timestamp, p.latitude, p.longitude, p.accuracy],
   ]);
-  return Uint8List.fromList(gzip.encode(utf8.encode(json)));
+  return PlatformZlib.gzip(utf8.encode(json));
 }
 
 /// Decodes a blob written by [encodeTrackPoints].
@@ -108,7 +108,7 @@ List<GpsTrackPoint> decodeTrackPoints(Uint8List blob) {
   try {
     body = inflateBounded(
       blob,
-      decoder: gzip.decoder,
+      framing: ZlibFraming.gzip,
       maxBytes: kMaxTrackBodyBytes,
       maxBlobBytes: kMaxTrackBlobBytes,
     );

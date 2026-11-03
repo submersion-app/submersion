@@ -1,20 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:mcp_dart/mcp_dart.dart' show McpServer;
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/agent_access/data/agent_access_preferences.dart';
 import 'package:submersion/features/agent_access/data/agent_access_token_store.dart';
 import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
-import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
 import 'package:submersion/features/agent_access/data/writes/agent_write_services.dart';
@@ -34,7 +32,9 @@ final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
 /// tools row and the server lifecycle both read this, so the final write PR
 /// removes the debug clause in one place.
 final agentAccessAvailableProvider = Provider<bool>(
-  (ref) => hasDesktopWindow() && ref.watch(debugModeNotifierProvider),
+  (ref) =>
+      ref.watch(deviceCapabilitiesProvider).agentAccess &&
+      ref.watch(debugModeNotifierProvider),
 );
 
 /// The per-device agent access settings, persisted on every change.
@@ -220,7 +220,7 @@ class AgentAccessController {
     await server.start(
       port: settings.port,
       token: () => _token ?? '',
-      serverFactory: () => _buildServer(appVersion),
+      serverSpec: () => _buildServer(appVersion),
     );
   }
 
@@ -235,7 +235,7 @@ class AgentAccessController {
   /// Runs once per MCP session (or per request on the stateless protocol),
   /// so everything here is cheap and nothing touches the database until a
   /// tool runs.
-  McpServer _buildServer(String appVersion) {
+  AgentServerSpec _buildServer(String appVersion) {
     final divers = _ref.read(diverRepositoryProvider);
     final settings = _ref.read(diverSettingsRepositoryProvider);
     final loader = DiverContextLoader(
@@ -246,7 +246,7 @@ class AgentAccessController {
       activeDiverId: () => _ref.read(validatedCurrentDiverIdProvider.future),
     );
     final records = RecordRepositories();
-    return buildMcpServer(
+    return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,
         divers: divers,

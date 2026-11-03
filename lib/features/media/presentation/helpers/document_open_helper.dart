@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -75,11 +76,11 @@ class DocumentOpenHelper {
       return;
     }
     final file = await writeShareTempFile(item, resolved.bytes!);
-    if (Platform.isMacOS) {
+    if (HostPlatform.isMacOS) {
       await Process.run('open', [file.path]);
-    } else if (Platform.isWindows) {
+    } else if (HostPlatform.isWindows) {
       await Process.run('cmd', ['/c', 'start', '', file.path]);
-    } else if (Platform.isLinux) {
+    } else if (HostPlatform.isLinux) {
       await Process.run('xdg-open', [file.path]);
     } else {
       await SharePlus.instance.share(

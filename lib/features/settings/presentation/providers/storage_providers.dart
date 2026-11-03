@@ -1,9 +1,8 @@
-import 'dart:io';
-
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
-import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_migration_service.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -43,25 +42,20 @@ class StoragePlatformCapabilities {
   });
 }
 
-/// Platform capabilities provider
+/// Platform capabilities provider, derived from [DeviceCapabilities] so
+/// the storage screens and every other screen agree on what this device can
+/// do. Custom folders are supported on every native platform (macOS and iOS
+/// through security-scoped bookmarks, Windows and Linux through the file
+/// system, Android as app-specific volumes only) and nowhere in a browser.
 final storagePlatformCapabilitiesProvider =
     Provider<StoragePlatformCapabilities>((ref) {
+      final caps = ref.watch(deviceCapabilitiesProvider);
       return StoragePlatformCapabilities(
-        // Custom folder is supported on all platforms:
-        // - macOS: Uses security-scoped bookmarks for persistent access
-        // - iOS: Uses security-scoped bookmarks for iCloud Drive folders
-        // - Windows/Linux: Standard file system access
-        // - Android: app-specific external volumes only (internal/SD card);
-        //   scoped storage rules out an arbitrary folder for the live DB
-        supportsCustomFolder: true,
-        supportsICloud: Platform.isIOS || Platform.isMacOS,
-        // Single source of truth shared with
-        // GoogleDriveStorageProvider.isAvailable(), so the two cannot
-        // diverge: compile-time OAuth config on mobile/macOS, and on
-        // Windows/Linux the Desktop-app client being compiled in.
-        supportsGoogleDrive: GoogleDriveClientConfig.isSupportedOnThisPlatform,
-        isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
-        customFolderIsDeviceVolumeOnly: Platform.isAndroid,
+        supportsCustomFolder: caps.customDatabaseFolder,
+        supportsICloud: caps.cloudICloud,
+        supportsGoogleDrive: caps.cloudGoogleDrive,
+        isDesktop: HostPlatform.isDesktop,
+        customFolderIsDeviceVolumeOnly: HostPlatform.isAndroid,
       );
     });
 

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart' as sqlite3;
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
@@ -371,7 +371,7 @@ class StartupRecoveryService {
   /// `quick_check` rather than `integrity_check`: it skips the index
   /// cross-checks, which is what keeps this fast enough to run while a diver
   /// waits on a failure screen.
-  static bool _passesIntegrityCheck(sqlite3.Database db) {
+  static bool _passesIntegrityCheck(sqlite3.CommonDatabase db) {
     final result = db.select('PRAGMA quick_check');
     if (result.isEmpty) return false;
     final first = result.first.values;
@@ -379,7 +379,7 @@ class StartupRecoveryService {
     return first.first?.toString().toLowerCase() == 'ok';
   }
 
-  static bool _hasTable(sqlite3.Database db, String table) {
+  static bool _hasTable(sqlite3.CommonDatabase db, String table) {
     final result = db.select(
       "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
       [table],
@@ -392,7 +392,7 @@ class StartupRecoveryService {
   /// An older dive log legitimately lacks tables a current one has, and a
   /// count that cannot be read is not a reason to refuse a database the diver
   /// can plainly see is theirs.
-  static int _countRows(sqlite3.Database db, String table) {
+  static int _countRows(sqlite3.CommonDatabase db, String table) {
     try {
       final result = db.select('SELECT COUNT(*) AS count FROM $table');
       if (result.isEmpty) return 0;

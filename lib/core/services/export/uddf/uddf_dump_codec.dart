@@ -9,6 +9,7 @@ import 'package:archive/archive.dart';
 // that definition rather than keeping its own copy.
 import 'package:submersion/core/database/raw_dive_data_codec.dart'
     show kMaxRawDiveBlobBytes;
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// A dump exceeded [kMaxRawDiveBlobBytes], encoding or decoding.
 ///
@@ -115,6 +116,7 @@ class UddfDumpCodec {
   /// scope, not only what they reference. This mirrors `backup_crypto.dart`,
   /// which documents the same hazard.
   static Future<List<String?>> _encodeOnWorker(List<Uint8List> raws) {
+    if (HostPlatform.isWeb) return Future.sync(() => _encodeAllImpl(raws));
     return Isolate.run(() => _encodeAllImpl(raws), debugName: 'uddf-dcdump');
   }
 

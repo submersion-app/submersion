@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:sqlite3/common.dart' as sqlite3;
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
@@ -759,7 +759,7 @@ class DatabaseMigrationService {
   }
 
   /// Safely count rows in a table, returning 0 if the table doesn't exist
-  int _safeTableCount(sqlite3.Database db, String tableName) {
+  int _safeTableCount(sqlite3.CommonDatabase db, String tableName) {
     try {
       final result = db.select('SELECT COUNT(*) AS count FROM $tableName');
       if (result.isEmpty) return 0;

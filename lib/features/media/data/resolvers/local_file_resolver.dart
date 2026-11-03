@@ -4,6 +4,7 @@ import 'dart:ui' show Size;
 
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
@@ -68,6 +69,7 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
     Future<String?> Function()? localDeviceId,
     Future<String?> Function(String deviceId)? deviceLabel,
     bool Function()? readsContentUris,
+    bool Function()? isWeb,
     Future<MediaSourceData?> Function(MediaItem item)? findInLibrary,
     LocalThumbnailCache? thumbnails,
     Future<void> Function(MediaItem item, VerifyResult verdict)?
@@ -81,7 +83,8 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
        _onThumbnailDropped = onThumbnailDropped,
        _localDeviceId = localDeviceId,
        _deviceLabel = deviceLabel,
-       _readsContentUris = readsContentUris ?? (() => Platform.isAndroid),
+       _readsContentUris = readsContentUris ?? (() => HostPlatform.isAndroid),
+       _isWeb = isWeb ?? (() => HostPlatform.isWeb),
        _findInLibrary = findInLibrary,
        _volumeOnline = (volumeStatus ?? VolumeStatus()).newExpiringProbe(
          ttl: volumeProbeTtl,
@@ -90,7 +93,7 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
        _gate = gate ?? MediaFetchGate(maxConcurrent: kLocalResolveConcurrency),
        _usesSecurityScopedBookmarks =
            usesSecurityScopedBookmarks ??
-           (() => Platform.isIOS || Platform.isMacOS);
+           (() => HostPlatform.isIOS || HostPlatform.isMacOS);
 
   final VideoThumbnailService? _videoThumbnails;
 
@@ -157,6 +160,10 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
   /// the branch runs in the test shards, which run on Linux; production
   /// always gets the real check.
   final bool Function() _readsContentUris;
+
+  /// A page has no file system: every local file row was linked on some
+  /// other device, and nothing here is read (issue #4121).
+  final bool Function() _isWeb;
 
   /// Searches the photo library for a file whose content URI stopped
   /// reading, by the metadata tiers (spec 6.3). Null when there is no
@@ -249,6 +256,12 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
 
   @override
   Future<MediaSourceData> resolve(MediaItem item) async {
+    if (_isWeb()) {
+      return UnavailableData(
+        kind: UnavailableKind.fromOtherDevice,
+        originDeviceLabel: await _labelFor(item.originDeviceId),
+      );
+    }
     final data = await _gate.run(_gateKey(item), () => _resolveInner(item));
     // [MediaFetchGate]'s payload is nullable for the media store, where null
     // means "not in the store". _resolveInner is declared non-nullable and
@@ -482,7 +495,9 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
     // it implied.
     if (item.isVideo &&
         _videoThumbnails != null &&
-        (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+        (HostPlatform.isMacOS ||
+            HostPlatform.isWindows ||
+            HostPlatform.isLinux)) {
       final maxDim = target.longestSide.round().clamp(1, 4096);
       final poster = await _videoThumbnails.posterFor(
         item,

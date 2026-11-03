@@ -32811,6 +32811,12 @@ abstract class AppLocalizations {
   /// **'Site'**
   String get media_library_filter_site;
 
+  /// Library filter sheet row: pick the source the media came from (photo library, local files, and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get media_library_filter_source;
+
   /// Library filter chip: pick a species tag
   ///
   /// In en, this message translates to:
@@ -32924,6 +32930,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Untitled dive'**
   String get media_library_untitledDiveHeader;
+
+  /// By-dive view header for media attached to a dive site but to no dive
+  ///
+  /// In en, this message translates to:
+  /// **'Site: {name}'**
+  String media_library_siteHeader(String name);
+
+  /// By-dive view header for media attached to an equipment item but to no dive or site
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment: {name}'**
+  String media_library_equipmentHeader(String name);
+
+  /// Accessibility hint for the by-dive view's site group header, which opens the site
+  ///
+  /// In en, this message translates to:
+  /// **'Open this site'**
+  String get media_library_siteHeaderHint;
+
+  /// Accessibility hint for the by-dive view's equipment group header, which opens the equipment item
+  ///
+  /// In en, this message translates to:
+  /// **'Open this equipment'**
+  String get media_library_equipmentHeaderHint;
+
+  /// Name used in the by-dive view's equipment header when the item has no name
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled equipment'**
+  String get media_library_untitledEquipment;
 
   /// Library view mode: grouped by dive
   ///
@@ -34188,17 +34224,23 @@ abstract class AppLocalizations {
   /// **'Report an Issue'**
   String get settings_about_reportIssue;
 
-  /// No description provided for @settings_about_reportIssue_copy.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy link'**
-  String get settings_about_reportIssue_copy;
-
   /// No description provided for @settings_about_reportIssue_snackbar.
   ///
   /// In en, this message translates to:
   /// **'Visit github.com/submersion-app/submersion/issues'**
   String get settings_about_reportIssue_snackbar;
+
+  /// No description provided for @settings_about_userGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'User Guide'**
+  String get settings_about_userGuide;
+
+  /// No description provided for @settings_about_userGuide_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit submersion.app/guide'**
+  String get settings_about_userGuide_snackbar;
 
   /// No description provided for @settings_about_version.
   ///
@@ -93252,6 +93294,12 @@ abstract class AppLocalizations {
   /// **'Sign in with Google'**
   String get settings_setUpDevice_offer_googleDrive;
 
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google each time you open the site'**
+  String get settings_setUpDevice_offer_googleDrive_browser;
+
   /// Under Dropbox in setup step 1: what adding it takes
   ///
   /// In en, this message translates to:
@@ -93684,6 +93732,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.'**
   String get demo_unavailable_body;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Not available in a browser'**
+  String get web_unavailable_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This needs hardware a web page cannot reach, such as Bluetooth, USB, NFC or the camera. Use the Submersion app on a phone or computer for it.'**
+  String get web_unavailable_reason_hardware;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This runs in the background or as a local service, which a web page cannot do. Use the Submersion app on a phone or computer for it.'**
+  String get web_unavailable_reason_background;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This works with files on the device, which a web page cannot reach. Use the Submersion app on a phone or computer for it.'**
+  String get web_unavailable_reason_files;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud is only available in the Submersion app on Apple devices.'**
+  String get web_unavailable_reason_icloud;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Git hosts do not accept requests from a web page. Use the Submersion app on a phone or computer for a Git sync store.'**
+  String get web_unavailable_reason_git;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Continue without a sync store'**
+  String get web_continueWithoutSync;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Remember on this device'**
+  String get web_rememberOnThisDevice_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes.'**
+  String get web_rememberOnThisDevice_subtitle;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Only the Submersion app on an Apple device can reach iCloud.'**
+  String get web_unavailable_offer_icloud;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Git hosts do not accept requests from a web page.'**
+  String get web_unavailable_offer_git;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Google client id'**
+  String get web_googleClientId_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'A web page signs in to Google with a client id from your own Google Cloud project: type Web application, with this site\'s address as an authorised JavaScript origin. Paste it here. It is kept with your other sign-in details.'**
+  String get web_googleClientId_body;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'A client id of your own sees only a Google Drive library this site starts. Google keeps each project\'s Drive folder apart, so the library your phone and computer sync to Google Drive cannot open here.'**
+  String get web_googleClientId_ownProjectNote;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'123456789-abc123.apps.googleusercontent.com'**
+  String get web_googleClientId_hint;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'That does not look like a Google client id. It ends in .apps.googleusercontent.com.'**
+  String get web_googleClientId_invalid;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'How to create one'**
+  String get web_googleClientId_help;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store blocks browser requests'**
+  String get web_cors_title_blockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The browser asked the store and got no answer it was allowed to read. The store\'s CORS rules must allow this site\'s address. Add the rule below to the store, then check again.'**
+  String get web_cors_explain_blockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store allows some requests, not all'**
+  String get web_cors_title_methodBlockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store answers a plain request from this site but refuses the method the app needs, such as PROPFIND for WebDAV. Its CORS rule must list every method below.'**
+  String get web_cors_explain_methodBlockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store allows reading, not writing'**
+  String get web_cors_title_writeBlockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Reads from this site work, but a write was refused. The CORS rule must also allow PUT and DELETE; the rule below includes them.'**
+  String get web_cors_explain_writeBlockedByCors;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store refused the credentials'**
+  String get web_cors_title_forbidden;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store answered 403: a wrong access key or secret, or a read-only key where sync needs to write. Check the credentials and the key\'s permissions.'**
+  String get web_cors_explain_forbidden;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found at this address'**
+  String get web_cors_title_notFound;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The bucket, folder or path does not exist, or the name is misspelt. Check the address and the bucket or folder name.'**
+  String get web_cors_explain_notFound;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The browser does not trust or cannot reach the server'**
+  String get web_cors_title_tlsOrUnreachable;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'A private address over HTTPS failed before any answer. The browser, not the app, decides which certificates to trust: open the server\'s address in a new tab and accept or install its certificate, or make sure the server is reachable from here.'**
+  String get web_cors_explain_tlsOrUnreachable;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The connection works'**
+  String get web_cors_title_ok;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The store accepted the test from this browser.'**
+  String get web_cors_explain_ok;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The connection failed'**
+  String get web_cors_title_unknown;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The browser reported a failure it does not explain. Most often the store\'s CORS rules do not allow this site\'s address; the rule below is the usual fix.'**
+  String get web_cors_explain_unknown;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Copy rule'**
+  String get web_cors_copyRule;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Rule copied'**
+  String get web_cors_copied;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Browser storage'**
+  String get web_storage_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Browser file storage. Your dives stay in this browser until you forget this device.'**
+  String get web_storage_opfs;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Browser database (slower). Your dives stay in this browser until you forget this device.'**
+  String get web_storage_indexedDb;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is saved after this tab closes. This browser gives the site no lasting storage; sync before you leave.'**
+  String get web_storage_memoryWarning;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Forget this device'**
+  String get web_forgetDevice_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the dives, sign-in details and device identity from this browser'**
+  String get web_forgetDevice_subtitle;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Forget'**
+  String get web_forgetDevice_confirm;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This removes everything Submersion keeps in this browser: the dive log, the sign-in details and passphrase, and this device\'s identity in sync. Your dives stay in the sync store and on your other devices. The page reloads to a fresh start.'**
+  String get web_forgetDevice_confirmBody;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This browser kept the database. Close other Submersion tabs and try again.'**
+  String get web_forgetDevice_failed;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'This browser could not clear its sign-in details and settings. Try again.'**
+  String get web_forgetDevice_incomplete;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'The backup could not be created.'**
+  String get web_downloadBackup_failed;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'Download a backup'**
+  String get web_downloadBackup_title;
+
+  /// Web app (issue #4121)
+  ///
+  /// In en, this message translates to:
+  /// **'A copy of your dive log as a database file, saved by your browser'**
+  String get web_downloadBackup_subtitle;
 
   /// Demo mode (issue #3708)
   ///

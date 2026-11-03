@@ -250,15 +250,35 @@ class MediaLibraryEntry extends Equatable {
     this.diveNumber,
     this.diveDateTime,
     this.siteName,
+    this.attachedSiteName,
+    this.attachedEquipmentName,
   });
 
   final MediaItem item;
   final int? diveNumber;
   final DateTime? diveDateTime;
+
+  /// The name of the dive's site. Null for a row with no dive, even when the
+  /// row is attached to a site of its own: that one is [attachedSiteName].
   final String? siteName;
 
+  /// The name of the site the row itself is attached to (`media.site_id`),
+  /// such as a site map with no dive (issue #4149).
+  final String? attachedSiteName;
+
+  /// The name of the equipment item the row is attached to
+  /// (`media.equipment_id`).
+  final String? attachedEquipmentName;
+
   @override
-  List<Object?> get props => [item, diveNumber, diveDateTime, siteName];
+  List<Object?> get props => [
+    item,
+    diveNumber,
+    diveDateTime,
+    siteName,
+    attachedSiteName,
+    attachedEquipmentName,
+  ];
 }
 
 /// One page of library results. [nextCursor] is null on the last page.

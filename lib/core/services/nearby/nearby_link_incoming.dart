@@ -16,6 +16,10 @@ extension _NearbyLinkIncoming on NearbyLinkManager {
     // Entering demo mode closes the gate before the app restarts, with the
     // radio still on: no session may run in between.
     if (_disposed || !_foreground || DemoModeGate.instance.isActive) {
+      NearbyLinkManager._log.info(
+        'Nearby incoming from ${endpoint.transportId} closed: the link is '
+        'not running here',
+      );
       await endpoint.close();
       return;
     }
@@ -71,6 +75,7 @@ extension _NearbyLinkIncoming on NearbyLinkManager {
             transportId: endpoint.transportId,
             dialled: false,
             initiatorKey: pairing.preview.nonce,
+            offeredAt: _now(),
           ),
         );
     }

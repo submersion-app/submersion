@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -50,9 +51,10 @@ final platformGalleryResolverProvider = Provider<PlatformGalleryResolver>(
   (ref) => PlatformGalleryResolver(
     resolutionService: ref.watch(assetResolutionServiceProvider),
     thumbnailCache: ref.watch(galleryThumbnailCacheProvider),
-    hasPhotoLibrary: ref
-        .watch(photoPickerServiceProvider)
-        .supportsGalleryBrowsing,
+    // A page has no photo library whatever OS the browser reports (#4121).
+    hasPhotoLibrary:
+        ref.watch(deviceCapabilitiesProvider).devicePhotoLibrary &&
+        ref.watch(photoPickerServiceProvider).supportsGalleryBrowsing,
     assetReader: const PhotoManagerAssetReader(),
     // read, not watch: a resolver answers per resolution, so the current
     // map is right there; widgets already on screen watch the live stream.

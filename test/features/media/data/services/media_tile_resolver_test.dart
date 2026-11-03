@@ -176,6 +176,27 @@ void main() {
       },
     );
 
+    test("a document's poster thumbnail served as bytes is renderable, as "
+        'one served from a file is', () async {
+      for (final served in [
+        BytesData(bytes: Uint8List.fromList([9]), isPoster: true),
+        FileData(file: File('/nowhere/thumb.jpg'), isPoster: true),
+      ]) {
+        native.data = const UnavailableData(kind: UnavailableKind.notFound);
+        remote.answer = served;
+        final r = await resolver.resolve(
+          _item(
+            contentHash: 'abc',
+            remoteThumbUploadedAt: DateTime(2026),
+            mediaType: MediaType.document,
+          ),
+          thumbnail: true,
+          thumbnailTarget: target,
+        );
+        expect(r.documentRenderable, isTrue, reason: '$served');
+      }
+    });
+
     test('no store on this device reports the fallback as attempted', () async {
       native.data = const UnavailableData(kind: UnavailableKind.notFound);
       final noStore = MediaTileResolver(

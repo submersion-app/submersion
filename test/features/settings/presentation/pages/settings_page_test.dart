@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -38,6 +40,7 @@ import 'package:submersion/features/settings/presentation/pages/home_appearance_
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
+import 'package:submersion/features/settings/presentation/about_links.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
@@ -1405,6 +1408,20 @@ void main() {
       expect(diagnosticsTop, greaterThan(updatesTop));
     });
 
+    testWidgets('a browser has no Updates card (#4121)', (tester) async {
+      await tester.pumpWidget(
+        buildAboutWidget([
+          ...await aboutOverrides(),
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(find.text('Updates'), findsNothing);
+      expect(find.text('Diagnostics'), findsOneWidget);
+    });
+
     testWidgets('leaves the bathymetry credit to the licenses page', (
       tester,
     ) async {
@@ -1414,6 +1431,36 @@ void main() {
 
       expect(find.textContaining('Bathymetry data'), findsNothing);
       expect(find.text('Open Source Licenses'), findsOneWidget);
+    });
+
+    testWidgets('links the user guide just above Report an Issue (#4145)', (
+      tester,
+    ) async {
+      String? launchedUrl;
+      const channel = MethodChannel('plugins.flutter.io/url_launcher');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method != 'launch') return null;
+            launchedUrl = (call.arguments as Map)['url'] as String?;
+            return true;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      final guideTop = tester.getTopLeft(find.text('User Guide')).dy;
+      final reportTop = tester.getTopLeft(find.text('Report an Issue')).dy;
+      expect(guideTop, lessThan(reportTop));
+
+      await tester.tap(find.text('User Guide'));
+      await tester.pumpAndSettle();
+
+      expect(launchedUrl, userGuideUrl);
     });
 
     testWidgets('shows the channel selector on stable', (tester) async {

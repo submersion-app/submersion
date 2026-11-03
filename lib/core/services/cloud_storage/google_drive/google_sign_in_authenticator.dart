@@ -1,14 +1,15 @@
-import 'dart:io';
-
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_errors.dart';
 import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
@@ -22,9 +23,25 @@ import 'package:submersion/core/services/logger_service.dart';
 /// after every restart. See [GoogleDriveAuthenticator.attemptSilentAuth] for
 /// where the pre-opt-in guarantee actually lives.
 class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
+  /// [isWeb], [webClientId] and [baseClient] are seams for tests;
+  /// production reads the host platform, the stored client id and a plain
+  /// HTTP client (issue #4121). [baseClient] carries the browser's
+  /// authorized requests, so a test can serve Drive itself.
+  GoogleSignInAuthenticator({
+    bool? isWeb,
+    Future<String?> Function()? webClientId,
+    http.Client Function()? baseClient,
+  }) : _isWeb = isWeb ?? HostPlatform.isWeb,
+       _webClientId = webClientId ?? GoogleDriveClientConfig.webClientId,
+       _baseClient = baseClient ?? http.Client.new;
+
   static final _log = LoggerService.forClass(GoogleSignInAuthenticator);
 
   static const _scopes = [drive.DriveApi.driveAppdataScope];
+
+  final bool _isWeb;
+  final Future<String?> Function() _webClientId;
+  final http.Client Function() _baseClient;
 
   // Use the shared instance; configuration is provided per-call via scope
   // hints.
@@ -38,16 +55,31 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
   http.Client? _authClient;
   GoogleSignInAccount? _currentUser;
 
+  /// The signed-in account's address: the SDK's account natively, the Drive
+  /// About resource in a browser, where the SDK hands out no account.
+  String? _email;
+
   @override
   http.Client? get authClient => _authClient;
 
   @override
-  Future<String?> get userEmail async => _currentUser?.email;
+  Future<String?> get userEmail async => _email;
 
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
+    if (_isWeb) {
+      // A page signs in with the user's own web client; the compiled-in
+      // desktop and Android clients do not apply (issue #4121).
+      final clientId = await _webClientId();
+      if (clientId == null) {
+        throw const CloudStorageException(googleDriveWebClientIdMissing);
+      }
+      await _googleSignIn.initialize(clientId: clientId);
+      _initialized = true;
+      return;
+    }
     final serverClientId =
-        Platform.isAndroid &&
+        HostPlatform.isAndroid &&
             GoogleDriveClientConfig.androidServerClientId.isNotEmpty
         ? GoogleDriveClientConfig.androidServerClientId
         : null;
@@ -86,6 +118,7 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
 
       await _ensureInitialized();
       await _eviction;
+      if (_isWeb) return await _renewInBrowser();
       // A known account only needs a fresh token, which the SDK mints from
       // its authorization without any UI. Lightweight sign-in is for the
       // cold launch alone: on Android it goes through Credential Manager,
@@ -114,6 +147,10 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
   Future<void> authenticate({String? expectedAccount}) async {
     try {
       await _ensureInitialized();
+      if (_isWeb) {
+        await _authenticateInBrowser(expectedAccount);
+        return;
+      }
       final account = await _googleSignIn.authenticate(scopeHint: _scopes);
       if (!isSameAccount(expectedAccount, account.email)) {
         await _forgetRefusedAccount();
@@ -222,17 +259,108 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
 
   static final _platformStatusPrefix = RegExp(r'^\s*\[\d+\]');
 
+  /// A page cannot sign in the native way: google_sign_in_web has no
+  /// authenticate() (it throws, pointing at its sign-in button), and its
+  /// lightweight sign-in only starts One Tap and answers null. The
+  /// client-level authorization opens Google's account and consent popup
+  /// instead, and the Drive About resource names the account that granted
+  /// it (issue #4121).
+  Future<void> _authenticateInBrowser(String? expectedAccount) async {
+    final authorization = await _googleSignIn.authorizationClient
+        .authorizeScopes(_scopes);
+    final client = _browserClient(authorization);
+    final String? email;
+    try {
+      email = await _readAccountEmail(client);
+    } catch (_) {
+      client.close();
+      rethrow;
+    }
+    if (!isSameAccount(expectedAccount, email)) {
+      client.close();
+      await _forgetRefusedAccount();
+      throw CloudAccountMismatchException(email ?? '');
+    }
+    _install(client, accessToken: authorization.accessToken, email: email);
+    _log.info('Authenticated with Google Drive as $email');
+  }
+
+  /// The browser's silent path: the authorization Google still holds for
+  /// this site, asked for without a prompt. Nothing cached means the user
+  /// signs in again, which the sync status shows as a row to tap.
+  Future<bool> _renewInBrowser() async {
+    final authorization = await _googleSignIn.authorizationClient
+        .authorizationForScopes(_scopes);
+    if (authorization == null) return false;
+    final client = _browserClient(authorization);
+    final String? email;
+    try {
+      email = _email ?? await _readAccountEmail(client);
+    } catch (_) {
+      // Nothing installed it yet, so nothing else would ever close it.
+      client.close();
+      rethrow;
+    }
+    _install(client, accessToken: authorization.accessToken, email: email);
+    return true;
+  }
+
+  /// The extension's authClient builds over a transport this app cannot
+  /// choose; the browser path needs its own so a test can serve Drive. The
+  /// SDK gives no expiry, so a distant one is set and a rejected token goes
+  /// through [handleAuthFailure], as it does natively.
+  http.Client _browserClient(GoogleSignInClientAuthorization authorization) {
+    final credentials = AccessCredentials(
+      AccessToken(
+        'Bearer',
+        authorization.accessToken,
+        DateTime.now().toUtc().add(const Duration(days: 365)),
+      ),
+      null,
+      _scopes,
+    );
+    // The wrapper's close must reach the transport, which the OAuth client
+    // leaves open unless told otherwise.
+    return TimeoutHttpClient(
+      authenticatedClient(
+        _baseClient(),
+        credentials,
+        closeUnderlyingClient: true,
+      ),
+    );
+  }
+
+  Future<String?> _readAccountEmail(http.Client client) async {
+    final about = await drive.DriveApi(client).about.get($fields: 'user');
+    return about.user?.emailAddress;
+  }
+
   void _installClient(
     GoogleSignInAccount account,
     GoogleSignInClientAuthorization authorization,
   ) {
-    _authClient?.close();
     // google_sign_in builds the authorized client over a transport this app
     // never gets to configure, so the deadlines go on the outside. Closing
     // the wrapper closes the client underneath it (#1279).
-    _authClient = TimeoutHttpClient(authorization.authClient(scopes: _scopes));
-    _accessToken = authorization.accessToken;
+    _install(
+      TimeoutHttpClient(authorization.authClient(scopes: _scopes)),
+      accessToken: authorization.accessToken,
+      account: account,
+      email: account.email,
+    );
+  }
+
+  void _install(
+    http.Client client, {
+    required String accessToken,
+    GoogleSignInAccount? account,
+    required String? email,
+  }) {
+    _authClient?.close();
+    _authClient = client;
+    _accessToken = accessToken;
     _currentUser = account;
+    _email = email;
   }
 
   /// The access token inside [_authClient], kept so a rejection can evict it
@@ -247,6 +375,7 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
     _authClient = null;
     _accessToken = null;
     _currentUser = null;
+    _email = null;
     _log.info('Signed out from Google Drive');
   }
 

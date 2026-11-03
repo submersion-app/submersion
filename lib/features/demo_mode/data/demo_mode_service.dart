@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart';
@@ -11,9 +9,9 @@ import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
 import 'package:submersion/features/demo_mode/data/demo_manifest_client.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/data/demo_package_extractor.dart';
+import 'package:submersion/features/demo_mode/data/demo_package_installer.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
-import 'package:submersion/features/demo_mode/data/prefs_snapshot.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/domain/demo_state.dart';
 
@@ -81,8 +79,9 @@ class DemoModeService {
     required this.prefs,
     required this.store,
     required this.manifest,
-    required this.downloader,
-    required this.extractor,
+    DemoPackageInstaller? installer,
+    DemoDownloader? downloader,
+    DemoPackageExtractor? extractor,
     required this.preparer,
     required this.switcher,
     required this.realDatabasePath,
@@ -93,15 +92,23 @@ class DemoModeService {
     this.forgetPhotos,
     this.endNearbySync,
     this.importRunning,
+    this.announceSwitch,
     this.clock = DateTime.now,
-  });
+  }) : installer =
+           installer ??
+           ZipDemoPackageInstaller(
+             downloader: downloader ?? DemoDownloader(),
+             extractor: extractor ?? DemoPackageExtractor(),
+           );
 
   final DemoPaths paths;
   final SharedPreferences prefs;
   final DemoStateStore store;
   final DemoManifestClient manifest;
-  final DemoDownloader downloader;
-  final DemoPackageExtractor extractor;
+
+  /// Fetches the package and leaves it ready to open: the zip download
+  /// natively, the site's own copy in a browser (issue #4121).
+  final DemoPackageInstaller installer;
   final DemoDatabasePreparer preparer;
   final DemoDatabaseSwitcher switcher;
   final Future<String> Function() realDatabasePath;
@@ -121,6 +128,11 @@ class DemoModeService {
   /// Whether an import is writing to the user's logbook. Entering refuses
   /// while one is, before downloading and again once the gate has closed.
   final bool Function()? importRunning;
+
+  /// Tells the site's other tabs the library changed, once entering or
+  /// leaving is done: they share the preferences and would keep the old
+  /// logbook open (issue #4121). Null natively.
+  final VoidCallback? announceSwitch;
   final DateTime Function() clock;
 
   /// Downloads and opens [package], the one whose size the user agreed to.
@@ -158,23 +170,16 @@ class DemoModeService {
       final pkg =
           await manifest.fetchBest(AppDatabase.currentSchemaVersion) ?? package;
       if (pkg.size != package.size) throw DemoPackageChangedException(pkg);
-      final zip = await downloader.download(
+      await installer.install(
         pkg,
-        File(paths.packageFile),
-        isCancelled: isCancelled,
-        onProgress: reportIn(DemoEnterStage.downloading),
-      );
-      // The downloader sees Cancel only as chunks land, so a tap that comes
-      // with the last one is honoured here, and again before the switch.
-      _throwIfCancelled(isCancelled);
-      onProgress?.call(const DemoEnterProgress(DemoEnterStage.preparing));
-      await extractor.extract(
-        zip,
         paths,
-        onProgress: reportIn(DemoEnterStage.preparing),
+        isCancelled: isCancelled,
+        onDownload: reportIn(DemoEnterStage.downloading),
+        onUnpack: reportIn(DemoEnterStage.preparing),
       );
-      await PrefsSnapshot.capture(prefs, File(paths.prefsSnapshotFile));
-      _throwIfCancelled(isCancelled);
+      await store.capturePrefs(prefs);
+      // Again before the switch, for a tap that came while unpacking.
+      throwIfDemoCancelled(isCancelled);
     } catch (_) {
       await store.deleteAll();
       rethrow;
@@ -217,6 +222,7 @@ class DemoModeService {
       restart();
       rethrow;
     }
+    announceSwitch?.call();
     restart();
   }
 
@@ -230,6 +236,7 @@ class DemoModeService {
       switcher.current,
       now: clock(),
       photosDir: paths.photosDir,
+      photosUrl: installer.photosUrl,
       deviceId: deviceId(),
       units: units,
       onProgress: onProgress,
@@ -248,28 +255,24 @@ class DemoModeService {
     if (_importing) throw const DemoImportRunningException();
   }
 
-  static void _throwIfCancelled(bool Function()? isCancelled) {
-    if (isCancelled?.call() ?? false) {
-      throw const DemoDownloadException(DemoDownloadFailure.cancelled);
-    }
-  }
-
   /// Leaves demo mode and restarts. Never throws: whatever is left half done
   /// is finished by `DemoStartup` on the restart.
   Future<void> exit() async {
-    await _leaveLogged();
+    await _leaveLogged(announce: true);
     restart();
   }
 
-  Future<void> _leaveLogged() async {
+  /// [announce] tells the site's other tabs (see [announceSwitch]); a
+  /// failed entry has nothing to tell them.
+  Future<void> _leaveLogged({bool announce = false}) async {
     try {
-      await _leave();
+      await _leave(announce: announce);
     } catch (e, st) {
       _log.error('Leaving demo mode failed', error: e, stackTrace: st);
     }
   }
 
-  Future<void> _leave() async {
+  Future<void> _leave({required bool announce}) async {
     final current = await store.read();
     if (current != null) {
       await store.write(current.copyWith(phase: DemoPhase.exiting));
@@ -277,18 +280,18 @@ class DemoModeService {
     await cancelDeviceNotifications();
     // Preferences first: the user's logbook is found through them, so
     // nothing a demo session wrote can point the reopen elsewhere.
-    final snapshot = File(paths.prefsSnapshotFile);
-    if (await snapshot.exists()) {
-      try {
-        await PrefsSnapshot.restore(prefs, snapshot);
-      } on StateError catch (e) {
-        _log.warning('Demo mode preferences could not be restored: $e');
-      }
+    try {
+      await store.restorePrefs(prefs);
+    } on StateError catch (e) {
+      _log.warning('Demo mode preferences could not be restored: $e');
     }
     await _forgetPhotos();
     // On failure the state stays exiting: startup finishes the exit on the
     // restart, and shows its own screens if the logbook still cannot open.
     await switcher.openAt(await realDatabasePath(), keyHex: realKeyHex());
+    // Before the sample logbook goes: another tab holding it lets go once
+    // it reloads, instead of holding up its deletion.
+    if (announce) announceSwitch?.call();
     await store.deleteAll();
     DemoModeGate.instance.markActive(false);
   }
@@ -296,13 +299,10 @@ class DemoModeService {
   /// Best effort: a cache that cannot be cleared never stops an exit.
   Future<void> _forgetPhotos() async {
     final forget = forgetPhotos;
-    final dir = Directory(paths.photosDir);
-    if (forget == null || !await dir.exists()) return;
+    if (forget == null) return;
     try {
-      final photos = [
-        await for (final entry in dir.list())
-          if (entry is File) entry.path,
-      ]..sort();
+      final photos = await store.photoPaths();
+      if (photos.isEmpty) return;
       await forget(photos);
     } catch (e, st) {
       _log.warning(

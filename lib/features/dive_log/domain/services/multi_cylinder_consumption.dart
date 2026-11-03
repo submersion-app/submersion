@@ -1,5 +1,5 @@
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 
 /// Gas consumption arithmetic over every cylinder a diver breathed from
 /// (issue #3109): a sidemount pair, doubles logged as independents, stages.

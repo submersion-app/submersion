@@ -141,6 +141,7 @@ A PR needs screenshots when it changes files in any of these places:
 | Feature screens, widgets and their providers | `lib/**/presentation/` |
 | Shared widgets, theme and icons | `lib/shared/widgets/`, `lib/core/theme/`, `lib/core/ui/`, `lib/core/icons/` |
 | Platform UI resources | launch screens, app icons and window chrome under `android/`, `ios/`, `macos/`, `windows/`, `linux/` |
+| The browser's shell and what a browser may show | `web/` (the page, its manifest and icons), `lib/core/platform/device_capabilities*.dart` (which features each device offers) |
 
 When in doubt, include a screenshot.
 
