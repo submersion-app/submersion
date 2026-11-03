@@ -78,6 +78,9 @@ once the first dive has one, or follows a logged dive.
 The planner doesn't use the site; a dive you convert from the plan takes it,
 with the start time (or now, if there is none).
 
+With a keyboard, Alt+Left and Alt+Right move to the previous and next dive of
+a series, except while you are typing in a field.
+
 ### Building the profile
 
 Under **Dive Segments**, each segment is a point you want to reach: a

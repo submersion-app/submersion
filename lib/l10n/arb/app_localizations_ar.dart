@@ -2511,6 +2511,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'مساعدة';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'المخطط';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'تنقل';
 
   @override
@@ -2540,6 +2543,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get accessibility_shortcut_keyboardShortcuts =>
       'اختصارات لوحة المفاتيح';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'الغطسة المخططة السابقة';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'الغطسة المخططة التالية';
 
   @override
   String get accessibility_shortcut_newDive => 'غوصة جديدة';

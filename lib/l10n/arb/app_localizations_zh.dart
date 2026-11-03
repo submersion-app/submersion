@@ -2328,6 +2328,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcutCategory_help => '帮助';
 
   @override
+  String get accessibility_shortcutCategory_planner => '计划器';
+
+  @override
   String get accessibility_shortcutCategory_navigation => '导航';
 
   @override
@@ -2356,6 +2359,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => '键盘快捷键';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive => '上一次计划潜水';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => '下一次计划潜水';
 
   @override
   String get accessibility_shortcut_newDive => '新建潜水';

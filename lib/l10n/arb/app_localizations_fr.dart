@@ -2459,6 +2459,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Aide';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Planificateur';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navigation';
 
   @override
@@ -2487,6 +2490,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Raccourcis clavier';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Plongée planifiée précédente';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Plongée planifiée suivante';
 
   @override
   String get accessibility_shortcut_newDive => 'Nouvelle plongée';

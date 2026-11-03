@@ -40,6 +40,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_series_s
 import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_series_shortcuts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
@@ -319,12 +320,14 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
             );
           }
         },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
-            return _buildPhone(constraints);
-          },
+        child: PlanSeriesShortcuts(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
+              return _buildPhone(constraints);
+            },
+          ),
         ),
       ),
     );

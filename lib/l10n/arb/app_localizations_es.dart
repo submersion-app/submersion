@@ -2452,6 +2452,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Ayuda';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Planificador';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navegación';
 
   @override
@@ -2480,6 +2483,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Atajos de teclado';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Inmersión planificada anterior';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Inmersión planificada siguiente';
 
   @override
   String get accessibility_shortcut_newDive => 'Nueva inmersión';

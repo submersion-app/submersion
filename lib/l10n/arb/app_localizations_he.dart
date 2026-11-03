@@ -2416,6 +2416,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'עזרה';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'מתכנן';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'ניווט';
 
   @override
@@ -2444,6 +2447,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'קיצורי מקלדת';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'הצלילה המתוכננת הקודמת';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'הצלילה המתוכננת הבאה';
 
   @override
   String get accessibility_shortcut_newDive => 'צלילה חדשה';

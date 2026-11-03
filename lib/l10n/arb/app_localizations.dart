@@ -3799,6 +3799,12 @@ abstract class AppLocalizations {
   /// **'Help'**
   String get accessibility_shortcutCategory_help;
 
+  /// No description provided for @accessibility_shortcutCategory_planner.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner'**
+  String get accessibility_shortcutCategory_planner;
+
   /// Shortcut category name: Navigation
   ///
   /// In en, this message translates to:
@@ -3858,6 +3864,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keyboard shortcuts'**
   String get accessibility_shortcut_keyboardShortcuts;
+
+  /// No description provided for @accessibility_shortcut_previousPlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous planned dive'**
+  String get accessibility_shortcut_previousPlannedDive;
+
+  /// No description provided for @accessibility_shortcut_nextPlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Next planned dive'**
+  String get accessibility_shortcut_nextPlannedDive;
 
   /// Keyboard shortcut label for creating a new dive
   ///

@@ -2446,6 +2446,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Súgó';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Tervező';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navigáció';
 
   @override
@@ -2474,6 +2477,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Billentyűparancsok';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Előző tervezett merülés';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Következő tervezett merülés';
 
   @override
   String get accessibility_shortcut_newDive => 'Új merülés';
