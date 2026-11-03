@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/app_sql_functions.dart';
@@ -6,6 +8,7 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
 /// A diver's tags, through the repository the tag page uses. A name is the
@@ -93,22 +96,36 @@ class TagWrites extends WritableEntry {
   bool get mergeable => true;
 
   /// Every link of [id] moves to [intoId], except one whose item already
-  /// carries [intoId], which goes, as `mergeTags` does.
+  /// carries [intoId], which goes, as `mergeTags` does. A tag merged into
+  /// [intoId] earlier in the set has moved its links there by then. The
+  /// survivor takes every scope the merged tags had, and saved smart albums
+  /// filtered by [id] follow it.
   @override
-  Future<DeleteReach> mergeReach(String id, String intoId) async {
+  Future<DeleteReach> mergeReach(
+    String id,
+    String intoId, {
+    Set<String> mergedBefore = const {},
+  }) async {
     final moved = <String, int>{};
     final parts = <String, int>{};
     final db = DatabaseService.instance.database;
+    final holders = [intoId, ...mergedBefore];
+    final marks = [for (var i = 0; i < holders.length; i++) '?${i + 2}'];
     for (final scope in domain.TagScope.values) {
       final junction = scope.table.junctionTable;
       final item = scope.table.parentColumn;
+      // DISTINCT, since an item may carry more than one of the holders.
       final row = await db
           .customSelect(
-            'SELECT SUM(CASE WHEN b.tag_id IS NULL THEN 1 ELSE 0 END) AS moved, '
-            'SUM(CASE WHEN b.tag_id IS NULL THEN 0 ELSE 1 END) AS gone '
-            'FROM "$junction" a LEFT JOIN "$junction" b '
-            'ON b."$item" = a."$item" AND b.tag_id = ?2 WHERE a.tag_id = ?1',
-            variables: [Variable.withString(id), Variable.withString(intoId)],
+            'SELECT SUM(CASE WHEN held IS NULL THEN 1 ELSE 0 END) AS moved, '
+            'SUM(CASE WHEN held IS NULL THEN 0 ELSE 1 END) AS gone '
+            'FROM (SELECT a."$item", (SELECT 1 FROM "$junction" b '
+            'WHERE b."$item" = a."$item" AND b.tag_id IN (${marks.join(', ')}) '
+            'LIMIT 1) AS held FROM "$junction" a WHERE a.tag_id = ?1)',
+            variables: [
+              Variable.withString(id),
+              for (final holder in holders) Variable.withString(holder),
+            ],
           )
           .getSingle();
       if ((row.readNullable<int>('moved') ?? 0) > 0) {
@@ -118,7 +135,52 @@ class TagWrites extends WritableEntry {
         parts[junction] = row.read<int>('gone');
       }
     }
-    return DeleteReach(moved: moved, parts: parts);
+    final albums = await _albumsNaming(id);
+    if (albums > 0) moved['media_smart_albums'] = albums;
+    return DeleteReach(
+      moved: moved,
+      parts: parts,
+      survivor: await _widenedScopes(intoId, [id, ...mergedBefore]),
+    );
+  }
+
+  /// The saved smart albums whose filter names [id], read as
+  /// `repointSmartAlbumTags` reads them: one it cannot parse is left alone.
+  Future<int> _albumsNaming(String id) async {
+    final db = DatabaseService.instance.database;
+    var count = 0;
+    for (final row in await db.select(db.mediaSmartAlbums).get()) {
+      final Object? decoded;
+      try {
+        decoded = jsonDecode(row.filterJson);
+      } on FormatException {
+        continue;
+      }
+      if (decoded is! Map<String, dynamic>) continue;
+      if (MediaLibraryFilter.fromJson(decoded).tagIds.contains(id)) count++;
+    }
+    return count;
+  }
+
+  /// The survivor's scopes after a merge takes the union of the merged
+  /// tags', as `mergeTags` writes it, when that differs from what it holds.
+  Future<Map<String, Object?>> _widenedScopes(
+    String intoId,
+    List<String> merged,
+  ) async {
+    final survivor = await _r.tags.getTagById(intoId);
+    if (survivor == null) return const {};
+    final union = {...survivor.scopes};
+    for (final id in merged) {
+      union.addAll((await _r.tags.getTagById(id))?.scopes ?? const {});
+    }
+    if (union.length == survivor.scopes.length) return const {};
+    return {
+      'scopes': [
+        for (final scope in domain.TagScope.values)
+          if (union.contains(scope)) scope.name,
+      ],
+    };
   }
 
   /// The survivor's name and colour are read now, so a change to it earlier

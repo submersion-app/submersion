@@ -169,6 +169,7 @@ class DeleteReach {
     this.parts = const {},
     this.unlinked = const {},
     this.moved = const {},
+    this.survivor = const {},
   });
 
   /// Dives that lose a link to this record, by owner. These can belong to
@@ -187,12 +188,17 @@ class DeleteReach {
   /// Links a merge moves to the surviving record, by table.
   final Map<String, int> moved;
 
+  /// What a merge changes on the surviving record itself: document key to
+  /// the value it will hold, as a document would read.
+  final Map<String, Object?> survivor;
+
   bool get isEmpty =>
       linkedDives.isEmpty &&
       records.isEmpty &&
       parts.isEmpty &&
       unlinked.isEmpty &&
-      moved.isEmpty;
+      moved.isEmpty &&
+      survivor.isEmpty;
 
   /// The same text for the same reach, to compare a preview with a later
   /// read.
@@ -202,6 +208,9 @@ class DeleteReach {
     'parts': _sorted(parts),
     'unlinked': _sorted(unlinked),
     'moved': _sorted(moved),
+    'survivor': _sorted({
+      for (final MapEntry(:key, :value) in survivor.entries) key: '$value',
+    }),
   });
 }
 
@@ -296,9 +305,14 @@ abstract class WritableEntry {
   /// one's links, as the app merges these records.
   bool get mergeable => false;
 
-  /// What merging [id] into [intoId] does to their links.
-  Future<DeleteReach> mergeReach(String id, String intoId) async =>
-      const DeleteReach();
+  /// What merging [id] into [intoId] does to their links, and to the
+  /// survivor in [DeleteReach.survivor]. [mergedBefore] are the records the
+  /// same set merges into [intoId] first, whose links it holds by then.
+  Future<DeleteReach> mergeReach(
+    String id,
+    String intoId, {
+    Set<String> mergedBefore = const {},
+  }) async => const DeleteReach();
 
   /// Merges [id] into [intoId], through the app's own merge, and deletes
   /// [id]. Only asked of a [mergeable] entity.

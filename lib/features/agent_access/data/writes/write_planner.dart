@@ -105,6 +105,10 @@ class _Pass {
   /// Records an update earlier in the set changes, as each is planned.
   final _changedSoFar = <(String, String)>{};
 
+  /// The records each survivor takes in by an earlier merge in the set, by
+  /// entity and survivor.
+  final _mergedInto = <(String, String?), Set<String>>{};
+
   /// Each unique key a change in the set claims, by entity and owner, to the
   /// operation that claimed it first.
   final _claims = <(String, String?, String), int>{};
@@ -339,7 +343,7 @@ class _Pass {
     if (_orphaned(op, entry, row, ChangeKind.delete)) return;
     final document = await _document(entry, op.id, row.ownerId);
     final into = op.mergeInto;
-    final block =
+    final refused =
         (into == null ? null : _mergeBlock(op, entry, row)) ??
         _parentWritten(entry, row.parentId, ChangeKind.delete) ??
         await entry.refuse(
@@ -350,20 +354,26 @@ class _Pass {
             document: document,
           ),
         );
-    // Held as a local, so the closure a marker keeps holds the map and not
-    // this pass, whose database a plan must not keep alive.
+    // Held as locals, so the closure a marker keeps holds these and not this
+    // pass, whose database a plan must not keep alive.
     final alongside = _deletedByEntity;
+    final mergedBefore = {...?_mergedInto[(op.entity, into)]};
     Future<DeleteReach> readReach() => into == null
         ? entry.deleteReach(op.id, alongside: alongside)
-        : entry.mergeReach(op.id, into);
-    final reach = block == null ? await readReach() : const DeleteReach();
+        : entry.mergeReach(op.id, into, mergedBefore: mergedBefore);
+    final read = refused == null ? await readReach() : const DeleteReach();
+    final block = refused ?? (into == null ? null : _survivorClash(op, read));
+    final reach = block == null ? read : const DeleteReach();
     final parent = await _parentContext(entry, row.parentId, row.ownerId);
-    final mergeTitle = block == null && into != null
-        ? await _mergeTitle(op, entry)
+    final survivor = block == null && into != null
+        ? await _survivorView(op, entry, reach)
         : null;
-    // A survivor changed after the preview may no longer be the record the
-    // diver allowed the links to move to.
-    if (block == null && into != null) await _markReference(entry.table, into);
+    if (block == null && into != null) {
+      // A survivor changed after the preview may no longer be the record
+      // the diver allowed the links to move to.
+      await _markReference(entry.table, into);
+      (_mergedInto[(op.entity, into)] ??= {}).add(op.id);
+    }
     if (block == null) {
       markers.add(
         await _marker(
@@ -388,8 +398,9 @@ class _Pass {
       date: document['date_time'] as String? ?? parent.date,
       context: _context(entry, document),
       reach: reach,
+      fields: survivor?.fields ?? const {},
       mergeInto: block == null ? into : null,
-      mergeTitle: mergeTitle,
+      mergeTitle: survivor?.title,
       block: block,
     );
   }

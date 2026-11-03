@@ -116,6 +116,116 @@ void main() {
     },
   );
 
+  // After the first merge the survivor is on d1, so the second merge's link
+  // there goes rather than moves.
+  test('merges into one survivor are counted one after another', () async {
+    await tag('ships', 'Ships');
+    await onDive('dt9', 'd1', 'ships');
+
+    final plan = await h.preview([
+      merge('wrecks', 'wreck'),
+      merge('ships', 'wreck'),
+    ]);
+
+    expect(plan.items[1].block, isNull);
+    expect(plan.items[1].reach.moved, isEmpty);
+    expect(plan.items[1].reach.parts, {'dive_tags': 1});
+    await h.apply(plan);
+    expect(await divesWith('wreck'), {'d1', 'd3'});
+  });
+
+  // Which links a merge finds depends on links the same set changes, which
+  // a relation `set` hides until it runs.
+  test('a merge beside a change to tag links is blocked', () async {
+    final plan = await h.preview([
+      merge('wrecks', 'wreck'),
+      {
+        'op': 'update',
+        'entity': 'dives',
+        'id': 'd1',
+        'relations': {
+          'tags': {
+            'add': ['wreck'],
+          },
+        },
+      },
+    ]);
+
+    expect(plan.items.first.block!.reason, BlockReason.notPermitted);
+    expect(plan.items.first.block!.detail, contains('tags'));
+  });
+
+  test('a merge lists the survivor\'s wider scopes and the albums it '
+      'repoints', () async {
+    await db
+        .into(db.tags)
+        .insert(
+          TagsCompanion.insert(
+            id: 'reefs',
+            name: 'Reefs',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+            appliesToDives: const Value(false),
+            appliesToSites: const Value(true),
+          ),
+        );
+    await db
+        .into(db.tags)
+        .insert(
+          TagsCompanion.insert(
+            id: 'reef',
+            name: 'Reef',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+          ),
+        );
+    await db
+        .into(db.mediaSmartAlbums)
+        .insert(
+          MediaSmartAlbumsCompanion.insert(
+            id: 'al1',
+            name: 'Reef shots',
+            filterJson: '{"tagIds":["reefs"]}',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+
+    final plan = await h.preview([merge('reefs', 'reef')]);
+    final item = plan.items.single;
+
+    expect(item.fields['scopes']!.oldValue, ['dives']);
+    expect(item.fields['scopes']!.newValue, ['dives', 'sites']);
+    expect(item.fields['scopes']!.indirect, isTrue);
+    expect(item.reach.moved['media_smart_albums'], 1);
+  });
+
+  test('a merge that widens scopes the set also sets is blocked', () async {
+    await db
+        .into(db.tags)
+        .insert(
+          TagsCompanion.insert(
+            id: 'reef',
+            name: 'Reef',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+          ),
+        );
+
+    final plan = await h.preview([
+      updateOp('tags', 'reef', {
+        'scopes': ['dives'],
+      }),
+      merge('wrecks', 'reef'),
+    ]);
+
+    expect(plan.items.last.block!.reason, BlockReason.notPermitted);
+    expect(plan.items.last.block!.detail, contains('scopes'));
+  });
+
   test('a merge keeps a rename of the survivor in the same set', () async {
     await h.run([
       updateOp('tags', 'wreck', {'name': 'Shipwreck'}),
