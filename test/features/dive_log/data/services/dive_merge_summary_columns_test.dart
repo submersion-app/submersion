@@ -79,6 +79,18 @@ void main() {
     expect((await mergedRow(outcome.mergedDive.id)).otu, 75);
   });
 
+  test('a planned segment adds no CNS or OTU', () async {
+    await seedSegment('a', entry: first, cnsEnd: 12, otu: 30);
+    await seedSegment('b', entry: second, cnsEnd: 40, otu: 40);
+    await (db.update(db.dives)..where((t) => t.id.equals('b'))).write(
+      const DivesCompanion(isPlanned: Value(true)),
+    );
+    final outcome = await service.apply(['a', 'b']);
+    final row = await mergedRow(outcome.mergedDive.id);
+    expect(row.cnsEnd, 12);
+    expect(row.otu, 30);
+  });
+
   test('CNS and OTU stay empty when no segment has them', () async {
     await seedSegment('a', entry: first);
     await seedSegment('b', entry: second);

@@ -93,6 +93,15 @@ class DiveMergeService {
     return values.isEmpty ? null : values.reduce((a, b) => a + b);
   }
 
+  /// The rows whose exposure was measured: the logged segments, so a plan's
+  /// computed CNS or OTU never lands on the logged dive (issue #3924), as
+  /// `DiveMergeBuilder` keeps a plan's values out of its summaries. Every
+  /// row when all of them are plans.
+  List<Dive> _loggedDiveRows(List<Dive> orderedRows) {
+    final logged = orderedRows.where((r) => !r.isPlanned).toList();
+    return logged.isEmpty ? orderedRows : logged;
+  }
+
   /// The draft that hosts a gap's surface samples: the segment's primary
   /// series, else one with a computer, else its first series.
   _SeriesDraft? _adjacentDraft(List<_SeriesDraft> drafts, String diveId) {
@@ -232,9 +241,17 @@ class DiveMergeService {
           // is always the "first non-null" one.
           cnsStart: Value(chronologicalDiveRows.first.cnsStart),
           cnsEnd: Value(
-            _lastNonNullDiveColumn(chronologicalDiveRows, (r) => r.cnsEnd),
+            _lastNonNullDiveColumn(
+              _loggedDiveRows(chronologicalDiveRows),
+              (r) => r.cnsEnd,
+            ),
           ),
-          otu: Value(_summedDiveColumn(chronologicalDiveRows, (r) => r.otu)),
+          otu: Value(
+            _summedDiveColumn(
+              _loggedDiveRows(chronologicalDiveRows),
+              (r) => r.otu,
+            ),
+          ),
         ),
       );
 
