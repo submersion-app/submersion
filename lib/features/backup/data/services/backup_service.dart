@@ -22,6 +22,7 @@ import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/library_replace_intent.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
@@ -163,12 +164,17 @@ class BackupService {
   /// locations. Defaults to the real platform channel; injectable for tests.
   final BackupSafPort _safPort;
 
-  /// A browser's swap of its library for a backup's bytes (issue #4121).
-  final Future<void> Function(
+  /// A browser's swap of its library for a backup's bytes (issue #4121),
+  /// which returns the replaced library's path for [_retireLibrary].
+  final Future<String> Function(
     Uint8List image, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   })
   _restoreImage;
+
+  /// Moves a browser's other tabs onto the restored library and deletes the
+  /// one it replaced.
+  final Future<void> Function(String replacedPath) _retireLibrary;
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -189,11 +195,12 @@ class BackupService {
     BackupEncryptionKeyStore? backupEncryptionKeyStore,
     BuiltInSpeciesSeedVersionStore? seedVersionStore,
     String? copyAccountId,
-    Future<void> Function(
+    Future<String> Function(
       Uint8List image, {
       void Function(int currentStep, int totalSteps)? onMigrationProgress,
     })?
     restoreImage,
+    Future<void> Function(String replacedPath)? retireLibrary,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
@@ -207,7 +214,9 @@ class BackupService {
        _backupEncryptionKeyStore = backupEncryptionKeyStore,
        _seedVersionStore = seedVersionStore,
        _pinnedCopyAccountId = copyAccountId,
-       _restoreImage = restoreImage ?? DatabaseService.instance.restoreImage;
+       _restoreImage = restoreImage ?? DatabaseService.instance.restoreImage,
+       _retireLibrary =
+           retireLibrary ?? DatabaseService.instance.retireWebLibrary;
 
   // ===========================================================================
   // Backup

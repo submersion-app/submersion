@@ -16,6 +16,11 @@ extension _BackupServiceImageRestore on BackupService {
   /// for the backup a file restore takes, then the swap with the same sync
   /// re-baseline. [RestoreMode.replace] mints a pending replace.
   ///
+  /// From the swap until the other tabs are told, no tab's sync runs: one
+  /// before the re-baseline would run on the backup's stale sync state, and
+  /// one before the replace is minted would merge the cloud back in. The
+  /// other tabs reload only after that, so they read what was armed.
+  ///
   /// Throws [BackupEncryptedException] when no key here opens an encrypted
   /// backup and no [encryptionSecret] was given, so the caller can ask.
   /// [onMigrationProgress] hears an older backup's upgrade ladder.
@@ -31,10 +36,21 @@ extension _BackupServiceImageRestore on BackupService {
     final plain = await _plaintextImage(bytes, encryptionSecret);
     await _checkRestorableImage(plain);
     await safetyCopy?.call();
-    await _replaceAndRebaselineSync(
-      () => _restoreImage(plain, onMigrationProgress: onMigrationProgress),
-    );
-    await _armPostRestoreSync(mode);
+    await SyncCoordinator.joinAcrossTabs(() async {
+      late final String replaced;
+      await _replaceAndRebaselineSync(() async {
+        replaced = await _restoreImage(
+          plain,
+          onMigrationProgress: onMigrationProgress,
+        );
+      });
+      try {
+        await _armPostRestoreSync(mode);
+      } finally {
+        // The swap stands either way, so the other tabs move to it.
+        await _retireLibrary(replaced);
+      }
+    });
     _log.info('Restore from a backup in memory completed');
   }
 

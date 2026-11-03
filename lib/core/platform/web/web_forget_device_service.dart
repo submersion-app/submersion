@@ -1,4 +1,3 @@
-import 'package:submersion/core/platform/cross_tab_lock.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
@@ -46,8 +45,7 @@ class WebForgetDeviceService {
   final void Function() announce;
   final void Function() reload;
 
-  Future<void> forget() =>
-      SyncCoordinator.join(() => withCrossTabLock(kSyncCrossTabLock, _wipe));
+  Future<void> forget() => SyncCoordinator.joinAcrossTabs(_wipe);
 
   /// Every step runs whatever the ones before it did, so a step that fails
   /// (a database still busy, say) does not leave the rest in place; the one

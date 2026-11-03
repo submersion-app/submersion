@@ -3,27 +3,17 @@ import 'dart:typed_data';
 import 'package:sqlite3/wasm.dart';
 
 import 'package:submersion/core/database/background_database_connection_web.dart';
+import 'package:submersion/core/utils/keyed_load_cache.dart';
 
 /// The sqlite3.wasm drift's worker runs, loaded a second time in the page,
-/// once: a backup download, a restore's note and its checks each use it,
-/// each over its own in-memory file system. Drift holds its own file open
-/// in a worker where the page cannot read it.
-Future<WasmSqlite3>? _module;
-Uri? _moduleUri;
+/// once per asset URI: a backup download, a restore's note and its checks
+/// each use it, each over its own in-memory file system. Drift holds its own
+/// file open in a worker where the page cannot read it.
+final _module = KeyedLoadCache<Uri, WasmSqlite3>(WasmSqlite3.loadFromUrl);
 int _nextFileSystem = 0;
 
-Future<WasmSqlite3> _sqlite() {
-  final uri = BackgroundDatabaseConnection.sqlite3Uri;
-  if (_module == null || _moduleUri != uri) {
-    _moduleUri = uri;
-    _module = WasmSqlite3.loadFromUrl(uri).catchError((Object e) {
-      // A failed load is not kept: the next use tries again.
-      _module = null;
-      throw e;
-    });
-  }
-  return _module!;
-}
+Future<WasmSqlite3> _sqlite() =>
+    _module.get(BackgroundDatabaseConnection.sqlite3Uri);
 
 /// Runs [use] with [files] registered under a name of its own, and takes
 /// it away again afterwards.

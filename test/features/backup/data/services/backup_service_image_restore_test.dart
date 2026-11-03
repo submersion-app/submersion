@@ -13,6 +13,7 @@ import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -27,6 +28,7 @@ import '../../../../support/fake_keychain_storage.dart';
 const _fastKdf = KdfParams(m: 1024, t: 3, p: 1);
 const _keyId = '8f14e45f-ceea-467f-ab37-a10a8d5f4c11';
 const _passphrase = 'correct horse battery staple';
+const _livePath = '/opfs/Submersion/submersion.db';
 
 class _NoFileAdapter implements BackupDatabaseAdapter {
   @override
@@ -40,7 +42,7 @@ class _NoFileAdapter implements BackupDatabaseAdapter {
   }) => throw UnsupportedError('a browser restore swaps no file');
 
   @override
-  Future<String> get databasePath async => '/opfs/Submersion/submersion.db';
+  Future<String> get databasePath async => _livePath;
 
   @override
   AppDatabase get database => throw UnimplementedError();
@@ -50,6 +52,9 @@ class _NoFileAdapter implements BackupDatabaseAdapter {
 }
 
 class _SpySyncRepository extends SyncRepository {
+  _SpySyncRepository(this.events);
+
+  final List<String> events;
   String? preservedDeviceId;
 
   @override
@@ -63,6 +68,7 @@ class _SpySyncRepository extends SyncRepository {
     String? preserveDeviceId,
     String? preserveEpochId,
   }) async {
+    events.add('rebaseline');
     preservedDeviceId = preserveDeviceId;
   }
 }
@@ -118,12 +124,14 @@ void main() {
 
   Future<void> safetyCopy() async => events.add('safety copy');
 
+  Future<void> retire(String replaced) async => events.add('retire $replaced');
+
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     events = [];
     swapped = [];
-    repository = _SpySyncRepository();
+    repository = _SpySyncRepository(events);
     epochStore = LibraryEpochStore(prefs);
     keyStore = EncryptionKeyStore(storage: InMemoryKeychain());
     service = BackupService(
@@ -136,7 +144,9 @@ void main() {
         events.add('swap');
         swapped.add(bytes);
         onMigrationProgress?.call(3, 7);
+        return _livePath;
       },
+      retireLibrary: retire,
     );
   });
 
@@ -146,7 +156,7 @@ void main() {
 
     await service.restoreFromImage(backup, safetyCopy: safetyCopy);
 
-    expect(events, ['safety copy', 'swap']);
+    expect(events, ['safety copy', 'swap', 'rebaseline', 'retire $_livePath']);
     expect(swapped.single, backup);
     expect(repository.preservedDeviceId, 'browser-device');
     expect(epochStore.pendingReplace, isNull);
@@ -159,6 +169,43 @@ void main() {
       safetyCopy: safetyCopy,
     );
     expect(epochStore.pendingReplace, isNotNull);
+  });
+
+  test('no sync runs from the swap until sync is re-baselined, the replace '
+      'armed and the other tabs told', () async {
+    late Future<void> sync;
+    final prefs = await SharedPreferences.getInstance();
+    service = BackupService(
+      dbAdapter: _NoFileAdapter(),
+      preferences: BackupPreferences(prefs),
+      syncRepository: repository,
+      epochStore: epochStore,
+      restoreImage: (bytes, {onMigrationProgress}) async {
+        events.add('swap');
+        // A sync asked for meanwhile, by this tab's timer, say.
+        sync = SyncCoordinator.run(() async {
+          final armed = epochStore.pendingReplace != null;
+          events.add(armed ? 'sync, replace armed' : 'sync, replace unarmed');
+        });
+        return _livePath;
+      },
+      retireLibrary: retire,
+    );
+
+    await service.restoreFromImage(
+      await image(),
+      mode: RestoreMode.replace,
+      safetyCopy: safetyCopy,
+    );
+    await sync;
+
+    expect(events, [
+      'safety copy',
+      'swap',
+      'rebaseline',
+      'retire $_livePath',
+      'sync, replace armed',
+    ]);
   });
 
   test('a backup from a newer app is refused before the safety copy', () async {
