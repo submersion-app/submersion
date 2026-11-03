@@ -14,10 +14,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/mock_providers.dart';
 
-/// The by-dive view's groups for media attached to a site or a piece of
-/// equipment but to no dive (issue #4149). They used to land under Unlinked,
-/// which read as "this photo belongs to nothing" for a site map that plainly
-/// belongs to its site.
+// The by-dive view's groups for media attached to a site or a piece of
+// equipment but to no dive (issue #4149). They used to land under Unlinked,
+// which read as "this photo belongs to nothing" for a site map that plainly
+// belongs to its site.
 
 MediaLibraryEntry _entry(String id) => MediaLibraryEntry(
   item: MediaItem(
