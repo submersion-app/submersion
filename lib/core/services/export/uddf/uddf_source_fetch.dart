@@ -6,6 +6,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive_source_export.
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 
 /// Fetches the data source rows a UDDF export should carry for [diveIds].
+///
+/// [options] is unused by the default fetch, which needs the rows whatever
+/// they say; it keeps the shape of `UddfDivesExtrasFetch`, whose fetch does
+/// read them.
 typedef UddfSourceFetch =
     Future<List<DiveSourceExport>> Function(
       List<String> diveIds,
@@ -20,20 +24,16 @@ typedef UddfSourceFetch =
 /// `exportServiceProvider`, and it keeps the rule itself in one place.
 final uddfSourceFetchProvider = Provider<UddfSourceFetch>((ref) {
   return (diveIds, options) =>
-      resolveDataSources(ref.read(diveRepositoryProvider), diveIds, options);
+      resolveDataSources(ref.read(diveRepositoryProvider), diveIds);
 });
 
-/// Whether a UDDF export fetches data source rows, and the fetch itself.
+/// The data source rows a UDDF export carries for [diveIds].
 ///
-/// One rule rather than four copies of it: the settings notifier and the three
-/// page level export actions all go through here. A share with the raw data
-/// box unchecked must not pay for a query it will not use, which is the whole
-/// point of the toggle on the dives only paths.
+/// Every export needs them, with the raw data box ticked or not: they are a
+/// dive's computers, each one's own samples and its per-source values. The box
+/// decides only whether the writers add each row's original bytes (issue
+/// #4180), so the rows are fetched either way.
 Future<List<DiveSourceExport>> resolveDataSources(
   DiveRepository repository,
   List<String> diveIds,
-  UddfExportOptions options,
-) async {
-  if (!options.includeRawData) return const [];
-  return repository.getSourcesForExport(diveIds);
-}
+) => repository.getSourcesForExport(diveIds);

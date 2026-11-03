@@ -14,6 +14,7 @@ import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_rebreather_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -104,11 +105,14 @@ class UddfFullExportService {
     // synchronous functions over already-encoded strings like every other
     // builder in that file. bzip2 is slow in pure Dart, so it runs on a
     // worker isolate rather than whichever isolate called the export.
-    final sources = options.includeRawData
-        ? (dataSources ?? const <DiveSourceExport>[])
-        : const <DiveSourceExport>[];
+    // The raw data box keeps or drops only the original bytes. The rows go
+    // either way: they are the dive's computers and each one's samples, and
+    // without them a restore keeps one computer (issue #4180).
+    final sources = dataSources ?? const <DiveSourceExport>[];
     final sourcesByDive = UddfSourceAttribution.groupByDive(sources);
-    final withBytes = sources.where((s) => s.hasDump).toList(growable: false);
+    final withBytes = options.includeRawData
+        ? sources.where((s) => s.hasDump).toList(growable: false)
+        : const <DiveSourceExport>[];
     final encoded = await UddfDumpCodec.encodeAll(
       withBytes.map((s) => s.rawData!).toList(growable: false),
     );
@@ -149,8 +153,14 @@ class UddfFullExportService {
           },
         );
 
+        // The O2 cells rebreather samples name, declared under the owner
+        // (issue #4178).
+        final o2CellCount = UddfRebreatherWriters.cellCount(dives);
+
         // Diver section with owner and buddy records (UDDF standard)
-        if (owner != null || (buddies != null && buddies.isNotEmpty)) {
+        if (owner != null ||
+            o2CellCount > 0 ||
+            (buddies != null && buddies.isNotEmpty)) {
           builder.element(
             'diver',
             nest: () {
@@ -180,11 +190,26 @@ class UddfFullExportService {
                       },
                     );
                     // Export dive computers used in equipment section
-                    declaredComputerIds = UddfGearWriters.writeOwnerComputers(
+                    declaredComputerIds = UddfGearWriters.writeOwnerEquipment(
                       builder,
                       dives,
+                      o2CellCount: o2CellCount,
                     );
                     // Certifications will be added in applicationdata section
+                  },
+                );
+              } else if (o2CellCount > 0) {
+                // An id-only owner, as the dives-only export writes, so the
+                // cells still have their declaration.
+                builder.element(
+                  'owner',
+                  attributes: {'id': 'owner'},
+                  nest: () {
+                    UddfGearWriters.writeOwnerEquipment(
+                      builder,
+                      const [],
+                      o2CellCount: o2CellCount,
+                    );
                   },
                 );
               }

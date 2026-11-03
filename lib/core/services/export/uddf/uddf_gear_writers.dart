@@ -1,5 +1,6 @@
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/uddf_rebreather_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Gear elements shared by the full backup and the dives-only export.
@@ -27,14 +28,16 @@ abstract final class UddfGearWriters {
         computerRefId(model, dive.diveComputerSerial),
   };
 
-  /// The owner's `<equipment>` block declaring each computer on [dives],
-  /// and the ids it declared. Writes nothing and returns an empty set when
-  /// no dive names a computer. The caller writes the `<owner>` around it,
-  /// so a backup can carry the owner's details and a shared file need not.
-  static Set<String> writeOwnerComputers(
+  /// The owner's `<equipment>` block: each computer on [dives], then the
+  /// [o2CellCount] O2 cells rebreather samples name (issue #4178), and the
+  /// computer ids it declared. Writes nothing and returns an empty set when
+  /// it has neither. The caller writes the `<owner>` around it, so a backup
+  /// can carry the owner's details and a shared file need not.
+  static Set<String> writeOwnerEquipment(
     XmlBuilder builder,
-    Iterable<Dive> dives,
-  ) {
+    Iterable<Dive> dives, {
+    int o2CellCount = 0,
+  }) {
     final computers = <String, ({String model, String serial})>{};
     for (final dive in dives) {
       final model = dive.diveComputerModel;
@@ -44,7 +47,7 @@ abstract final class UddfGearWriters {
         serial: dive.diveComputerSerial ?? '',
       );
     }
-    if (computers.isEmpty) return const {};
+    if (computers.isEmpty && o2CellCount == 0) return const {};
     builder.element(
       'equipment',
       nest: () {
@@ -60,6 +63,7 @@ abstract final class UddfGearWriters {
             },
           );
         }
+        UddfRebreatherWriters.writeCellDeclarations(builder, o2CellCount);
       },
     );
     return computers.keys.toSet();

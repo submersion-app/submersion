@@ -411,13 +411,13 @@ void main() {
     }
 
     test('writes only the series the app draws of two recordings', () async {
-      // With the sources left out a restore has one source to give them
+      // With no sources in the file a restore has one source to give them
       // all to, and two recordings of one stretch under one source would
       // zigzag again (#2440). The legacy reading lies past the last depth
       // sample, so what the app draws goes in the block and nothing else.
-      final xml = await divesExport(
-        options: const UddfExportOptions(includeRawData: false),
-      );
+      final xml = await UddfExportService().generateDivesUddfContent([
+        dive,
+      ], diveTankPressures: pressures);
 
       final written = seriesIn(xml);
       expect(written.map(samplesOf), [
@@ -425,6 +425,23 @@ void main() {
         '30:170.25',
       ]);
       expect(written.map((s) => s.getAttribute('source')), [null, null]);
+    });
+
+    test('keeps each source of a share without the raw data', () async {
+      // Issue #4180: the box drops the bytes, not the sources, so every
+      // series still names the source that recorded it.
+      final withoutBytes = seriesIn(
+        await divesExport(
+          options: const UddfExportOptions(includeRawData: false),
+        ),
+      );
+      final withBytes = seriesIn(await divesExport());
+
+      expect(
+        withoutBytes.map((s) => s.toXmlString()),
+        withBytes.map((s) => s.toXmlString()),
+      );
+      expect(withoutBytes.map((s) => s.getAttribute('source')), contains('1'));
     });
   });
 
@@ -549,27 +566,43 @@ void main() {
       expect(written.getElement('hefraction')?.innerText, '0.45');
     });
 
-    test('names none when the sources are left out', () async {
+    test('names none when the file has no sources', () async {
       final xml = await UddfFullExportService().generateAllDataXmlForTest(
         dives: [dive],
-        dataSources: sources,
         diveGasSwitches: switches,
-        options: const UddfExportOptions(includeRawData: false),
       );
 
       expect(xml, isNot(contains('<computer>')));
     });
 
     test('the dives-only export names none without the sources', () async {
-      final xml = await UddfExportService().generateDivesUddfContent(
-        [dive],
-        dataSources: sources,
-        extras: UddfDivesExtras(diveGasSwitches: switches),
-        options: const UddfExportOptions(includeRawData: false),
-      );
+      final xml = await UddfExportService().generateDivesUddfContent([
+        dive,
+      ], extras: UddfDivesExtras(diveGasSwitches: switches));
 
       expect(xml, contains('<gasswitch>'));
       expect(xml, isNot(contains('<computer>')));
+    });
+
+    // Issue #4180: leaving out the raw data keeps the sources, so each
+    // switch still names the computer that recorded it.
+    test('names the computers when only the raw data is left out', () async {
+      const withoutBytes = UddfExportOptions(includeRawData: false);
+      final backupXml = await UddfFullExportService().generateAllDataXmlForTest(
+        dives: [dive],
+        dataSources: sources,
+        diveGasSwitches: switches,
+        options: withoutBytes,
+      );
+      final divesXml = await UddfExportService().generateDivesUddfContent(
+        [dive],
+        dataSources: sources,
+        extras: UddfDivesExtras(diveGasSwitches: switches),
+        options: withoutBytes,
+      );
+
+      expect(backupXml, contains('<computer>'));
+      expect(divesXml, contains('<computer>'));
     });
   });
 

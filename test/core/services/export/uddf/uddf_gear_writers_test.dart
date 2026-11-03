@@ -45,10 +45,10 @@ void main() {
     );
   });
 
-  test('writeOwnerComputers declares each computer and returns the ids', () {
+  test('writeOwnerEquipment declares each computer and returns the ids', () {
     late Set<String> declared;
     final root = _write(
-      (b) => declared = UddfGearWriters.writeOwnerComputers(b, [
+      (b) => declared = UddfGearWriters.writeOwnerEquipment(b, [
         _dive('a', model: 'Perdix AI', serial: 'SN1'),
         _dive('b', model: 'Teric'),
       ]),
@@ -71,10 +71,10 @@ void main() {
     expect(declared, {'dc_Perdix_AI_SN1', 'dc_Teric_unknown'});
   });
 
-  test('writeOwnerComputers writes nothing without a computer', () {
+  test('writeOwnerEquipment writes nothing without a computer', () {
     late Set<String> declared;
     final root = _write(
-      (b) => declared = UddfGearWriters.writeOwnerComputers(b, [_dive('a')]),
+      (b) => declared = UddfGearWriters.writeOwnerEquipment(b, [_dive('a')]),
     );
     expect(root.childElements, isEmpty);
     expect(declared, isEmpty);

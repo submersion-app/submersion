@@ -364,20 +364,41 @@ class UddfImportParsers {
   static Map<int, double> parseO2SensorReadings(
     XmlElement waypoint,
     List<String> sensorOrder,
-  ) {
-    final readings = <int, double>{};
-    final unresolved = <double>[];
+  ) => _readingsByCell(
+    [...waypoint.findElements('measuredpo2'), ...waypoint.findElements('ppo2')],
+    sensorOrder,
+    (element) => parsePartialPressureBar(element.innerText),
+  );
 
-    for (final element in [
-      ...waypoint.findElements('measuredpo2'),
-      ...waypoint.findElements('ppo2'),
-    ]) {
+  /// Reads per-cell millivolt readings from a waypoint, indexed by cell.
+  ///
+  /// UDDF has no element for them. Submersion writes each in a
+  /// `<measuredmillivolts ref>` naming the same cell as its `<measuredpo2>`
+  /// (issue #4178), so they resolve against the same declarations.
+  static Map<int, int> parseO2SensorMillivolts(
+    XmlElement waypoint,
+    List<String> sensorOrder,
+  ) => _readingsByCell(
+    waypoint.findElements('measuredmillivolts'),
+    sensorOrder,
+    (element) => parseUddfInt(element.innerText),
+  );
+
+  static Map<int, T> _readingsByCell<T>(
+    Iterable<XmlElement> elements,
+    List<String> sensorOrder,
+    T? Function(XmlElement element) parse,
+  ) {
+    final readings = <int, T>{};
+    final unresolved = <T>[];
+
+    for (final element in elements) {
       final ref = element.getAttribute('ref')?.trim();
       // A bare <ppo2> with no ref is our own exporter's aggregate value,
       // not a cell reading.
       if (ref == null || ref.isEmpty) continue;
 
-      final value = parsePartialPressureBar(element.innerText);
+      final value = parse(element);
       if (value == null) continue;
 
       final index = sensorOrder.indexOf(ref);

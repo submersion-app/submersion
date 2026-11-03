@@ -4,9 +4,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// One parsed profile sample as a [DiveProfilePoint], moved [offsetSeconds]
 /// along the dive's timeline (a further computer whose clock started later).
 ///
-/// Includes setpoint and ppO2 sensor readings. UDDF carries no millivolt
-/// field; those arrive only via the libdivecomputer path that shares this
-/// map (issue #810).
+/// Includes setpoint and ppO2 sensor readings, and each cell's millivolts:
+/// UDDF has no field for them, so they arrive from Submersion's own UDDF
+/// (issue #4178) and the libdivecomputer path that shares this map (#810).
 DiveProfilePoint profilePointFromImport(
   Map<String, dynamic> p, {
   int offsetSeconds = 0,
