@@ -52305,10 +52305,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_cleanup => 'تنظيف';
 
   @override
-  String get diveLog_profileEditor_detect => 'كشف';
+  String get diveLog_profileEditor_detectOutliers => 'كشف القيم المتطرفة';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'إزالة الكل';
+  String get diveLog_profileEditor_removeOutliers => 'إزالة القيم المتطرفة';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {

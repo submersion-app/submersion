@@ -51519,10 +51519,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_profileEditor_cleanup => 'Bereinigung';
 
   @override
-  String get diveLog_profileEditor_detect => 'Erkennen';
+  String get diveLog_profileEditor_detectOutliers => 'Ausreißer erkennen';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Alle entfernen';
+  String get diveLog_profileEditor_removeOutliers => 'Ausreißer entfernen';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {

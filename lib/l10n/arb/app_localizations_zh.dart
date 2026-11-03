@@ -48448,10 +48448,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_cleanup => '清理';
 
   @override
-  String get diveLog_profileEditor_detect => '检测';
+  String get diveLog_profileEditor_detectOutliers => '检测离群值';
 
   @override
-  String get diveLog_profileEditor_removeAll => '全部移除';
+  String get diveLog_profileEditor_removeOutliers => '移除离群值';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {

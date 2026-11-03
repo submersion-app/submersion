@@ -51309,10 +51309,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_profileEditor_cleanup => 'Opschoning';
 
   @override
-  String get diveLog_profileEditor_detect => 'Detecteren';
+  String get diveLog_profileEditor_detectOutliers => 'Uitschieters detecteren';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Alles verwijderen';
+  String get diveLog_profileEditor_removeOutliers => 'Uitschieters verwijderen';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {

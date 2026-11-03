@@ -50556,10 +50556,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_cleanup => 'ניקוי';
 
   @override
-  String get diveLog_profileEditor_detect => 'זיהוי';
+  String get diveLog_profileEditor_detectOutliers => 'זיהוי חריגים';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'הסרת הכל';
+  String get diveLog_profileEditor_removeOutliers => 'הסרת חריגים';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {

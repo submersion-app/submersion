@@ -81708,17 +81708,17 @@ abstract class AppLocalizations {
   /// **'Cleanup'**
   String get diveLog_profileEditor_cleanup;
 
-  /// No description provided for @diveLog_profileEditor_detect.
+  /// No description provided for @diveLog_profileEditor_detectOutliers.
   ///
   /// In en, this message translates to:
-  /// **'Detect'**
-  String get diveLog_profileEditor_detect;
+  /// **'Detect Outliers'**
+  String get diveLog_profileEditor_detectOutliers;
 
-  /// No description provided for @diveLog_profileEditor_removeAll.
+  /// No description provided for @diveLog_profileEditor_removeOutliers.
   ///
   /// In en, this message translates to:
-  /// **'Remove All'**
-  String get diveLog_profileEditor_removeAll;
+  /// **'Remove Outliers'**
+  String get diveLog_profileEditor_removeOutliers;
 
   /// Number of suspect depth samples the profile editor found.
   ///

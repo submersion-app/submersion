@@ -51349,10 +51349,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_profileEditor_cleanup => 'Takarítás';
 
   @override
-  String get diveLog_profileEditor_detect => 'Keresés';
+  String get diveLog_profileEditor_detectOutliers => 'Szórványértékek keresése';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Összes eltávolítása';
+  String get diveLog_profileEditor_removeOutliers =>
+      'Szórványértékek eltávolítása';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {

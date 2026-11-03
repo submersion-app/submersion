@@ -234,7 +234,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
             FilledButton.tonalIcon(
               onPressed: () => widget.notifier.detectOutliers(),
               icon: const Icon(Icons.search, size: 18),
-              label: Text(context.l10n.diveLog_profileEditor_detect),
+              label: Text(context.l10n.diveLog_profileEditor_detectOutliers),
             ),
             const SizedBox(width: 8),
             FilledButton.icon(
@@ -242,7 +242,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
                   ? () => widget.notifier.removeAllOutliers()
                   : null,
               icon: const Icon(Icons.cleaning_services, size: 18),
-              label: Text(context.l10n.diveLog_profileEditor_removeAll),
+              label: Text(context.l10n.diveLog_profileEditor_removeOutliers),
             ),
           ],
         ),

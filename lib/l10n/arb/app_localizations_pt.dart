@@ -51635,10 +51635,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_profileEditor_cleanup => 'Limpeza';
 
   @override
-  String get diveLog_profileEditor_detect => 'Detectar';
+  String get diveLog_profileEditor_detectOutliers =>
+      'Detectar valores discrepantes';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Remover todas';
+  String get diveLog_profileEditor_removeOutliers =>
+      'Remover valores discrepantes';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
