@@ -41,7 +41,7 @@ seams".
 -->
 
 - [ ] Nothing device-only: no hardware, local files, background work, new plugin, media write or database swap
-- [ ] Gated on a `DeviceCapabilities` field that is false in `DeviceCapabilities.web`; a screen of its own is in `webUnavailableRoutePrefixes`
+- [ ] Gated on a `DeviceCapabilities` field that is false in `DeviceCapabilities.web`; a screen of its own is in `webUnavailableRoutePrefixes`, or a `?selected=` section in `webUnavailableSections`
 - [ ] No plugin call without a web implementation, and no `dart:io` file or `path_provider` use that a browser reaches
 - [ ] Media writes check `mediaAttach`
 - [ ] A swap or wipe of the database runs under `SyncCoordinator.joinAcrossTabs`
