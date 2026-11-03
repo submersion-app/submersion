@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
@@ -42,12 +43,22 @@ ProviderContainer _container(List<Override> overrides) {
   return c;
 }
 
+/// Every input the offers read, the device's capabilities included: left to
+/// the host, iCloud and Google Drive are there on macOS and missing on the
+/// Linux runners, so these tests passed here and failed in CI (#4182).
 List<Override> _gates({
   bool apple = true,
   ICloudAvailability icloud = ICloudAvailability.available,
   bool drive = true,
   bool dropbox = true,
 }) => [
+  deviceCapabilitiesProvider.overrideWithValue(
+    DeviceCapabilities.web.copyWith(
+      cloudICloud: true,
+      cloudGoogleDrive: true,
+      cloudGit: true,
+    ),
+  ),
   isApplePlatformProvider.overrideWithValue(apple),
   iCloudAvailabilityProvider.overrideWith((ref) async => icloud),
   googleDriveAvailableProvider.overrideWith((ref) async => drive),

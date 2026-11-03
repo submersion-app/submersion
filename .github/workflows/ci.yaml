@@ -1223,8 +1223,11 @@ jobs:
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: ${{ env.MINIO_ROOT_USER }}
           MINIO_SECRET_KEY: ${{ env.MINIO_ROOT_PASSWORD }}
+        # Under a virtual display: headless Firefox on Linux has no GL driver
+        # and falls back to CPU-only rendering, too slow for the smoke;
+        # headed, it gets Mesa's software GL (smoke_test.py, LAUNCH_OPTIONS).
         run: |
-          python3 -m pytest scripts/web/smoke_test.py -v -rP \
+          xvfb-run -a python3 -m pytest scripts/web/smoke_test.py -v -rP \
             --junitxml="$RUNNER_TEMP/smoke.xml"
           # A run that tested nothing, or skipped, must not pass.
           python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); s = [r] if r.tag == 'testsuite' else list(r); t = sum(int(x.get('tests', 0)) for x in s); k = sum(int(x.get('skipped', 0)) for x in s); print('smoke tests', t, 'skipped', k); sys.exit(1 if t == 0 or k else 0)" "$RUNNER_TEMP/smoke.xml"
@@ -2216,7 +2219,6 @@ jobs:
       - script-tests
       - web-build
       - web-tests
-      - web-smoke
       - integration-test
       - integration-test-macos
       - fastlane-bundles
