@@ -30,6 +30,7 @@ class NearbyPairingHandle implements NearbyPairingOffer {
     required this.transportId,
     required this.dialled,
     required this.initiatorKey,
+    required this.offeredAt,
   });
 
   final NearbyLinkManager _manager;
@@ -42,6 +43,10 @@ class NearbyPairingHandle implements NearbyPairingOffer {
   /// The pairing nonce of the device that connected; with two pairings
   /// between the same two devices, the one started by the lower nonce stays.
   final String initiatorKey;
+
+  /// When the pairing reached this device: dialling pauses only so long
+  /// for it, since a card whose peer already left stays up until answered.
+  final DateTime offeredAt;
 
   /// This diver tapped "Same code" and the other has not answered yet.
   bool _confirming = false;
@@ -96,6 +101,7 @@ extension _NearbyLinkPairing on NearbyLinkManager {
             transportId: transportId,
             dialled: true,
             initiatorKey: _pairingNonce,
+            offeredAt: _now(),
           ),
         );
       } on Object catch (e) {
@@ -118,6 +124,10 @@ extension _NearbyLinkPairing on NearbyLinkManager {
   /// shown: then the one the lower pairing nonce started stays, on both.
   Future<void> _offer(NearbyPairingHandle handle) async {
     if (!_pairingMode || _disposed) {
+      NearbyLinkManager._log.info(
+        'Nearby pairing with ${handle.transportId} turned away: '
+        '${_disposed ? 'the link was disposed' : 'pairing mode ended'} first',
+      );
       await handle._pairing.reject();
       return;
     }
@@ -135,12 +145,20 @@ extension _NearbyLinkPairing on NearbyLinkManager {
         _pending.remove(other);
         await other._pairing.reject();
       } else {
+        NearbyLinkManager._log.info(
+          'Nearby pairing with ${handle.transportId} dropped: the same '
+          'device is already offered',
+        );
         await handle._pairing.reject();
         return;
       }
     }
     _pending.add(handle);
     _emitPending();
+    _dialPauseEnd?.cancel();
+    _dialPauseEnd = Timer(pairingDialPause, () {
+      if (_pairingMode && !_disposed) unawaited(refresh());
+    });
   }
 
   Future<void> _confirm(NearbyPairingHandle handle) async {
@@ -148,6 +166,16 @@ extension _NearbyLinkPairing on NearbyLinkManager {
     handle._confirming = true;
     try {
       channel = await handle._pairing.confirm();
+    } on Object catch (e) {
+      NearbyLinkManager._log.info(
+        'Nearby pairing with ${handle.transportId} did not complete: $e',
+      );
+      // Dialling the other devices nearby waited while the code was on
+      // screen. This peer is not dialled again: a redial under its unchanged
+      // nonce would be dropped as a twin, and its diver reopening pairing
+      // makes a new attempt.
+      unawaited(refresh());
+      rethrow;
     } finally {
       _pending.remove(handle);
       _emitPending();
@@ -168,5 +196,8 @@ extension _NearbyLinkPairing on NearbyLinkManager {
     _pending.remove(handle);
     _emitPending();
     await handle._pairing.reject();
+    // Dialling the other devices nearby waited while the code was on
+    // screen; the one this diver turned away stays tried.
+    if (_pairingMode) unawaited(refresh());
   }
 }
