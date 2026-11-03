@@ -311,10 +311,7 @@ class DiveRepository {
   /// profile span step of `measuredRuntimeSecondsSql`. A sync pull or a profile
   /// edit writes these without touching `dives`, so anything reporting a
   /// runtime ticks on them too (issue #3304).
-  static const Set<String> measuredRuntimeTickTables = {
-    'dive_profile_series',
-    'dive_data_sources',
-  };
+  static const Set<String> measuredRuntimeTickTables = measuredRuntimeTables;
 
   /// Fires when a dive's measured runtime can change. Takes the place of
   /// [watchDivesChanges] for a provider that reports a runtime: one tick over

@@ -109,6 +109,15 @@ String measuredRuntimeSecondsSql(String alias) =>
     '${timestampRuntimeSecondsSql(alias)}, '
     '${profileSpanSecondsSql(alias)})';
 
+/// What [measuredRuntimeSecondsSql] reads beyond the dive row, by SQL name:
+/// the tables a query or a tick over a measured runtime has to follow. The
+/// series history is left out because it is not a drift table, and it is
+/// only written alongside a `dive_profile_series` row.
+const Set<String> measuredRuntimeTables = {
+  'dive_profile_series',
+  'dive_data_sources',
+};
+
 /// The whole `Dive.effectiveRuntime` chain as one scalar expression, in
 /// seconds, NULL only for a dive that carries no duration in any form: the
 /// [measuredRuntimeSecondsSql] steps, then `bottom_time`. An estimate for a

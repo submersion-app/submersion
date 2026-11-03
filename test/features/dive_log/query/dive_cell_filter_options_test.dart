@@ -118,6 +118,30 @@ void main() {
     expect((o.first.rule as ConditionNode).value, const NumberValue(47, null));
   });
 
+  // The `runtime` field reads the measured runtime, as the cell shows it
+  // (issue #3304), so a runtime from entry and exit offers its rule too.
+  test('a runtime measured from entry and exit offers its rule', () {
+    final o = options(
+      DiveField.runtime,
+      base.copyWith(
+        entryTime: DateTime.utc(2026, 4, 1, 9),
+        exitTime: DateTime.utc(2026, 4, 1, 9, 50, 30),
+      ),
+    );
+    expect((o.first.rule as ConditionNode).value, const NumberValue(50, null));
+  });
+
+  test('a bottom time alone leaves the runtime empty', () {
+    final o = options(
+      DiveField.runtime,
+      base.copyWith(bottomTime: const Duration(minutes: 40)),
+    );
+    expect(o.map((x) => x.kind), [
+      CellFilterKind.noValue,
+      CellFilterKind.anyValue,
+    ]);
+  });
+
   test('surface interval reads the computed map', () {
     final o = options(
       DiveField.surfaceInterval,
@@ -297,14 +321,6 @@ void main() {
   });
 
   group('derived display offers no items', () {
-    test('runtime derived from timestamps', () {
-      final d = base.copyWith(
-        entryTime: DateTime.utc(2026, 4, 1, 9),
-        exitTime: DateTime.utc(2026, 4, 1, 9, 50),
-      );
-      expect(options(DiveField.runtime, d), isEmpty);
-    });
-
     test('a dive whose only participant is a guide', () {
       // The cell lists non-guide buddies ("--"), but `buddies` counts every
       // link, so "no buddy" would drop this dive.

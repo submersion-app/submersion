@@ -214,12 +214,8 @@ final String kDiveSacSql =
     '(CASE WHEN ${measuredRuntimeSecondsSql('{r}')} > 0 '
     'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';
 
-/// What the profile span step of `measuredRuntimeSecondsSql` reads beyond the
-/// dive row (issue #3537).
-const List<String> _measuredRuntimeTables = [
-  'dive_profile_series',
-  'dive_data_sources',
-];
+/// [measuredRuntimeTables] as a field's table list (issue #3537).
+const List<String> _measuredRuntimeTables = [...measuredRuntimeTables];
 
 final QueryEntity diveQueryEntity = QueryEntity(
   subject: QuerySubject.dives,

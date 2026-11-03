@@ -6,7 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -320,9 +320,7 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   ref.invalidateSelfWhen(diveRepository.watchDivesChangesWithBuddyLinks());
   // The day rows' runtime, to match the trip total above them. Not the whole
   // runtime tick: the line above already follows the dive row.
-  ref.invalidateSelfWhen(
-    diveRepository.watchTables(DiveRepository.measuredRuntimeTickTables),
-  );
+  ref.invalidateSelfWhen(diveRepository.watchTables(measuredRuntimeTables));
   // And a side trip linked or unlinked (issue #3658).
   ref.invalidateSelfWhen(tripRepository.watchTripsChanges());
 
