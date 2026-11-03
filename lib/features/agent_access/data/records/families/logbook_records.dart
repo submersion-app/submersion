@@ -13,6 +13,7 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/media/domain/entities/media_smart_album.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
@@ -87,6 +88,16 @@ List<RecordEntry> logbookEntries(RecordRepositories r) => [
     load: (ids, _) => loadEach(ids, r.divePlans.getPlan),
     document: divePlanDocument,
     summaryKeys: const ['name', 'mode', 'start_date_time', 'linked_dive_id'],
+  ),
+  // A saved repetitive series, listed for every profile as its plans are.
+  RecordEntity<StoredSeries>(
+    name: 'dive_plan_series',
+    table: 'dive_plan_series',
+    scope: everyone(),
+    orderBy: 'r0.updated_at DESC',
+    load: (ids, _) => loadEach(ids, r.divePlanSeries.getSeries),
+    document: divePlanSeriesDocument,
+    summaryKeys: const ['name', 'followed_dive_id'],
   ),
   RecordEntity<Document>(
     name: 'documents',

@@ -531,6 +531,7 @@ lib/features/notifications/data/repositories/scheduled_notification_repository.d
 lib/features/notifications/data/repositories/scheduled_notification_repository.dart:deleteForEquipment
 lib/features/notifications/data/repositories/scheduled_notification_repository.dart:recordScheduled
 lib/features/planner/data/repositories/dive_plan_dive_links.dart:clearPlanLinksToDiverRows
+lib/features/planner/data/repositories/dive_plan_dive_links.dart:clearPlanLinksToDiverSeries
 lib/features/planner/data/repositories/dive_plan_dive_links.dart:clearPlanLinksToDives
 lib/features/planner/data/repositories/dive_plan_dive_links.dart:clearPlanLinksToSites
 lib/features/planner/data/repositories/dive_plan_mission_store.dart:deleteAll
@@ -542,6 +543,11 @@ lib/features/planner/data/repositories/dive_plan_repository.dart:duplicatePlan
 lib/features/planner/data/repositories/dive_plan_repository.dart:linkPlanToDive
 lib/features/planner/data/repositories/dive_plan_repository.dart:savePlan
 lib/features/planner/data/repositories/dive_plan_repository.dart:unlinkPlan
+lib/features/planner/data/repositories/dive_plan_series_repository.dart:deleteSeries
+lib/features/planner/data/repositories/dive_plan_series_repository.dart:duplicateSeries
+lib/features/planner/data/repositories/dive_plan_series_repository.dart:renameSeries
+lib/features/planner/data/repositories/dive_plan_series_repository.dart:restoreSeries
+lib/features/planner/data/repositories/dive_plan_series_repository.dart:saveSeries
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:deleteSession
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:linkToDive
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:unlinkFromDive

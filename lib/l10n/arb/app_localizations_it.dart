@@ -21070,16 +21070,34 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minuti in più';
 
   @override
+  String get plannerSeries_unsaved_title => 'Salvare questa serie?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Questa serie ha modifiche non salvate.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Scarta';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'Salvare questa immersione?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Questa immersione ha modifiche non salvate.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count immersioni';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Riempi $tank';
   }
 
   @override
   String get plannerSeries_fillAll => 'Riempi tutte le bombole';
-
-  @override
-  String get plannerSeries_saveUnavailable =>
-      'Non è ancora possibile salvare una serie di immersioni';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -24631,6 +24649,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Modalità di respirazione per questo segmento';
 
   @override
+  String get settings_conflict_field_diveName => 'Nome dell\'immersione';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Operatore subacqueo';
 
   @override
@@ -25602,6 +25623,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_section => 'Sezione';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Posizione nella serie';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Tipo di manutenzione';
 
   @override
@@ -25801,6 +25825,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'File o dispositivo di origine';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Ripresa dalla bombola';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Numero della bombola nel logbook di origine';
 
@@ -25829,6 +25856,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Profondità iniziale';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Pressione iniziale impostata a mano';
 
   @override
   String get settings_conflict_field_startTime => 'Ora di inizio';
@@ -26704,6 +26735,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Piano di immersione';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Serie di immersioni';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Ruolo nell\'immersione';
 
   @override
@@ -26730,6 +26764,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Rilievo';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Immersione precedente';
 
   @override
   String get settings_conflict_ref_importedFile => 'File importato';

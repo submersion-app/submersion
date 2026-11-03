@@ -134,5 +134,8 @@ extension TableBackstopsFromV217 on AppDatabase {
     // trip_id on trip_checklist_sections/trip_checklist_items (idempotent;
     // issue #3356).
     await _assertAndBackfillTripChecklists();
+
+    // v341 backstop: the dive_plan_series table (issue #3565; idempotent).
+    await _assertDivePlanSeriesTable();
   }
 }

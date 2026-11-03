@@ -17,6 +17,10 @@ import 'package:submersion/features/nav_track/data/repositories/nav_track_reposi
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
+import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
@@ -280,6 +284,44 @@ void main() {
         expect(await h.one('dive_plans', 'b-plan'), isNotNull);
       },
     );
+
+    test('a saved series lists its dives in order', () async {
+      await DivePlanSeriesRepository().saveSeries(
+        StoredSeries(
+          id: 'series',
+          name: 'Reef day',
+          diverId: kDiverB,
+          dives: [
+            StoredSeriesDive(
+              plan: domain.DivePlan(
+                id: 'dive-a',
+                name: 'Reef day',
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+              name: 'Wreck',
+            ),
+            StoredSeriesDive(
+              plan: domain.DivePlan(
+                id: 'dive-b',
+                name: 'Reef day',
+                surfaceInterval: const Duration(hours: 1),
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      // Read by another profile, as the planner lists it.
+      final doc = (await h.one('dive_plan_series', 'series'))!;
+      expect(doc['name'], 'Reef day');
+      final dives = (doc['dives']! as List).cast<Map<String, Object?>>();
+      expect(dives.map((d) => d['plan_id']), ['dive-a', 'dive-b']);
+      expect(dives.first['name'], 'Wreck');
+      expect(dives.last['surface_interval_s'], 3600);
+    });
 
     test(
       'ownerless plans read for every profile, as the app lists them',

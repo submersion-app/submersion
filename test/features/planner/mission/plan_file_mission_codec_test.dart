@@ -86,8 +86,9 @@ DpvMission _portable(DpvMission m) => m.copyWith(
 );
 
 void main() {
-  test('the format is at version 3', () {
-    expect(subplanVersion, 3);
+  test('a single plan with a mission is written as version 3', () {
+    final json = jsonDecode(planToSubplanJson(_plan(mission: _mission)));
+    expect((json as Map)['version'], 3);
   });
 
   test('a mission survives export and import under fresh ids', () {

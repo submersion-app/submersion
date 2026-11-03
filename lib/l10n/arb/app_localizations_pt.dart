@@ -21070,16 +21070,34 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => 'Mais 15 minutos';
 
   @override
+  String get plannerSeries_unsaved_title => 'Guardar esta série?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Esta série tem alterações por guardar.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Descartar';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'Guardar este mergulho?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Este mergulho tem alterações por guardar.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count mergulhos';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Encher $tank';
   }
 
   @override
   String get plannerSeries_fillAll => 'Encher todas as garrafas';
-
-  @override
-  String get plannerSeries_saveUnavailable =>
-      'Ainda não é possível guardar uma série de mergulhos';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -24617,6 +24635,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Modo de respiração neste trecho';
 
   @override
+  String get settings_conflict_field_diveName => 'Nome do mergulho';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Operadora de mergulho';
 
   @override
@@ -25577,6 +25598,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_section => 'Seção';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Posição na série';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Tipo de manutenção';
 
   @override
@@ -25775,6 +25799,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Arquivo ou dispositivo de origem';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Transportada da garrafa';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Número do cilindro no registro de origem';
 
@@ -25802,6 +25829,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Profundidade inicial';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Pressão inicial definida manualmente';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de início';
@@ -26678,6 +26709,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Plano de mergulho';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Série de mergulhos';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Função no mergulho';
 
   @override
@@ -26704,6 +26738,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Constatação';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Mergulho anterior';
 
   @override
   String get settings_conflict_ref_importedFile => 'Arquivo importado';

@@ -155,11 +155,16 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'setpoint_bar': 'Per-segment CCR setpoint override in bar',
     'type': 'SegmentType enum name',
   },
+  'dive_plan_series': {
+    'followed_dive_id': 'The logged dive the series follows on from, whose tissues and tanks seed its first plan',
+  },
   'dive_plan_tanks': {
     'deco_switch_depth': 'MOD set by hand in meters, for any role',
     'is_travel_gas': 'Whether this cylinder also doubles as travel gas, breathed on the descent before switching to its primary role\'s gas',
     'material': 'TankMaterial enum name',
     'role': 'TankRole enum name',
+    'source_tank_id': 'The tank this one carries over from: a logged dive\'s tank or an earlier plan\'s tank in the series',
+    'start_pressure_pinned': 'True = startPressure was set by hand and is not recomputed from sourceTankId\'s end pressure',
   },
   'dive_plans': {
     'air_break_o2_seconds': 'Air-break policy',
@@ -167,6 +172,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'ascent_rate': 'Null = use the diver\'s Settings default',
     'descent_rate': 'Null = use the diver\'s Settings default',
     'deviation_depth_delta': 'Contingency config (Phase 5 UI)',
+    'dive_name': 'The dive\'s own name within its series ("Dive 2", "Night dive")',
     'final_ascent_rate': 'Ascent rate from the last stop to the surface, m per minute',
     'gas_switch_stop_seconds': 'Null = use the diver\'s Settings default',
     'gf_low': 'Null = use the diver\'s Settings default',
@@ -187,6 +193,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'sac_factor': 'Gas options (Subsurface parity)',
     'sac_stressed': 'Null = derive from sacBottom and the diver\'s Settings stressed-SAC factor',
     'salinity_ppt': 'Custom salinity in ppt',
+    'series_id': 'The repetitive series this plan is one dive of',
+    'series_index': 'This dive\'s 0-based position in its series',
     'setpoint_low': 'CCR setpoints (Phase 4 UI',
     'shallow_ascent_rate': 'Ascent rate between shallow (9 m and above) stops, m per minute',
     'source_dive_id': 'Tissue-seeding source dive (repetitive planning, Phase 6)',

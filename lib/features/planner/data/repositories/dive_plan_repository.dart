@@ -681,6 +681,9 @@ class DivePlanRepository {
         linkedDiveDate: diveMillis == null
             ? null
             : DateTime.fromMillisecondsSinceEpoch(diveMillis, isUtc: true),
+        seriesId: r.seriesId,
+        seriesIndex: r.seriesIndex,
+        diveName: r.diveName,
       );
     }).toList();
   }

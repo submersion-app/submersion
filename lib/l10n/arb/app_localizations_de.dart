@@ -21044,16 +21044,34 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 Minuten mehr';
 
   @override
+  String get plannerSeries_unsaved_title => 'Diese Serie speichern?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Diese Serie hat ungespeicherte Änderungen.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Verwerfen';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'Diesen Tauchgang speichern?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Dieser Tauchgang hat ungespeicherte Änderungen.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count Tauchgänge';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank füllen';
   }
 
   @override
   String get plannerSeries_fillAll => 'Alle Flaschen füllen';
-
-  @override
-  String get plannerSeries_saveUnavailable =>
-      'Eine Tauchgangsserie kann noch nicht gespeichert werden';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -24580,6 +24598,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Atemmodus für diesen Abschnitt';
 
   @override
+  String get settings_conflict_field_diveName => 'Name des Tauchgangs';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Tauchanbieter';
 
   @override
@@ -25539,6 +25560,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_section => 'Abschnitt';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Position in der Serie';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Wartungsart';
 
   @override
@@ -25734,6 +25758,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Quelldatei oder Gerät';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Übernommen von Flasche';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Flaschennummer im Quell-Logbuch';
 
@@ -25761,6 +25788,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Anfangstiefe';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Startdruck manuell festgelegt';
 
   @override
   String get settings_conflict_field_startTime => 'Startzeit';
@@ -26633,6 +26664,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Tauchplan';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Tauchgangsserie';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Tauchrolle';
 
   @override
@@ -26658,6 +26692,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Befund';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Vorangehender Tauchgang';
 
   @override
   String get settings_conflict_ref_importedFile => 'Importierte Datei';

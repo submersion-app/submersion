@@ -107,7 +107,7 @@ available wherever `database.dart` is imported:
 | `before_open.dart` | The backstops that run on every open |
 
 ```dart
-// lib/core/database/migrations/ladder/rungs_v231_onward.dart
+// lib/core/database/migrations/ladder/rungs_v231_to_v339.dart
 if (from < 240) {
   await _assertProfileEventsDiveIdIndex();
 }

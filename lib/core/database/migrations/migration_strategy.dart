@@ -95,6 +95,7 @@ extension AppDatabaseMigrationStrategy on AppDatabase {
     await _rungsV72ToV95(m, from, reportProgress);
     await _rungsV96ToV148(m, from, reportProgress);
     await _rungsV149ToV230(m, from, reportProgress);
-    await _rungsFromV231(m, from, reportProgress);
+    await _rungsV231ToV339(m, from, reportProgress);
+    await _rungsFromV340(m, from, reportProgress);
   }
 }

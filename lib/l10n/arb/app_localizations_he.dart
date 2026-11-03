@@ -20607,15 +20607,33 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 דקות יותר';
 
   @override
+  String get plannerSeries_unsaved_title => 'לשמור את הסדרה?';
+
+  @override
+  String get plannerSeries_unsaved_body => 'בסדרה זו יש שינויים שלא נשמרו.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'ביטול שינויים';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => 'לשמור את הצלילה?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'בצלילה זו יש שינויים שלא נשמרו.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count צלילות';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'מילוי $tank';
   }
 
   @override
   String get plannerSeries_fillAll => 'מילוי כל המכלים';
-
-  @override
-  String get plannerSeries_saveUnavailable => 'עדיין לא ניתן לשמור סדרת צלילות';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -24040,6 +24058,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_diveModeOverride => 'מצב נשימה בקטע הזה';
 
   @override
+  String get settings_conflict_field_diveName => 'שם הצלילה';
+
+  @override
   String get settings_conflict_field_diveOperator => 'מפעיל צלילה';
 
   @override
@@ -24952,6 +24973,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_section => 'מקטע';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'מיקום בסדרה';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'סוג הטיפול';
 
   @override
@@ -25133,6 +25157,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'קובץ או מכשיר המקור';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'הועבר מהמיכל';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'מספר הבלון ביומן המקור';
 
@@ -25160,6 +25187,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'עומק התחלה';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'לחץ התחלתי נקבע ידנית';
 
   @override
   String get settings_conflict_field_startTime => 'שעת התחלה';
@@ -26014,6 +26045,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'תוכנית צלילה';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'סדרת צלילות';
+
+  @override
   String get settings_conflict_ref_diveRole => 'תפקיד בצלילה';
 
   @override
@@ -26039,6 +26073,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'ממצא';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'צלילה קודמת';
 
   @override
   String get settings_conflict_ref_importedFile => 'קובץ מיובא';

@@ -33543,6 +33543,42 @@ abstract class AppLocalizations {
   /// **'15 minutes more'**
   String get plannerSeries_surfaceInterval_increase;
 
+  /// No description provided for @plannerSeries_unsaved_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this series?'**
+  String get plannerSeries_unsaved_title;
+
+  /// No description provided for @plannerSeries_unsaved_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This series has changes that haven\'t been saved.'**
+  String get plannerSeries_unsaved_body;
+
+  /// No description provided for @plannerSeries_unsaved_discard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get plannerSeries_unsaved_discard;
+
+  /// No description provided for @plannerSeries_unsaved_titleDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this dive?'**
+  String get plannerSeries_unsaved_titleDive;
+
+  /// No description provided for @plannerSeries_unsaved_bodyDive.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive has changes that haven\'t been saved.'**
+  String get plannerSeries_unsaved_bodyDive;
+
+  /// How many dives a saved series has, in the saved plans list
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives'**
+  String plannerSeries_saved_diveCount(int count);
+
   /// The tank's name or gas, such as EAN32
   ///
   /// In en, this message translates to:
@@ -33554,12 +33590,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fill all tanks'**
   String get plannerSeries_fillAll;
-
-  /// No description provided for @plannerSeries_saveUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'A series of dives can\'t be saved yet'**
-  String get plannerSeries_saveUnavailable;
 
   /// No description provided for @plannerSeries_convertUnavailable.
   ///
@@ -39111,6 +39141,12 @@ abstract class AppLocalizations {
   /// **'Breathing mode for this segment'**
   String get settings_conflict_field_diveModeOverride;
 
+  /// No description provided for @settings_conflict_field_diveName.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive name'**
+  String get settings_conflict_field_diveName;
+
   /// No description provided for @settings_conflict_field_diveOperator.
   ///
   /// In en, this message translates to:
@@ -40857,6 +40893,12 @@ abstract class AppLocalizations {
   /// **'Section'**
   String get settings_conflict_field_section;
 
+  /// No description provided for @settings_conflict_field_seriesIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Position in series'**
+  String get settings_conflict_field_seriesIndex;
+
   /// No description provided for @settings_conflict_field_serviceCategory.
   ///
   /// In en, this message translates to:
@@ -41181,6 +41223,12 @@ abstract class AppLocalizations {
   /// **'Source file or device'**
   String get settings_conflict_field_sourceRef;
 
+  /// No description provided for @settings_conflict_field_sourceTankId.
+  ///
+  /// In en, this message translates to:
+  /// **'Carried over from tank'**
+  String get settings_conflict_field_sourceTankId;
+
   /// No description provided for @settings_conflict_field_sourceTankIndex.
   ///
   /// In en, this message translates to:
@@ -41234,6 +41282,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start depth'**
   String get settings_conflict_field_startDepth;
+
+  /// No description provided for @settings_conflict_field_startPressurePinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Start pressure set by hand'**
+  String get settings_conflict_field_startPressurePinned;
 
   /// No description provided for @settings_conflict_field_startTime.
   ///
@@ -42717,6 +42771,12 @@ abstract class AppLocalizations {
   /// **'Dive plan'**
   String get settings_conflict_ref_divePlan;
 
+  /// No description provided for @settings_conflict_ref_divePlanSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive series'**
+  String get settings_conflict_ref_divePlanSeries;
+
   /// No description provided for @settings_conflict_ref_diveRole.
   ///
   /// In en, this message translates to:
@@ -42770,6 +42830,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finding'**
   String get settings_conflict_ref_finding;
+
+  /// No description provided for @settings_conflict_ref_followedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Followed dive'**
+  String get settings_conflict_ref_followedDive;
 
   /// No description provided for @settings_conflict_ref_importedFile.
   ///
