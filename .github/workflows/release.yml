@@ -508,6 +508,22 @@ jobs:
           fi
 
   # ============================================================================
+  # Deploy the web app (legacy path): a stable tag pushed by hand deploys its
+  # bundle to https://web.submersion.app, as promote.yml does for a promoted
+  # one (issue #4161). A promoted tag never gets here: precheck skips the
+  # rebuild, so create-release does not succeed in this run.
+  # ============================================================================
+  deploy-web:
+    name: Deploy the web app
+    needs: create-release
+    if: ${{ !cancelled() && needs.create-release.result == 'success' && !contains(github.ref_name, '-') }}
+    uses: ./.github/workflows/deploy-web.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
+
+  # ============================================================================
   # Notify on Store Upload Failures
   # ============================================================================
   notify-upload-failures:

@@ -1,0 +1,197 @@
+name: Deploy Web App
+
+# Publishes a stable release's web bundle as Submersion's own site,
+# https://web.submersion.app, served by GitHub Pages from the main branch of
+# submersion-app/web (issue #4161, docs/design/specs/2026-11-03-hosted-web-app-design.md).
+#
+# promote.yml calls it for every promoted release, and release.yml for a
+# stable tag pushed by hand. Run it by hand to redeploy a release, or with
+# force to roll back to an older one: every visitor's library lives in their
+# browser on the one origin, already on the newer release's schema, so an
+# older release locks returning visitors out unless the two share a schema.
+#
+# The bundle is the release's own Submersion-<tag>-Web.zip, never a rebuild.
+# Each deploy force-pushes one orphan commit, so the Pages repository holds
+# a single copy of the site rather than a history of 25 MB bundles.
+#
+# Until WEB_DEPLOY_KEY is set the job notes that the site is not set up and
+# succeeds, so a release is never held up by the site's setup. One-time
+# setup: docs/developer/web-site-setup.md.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Stable release tag to deploy (e.g. v1.8.4.9400)'
+        required: true
+        type: string
+      force:
+        description: 'Deploy even when the site serves a newer release'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      WEB_DEPLOY_KEY:
+        required: false
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Stable release tag to deploy (e.g. v1.8.4.9400)'
+        required: true
+        type: string
+      force:
+        description: 'Roll back: deploy even when the site serves a newer release. Locks returning visitors out if the schemas differ.'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# One deploy at a time, and never cancelled halfway through a push.
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+env:
+  SITE_DOMAIN: web.submersion.app
+  PAGES_REMOTE: git@github.com:submersion-app/web.git
+
+jobs:
+  deploy:
+    name: Deploy to web.submersion.app
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check the site is set up
+        id: configured
+        env:
+          WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
+        run: |
+          if [ -z "$WEB_DEPLOY_KEY" ]; then
+            echo "::notice::WEB_DEPLOY_KEY is not set, so ${SITE_DOMAIN} was not deployed. See docs/developer/web-site-setup.md."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Refuse a pre-release tag
+        if: steps.configured.outputs.deploy == 'true'
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ "$TAG" == *-* ]]; then
+            echo "::error::${TAG} is a pre-release tag; only stable releases deploy to ${SITE_DOMAIN}."
+            exit 1
+          fi
+
+      # The scripts come from this workflow's own commit, so a rollback to a
+      # release from before the staging script existed still stages. The
+      # sqlite3.wasm lock comes from the release's tag: the module in its
+      # bundle is checked against the build that release pinned.
+      - name: Checkout the staging scripts
+        if: steps.configured.outputs.deploy == 'true'
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            scripts/check_web_bundle.py
+            scripts/web/stage_hosted_site.py
+          sparse-checkout-cone-mode: false
+
+      - name: Read the release's sqlite3.wasm lock
+        if: steps.configured.outputs.deploy == 'true'
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          git fetch -q --depth 1 origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          git show "${TAG}:scripts/web/sqlite3_wasm.lock" > "$RUNNER_TEMP/sqlite3_wasm.lock"
+
+      - name: Download the release's web bundle
+        if: steps.configured.outputs.deploy == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if ! gh release download "$TAG" --repo "${{ github.repository }}" \
+            --pattern "Submersion-${TAG}-Web.zip" --dir "$RUNNER_TEMP/dl"; then
+            echo "::error::Release ${TAG} has no Submersion-${TAG}-Web.zip to deploy (releases before the web app, PR #4142, have none)."
+            exit 1
+          fi
+
+      - name: Stage the site
+        if: steps.configured.outputs.deploy == 'true'
+        env:
+          TAG: ${{ inputs.tag }}
+          CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
+        run: |
+          python3 scripts/web/stage_hosted_site.py stage \
+            "$RUNNER_TEMP/dl/Submersion-${TAG}-Web.zip" "$RUNNER_TEMP/site" \
+            --domain "$SITE_DOMAIN" --client-id "$CLIENT_ID" \
+            --lock "$RUNNER_TEMP/sqlite3_wasm.lock"
+
+      # GitHub's host keys from its own API rather than ssh-keyscan, so the
+      # first connection is not trust-on-first-use.
+      - name: Set up the deploy key
+        if: steps.configured.outputs.deploy == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/deploy_key"
+          hosts="$RUNNER_TEMP/known_hosts"
+          (umask 077 && printf '%s\n' "$WEB_DEPLOY_KEY" > "$key")
+          gh api meta --jq '.ssh_keys[]' | sed 's/^/github.com /' > "$hosts"
+          echo "GIT_SSH_COMMAND=ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
+
+      - name: Read the version the site serves
+        if: steps.configured.outputs.deploy == 'true'
+        run: |
+          set -euo pipefail
+          current="$RUNNER_TEMP/current-version.json"
+          rm -f "$current"
+          # An unreachable repository stops here; an empty one (the first
+          # deploy) has no main branch and nothing to compare.
+          heads=$(git ls-remote --heads "$PAGES_REMOTE" main)
+          if [ -z "$heads" ]; then
+            echo "The Pages repository has no main branch yet."
+            exit 0
+          fi
+          git init -q "$RUNNER_TEMP/current"
+          git -C "$RUNNER_TEMP/current" fetch -q --depth 1 "$PAGES_REMOTE" main
+          if ! git -C "$RUNNER_TEMP/current" show FETCH_HEAD:version.json > "$current"; then
+            rm -f "$current"
+            echo "The site holds no version.json."
+          fi
+
+      - name: Refuse an older release unless forced
+        if: steps.configured.outputs.deploy == 'true'
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          args=("$RUNNER_TEMP/site/version.json" "$RUNNER_TEMP/current-version.json")
+          if [ "$FORCE" = "true" ]; then
+            args+=(--force)
+          fi
+          python3 scripts/web/stage_hosted_site.py check-newer "${args[@]}"
+
+      - name: Publish
+        if: steps.configured.outputs.deploy == 'true'
+        env:
+          TAG: ${{ inputs.tag }}
+        working-directory: ${{ runner.temp }}/site
+        run: |
+          set -euo pipefail
+          git init -q -b main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898929+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy Submersion ${TAG}"
+          git push -q --force "$PAGES_REMOTE" main
+          echo "Deployed ${TAG} to https://${SITE_DOMAIN}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the deploy key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/deploy_key"
