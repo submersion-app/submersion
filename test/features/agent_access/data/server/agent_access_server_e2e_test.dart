@@ -169,16 +169,21 @@ void main() {
       expect(info?.version, '9.9.9-test');
     });
 
-    test('lists the read tools and three resources', () async {
+    test('lists every tool and three resources', () async {
       final tools = await client.listTools();
       expect(
         tools.tools.map((t) => t.name),
-        containsAll([
+        unorderedEquals([
           'list_divers',
           'query',
           'get_records',
           'list_records',
           'sql_query',
+          'preview_changes',
+          'apply_changes',
+          'revert_operation',
+          // This test's own probe for the client name.
+          'echo_client',
         ]),
       );
       final resources = await client.listResources();

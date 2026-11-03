@@ -109,6 +109,12 @@ AppWriteConfirmer _confirmer({
 Finder get _allow => find.byKey(AgentWriteConfirmDialog.allowKey);
 Finder get _deny => find.byKey(AgentWriteConfirmDialog.denyKey);
 
+/// Taps Allow once it has had time to arm.
+Future<void> _tapAllow(WidgetTester tester) async {
+  await tester.pump(kAgentWriteAllowDelay);
+  await tester.tap(_allow);
+}
+
 /// Answers the open dialog, so its timeout does not outlive the test.
 Future<void> _close(WidgetTester tester) async {
   await tester.tap(_deny);
@@ -147,7 +153,7 @@ void main() {
     final answer = _confirmer().confirm(_request());
     await tester.pumpAndSettle();
 
-    await tester.tap(_allow);
+    await _tapAllow(tester);
     await tester.pumpAndSettle();
 
     expect(await answer, isTrue);
@@ -234,7 +240,7 @@ void main() {
       ),
     );
 
-    await tester.tap(_allow);
+    await _tapAllow(tester);
     await tester.pumpAndSettle();
     expect(await first, isTrue);
 
@@ -349,6 +355,21 @@ void main() {
     expect(find.text('diver-c: 1'), findsOneWidget);
     expect(find.text('Shared: 1'), findsOneWidget);
     await _close(tester);
+  });
+
+  testWidgets('Allow ignores a click before it has armed', (tester) async {
+    await _pump(tester);
+    final answer = _confirmer().confirm(_request());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(_allow, warnIfMissed: false);
+    await tester.pump();
+    expect(_allow, findsOneWidget, reason: 'an early click must not answer');
+
+    await _tapAllow(tester);
+    await tester.pumpAndSettle();
+    expect(await answer, isTrue);
   });
 
   testWidgets('links show names, not ids', (tester) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -9,6 +11,11 @@ import 'package:submersion/features/change_log/presentation/change_log_labels.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+/// How long Allow waits after the dialog appears. The window is raised and
+/// focused over whatever the diver is doing, so a click meant for another
+/// window must not land on Allow.
+const kAgentWriteAllowDelay = Duration(milliseconds: 800);
 
 /// Asks the diver whether a plan may run. Answers true for Allow, false for
 /// Deny, and nothing when the confirmer times it out.
@@ -114,11 +121,7 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(l.settings_agentAccess_confirm_deny),
         ),
-        FilledButton(
-          key: allowKey,
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(l.settings_agentAccess_confirm_allow),
-        ),
+        _AllowButton(label: l.settings_agentAccess_confirm_allow),
       ],
     );
   }
@@ -144,6 +147,43 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
       l.settings_agentAccess_confirm_client(client),
     _ => l.settings_agentAccess_confirm_unknownClient,
   };
+}
+
+/// Allow, live only once [kAgentWriteAllowDelay] has passed. Deny needs no
+/// wait: answering no by accident changes nothing.
+class _AllowButton extends StatefulWidget {
+  const _AllowButton({required this.label});
+
+  final String label;
+
+  @override
+  State<_AllowButton> createState() => _AllowButtonState();
+}
+
+class _AllowButtonState extends State<_AllowButton> {
+  var _armed = false;
+  late final Timer _arm;
+
+  @override
+  void initState() {
+    super.initState();
+    _arm = Timer(kAgentWriteAllowDelay, () {
+      if (mounted) setState(() => _armed = true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _arm.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FilledButton(
+    key: AgentWriteConfirmDialog.allowKey,
+    onPressed: _armed ? () => Navigator.of(context).pop(true) : null,
+    child: Text(widget.label),
+  );
 }
 
 String _verb(AppLocalizations l, String kind) => switch (kind) {

@@ -114,7 +114,9 @@ everything. The settler files other divers' records under `operation:diver`,
 so one apply can return several operation ids, each revertable alone.
 
 A plan with a blocked item gets no `plan_id`, so a diver is never asked to
-allow something that cannot run. A plan is single use and lasts 15 minutes.
+allow something that cannot run. The dialog raises and focuses the window, so Allow
+arms only after `kAgentWriteAllowDelay`, and a click meant for another window
+cannot answer it. Deny is live at once. A plan is single use and lasts 15 minutes.
 Plans live in `agentWritePlanStoreProvider`, not in the registry, because the
 protocol builds a server per request.
 
