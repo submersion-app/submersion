@@ -6,8 +6,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_connection_selection.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -103,6 +106,8 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
   ProviderSubscription<bool>? _lockSubscription;
   ProviderSubscription<bool>? _switchSubscription;
   ProviderSubscription<AsyncValue<List<DiveComputer>>>? _computersSubscription;
+  ProviderSubscription<AsyncValue<Map<String, List<DiveComputerConnection>>>>?
+  _connectionsSubscription;
 
   /// Starts the passive scan, if the global switch is on and a known
   /// computer can be auto-downloaded. Safe to call repeatedly (coming back
@@ -142,6 +147,17 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
         }
       });
     });
+    // A computer's transport and address here come from its connections
+    // (see [_asTheDownloadSees]), which load, and change after a download,
+    // on their own.
+    _connectionsSubscription ??= _ref.listen(
+      allDiveComputerConnectionsProvider,
+      (_, _) => scheduleMicrotask(() {
+        if (mounted && _connectionsSubscription != null) {
+          _onComputersChanged(_ref.read(allDiveComputersProvider));
+        }
+      }),
+    );
 
     _resume();
     // [release] leaves the shown state as it was; bring it in line now, or
@@ -164,6 +180,8 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     _switchSubscription = null;
     _computersSubscription?.close();
     _computersSubscription = null;
+    _connectionsSubscription?.close();
+    _connectionsSubscription = null;
     _stopOwnScan();
   }
 
@@ -177,7 +195,7 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       );
       return;
     }
-    final computers = next.valueOrNull;
+    final computers = _asTheDownloadSees(next.valueOrNull);
     if (computers == null) return;
     if (!_hasEligibleComputer(computers)) {
       _pause();
@@ -201,7 +219,9 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     if (_active) return;
     if (_ref.read(appLockNotifierProvider)) return;
     if (!_ref.read(autoConnectKnownComputersProvider)) return;
-    final computers = _ref.read(allDiveComputersProvider).valueOrNull;
+    final computers = _asTheDownloadSees(
+      _ref.read(allDiveComputersProvider).valueOrNull,
+    );
     if (computers == null || !_hasEligibleComputer(computers)) return;
 
     _active = true;
@@ -297,6 +317,27 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     );
   }
 
+  /// [computers] as the download page this hands a match to will see them on
+  /// this device: transport and address from the connections this device
+  /// has used (issue #3106), the legacy columns only for a computer with
+  /// none yet. The legacy type says 'bluetooth' for BLE and Classic alike,
+  /// and its address is not always the one the page dials.
+  ///
+  /// Null until the connections have loaded, so nothing is decided on the
+  /// legacy view first; a connections read that failed falls back to it.
+  List<DiveComputer>? _asTheDownloadSees(List<DiveComputer>? computers) {
+    if (computers == null) return null;
+    final connectionsAsync = _ref.read(allDiveComputerConnectionsProvider);
+    if (!connectionsAsync.hasSettled) return null;
+    final connections =
+        connectionsAsync.valueOrNull ??
+        const <String, List<DiveComputerConnection>>{};
+    return [
+      for (final computer in computers)
+        computerForDownload(computer, connections[computer.id] ?? const []),
+    ];
+  }
+
   static bool _isEligible(DiveComputer computer) =>
       !computer.autoDownloadDisabled && canFindByScan(computer);
 
@@ -326,7 +367,9 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     // (`getAllComputers(diverId: ...)`): a computer belonging to another
     // diver on a shared device never appears here. Loaded before the scan
     // started (see `_resume`).
-    final computers = _ref.read(allDiveComputersProvider).valueOrNull;
+    final computers = _asTheDownloadSees(
+      _ref.read(allDiveComputersProvider).valueOrNull,
+    );
     if (computers == null) return;
 
     final computer = _firstMatchInDiscoveryOrder(

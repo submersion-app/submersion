@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_connection_selection.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/connection_presentation.dart';
@@ -74,9 +75,11 @@ class _Controls extends ConsumerWidget {
         DiveComputerActionsCard(computer: computer),
         const SizedBox(height: 16),
         DiveComputerClockSyncCard(computer: computer),
-        // Only where the passive scan could find it: on a USB or
+        // Only where the passive scan could find it, judged as the download
+        // page sees the computer here (its connections name BLE or Classic,
+        // which the legacy type does not): on a USB, Classic or
         // file-imported record the switch would do nothing.
-        if (canFindByScan(computer)) ...[
+        if (canFindByScan(computerForDownload(computer, connections))) ...[
           const SizedBox(height: 16),
           DiveComputerAutoDownloadCard(computer: computer),
         ],

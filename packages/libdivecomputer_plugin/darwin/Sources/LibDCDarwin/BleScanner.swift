@@ -69,9 +69,12 @@ class BleScanner: NSObject, CBCentralManagerDelegate {
     /// `reportCompletion` is false when the host stops or replaces the scan:
     /// Dart marks a scan it stopped as finished itself, and a report from one
     /// arrives after the next scan began, where it reads as that scan ending.
+    ///
+    /// Holds the scanner until the block has run: the host drops its
+    /// reference right after calling this, and a weak capture let the scanner
+    /// go first, so `stopScan()` was never called.
     func stop(reportCompletion: Bool = true) {
-        queue.async { [weak self] in
-            guard let self = self else { return }
+        queue.async {
             if self.isScanning {
                 self.centralManager?.stopScan()
                 self.isScanning = false

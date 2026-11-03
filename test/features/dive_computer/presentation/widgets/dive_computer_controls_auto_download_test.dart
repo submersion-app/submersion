@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_controls.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -35,7 +37,10 @@ DiveComputer _computer({String? connectionType, String? model = 'Perdix 2'}) {
   );
 }
 
-Widget _build(DiveComputer computer) {
+Widget _build(
+  DiveComputer computer, {
+  List<DiveComputerConnection> connections = const [],
+}) {
   final router = GoRouter(
     initialLocation: '/dive-computers/$_computerId',
     routes: [
@@ -60,6 +65,9 @@ Widget _build(DiveComputer computer) {
       diveComputerByIdProvider(
         _computerId,
       ).overrideWith((ref) async => computer),
+      diveComputerConnectionsProvider(
+        _computerId,
+      ).overrideWith((ref) async => connections),
     ],
     child: MaterialApp.router(
       routerConfig: router,
@@ -82,6 +90,30 @@ void main() {
 
   testWidgets('a USB computer does not', (tester) async {
     await tester.pumpWidget(_build(_computer(connectionType: 'usb')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(_optOutKey), findsNothing);
+  });
+
+  testWidgets('nor does one saved as Bluetooth but reached here over '
+      'Bluetooth Classic', (tester) async {
+    // The legacy type says 'bluetooth' for BLE and Classic alike; the
+    // connection names the transport (issue #3106).
+    await tester.pumpWidget(
+      _build(
+        _computer(connectionType: 'bluetooth'),
+        connections: [
+          DiveComputerConnection(
+            id: 'classic',
+            computerId: _computerId,
+            kind: DiveComputerConnectionKind.bluetoothClassic,
+            address: 'AA',
+            firstUsedAt: DateTime(2026, 1, 1),
+            lastUsedAt: DateTime(2026, 1, 1),
+          ),
+        ],
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byKey(_optOutKey), findsNothing);

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -39,6 +40,7 @@ void main() {
     bool failToReadComputers = false,
     Duration modelMatchWindow = Duration.zero,
     DiscoveryNotifier Function(pigeon.DiveComputerService service)? discovery,
+    Map<String, List<DiveComputerConnection>> connections = const {},
   }) {
     final harness = buildAutoConnectHarness(
       computers: computers,
@@ -46,6 +48,7 @@ void main() {
       failToReadComputers: failToReadComputers,
       modelMatchWindow: modelMatchWindow,
       discovery: discovery,
+      connections: connections,
     );
     hostApi = harness.hostApi;
     requested = harness.requested;
@@ -87,6 +90,84 @@ void main() {
       await pumpEventQueue();
 
       expect(hostApi.startDiscoveryCalls, 0);
+    });
+  });
+
+  // Issue #3106: a computer's transport and address on this device live in
+  // its connections, and the download page this hands a match to reads
+  // them there. The legacy type says 'bluetooth' for BLE and Classic alike.
+  group('computers as their download page sees them', () {
+    DiveComputerConnection connection(
+      String computerId,
+      DiveComputerConnectionKind kind,
+      String address,
+    ) => DiveComputerConnection(
+      id: '$computerId-${kind.name}',
+      computerId: computerId,
+      kind: kind,
+      address: address,
+      firstUsedAt: DateTime(2026, 1, 1),
+      lastUsedAt: DateTime(2026, 1, 1),
+      localLastUsedAt: DateTime(2026, 1, 1),
+    );
+
+    test('a computer reached here over Bluetooth Classic starts no scan, '
+        'whatever its legacy type says', () async {
+      final container = makeContainer(
+        computers: [
+          knownComputer(
+            'classic',
+            connectionType: 'bluetooth',
+            bluetoothAddress: 'AA',
+            manufacturer: 'Heinrichs Weikamp',
+            model: 'OSTC 3',
+          ),
+        ],
+        connections: {
+          'classic': [
+            connection(
+              'classic',
+              DiveComputerConnectionKind.bluetoothClassic,
+              'AA',
+            ),
+          ],
+        },
+      );
+      container.read(autoConnectControllerProvider.notifier).activate();
+      await pumpEventQueue();
+
+      expect(hostApi.startDiscoveryCalls, 0);
+    });
+
+    test('a computer is matched at the address its connection holds here, '
+        'at once', () {
+      fakeAsync((async) {
+        final container = makeContainer(
+          computers: [
+            knownComputer(
+              'c1',
+              connectionType: 'bluetooth',
+              manufacturer: 'Shearwater',
+              model: 'Perdix',
+            ),
+          ],
+          connections: {
+            'c1': [connection('c1', DiveComputerConnectionKind.ble, 'AA')],
+          },
+          modelMatchWindow: const Duration(seconds: 15),
+        );
+        // elapse(zero) runs what is due now, without moving the clock
+        // toward the make-and-model window.
+        container.read(autoConnectControllerProvider.notifier).activate();
+        async.elapse(Duration.zero);
+
+        container
+            .read(diveComputerServiceProvider)
+            .onDeviceDiscovered(advert('AA'));
+        async.elapse(Duration.zero);
+
+        expect(requested, ['c1']);
+      });
     });
   });
 

@@ -5,6 +5,8 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
@@ -144,6 +146,7 @@ AutoConnectHarness buildAutoConnectHarness({
   bool failToReadComputers = false,
   Duration modelMatchWindow = Duration.zero,
   DiscoveryNotifier Function(pigeon.DiveComputerService service)? discovery,
+  Map<String, List<DiveComputerConnection>> connections = const {},
 }) {
   final hostApi = FakeHostApi();
   final downloadNotifier = FakeDownloadNotifier();
@@ -167,6 +170,11 @@ AutoConnectHarness buildAutoConnectHarness({
         if (failToReadComputers) throw StateError('database unavailable');
         return computers;
       }),
+      // Each computer's connections on this device (issue #3106); none, so
+      // the legacy columns speak, unless a test says otherwise.
+      allDiveComputerConnectionsProvider.overrideWith(
+        (ref) async => connections,
+      ),
       autoConnectKnownComputersProvider.overrideWith(
         (ref) => AutoConnectKnownComputersNotifier.unstored(autoConnectEnabled),
       ),

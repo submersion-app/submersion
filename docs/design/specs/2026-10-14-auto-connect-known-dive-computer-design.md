@@ -85,7 +85,9 @@ starts the download on its own.
    diver who has none is never asked for Bluetooth access here. A computer
    can be auto-downloaded when a BLE scan can find it, the same reach the
    download page has: a USB, Bluetooth Classic, cloud or file-imported
-   record does not count.
+   record does not count. Like the page, it reads the transport and this
+   device's address from the computer's connections (issue #3106), since
+   the legacy type says 'bluetooth' for BLE and Classic alike.
 3. Each scan result is matched against the stored `DiveComputer` records
    using the existing reacquisition matcher. A device at a computer's
    stored address is that computer's, even if it cannot be opened now, and
