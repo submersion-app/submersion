@@ -39,7 +39,20 @@ class DivePlanSeriesRepository {
   /// its row holds, and a new dive has none. Only the link actions change a
   /// link, and the series in memory can hold a stale one for a dive that was
   /// linked or unlinked while another dive was in the editor.
-  Future<StoredSeries> saveSeries(StoredSeries series) async {
+  Future<StoredSeries> saveSeries(StoredSeries series) =>
+      _writeSeries(series, keepLinks: false);
+
+  /// Writes back a series [deleteSeries] removed, as [getSeries] read it
+  /// before, for Undo. Unlike [saveSeries] each dive keeps the link to the
+  /// log it was read with, since its row is gone; a dive deleted since is
+  /// dropped from it rather than failing the restore.
+  Future<StoredSeries> restoreSeries(StoredSeries series) =>
+      _writeSeries(series, keepLinks: true);
+
+  Future<StoredSeries> _writeSeries(
+    StoredSeries series, {
+    required bool keepLinks,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     try {
       late StoredSeries stored;
@@ -75,7 +88,9 @@ class DivePlanSeriesRepository {
         var previousIds = const <String, String>{};
         for (var i = 0; i < series.dives.length; i++) {
           final dive = series.dives[i];
-          final link = await _storedLink(dive.plan.id);
+          final link = keepLinks
+              ? dive.plan.linkedDiveId
+              : await _storedLink(dive.plan.id);
           final plan = await _plans.savePlan(
             dive.plan.copyWith(
               linkedDiveId: link,

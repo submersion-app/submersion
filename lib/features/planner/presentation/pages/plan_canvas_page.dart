@@ -1001,30 +1001,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
     await repository.deletePlan(planId);
     if (!mounted) return;
 
-    // Capture messenger + strings before navigating; this page is about to be
-    // disposed and its context becomes defunct.
-    final messenger = ScaffoldMessenger.of(context);
-    final deletedLabel = context.l10n.divePlanner_message_planDeleted;
-    final undoLabel = context.l10n.divePlanner_undo;
-    context.go('/planning');
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(deletedLabel),
-        duration: const Duration(seconds: 5),
-        // A SnackBar with an action defaults to persist: true, which makes the
-        // auto-dismiss timer a no-op so the banner never hides on its own.
-        // Force the 5s auto-dismiss and add a close icon so the banner can be
-        // dismissed without tapping Undo (which would restore the plan). #406.
-        persist: false,
-        showCloseIcon: true,
-        action: captured == null
-            ? null
-            : SnackBarAction(
-                label: undoLabel,
-                onPressed: () =>
-                    repository.savePlan(captured, summary: capturedSummary),
-              ),
-      ),
+    _leaveDeleted(
+      undo: captured == null
+          ? null
+          : () => repository.savePlan(captured, summary: capturedSummary),
     );
   }
 

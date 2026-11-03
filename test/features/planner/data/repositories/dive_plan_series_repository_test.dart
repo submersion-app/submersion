@@ -211,6 +211,40 @@ void main() {
       expect((await plans.getPlan('b'))!.linkedDiveId, 'dived');
     });
 
+    test('Undo of a delete brings the series back, links included', () async {
+      await addDive('dived');
+      await repo.saveSeries(twoDives());
+      await plans.linkPlanToDive('b', 'dived');
+      final captured = (await repo.getSeries('s1'))!;
+      await repo.deleteSeries('s1');
+      expect(await repo.getSeries('s1'), isNull);
+
+      await repo.restoreSeries(captured);
+
+      final back = (await repo.getSeries('s1'))!;
+      expect(back.dives.map((d) => d.plan.id), ['a', 'b']);
+      expect(back.dives[0].name, 'Wreck');
+      expect(back.dives[1].sourceTankIds, {
+        'b-back': 'a-back',
+        'b-stage': 'a-stage',
+      });
+      expect((await plans.getPlan('b'))!.linkedDiveId, 'dived');
+    });
+
+    test('Undo drops a link to a dive deleted since', () async {
+      await addDive('dived');
+      await repo.saveSeries(twoDives());
+      await plans.linkPlanToDive('b', 'dived');
+      final captured = (await repo.getSeries('s1'))!;
+      await repo.deleteSeries('s1');
+      await DiveRepository().deleteDive('dived');
+
+      await repo.restoreSeries(captured);
+
+      expect((await repo.getSeries('s1'))!.dives, hasLength(2));
+      expect((await plans.getPlan('b'))!.linkedDiveId, isNull);
+    });
+
     test('a link the series holds is not written', () async {
       await addDive('dived');
       final series = twoDives();

@@ -546,6 +546,7 @@ lib/features/planner/data/repositories/dive_plan_repository.dart:unlinkPlan
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:deleteSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:duplicateSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:renameSeries
+lib/features/planner/data/repositories/dive_plan_series_repository.dart:restoreSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:saveSeries
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:deleteSession
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:linkToDive

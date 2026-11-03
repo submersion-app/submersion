@@ -120,13 +120,52 @@ mixin _PlanCanvasSeriesFlows on ConsumerState<PlanCanvasPage> {
   }
 
   Future<void> _deleteSeries(String seriesId) async {
-    final name = ref.read(divePlanNotifierProvider).name;
+    final repository = ref.read(divePlanSeriesRepositoryProvider);
+    // Read from the store first, as a plan's delete does, so Undo brings
+    // back the series as saved rather than any unsaved edits on screen.
+    final captured = await repository.getSeries(seriesId);
+    if (!mounted) return;
+    final name = captured?.name ?? ref.read(divePlanNotifierProvider).name;
     if (!await _confirmDeletePlan(name) || !mounted) return;
 
-    await ref.read(divePlanSeriesRepositoryProvider).deleteSeries(seriesId);
+    await repository.deleteSeries(seriesId);
     if (!mounted) return;
     ref.read(divePlanNotifierProvider.notifier).newPlan();
+    _leaveDeleted(
+      undo: captured == null
+          ? null
+          : () => logFailure(
+              repository.restoreSeries(captured),
+              PlanCanvasPage,
+              'restore a deleted series',
+            ),
+    );
+  }
+
+  /// Leaves for the planning hub saying the plan or series is deleted, with
+  /// an Undo running [undo] when there is something to restore.
+  void _leaveDeleted({required VoidCallback? undo}) {
+    // Capture messenger + strings before navigating; this page is about to be
+    // disposed and its context becomes defunct.
+    final messenger = ScaffoldMessenger.of(context);
+    final deletedLabel = context.l10n.divePlanner_message_planDeleted;
+    final undoLabel = context.l10n.divePlanner_undo;
     context.go('/planning');
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(deletedLabel),
+        duration: const Duration(seconds: 5),
+        // A SnackBar with an action defaults to persist: true, which makes the
+        // auto-dismiss timer a no-op so the banner never hides on its own.
+        // Force the 5s auto-dismiss and add a close icon so the banner can be
+        // dismissed without tapping Undo (which would restore the plan). #406.
+        persist: false,
+        showCloseIcon: true,
+        action: undo == null
+            ? null
+            : SnackBarAction(label: undoLabel, onPressed: undo),
+      ),
+    );
   }
 
   /// Asks to delete the plan or series named [name]; true when confirmed.
