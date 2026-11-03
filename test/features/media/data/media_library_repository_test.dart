@@ -87,6 +87,7 @@ void main() {
     String id,
     DateTime takenAt, {
     String? diveId,
+    String? siteId,
     String? equipmentId,
     MediaType mediaType = MediaType.photo,
     MediaSourceType sourceType = MediaSourceType.localFile,
@@ -100,6 +101,7 @@ void main() {
       localPath: '/tmp/$id',
       originalFilename: '$id.jpg',
       diveId: diveId,
+      siteId: siteId,
       equipmentId: equipmentId,
       // Production normalises to wall-clock-as-UTC before persisting (see
       // MediaImportService). Seeding a local instant instead would encode
@@ -343,6 +345,38 @@ void main() {
       );
       expect(unlinked.diveNumber, isNull);
       expect(unlinked.siteName, isNull);
+    });
+
+    test('a dive-less row carries the site or equipment it is attached to '
+        '(#4149)', () async {
+      // Site maps and briefings hang off the site, not a dive. Without the
+      // name the by-dive view filed them under Unlinked.
+      await insertSite('site-2', 'Rubis');
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion(
+              id: const Value('eq-9'),
+              name: const Value('Primary light'),
+              type: const Value('light'),
+              createdAt: Value(epoch),
+              updatedAt: Value(epoch),
+            ),
+          );
+      await insertMedia('site-map', DateTime(2026, 4, 1), siteId: 'site-2');
+      await insertMedia('gear-shot', DateTime(2026, 4, 2), equipmentId: 'eq-9');
+
+      final page = await repo.getPage(diverId: 'd1');
+      MediaLibraryEntry byId(String id) =>
+          page.entries.firstWhere((e) => e.item.id == id);
+
+      expect(byId('site-map').attachedSiteName, 'Rubis');
+      expect(byId('site-map').attachedEquipmentName, isNull);
+      expect(byId('site-map').siteName, isNull);
+      expect(byId('gear-shot').attachedEquipmentName, 'Primary light');
+      expect(byId('gear-shot').attachedSiteName, isNull);
+      expect(byId('unlinked-1').attachedSiteName, isNull);
+      expect(byId('unlinked-1').attachedEquipmentName, isNull);
     });
 
     test('the joined dive time keeps its wall-clock components', () async {

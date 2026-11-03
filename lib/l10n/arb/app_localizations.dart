@@ -32811,6 +32811,12 @@ abstract class AppLocalizations {
   /// **'Site'**
   String get media_library_filter_site;
 
+  /// Library filter sheet row: pick the source the media came from (photo library, local files, and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get media_library_filter_source;
+
   /// Library filter chip: pick a species tag
   ///
   /// In en, this message translates to:
@@ -32924,6 +32930,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Untitled dive'**
   String get media_library_untitledDiveHeader;
+
+  /// By-dive view header for media attached to a dive site but to no dive
+  ///
+  /// In en, this message translates to:
+  /// **'Site: {name}'**
+  String media_library_siteHeader(String name);
+
+  /// By-dive view header for media attached to an equipment item but to no dive or site
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment: {name}'**
+  String media_library_equipmentHeader(String name);
+
+  /// Accessibility hint for the by-dive view's site group header, which opens the site
+  ///
+  /// In en, this message translates to:
+  /// **'Open this site'**
+  String get media_library_siteHeaderHint;
+
+  /// Accessibility hint for the by-dive view's equipment group header, which opens the equipment item
+  ///
+  /// In en, this message translates to:
+  /// **'Open this equipment'**
+  String get media_library_equipmentHeaderHint;
+
+  /// Name used in the by-dive view's equipment header when the item has no name
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled equipment'**
+  String get media_library_untitledEquipment;
 
   /// Library view mode: grouped by dive
   ///

@@ -20900,6 +20900,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_filter_site => 'الموقع';
 
   @override
+  String get media_library_filter_source => 'المصدر';
+
+  @override
   String get media_library_filter_species => 'النوع';
 
   @override
@@ -20957,6 +20960,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'غطسة بدون عنوان';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'الموقع: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'المعدات: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'فتح هذا الموقع';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'فتح هذه المعدات';
+
+  @override
+  String get media_library_untitledEquipment => 'معدات بدون اسم';
 
   @override
   String get media_library_viewMode_byDive => 'حسب الغطسة';

@@ -10,10 +10,16 @@ MediaLibraryEntry entry(
   int? diveNumber,
   String? siteName,
   DateTime? takenAt,
+  String? siteId,
+  String? attachedSiteName,
+  String? equipmentId,
+  String? attachedEquipmentName,
 }) => MediaLibraryEntry(
   item: MediaItem(
     id: id,
     diveId: diveId,
+    siteId: siteId,
+    equipmentId: equipmentId,
     mediaType: MediaType.photo,
     sourceType: MediaSourceType.localFile,
     filePath: '/tmp/$id',
@@ -24,6 +30,8 @@ MediaLibraryEntry entry(
   diveNumber: diveNumber,
   siteName: siteName,
   diveDateTime: takenAt,
+  attachedSiteName: attachedSiteName,
+  attachedEquipmentName: attachedEquipmentName,
 );
 
 void main() {
@@ -55,6 +63,59 @@ void main() {
       final groups = groupByDive([entry('e1', diveId: 'A')]);
       expect(groups, hasLength(1));
       expect((groups.single.header as DiveGroupHeader).diveId, 'A');
+    });
+  });
+
+  group('groupByDive with dive-less attachments (#4149)', () {
+    test('site and equipment rows get their own groups, unlinked last', () {
+      final dive = entry('d', diveId: 'A', diveNumber: 9);
+      final map1 = entry('m1', siteId: 'S', attachedSiteName: 'Rubis');
+      final orphan = entry('o');
+      final gear = entry(
+        'g',
+        equipmentId: 'E',
+        attachedEquipmentName: 'Primary light',
+      );
+      final map2 = entry('m2', siteId: 'S', attachedSiteName: 'Rubis');
+
+      final groups = groupByDive([dive, map1, orphan, gear, map2]);
+
+      expect(groups, hasLength(4));
+      expect((groups[0].header as DiveGroupHeader).diveId, 'A');
+      final site = groups[1].header as SiteGroupHeader;
+      expect(site.siteId, 'S');
+      expect(site.siteName, 'Rubis');
+      expect(groups[1].entries, [map1, map2]);
+      final equipment = groups[2].header as EquipmentGroupHeader;
+      expect(equipment.equipmentId, 'E');
+      expect(equipment.name, 'Primary light');
+      expect(groups[2].entries, [gear]);
+      expect((groups[3].header as DiveGroupHeader).diveId, isNull);
+      expect(groups[3].entries, [orphan]);
+    });
+
+    test('a dive wins over a site, and a site over equipment', () {
+      final onDive = entry(
+        'x',
+        diveId: 'A',
+        siteId: 'S',
+        attachedSiteName: 'Rubis',
+      );
+      final both = entry(
+        'y',
+        siteId: 'S',
+        attachedSiteName: 'Rubis',
+        equipmentId: 'E',
+        attachedEquipmentName: 'Light',
+      );
+
+      final groups = groupByDive([onDive, both]);
+
+      expect(groups, hasLength(2));
+      expect((groups[0].header as DiveGroupHeader).diveId, 'A');
+      expect(groups[0].entries, [onDive]);
+      expect((groups[1].header as SiteGroupHeader).siteId, 'S');
+      expect(groups[1].entries, [both]);
     });
   });
 

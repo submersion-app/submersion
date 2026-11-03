@@ -2,8 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import 'package:submersion/l10n/l10n_extension.dart';
-
 enum MediaGroupHeaderKind { month, day, dive }
 
 /// One header in the grouped gallery. Everything that sets a header's height
@@ -14,17 +12,22 @@ class MediaGroupHeaderSpec {
   const MediaGroupHeaderSpec({
     required this.kind,
     required this.label,
-    this.diveId,
+    this.route,
+    this.hint,
   });
 
   final MediaGroupHeaderKind kind;
   final String label;
 
-  /// The dive this header opens, if it opens one right now: null while a
-  /// selection is in progress, as well as for the Unlinked group.
-  final String? diveId;
+  /// Where this header goes, if it goes anywhere right now: the dive, site
+  /// or equipment item its group belongs to. Null while a selection is in
+  /// progress, as well as for the Unlinked group.
+  final String? route;
 
-  bool get navigable => diveId != null;
+  /// What a screen reader says a tap does, such as "Open this site".
+  final String? hint;
+
+  bool get navigable => route != null;
 
   /// 48 is Material's tap-target floor.
   double get minHeight => navigable ? 48 : 0;
@@ -46,7 +49,7 @@ class MediaGroupHeaderSpec {
 }
 
 /// A month, day or dive heading over a group of thumbnails. A navigable one
-/// is the view's only route to its dive.
+/// is the view's only route to its dive, site or equipment item.
 class MediaGroupHeader extends StatelessWidget {
   const MediaGroupHeader({super.key, required this.spec, required this.onTap});
 
@@ -63,10 +66,11 @@ class MediaGroupHeader extends StatelessWidget {
       ),
     );
     if (!spec.navigable) return Padding(padding: spec.padding, child: text);
+    // No label here: the Text below already gives the merged node its
+    // label, and naming it twice made a screen reader read it twice.
     return Semantics(
       button: true,
-      label: spec.label,
-      hint: context.l10n.media_library_diveHeaderHint,
+      hint: spec.hint,
       child: InkWell(
         onTap: onTap,
         // Padding inside the InkWell so it contributes to the hit box.

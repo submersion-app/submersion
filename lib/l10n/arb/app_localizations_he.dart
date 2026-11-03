@@ -20154,6 +20154,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_filter_site => 'אתר';
 
   @override
+  String get media_library_filter_source => 'מקור';
+
+  @override
   String get media_library_filter_species => 'מין';
 
   @override
@@ -20211,6 +20214,25 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'צלילה ללא שם';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'אתר: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'ציוד: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'פתיחת אתר זה';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'פתיחת ציוד זה';
+
+  @override
+  String get media_library_untitledEquipment => 'ציוד ללא שם';
 
   @override
   String get media_library_viewMode_byDive => 'לפי צלילה';

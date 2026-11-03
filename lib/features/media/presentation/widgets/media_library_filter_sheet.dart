@@ -11,6 +11,8 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
@@ -35,9 +37,11 @@ Future<void> showMediaLibraryFilterSheet(BuildContext context) {
 /// SiteFilterSheet pattern: local state previews the change and nothing
 /// reaches the provider until Apply.
 ///
-/// Owns the media type, site, trip, species, tag (issue #1970) and date
-/// range facets, and the missing files health facet. It deliberately does NOT own sourceType, which the
-/// Sources section sets programmatically and which Apply preserves.
+/// Owns the media type, site, trip, species, tag (issue #1970), people,
+/// date range and source facets, and the missing files health facet. The
+/// source is also set by the Sources section's "browse this source"; the
+/// sheet shows it all the same, so the filter badge is never lit by a facet
+/// the sheet cannot show or clear (issue #4149).
 class MediaLibraryFilterSheet extends ConsumerStatefulWidget {
   const MediaLibraryFilterSheet({super.key});
 
@@ -55,6 +59,7 @@ class _MediaLibraryFilterSheetState
   DateTime? _fromDate;
   DateTime? _toDate;
   bool _missingOnly = false;
+  MediaSourceType? _sourceType;
   Set<String> _tagIds = const {};
   Set<String> _buddyIds = const {};
   bool _includeMe = false;
@@ -70,6 +75,7 @@ class _MediaLibraryFilterSheetState
     _fromDate = filter.fromDate;
     _toDate = filter.toDate;
     _missingOnly = filter.health == MediaHealthFilter.missing;
+    _sourceType = filter.sourceType;
     _tagIds = filter.tagIds;
     _buddyIds = filter.buddyIds;
     _includeMe = filter.includeMe;
@@ -84,16 +90,16 @@ class _MediaLibraryFilterSheetState
       _fromDate = null;
       _toDate = null;
       _missingOnly = false;
+      _sourceType = null;
       _tagIds = const {};
       _buddyIds = const {};
       _includeMe = false;
     });
   }
 
-  /// Commits the draft ONTO THE LIVE FILTER, not onto a fresh one. The
-  /// Sources section writes a sourceType into the same provider when the user
-  /// browses a source; rebuilding from MediaLibraryFilter.none here would
-  /// drop it and quietly widen the library.
+  /// Commits the draft ONTO THE LIVE FILTER, not onto a fresh one, so a
+  /// facet the sheet has no row for (the dive) survives Apply rather than
+  /// quietly widening the library.
   void _apply() {
     final notifier = ref.read(mediaLibraryFilterProvider.notifier);
     notifier.state = notifier.state.copyWith(
@@ -104,6 +110,7 @@ class _MediaLibraryFilterSheetState
       fromDate: _fromDate,
       toDate: _toDate,
       health: _missingOnly ? MediaHealthFilter.missing : null,
+      sourceType: _sourceType,
       tagIds: _tagIds,
       buddyIds: _buddyIds,
       includeMe: _includeMe,
@@ -317,6 +324,7 @@ class _MediaLibraryFilterSheetState
                     _toDate = album.filter.toDate;
                     _missingOnly =
                         album.filter.health == MediaHealthFilter.missing;
+                    _sourceType = album.filter.sourceType;
                     _tagIds = album.filter.tagIds;
                     _buddyIds = album.filter.buddyIds;
                     _includeMe = album.filter.includeMe;
@@ -363,6 +371,15 @@ class _MediaLibraryFilterSheetState
     final tripName = _tripId == null
         ? null
         : trips.where((t) => t.id == _tripId).firstOrNull?.name;
+    // Sources holding media, as the Sources section lists them, plus the
+    // drafted one even after it has emptied out, so it can still be read
+    // and cleared here.
+    final sourceCounts = ref.watch(sourceCountsProvider).value ?? const {};
+    final sourceOptions = [
+      for (final type in MediaSourceType.values)
+        if (sourceCounts.containsKey(type) || type == _sourceType)
+          (type.name, mediaSourceLabel(context, type)),
+    ];
     final speciesName = _speciesId == null
         ? null
         : speciesOptions.where((s) => s.$1 == _speciesId).firstOrNull?.$2;
@@ -493,6 +510,25 @@ class _MediaLibraryFilterSheetState
                       ),
                       _buildTagSection(),
                       _buildPeopleSection(),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.media_library_filter_source),
+                        subtitle: Text(
+                          _sourceType == null
+                              ? anyLabel
+                              : mediaSourceLabel(context, _sourceType!),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _pickFromList(
+                          options: sourceOptions,
+                          onPicked: (name) => setState(
+                            () => _sourceType = name == null
+                                ? null
+                                : MediaSourceType.values.byName(name),
+                          ),
+                          anyLabel: anyLabel,
+                        ),
+                      ),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(l10n.media_library_filter_dates),

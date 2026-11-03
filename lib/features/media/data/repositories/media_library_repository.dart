@@ -322,6 +322,10 @@ class MediaLibraryRepository {
       final m = _db.media;
       final d = _db.dives;
       final s = _db.diveSites;
+      // The row's own site and equipment links, for the by-dive view's
+      // groups of media attached to no dive (issue #4149).
+      final attached = _db.alias(_db.diveSites, 'attached_site');
+      final e = _db.equipment;
 
       Expression<bool> where = _baseWhere(diverId, filter);
       if (after != null) {
@@ -357,6 +361,8 @@ class MediaLibraryRepository {
           _db.select(m).join([
               leftOuterJoin(d, d.id.equalsExp(m.diveId)),
               leftOuterJoin(s, s.id.equalsExp(d.siteId)),
+              leftOuterJoin(attached, attached.id.equalsExp(m.siteId)),
+              leftOuterJoin(e, e.id.equalsExp(m.equipmentId)),
             ])
             ..where(where)
             ..orderBy([
@@ -386,6 +392,8 @@ class MediaLibraryRepository {
                   isUtc: true,
                 ),
           siteName: siteRow?.name,
+          attachedSiteName: row.readTableOrNull(attached)?.name,
+          attachedEquipmentName: row.readTableOrNull(e)?.name,
         );
       }).toList();
 

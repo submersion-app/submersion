@@ -20615,6 +20615,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_library_filter_site => 'Sito';
 
   @override
+  String get media_library_filter_source => 'Sorgente';
+
+  @override
   String get media_library_filter_species => 'Specie';
 
   @override
@@ -20672,6 +20675,25 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Immersione senza titolo';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Sito: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Attrezzatura: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Apri questo sito';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Apri questa attrezzatura';
+
+  @override
+  String get media_library_untitledEquipment => 'Attrezzatura senza nome';
 
   @override
   String get media_library_viewMode_byDive => 'Per immersione';

@@ -42,6 +42,12 @@ void main() {
         allTripsProvider.overrideWith((ref) async => [trip]),
         allSpeciesProvider.overrideWith((ref) async => [species]),
         missingCountProvider.overrideWith((ref) async => 3),
+        sourceCountsProvider.overrideWith(
+          (ref) async => {
+            MediaSourceType.platformGallery: 12,
+            MediaSourceType.localFile: 4,
+          },
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -147,7 +153,7 @@ void main() {
     expect(container.read(mediaLibraryFilterProvider).speciesId, 'sp1');
   });
 
-  testWidgets('Apply preserves facets the sheet does not own', (tester) async {
+  testWidgets('Apply keeps a source set from the Sources tab', (tester) async {
     // The Sources view writes a sourceType into this same provider when the
     // user browses a source. Applying a type filter must not discard it.
     container.read(mediaLibraryFilterProvider.notifier).state =
@@ -210,5 +216,98 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(mediaLibraryFilterProvider).health, isNull);
+  });
+
+  // Issue #4149: browsing a source from the Sources tab lit the filter badge,
+  // and the sheet behind it showed nothing to explain or clear it.
+  group('source facet (#4149)', () {
+    testWidgets('shows a source set from the Sources tab', (tester) async {
+      container.read(mediaLibraryFilterProvider.notifier).state =
+          const MediaLibraryFilter(sourceType: MediaSourceType.platformGallery);
+      await openSheet(tester);
+
+      final row = find.widgetWithText(ListTile, 'Source');
+      expect(row, findsOneWidget);
+      expect(
+        find.descendant(of: row, matching: find.text('Photo library')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('reads Any with no source set', (tester) async {
+      await openSheet(tester);
+
+      final row = find.widgetWithText(ListTile, 'Source');
+      expect(
+        find.descendant(of: row, matching: find.text('Any')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Clear All drops the source', (tester) async {
+      container.read(mediaLibraryFilterProvider.notifier).state =
+          const MediaLibraryFilter(sourceType: MediaSourceType.platformGallery);
+      await openSheet(tester);
+
+      await tester.tap(find.text('Clear All'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(mediaLibraryFilterProvider).isEmpty, isTrue);
+    });
+
+    testWidgets('picking a source drafts it and Apply commits it', (
+      tester,
+    ) async {
+      await openSheet(tester);
+
+      await tester.tap(find.text('Source'));
+      await tester.pumpAndSettle();
+      // Only sources that hold media are offered, as on the Sources tab.
+      expect(find.text('Web links'), findsNothing);
+      await tester.tap(find.text('Local files'));
+      await tester.pumpAndSettle();
+      expect(container.read(mediaLibraryFilterProvider).sourceType, isNull);
+
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect(
+        container.read(mediaLibraryFilterProvider).sourceType,
+        MediaSourceType.localFile,
+      );
+    });
+
+    testWidgets('picking Any clears the source on Apply', (tester) async {
+      container.read(mediaLibraryFilterProvider.notifier).state =
+          const MediaLibraryFilter(sourceType: MediaSourceType.platformGallery);
+      await openSheet(tester);
+
+      await tester.tap(find.text('Source'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Any').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(mediaLibraryFilterProvider).sourceType, isNull);
+    });
+
+    testWidgets('a source with no media left still shows while selected', (
+      tester,
+    ) async {
+      // A smart album or a stale browse can name a source that has since
+      // emptied out. It must still read in the row, or the badge is lit
+      // again with nothing on screen saying why.
+      container.read(mediaLibraryFilterProvider.notifier).state =
+          const MediaLibraryFilter(sourceType: MediaSourceType.networkUrl);
+      await openSheet(tester);
+
+      await tester.tap(find.text('Source'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Web links'), findsWidgets);
+    });
   });
 }
