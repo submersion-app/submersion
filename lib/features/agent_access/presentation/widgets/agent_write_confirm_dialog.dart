@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -105,6 +106,8 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
               ExpansionTile(
                 key: detailsKey,
                 tilePadding: EdgeInsets.zero,
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                expandedAlignment: AlignmentDirectional.centerStart,
                 title: Text(l.settings_agentAccess_confirm_details),
                 children: [
                   for (final item in request.items)
@@ -265,8 +268,16 @@ String agentValueText(
 ) {
   if (value == null) return l.settings_agentAccess_confirm_none;
   if (value is num) {
-    if (key.endsWith('_m')) return units.formatDepth(value.toDouble());
-    if (key.endsWith('_c')) return units.formatTemperature(value.toDouble());
+    final number = value.toDouble();
+    if (key.endsWith('_m')) return units.formatDepth(number);
+    if (key.endsWith('_c')) return units.formatTemperature(number);
+    if (key.endsWith('_bar')) return units.formatPressure(number);
+    if (key.endsWith('_kg')) return units.formatWeight(number);
+    // A cylinder's size, which imperial divers know by its gas capacity.
+    if (key == 'volume_l') return units.formatTankVolume(number, null);
+    if (key.endsWith('_fraction')) {
+      return formatGasPercent(gasPercentOfFraction(number));
+    }
   }
   if ((key == 'date_time' || key.endsWith('_time')) && value is String) {
     return units.formatDateTime(DateTime.parse(value), l10n: l);

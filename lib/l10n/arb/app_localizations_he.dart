@@ -26103,6 +26103,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_tank => 'בלון';
 
   @override
+  String get settings_conflict_ref_weight => 'משקולת';
+
+  @override
   String get settings_conflict_ref_transmitter => 'משדר';
 
   @override

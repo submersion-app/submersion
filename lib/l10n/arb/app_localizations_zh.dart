@@ -25279,6 +25279,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_tank => '气瓶';
 
   @override
+  String get settings_conflict_ref_weight => '配重';
+
+  @override
   String get settings_conflict_ref_transmitter => '发射器';
 
   @override

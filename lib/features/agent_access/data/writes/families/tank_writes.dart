@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' show DiveTanksCompanion;
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -123,7 +124,7 @@ class TankWrites extends WritableEntry {
     Value<T> field<T>(String key) =>
         v.containsKey(key) ? Value(v[key] as T) : const Value.absent();
     Value<double> percent(String key) => v.containsKey(key)
-        ? Value(percentOf(v[key]! as double))
+        ? Value(gasPercentOfFraction(v[key]! as double))
         : const Value.absent();
     return DiveTanksCompanion(
       tankName: field('name'),
@@ -140,7 +141,3 @@ class TankWrites extends WritableEntry {
     );
   }
 }
-
-/// [fraction] as the percentage a gas column stores, without the float noise
-/// of a bare multiplication (0.29 * 100 is 28.999999999999996).
-double percentOf(double fraction) => (fraction * 1e6).round() / 1e4;

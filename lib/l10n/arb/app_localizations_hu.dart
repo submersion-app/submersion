@@ -26649,6 +26649,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_tank => 'Palack';
 
   @override
+  String get settings_conflict_ref_weight => 'Súly';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Jeladó';
 
   @override

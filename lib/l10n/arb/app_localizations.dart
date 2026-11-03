@@ -42891,6 +42891,12 @@ abstract class AppLocalizations {
   /// **'Tank'**
   String get settings_conflict_ref_tank;
 
+  /// No description provided for @settings_conflict_ref_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get settings_conflict_ref_weight;
+
   /// No description provided for @settings_conflict_ref_transmitter.
   ///
   /// In en, this message translates to:

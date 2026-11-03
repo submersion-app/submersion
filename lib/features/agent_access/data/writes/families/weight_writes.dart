@@ -53,13 +53,14 @@ class WeightWrites extends WritableEntry {
     );
   }
 
-  /// Its label, else its type and amount.
+  /// Its label, else its type. Not its amount: a title is shown as it is,
+  /// and an amount belongs in the diver's units.
   @override
   String? titleOf(Map<String, Object?> document) {
     if (document['label'] case final String label when label.isNotEmpty) {
       return label;
     }
-    return '${document['type']} ${document['amount_kg']} kg';
+    return document['type'] as String?;
   }
 
   @override

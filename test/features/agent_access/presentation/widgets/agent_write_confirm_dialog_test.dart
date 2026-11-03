@@ -496,6 +496,44 @@ void main() {
     await _close(tester);
   });
 
+  testWidgets('tank and weight values respect the diver units', (tester) async {
+    await _pump(
+      tester,
+      settings: const AppSettings(
+        pressureUnit: PressureUnit.psi,
+        volumeUnit: VolumeUnit.cubicFeet,
+        weightUnit: WeightUnit.pounds,
+      ),
+    );
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            _item(
+              fields: const {
+                'start_pressure_bar': FieldChange(200.0, 210.0),
+                'amount_kg': FieldChange(null, 4.0),
+                'o2_fraction': FieldChange(0.21, 0.32),
+                'volume_l': FieldChange(null, 11.1),
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('2901 psi'), findsOneWidget);
+    expect(find.textContaining('3046 psi'), findsOneWidget);
+    expect(find.textContaining('8.8 lb'), findsOneWidget);
+    expect(find.textContaining('21% '), findsOneWidget);
+    expect(find.textContaining('32%'), findsOneWidget);
+    expect(find.textContaining('cuft'), findsOneWidget);
+    await _close(tester);
+  });
+
   testWidgets('long values wrap at 2x text', (tester) async {
     tester.view.physicalSize = const Size(320, 640);
     tester.view.devicePixelRatio = 1;

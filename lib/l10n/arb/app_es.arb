@@ -7035,6 +7035,7 @@
   "settings_conflict_ref_species": "Especies",
   "settings_conflict_ref_tag": "Etiqueta",
   "settings_conflict_ref_tank": "Tanque",
+  "settings_conflict_ref_weight": "Lastre",
   "settings_conflict_ref_trip": "Viaje",
   "settings_conflict_ref_tripCylinder": "Botella del viaje",
   "settings_conflict_resolved": "Se resolvieron {count, plural, =1{1 conflicto} other{{count} conflictos}}",

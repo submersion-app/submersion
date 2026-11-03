@@ -7187,6 +7187,7 @@
   "settings_conflict_ref_species": "物种",
   "settings_conflict_ref_tag": "标签",
   "settings_conflict_ref_tank": "气瓶",
+  "settings_conflict_ref_weight": "配重",
   "settings_conflict_ref_trip": "行程",
   "settings_conflict_ref_tripCylinder": "行程气瓶",
   "settings_conflict_resolved": "已解决 {count, plural, =1{1 个冲突} other{{count} 个冲突}}",

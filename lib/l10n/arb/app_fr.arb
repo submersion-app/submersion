@@ -6934,6 +6934,7 @@
   "settings_conflict_ref_species": "Espèces",
   "settings_conflict_ref_tag": "Étiquette",
   "settings_conflict_ref_tank": "Bloc",
+  "settings_conflict_ref_weight": "Lest",
   "settings_conflict_ref_trip": "Voyage",
   "settings_conflict_ref_tripCylinder": "Bouteille du voyage",
   "settings_conflict_resolved": "{count, plural, =1{{count} conflit résolu} other{{count} conflits résolus}}",

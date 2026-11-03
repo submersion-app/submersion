@@ -6934,6 +6934,7 @@
   "settings_conflict_ref_species": "Specie",
   "settings_conflict_ref_tag": "Tag",
   "settings_conflict_ref_tank": "Bombola",
+  "settings_conflict_ref_weight": "Zavorra",
   "settings_conflict_ref_trip": "Viaggio",
   "settings_conflict_ref_tripCylinder": "Bombola del viaggio",
   "settings_conflict_resolved": "{count, plural, =1{1 conflitto risolto} other{{count} conflitti risolti}}",

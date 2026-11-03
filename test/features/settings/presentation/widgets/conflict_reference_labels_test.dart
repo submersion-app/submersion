@@ -103,6 +103,15 @@ void main() {
       }
     });
 
+    test('names a weight, which the change log lists by its table', () {
+      // No key points at a weight, but an agent's plan and the change log
+      // name one by its entity type.
+      expect(
+        conflictReferenceLabel(l10n, ref(targetType: 'diveWeights')),
+        'Weight',
+      );
+    });
+
     test('lets a column name override its target type', () {
       // These columns all point at an entity that already has a label, but
       // mean something more specific than "another one of those".

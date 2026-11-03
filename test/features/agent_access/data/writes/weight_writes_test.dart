@@ -77,7 +77,7 @@ void main() {
     ]);
 
     expect(plan.items.single.diverId, kDiverB);
-    expect(plan.items.single.title, 'belt 6.0 kg');
+    expect(plan.items.single.title, 'belt');
   });
 
   test('a label that is not trimmed is blocked', () async {
