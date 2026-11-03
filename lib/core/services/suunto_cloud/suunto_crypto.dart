@@ -103,7 +103,10 @@ class SuuntoCrypto {
 
     final counter =
         ((nowMs ?? DateTime.now().millisecondsSinceEpoch) + offsetMs) ~/ 30000;
-    final counterBytes = ByteData(8)..setInt64(0, counter, Endian.big);
+    // Two 32-bit halves: setInt64 throws compiled to JavaScript (#4194).
+    final counterBytes = ByteData(8)
+      ..setUint32(0, counter ~/ 0x100000000)
+      ..setUint32(4, counter % 0x100000000);
 
     final mac = Hmac(sha1, key).convert(counterBytes.buffer.asUint8List());
     final digest = mac.bytes;
