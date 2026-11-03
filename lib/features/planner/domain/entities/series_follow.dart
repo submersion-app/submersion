@@ -20,6 +20,9 @@ class SeriesLoggedDive extends Equatable {
   /// that ended too long before the followed one to count.
   final double otu;
 
+  /// How deep it went; null when not recorded.
+  final double? maxDepth;
+
   const SeriesLoggedDive({
     required this.id,
     this.diveNumber,
@@ -28,6 +31,7 @@ class SeriesLoggedDive extends Equatable {
     required this.end,
     required this.endInstant,
     this.otu = 0,
+    this.maxDepth,
   });
 
   SeriesLoggedDive copyWith({
@@ -38,6 +42,7 @@ class SeriesLoggedDive extends Equatable {
     DateTime? end,
     DateTime? endInstant,
     double? otu,
+    double? maxDepth,
   }) {
     return SeriesLoggedDive(
       id: id ?? this.id,
@@ -47,6 +52,7 @@ class SeriesLoggedDive extends Equatable {
       end: end ?? this.end,
       endInstant: endInstant ?? this.endInstant,
       otu: otu ?? this.otu,
+      maxDepth: maxDepth ?? this.maxDepth,
     );
   }
 
@@ -59,6 +65,7 @@ class SeriesLoggedDive extends Equatable {
     end,
     endInstant,
     otu,
+    maxDepth,
   ];
 }
 

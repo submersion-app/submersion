@@ -155,6 +155,13 @@ The planner warns about:
 | Missing gas | An open-circuit deco dive with no deco gas, or a rebreather deco dive with no bailout gas |
 | Bailout gas | A rebreather plan deeper than the maximum operating depth of every bailout gas, or bailout gases that turn hypoxic on the way to the surface. These do not stop a plan being diveable |
 | Diluent MOD | A diluent breathed deeper than its maximum operating depth |
+| Surface interval | A dive of a series, or one following a logged dive, less than 10 minutes after the dive before |
+| Starts before the dive before ends | A start you set that falls before the dive before it ends (critical) |
+| Starts owing deco | The tissues carried in from the dive before still have a ceiling when this dive starts (critical) |
+| Reverse profile | A dive more than 12 m deeper than the dive before it |
+
+On a series, CNS and OTU count the dives before: each dive starts from what the
+earlier ones left.
 
 ### Saving, sharing and comparing plans
 

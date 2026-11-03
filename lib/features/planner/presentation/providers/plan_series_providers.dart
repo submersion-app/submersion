@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -280,10 +281,22 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
   final dives = inputs.dives;
   // One dive is the plan in the editor, which that provider already runs.
   if (dives.length == 1) {
+    final state = dives.single.state;
+    final outcome = ref.watch(planOutcomeProvider);
+    final issues = calculator.seriesIssuesFor(
+      dives,
+      0,
+      state,
+      outcome.maxDepth,
+      const [],
+      config: ref.watch(planEngineConfigProvider),
+      follow: inputs.follow,
+    );
     return [
       calculator.SeriesDiveResult(
-        state: dives.single.state,
-        outcome: ref.watch(planOutcomeProvider),
+        state: state,
+        outcome: outcome.withIssues(issues),
+        seriesIssues: issues,
       ),
     ];
   }
@@ -292,6 +305,16 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
     config: ref.watch(planEngineConfigProvider),
     follow: inputs.follow,
   );
+});
+
+/// What the series raises about the dive in the editor, which the live
+/// outcome, computed by the engine alone, has no way to know.
+final selectedSeriesIssuesProvider = Provider<List<PlanIssue>>((ref) {
+  final index = ref.watch(
+    planSeriesNotifierProvider.select((s) => s.selectedIndex),
+  );
+  final results = ref.watch(planSeriesResultsProvider);
+  return index < results.length ? results[index].seriesIssues : const [];
 });
 
 /// The series as the chain reads it: without the dives' names or the

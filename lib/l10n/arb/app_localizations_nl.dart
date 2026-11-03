@@ -20953,6 +20953,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerpen';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'Oppervlakte-interval van $time is korter dan 10 minuten';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Begint $time voordat de vorige duik eindigt';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Begint met een decoverplichting van de vorige duik';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Omgekeerd profiel: $depth, dieper dan de vorige duik van $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Deze duik opslaan?';
 
   @override

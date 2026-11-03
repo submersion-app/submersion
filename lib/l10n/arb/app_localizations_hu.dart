@@ -21015,6 +21015,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Elvetés';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'A(z) $time felszíni idő kevesebb 10 percnél';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return '$time idővel az előző merülés vége előtt kezdődik';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Az előző merülésből eredő dekó-kötelezettséggel kezdődik';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Fordított profil: $depth, mélyebb az előző, $previous mély merülésnél';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Menti ezt a merülést?';
 
   @override

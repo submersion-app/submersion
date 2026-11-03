@@ -71,8 +71,9 @@ issues, so the dot, the chart markers and the warnings section show them:
   off-gassed tissues (critical).
 - Reverse profile: more than 12 m deeper than the dive before (warning).
 
-No series summary card and no no-fly time in the planner. CNS and OTU are
-already flagged from the carried exposure; the messages say so.
+No series summary card and no no-fly time in the planner. CNS and OTU need
+no warning of their own: the engine starts each dive from the carried
+exposure, so its existing warnings already count earlier dives.
 
 ### Shortcuts
 

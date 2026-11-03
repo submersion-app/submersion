@@ -21384,6 +21384,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'تجاهل';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'فترة السطح البالغة $time أقل من 10 دقائق';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'تبدأ قبل $time من انتهاء الغطسة السابقة';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'تبدأ بالتزام تخفيف ضغط من الغطسة السابقة';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'ملف عكسي: $depth، أعمق من الغطسة السابقة البالغة $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'هل تريد حفظ هذه الغطسة؟';
 
   @override
@@ -21392,16 +21411,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String plannerSeries_saved_diveCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count غطسة',
-      many: '$count غطسة',
-      few: '$count غطسات',
-      two: 'غطستان',
-      one: 'غطسة واحدة',
-    );
-    return '$_temp0';
+    return '$count غطسات';
   }
 
   @override

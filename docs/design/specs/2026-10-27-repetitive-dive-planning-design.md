@@ -244,6 +244,37 @@ Phase 2; the plan is
   dive log's site picker. The planner doesn't use it; a dive logged from the
   plan takes it. A new dive copies the previous dive's site.
 
+## Series warnings
+
+Each dive of a series, and a first dive that follows a logged dive, is checked
+against what came before (`seriesIssuesFor`). The warnings join the dive's own,
+so its dot, the warnings list and the count all include them.
+
+| Warning | When | Severity |
+| --- | --- | --- |
+| Short surface interval | Under 10 minutes | Warning |
+| Starts before the previous dive ends | A fixed start earlier than that end | Critical |
+| Starts owing deco | Off-gassed tissues still can't surface at the high GF | Critical |
+| Reverse profile | More than 12 m deeper than the dive before | Warning |
+
+A planned dive's stops always clear the ceiling before it surfaces, so owing deco
+comes only from a followed logged dive that left it, or a later dive with a
+stricter high GF than the one before.
+
+CNS and OTU need no warning of their own: the engine starts each dive from the
+carried exposure, so its existing warnings already count earlier dives. The OTU
+limit stays 300 against the rolling 24-hour total.
+
+A series summary card, with no-fly time, was built and removed: the results
+pane has little room, and the deco schedule matters more there. The planner shows
+no no-fly time.
+
+## Keyboard
+
+Alt+Left and Alt+Right select the previous and next dive, and stand down
+while a text field has focus. Alt+N (add a dive) was tried and dropped:
+Windows beeps at Alt+letter, and it is not a convention in the app.
+
 ## Design
 
 - **Engine**: `DivePlan` gains `startCns`/`startOtu`, engine inputs that are not

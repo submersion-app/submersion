@@ -33579,6 +33579,30 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get plannerSeries_unsaved_discard;
 
+  /// No description provided for @plannerSeries_issue_shortInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval of {time} is under 10 minutes'**
+  String plannerSeries_issue_shortInterval(String time);
+
+  /// No description provided for @plannerSeries_issue_startsBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts {time} before the previous dive ends'**
+  String plannerSeries_issue_startsBefore(String time);
+
+  /// No description provided for @plannerSeries_issue_owingDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts with a deco obligation from the dive before'**
+  String get plannerSeries_issue_owingDeco;
+
+  /// No description provided for @plannerSeries_issue_reverseProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse profile: {depth}, deeper than the {previous} dive before'**
+  String plannerSeries_issue_reverseProfile(String depth, String previous);
+
   /// No description provided for @plannerSeries_unsaved_titleDive.
   ///
   /// In en, this message translates to:

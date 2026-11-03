@@ -21091,6 +21091,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Scarta';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'L\'intervallo di superficie di $time è inferiore a 10 minuti';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Inizia $time prima della fine dell\'immersione precedente';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Inizia con un obbligo di deco dall\'immersione precedente';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Profilo inverso: $depth, più profondo dell\'immersione precedente a $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Salvare questa immersione?';
 
   @override
