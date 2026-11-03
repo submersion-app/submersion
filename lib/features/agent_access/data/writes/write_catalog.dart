@@ -5,6 +5,7 @@ import 'package:submersion/features/agent_access/data/writes/families/buddy_writ
 import 'package:submersion/features/agent_access/data/writes/families/custom_field_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/gas_switch_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/scenario_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/sighting_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
@@ -33,6 +34,7 @@ class WriteCatalog {
       CustomFieldWrites(rows: rows),
       GasSwitchWrites(repositories),
       AnnotationWrites(),
+      ScenarioWrites(repositories),
     ]);
   }
 
