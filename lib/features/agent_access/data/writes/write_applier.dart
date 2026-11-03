@@ -291,13 +291,15 @@ class WriteApplier {
       }
     }
     if (stale.isEmpty) return;
+    // Several items can mark one row, as tanks of one dive mark the dive.
+    final named = {for (final marker in stale) (marker.table, marker.id)};
     throw AgentToolException(
       AgentToolErrorCode.planStale,
       'These records changed after the preview, so nothing was applied. '
       'Read them and preview again.',
       details: {
         'records': [
-          for (final marker in stale) {'table': marker.table, 'id': marker.id},
+          for (final (table, id) in named) {'table': table, 'id': id},
         ],
       },
     );

@@ -209,6 +209,11 @@ abstract class WritableEntry {
   /// [ChildOf.field] is always one.
   Set<String> get createOnly => const {};
 
+  /// Document keys a reader needs to show a change to this record that the
+  /// change may leave alone, such as the working pressure that says what a
+  /// tank's size holds.
+  Set<String> get displayContext => const {};
+
   /// Fields whose write does something even when it equals the row, so a
   /// plan cannot drop one as unchanged.
   Set<String> get effectFields => const {};

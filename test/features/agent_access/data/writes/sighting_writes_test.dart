@@ -57,6 +57,14 @@ void main() {
     expect(h.refreshed.single, {'d2'});
   });
 
+  test('a new sighting names its species and its dive', () async {
+    final plan = await h.preview([
+      createOp('sightings', {'dive_id': 'd1', 'species_id': 'sp2'}),
+    ]);
+
+    expect(plan.items.single.names, {'d1': 'Dive d1', 'sp2': 'Moray eel'});
+  });
+
   test('a species that does not exist is blocked', () async {
     final plan = await h.preview([
       createOp('sightings', {'dive_id': 'd1', 'species_id': 'nope'}),

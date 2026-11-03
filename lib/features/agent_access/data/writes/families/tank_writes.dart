@@ -49,6 +49,11 @@ class TankWrites extends WritableEntry {
   @override
   Set<String> get requiredOnCreate => const {};
 
+  /// An imperial diver reads a cylinder's size as the gas it holds at its
+  /// working pressure.
+  @override
+  Set<String> get displayContext => const {'working_pressure_bar'};
+
   /// A mix a diver could breathe: oxygen and helium never make up more than
   /// the whole, judged on the tank as it would be after the change.
   @override

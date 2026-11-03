@@ -1,5 +1,31 @@
 part of 'write_planner.dart';
 
+/// [id] read through [reader] as [diverId] sees it, or an empty document when
+/// it has gone. Top level, so a marker that reads again at apply holds the
+/// reader and not the preview pass, whose database a plan must not keep
+/// alive (see [WritePlan.previewedOn]).
+Future<Map<String, Object?>> _readDocument(
+  RecordEntry reader,
+  String id,
+  String diverId,
+) async =>
+    (await reader.read([
+      id,
+    ], RecordLoad(include: const {}, diverId: diverId)))[id] ??
+    const {};
+
+/// Whether [table] still holds [id], read from the current database for the
+/// same reason.
+Future<String> _presence(String table, String id) async {
+  final row = await DatabaseService.instance.database
+      .customSelect(
+        'SELECT 1 FROM $table WHERE id = ?',
+        variables: [Variable.withString(id)],
+      )
+      .getSingleOrNull();
+  return row == null ? 'gone' : 'present';
+}
+
 /// How a preview treats a child entry, such as a tank, which takes its
 /// owner and version from the record it belongs to, and how it checks the
 /// references a change sets.
@@ -22,8 +48,9 @@ extension _ChildRules on _Pass {
 
   /// Who a create belongs to. A record of its own takes the profile the set
   /// names, or the active one. A child takes its parent's owner, and a
-  /// profile the set names must be that one.
-  Future<({String diverId, String? parentId, PlanBlock? block})> _owner(
+  /// profile the set names must be that one. [diverId] is null only when
+  /// [block] is set.
+  Future<({String? diverId, String? parentId, PlanBlock? block})> _owner(
     CreateOp op,
     WritableEntry entry,
     Map<String, Object?> values,
@@ -37,11 +64,10 @@ extension _ChildRules on _Pass {
       );
     }
     final parentId = values[parent.field]! as String;
-    Future<({String diverId, String? parentId, PlanBlock? block})> blocked(
+    ({String? diverId, String? parentId, PlanBlock? block}) blocked(
       BlockReason reason,
       String detail,
-    ) async =>
-        (diverId: '', parentId: parentId, block: PlanBlock(reason, detail));
+    ) => (diverId: null, parentId: parentId, block: PlanBlock(reason, detail));
     if (_deleted.contains((parent.entity, parentId))) {
       return blocked(
         BlockReason.referenceDeleted,
@@ -61,8 +87,9 @@ extension _ChildRules on _Pass {
         '${parent.field}: nothing has the id $parentId.',
       );
     }
+    // A parent with no owner, as an old dive can be, takes the one named.
     final ownerId = row.readNullable<String>('diver_id');
-    if (op.diverId != null && op.diverId != ownerId) {
+    if (ownerId != null && op.diverId != null && op.diverId != ownerId) {
       return blocked(
         BlockReason.invalidValue,
         'A ${op.entity} record belongs to the profile of its ${parent.entity} '
@@ -72,7 +99,7 @@ extension _ChildRules on _Pass {
     // A parent deleted after the preview refuses the plan.
     await _markReference(table, parentId);
     return (
-      diverId: ownerId ?? await resolveDiver(null),
+      diverId: ownerId ?? await resolveDiver(op.diverId),
       parentId: parentId,
       block: null,
     );
@@ -81,7 +108,7 @@ extension _ChildRules on _Pass {
   /// What apply compares with the record as the preview read it. A child has
   /// no version of its own, so its parent's stands in, and the child's own
   /// document is compared too: a merge can change the child row alone.
-  RecordMarker _marker(
+  Future<RecordMarker> _marker(
     WritableEntry entry,
     String id,
     _Row row,
@@ -89,7 +116,7 @@ extension _ChildRules on _Pass {
     Map<String, Set<String>> relations = const {},
     required String footprint,
     required Future<String> Function() readFootprint,
-  }) {
+  }) async {
     Future<Set<String>> readRelation(String relation) =>
         entry.currentRelation(id, relation);
     if (entry.parent == null) {
@@ -103,6 +130,8 @@ extension _ChildRules on _Pass {
         readFootprint: readFootprint,
       );
     }
+    final reader = records.named(entry.name);
+    final diverId = row.ownerId ?? await resolveDiver(null);
     return RecordMarker(
       table: _parentTable(entry),
       id: row.parentId!,
@@ -111,10 +140,58 @@ extension _ChildRules on _Pass {
       readRelation: readRelation,
       footprint: '$footprint ${jsonEncode(document)}',
       readFootprint: () async {
-        final now = await _document(entry, id, row.ownerId);
+        final now = await _readDocument(reader, id, diverId);
         return '${await readFootprint()} ${jsonEncode(now)}';
       },
     );
+  }
+
+  /// What a diver knows a child's parent by, and the parent's date, so a
+  /// plan says which dive a tank change is on. Both null for a record of its
+  /// own.
+  Future<({String? title, String? date})> _parentContext(
+    WritableEntry entry,
+    String? parentId,
+    String? ownerId,
+  ) async {
+    final parent = entry.parent;
+    if (parent == null || parentId == null) return (title: null, date: null);
+    final document = await _readDocument(
+      records.named(parent.entity),
+      parentId,
+      ownerId ?? await resolveDiver(null),
+    );
+    return (
+      title: writes.named(parent.entity)?.titleOf(document),
+      date: document['date_time'] as String?,
+    );
+  }
+
+  /// The names of the records [fields]' references point at, by id, so a
+  /// diver reads a dive's or a species' name rather than its id.
+  Future<Map<String, String>> _referenceNames(
+    WritableEntry entry,
+    Map<String, FieldChange> fields,
+    String? ownerId,
+  ) async {
+    final names = <String, String>{};
+    for (final MapEntry(:key, :value) in fields.entries) {
+      final codec = entry.fields[key];
+      if (codec is! ReferenceCodec) continue;
+      for (final id in {value.oldValue, value.newValue}.whereType<String>()) {
+        final document = await _readDocument(
+          records.named(codec.refEntity),
+          id,
+          ownerId ?? await resolveDiver(null),
+        );
+        final name =
+            writes.named(codec.refEntity)?.titleOf(document) ??
+            document['name'] as String? ??
+            document['common_name'] as String?;
+        if (name != null) names[id] = name;
+      }
+    }
+    return names;
   }
 
   /// Blocks a change to a child whose parent the set deletes, as the delete

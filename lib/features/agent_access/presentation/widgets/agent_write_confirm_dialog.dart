@@ -111,7 +111,14 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
                 title: Text(l.settings_agentAccess_confirm_details),
                 children: [
                   for (final item in request.items)
-                    _PlanItemRow(item: item, units: units),
+                    _PlanItemRow(
+                      item: item,
+                      units: units,
+                      kind: changeLogTableLabel(
+                        l,
+                        entityTables[item.entity] ?? item.entity,
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -196,41 +203,63 @@ String _verb(AppLocalizations l, String kind) => switch (kind) {
 };
 
 class _PlanItemRow extends StatelessWidget {
-  const _PlanItemRow({required this.item, required this.units});
+  const _PlanItemRow({
+    required this.item,
+    required this.units,
+    required this.kind,
+  });
 
   final PlanItem item;
   final UnitFormatter units;
+
+  /// What this kind of record is called, for one with no title: a diver
+  /// reads "Weight", not an id.
+  final String kind;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final verb = _verb(l, item.kind.name);
-    final name = item.title ?? item.id;
+    final name = item.title ?? kind;
     final date = item.date;
+    // A child names the record it is on, a tank its dive.
+    final where = [
+      ?item.parentTitle,
+      if (date != null) units.formatDateTime(DateTime.parse(date), l10n: l),
+    ].join(' \u00b7 ');
     String named(String id) => item.names[id] ?? id;
-    // A cylinder's size reads by its working pressure when the plan sets it.
-    final pressure = item.fields['working_pressure_bar'];
+    // A cylinder's size reads by its working pressure: the one the plan
+    // sets, else the one the tank holds.
+    final pressureChange = item.fields['working_pressure_bar'];
+    final storedPressure = item.context['working_pressure_bar'] as num?;
+    final oldPressure = pressureChange == null
+        ? storedPressure
+        : pressureChange.oldValue as num?;
+    final newPressure = pressureChange == null
+        ? storedPressure
+        : pressureChange.newValue as num?;
+    // A reference reads by the name of what it points at.
+    String shown(String key, Object? value, num? pressure) =>
+        value is String && item.names.containsKey(value)
+        ? item.names[value]!
+        : agentValueText(l, units, key, value, workingPressureBar: pressure);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            name == null ? verb : '$verb: $name',
+            '$verb: $name',
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
-          if (date != null)
-            Text(
-              units.formatDateTime(DateTime.parse(date), l10n: l),
-              style: theme.textTheme.bodySmall,
-            ),
+          if (where.isNotEmpty) Text(where, style: theme.textTheme.bodySmall),
           for (final MapEntry(:key, :value) in item.fields.entries)
             Text(
-              '$key: ${agentValueText(l, units, key, value.oldValue, workingPressureBar: pressure?.oldValue as num?)} '
-              '→ ${agentValueText(l, units, key, value.newValue, workingPressureBar: pressure?.newValue as num?)}',
+              '$key: ${shown(key, value.oldValue, oldPressure)} '
+              '→ ${shown(key, value.newValue, newPressure)}',
               style: theme.textTheme.bodySmall,
             ),
           for (final MapEntry(:key, :value) in item.relations.entries)

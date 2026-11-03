@@ -159,11 +159,25 @@ it: every write path for a dive's tanks, weights and sightings stamps the
 dive. The marker also compares the child's own document, because a sync merge
 can change the child row alone. A change to a child whose parent the same set
 deletes is blocked, as the delete takes the child with it. After an apply,
-the dives of the children it changed are refreshed as edited dives are.
+the dives of the children it changed are refreshed as edited dives are. A
+parent with no owner, as an old dive can be, takes the profile a create names.
+
+A child item carries its parent's title and date, so the dialog says which dive
+a tank change is on, and an untitled record is named by its kind, never by its
+id. `displayContext` lists document values a change may leave alone but the
+dialog needs to show it, such as the working pressure that says what a tank's
+size holds for an imperial diver.
 
 A field that holds an id uses `FieldCodec.reference`, and the planner checks
-it as it checks a relation's links. A reference into a table with no
+it as it checks a relation's links, and names what it points at so the dialog
+shows a dive's or a species' name. A reference into a table with no
 `updated_at`, such as `species`, is marked by whether the row still exists.
+
+A marker's `readFootprint` lives as long as the plan, up to 15 minutes, so it
+must not capture the preview pass: the pass holds the database strongly, and a
+plan keeps only a weak reference to it, so a restored logbook is not kept
+alive. Read through a top-level function and copy what the closure needs into
+locals first.
 
 The change log covers rows in this database, and a rollback covers them too.
 What neither can take back is a blob that has left the media store. A blob

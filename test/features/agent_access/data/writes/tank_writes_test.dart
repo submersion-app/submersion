@@ -81,6 +81,38 @@ void main() {
       expect(plan.markers.single.id, 'd2');
     });
 
+    test('an item names its dive and its references', () async {
+      final created = await h.preview([
+        create({'dive_id': 'd2', 'o2_fraction': 0.32}),
+      ]);
+      final changed = await h.preview([
+        update('t1', {'volume_l': 12}),
+      ]);
+
+      final item = created.items.single;
+      expect(item.parentTitle, 'Dive d2');
+      expect(item.date, '2024-03-14T09:30:00.000Z');
+      expect(item.names['d2'], 'Dive d2');
+      expect(item.toJson()['parent_id'], 'd2');
+      expect(changed.items.single.parentTitle, 'Dive d1');
+      expect(changed.items.single.context, {'working_pressure_bar': null});
+    });
+
+    test('a dive with no owner takes the profile a create names', () async {
+      await h.dive('d3', owner: null);
+
+      final named = await h.preview([
+        create({'dive_id': 'd3'}, diver: kDiverB),
+      ]);
+      final unnamed = await h.preview([
+        create({'dive_id': 'd3'}),
+      ]);
+
+      expect(named.items.single.block, isNull);
+      expect(named.items.single.diverId, kDiverB);
+      expect(unnamed.items.single.diverId, kDiverA);
+    });
+
     test('creates on one dive mark it once', () async {
       final plan = await h.preview([
         create({'dive_id': 'd1'}),
@@ -301,6 +333,30 @@ void main() {
             (e) => e.code,
             'code',
             AgentToolErrorCode.planStale,
+          ),
+        ),
+      );
+    });
+
+    test('a stale dive is named once, however many items mark it', () async {
+      await tank('t2');
+      final plan = await h.preview([
+        update('t1', {'volume_l': 12}),
+        update('t2', {'volume_l': 15}),
+      ]);
+      await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+        const DivesCompanion(updatedAt: Value(kSeedTime + 1)),
+      );
+
+      await expectLater(
+        h.apply(plan),
+        throwsA(
+          isA<AgentToolException>().having(
+            (e) => e.details!['records'],
+            'records',
+            [
+              {'table': 'dives', 'id': 'd1'},
+            ],
           ),
         ),
       );

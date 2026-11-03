@@ -77,7 +77,8 @@ void main() {
     ]);
 
     expect(plan.items.single.diverId, kDiverB);
-    expect(plan.items.single.title, 'belt');
+    // Unlabelled, so untitled: the dialog names it by its kind.
+    expect(plan.items.single.title, isNull);
   });
 
   test('a label that is not trimmed is blocked', () async {
@@ -91,6 +92,8 @@ void main() {
   test('a delete removes the weight and a revert restores it', () async {
     final result = await h.run([deleteOp('dive_weights', 'w1')]);
     expect(await h.one('dive_weights', 'w1', diverId: kDiverB), isNull);
+    // Its dive's weighting figures are worked out again.
+    expect(h.refreshed.single, {'d2'});
 
     await h.revert(result);
 

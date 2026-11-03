@@ -460,7 +460,9 @@ void main() {
     expect(find.textContaining('Morning dive'), findsOneWidget);
     expect(find.textContaining('boat_name'), findsOneWidget);
     expect(find.textContaining('Sea Star'), findsOneWidget);
-    expect(find.textContaining('d2'), findsOneWidget);
+    // An untitled record is named by its kind, not its id.
+    expect(find.textContaining(': Dive'), findsOneWidget);
+    expect(find.textContaining('d2'), findsNothing);
     await _close(tester);
   });
 
@@ -562,6 +564,66 @@ void main() {
     // From its own pressure, not the 200 bar estimate a '~' marks.
     expect(find.textContaining('cuft'), findsOneWidget);
     expect(find.textContaining('~'), findsNothing);
+    await _close(tester);
+  });
+
+  testWidgets('a child change names its dive, references and parts', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      settings: const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+    );
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: const [
+            PlanItem(
+              operation: 0,
+              kind: ChangeKind.create,
+              entity: 'sightings',
+              diverId: 'diver-a',
+              parentTitle: 'Blue Hole',
+              fields: {'species_id': FieldChange(null, 'sp-1')},
+              names: {'sp-1': 'Moray eel'},
+            ),
+            PlanItem(
+              operation: 1,
+              kind: ChangeKind.update,
+              entity: 'dive_tanks',
+              id: 't1',
+              diverId: 'diver-a',
+              title: 'Back gas',
+              // Only the size changes, so its stored pressure reads it.
+              context: {'working_pressure_bar': 207.0},
+              fields: {'volume_l': FieldChange(10.0, 11.1)},
+            ),
+            PlanItem(
+              operation: 2,
+              kind: ChangeKind.update,
+              entity: 'dives',
+              id: 'd1',
+              diverId: 'diver-a',
+              title: 'Wreck',
+              indirectLost: {
+                'gear': {'hose'},
+              },
+              names: {'hose': 'Low pressure hose'},
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Blue Hole'), findsOneWidget);
+    expect(find.textContaining('Moray eel'), findsOneWidget);
+    expect(find.textContaining('sp-1'), findsNothing);
+    expect(find.textContaining('volume_l'), findsOneWidget);
+    expect(find.textContaining('~'), findsNothing);
+    expect(find.text('gear: -Low pressure hose'), findsOneWidget);
     await _close(tester);
   });
 

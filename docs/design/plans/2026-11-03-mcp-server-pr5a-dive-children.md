@@ -68,7 +68,7 @@ Tests mirror these paths. Child planner tests go in a new `write_planner_childre
 
 `DiveChildRowRepository({AppDatabase? database})`, built like `TankRoleRepairRepository`, with `SyncRepository` and `TankPressureSeriesRepository`. No method opens a transaction or notifies; the applier owns both.
 
-- `Future<String> addTank(String diveId, DiveTanksCompanion values)`: fresh id, `tankOrder` the count of the dive's tanks when absent, marks the tank pending, bumps the dive. Returns the id.
+- `Future<String> addTank(String diveId, DiveTanksCompanion values)`: fresh id, `tankOrder` one past the dive's highest when absent (a count would land on the gap a delete leaves), marks the tank pending, bumps the dive. Returns the id.
 - `Future<bool> updateTank(String tankId, DiveTanksCompanion values)`: writes only the present columns. A present `tankRole` clears `roleSource`, as `_tankSpecsCompanion` does (#2595). Marks pending, bumps the dive. False when the tank is gone.
 - `Future<bool> deleteTank(String tankId)`: deletes the tank's pressure series with `deleteForTank`, reads its gas switches, deletes the tank, logs the tank's tombstone and the switches', bumps the dive.
 - `Future<String> addWeight(String diveId, DiveWeightsCompanion values)`, `updateWeight`, `deleteWeight`: the same shape. The label goes through `normalizeWeightLabel`.

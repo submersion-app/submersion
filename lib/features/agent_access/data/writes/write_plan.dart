@@ -30,6 +30,7 @@ class PlanItem {
     this.id,
     this.diverId,
     this.parentId,
+    this.parentTitle,
     this.title,
     this.fields = const {},
     this.values = const {},
@@ -38,6 +39,7 @@ class PlanItem {
     this.indirectLost = const {},
     this.names = const {},
     this.date,
+    this.context = const {},
     this.reach = const DeleteReach(),
     this.block,
   });
@@ -53,6 +55,10 @@ class PlanItem {
 
   /// The record a child item belongs to, such as a tank's dive.
   final String? parentId;
+
+  /// What the diver knows [parentId] by, so a change says which dive it is
+  /// on.
+  final String? parentTitle;
 
   /// The record's own name, for the diver to recognise it.
   final String? title;
@@ -73,8 +79,14 @@ class PlanItem {
   /// The names of the records [relations] refers to, by id.
   final Map<String, String> names;
 
-  /// The record's date, when it has one, as a document writes it.
+  /// The record's date, or its parent's for a child, as a document writes
+  /// it.
   final String? date;
+
+  /// Values of the record the change leaves alone that a reader needs to
+  /// show it, by document key: a tank's working pressure, which says what
+  /// its size holds. See [WritableEntry.displayContext].
+  final Map<String, Object?> context;
 
   /// What a delete takes with it.
   final DeleteReach reach;
@@ -86,6 +98,7 @@ class PlanItem {
     'entity': entity,
     'id': id ?? 'new',
     'diver_id': diverId,
+    'parent_id': ?parentId,
     'title': ?title,
     if (fields.isNotEmpty)
       'fields': {

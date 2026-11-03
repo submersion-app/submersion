@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Variable;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/agent_access/data/records/record_reader.dart';
@@ -177,7 +178,7 @@ class _Pass {
     if (owner.block case final block?) {
       return _add(op, entry, kind: ChangeKind.create, block: block);
     }
-    final diverId = owner.diverId;
+    final diverId = owner.diverId!;
     final block =
         await _checkFieldRefs(entry, parsed.values, diverId) ??
         await entry.refuse(
@@ -188,14 +189,18 @@ class _Pass {
           ),
         );
     if (block == null) await _markFieldRefs(entry, parsed.values);
+    final parent = await _parentContext(entry, owner.parentId, diverId);
     _add(
       op,
       entry,
       kind: ChangeKind.create,
       diverId: diverId,
       parentId: owner.parentId,
+      parentTitle: parent.title,
+      date: parent.date,
       fields: parsed.changes,
       values: parsed.values,
+      names: await _referenceNames(entry, parsed.changes, diverId),
       block: block,
     );
   }
@@ -248,7 +253,7 @@ class _Pass {
     }
     if (block == null) {
       markers.add(
-        _marker(
+        await _marker(
           entry,
           op.id,
           row,
@@ -261,6 +266,7 @@ class _Pass {
       await _markReferences(entry, links.deltas);
       await _markFieldRefs(entry, parsed.values);
     }
+    final parent = await _parentContext(entry, row.parentId, row.ownerId);
     _add(
       op,
       entry,
@@ -268,18 +274,23 @@ class _Pass {
       id: op.id,
       diverId: row.ownerId,
       parentId: row.parentId,
+      parentTitle: parent.title,
       title: entry.titleOf(document),
-      date: document['date_time'] as String?,
+      date: document['date_time'] as String? ?? parent.date,
+      context: _context(entry, document),
       fields: fields,
       values: values,
       relations: links.deltas,
       indirectRelations: effects.relations,
       indirectLost: effects.lost,
-      names: await _names(entry, links.deltas, {
-        ...effects.relations,
-        for (final MapEntry(:key, :value) in effects.lost.entries)
-          key: {...?effects.relations[key], ...value},
-      }),
+      names: {
+        ...await _names(entry, links.deltas, {
+          ...effects.relations,
+          for (final MapEntry(:key, :value) in effects.lost.entries)
+            key: {...?effects.relations[key], ...value},
+        }),
+        ...await _referenceNames(entry, fields, row.ownerId),
+      },
       block: block,
     );
   }
@@ -297,12 +308,16 @@ class _Pass {
         document: document,
       ),
     );
+    // Held as a local, so the closure a marker keeps holds the map and not
+    // this pass, whose database a plan must not keep alive.
+    final alongside = _deletedByEntity;
     Future<DeleteReach> readReach() =>
-        entry.deleteReach(op.id, alongside: _deletedByEntity);
+        entry.deleteReach(op.id, alongside: alongside);
     final reach = block == null ? await readReach() : const DeleteReach();
+    final parent = await _parentContext(entry, row.parentId, row.ownerId);
     if (block == null) {
       markers.add(
-        _marker(
+        await _marker(
           entry,
           op.id,
           row,
@@ -319,8 +334,10 @@ class _Pass {
       id: op.id,
       diverId: row.ownerId,
       parentId: row.parentId,
+      parentTitle: parent.title,
       title: entry.titleOf(document),
-      date: document['date_time'] as String?,
+      date: document['date_time'] as String? ?? parent.date,
+      context: _context(entry, document),
       reach: reach,
       block: block,
     );
@@ -344,24 +361,14 @@ class _Pass {
     if (!_referenced.add((table, id))) return;
     if (!await _versioned(table)) {
       // Nothing to compare but whether the row is still there.
-      Future<String> present() async {
-        final row = await db
-            .customSelect(
-              'SELECT 1 FROM $table WHERE id = ?',
-              variables: [Variable.withString(id)],
-            )
-            .getSingleOrNull();
-        return row == null ? 'gone' : 'present';
-      }
-
       markers.add(
         RecordMarker(
           table: table,
           id: id,
           updatedAt: null,
           versioned: false,
-          footprint: await present(),
-          readFootprint: present,
+          footprint: await _presence(table, id),
+          readFootprint: () => _presence(table, id),
         ),
       );
       return;
@@ -453,16 +460,17 @@ class _Pass {
     WritableEntry entry,
     String id,
     String? ownerId,
-  ) async {
-    final documents = await records.named(entry.name).read(
-      [id],
-      RecordLoad(
-        include: const {},
-        diverId: ownerId ?? await resolveDiver(null),
-      ),
-    );
-    return documents[id] ?? const {};
-  }
+  ) async => _readDocument(
+    records.named(entry.name),
+    id,
+    ownerId ?? await resolveDiver(null),
+  );
+
+  /// The values [entry] asks a reader to show a change with.
+  Map<String, Object?> _context(
+    WritableEntry entry,
+    Map<String, Object?> document,
+  ) => {for (final key in entry.displayContext) key: document[key]};
 
   _Parsed _parse(
     int index,
@@ -657,8 +665,10 @@ class _Pass {
     String? id,
     String? diverId,
     String? parentId,
+    String? parentTitle,
     String? title,
     String? date,
+    Map<String, Object?> context = const {},
     Map<String, FieldChange> fields = const {},
     Map<String, Object?> values = const {},
     Map<String, RelationDelta> relations = const {},
@@ -675,8 +685,10 @@ class _Pass {
       id: id,
       diverId: diverId,
       parentId: parentId,
+      parentTitle: parentTitle,
       title: title,
       date: date,
+      context: context,
       fields: fields,
       values: values,
       relations: relations,

@@ -43,12 +43,15 @@ class ChildWriteHarness {
     await dive('d2', owner: kDiverB);
   }
 
-  Future<void> dive(String id, {String owner = kDiverA}) => db
+  /// A dive named "Dive [id]", on 2024-03-14 at 09:30. [owner] null makes an
+  /// unowned dive, as an old logbook can hold.
+  Future<void> dive(String id, {String? owner = kDiverA}) => db
       .into(db.dives)
       .insert(
         DivesCompanion.insert(
           id: id,
           diverId: Value(owner),
+          name: Value('Dive $id'),
           diveDateTime: 1710408600000,
           createdAt: kSeedTime,
           updatedAt: kSeedTime,
