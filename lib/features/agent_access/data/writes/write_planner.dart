@@ -274,7 +274,12 @@ class _Pass {
       values: values,
       relations: links.deltas,
       indirectRelations: effects.relations,
-      names: await _names(entry, links.deltas, effects.relations),
+      indirectLost: effects.lost,
+      names: await _names(entry, links.deltas, {
+        ...effects.relations,
+        for (final MapEntry(:key, :value) in effects.lost.entries)
+          key: {...?effects.relations[key], ...value},
+      }),
       block: block,
     );
   }
@@ -658,6 +663,7 @@ class _Pass {
     Map<String, Object?> values = const {},
     Map<String, RelationDelta> relations = const {},
     Map<String, Set<String>> indirectRelations = const {},
+    Map<String, Set<String>> indirectLost = const {},
     Map<String, String> names = const {},
     DeleteReach reach = const DeleteReach(),
     PlanBlock? block,
@@ -675,6 +681,7 @@ class _Pass {
       values: values,
       relations: relations,
       indirectRelations: indirectRelations,
+      indirectLost: indirectLost,
       names: names,
       reach: reach,
       block: block,

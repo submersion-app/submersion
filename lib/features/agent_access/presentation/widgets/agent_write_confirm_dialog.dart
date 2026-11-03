@@ -233,9 +233,12 @@ class _PlanItemRow extends StatelessWidget {
               '$key: ${[for (final id in value.add) '+${named(id)}', for (final id in value.remove) '-${named(id)}'].join(', ')}',
               style: theme.textTheme.bodySmall,
             ),
-          for (final MapEntry(:key, :value) in item.indirectRelations.entries)
+          for (final key in {
+            ...item.indirectRelations.keys,
+            ...item.indirectLost.keys,
+          })
             Text(
-              '$key: ${[for (final id in value) '+${named(id)}'].join(', ')}',
+              '$key: ${[for (final id in item.indirectRelations[key] ?? const <String>{}) '+${named(id)}', for (final id in item.indirectLost[key] ?? const <String>{}) '-${named(id)}'].join(', ')}',
               style: theme.textTheme.bodySmall,
             ),
           for (final MapEntry(:key, :value) in item.reach.parts.entries)

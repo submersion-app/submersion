@@ -35,6 +35,7 @@ class PlanItem {
     this.values = const {},
     this.relations = const {},
     this.indirectRelations = const {},
+    this.indirectLost = const {},
     this.names = const {},
     this.date,
     this.reach = const DeleteReach(),
@@ -65,6 +66,10 @@ class PlanItem {
   /// the write that causes them makes them.
   final Map<String, Set<String>> indirectRelations;
 
+  /// Links a repository removes because of another change, listed the
+  /// same way.
+  final Map<String, Set<String>> indirectLost;
+
   /// The names of the records [relations] refers to, by id.
   final Map<String, String> names;
 
@@ -92,10 +97,13 @@ class PlanItem {
         for (final MapEntry(:key, :value) in relations.entries)
           key: {'add': value.add.toList(), 'remove': value.remove.toList()},
       },
-    if (indirectRelations.isNotEmpty)
+    if (indirectRelations.isNotEmpty || indirectLost.isNotEmpty)
       'indirect_relations': {
-        for (final MapEntry(:key, :value) in indirectRelations.entries)
-          key: {'add': value.toList()},
+        for (final key in {...indirectRelations.keys, ...indirectLost.keys})
+          key: {
+            if (indirectRelations[key] case final add?) 'add': add.toList(),
+            if (indirectLost[key] case final remove?) 'remove': remove.toList(),
+          },
       },
     if (!reach.isEmpty)
       'also_reaches': {

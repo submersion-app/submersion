@@ -109,7 +109,11 @@ class WriteCheck {
 /// What an update does beyond what it names, through a repository's own
 /// rules. The planner lists these, so a diver sees everything a plan does.
 class SideEffects {
-  const SideEffects({this.fields = const {}, this.relations = const {}});
+  const SideEffects({
+    this.fields = const {},
+    this.relations = const {},
+    this.lost = const {},
+  });
 
   /// Document key to the value it will hold, as a document would read.
   final Map<String, Object?> fields;
@@ -117,7 +121,11 @@ class SideEffects {
   /// Relation name to the ids it gains.
   final Map<String, Set<String>> relations;
 
-  bool get isEmpty => fields.isEmpty && relations.isEmpty;
+  /// Relation name to the ids it loses, such as the parts that leave a
+  /// dive with their assembly.
+  final Map<String, Set<String>> lost;
+
+  bool get isEmpty => fields.isEmpty && relations.isEmpty && lost.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -127,6 +135,10 @@ class SideEffects {
     }),
     'relations': _sorted({
       for (final MapEntry(:key, :value) in relations.entries)
+        key: (value.toList()..sort()),
+    }),
+    'lost': _sorted({
+      for (final MapEntry(:key, :value) in lost.entries)
         key: (value.toList()..sort()),
     }),
   });
