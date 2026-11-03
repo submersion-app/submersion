@@ -11,11 +11,13 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
     show DiveGearPreview;
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -33,6 +35,7 @@ class DiveWrites extends WritableEntry {
   final RecordRepositories _r;
   late final _edits = BulkDiveEditService(_r.dives, _r.buddies, _r.species);
   final _roleLinks = DiveRoleLinkRepository();
+  final _annotations = AnnotationRepository();
 
   @override
   String get name => 'dives';
@@ -198,6 +201,17 @@ class DiveWrites extends WritableEntry {
         if (document[key] != null) fields[key] = null;
       }
     }
+    final parts = <String, int>{};
+    if (update.values['notes'] case final String notes) {
+      // An annotation whose link the new Notes drop goes, as an editor
+      // save reconciles it.
+      final linked = annotationWordsInNotes(notes).keys.toSet();
+      final dropped = [
+        for (final a in await _annotations.annotationsForDive(id))
+          if (!linked.contains(a.id)) a.id,
+      ];
+      if (dropped.isNotEmpty) parts['dive_profile_events'] = dropped.length;
+    }
     if (update.values['date_time'] case final DateTime moved) {
       final offset = moved.difference(
         DateTime.parse(document['date_time']! as String),
@@ -208,7 +222,12 @@ class DiveWrites extends WritableEntry {
         }
       }
     }
-    return SideEffects(fields: fields, relations: relations, lost: lost);
+    return SideEffects(
+      fields: fields,
+      relations: relations,
+      lost: lost,
+      parts: parts,
+    );
   }
 
   @override
@@ -336,6 +355,9 @@ class DiveWrites extends WritableEntry {
     }
     if (update.values['date_time'] case final DateTime moved) {
       await _moveTo(id, moved);
+    }
+    if (update.values['notes'] case final String notes) {
+      await _annotations.reconcile(diveId: id, notes: notes);
     }
   }
 

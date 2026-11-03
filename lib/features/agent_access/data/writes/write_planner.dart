@@ -291,6 +291,7 @@ class _Pass {
       relations: links.deltas,
       indirectRelations: effects.relations,
       indirectLost: effects.lost,
+      reach: DeleteReach(parts: effects.parts),
       names: {
         ...await _names(entry, links.deltas, {
           ...effects.relations,

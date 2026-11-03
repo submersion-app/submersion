@@ -113,6 +113,7 @@ class SideEffects {
     this.fields = const {},
     this.relations = const {},
     this.lost = const {},
+    this.parts = const {},
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -125,7 +126,12 @@ class SideEffects {
   /// dive with their assembly.
   final Map<String, Set<String>> lost;
 
-  bool get isEmpty => fields.isEmpty && relations.isEmpty && lost.isEmpty;
+  /// Rows the update deletes, by table, as a delete's parts are counted:
+  /// the annotations a Notes edit unlinks.
+  final Map<String, int> parts;
+
+  bool get isEmpty =>
+      fields.isEmpty && relations.isEmpty && lost.isEmpty && parts.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -141,6 +147,7 @@ class SideEffects {
       for (final MapEntry(:key, :value) in lost.entries)
         key: (value.toList()..sort()),
     }),
+    'parts': _sorted(parts),
   });
 }
 
