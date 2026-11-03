@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstring>
 #include <sstream>
+#include <thread>
 
 #include "native_logger.h"
 
@@ -208,18 +209,72 @@ BleIoStream::BleIoStream() = default;
 
 BleIoStream::~BleIoStream() { Close(); }
 
-bool BleIoStream::Fail(BleConnectFailure failure, const std::string& detail) {
+bool BleIoStream::Fail(BleConnectFailure failure, const std::string& detail,
+                       int32_t hresult) {
     NativeLogger::Error(kBleCategory, detail);
     connect_failure_ = failure;
     connect_failure_detail_ = detail;
+    connect_failure_hresult_ = hresult;
     return false;
 }
 
-bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address) {
+bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address,
+                                     const std::function<bool()>& cancelled) {
+    // A single refusal used to end the download. Qt's WinRT backend keeps
+    // asking an unpaired device for its services for 20 seconds, and the
+    // Petrel 2 in issue #4094 failed discovery three different ways in three
+    // tries (0x8007003A twice, Unreachable once), so a transient failure is
+    // repeated until the window closes. Pairing refusals and a missing LE
+    // record are not: asking again cannot change them.
+    const auto started = std::chrono::steady_clock::now();
+    for (int attempt = 1;; attempt++) {
+        if (ConnectAndDiscoverOnce(bluetooth_address)) {
+            if (attempt > 1) {
+                NativeLogger::Info(kBleCategory,
+                                   "Connected on attempt " +
+                                       std::to_string(attempt));
+            }
+            return true;
+        }
+        const int64_t elapsed_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - started)
+                .count();
+        if (!ShouldRetryConnect(connect_failure_, connect_failure_hresult_,
+                                elapsed_ms) ||
+            (cancelled && cancelled())) {
+            return false;
+        }
+        // Tear down what the failed attempt opened, so the next one starts
+        // from a fresh BluetoothLEDevice rather than from stale GATT objects.
+        // Close() revokes event tokens on objects the failed attempt may have
+        // left half set up, and a winrt::hresult_error is not a
+        // std::exception, so nothing above this thread would catch it.
+        try {
+            Close();
+        } catch (...) {
+        }
+        NativeLogger::Warn(kBleCategory,
+                           "Attempt " + std::to_string(attempt) +
+                               " failed; retrying in " +
+                               std::to_string(kConnectRetryDelayMs) + " ms");
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(kConnectRetryDelayMs));
+        if (cancelled && cancelled()) return false;
+    }
+}
+
+bool BleIoStream::ConnectAndDiscoverOnce(uint64_t bluetooth_address) {
     const std::string address = FormatAddress(bluetooth_address);
     connect_failure_ = BleConnectFailure::kNone;
     connect_failure_detail_.clear();
+    connect_failure_hresult_ = 0;
     NativeLogger::Debug(kBleCategory, "Connecting to " + address);
+    // Which WinRT call is running, for the catch below. Its line used to say
+    // only "connect or service discovery", so the 0x8007003A in #4094 could
+    // not be pinned to address resolution, the service list, or one
+    // service's characteristics.
+    connect_step_ = "resolving the address";
     try {
         device_ = BluetoothLEDevice::FromBluetoothAddressAsync(
                       bluetooth_address)
@@ -261,6 +316,23 @@ bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address) {
         } catch (...) {
         }
 
+        // Ask Windows to hold the link between the discovery calls below
+        // instead of dropping it whenever no GATT request is in flight, the
+        // shape of the nine-second Unreachable in #4094. Best-effort:
+        // GattSession needs Windows 10 1803.
+        connect_step_ = "opening a GATT session";
+        try {
+            gatt_session_ =
+                GattSession::FromDeviceIdAsync(device_.BluetoothDeviceId())
+                    .get();
+            if (gatt_session_) gatt_session_.MaintainConnection(true);
+        } catch (...) {
+            gatt_session_ = nullptr;
+            NativeLogger::Warn(kBleCategory,
+                               "Could not hold a GATT session open; "
+                               "continuing without one");
+        }
+
         return DiscoverCharacteristics();
     // DiscoverCharacteristics runs inside this try and does not catch its
     // own .get() throws, so these handlers see discovery failures too.
@@ -270,16 +342,19 @@ bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address) {
     } catch (const winrt::hresult_error& e) {
         return Fail(ClassifyError(e),
                     "Connect or service discovery for " + address +
-                        " threw: " + DescribeHresult(e));
+                        " threw while " + connect_step_ + ": " +
+                        DescribeHresult(e),
+                    static_cast<int32_t>(e.code()));
     } catch (...) {
         return Fail(BleConnectFailure::kOther,
                     "Connect or service discovery for " + address +
-                        " threw an unknown error");
+                        " threw an unknown error while " + connect_step_);
     }
 }
 
 bool BleIoStream::DiscoverCharacteristics() {
     read_poller_.reset();
+    connect_step_ = "listing services";
     auto services_result =
         device_.GetGattServicesAsync(BluetoothCacheMode::Uncached).get();
     if (services_result.Status() != GattCommunicationStatus::Success) {
@@ -319,6 +394,8 @@ bool BleIoStream::DiscoverCharacteristics() {
 
     for (auto const& service : services_result.Services()) {
         services_listed++;
+        connect_step_ =
+            "listing the characteristics of " + DescribeUuid(service.Uuid());
         auto chars_result =
             service.GetCharacteristicsAsync(BluetoothCacheMode::Uncached)
                 .get();
@@ -610,6 +687,8 @@ bool BleIoStream::DiscoverCharacteristics() {
     }
 
     // Enable notifications.
+    connect_step_ = "subscribing to " +
+                    DescribeUuid(notify_characteristic_.Uuid());
     auto cccd_value =
         ((notify_characteristic_.CharacteristicProperties() &
           GattCharacteristicProperties::Notify) !=
@@ -850,6 +929,13 @@ void BleIoStream::Close() {
     // Release the throughput-optimized connection request (reverts to the
     // controller's default interval) before tearing down the device.
     preferred_connection_request_ = nullptr;
+    if (gatt_session_) {
+        try {
+            gatt_session_.Close();
+        } catch (...) {
+        }
+        gatt_session_ = nullptr;
+    }
     if (device_) {
         device_.Close();
         device_ = nullptr;

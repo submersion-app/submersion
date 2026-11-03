@@ -20,6 +20,7 @@
 #include <winrt/Windows.Storage.Streams.h>
 
 #include "ble_connect_failure.h"
+#include "bluetooth_route_policy.h"
 #include "ble_read_poll.h"
 
 extern "C" {
@@ -40,8 +41,11 @@ class BleIoStream {
   ~BleIoStream();
 
   // Connect to a BLE device by address and discover GATT characteristics.
-  // Blocks until ready or timeout. Returns true on success.
-  bool ConnectAndDiscover(uint64_t bluetooth_address);
+  // Blocks until ready or timeout. Returns true on success. A transient
+  // failure is retried within kConnectRetryWindowMs (issue #4094), checking
+  // `cancelled` between attempts so a cancelled download stops waiting.
+  bool ConnectAndDiscover(uint64_t bluetooth_address,
+                          const std::function<bool()>& cancelled = {});
 
   // Build the libdc_io_callbacks_t struct pointing to this instance.
   // The caller must keep this BleIoStream alive while the callbacks are
@@ -70,7 +74,13 @@ class BleIoStream {
  private:
   // Logs `detail` as the connect failure, records why, and returns false so
   // a failure path can end in `return Fail(...)`.
-  bool Fail(BleConnectFailure failure, const std::string& detail);
+  // `hresult` is the code of the winrt::hresult_error behind it, or 0 for a
+  // GattCommunicationStatus, so the retry policy can tell them apart.
+  bool Fail(BleConnectFailure failure, const std::string& detail,
+            int32_t hresult = 0);
+
+  // One connect and discovery attempt; ConnectAndDiscover repeats it.
+  bool ConnectAndDiscoverOnce(uint64_t bluetooth_address);
 
   // Discover GATT services and find the best write/notify characteristic
   // pair.
@@ -143,6 +153,10 @@ class BleIoStream {
   winrt::Windows::Devices::Bluetooth::
       BluetoothLEPreferredConnectionParametersRequest
           preferred_connection_request_{nullptr};
+  // Held with MaintainConnection while connected, so Windows keeps the link
+  // between GATT calls (issue #4094); released in Close().
+  winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::GattSession
+      gatt_session_{nullptr};
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
       GattCharacteristic write_characteristic_{nullptr};
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
@@ -204,6 +218,9 @@ class BleIoStream {
   std::string device_name_;
   BleConnectFailure connect_failure_ = BleConnectFailure::kNone;
   std::string connect_failure_detail_;
+  int32_t connect_failure_hresult_ = 0;
+  // The WinRT call in flight, named in the log when one throws.
+  std::string connect_step_;
 
   // PIN code authentication support.
   std::mutex pin_mutex_;
