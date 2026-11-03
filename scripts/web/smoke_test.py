@@ -319,10 +319,36 @@ def wait_for_dives_at(page, site):
 
 # What a page that never got going was doing, for a failure only the
 # runner reproduces: how often the main thread and the frames get a turn,
-# whether the page is isolated, whether the origin private file system
-# answers, and the Web Locks drift's storage waits on. Each probe is bounded,
-# so a wedged page still reports.
+# what WebGL the browser gave it, whether the page is isolated, the origin
+# private file system's files and whether a fresh worker can open one the
+# way drift's does (drift's own workers may be the stuck ones, and asking
+# them would hang), and the Web Locks drift's storage waits on. Each probe
+# is bounded, so a wedged page still reports.
 PAGE_PROBE = """async () => {
+  const webgl = (() => {
+    const gl = document.createElement('canvas').getContext('webgl2')
+      || document.createElement('canvas').getContext('webgl');
+    return gl ? String(gl.getParameter(gl.RENDERER)) : 'none';
+  })();
+  const workerCode = `onmessage = async () => {
+    const started = performance.now();
+    try {
+      const shared = new Int32Array(new SharedArrayBuffer(4));
+      const waited = Atomics.wait(shared, 0, 0, 10);
+      const root = await navigator.storage.getDirectory();
+      const file = await root.getFileHandle('smoke-probe', { create: true });
+      const handle = await file.createSyncAccessHandle();
+      handle.write(new Uint8Array([1, 2, 3]), { at: 0 });
+      handle.flush();
+      const size = handle.getSize();
+      handle.close();
+      await root.removeEntry('smoke-probe');
+      postMessage('wait ' + waited + ', sync handle wrote ' + size
+        + ' bytes in ' + Math.round(performance.now() - started) + ' ms');
+    } catch (error) {
+      postMessage('threw ' + error);
+    }
+  };`;
   const within = (promise, ms) => Promise.race([
     promise,
     new Promise((resolve) => setTimeout(() => resolve('no answer in ' + ms + ' ms'), ms)),
@@ -343,15 +369,43 @@ PAGE_PROBE = """async () => {
   const opfs = await within(settle(
     navigator.storage.getDirectory().then(() => 'answers'),
   ), 5000);
+  const listFiles = async () => {
+    const found = [];
+    const walk = async (dir, path) => {
+      for await (const [name, handle] of dir.entries()) {
+        if (handle.kind === 'directory') {
+          await walk(handle, path + name + '/');
+        } else {
+          found.push(path + name + ' ' + await settle(
+            handle.getFile().then((file) => file.size),
+          ));
+        }
+      }
+    };
+    await walk(await navigator.storage.getDirectory(), '/');
+    return found;
+  };
+  const opfsFiles = await within(settle(listFiles()), 5000);
+  const probeWorker = await within(settle(new Promise((resolve) => {
+    const worker = new Worker(URL.createObjectURL(
+      new Blob([workerCode], { type: 'text/javascript' }),
+    ));
+    worker.onmessage = (event) => { resolve(event.data); worker.terminate(); };
+    worker.onerror = (event) => { resolve('worker error ' + event.message); worker.terminate(); };
+    worker.postMessage(null);
+  })), 10000);
   const locks = navigator.locks
     ? await within(settle(navigator.locks.query().then((s) => JSON.stringify(s))), 5000)
     : 'no Web Locks';
   return {
     timerDelayMs: timerDelay,
     framesIn2s: frames,
+    webgl,
     crossOriginIsolated: self.crossOriginIsolated,
     cores: navigator.hardwareConcurrency,
     opfs,
+    opfsFiles,
+    probeWorker,
     locks,
   };
 }"""
@@ -375,9 +429,26 @@ def report_failure(page, request, heard):
         page.screenshot(path=os.path.join(folder, name + ".png"))
 
 
+# Firefox on the runner has no WebGL, and Flutter's CPU-only fallback draws
+# about one frame a second there, too slow for any step's timeout. Forcing
+# its software WebGL renders as Chromium's SwiftShader does. (A browser
+# without WebGL still starts: the ocean background stops animating once its
+# frames run over budget, which its widget tests cover.)
+LAUNCH_OPTIONS = {
+    "firefox": {
+        "firefox_user_prefs": {
+            "webgl.force-enabled": True,
+            "webgl.disable-fail-if-major-performance-caveat": True,
+        }
+    },
+}
+
+
 def open_page(request, locale):
     with sync_playwright() as playwright:
-        browser = getattr(playwright, request.param).launch()
+        browser = getattr(playwright, request.param).launch(
+            **LAUNCH_OPTIONS.get(request.param, {})
+        )
         context = browser.new_context(
             viewport={"width": 1280, "height": 900}, locale=locale
         )
