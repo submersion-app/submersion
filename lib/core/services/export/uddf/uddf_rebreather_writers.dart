@@ -40,14 +40,16 @@ abstract final class UddfRebreatherWriters {
   /// cell any sample has a reading or a millivolt value for, so a gap in the
   /// middle keeps every later cell in its place. Zero when none has either.
   static int cellCount(Iterable<Dive> dives) {
+    const max = UddfImportParsers.maxO2Sensors;
     var count = 0;
     for (final dive in dives) {
       for (final point in dive.profile) {
         final cells = _cells(point);
         final millivolts = _millivolts(point);
-        for (var i = count; i < UddfImportParsers.maxO2Sensors; i++) {
+        for (var i = count; i < max; i++) {
           if (cells[i] != null || millivolts[i] != null) count = i + 1;
         }
+        if (count == max) return max;
       }
     }
     return count;

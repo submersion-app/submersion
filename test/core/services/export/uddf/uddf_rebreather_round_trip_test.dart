@@ -7,6 +7,7 @@
 // dive came back as open circuit with its ppO2 and CNS worked out for air.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -194,4 +195,19 @@ void main() {
       });
     });
   }
+
+  test('a dives export without gear still declares the cells', () async {
+    // The cells are no gear, but the computer is: a file shared without
+    // gear names no computer, and still declares what the samples name.
+    final xml = await UddfExportService().generateDivesUddfContent([
+      _dive(
+        DiveMode.ccr,
+      ).copyWith(diveComputerModel: 'Petrel 3', diveComputerSerial: 'SN-1'),
+    ], options: const UddfExportOptions(includeGear: false));
+    final doc = XmlDocument.parse(xml);
+
+    expect(doc.findAllElements('o2sensor'), hasLength(3));
+    expect(doc.findAllElements('divecomputer'), isEmpty);
+    expect(xml, isNot(contains('Petrel 3')));
+  });
 }

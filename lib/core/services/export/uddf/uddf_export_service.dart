@@ -167,8 +167,8 @@ class UddfExportService {
           },
         );
 
-        // Diver section: an id-only owner hosting the computer declarations,
-        // then the participants. Both trimmed, because this file is shared
+        // Diver section: an id-only owner hosting the computer and O2 cell
+        // declarations, then the participants. Both trimmed, because this file is shared
         // with other people.
         if (computerIds.isNotEmpty || o2CellCount > 0 || people.isNotEmpty) {
           builder.element(
