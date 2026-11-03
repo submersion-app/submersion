@@ -35,7 +35,7 @@ PlanItem _item({
 );
 
 WriteConfirmation _request({
-  String? client = 'Claude Code',
+  String? client = 'Test Agent',
   List<PlanItem>? items,
 }) => WriteConfirmation(
   clientName: client,
@@ -125,7 +125,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Claude Code'), findsOneWidget);
+    expect(find.textContaining('Test Agent'), findsOneWidget);
     expect(find.text('Fix buddy names'), findsOneWidget);
     expect(find.textContaining('40'), findsOneWidget);
     expect(find.textContaining('Ana'), findsOneWidget);
