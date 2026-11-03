@@ -57,6 +57,20 @@ List<Object?> _values(PlanSettingGroup group, DivePlanState state) =>
         state.turnPressureRule,
         state.turnPressureFraction,
       ],
+      // What each tank is, not how full it starts or which id it has here.
+      PlanSettingGroup.tanks => [
+        for (final tank in state.tanks)
+          [
+            tank.name,
+            tank.volume,
+            tank.workingPressure,
+            tank.gasMix,
+            tank.role,
+            tank.material,
+            tank.order,
+            tank.presetName,
+          ],
+      ],
     };
 
 /// Whether [a] and [b] agree on every setting of [group].
@@ -75,12 +89,15 @@ Set<PlanSettingGroup> changedGroups(
 /// [to] with the settings of [group] taken from [from], everything else as
 /// it was. A value [from] leaves to the diver's default is cleared in [to]
 /// too. [to] itself comes back when it already matches.
+///
+/// Not for [PlanSettingGroup.tanks], which comes back unchanged: matching two
+/// dives' tanks takes the whole series (see `plan_series_tanks.dart`).
 DivePlanState applyGroup(
   PlanSettingGroup group, {
   required DivePlanState from,
   required DivePlanState to,
 }) {
-  if (sameGroup(group, from, to)) return to;
+  if (group == PlanSettingGroup.tanks || sameGroup(group, from, to)) return to;
   final changed = switch (group) {
     PlanSettingGroup.deco => to.copyWith(
       gfLow: from.gfLow,
@@ -167,6 +184,7 @@ DivePlanState applyGroup(
             turnPressureRule: from.turnPressureRule,
             turnPressureFraction: from.turnPressureFraction,
           ),
+    PlanSettingGroup.tanks => to,
   };
   return changed.copyWith(isDirty: true, updatedAt: DateTime.now());
 }

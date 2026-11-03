@@ -1,5 +1,6 @@
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
+import 'package:submersion/features/planner/domain/services/plan_series_tanks.dart';
 import 'package:submersion/features/planner/domain/services/plan_setting_groups.dart';
 
 /// Settings shared across a repetitive series (issue #3565). The first
@@ -16,6 +17,7 @@ PlanSeries shareSettingEdits(
   PlanSeries series,
   int index, {
   required DivePlanState before,
+  required String Function() newId,
 }) {
   final edited = series.dives[index];
   final changed = changedGroups(before, edited.state);
@@ -30,23 +32,27 @@ PlanSeries shareSettingEdits(
       ),
     );
   }
-  return series.copyWith(
+  final shared = series.copyWith(
     dives: [
       edited,
       for (final dive in series.dives.skip(1)) _follow(dive, edited, changed),
     ],
   );
+  return changed.contains(PlanSettingGroup.tanks)
+      ? followSeriesTanks(shared, newId: newId)
+      : shared;
 }
 
 /// The dive at [index] back on the series' values of [group].
 PlanSeries resetGroupToSeries(
   PlanSeries series,
   int index,
-  PlanSettingGroup group,
-) {
+  PlanSettingGroup group, {
+  required String Function() newId,
+}) {
   if (index == 0) return series;
   final dive = series.dives[index];
-  return _replace(
+  final reset = _replace(
     series,
     index,
     dive.copyWith(
@@ -54,6 +60,9 @@ PlanSeries resetGroupToSeries(
       settingOverrides: {...dive.settingOverrides}..remove(group),
     ),
   );
+  return group == PlanSettingGroup.tanks
+      ? followSeriesTanks(reset, newId: newId)
+      : reset;
 }
 
 /// The values of [group] on the dive at [index] made the series': the first
@@ -62,8 +71,25 @@ PlanSeries resetGroupToSeries(
 PlanSeries applyGroupToAll(
   PlanSeries series,
   int index,
-  PlanSettingGroup group,
-) {
+  PlanSettingGroup group, {
+  required String Function() newId,
+}) {
+  if (group == PlanSettingGroup.tanks) {
+    final dive = series.dives[index];
+    final taken = firstDiveTakesTanks(series, index, newId: newId);
+    return followSeriesTanks(
+      index == 0
+          ? taken
+          : _replace(
+              taken,
+              index,
+              dive.copyWith(
+                settingOverrides: {...dive.settingOverrides}..remove(group),
+              ),
+            ),
+      newId: newId,
+    );
+  }
   final source = series.dives[index];
   final first = series.dives.first;
   final dives = [

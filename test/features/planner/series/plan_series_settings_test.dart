@@ -22,7 +22,12 @@ PlanSeries _editGf(PlanSeries series, int index, int low, int high) {
     index,
     before.copyWith(gfLow: low, gfHigh: high),
   );
-  return shareSettingEdits(edited, index, before: before);
+  return shareSettingEdits(
+    edited,
+    index,
+    before: before,
+    newId: idSequence('x'),
+  );
 }
 
 void main() {
@@ -57,14 +62,24 @@ void main() {
     final edited = updateDiveState(series, 1, before.copyWith(notes: 'Wreck'));
 
     expect(
-      shareSettingEdits(edited, 1, before: before).dives[1].settingOverrides,
+      shareSettingEdits(
+        edited,
+        1,
+        before: before,
+        newId: idSequence('x'),
+      ).dives[1].settingOverrides,
       isEmpty,
     );
   });
 
   test('Reset to series takes the first dive\'s values back', () {
     var series = _editGf(_threeDives(), 1, 50, 85);
-    series = resetGroupToSeries(series, 1, PlanSettingGroup.deco);
+    series = resetGroupToSeries(
+      series,
+      1,
+      PlanSettingGroup.deco,
+      newId: idSequence('x'),
+    );
 
     expect(series.dives[1].state.gfLow, 40);
     expect(series.dives[1].settingOverrides, isEmpty);
@@ -73,7 +88,12 @@ void main() {
   test('Apply to all dives makes a dive\'s values the series\'', () {
     var series = _editGf(_threeDives(), 2, 50, 85);
     series = _editGf(series, 1, 35, 75);
-    series = applyGroupToAll(series, 1, PlanSettingGroup.deco);
+    series = applyGroupToAll(
+      series,
+      1,
+      PlanSettingGroup.deco,
+      newId: idSequence('x'),
+    );
 
     expect(series.dives[0].state.gfLow, 35);
     expect(series.dives[1].settingOverrides, isEmpty);

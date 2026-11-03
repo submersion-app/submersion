@@ -126,6 +126,11 @@ Changing one on a later dive makes it that dive's own, and the section says
 **This dive only**, with **Reset to series** and **Apply to all dives**. CCR,
 pSCR and Gear & Weights are always each dive's own.
 
+Tanks work the same way: a later dive takes the first dive's tanks and gases
+until you change its own. A tank starts with what was left in it after the
+dive before only while it is the same tank, the same size and gas; a
+different tank starts full. A pressure you fill or type stays.
+
 ### Reading the results
 
 The results pane leads with **Runtime**, **NDL** (or **TTS** once the dive needs

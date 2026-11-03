@@ -213,6 +213,59 @@ void main() {
       expect(tanks.map((t) => t.startPressure), [232, 200, 210]);
     });
 
+    group('a tank changed from the logged one starts full', () {
+      const logged = DiveTank(
+        id: 'l1',
+        volume: 12,
+        workingPressure: 232,
+        endPressure: 90,
+        gasMix: ean32,
+      );
+      const planned = DiveTank(
+        id: 'back',
+        volume: 12,
+        workingPressure: 232,
+        startPressure: 90,
+        gasMix: ean32,
+      );
+
+      List<DiveTank> carried(DiveTank tank) => followedTankPressures(
+        [tank],
+        follow(const [logged]),
+        sources: {'back': 'l1'},
+      );
+
+      test('the same tank carries', () {
+        expect(carried(planned).single.startPressure, 90);
+      });
+
+      test('on another gas', () {
+        expect(
+          carried(planned.copyWith(gasMix: ean50)).single.startPressure,
+          232,
+        );
+      });
+
+      test('of another size', () {
+        expect(
+          carried(
+            planned.copyWith(volume: 15, workingPressure: 300),
+          ).single.startPressure,
+          300,
+        );
+      });
+
+      test('but not when pinned', () {
+        final tanks = followedTankPressures(
+          [planned.copyWith(gasMix: ean50, startPressure: 120)],
+          follow(const [logged]),
+          sources: {'back': 'l1'},
+          pinned: {'back'},
+        );
+        expect(tanks.single.startPressure, 120);
+      });
+    });
+
     test('an end pressure below zero starts at zero', () {
       final tanks = followedTankPressures(
         planTanks,
