@@ -13,9 +13,7 @@ enum WebUnavailableFeature {
   wearableImport(WebUnavailableReason.hardware),
   nearby(WebUnavailableReason.hardware),
   offlineMaps(WebUnavailableReason.files),
-  backupRestore(WebUnavailableReason.files),
-  agentAccess(WebUnavailableReason.background),
-  demo(WebUnavailableReason.files);
+  agentAccess(WebUnavailableReason.background);
 
   const WebUnavailableFeature(this.reason);
 

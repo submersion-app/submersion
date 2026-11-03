@@ -118,7 +118,7 @@ void main() {
       expect(webUnavailableFeatureFor('/dashboard'), isNull);
       expect(webUnavailableFeatureFor('/dives'), isNull);
       expect(webUnavailableFeatureFor('/settings/backup'), isNull);
-      // Restore is a tile the browser hides, not a route.
+      // Restore works in a browser (issue #4121).
       expect(webUnavailableFeatureFor('/settings/backup/restore'), isNull);
       expect(webUnavailableFeatureFor('/settings'), isNull);
     });

@@ -46,6 +46,7 @@ class SetUpAccountStep extends ConsumerWidget {
     final current = currentSyncGroup(groups);
     final account = chosen ?? current;
     final host = navigation.host;
+    final browser = ref.watch(deviceCapabilitiesProvider).isBrowser;
     return SetUpStepScaffold(
       title: l10n.settings_setUpDevice_account_title,
       // In the wizard the first step has a step before it, and Not now
@@ -98,7 +99,7 @@ class SetUpAccountStep extends ConsumerWidget {
         ),
         // A browser forgets the credentials when the tab closes unless the
         // user asks to be remembered (issue #4121).
-        if (ref.watch(deviceCapabilitiesProvider).isBrowser)
+        if (browser)
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.web_rememberOnThisDevice_title),
@@ -107,15 +108,19 @@ class SetUpAccountStep extends ConsumerWidget {
             onChanged: (value) =>
                 ref.read(rememberCredentialsProvider.notifier).set(value),
           ),
-        // First run offers its own Restore a backup file instead, and a
-        // browser cannot restore one at all.
-        if (host != SetUpHost.firstRun &&
-            ref.watch(deviceCapabilitiesProvider).backupRestore)
+        // Native first run offers its own Restore a backup file; a browser's
+        // opens here, so it offers it here (issue #4121).
+        if (ref.watch(deviceCapabilitiesProvider).backupRestore &&
+            (host != SetUpHost.firstRun || browser))
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: TextButton(
               onPressed: onRestoreFile ?? () => restoreFromFile(context, ref),
-              child: Text(l10n.settings_setUpDevice_account_backupFile),
+              child: Text(
+                host == SetUpHost.firstRun
+                    ? l10n.setup_existing_restore_title
+                    : l10n.settings_setUpDevice_account_backupFile,
+              ),
             ),
           ),
       ],

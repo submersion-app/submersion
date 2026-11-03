@@ -34,7 +34,7 @@ void main() {
   testWidgets('names the reason for a file-bound feature', (tester) async {
     await tester.pumpWidget(
       _app(
-        const WebUnavailablePage(feature: WebUnavailableFeature.backupRestore),
+        const WebUnavailablePage(feature: WebUnavailableFeature.offlineMaps),
       ),
     );
     expect(find.textContaining('files on the device'), findsOneWidget);

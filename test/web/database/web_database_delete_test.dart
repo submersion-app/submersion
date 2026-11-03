@@ -52,4 +52,20 @@ void main() {
         .get();
     expect(tables, isEmpty, reason: 'the reopened database is a fresh one');
   });
+
+  test('deleteAllStoredDatabases removes every database the site keeps, '
+      'restored libraries included', () async {
+    for (final name in ['wipe-a', 'submersion_1700']) {
+      final connection = await BackgroundDatabaseConnection.open(
+        '/opfs/Submersion/$name.db',
+      );
+      final db = AppDatabase(connection.connection);
+      await db.customStatement('CREATE TABLE IF NOT EXISTS t (id INTEGER)');
+      await db.close();
+    }
+
+    await BackgroundDatabaseConnection.deleteAllStoredDatabases();
+
+    expect(await BackgroundDatabaseConnection.storedDatabaseNames(), isEmpty);
+  });
 }

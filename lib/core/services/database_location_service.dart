@@ -92,6 +92,9 @@ class DatabaseLocationService {
   static const _lastVerifiedKey = 'db_path_last_verified';
   static const _bookmarkDataKey = 'db_security_bookmark';
 
+  /// The browser's current library (issue #4121); see [webLibraryPath].
+  static const _webLibraryPathKey = 'web_library_database_path';
+
   // Database filename
   static const databaseFilename = 'submersion.db';
 
@@ -168,7 +171,7 @@ class DatabaseLocationService {
     if (override != null && override.isNotEmpty) {
       return override;
     }
-    if (HostPlatform.isWeb) return kWebDatabasePath;
+    if (HostPlatform.isWeb) return webLibraryPath;
 
     final config = await getStorageConfig();
 
@@ -179,6 +182,15 @@ class DatabaseLocationService {
 
     return getDefaultDatabasePath();
   }
+
+  /// The browser's library: [kWebDatabasePath] until a restore installs a
+  /// backup under a new name and points here (`web_library_paths.dart`).
+  String get webLibraryPath =>
+      _prefs.getString(_webLibraryPathKey) ?? kWebDatabasePath;
+
+  /// Points the browser at the library a restore installed, once it opens.
+  Future<void> setWebLibraryPath(String path) =>
+      _prefs.setString(_webLibraryPathKey, path);
 
   /// Get the default database path (app documents directory)
   Future<String> getDefaultDatabasePath() async {

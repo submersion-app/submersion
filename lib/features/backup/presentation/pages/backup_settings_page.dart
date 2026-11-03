@@ -20,15 +20,17 @@ class BackupSettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // A browser has no backup files, folders or schedules: its page offers
-    // the one thing it can, a download of the database (issue #4121).
+    // A browser has no backup folders or schedules: its page downloads the
+    // database and restores one the picker reads (issue #4121).
     if (ref.watch(deviceCapabilitiesProvider).isBrowser) {
       return Scaffold(
         appBar: AppBar(title: Text(context.l10n.settings_backups_title)),
         body: ListView(
           children: const [
             SizedBox(height: 8),
+            BackupOperationMessage(),
             BackupDownloadTile(),
+            RestoreFromFileTile(),
             SizedBox(height: 24),
           ],
         ),

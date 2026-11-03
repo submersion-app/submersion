@@ -28,6 +28,6 @@ void main() {
     expect(find.text(en.web_downloadBackup_title), findsOneWidget);
     expect(find.text(en.settings_backups_backUpNow), findsNothing);
     expect(find.text(en.settings_backups_auto), findsNothing);
-    expect(find.text(en.settings_backups_restoreFile), findsNothing);
+    expect(find.text(en.settings_backups_restoreFile), findsOneWidget);
   });
 }

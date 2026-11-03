@@ -1,6 +1,6 @@
 /// Native variant: there is no origin storage and no page.
 abstract final class BrowserOriginStorage {
-  static const String forgetChannel = 'submersion-forget-device';
+  static const String reloadChannel = 'submersion-forget-device';
 
   static Future<void> removeEntry(String name) async =>
       throw UnsupportedError('origin private file system is browser only');
@@ -11,7 +11,10 @@ abstract final class BrowserOriginStorage {
   static void announceForgotten() =>
       throw UnsupportedError('Forget this device is browser only');
 
+  /// A native build has no other tabs to tell.
+  static void announceLibraryChanged() {}
+
   /// A native build has no other tabs to hear from.
-  static void Function() onForgottenElsewhere(void Function() listener) =>
+  static void Function() onReloadAskedElsewhere(void Function() listener) =>
       () {};
 }

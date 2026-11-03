@@ -71,7 +71,7 @@ class ExistingChoiceStep extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // A browser has no file to restore from and no folder to open.
+          // A browser has no folder to open; its picker reads a backup.
           if (caps.backupRestore)
             card(
               Icons.restore,

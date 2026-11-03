@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
+import 'package:submersion/core/database/database_image_header.dart';
 import 'package:submersion/core/platform/web_database_status.dart';
 
 /// Closes [db] for page unload.
@@ -147,6 +148,66 @@ class BackgroundDatabaseConnection {
     }
   }
 
+  /// The names of every database drift stores for this site, in OPFS and
+  /// IndexedDB alike.
+  static Future<Set<String>> storedDatabaseNames() async {
+    final probe = await WasmDatabase.probe(
+      sqlite3Uri: sqlite3Uri,
+      driftWorkerUri: driftWorkerUri,
+      // Any name: the listing covers every database the site stores.
+      databaseName: 'submersion',
+    );
+    return {for (final existing in probe.existingDatabases) existing.$2};
+  }
+
+  /// Deletes every database the site stores, and throws when one is still
+  /// there afterwards: Forget this device takes the restored libraries and
+  /// the sample logbook with the rest (issue #4121).
+  static Future<void> deleteAllStoredDatabases() async {
+    for (final name in await storedDatabaseNames()) {
+      await deleteStoredDatabases('/opfs/$name.db');
+    }
+  }
+
+  /// Creates the database at [path] from [image], the bytes of a SQLite
+  /// file, replacing whatever is stored under that name (issue #4121).
+  ///
+  /// drift writes the image when the name holds no database, so a stored
+  /// copy is deleted first. The header is set to a rollback journal, since
+  /// a browser file system cannot open a WAL database, and the install is
+  /// checked by reading the schema; an image that does not read is removed
+  /// again. Nothing is migrated here: the normal open does that.
+  ///
+  /// Throws [FormatException] for bytes that are not SQLite, before
+  /// anything is stored.
+  static Future<void> installImage(String path, Uint8List image) async {
+    if (!isSqliteImage(image)) {
+      throw const FormatException('Not a SQLite database');
+    }
+    await deleteStoredDatabases(path);
+    final bytes = withRollbackJournal(image);
+    try {
+      final result = await _openWasm(
+        path,
+        enableMigrations: false,
+        initialImage: bytes,
+      );
+      final probe = _ProbeDatabase(result.resolvedExecutor);
+      try {
+        await probe.customSelect('SELECT count(*) FROM sqlite_master').get();
+      } finally {
+        await probe.close();
+      }
+    } catch (_) {
+      try {
+        await deleteStoredDatabases(path);
+      } catch (_) {
+        // The install already failed; that is the error to report.
+      }
+      rethrow;
+    }
+  }
+
   /// Nothing to wait for: a browser connection owns no worker isolate.
   Future<bool> awaitWorkerShutdown({
     required Duration timeout,
@@ -156,6 +217,7 @@ class BackgroundDatabaseConnection {
   static Future<WasmDatabaseResult> _openWasm(
     String path, {
     required bool enableMigrations,
+    Uint8List? initialImage,
   }) async {
     try {
       return await WasmDatabase.open(
@@ -164,6 +226,9 @@ class BackgroundDatabaseConnection {
         driftWorkerUri: driftWorkerUri,
         localSetup: registerAppSqlFunctions,
         enableMigrations: enableMigrations,
+        initializeDatabase: initialImage == null
+            ? null
+            : () async => initialImage,
       );
     } catch (e) {
       // No user file has been touched: the engine or its worker did not

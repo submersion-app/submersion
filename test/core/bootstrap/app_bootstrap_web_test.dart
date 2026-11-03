@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/bootstrap/app_bootstrap_web.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_toggles.dart';
 
@@ -40,6 +41,7 @@ void main() {
 
     Widget? handed;
     var environmentLogged = 0;
+    final swept = <String>[];
     // Real I/O (the log directory, the first log line) never completes in
     // the fake-async zone a widget test runs in; runAsync lets it finish.
     await tester.runAsync(() async {
@@ -47,6 +49,7 @@ void main() {
         run: (app) => handed = app,
         supportDirectory: () async => dir.path,
         logEnvironment: () async => environmentLogged++,
+        sweepLibraries: (activePath) async => swept.add(activePath),
       );
       await LoggerService.flushPendingWrites();
     });
@@ -61,6 +64,9 @@ void main() {
     expect(Directory(p.join(dir.path, 'logs')).existsSync(), isTrue);
     expect(wrapper.demoPaths, isNull, reason: 'demo mode is native only');
     expect(environmentLogged, 1);
+    expect(swept, [
+      kWebDatabasePath,
+    ], reason: 'the libraries a restore replaced are swept at launch');
     expect(bootstrapSemanticsHandle, isNull, reason: 'not asked for');
   });
 
@@ -91,6 +97,7 @@ void main() {
         run: (_) {},
         supportDirectory: () async => dir.path,
         logEnvironment: () async {},
+        sweepLibraries: (_) async {},
         queryParameters: const {'a11y': '1'},
       );
       await LoggerService.flushPendingWrites();

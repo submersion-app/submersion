@@ -12,6 +12,7 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
+import 'package:submersion/features/backup/data/services/backup_image_inspection.dart';
 import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
@@ -70,10 +71,16 @@ class RestoreFromFileTile extends ConsumerWidget {
   }
 }
 
-Future<void> restoreFromFile(BuildContext context, WidgetRef ref) async {
+/// Picks a backup file, confirms it and restores it. [pick] stands in for
+/// the platform picker in tests.
+Future<void> restoreFromFile(
+  BuildContext context,
+  WidgetRef ref, {
+  @visibleForTesting Future<PlatformFile?> Function()? pick,
+}) async {
   final PlatformFile? picked;
   try {
-    picked = await FilePicker.pickFile(type: FileType.any);
+    picked = await (pick ?? () => FilePicker.pickFile(type: FileType.any))();
   } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(
@@ -82,9 +89,15 @@ Future<void> restoreFromFile(BuildContext context, WidgetRef ref) async {
     }
     return;
   }
+  if (picked == null || !context.mounted) return;
+  // A browser's picker hands the file over as bytes, with no path. An
+  // Android pick can lack a path too, so the platform decides, not the path.
+  if (ref.read(deviceCapabilitiesProvider).isBrowser) {
+    return _restorePickedBytes(context, ref, picked);
+  }
 
-  final filePath = picked?.path;
-  if (picked == null || filePath == null || !context.mounted) return;
+  final filePath = picked.path;
+  if (filePath == null) return;
 
   // Show confirmation dialog with file info
   final file = File(filePath);
@@ -111,20 +124,68 @@ Future<void> restoreFromFile(BuildContext context, WidgetRef ref) async {
     currentSchemaVersion: AppDatabase.currentSchemaVersion,
     offerReplace: ref.read(cloudStorageProviderProvider) != null,
   );
-  if (mode == null) return;
+  if (mode == null || !context.mounted) return;
+  final notifier = ref.read(backupOperationProvider.notifier);
+  await _restoreAskingForPassphrase(
+    context,
+    (secret) => notifier.restoreFromFilePath(
+      filePath,
+      mode: mode,
+      encryptionSecret: secret,
+    ),
+  );
+}
+
+/// A browser's restore (issue #4121): the picker read the file into memory,
+/// and it gives no file date, so the dialog names the file.
+Future<void> _restorePickedBytes(
+  BuildContext context,
+  WidgetRef ref,
+  PlatformFile picked,
+) async {
+  final bytes = await picked.readAsBytes();
+  final record = BackupRecord(
+    id: 'temp',
+    filename: picked.name,
+    timestamp: DateTime.now(),
+    sizeBytes: bytes.length,
+    location: BackupLocation.local,
+    diveCount: 0,
+    siteCount: 0,
+    note: await readBackupNoteFromImage(bytes),
+  );
+  if (!context.mounted) return;
+  final mode = await RestoreConfirmationDialog.show(
+    context,
+    record,
+    currentSchemaVersion: AppDatabase.currentSchemaVersion,
+    offerReplace: ref.read(cloudStorageProviderProvider) != null,
+    knownTime: false,
+  );
+  if (mode == null || !context.mounted) return;
+  final notifier = ref.read(backupOperationProvider.notifier);
+  await _restoreAskingForPassphrase(
+    context,
+    (secret) =>
+        notifier.restoreFromImage(bytes, mode: mode, encryptionSecret: secret),
+  );
+}
+
+/// Runs [restore]; an encrypted backup no key here opens asks for its
+/// passphrase or recovery code and runs it again with that.
+Future<void> _restoreAskingForPassphrase(
+  BuildContext context,
+  Future<void> Function(String? secret) restore,
+) async {
   try {
-    await ref
-        .read(backupOperationProvider.notifier)
-        .restoreFromFilePath(filePath, mode: mode);
+    await restore(null);
   } on BackupEncryptedException {
     if (!context.mounted) return;
     await showEncryptionPassphraseDialog(
       context,
       title: context.l10n.settings_backupEncryption_restoreUnlockTitle,
       hint: context.l10n.settings_backupEncryption_restoreUnlockHint,
-      onSubmit: (secret) => ref
-          .read(backupOperationProvider.notifier)
-          .restoreFromFilePath(filePath, mode: mode, encryptionSecret: secret),
+      onSubmit: restore,
     );
   }
 }

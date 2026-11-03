@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
@@ -10,6 +12,7 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/global_error_handler.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/web_library_paths.dart';
 
 /// Starts the app in a browser.
 ///
@@ -33,6 +36,8 @@ Future<void> bootstrapWeb({
   Future<String> Function() supportDirectory = AppDirectories.support,
   Future<void> Function() logEnvironment = logSessionEnvironment,
   Map<String, String>? queryParameters,
+  Future<void> Function(String activePath) sweepLibraries =
+      sweepSupersededWebLibraries,
 }) async {
   // Hold log lines in memory until the log file is attached below, so a
   // failure in the startup steps before it is not lost (#1826).
@@ -54,11 +59,15 @@ Future<void> bootstrapWeb({
     logEnvironment: logEnvironment,
   );
 
-  // Forget this device in another tab leaves this one holding dives and
-  // credentials in memory; a reload drops them (issue #4121).
-  BrowserOriginStorage.onForgottenElsewhere(BrowserOriginStorage.reloadPage);
+  // Forget this device, a restore or a sample logbook switch in another tab
+  // leaves this one holding the old library in memory; a reload drops it
+  // (issue #4121).
+  BrowserOriginStorage.onReloadAskedElsewhere(BrowserOriginStorage.reloadPage);
 
   final locationService = DatabaseLocationService(prefs);
+  // A library a restore replaced while another tab held it (issue #4121).
+  // Other names than the one about to open, so the two never meet.
+  unawaited(sweepLibraries(locationService.webLibraryPath));
   run(
     buildStartupWrapper(
       prefs: prefs,

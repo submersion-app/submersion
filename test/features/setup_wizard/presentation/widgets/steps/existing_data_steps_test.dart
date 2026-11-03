@@ -39,7 +39,9 @@ void main() {
     expect(advanced, 1);
   });
 
-  testWidgets('a browser offers only cloud sync (#4121)', (tester) async {
+  testWidgets('a browser offers cloud sync and a backup file (#4121)', (
+    tester,
+  ) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
@@ -56,7 +58,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Connect cloud sync'), findsOneWidget);
-    expect(find.text('Restore a backup file'), findsNothing);
+    expect(find.text('Restore a backup file'), findsOneWidget);
     expect(find.text('Open an existing folder'), findsNothing);
   });
 }

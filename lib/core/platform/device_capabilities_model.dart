@@ -164,7 +164,8 @@ class DeviceCapabilities {
     databaseEncryption: false,
     backgroundTasks: false,
     offlineMapTiles: false,
-    backupRestore: false,
+    // The picker reads a backup into memory (issue #4121).
+    backupRestore: true,
     sqliteImport: false,
     demoMode: false,
     agentAccess: false,

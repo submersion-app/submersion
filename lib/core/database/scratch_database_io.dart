@@ -24,3 +24,24 @@ Future<Uint8List> withScratchDatabase(
     await folder.delete(recursive: true);
   }
 }
+
+/// Opens [image], the bytes of a SQLite file, read-only in a temporary
+/// folder and returns what [read] makes of it; the folder is removed after.
+Future<T> readScratchImage<T>(
+  Uint8List image,
+  T Function(CommonDatabase db) read,
+) async {
+  final folder = await Directory.systemTemp.createTemp('submersion-image-');
+  try {
+    final path = p.join(folder.path, 'image.db');
+    await File(path).writeAsBytes(image, flush: true);
+    final db = sqlite3.open(path, mode: OpenMode.readOnly);
+    try {
+      return read(db);
+    } finally {
+      db.close();
+    }
+  } finally {
+    await folder.delete(recursive: true);
+  }
+}

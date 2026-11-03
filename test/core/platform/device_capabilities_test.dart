@@ -16,6 +16,8 @@ void main() {
     test('offers nothing the hardware, files or OS provide', () {
       expect(caps.isBrowser, isTrue);
       expect(caps.cloudGoogleDrive, isTrue);
+      // The picker reads a backup into memory (issue #4121).
+      expect(caps.backupRestore, isTrue);
       for (final (name, value) in [
         ('diveComputerDownload', caps.diveComputerDownload),
         ('nfc', caps.nfc),
@@ -27,7 +29,6 @@ void main() {
         ('databaseEncryption', caps.databaseEncryption),
         ('backgroundTasks', caps.backgroundTasks),
         ('offlineMapTiles', caps.offlineMapTiles),
-        ('backupRestore', caps.backupRestore),
         ('sqliteImport', caps.sqliteImport),
         ('demoMode', caps.demoMode),
         ('agentAccess', caps.agentAccess),

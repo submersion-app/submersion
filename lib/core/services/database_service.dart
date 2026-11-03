@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/core/database/database_snapshot.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart'
     as sqlcipher_setup;
+import 'package:submersion/core/platform/browser_origin_storage.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/platform/sqlite/raw_sqlite.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
@@ -27,8 +29,11 @@ import 'package:submersion/core/services/security/database_encryption_migrator.d
 import 'package:submersion/core/services/security/database_locked_exception.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/web_library_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+
+part 'database_service_browser_restore.dart';
 
 /// Which executor path [DatabaseService] used for the most recent open.
 enum DatabaseOpenMode {
@@ -656,10 +661,13 @@ class DatabaseService {
     // file locks. A stuck close throws here rather than being abandoned.
     await close(strict: true);
 
-    // Ensure directory exists
-    final dbDir = Directory(p.dirname(newPath));
-    if (!await dbDir.exists()) {
-      await dbDir.create(recursive: true);
+    // Ensure directory exists. A browser has none: its databases are named
+    // in the origin private file system.
+    if (!HostPlatform.isWeb) {
+      final dbDir = Directory(p.dirname(newPath));
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+      }
     }
 
     // Small delay to ensure any previous database connections are fully released

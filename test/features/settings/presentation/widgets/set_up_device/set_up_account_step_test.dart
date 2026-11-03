@@ -235,10 +235,11 @@ void main() {
     expect(find.text('I have a backup file instead'), findsOneWidget);
   });
 
-  testWidgets('a browser offers no backup file (#4121)', (tester) async {
+  testWidgets('a browser restores a backup file too (#4121)', (tester) async {
     await pump(tester, browser: true);
 
-    expect(find.text('I have a backup file instead'), findsNothing);
+    await tester.tap(find.text('I have a backup file instead'));
+    expect(calls, ['restore']);
     expect(find.text('Not now'), findsOneWidget);
   });
 
@@ -274,6 +275,18 @@ void main() {
       expect(find.text('Not now'), findsNothing);
       await tester.tap(find.text('Continue without a sync store'));
       expect(calls, ['noLibrary']);
+    });
+
+    testWidgets('first run offers to restore a backup file', (tester) async {
+      await pump(
+        tester,
+        browser: true,
+        host: SetUpHost.firstRun,
+        onNoLibrary: () => calls.add('noLibrary'),
+      );
+      expect(find.text('I have a backup file instead'), findsNothing);
+      await tester.tap(find.text('Restore a backup file'));
+      expect(calls, ['restore']);
     });
   });
 }

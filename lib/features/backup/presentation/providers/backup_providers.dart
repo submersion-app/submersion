@@ -3,6 +3,7 @@ export 'package:submersion/features/backup/presentation/providers/backup_setting
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/features/backup/data/services/backup_copy_guard.dart'
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
 import 'package:submersion/features/backup/data/services/backup_origin.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/browser_backup_download.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
@@ -235,61 +237,14 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     String? encryptionSecret,
   }) async {
     if (state.status == BackupOperationStatus.inProgress) return;
-
-    state = BackupOperationState(
-      status: BackupOperationStatus.inProgress,
-      message: _l10n.backup_operation_restoring,
-      isRestoring: true,
-    );
-
-    try {
-      await _service.restoreFromBackup(
+    await _restoreAndFinish(
+      () => _service.restoreFromBackup(
         record,
         mode: mode,
         encryptionSecret: encryptionSecret,
         onMigrationProgress: _onRestoreMigrationProgress,
-      );
-      await _syncActiveDiverAfterRestore();
-      await _runPostRestoreSafetyReview();
-      // The restored library carries its own summary rows, or none; either
-      // way a stale sweep brings them up to this build. Runs in the
-      // background so the restore barrier does not wait on it.
-      SensorSummaryScheduler.instance.scheduleStaleSweep();
-      DerivedMetricsScheduler.instance.scheduleStaleSweep();
-      state = const BackupOperationState(
-        status: BackupOperationStatus.restoreComplete,
-      );
-      _ref.invalidate(backupHistoryProvider);
-    } on BackupEncryptedException {
-      // The page prompts for the passphrase and retries with the secret.
-      state = const BackupOperationState(status: BackupOperationStatus.idle);
-      rethrow;
-    } on WrongPassphraseException {
-      // A wrong secret during the retry must reach the passphrase dialog so it
-      // can keep itself open and show the inline error; the generic catch below
-      // would swallow it into an error state and close the dialog on success.
-      state = const BackupOperationState(status: BackupOperationStatus.idle);
-      rethrow;
-    } on RestoreSourceMissingException {
-      // The source was gone by the time the swap ran, so DatabaseService left
-      // the live database untouched (issue #1344). Say exactly that: the
-      // generic "Restore failed: ..." below reads as a botched restore, and
-      // restoreComplete would read as a restore of an empty library.
-      state = BackupOperationState(
-        status: BackupOperationStatus.error,
-        message: _l10n.backup_operation_restoreSourceMissing,
-      );
-    } on BackupCopyInOtherAccountException {
-      state = BackupOperationState(
-        status: BackupOperationStatus.error,
-        message: _l10n.backup_restore_copyInOtherAccount,
-      );
-    } catch (e) {
-      state = BackupOperationState(
-        status: BackupOperationStatus.error,
-        message: _l10n.backup_operation_restoreFailed('$e'),
-      );
-    }
+      ),
+    );
   }
 
   /// Delete a specific backup
@@ -550,19 +505,54 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
         );
         return;
       }
-
+    } catch (e) {
       state = BackupOperationState(
-        status: BackupOperationStatus.inProgress,
-        message: _l10n.backup_operation_restoring,
-        isRestoring: true,
+        status: BackupOperationStatus.error,
+        message: _l10n.backup_operation_restoreFailed('$e'),
       );
-
-      await _service.restoreFromFile(
+      return;
+    }
+    await _restoreAndFinish(
+      () => _service.restoreFromFile(
         filePath,
         mode: mode,
         encryptionSecret: encryptionSecret,
         onMigrationProgress: _onRestoreMigrationProgress,
-      );
+      ),
+    );
+  }
+
+  /// Restores a backup a browser's picker read into memory (issue #4121).
+  /// A copy of the browser's library downloads first, where a file restore
+  /// takes a backup.
+  Future<void> restoreFromImage(
+    Uint8List bytes, {
+    RestoreMode mode = RestoreMode.merge,
+    String? encryptionSecret,
+  }) async {
+    if (state.status == BackupOperationStatus.inProgress) return;
+    await _restoreAndFinish(
+      () => _service.restoreFromImage(
+        bytes,
+        mode: mode,
+        encryptionSecret: encryptionSecret,
+        safetyCopy: _ref.read(browserSafetyCopyProvider),
+      ),
+    );
+  }
+
+  /// Runs [restore], then brings the restored library up to this build:
+  /// the active diver, the safety review and the summary sweeps. Every
+  /// restore entry point ends here. An encrypted backup's passphrase
+  /// question goes back to the caller.
+  Future<void> _restoreAndFinish(Future<void> Function() restore) async {
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_restoring,
+      isRestoring: true,
+    );
+    try {
+      await restore();
       await _syncActiveDiverAfterRestore();
       await _runPostRestoreSafetyReview();
       // The restored library carries its own summary rows, or none; either
@@ -585,10 +575,18 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       state = const BackupOperationState(status: BackupOperationStatus.idle);
       rethrow;
     } on RestoreSourceMissingException {
-      // Nothing was restored; see restoreFromBackup (issue #1344).
+      // The source was gone by the time the swap ran, so DatabaseService left
+      // the live database untouched (issue #1344). Say exactly that: the
+      // generic "Restore failed: ..." below reads as a botched restore, and
+      // restoreComplete would read as a restore of an empty library.
       state = BackupOperationState(
         status: BackupOperationStatus.error,
         message: _l10n.backup_operation_restoreSourceMissing,
+      );
+    } on BackupCopyInOtherAccountException {
+      state = BackupOperationState(
+        status: BackupOperationStatus.error,
+        message: _l10n.backup_restore_copyInOtherAccount,
       );
     } catch (e) {
       state = BackupOperationState(
@@ -605,40 +603,13 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     RestoreMode mode = RestoreMode.merge,
   }) async {
     if (state.status == BackupOperationStatus.inProgress) return;
-
-    state = BackupOperationState(
-      status: BackupOperationStatus.inProgress,
-      message: _l10n.backup_operation_restoring,
-      isRestoring: true,
-    );
-
-    try {
-      await _service.restoreFromDatabaseCopy(
+    await _restoreAndFinish(
+      () => _service.restoreFromDatabaseCopy(
         path,
         mode: mode,
         onMigrationProgress: _onRestoreMigrationProgress,
-      );
-      await _syncActiveDiverAfterRestore();
-      await _runPostRestoreSafetyReview();
-      // See restoreFromBackup.
-      SensorSummaryScheduler.instance.scheduleStaleSweep();
-      DerivedMetricsScheduler.instance.scheduleStaleSweep();
-      state = const BackupOperationState(
-        status: BackupOperationStatus.restoreComplete,
-      );
-      _ref.invalidate(backupHistoryProvider);
-    } on RestoreSourceMissingException {
-      // The copy was gone by the time the swap ran (issue #1344).
-      state = BackupOperationState(
-        status: BackupOperationStatus.error,
-        message: _l10n.backup_operation_restoreSourceMissing,
-      );
-    } catch (e) {
-      state = BackupOperationState(
-        status: BackupOperationStatus.error,
-        message: _l10n.backup_operation_restoreFailed('$e'),
-      );
-    }
+      ),
+    );
   }
 
   /// Surface migration-ladder progress while a restored older-schema backup
@@ -692,6 +663,11 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     super.dispose();
   }
 }
+
+/// A browser's safety copy before a restore (issue #4121); tests replace it.
+final browserSafetyCopyProvider = Provider<Future<void> Function()>(
+  (ref) => downloadLibraryBeforeRestore,
+);
 
 final backupOperationProvider =
     StateNotifierProvider<BackupOperationNotifier, BackupOperationState>((ref) {

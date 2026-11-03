@@ -25,11 +25,14 @@ import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
+import 'package:submersion/core/database/database_image_header.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
+import 'package:submersion/features/backup/data/services/backup_crypto_image.dart';
+import 'package:submersion/features/backup/data/services/backup_image_inspection.dart';
 import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/core/services/database_service.dart'
-    show DatabaseService;
+    show DatabaseService, DatabaseServiceBrowserRestore;
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
@@ -54,6 +57,7 @@ export 'package:submersion/features/backup/data/services/backup_database_adapter
 
 part 'backup_service_cloud_copy.dart';
 part 'backup_service_copy_out.dart';
+part 'backup_service_image_restore.dart';
 part 'backup_service_pruning.dart';
 part 'backup_service_retention.dart';
 
@@ -158,6 +162,9 @@ class BackupService {
   /// SAF write/read/delete seam for Android custom (`content://`) backup
   /// locations. Defaults to the real platform channel; injectable for tests.
   final BackupSafPort _safPort;
+
+  /// A browser's swap of its library for a backup's bytes (issue #4121).
+  final Future<void> Function(Uint8List image) _restoreImage;
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -178,6 +185,7 @@ class BackupService {
     BackupEncryptionKeyStore? backupEncryptionKeyStore,
     BuiltInSpeciesSeedVersionStore? seedVersionStore,
     String? copyAccountId,
+    Future<void> Function(Uint8List image)? restoreImage,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
@@ -190,7 +198,8 @@ class BackupService {
        _syncPreferences = syncPreferences,
        _backupEncryptionKeyStore = backupEncryptionKeyStore,
        _seedVersionStore = seedVersionStore,
-       _pinnedCopyAccountId = copyAccountId;
+       _pinnedCopyAccountId = copyAccountId,
+       _restoreImage = restoreImage ?? DatabaseService.instance.restoreImage;
 
   // ===========================================================================
   // Backup
@@ -774,7 +783,7 @@ class BackupService {
 
         if (tables.isEmpty) {
           return const BackupValidationResult.invalid(
-            'File does not appear to be a Submersion backup (missing expected tables)',
+            _notSubmersionBackupMessage,
           );
         }
 
@@ -1012,6 +1021,30 @@ class BackupService {
     _log.info('Restore from file completed: ${p.basename(filePath)}');
   }
 
+  /// Restores [bytes], a backup as a file holds it, plain or encrypted: a
+  /// browser's restore, where the picker reads the file into memory and
+  /// there is no file backup to take first (issue #4121).
+  ///
+  /// The checks a file restore makes come first (decryption, a SQLite file
+  /// with Submersion's tables, a schema no newer than this build), so a
+  /// refusal changes nothing. Then [safetyCopy] runs, the browser's stand-in
+  /// for the backup a file restore takes, then the swap with the same sync
+  /// re-baseline. [RestoreMode.replace] mints a pending replace.
+  ///
+  /// Throws [BackupEncryptedException] when no key here opens an encrypted
+  /// backup and no [encryptionSecret] was given, so the caller can ask.
+  Future<void> restoreFromImage(
+    Uint8List bytes, {
+    RestoreMode mode = RestoreMode.merge,
+    String? encryptionSecret,
+    Future<void> Function()? safetyCopy,
+  }) => _restoreFromImage(
+    bytes,
+    mode: mode,
+    encryptionSecret: encryptionSecret,
+    safetyCopy: safetyCopy,
+  );
+
   /// Restore the database from a copy the restore journal set aside next to
   /// the live database (issue #1923).
   ///
@@ -1104,7 +1137,17 @@ class BackupService {
   Future<void> _replaceDatabaseAndRebaselineSync(
     String sourcePath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
-  }) async {
+  }) => _replaceAndRebaselineSync(
+    () => _dbAdapter.restore(
+      sourcePath,
+      onMigrationProgress: onMigrationProgress,
+    ),
+  );
+
+  /// Runs [swap], which replaces the live database, between capturing the
+  /// live sync identity and re-baselining it; see
+  /// [_replaceDatabaseAndRebaselineSync].
+  Future<void> _replaceAndRebaselineSync(Future<void> Function() swap) async {
     // Marked BEFORE the replace: the marker is what holds the storage
     // cleanup's cloud deletes back until a sync after the restore has run,
     // so it must exist even if the app dies between the replace and the
@@ -1143,10 +1186,7 @@ class BackupService {
       liveEpochId = _epochStore?.lastAcceptedEpochId;
     }
 
-    await _dbAdapter.restore(
-      sourcePath,
-      onMigrationProgress: onMigrationProgress,
-    );
+    await swap();
 
     // The restored file carries whatever built-in species rows its backup
     // had; forgetting the applied catalog version makes the next launch run

@@ -28,3 +28,31 @@ Future<Uint8List> withScratchDatabase(
   // may have grown past the file's length.
   return Uint8List.fromList(files.fileData[path]!);
 }
+
+/// Opens [image], the bytes of a SQLite file, from the page's memory and
+/// returns what [read] makes of it.
+Future<T> readScratchImage<T>(
+  Uint8List image,
+  T Function(CommonDatabase db) read,
+) async {
+  const path = '/image.db';
+  final sqlite = await WasmSqlite3.loadFromUrl(
+    BackgroundDatabaseConnection.sqlite3Uri,
+  );
+  final files = InMemoryFileSystem();
+  files
+      .xOpen(
+        Sqlite3Filename(path),
+        SqlFlag.SQLITE_OPEN_CREATE | SqlFlag.SQLITE_OPEN_READWRITE,
+      )
+      .file
+    ..xWrite(image, 0)
+    ..xClose();
+  sqlite.registerVirtualFileSystem(files, makeDefault: true);
+  final db = sqlite.open(path, mode: OpenMode.readOnly);
+  try {
+    return read(db);
+  } finally {
+    db.close();
+  }
+}

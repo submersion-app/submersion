@@ -1,4 +1,5 @@
 import 'dart:js_interop';
+import 'dart:math';
 
 import 'package:web/web.dart' as web;
 
@@ -39,22 +40,42 @@ abstract final class BrowserOriginStorage {
 
   static void reloadPage() => web.window.location.reload();
 
-  /// The channel a tab tells the site's other tabs on that this browser
-  /// forgot the device. A channel does not hear its own messages.
-  static const String forgetChannel = 'submersion-forget-device';
+  /// The channel a tab tells the site's other tabs to reload on: it forgot
+  /// the device, or its library changed underneath them (a restore, or a
+  /// switch to or from the sample logbook). The name predates the second
+  /// use and is kept, so a tab of the previous deployment still hears it.
+  static const String reloadChannel = 'submersion-forget-device';
+
+  /// This page's mark on what it announces. Two channel objects in one page
+  /// hear each other, so without it the announcing tab would reload itself
+  /// in the middle of the restore it is announcing.
+  static final String _pageId =
+      '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(1 << 30)}';
 
   /// Tells every other tab of this site that the device was forgotten.
-  static void announceForgotten() {
-    final channel = web.BroadcastChannel(forgetChannel);
-    channel.postMessage('forgotten'.toJS);
+  static void announceForgotten() => _announce('forgotten');
+
+  /// Tells every other tab of this site that the library they hold open is
+  /// no longer the one in use (issue #4121).
+  static void announceLibraryChanged() => _announce('library-changed');
+
+  static void _announce(String what) {
+    final channel = web.BroadcastChannel(reloadChannel);
+    channel.postMessage('$what|$_pageId'.toJS);
     channel.close();
   }
 
-  /// Calls [listener] when another tab forgets the device; the returned
-  /// function stops listening.
-  static void Function() onForgottenElsewhere(void Function() listener) {
-    final channel = web.BroadcastChannel(forgetChannel);
-    channel.onmessage = ((web.MessageEvent _) => listener()).toJS;
+  /// Calls [listener] when another tab asks the site's tabs to reload; the
+  /// returned function stops listening. What this page announced itself is
+  /// not heard.
+  static void Function() onReloadAskedElsewhere(void Function() listener) {
+    final channel = web.BroadcastChannel(reloadChannel);
+    channel.onmessage = ((web.MessageEvent event) {
+      final data = event.data;
+      final message = data.isA<JSString>() ? (data as JSString).toDart : '';
+      if (message.endsWith('|$_pageId')) return;
+      listener();
+    }).toJS;
     return () => channel.close();
   }
 }

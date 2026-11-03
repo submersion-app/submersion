@@ -177,6 +177,24 @@ class BackgroundDatabaseConnection {
     throw UnsupportedError('native builds delete the database file');
   }
 
+  /// The databases a browser stores; a native build lists files instead,
+  /// so this is never called.
+  static Future<Set<String>> storedDatabaseNames() async {
+    throw UnsupportedError('native builds keep database files');
+  }
+
+  /// The browser's wipe of every database it stores; a native build deletes
+  /// its files through `DatabaseService`, so this is never called.
+  static Future<void> deleteAllStoredDatabases() async {
+    throw UnsupportedError('native builds delete the database files');
+  }
+
+  /// The browser's install of a database from bytes; a native build copies
+  /// a file into place through `DatabaseService`, so this is never called.
+  static Future<void> installImage(String path, Uint8List image) async {
+    throw UnsupportedError('native builds copy the database file');
+  }
+
   static Future<BackgroundDatabaseConnection> _spawn(
     String path,
     DatabaseConnection Function() opener,
