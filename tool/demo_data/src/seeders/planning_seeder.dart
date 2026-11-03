@@ -28,11 +28,12 @@ import 'demo_images.dart';
 import 'seed_context.dart';
 import 'trip_seeder.dart';
 
-/// Dive plans (an open-circuit deco plan, a rebreather plan and a scooter
-/// mission), checklists before a dive and before a trip, and travel
-/// documents.
+/// When the demo's repetitive series was planned.
 final _seriesDate = DateTime.utc(2026, 1, 10);
 
+/// Dive plans (an open-circuit deco plan, a rebreather plan, a scooter
+/// mission and a day of repetitive dives), checklists before a dive and
+/// before a trip, and travel documents.
 class PlanningSeeder implements DemoSeeder {
   @override
   String get name => 'plans, checklists and documents';

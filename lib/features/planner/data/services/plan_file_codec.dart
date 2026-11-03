@@ -183,12 +183,20 @@ Map<String, dynamic> _seriesDiveToMap(
 
 /// Parses a `.subplan` JSON string holding a series into a fresh one, or null
 /// when the file holds a single plan. All ids are regenerated.
-/// Throws [FormatException] as [subplanFromJson] does.
+/// Throws [FormatException] as [subplanFromJson] does for a file with a
+/// series; one without is left to [subplanFromJson], which the caller runs
+/// next, so it is not parsed twice here.
 StoredSeries? seriesFromSubplanJson(String source, {DateTime? now}) {
+  final Object? decoded;
+  try {
+    decoded = jsonDecode(source);
+  } on FormatException {
+    throw const FormatException('Not a valid .subplan file');
+  }
+  final raw = decoded is Map<String, dynamic> ? decoded['series'] : null;
+  if (raw == null) return null;
   // Checks the format and version, and that the first dive reads.
   subplanFromJson(source, now: now);
-  final raw = (jsonDecode(source) as Map<String, dynamic>)['series'];
-  if (raw == null) return null;
   try {
     final map = raw as Map<String, dynamic>;
     final timestamp = now ?? DateTime.now();

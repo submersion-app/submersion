@@ -30,7 +30,11 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
     ref.invalidateSelfWhen(repository.watchDivesChanges());
     final dive = await repository.getDiveById(diveId);
     if (dive == null) return null;
-    dives = await repository.getAllDives(diverId: dive.diverId);
+    // A dive with no diver has no log of its own to chain through, and
+    // reading every diver's dives would chain in someone else's.
+    dives = dive.diverId == null
+        ? [dive]
+        : await repository.getAllDives(diverId: dive.diverId);
   }
   final chain = loggedDiveChain(dives, diveId);
   if (chain.isEmpty) return null;

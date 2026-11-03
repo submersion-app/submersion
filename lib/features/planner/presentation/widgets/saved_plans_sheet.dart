@@ -324,7 +324,7 @@ class _PlanTile extends ConsumerWidget {
                     initialName: summary.name,
                     title: context.l10n.divePlanner_action_renamePlan,
                   );
-                  if (entered == null) return;
+                  if (entered == null || !context.mounted) return;
                   await ref
                       .read(divePlanSeriesRepositoryProvider)
                       .renameSeries(seriesId, entered);

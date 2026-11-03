@@ -137,6 +137,12 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     _loadSelected();
   }
 
+  /// Takes the [id] a save gave the series while it was being edited: the
+  /// edits made during the save were not stored, so it stays unsaved.
+  void adoptSavedId(String id) {
+    state = state.copyWith(id: id, structureChanged: true);
+  }
+
   /// Follows the logged dives in [follow]: the first dive starts from the
   /// followed one, after [surfaceInterval]. Ignored for a replan, which
   /// keeps the seed it was opened with (see [followAllowedProvider]).

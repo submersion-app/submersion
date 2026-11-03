@@ -113,7 +113,8 @@ part 'ladder/rungs_v055_to_v071.dart';
 part 'ladder/rungs_v072_to_v095.dart';
 part 'ladder/rungs_v096_to_v148.dart';
 part 'ladder/rungs_v149_to_v230.dart';
-part 'ladder/rungs_v231_onward.dart';
+part 'ladder/rungs_v231_to_v339.dart';
+part 'ladder/rungs_v340_onward.dart';
 part 'migration_strategy.dart';
 
 /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict

@@ -174,13 +174,19 @@ class DivePlanSeriesRepository {
               ..where((p) => p.seriesId.equals(id))
               ..orderBy([(p) => OrderingTerm.asc(p.seriesIndex)]))
             .get();
+    // Every dive's tanks in one read, for the columns a plan does not carry.
+    final tanksByPlan = <String, List<db.DivePlanTank>>{};
+    final allTankRows = await (_db.select(
+      _db.divePlanTanks,
+    )..where((t) => t.planId.isIn([for (final p in planRows) p.id]))).get();
+    for (final tank in allTankRows) {
+      tanksByPlan.putIfAbsent(tank.planId, () => []).add(tank);
+    }
     final dives = <StoredSeriesDive>[];
     for (final planRow in planRows) {
       final plan = await _plans.getPlan(planRow.id);
       if (plan == null) continue;
-      final tankRows = await (_db.select(
-        _db.divePlanTanks,
-      )..where((t) => t.planId.equals(planRow.id))).get();
+      final tankRows = tanksByPlan[planRow.id] ?? const <db.DivePlanTank>[];
       dives.add(
         StoredSeriesDive(
           plan: plan,
@@ -210,77 +216,92 @@ class DivePlanSeriesRepository {
   /// Copies the series [id] under a new name, with new ids throughout, and
   /// the links between its dives moved to them. Returns the copy, or null when
   /// the series does not exist.
+  ///
+  /// One transaction: each dive is copied as a plan before the series row
+  /// exists, so a failure part way must not leave those copies behind as
+  /// plans of their own.
   Future<StoredSeries?> duplicateSeries(String id) async {
     final source = await getSeries(id);
     if (source == null) return null;
     final name = '${source.name} (copy)';
 
-    final dives = <StoredSeriesDive>[];
-    var previousIds = const <String, String>{};
-    for (final dive in source.dives) {
-      final copy = await _plans.duplicatePlan(dive.plan.id);
-      if (copy == null) continue;
-      final ids = {
-        for (var t = 0; t < copy.tanks.length; t++)
-          dive.plan.tanks[t].id: copy.tanks[t].id,
-      };
-      dives.add(
-        dive.copyWith(
-          plan: copy.copyWith(name: name),
-          sourceTankIds: {
-            for (final e in dive.sourceTankIds.entries)
-              ?ids[e.key]: previousIds[e.value] ?? e.value,
-          },
-          pinnedTankIds: {
-            for (final tankId in dive.pinnedTankIds) ?ids[tankId],
-          },
+    return _db.transaction(() async {
+      final dives = <StoredSeriesDive>[];
+      var previousIds = const <String, String>{};
+      for (final dive in source.dives) {
+        final copy = await _plans.duplicatePlan(dive.plan.id);
+        if (copy == null) continue;
+        final ids = {
+          for (var t = 0; t < copy.tanks.length; t++)
+            dive.plan.tanks[t].id: copy.tanks[t].id,
+        };
+        dives.add(
+          dive.copyWith(
+            plan: copy.copyWith(name: name),
+            sourceTankIds: {
+              for (final e in dive.sourceTankIds.entries)
+                ?ids[e.key]: previousIds[e.value] ?? e.value,
+            },
+            pinnedTankIds: {
+              for (final tankId in dive.pinnedTankIds) ?ids[tankId],
+            },
+          ),
+        );
+        previousIds = ids;
+      }
+      return saveSeries(
+        StoredSeries(
+          id: _uuid.v4(),
+          name: name,
+          diverId: source.diverId,
+          followedDiveId: source.followedDiveId,
+          dives: dives,
         ),
       );
-      previousIds = ids;
-    }
-    return saveSeries(
-      StoredSeries(
-        id: _uuid.v4(),
-        name: name,
-        diverId: source.diverId,
-        followedDiveId: source.followedDiveId,
-        dives: dives,
-      ),
-    );
+    });
   }
 
   /// Names the series [id]. Every dive holds the name too, which is what
   /// anything reading a dive as a plan shows.
   Future<void> renameSeries(String id, String name) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.transaction(() async {
-      await (_db.update(
-        _db.divePlanSeries,
-      )..where((s) => s.id.equals(id))).write(
-        db.DivePlanSeriesCompanion(name: Value(name), updatedAt: Value(now)),
-      );
-      await (_db.update(
-        _db.divePlans,
-      )..where((p) => p.seriesId.equals(id))).write(
-        db.DivePlansCompanion(name: Value(name), updatedAt: Value(now)),
-      );
-    });
-    await _syncRepository.markRecordPending(
-      entityType: 'divePlanSeries',
-      recordId: id,
-      localUpdatedAt: now,
-    );
-    final rows = await (_db.select(
-      _db.divePlans,
-    )..where((p) => p.seriesId.equals(id))).get();
-    for (final row in rows) {
+    try {
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.divePlanSeries,
+        )..where((s) => s.id.equals(id))).write(
+          db.DivePlanSeriesCompanion(name: Value(name), updatedAt: Value(now)),
+        );
+        await (_db.update(
+          _db.divePlans,
+        )..where((p) => p.seriesId.equals(id))).write(
+          db.DivePlansCompanion(name: Value(name), updatedAt: Value(now)),
+        );
+      });
       await _syncRepository.markRecordPending(
-        entityType: 'divePlans',
-        recordId: row.id,
+        entityType: 'divePlanSeries',
+        recordId: id,
         localUpdatedAt: now,
       );
+      final rows = await (_db.select(
+        _db.divePlans,
+      )..where((p) => p.seriesId.equals(id))).get();
+      for (final row in rows) {
+        await _syncRepository.markRecordPending(
+          entityType: 'divePlans',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to rename series $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
-    SyncEventBus.notifyLocalChange();
   }
 
   /// Deletes the series [id] and every dive in it, with their tombstones.

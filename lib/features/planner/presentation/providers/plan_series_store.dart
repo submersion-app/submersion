@@ -33,6 +33,12 @@ Future<void> saveCurrentSeries(ProviderContainer container) async {
     await currentStoredSeries(container),
   );
   if (!notifier.mounted) return;
+  // Edited while the save ran: those edits were not stored, so keep them,
+  // still unsaved, rather than swap in the copy that was.
+  if (container.read(planSeriesNotifierProvider) != series) {
+    notifier.adoptSavedId(stored.id);
+    return;
+  }
   notifier.loadSeries(
     seriesFromStored(
       stored,

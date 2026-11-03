@@ -103,6 +103,18 @@ void main() {
     expect(c.read(planSeriesDirtyProvider), isTrue);
   });
 
+  test('an edit made while a save runs is kept, still unsaved', () async {
+    series().addDive();
+    final saving = saveCurrentSeries(c);
+    series().renameSelected('Night dive');
+    await saving;
+
+    final now = c.read(planSeriesNotifierProvider);
+    expect(now.id, isNotNull);
+    expect(now.selected.name, 'Night dive');
+    expect(now.isDirty, isTrue);
+  });
+
   test('naming or removing a dive is a change to save', () async {
     series().addDive();
     await saveCurrentSeries(c);
