@@ -16,6 +16,7 @@ enum ChangeLogSource {
   automatic,
   revert,
   system,
+  agent,
 }
 
 /// How long a scope or suppression holds without being renewed. The main

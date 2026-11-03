@@ -1,7 +1,7 @@
 # Agent access (MCP server)
 
-Agent access lets an AI agent on the same desktop machine read, and in later
-phases change, the diver's logbook through the Model Context Protocol. The
+Agent access lets an AI agent on the same desktop machine read and change the
+diver's logbook through the Model Context Protocol. The
 design is `docs/design/specs/2026-11-01-mcp-server-design.md`; this page is
 the map of the code and the rules it keeps.
 
@@ -32,7 +32,9 @@ Everything is under `lib/features/agent_access/`:
 | `data/records/families/` | One file per family of entities, each returning its catalogue entries |
 | `data/documents/` | JSON mappers per family, metric with unit-named keys, and `document_dates.dart` |
 | `data/sql/` | The SQL window: the denied set, the bytecode guard, the worker and its runner |
-| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, and the registry |
+| `data/writes/` | The write catalogue: change sets, field codecs, the planner, the plan store and the applier |
+| `data/writes/families/` | One file per family of writable entities, each going through its repository or service |
+| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, `preview_changes`, `apply_changes`, `revert_operation`, and the registry |
 | `data/resources/` | `submersion://query-language`, `submersion://units` and `submersion://schema` |
 | `data/server/` | The loopback listener, the bearer check, and the adapter onto `mcp_dart` |
 | `presentation/providers/` | Settings notifier, token store, status stream, lifecycle controller |
@@ -97,6 +99,114 @@ two hundred columns and no domain shape, so `settingsDocument` drops the
 device-local and bookkeeping columns and renames the dimensioned ones from
 `kSettingUnitKeys`. A new `REAL` column must join that map or
 `kUnitlessSettings`, or the guard fails.
+
+## Writes
+
+A write takes two calls. `preview_changes` reads and diffs, and `apply_changes`
+runs the plan it stored. The preview never opens a transaction: a rolled back
+one would still fire triggers and tick streams, and
+`write_planner_test.dart` counts both to prove it.
+
+Apply checks the plan is still true, asks the diver when the setting is on,
+then checks again inside `SyncCoordinator.run`, because the dialog can stay
+open for five minutes. It then opens `ChangeLogScope.run` with source `agent`,
+and inside that one transaction around every operation. A refusal rolls back
+everything. The settler files other divers' records under `operation:diver`,
+so one apply can return several operation ids, each revertable alone. A
+scope that cannot open a change log entry carries on for a diver's own save,
+but an apply checks for its entry before the first write and refuses without
+one, so every agent change can be reverted. A plan also keeps the database
+it was previewed on, so a restored logbook with the same rows refuses it.
+
+A plan with a blocked item gets no `plan_id`, so a diver is never asked to
+allow something that cannot run. The dialog raises and focuses the window, so Allow
+arms only after `kAgentWriteAllowDelay`, and a click meant for another window
+cannot answer it. Deny is live at once. A plan is single use and lasts 15 minutes.
+Plans live in `agentWritePlanStoreProvider`, not in the registry, because the
+protocol builds a server per request.
+
+A version marker is `updated_at` plus the current ids of each relation the
+plan changes, since a link can change without touching its parent row. A record
+a plan links to gets a marker too, so one that goes away refuses the plan. A
+marker also carries a footprint of what the plan worked out from rows with no
+version of their own, a delete's reach or a site's types, and apply works it
+out again, so a child added since the preview refuses the plan as well.
+
+What a plan lists is what a write does. An entity reports what an update does
+beyond what it names through `sideEffects`: a site link snaps on water type,
+entry and exit methods and dive types, a visibility band clears the measured
+values, and a moved dive takes its entry and exit times along. A field the set
+names is written after the snap and wins, even if it equals the current value.
+A field whose write does something even when it equals the row is listed in
+`effectFields`, as a dive's `visibility` is, so the plan cannot drop it as
+unchanged.
+
+`deleteReach` reports what a delete takes with it. `records` holds what has a
+life of its own, such as documents, media and certifications, and `parts` the
+rows that only exist as part of the record, such as a dive's tanks. `unlinked`
+holds what stays but loses its link, and `linkedDives` the dives that do,
+including another profile's. The dialog shows all of that without being opened
+except `parts`, which it keeps under the details, since a dive with a profile
+has many. `countCascaded` and `countUnlinked` read these from the schema's
+foreign keys, so a table added later is counted without anyone remembering to.
+
+The change log covers rows in this database, and a rollback covers them too.
+What neither can take back is a blob that has left the media store. A blob
+delete is queued as an intent that waits for a drain and does nothing if its
+row has come back, so a rollback or revert before the drain loses nothing.
+Dive and site deletes pass `holdRemoteMedia`, so a coordinator wired to start
+the worker would still wait.
+
+### Adding a writable entity
+
+1. Add a `WritableEntry` under `data/writes/families/` and list it in
+   `WriteCatalog`. Its `name` and field keys are the read catalogue's, so a
+   document can be edited and sent back.
+2. Write through a repository or service, never a table. Most `copyWith`
+   methods use `??` and cannot clear a field, and rebuilding a whole entity
+   loses any field the mapper forgets, so use a partial companion
+   (`BulkDiveEditService`, `BuddyRepository.updateFields`) or clear flags
+   (`DiveSite.copyWith`).
+3. Add a test that every key in `fields` reaches its column, and read each
+   value back through the document.
+4. Implement `refuse` for what the repository would quietly ignore.
+   `updateSite` keeps a library's values and reports success, so
+   `SiteWrites.refuse` blocks that case in the preview.
+5. Implement `sideEffects` and `deleteReach` for anything the write path does
+   beyond the columns it was given, or a diver allows a change they cannot see.
+   Read a repository's delete for what it clears by hand: `countCascaded` sees
+   the schema, not that code. A dive's delete also reclaims stored import
+   files no other dive uses, which no foreign key shows. A record that goes
+   only once everything holding it goes, such as an import file several
+   dives share or a photo of a dive and its site, depends on what else the
+   set deletes: read `alongside` and count it on one item, so the dialog's
+   totals add up.
+   A relation whose write copies values from its target, as a dive's site
+   does, sets `copiesTarget`, so it cannot follow a change to that target
+   earlier in the same set: the plan works out the copy from the target as it
+   stands, and the write would copy the changed one.
+6. Implement `deletedDocumentOwners` with every owner a delete takes documents
+   from, so a refused plan can arm their reminders again. A buddy's lists their
+   certifications too.
+7. Hold remote media on any delete that cascades to it.
+8. Move the repository's methods from
+   `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
+   `agent_write_coverage_test.dart`. That guard fails on a new repository
+   write no entity reaches, and on a baseline line that has gone.
+
+### Known limits
+
+- Many MCP clients time out a request after about a minute, which is shorter
+  than the dialog. The server keeps asking, so a later Allow applies a change
+  the agent reported as failed. While that dialog is open a second apply
+  answers `confirmation_pending`, so a retry cannot queue the same change, and
+  the `apply_changes` description tells agents to read the records first.
+- The plain `DiveRepository` and `SiteRepository` the tools use never start
+  the media worker, so `holdRemoteMedia` changes nothing there: an intent
+  drains when anything next starts the worker, and a revert after that
+  re-queues the upload through `repairRestoredMedia`.
+- A change set cannot refer to a record it creates. Linking a new buddy to a
+  dive takes two applies.
 
 ## The date rule
 

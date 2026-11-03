@@ -27077,6 +27077,64 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_agentAccess_title => 'Ügynökhozzáférés';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'A hivatkozást elveszítő merülések ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'Ezt is törli: $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'Ezt is leválasztja: $kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_title =>
+      'Engedélyezi ezt a módosítást?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return 'A(z) $client módosítani szeretné a merülési naplóját.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'Egy ügynök módosítani szeretné a merülési naplóját.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'Megosztott';
+
+  @override
+  String get settings_agentAccess_confirm_details =>
+      'Minden módosítás megjelenítése';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'Engedélyezés';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'Elutasítás';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'nincs';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'Új';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'Módosítás';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'Törlés';
+
+  @override
   String get settings_agentAccess_subtitle =>
       'Engedélyezd, hogy egy MI-ügynök ezen a számítógépen olvassa és módosítsa a merülési naplódat';
 
@@ -59085,6 +59143,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get changeLog_source_system => 'Rendszer';
+
+  @override
+  String get changeLog_source_agent => 'Ügynök';
 
   @override
   String get changeLog_thisDevice => 'Ez az eszköz';
