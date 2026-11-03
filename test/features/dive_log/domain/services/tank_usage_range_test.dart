@@ -45,7 +45,56 @@ void main() {
     });
   });
 
+  test('off the loop, a diluent-tagged cylinder does not take the start', () {
+    const diluent = DiveTank(id: 'diluent', order: 1, role: TankRole.diluent);
+
+    final windows = tankUsageWindows(
+      tank: back,
+      gasSwitches: [switchTo('deco', 1200)],
+      diveStart: 0,
+      diveEnd: 3600,
+      tanks: const [back, diluent, deco],
+    );
+
+    expect(windows, [(start: 0, end: 1200)]);
+  });
+
+  group('tankUsageWindows on the loop with no switches (#4020)', () {
+    const diluent = DiveTank(id: 'diluent', order: 1, role: TankRole.diluent);
+
+    List<TankUsageWindow> windowsOf(DiveTank tank) => tankUsageWindows(
+      tank: tank,
+      gasSwitches: const [],
+      diveStart: 0,
+      diveEnd: 3600,
+      tanks: const [back, diluent],
+      onLoop: true,
+    );
+
+    test('the diluent spans the dive', () {
+      expect(windowsOf(diluent), [(start: 0, end: 3600)]);
+    });
+
+    test('no other cylinder does', () {
+      expect(windowsOf(back), isEmpty);
+    });
+  });
+
   group('startingTankOf', () {
+    test('on the loop, starts on the lowest-order diluent (#4020)', () {
+      const later = DiveTank(id: 'later', order: 2, role: TankRole.diluent);
+      const earlier = DiveTank(id: 'earlier', order: 1, role: TankRole.diluent);
+
+      final tank = startingTankOf(
+        tanks: const [deco, later, earlier],
+        switches: const [],
+        diveStart: 0,
+        onLoop: true,
+      );
+
+      expect(tank, earlier);
+    });
+
     GasSwitch bare(String tankId, int timestamp) => GasSwitch(
       id: 'gs-$tankId-$timestamp',
       diveId: 'dive-1',

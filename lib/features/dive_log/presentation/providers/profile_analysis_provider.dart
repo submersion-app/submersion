@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
+import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -274,7 +275,12 @@ List<ProfileGasSegment> buildProfileGasSegments(
 ///
 /// [tanks] scopes the search to the analysed computer's cylinders on a
 /// multi-source dive; defaults to every tank.
-GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
+GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) =>
+    _recordedCcrDiluentMix(dive, tanks: tanks) ?? const GasMix();
+
+/// [resolveCcrDiluentMix] without its air default: null when the log holds no
+/// gas the loop could run on.
+GasMix? _recordedCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
   final candidates = tanks ?? dive.tanks;
   for (final tank in candidates) {
     if (tank.role == TankRole.diluent) return tank.gasMix;
@@ -292,7 +298,50 @@ GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
     if (role == TankRole.oxygenSupply || role == TankRole.bailout) continue;
     return tank.gasMix;
   }
-  return const GasMix();
+  return null;
+}
+
+/// The gas a rebreather dive's loop runs on, for the gas timeline (issue
+/// #4020): the deco model's diluent, read from the cylinders [computerId]
+/// breathed as that model reads them. Null when the dive is not on a loop, or
+/// its log records no such gas: the timeline then names a cylinder rather than
+/// show an air nothing in the log mentions.
+GasMix? rebreatherLoopGas(Dive dive, [String? computerId]) => dive.isRebreather
+    ? _recordedCcrDiluentMix(
+        dive,
+        tanks: computerId == null
+            ? null
+            : dive.tanks.where((t) => t.isUsedBy(computerId)).toList(),
+      )
+    : null;
+
+/// The gas timeline of the series drawn for [computerId], from that computer's
+/// own cylinders and switches by the rule the deco model reads them. Null
+/// [computerId] draws every source as one series, so every one of them counts.
+List<GasUsageSegment> activeGasUsageSegments(
+  Dive dive, {
+  required List<GasSwitchWithTank>? gasSwitches,
+  required List<DiveProfilePoint> profile,
+  String? computerId,
+}) {
+  final tanks = computerId == null
+      ? dive.tanks
+      : dive.tanks.where((t) => t.isUsedBy(computerId)).toList();
+  final tankIds = {for (final t in tanks) t.id};
+  return buildGasUsageSegments(
+    tanks: tanks,
+    gasSwitches: [
+      for (final s in gasSwitches ?? const <GasSwitchWithTank>[])
+        if (computerId == null ||
+            (tankIds.contains(s.gasSwitch.tankId) &&
+                s.gasSwitch.appliesTo(computerId)))
+          s,
+    ],
+    diveDurationSeconds: profile.last.timestamp,
+    firstSampleSeconds: profile.first.timestamp,
+    loopGas: rebreatherLoopGas(dive, computerId),
+    onLoop: dive.isRebreather,
+  );
 }
 
 /// The gas schedule a rebreather dive's tissues load from, or null when the
