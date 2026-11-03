@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
@@ -48,6 +49,17 @@ List<Override> _gates({
   bool drive = true,
   bool dropbox = true,
 }) => [
+  // Every cloud the platform table can allow, so the build gates below are
+  // what decide; the host's own table would drop iCloud and Google Drive on
+  // a Linux runner.
+  deviceCapabilitiesProvider.overrideWithValue(
+    DeviceCapabilities.web.copyWith(
+      cloudICloud: true,
+      cloudGit: true,
+      cloudGoogleDrive: true,
+      isBrowser: false,
+    ),
+  ),
   isApplePlatformProvider.overrideWithValue(apple),
   iCloudAvailabilityProvider.overrideWith((ref) async => icloud),
   googleDriveAvailableProvider.overrideWith((ref) async => drive),

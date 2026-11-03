@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -199,6 +200,14 @@ void main() {
       test('follows supportsGalleryBrowsing=$hasLibrary', () {
         final container = ProviderContainer(
           overrides: [
+            // A device with a photo library, so the picker is what decides;
+            // the host's own table has none on a Linux runner.
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web.copyWith(
+                devicePhotoLibrary: true,
+                isBrowser: false,
+              ),
+            ),
             photoPickerServiceProvider.overrideWithValue(
               _StubPicker(supportsGalleryBrowsing: hasLibrary),
             ),
