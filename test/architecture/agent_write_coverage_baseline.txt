@@ -139,6 +139,12 @@ lib/features/dive_log/data/repositories/annotation_repository.dart:addAnnotation
 lib/features/dive_log/data/repositories/annotation_repository.dart:moveAnnotation
 lib/features/dive_log/data/repositories/annotation_repository.dart:removeAnnotation
 lib/features/dive_log/data/repositories/derived_metrics_repository.dart:saveMetrics
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addTank
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addWeight
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteTank
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteWeight
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateTank
+lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateWeight
 lib/features/dive_log/data/repositories/dive_computer_merge_repository.dart:mergeComputers
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:addProfileEvent
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearEventsForDive
@@ -146,6 +152,7 @@ lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clear
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:createComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:deleteComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:insertTanks
+lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:setAutoDownloadDisabled
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:setFavoriteComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateLastDownload
