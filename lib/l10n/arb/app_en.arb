@@ -15543,6 +15543,7 @@
   "settings_conflict_ref_diver": "Diver",
   "settings_conflict_ref_equipment": "Equipment",
   "settings_conflict_ref_equipmentLocation": "Equipment location",
+  "settings_conflict_ref_gearCheckIn": "Gear check-in",
   "settings_conflict_ref_equipmentSet": "Equipment set",
   "settings_conflict_ref_finding": "Finding",
   "settings_conflict_ref_importedFile": "Imported file",
@@ -24627,6 +24628,7 @@
   "incidents_empty": "No near-misses logged. Recording what almost went wrong - without judgment - is how patterns become visible before they become accidents.",
   "incidents_add": "Log near-miss",
   "incidents_linkedDive": "Linked to a dive",
+  "incidents_linkedCheckIn": "Linked to a check-in",
   "incidents_delete_confirm": "Delete this near-miss report?",
   "incidents_notFound": "Near-miss report not found",
   "incidentEdit_title_new": "Log near-miss",
@@ -24648,6 +24650,8 @@
   "incidentEdit_equipment_none": "None",
   "incidentEdit_equipment_onThisDive": "On this dive",
   "incidentEdit_equipment_allGear": "All gear",
+  "incidentEdit_checkIn": "Gear check-in",
+  "incidentEdit_checkIn_others": "Other check-ins",
   "incidentCategory_buoyancy": "Buoyancy",
   "incidentCategory_gasSupply": "Gas supply",
   "incidentCategory_equipment": "Equipment",
@@ -25195,6 +25199,14 @@
   "equipmentObservation_card_title": "Check-ins",
   "equipmentObservation_card_empty": "No check-ins recorded for this item.",
   "equipmentObservation_card_add": "Add check-in",
+  "equipmentObservation_card_nearMissLinked": "{count, plural, =1{Near-miss linked} other{{count} near-misses linked}}",
+  "@equipmentObservation_card_nearMissLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentObservation_card_onDive": "Dive #{number}",
   "@equipmentObservation_card_onDive": {
     "placeholders": {

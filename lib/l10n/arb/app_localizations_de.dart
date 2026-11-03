@@ -26625,6 +26625,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => 'Ausrüstungsstandort';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'Ausrüstungs-Check-in';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Ausrüstungsset';
 
   @override
@@ -40656,6 +40659,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get incidents_linkedDive => 'Mit einem Tauchgang verknüpft';
 
   @override
+  String get incidents_linkedCheckIn => 'Mit einem Check-in verknüpft';
+
+  @override
   String get incidents_delete_confirm =>
       'Diesen Beinahe-Unfall-Bericht löschen?';
 
@@ -40723,6 +40729,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'Gesamte Ausrüstung';
+
+  @override
+  String get incidentEdit_checkIn => 'Ausrüstungs-Check-in';
+
+  @override
+  String get incidentEdit_checkIn_others => 'Weitere Check-ins';
 
   @override
   String get incidentCategory_buoyancy => 'Tarierung';
@@ -41533,6 +41545,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'Check-in hinzufügen';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Beinahe-Unfälle verknüpft',
+      one: 'Beinahe-Unfall verknüpft',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {

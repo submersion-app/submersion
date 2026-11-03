@@ -31,6 +31,7 @@ Map<String, Object?> incidentDocument(Incident i) => {
   'diver_id': i.diverId,
   'dive_id': i.diveId,
   'equipment_id': i.equipmentId,
+  'observation_id': i.observationId,
   'occurred_time': wallClock(i.occurredAt),
   'category': i.category.name,
   'severity': i.severity.name,

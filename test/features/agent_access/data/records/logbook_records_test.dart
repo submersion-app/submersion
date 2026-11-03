@@ -449,6 +449,12 @@ void main() {
       expect(doc['narrative'], 'Free flow');
     });
 
+    test('an incident names its gear check-in', () async {
+      final doc = (await h.one('incidents', 'inc-a'))!;
+      expect(doc, contains('observation_id'));
+      expect(doc['observation_id'], isNull);
+    });
+
     test('an emergency chamber reads', () async {
       final expected = {
         for (final x in await EmergencyChamberRepository().getUserChambers(

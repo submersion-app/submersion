@@ -26672,6 +26672,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Localização do equipamento';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'Verificação de equipamento';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Conjunto de equipamentos';
 
   @override
@@ -40719,6 +40722,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get incidents_linkedDive => 'Vinculado a um mergulho';
 
   @override
+  String get incidents_linkedCheckIn => 'Vinculado a uma verificação';
+
+  @override
   String get incidents_delete_confirm =>
       'Excluir este relato de quase acidente?';
 
@@ -40784,6 +40790,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'Todo o equipamento';
+
+  @override
+  String get incidentEdit_checkIn => 'Verificação de equipamento';
+
+  @override
+  String get incidentEdit_checkIn_others => 'Outras verificações';
 
   @override
   String get incidentCategory_buoyancy => 'Flutuabilidade';
@@ -41597,6 +41609,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'Adicionar verificação';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count quase acidentes vinculados',
+      one: 'Quase acidente vinculado',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {

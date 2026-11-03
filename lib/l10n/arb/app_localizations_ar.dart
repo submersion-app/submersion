@@ -26906,6 +26906,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => 'موقع المعدات';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'فحص المعدات';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'طقم المعدات';
 
   @override
@@ -41219,6 +41222,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incidents_linkedDive => 'مرتبط بغطسة';
 
   @override
+  String get incidents_linkedCheckIn => 'مرتبط بفحص';
+
+  @override
   String get incidents_delete_confirm => 'حذف تقرير الحادث الوشيك هذا؟';
 
   @override
@@ -41283,6 +41289,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'كل المعدات';
+
+  @override
+  String get incidentEdit_checkIn => 'فحص المعدات';
+
+  @override
+  String get incidentEdit_checkIn_others => 'فحوصات أخرى';
 
   @override
   String get incidentCategory_buoyancy => 'الطفو';
@@ -42133,6 +42145,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'إضافة فحص';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حادث وشيك مرتبط',
+      many: '$count حادثًا وشيكًا مرتبطًا',
+      few: '$count حوادث وشيكة مرتبطة',
+      two: 'حادثان وشيكان مرتبطان',
+      one: 'حادث وشيك مرتبط',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {

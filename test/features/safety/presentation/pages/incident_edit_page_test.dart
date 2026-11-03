@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,9 +9,12 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
@@ -24,10 +29,11 @@ import '../../../../helpers/test_app.dart';
 /// fixed result (or throws) for `getIncidentById`, so every page path can be
 /// exercised without a database.
 class _FakeIncidentRepository extends IncidentRepository {
-  _FakeIncidentRepository({this.result, this.error});
+  _FakeIncidentRepository({this.result, this.error, this.writeError});
 
   final Incident? result;
   final Object? error;
+  final Object? writeError;
 
   Incident? created;
   Incident? updated;
@@ -50,12 +56,15 @@ class _FakeIncidentRepository extends IncidentRepository {
     String? diveId,
     String? diverId,
     String? equipmentId,
+    String? observationId,
   }) async {
+    if (writeError != null) throw writeError!;
     final incident = Incident(
       id: 'created-id',
       diverId: diverId,
       diveId: diveId,
       equipmentId: equipmentId,
+      observationId: observationId,
       occurredAt: occurredAt,
       category: category,
       severity: severity,
@@ -77,6 +86,37 @@ class _FakeIncidentRepository extends IncidentRepository {
   @override
   Future<void> deleteIncident(String id) async {
     deletedId = id;
+  }
+}
+
+/// This file's forms run without a database; naming an item looks for a
+/// check-in to match, and there are none.
+class _NoCheckIns extends EquipmentObservationRepository {
+  @override
+  Future<List<EquipmentObservation>> getForEquipmentOnDive(
+    String equipmentId,
+    String diveId,
+  ) async => const [];
+}
+
+/// Serves one issue check-in, and holds the read Save makes until [release],
+/// so a test can leave the page while the save is running.
+class _HeldCheckIn extends EquipmentObservationRepository {
+  final release = Completer<void>();
+  var _reads = 0;
+
+  @override
+  Future<EquipmentObservation?> getById(String id) async {
+    if (_reads++ > 0) await release.future;
+    return EquipmentObservation(
+      id: id,
+      equipmentId: 'reg',
+      observedAt: DateTime.utc(2026, 7, 10),
+      status: ObservationStatus.issue,
+      note: 'Free-flow',
+      createdAt: DateTime.utc(2026, 7, 10),
+      updatedAt: DateTime.utc(2026, 7, 10),
+    );
   }
 }
 
@@ -188,6 +228,72 @@ void main() {
     await tester.pump();
 
     expect(find.text('Describe what happened'), findsOneWidget);
+  });
+
+  testWidgets('a save that fails says so and keeps the form', (tester) async {
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository(
+      writeError: Exception('database is locked'),
+    );
+
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        router: routerFor(const IncidentEditPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Lost a fin');
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Lost a fin'), findsOneWidget);
+    expect(find.text('LIST'), findsNothing);
+    final save = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Save'),
+    );
+    expect(save.onPressed, isNotNull);
+  });
+
+  testWidgets('leaving while a save runs still files the report', (
+    tester,
+  ) async {
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository();
+    final checkIns = _HeldCheckIn();
+    final router = routerFor(const IncidentEditPage(observationId: 'o1'));
+
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          equipmentObservationRepositoryProvider.overrideWithValue(checkIns),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        router: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pump();
+
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('LIST'), findsOneWidget);
+    checkIns.release.complete();
+    await tester.pumpAndSettle();
+
+    expect(repo.created, isNotNull);
+    expect(repo.created!.observationId, 'o1');
   });
 
   testWidgets('loads an existing incident into the edit form', (tester) async {
@@ -401,6 +507,9 @@ void main() {
             validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
             diveProvider('d1').overrideWith((ref) async => dive),
             activeEquipmentProvider.overrideWith((ref) async => [reg, fins]),
+            equipmentObservationRepositoryProvider.overrideWith(
+              (ref) => _NoCheckIns(),
+            ),
             equipmentItemProvider('reg').overrideWith((ref) async => reg),
           ],
           router: routerFor(const IncidentEditPage(diveId: 'd1')),
@@ -482,6 +591,9 @@ void main() {
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
           diveProvider('d1').overrideWith((ref) async => dive),
           activeEquipmentProvider.overrideWith((ref) async => [reg]),
+          equipmentObservationRepositoryProvider.overrideWith(
+            (ref) => _NoCheckIns(),
+          ),
           equipmentItemProvider('cyl').overrideWith((ref) async => cylinder),
           equipmentItemProvider('reg').overrideWith((ref) async => reg),
         ],
