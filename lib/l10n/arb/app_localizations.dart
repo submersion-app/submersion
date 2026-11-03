@@ -43587,6 +43587,12 @@ abstract class AppLocalizations {
   /// **'Also deletes {kind}: {count}'**
   String settings_agentAccess_confirm_alsoDeletes(String kind, int count);
 
+  /// No description provided for @settings_agentAccess_confirm_alsoUnlinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Also unlinks {kind}: {count}'**
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count);
+
   /// No description provided for @settings_agentAccess_confirm_title.
   ///
   /// In en, this message translates to:

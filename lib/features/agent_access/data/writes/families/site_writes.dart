@@ -7,7 +7,7 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart'
-    show DocumentOwnerKind;
+    show DocumentOwner, DocumentOwnerKind;
 
 /// What a library reader may change: never in the library, kept per profile.
 const _privateKeys = {'notes', 'rating'};
@@ -52,17 +52,34 @@ class SiteWrites extends WritableEntry {
   Set<String> get requiredOnCreate => const {'name'};
 
   @override
-  Future<DeleteReach> deleteReach(String id) async => DeleteReach(
-    linkedDives: await countDivesByOwner(
-      'SELECT diver_id AS owner, COUNT(*) AS n FROM dives WHERE site_id = ? '
-      'GROUP BY diver_id',
-      id,
-    ),
-    records: await countOwned({'documents': 'site_id'}, id),
-  );
+  Future<DeleteReach> deleteReach(String id) async {
+    final media = await _r.media.partitionMediaForSiteDeletion([id]);
+    return DeleteReach(
+      linkedDives: await countDivesByOwner(
+        'SELECT diver_id AS owner, COUNT(*) AS n FROM dives WHERE site_id = ? '
+        'GROUP BY diver_id',
+        id,
+      ),
+      records: {
+        ...await countOwned({'documents': 'site_id'}, id),
+        if (media.doomed.isNotEmpty) 'media': media.doomed.length,
+      },
+      parts: await countCascaded('dive_sites', id),
+      unlinked: {
+        ...await countUnlinked(
+          'dive_sites',
+          id,
+          except: const {'dives', 'documents', 'media'},
+        ),
+        if (media.unlinkIds.isNotEmpty) 'media': media.unlinkIds.length,
+      },
+    );
+  }
 
   @override
-  DocumentOwnerKind get documentOwner => DocumentOwnerKind.site;
+  Future<List<DocumentOwner>> deletedDocumentOwners(String id) async => [
+    DocumentOwner(DocumentOwnerKind.site, id),
+  ];
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
@@ -142,7 +159,12 @@ class SiteWrites extends WritableEntry {
 
   @override
   Future<void> delete(String id, String? ownerId) async {
-    final deleted = await _r.sites.deleteSite(id, actingDiverId: ownerId);
+    final deleted = await _r.sites.deleteSite(
+      id,
+      // A revert restores the rows, and its media needs the blobs still there.
+      holdRemoteMedia: true,
+      actingDiverId: ownerId,
+    );
     if (deleted) return;
     throw AgentToolException(
       AgentToolErrorCode.writeRefused,

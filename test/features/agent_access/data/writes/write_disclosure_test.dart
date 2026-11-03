@@ -186,6 +186,46 @@ void main() {
       expect(doc['visibility'], 'good');
       expect(doc['visibility_m'], isNull);
     });
+
+    Future<WritePlan> restate(String band) => preview([
+      {
+        'op': 'update',
+        'entity': 'dives',
+        'id': 'd1',
+        'fields': {'visibility': band},
+      },
+    ]);
+
+    test('the band it already holds still clears a measurement', () async {
+      await dive('d1', visibilityM: 12);
+      await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+        const DivesCompanion(visibility: Value('good')),
+      );
+
+      final plan = await restate('good');
+
+      expect(plan.unchanged, isEmpty);
+      expect(plan.items.single.fields.keys, ['visibility_m']);
+      expect(plan.items.single.fields['visibility_m']!.indirect, isTrue);
+
+      await apply(plan);
+
+      final doc = (await h.one('dives', 'd1'))!;
+      expect(doc['visibility'], 'good');
+      expect(doc['visibility_m'], isNull);
+    });
+
+    test('the band it already holds changes nothing on its own', () async {
+      await dive('d1');
+      await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+        const DivesCompanion(visibility: Value('good')),
+      );
+
+      final plan = await restate('good');
+
+      expect(plan.items, isEmpty);
+      expect(plan.unchanged.single.id, 'd1');
+    });
   });
 
   test('moving a dive lists the entry time that moves with it', () async {

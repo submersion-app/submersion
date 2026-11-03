@@ -8,7 +8,7 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/documents/domain/entities/document.dart'
-    show DocumentOwnerKind;
+    show DocumentOwner, DocumentOwnerKind;
 
 class BuddyWrites extends WritableEntry {
   BuddyWrites(this._r);
@@ -36,21 +36,41 @@ class BuddyWrites extends WritableEntry {
   Set<String> get requiredOnCreate => const {'name'};
 
   @override
-  Future<DeleteReach> deleteReach(String id) async => DeleteReach(
-    linkedDives: await countDivesByOwner(
-      'SELECT d.diver_id AS owner, COUNT(*) AS n FROM dive_buddies l '
-      'JOIN dives d ON d.id = l.dive_id WHERE l.buddy_id = ? '
-      'GROUP BY d.diver_id',
+  Future<DeleteReach> deleteReach(String id) async {
+    final documents = await countRows(
+      'documents',
+      'buddy_id = ?1 OR certification_id IN '
+          '(SELECT id FROM certifications WHERE buddy_id = ?1)',
       id,
-    ),
-    records: await countOwned({
-      'certifications': 'buddy_id',
-      'documents': 'buddy_id',
-    }, id),
-  );
+    );
+    return DeleteReach(
+      linkedDives: await countDivesByOwner(
+        'SELECT d.diver_id AS owner, COUNT(*) AS n FROM dive_buddies l '
+        'JOIN dives d ON d.id = l.dive_id WHERE l.buddy_id = ? '
+        'GROUP BY d.diver_id',
+        id,
+      ),
+      records: {
+        ...await countOwned({'certifications': 'buddy_id'}, id),
+        if (documents > 0) 'documents': documents,
+      },
+      parts: await countCascaded(
+        'buddies',
+        id,
+        except: const {'certifications', 'dive_buddies'},
+      ),
+      unlinked: await countUnlinked('buddies', id, except: const {'documents'}),
+    );
+  }
 
   @override
-  DocumentOwnerKind get documentOwner => DocumentOwnerKind.buddy;
+  Future<List<DocumentOwner>> deletedDocumentOwners(String id) async => [
+    DocumentOwner(DocumentOwnerKind.buddy, id),
+    for (final cert in await _r.certifications.getCertificationMetadataByBuddy(
+      id,
+    ))
+      DocumentOwner(DocumentOwnerKind.certification, cert.id),
+  ];
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {

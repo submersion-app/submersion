@@ -7731,6 +7731,7 @@
   "settings_agentAccess_title": "Ügynökhozzáférés",
   "settings_agentAccess_confirm_linkedDives": "A hivatkozást elveszítő merülések ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Ezt is törli: {kind}: {count}",
+  "settings_agentAccess_confirm_alsoUnlinks": "Ezt is leválasztja: {kind}: {count}",
   "settings_agentAccess_confirm_title": "Engedélyezi ezt a módosítást?",
   "settings_agentAccess_confirm_client": "A(z) {client} módosítani szeretné a merülési naplóját.",
   "settings_agentAccess_confirm_unknownClient": "Egy ügynök módosítani szeretné a merülési naplóját.",

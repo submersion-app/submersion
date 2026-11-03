@@ -143,10 +143,10 @@ class WriteApplier {
     final found = <Document>[];
     for (final item in plan.items) {
       if (item.kind != ChangeKind.delete) continue;
-      final kind = _catalog.named(item.entity)!.documentOwner;
-      if (kind == null) continue;
-      final held = await _documents.getForOwner(DocumentOwner(kind, item.id!));
-      found.addAll(held);
+      final entry = _catalog.named(item.entity)!;
+      for (final owner in await entry.deletedDocumentOwners(item.id!)) {
+        found.addAll(await _documents.getForOwner(owner));
+      }
     }
     return found;
   }
@@ -251,7 +251,8 @@ class WriteApplier {
       ]);
       for (final marker in markers) {
         if (versions[marker.id] != marker.updatedAt ||
-            await _linksMoved(marker)) {
+            await _linksMoved(marker) ||
+            await _footprintMoved(marker)) {
           stale.add(marker);
         }
       }
@@ -297,6 +298,11 @@ class WriteApplier {
       if (!const SetEquality<String>().equals(now, links)) return true;
     }
     return false;
+  }
+
+  Future<bool> _footprintMoved(RecordMarker marker) async {
+    final read = marker.readFootprint;
+    return read != null && await read() != marker.footprint;
   }
 
   Future<List<({String operationId, String? diverId})>> _operations(

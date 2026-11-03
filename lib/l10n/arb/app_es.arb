@@ -7832,6 +7832,7 @@
   "settings_agentAccess_title": "Acceso de agentes",
   "settings_agentAccess_confirm_linkedDives": "Inmersiones que pierden este vínculo ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "También elimina {kind}: {count}",
+  "settings_agentAccess_confirm_alsoUnlinks": "También desvincula {kind}: {count}",
   "settings_agentAccess_confirm_title": "¿Permitir este cambio?",
   "settings_agentAccess_confirm_client": "{client} quiere cambiar tu cuaderno de buceo.",
   "settings_agentAccess_confirm_unknownClient": "Un agente quiere cambiar tu cuaderno de buceo.",

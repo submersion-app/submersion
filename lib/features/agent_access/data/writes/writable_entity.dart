@@ -1,6 +1,9 @@
+import 'dart:collection';
+import 'dart:convert';
+
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart'
-    show DocumentOwnerKind;
+    show DocumentOwner;
 
 enum ChangeKind { create, update, delete }
 
@@ -93,21 +96,61 @@ class SideEffects {
 
   /// Relation name to the ids it gains.
   final Map<String, Set<String>> relations;
+
+  bool get isEmpty => fields.isEmpty && relations.isEmpty;
+
+  /// The same text for the same effects, to compare a preview with a later
+  /// read.
+  String get footprint => jsonEncode({
+    'fields': _sorted({
+      for (final MapEntry(:key, :value) in fields.entries) key: '$value',
+    }),
+    'relations': _sorted({
+      for (final MapEntry(:key, :value) in relations.entries)
+        key: (value.toList()..sort()),
+    }),
+  });
 }
 
 /// What a delete takes with it, for the diver to weigh.
 class DeleteReach {
-  const DeleteReach({this.linkedDives = const {}, this.records = const {}});
+  const DeleteReach({
+    this.linkedDives = const {},
+    this.records = const {},
+    this.parts = const {},
+    this.unlinked = const {},
+  });
 
   /// Dives that lose a link to this record, by owner. These can belong to
   /// profiles other than the record's own.
   final Map<String, int> linkedDives;
 
-  /// Records deleted with it, by table.
+  /// Records with a life of their own deleted with it, by table.
   final Map<String, int> records;
 
-  bool get isEmpty => linkedDives.isEmpty && records.isEmpty;
+  /// Rows that only exist as part of it, such as a dive's tanks, by table.
+  final Map<String, int> parts;
+
+  /// Records that stay but lose their link to it, by table.
+  final Map<String, int> unlinked;
+
+  bool get isEmpty =>
+      linkedDives.isEmpty &&
+      records.isEmpty &&
+      parts.isEmpty &&
+      unlinked.isEmpty;
+
+  /// The same text for the same reach, to compare a preview with a later
+  /// read.
+  String get footprint => jsonEncode({
+    'dives': _sorted(linkedDives),
+    'records': _sorted(records),
+    'parts': _sorted(parts),
+    'unlinked': _sorted(unlinked),
+  });
 }
+
+Map<String, V> _sorted<V>(Map<String, V> map) => SplayTreeMap.of(map);
 
 /// One entity an agent can change. Its [name], and the keys of [fields], are
 /// those of the read catalogue, so a document can be edited and sent back.
@@ -125,6 +168,10 @@ abstract class WritableEntry {
 
   /// Fields a create must carry.
   Set<String> get requiredOnCreate;
+
+  /// Fields whose write does something even when it equals the row, so a
+  /// plan cannot drop one as unchanged.
+  Set<String> get effectFields => const {};
 
   /// The ids [relation] holds now.
   Future<Set<String>> currentRelation(String id, String relation) async =>
@@ -153,8 +200,9 @@ abstract class WritableEntry {
   /// What a diver knows this record by.
   String? titleOf(Map<String, Object?> document) => document['name'] as String?;
 
-  /// Whose documents go with a delete of this record, when any can.
-  DocumentOwnerKind? get documentOwner => null;
+  /// Every owner whose documents go with a delete of this record.
+  Future<List<DocumentOwner>> deletedDocumentOwners(String id) async =>
+      const [];
 
   /// Creates a record for [diverId] and returns its id.
   Future<String> create(String diverId, Map<String, Object?> values);

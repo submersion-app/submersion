@@ -87,6 +87,13 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
                   ),
                   style: TextStyle(color: theme.colorScheme.error),
                 ),
+              for (final MapEntry(:key, :value) in _alsoUnlinked.entries)
+                Text(
+                  l.settings_agentAccess_confirm_alsoUnlinks(
+                    changeLogTableLabel(l, key),
+                    value,
+                  ),
+                ),
               ExpansionTile(
                 key: detailsKey,
                 tilePadding: EdgeInsets.zero,
@@ -116,10 +123,15 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
   }
 
   /// Records deleted alongside the plan's own deletes, by table.
-  Map<String, int> get _alsoDeleted {
+  Map<String, int> get _alsoDeleted => _sum((reach) => reach.records);
+
+  /// Records that lose a link to the plan's own deletes, by table.
+  Map<String, int> get _alsoUnlinked => _sum((reach) => reach.unlinked);
+
+  Map<String, int> _sum(Map<String, int> Function(DeleteReach) counted) {
     final counts = <String, int>{};
     for (final item in request.items) {
-      for (final MapEntry(:key, :value) in item.reach.records.entries) {
+      for (final MapEntry(:key, :value) in counted(item.reach).entries) {
         counts.update(key, (n) => n + value, ifAbsent: () => value);
       }
     }
@@ -183,6 +195,14 @@ class _PlanItemRow extends StatelessWidget {
           for (final MapEntry(:key, :value) in item.indirectRelations.entries)
             Text(
               '$key: ${[for (final id in value) '+${named(id)}'].join(', ')}',
+              style: theme.textTheme.bodySmall,
+            ),
+          for (final MapEntry(:key, :value) in item.reach.parts.entries)
+            Text(
+              l.settings_agentAccess_confirm_alsoDeletes(
+                changeLogTableLabel(l, key),
+                value,
+              ),
               style: theme.textTheme.bodySmall,
             ),
         ],

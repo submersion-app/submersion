@@ -18,7 +18,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart'
-    show DocumentOwnerKind;
+    show DocumentOwner, DocumentOwnerKind;
 
 /// Dives write through the bulk edit service, so an agent's change behaves as
 /// the diver's own bulk edit does: the site's values snap on, a tank keeps no
@@ -83,6 +83,10 @@ class DiveWrites extends WritableEntry {
 
   @override
   Set<String> get requiredOnCreate => const {'date_time'};
+
+  /// Naming a band clears any measurement, the band it already holds included.
+  @override
+  Set<String> get effectFields => const {'visibility'};
 
   @override
   Future<Set<String>> currentRelation(String id, String relation) async {
@@ -155,8 +159,20 @@ class DiveWrites extends WritableEntry {
   }
 
   @override
-  Future<DeleteReach> deleteReach(String id) async =>
-      DeleteReach(records: await countOwned({'documents': 'dive_id'}, id));
+  Future<DeleteReach> deleteReach(String id) async {
+    final media = await _r.media.partitionMediaForDiveDeletion([id]);
+    return DeleteReach(
+      records: {
+        ...await countOwned({'documents': 'dive_id'}, id),
+        if (media.doomed.isNotEmpty) 'media': media.doomed.length,
+      },
+      parts: await countCascaded('dives', id),
+      unlinked: {
+        ...await countUnlinked('dives', id, except: _reportedApart),
+        if (media.unlinkIds.isNotEmpty) 'media': media.unlinkIds.length,
+      },
+    );
+  }
 
   @override
   String? titleOf(Map<String, Object?> document) {
@@ -169,7 +185,9 @@ class DiveWrites extends WritableEntry {
   }
 
   @override
-  DocumentOwnerKind get documentOwner => DocumentOwnerKind.dive;
+  Future<List<DocumentOwner>> deletedDocumentOwners(String id) async => [
+    DocumentOwner(DocumentOwnerKind.dive, id),
+  ];
 
   Future<Dive?> _row(String id) {
     final db = DatabaseService.instance.database;
@@ -375,6 +393,10 @@ class DiveWrites extends WritableEntry {
     return roles.firstWhere((role) => role.id == DiveRole.buddyId);
   }
 }
+
+/// Foreign keys to a dive whose rows [DiveWrites.deleteReach] sorts itself:
+/// these go with the dive or stay, record by record.
+const _reportedApart = {'documents', 'media'};
 
 const _measuredVisibility = [
   'visibility_m',

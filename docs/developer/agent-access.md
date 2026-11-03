@@ -120,15 +120,33 @@ protocol builds a server per request.
 
 A version marker is `updated_at` plus the current ids of each relation the
 plan changes, since a link can change without touching its parent row. A record
-a plan links to gets a marker too, so one that goes away refuses the plan.
+a plan links to gets a marker too, so one that goes away refuses the plan. A
+marker also carries a footprint of what the plan worked out from rows with no
+version of their own, a delete's reach or a site's types, and apply works it
+out again, so a child added since the preview refuses the plan as well.
 
 What a plan lists is what a write does. An entity reports what an update does
 beyond what it names through `sideEffects`: a site link snaps on water type,
 entry and exit methods and dive types, a visibility band clears the measured
 values, and a moved dive takes its entry and exit times along. A field the set
 names is written after the snap and wins, even if it equals the current value.
-`deleteReach` reports what a delete takes with it, including dives of other
-profiles that lose a link, and the dialog shows those without being opened.
+A field whose write does something even when it equals the row is listed in
+`effectFields`, as a dive's `visibility` is, so the plan cannot drop it as
+unchanged.
+
+`deleteReach` reports what a delete takes with it. `records` holds what has a
+life of its own, such as documents, media and certifications, and `parts` the
+rows that only exist as part of the record, such as a dive's tanks. `unlinked`
+holds what stays but loses its link, and `linkedDives` the dives that do,
+including another profile's. The dialog shows all of that without being opened
+except `parts`, which it keeps under the details, since a dive with a profile
+has many. `countCascaded` and `countUnlinked` read these from the schema's
+foreign keys, so a table added later is counted without anyone remembering to.
+
+The change log covers rows in this database, and a rollback covers them too.
+What neither can take back is a blob that has left the media store, so a delete
+holds its remote media (`holdRemoteMedia`). The intent waits for the next drain
+and does nothing if the row has come back.
 
 ### Adding a writable entity
 
@@ -147,7 +165,13 @@ profiles that lose a link, and the dialog shows those without being opened.
    `SiteWrites.refuse` blocks that case in the preview.
 5. Implement `sideEffects` and `deleteReach` for anything the write path does
    beyond the columns it was given, or a diver allows a change they cannot see.
-6. Move the repository's methods from
+   Read a repository's delete for what it clears by hand: `countCascaded` sees
+   the schema, not that code.
+6. Implement `deletedDocumentOwners` with every owner a delete takes documents
+   from, so a refused plan can arm their reminders again. A buddy's lists their
+   certifications too.
+7. Hold remote media on any delete that cascades to it.
+8. Move the repository's methods from
    `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
    `agent_write_coverage_test.dart`. That guard fails on a new repository
    write no entity reaches, and on a baseline line that has gone.

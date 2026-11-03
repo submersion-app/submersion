@@ -186,20 +186,19 @@ class _Pass {
             document: document,
           ),
         );
-    if (block == null && parsed.changes.isEmpty && links.deltas.isEmpty) {
+    final update = RecordUpdate(values: parsed.values, relations: links.deltas);
+    Future<SideEffects> readEffects() =>
+        entry.sideEffects(op.id, row.ownerId, update, document);
+    final effects = block != null ? const SideEffects() : await readEffects();
+    if (block == null &&
+        parsed.changes.isEmpty &&
+        links.deltas.isEmpty &&
+        effects.isEmpty) {
       unchanged.add(
         UnchangedRecord(operation: op.index, entity: op.entity, id: op.id),
       );
       return;
     }
-    final effects = block != null
-        ? const SideEffects()
-        : await entry.sideEffects(
-            op.id,
-            row.ownerId,
-            RecordUpdate(values: parsed.values, relations: links.deltas),
-            document,
-          );
     final fields = {...parsed.changes};
     final values = {...parsed.values};
     for (final MapEntry(key: key, value: value) in effects.fields.entries) {
@@ -219,6 +218,8 @@ class _Pass {
           updatedAt: row.updatedAt,
           relations: links.current,
           readRelation: (relation) => entry.currentRelation(op.id, relation),
+          footprint: effects.footprint,
+          readFootprint: () async => (await readEffects()).footprint,
         ),
       );
       await _markReferences(entry, links.deltas);
@@ -252,9 +253,18 @@ class _Pass {
         document: document,
       ),
     );
+    final reach = block == null
+        ? await entry.deleteReach(op.id)
+        : const DeleteReach();
     if (block == null) {
       markers.add(
-        RecordMarker(table: entry.table, id: op.id, updatedAt: row.updatedAt),
+        RecordMarker(
+          table: entry.table,
+          id: op.id,
+          updatedAt: row.updatedAt,
+          footprint: reach.footprint,
+          readFootprint: () async => (await entry.deleteReach(op.id)).footprint,
+        ),
       );
     }
     _add(
@@ -265,9 +275,7 @@ class _Pass {
       diverId: row.ownerId,
       title: entry.titleOf(document),
       date: document['date_time'] as String?,
-      reach: block == null
-          ? await entry.deleteReach(op.id)
-          : const DeleteReach(),
+      reach: reach,
       block: block,
     );
   }
@@ -393,7 +401,10 @@ class _Pass {
         final next = codec.parse(raw);
         named[key] = next;
         final current = codec.canonical(document[key]);
-        if (next == current) continue;
+        if (next == current) {
+          if (entry.effectFields.contains(key)) values[key] = next;
+          continue;
+        }
         values[key] = next;
         changes[key] = FieldChange(codec.wire(current), codec.wire(next));
       } on FieldRefusal catch (refusal) {

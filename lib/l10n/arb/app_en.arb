@@ -15700,6 +15700,8 @@
   "@settings_agentAccess_confirm_linkedDives": {"placeholders": {"diver": {"type": "String"}, "count": {"type": "int"}}},
   "settings_agentAccess_confirm_alsoDeletes": "Also deletes {kind}: {count}",
   "@settings_agentAccess_confirm_alsoDeletes": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_agentAccess_confirm_alsoUnlinks": "Also unlinks {kind}: {count}",
+  "@settings_agentAccess_confirm_alsoUnlinks": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
   "settings_agentAccess_confirm_title": "Allow this change?",
   "settings_agentAccess_confirm_client": "{client} wants to change your logbook.",
   "@settings_agentAccess_confirm_client": {"placeholders": {"client": {"type": "String"}}},

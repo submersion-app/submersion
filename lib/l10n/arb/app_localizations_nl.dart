@@ -27013,6 +27013,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'Ontkoppelt ook $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'Deze wijziging toestaan?';
 
   @override

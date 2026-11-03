@@ -27136,6 +27136,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'Löst außerdem $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'Diese Änderung zulassen?';
 
   @override

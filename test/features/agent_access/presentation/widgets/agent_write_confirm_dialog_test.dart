@@ -290,6 +290,43 @@ void main() {
     await _close(tester);
   });
 
+  testWidgets('shows what a delete unlinks, and keeps its parts in the '
+      'details', (tester) async {
+    await _pump(tester);
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            const PlanItem(
+              operation: 0,
+              kind: ChangeKind.delete,
+              entity: 'sites',
+              id: 's1',
+              diverId: 'diver-a',
+              title: 'Blue Hole',
+              reach: DeleteReach(
+                records: {'documents': 2},
+                parts: {'site_tags': 4},
+                unlinked: {'dive_plans': 3},
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Also deletes Document: 2'), findsOneWidget);
+    expect(find.textContaining('Also unlinks Dive plan: 3'), findsOneWidget);
+    expect(find.textContaining('Site Tags: 4'), findsNothing);
+
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Site Tags: 4'), findsOneWidget);
+    await _close(tester);
+  });
+
   testWidgets('links show names, not ids', (tester) async {
     await _pump(tester);
     unawaited(

@@ -25677,6 +25677,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return '同时取消关联 $kind:$count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => '允许此更改吗?';
 
   @override

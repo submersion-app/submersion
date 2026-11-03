@@ -95,7 +95,8 @@ class PlanItem {
     if (!reach.isEmpty)
       'also_reaches': {
         'linked_dives_by_diver': reach.linkedDives,
-        'deleted_records': reach.records,
+        'deleted_records': {...reach.records, ...reach.parts},
+        'unlinked_records': reach.unlinked,
       },
     if (block case final block?)
       'blocked': {'reason': block.reason.wire, 'detail': block.detail},
@@ -130,6 +131,8 @@ class RecordMarker {
     required this.updatedAt,
     this.relations = const {},
     this.readRelation,
+    this.footprint,
+    this.readFootprint,
   });
 
   final String table;
@@ -143,6 +146,14 @@ class RecordMarker {
 
   /// Reads a relation's links again.
   final Future<Set<String>> Function(String relation)? readRelation;
+
+  /// What the plan worked out from rows with no version of their own, such
+  /// as a delete's children or a site's types. Any of them can change without
+  /// touching [updatedAt].
+  final String? footprint;
+
+  /// Works [footprint] out again.
+  final Future<String> Function()? readFootprint;
 }
 
 /// A previewed change set, held until it is applied or expires.

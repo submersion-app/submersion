@@ -27062,6 +27062,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'Ezt is leválasztja: $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title =>
       'Engedélyezi ezt a módosítást?';
 

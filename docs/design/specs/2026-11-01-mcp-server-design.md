@@ -638,5 +638,8 @@ TDD applies. Minimum coverage:
 | A plan lists what a write does indirectly (site snap, cleared visibility, moved entry and exit, a delete's reach), and a field the set names wins over a snap | design |
 | Deleting a shared library site is blocked; the app removes these through the library | design |
 | A record a plan links to has a marker, so one that goes away refuses the plan | design |
+| A marker carries a footprint of what the plan derived from rows with no version, a delete's reach or a site's types, and apply refuses if it no longer matches | review |
+| A delete's reach comes from the schema's foreign keys, split into records, parts and unlinked; the dialog keeps parts under the details | review |
+| Hides and shares of a deleted site are not listed; they are bookkeeping about the site and mean nothing without it | review |
 | A second apply while a dialog is open is refused, not queued | design |
 | `revert_operation` keeps records changed since unless `include_changed_since` is set, and asks the diver nothing | design |

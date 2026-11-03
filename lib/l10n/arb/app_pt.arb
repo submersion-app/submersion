@@ -7832,6 +7832,7 @@
   "settings_agentAccess_title": "Acesso de agentes",
   "settings_agentAccess_confirm_linkedDives": "Mergulhos que perdem esta ligação ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Também elimina {kind}: {count}",
+  "settings_agentAccess_confirm_alsoUnlinks": "Também desassocia {kind}: {count}",
   "settings_agentAccess_confirm_title": "Permitir esta alteração?",
   "settings_agentAccess_confirm_client": "{client} quer alterar o seu registo de mergulhos.",
   "settings_agentAccess_confirm_unknownClient": "Um agente quer alterar o seu registo de mergulhos.",

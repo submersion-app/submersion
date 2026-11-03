@@ -77,6 +77,11 @@ class _Refusing extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) => _inner.refuse(check);
   @override
+  Future<DeleteReach> deleteReach(String id) => _inner.deleteReach(id);
+  @override
+  Future<List<DocumentOwner>> deletedDocumentOwners(String id) =>
+      _inner.deletedDocumentOwners(id);
+  @override
   Future<String> create(String diverId, Map<String, Object?> values) =>
       _inner.create(diverId, values);
   @override
@@ -465,6 +470,196 @@ void main() {
     );
 
     expect(armed, ['doc-1']);
+  });
+
+  test('a refused buddy delete arms their certification documents', () async {
+    await buddy('b1');
+    await buddy('b2');
+    await db
+        .into(db.certifications)
+        .insert(
+          CertificationsCompanion.insert(
+            id: 'c1',
+            name: 'Nitrox',
+            agency: 'PADI',
+            createdAt: t,
+            updatedAt: t,
+            buddyId: const Value('b2'),
+          ),
+        );
+    await db
+        .into(db.documents)
+        .insert(
+          DocumentsCompanion.insert(
+            id: 'doc-cert',
+            diverId: kDiverA,
+            certificationId: const Value('c1'),
+            type: 'other',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    final catalog = _RefusingCatalog(repositories);
+    final plan = await preview([
+      {'op': 'delete', 'entity': 'buddies', 'id': 'b2'},
+      {
+        'op': 'update',
+        'entity': 'buddies',
+        'id': 'b1',
+        'fields': {'notes': 'x'},
+      },
+    ], catalog: catalog);
+    final armed = <String>[];
+
+    await expectLater(
+      applier(
+        catalog: catalog,
+        rearm: (documents) async => armed.addAll(documents.map((d) => d.id)),
+      ).apply(db, plan),
+      _refusedWith(AgentToolErrorCode.writeRefused),
+    );
+
+    expect(armed, ['doc-cert']);
+  });
+
+  test('a refused site delete brings its media back', () async {
+    await buddy('b1');
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 's1',
+            name: 'Reef',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+          ),
+        );
+    await db
+        .into(db.media)
+        .insert(
+          MediaCompanion.insert(
+            id: 'photo',
+            filePath: '/photo.jpg',
+            takenAt: const Value(t),
+            createdAt: t,
+            updatedAt: t,
+            siteId: const Value('s1'),
+          ),
+        );
+    final catalog = _RefusingCatalog(repositories);
+    final plan = await preview([
+      {'op': 'delete', 'entity': 'sites', 'id': 's1'},
+      {
+        'op': 'update',
+        'entity': 'buddies',
+        'id': 'b1',
+        'fields': {'notes': 'x'},
+      },
+    ], catalog: catalog);
+
+    await expectLater(
+      applier(catalog: catalog).apply(db, plan),
+      _refusedWith(AgentToolErrorCode.writeRefused),
+    );
+
+    final kept = await (db.select(
+      db.media,
+    )..where((m) => m.id.equals('photo'))).getSingleOrNull();
+    expect(kept?.siteId, 's1');
+  });
+
+  test('a link made to a deleted record after the preview is stale', () async {
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 's1',
+            name: 'Reef',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+          ),
+        );
+    final plan = await preview([
+      {'op': 'delete', 'entity': 'sites', 'id': 's1'},
+    ]);
+    // A dive points at the site now; the site's own row has not changed.
+    await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+      const DivesCompanion(siteId: Value('s1')),
+    );
+
+    await expectLater(
+      applier().apply(db, plan),
+      _refusedWith(AgentToolErrorCode.planStale),
+    );
+
+    expect(await repositories.sites.getSiteById('s1'), isNotNull);
+  });
+
+  test('a site type changed after the preview is stale', () async {
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 's1',
+            name: 'Reef',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+          ),
+        );
+    await db
+        .into(db.siteTypes)
+        .insert(
+          SiteTypesCompanion.insert(
+            id: 'kelp',
+            name: 'Kelp forest',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await db
+        .into(db.diveTypes)
+        .insert(
+          DiveTypesCompanion.insert(
+            id: 'kelp',
+            diverId: const Value(kDiverA),
+            name: 'Kelp forest',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    final plan = await preview([
+      {
+        'op': 'update',
+        'entity': 'dives',
+        'id': 'd1',
+        'relations': {
+          'site': {
+            'set': ['s1'],
+          },
+        },
+      },
+    ]);
+    expect(plan.items.single.indirectRelations, isEmpty);
+    // Site classification links carry no clock on the site's row, so nothing
+    // else tells this plan that the dive would now gain a type.
+    await db
+        .into(db.siteSiteTypes)
+        .insert(
+          SiteSiteTypesCompanion.insert(
+            id: 'st1',
+            siteId: 's1',
+            siteTypeId: 'kelp',
+            createdAt: t,
+          ),
+        );
+
+    await expectLater(
+      applier().apply(db, plan),
+      _refusedWith(AgentToolErrorCode.planStale),
+    );
   });
 
   test('the result names the client', () async {
