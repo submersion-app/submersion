@@ -81852,7 +81852,7 @@ abstract class AppLocalizations {
   /// **'Select'**
   String get diveLog_profileEditor_mode_select;
 
-  /// Profile editor mode: find and remove suspect depth samples.
+  /// Profile editor mode: find and remove unnecessary depth samples or the entire profile.
   ///
   /// In en, this message translates to:
   /// **'Cleanup'**

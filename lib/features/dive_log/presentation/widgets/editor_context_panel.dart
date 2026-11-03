@@ -244,6 +244,24 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               icon: const Icon(Icons.cleaning_services, size: 18),
               label: Text(context.l10n.diveLog_profileEditor_removeOutliers),
             ),
+            const SizedBox(width: 8),
+            FilledButton.tonalIcon(
+              onPressed: () => widget.notifier.trimEndZeros(),
+              icon: const Icon(Icons.content_cut, size: 18),
+              label: Text(context.l10n.diveLog_profileEditor_trimEnd),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.icon(
+              onPressed: widget.canDeleteProfile ? widget.onDeleteProfile : null,
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+              ),
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: Text(
+                context.l10n.diveLog_profileEditor_deleteProfile_title,
+              ),
+            ),
           ],
         ),
         if (count > 0)
@@ -317,30 +335,6 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            FilledButton.tonalIcon(
-              onPressed: () => widget.notifier.trimEndZeros(),
-              icon: const Icon(Icons.content_cut, size: 18),
-              label: Text(context.l10n.diveLog_profileEditor_trimEnd),
-            ),
-            const SizedBox(width: 8),
-            FilledButton.icon(
-              onPressed: widget.canDeleteProfile
-                  ? widget.onDeleteProfile
-                  : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Theme.of(context).colorScheme.onError,
-              ),
-              icon: const Icon(Icons.delete_outline, size: 18),
-              label: Text(
-                context.l10n.diveLog_profileEditor_deleteProfile_title,
-              ),
-            ),
-          ],
         ),
       ],
     );
