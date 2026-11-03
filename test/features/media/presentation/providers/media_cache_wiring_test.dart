@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -56,7 +57,7 @@ void main() {
     support = await Directory.systemTemp.createTemp('media_cache_wiring');
     photos = await Directory.systemTemp.createTemp('media_cache_wiring_src');
     useFakePathProvider(_FakePathProvider(support.path));
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
     LocalCacheDatabaseService.instance.resetForTesting();
     await LocalCacheDatabaseService.instance.initialize();
     cacheDb = LocalCacheDatabaseService.instance.database;
@@ -68,7 +69,7 @@ void main() {
   tearDown(() async {
     await cacheDb.close();
     LocalCacheDatabaseService.instance.resetForTesting();
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
     await tearDownTestDatabase();
     if (support.existsSync()) await support.delete(recursive: true);
     if (photos.existsSync()) await photos.delete(recursive: true);
@@ -106,20 +107,51 @@ void main() {
   String thumbsDir() =>
       p.join(support.path, 'Submersion', 'media_cache', 'thumbs');
 
+  test('a phone stages in support and stores in the cache directory', () async {
+    final osCache = Directory(p.join(support.path, 'os_cache'));
+    final location = await resolveCacheLocation(
+      osManagesCaches: true,
+      cacheDirectory: () async => osCache,
+      supportDirectory: () async => support,
+    );
+
+    final store = mediaCacheStoreAt(location, prefs);
+    final staged = await store.stagingFile();
+    await staged.writeAsString('thumb');
+    final stored = await store.put(
+      'ab${'0' * 62}',
+      MediaCacheKind.thumb,
+      staged,
+    );
+
+    expect(
+      p.isWithin(
+        p.join(support.path, 'Submersion', 'media_cache'),
+        staged.path,
+      ),
+      isTrue,
+    );
+    expect(p.isWithin(osCache.path, stored.path), isTrue);
+  });
+
   /// Indexes a thumbnail without writing a file: eviction sums sizes from
   /// the index, so this puts the pool over a cap without filling the disk.
-  Future<void> indexThumb(String key, int sizeBytes, int accessedAt) => cacheDb
-      .into(cacheDb.mediaCacheEntries)
-      .insert(
-        MediaCacheEntriesCompanion.insert(
-          contentHash: key,
-          kind: 'thumb',
-          relativePath: p.join('thumbs', key.substring(0, 2), '$key.jpg'),
-          sizeBytes: sizeBytes,
-          lastAccessedAt: accessedAt,
-          createdAt: accessedAt,
-        ),
-      );
+  /// The pool's directory has to be there, since its absence means a purge.
+  Future<void> indexThumb(String key, int sizeBytes, int accessedAt) async {
+    await Directory(thumbsDir()).create(recursive: true);
+    await cacheDb
+        .into(cacheDb.mediaCacheEntries)
+        .insert(
+          MediaCacheEntriesCompanion.insert(
+            contentHash: key,
+            kind: 'thumb',
+            relativePath: p.join('thumbs', key.substring(0, 2), '$key.jpg'),
+            sizeBytes: sizeBytes,
+            lastAccessedAt: accessedAt,
+            createdAt: accessedAt,
+          ),
+        );
+  }
 
   /// Polls [check] until it holds, for work a provider starts and does not
   /// hand back a future for.

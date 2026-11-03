@@ -16,6 +16,7 @@ import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/gc/cloud_usage_measure.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/media_cache_index_sweep.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -76,6 +78,8 @@ void main() {
     );
     root = await Directory.systemTemp.createTemp('storage_gc_providers');
     useFakePathProvider(_TempPathProvider(root.path));
+    resetCacheLocationForTesting();
+    addTearDown(resetCacheLocationForTesting);
     store = InMemoryMediaObjectStore();
     writeMarker('store-1');
     syncCloud = FakeCloudStorageProvider();
@@ -130,6 +134,7 @@ void main() {
     bool runtimeAvailable = true,
     bool runtimeHangs = false,
     Future<void> Function()? whileRuntimeBuilds,
+    MediaCacheIndexSweep? indexSweep,
   }) {
     final cache = MediaCacheStore(database: cacheDb, root: root);
     final c = ProviderContainer(
@@ -138,6 +143,8 @@ void main() {
           mediaStoreRuntimeWaitProvider.overrideWithValue(
             const Duration(milliseconds: 50),
           ),
+        if (indexSweep != null)
+          mediaCacheIndexSweepProvider.overrideWithValue(indexSweep),
         sharedPreferencesProvider.overrideWithValue(prefs),
         storageGcNetworkProvider.overrideWithValue(
           () async => NetworkKind.unmetered,
@@ -175,6 +182,23 @@ void main() {
     addTearDown(c.dispose);
     return c;
   }
+
+  test('the cleanup runs the media cache index sweep', () async {
+    var runs = 0;
+    final c = container(
+      indexSweep: MediaCacheIndexSweep(
+        osManagesCaches: () async {
+          runs++;
+          return false;
+        },
+        store: () async => fail('nothing to do on a desktop host'),
+      ),
+    );
+
+    await c.read(storageGcCoordinatorProvider).run(StorageGcTrigger.manual);
+
+    expect(runs, 1);
+  });
 
   test('rescan measures the media store, sync folder and libraries', () async {
     store.objects[StoreKeys.objectKey('aabb', extension: 'jpg')] = [1, 2, 3];
