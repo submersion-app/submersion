@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
@@ -369,6 +370,28 @@ void main() {
       expect((await h.list('media')).toSet(), {'m1', 'm3'});
       expect((await h.list('media', diverId: kDiverB)).toSet(), {'m2', 'm3'});
       expect(await h.one('media', 'm2'), isNull);
+    });
+
+    test('a feed item keeps its URL out of the document', () async {
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              id: 'feed',
+              filePath: '',
+              sourceType: const Value('manifestEntry'),
+              url: const Value('https://example.test/a.jpg?token=secret'),
+              diveId: const Value('a1'),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      final doc = (await h.one('media', 'feed'))!;
+      expect(doc['source_type'], 'manifestEntry');
+      expect(jsonEncode(doc), isNot(contains('token=secret')));
+
+      final dive = (await h.one('dives', 'a1', include: ['media']))!;
+      expect(jsonEncode(dive), isNot(contains('token=secret')));
     });
 
     test('a signature row emits no image data', () async {
