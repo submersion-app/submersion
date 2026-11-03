@@ -27006,6 +27006,62 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_agentAccess_title => 'Agenttoegang';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'Duiken die deze koppeling verliezen ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'Verwijdert ook $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'Ontkoppelt ook $kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_title => 'Deze wijziging toestaan?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return '$client wil je logboek wijzigen.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'Een agent wil je logboek wijzigen.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'Gedeeld';
+
+  @override
+  String get settings_agentAccess_confirm_details => 'Alle wijzigingen tonen';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'Toestaan';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'Weigeren';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'geen';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'Nieuw';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'Wijzigen';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'Verwijderen';
+
+  @override
   String get settings_agentAccess_subtitle =>
       'Laat een AI-agent op deze computer je logboek lezen en wijzigen';
 
@@ -59201,6 +59257,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get changeLog_source_system => 'Systeem';
+
+  @override
+  String get changeLog_source_agent => 'Agent';
 
   @override
   String get changeLog_thisDevice => 'Dit apparaat';

@@ -15,8 +15,11 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
+import 'package:submersion/features/agent_access/data/writes/agent_write_services.dart';
 import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
+import 'package:submersion/features/agent_access/presentation/providers/agent_write_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -242,13 +245,22 @@ class AgentAccessController {
       localeTag: _ref.read(localeProvider),
       activeDiverId: () => _ref.read(validatedCurrentDiverIdProvider.future),
     );
+    final records = RecordRepositories();
     return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,
         divers: divers,
         settings: settings,
-        records: RecordRepositories(),
+        records: records,
         sql: _sqlRunner,
+        writes: AgentWriteServices(
+          records: records,
+          plans: _ref.read(agentWritePlanStoreProvider),
+          confirmer: _ref.read(agentWriteConfirmerProvider),
+          confirmEnabled: () =>
+              _ref.read(agentAccessSettingsProvider).confirmWrites,
+          rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
+        ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),
       appVersion: appVersion,

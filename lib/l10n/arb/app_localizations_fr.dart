@@ -27258,6 +27258,64 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_agentAccess_title => 'Accès des agents';
 
   @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'Plongées qui perdent ce lien ($diver) : $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'Supprime aussi $kind : $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'Dissocie aussi $kind : $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_title =>
+      'Autoriser cette modification ?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return '$client veut modifier votre carnet de plongée.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'Un agent veut modifier votre carnet de plongée.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind : $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'Partagé';
+
+  @override
+  String get settings_agentAccess_confirm_details =>
+      'Afficher toutes les modifications';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'Autoriser';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'Refuser';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'aucun';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'Nouveau';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'Modifier';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'Supprimer';
+
+  @override
   String get settings_agentAccess_subtitle =>
       'Autoriser un agent IA sur cet ordinateur à lire et modifier votre carnet de plongée';
 
@@ -59705,6 +59763,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get changeLog_source_system => 'Système';
+
+  @override
+  String get changeLog_source_agent => 'Agent';
 
   @override
   String get changeLog_thisDevice => 'Cet appareil';
