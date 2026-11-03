@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import '../../helpers/fake_path_provider.dart';
@@ -26,7 +28,7 @@ void main() {
   setUp(() async {
     support = await Directory.systemTemp.createTemp('eviction_provider_test');
     useFakePathProvider(_FakePathProvider(support.path));
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
     LocalCacheDatabaseService.instance.resetForTesting();
     await LocalCacheDatabaseService.instance.initialize();
     db = LocalCacheDatabaseService.instance.database;
@@ -35,15 +37,19 @@ void main() {
   tearDown(() async {
     await db.close();
     LocalCacheDatabaseService.instance.resetForTesting();
-    resetMediaCacheRootForTesting();
+    resetCacheLocationForTesting();
     if (support.existsSync()) await support.delete(recursive: true);
   });
 
   /// Indexes a cache entry without writing a file. Eviction sums sizeBytes
   /// from the index and tolerates a missing file, so this is enough to put the
-  /// pool over its cap without producing gigabytes on disk.
-  Future<void> indexEntry(String hash, int sizeBytes, int accessedAt) {
-    return db
+  /// pool over its cap without producing gigabytes on disk. The pool's
+  /// directory has to be there, since its absence means the pool was purged.
+  Future<void> indexEntry(String hash, int sizeBytes, int accessedAt) async {
+    await Directory(
+      p.join(support.path, 'Submersion', 'media_cache', 'originals'),
+    ).create(recursive: true);
+    await db
         .into(db.mediaCacheEntries)
         .insert(
           MediaCacheEntriesCompanion.insert(

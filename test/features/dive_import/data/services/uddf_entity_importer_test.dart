@@ -4228,6 +4228,79 @@ void main() {
       expect(events[0].source, EventSource.imported);
     });
 
+    test('an event id the log already holds takes a fresh one, and the Notes '
+        'links follow it', () async {
+      when(
+        mockDiveRepo.existingProfileEventIds(any),
+      ).thenAnswer((_) async => {'taken'});
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'notes': '[felt sick](annotation:taken), [ok](annotation:free)',
+            'profileEvents': [
+              {
+                'id': 'taken',
+                'eventType': 'annotation',
+                'timestamp': 300,
+                'description': 'felt sick',
+              },
+              {
+                'id': 'free',
+                'eventType': 'annotation',
+                'timestamp': 400,
+                'description': 'ok',
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final events =
+          verify(mockDiveRepo.insertProfileEvents(captureAny)).captured.first
+              as List<ProfileEvent>;
+      final fresh = events[0].id;
+      expect(fresh, isNot('taken'));
+      expect(events[1].id, 'free');
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.first as Dive;
+      expect(
+        dive.notes,
+        '[felt sick](annotation:$fresh), [ok](annotation:free)',
+      );
+    });
+
+    test('events without an id ask nothing of the log', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'events': [
+              {'eventType': 'setpointChange', 'timestamp': 300, 'value': 1.2},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      verifyNever(mockDiveRepo.existingProfileEventIds(any));
+    });
+
     test('does not call insertProfileEvents for unknown event type', () async {
       final data = UddfImportResult(
         dives: [

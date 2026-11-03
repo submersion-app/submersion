@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/core/services/export/pdf/pdf_annotation_times.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -67,6 +68,7 @@ class PdfExportService {
     // translated label such as Hungarian "Időtartam" would print boxes.
     await PdfFonts.instance.initialize();
     final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
+    final annotationTimesByDive = await annotationTimesForPdf(dives);
 
     // Title page
     pdf.addPage(
@@ -197,6 +199,7 @@ class PdfExportService {
               ...notesMarkdownPdfBlocks(
                 dive.notes,
                 style: const pw.TextStyle(fontSize: 12),
+                annotationTimes: annotationTimesByDive[dive.id] ?? const {},
               ),
             ],
           ],
@@ -256,6 +259,7 @@ class PdfExportService {
     final generatedAt = _now();
 
     final builder = _templateFor(options.template);
+    final annotationTimesByDive = await annotationTimesForPdf(dives);
     // The language picked in the export sheet (#2252). A null title lets the
     // template head the document in that language, and dates name months in
     // it too.
@@ -268,6 +272,7 @@ class PdfExportService {
       pageSize: options.pageSize,
       dates: dates.inLanguage(localization.languageCode),
       units: units,
+      annotationTimesByDive: annotationTimesByDive,
       title: title,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       profiles: profiles,

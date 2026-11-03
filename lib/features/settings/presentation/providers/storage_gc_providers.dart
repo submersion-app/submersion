@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/gc/cloud_usage_measure.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/core/services/storage/restore_temp_sweep.dart';
 import 'package:submersion/core/services/storage/scratch_sweep.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media_store/data/media_cache_index_sweep.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_verify_service.dart';
@@ -35,6 +37,16 @@ final storageGcNetworkProvider = Provider<Future<NetworkKind> Function()>(
   (ref) => NetworkStatusService().current,
 );
 
+/// Clears index rows whose file the OS has taken. A provider so that a test
+/// can see the cleanup run it, since on a desktop host it does nothing.
+// no-tick: the value is a SERVICE. It opens the store inside its run.
+final mediaCacheIndexSweepProvider = Provider<MediaCacheIndexSweep>(
+  (ref) => MediaCacheIndexSweep(
+    osManagesCaches: () async => (await cacheLocation()).osManagesCaches,
+    store: () => openMediaCacheStore(mediaCachePrefsOrNull(ref)),
+  ),
+);
+
 /// The storage cleanup coordinator, wired to the live services. Also runs it
 /// every six hours, since a desktop app can stay open for days without a
 /// launch or a resume.
@@ -47,11 +59,13 @@ final storageGcCoordinatorProvider = Provider<StorageGcCoordinator>((ref) {
     deviceSweeps: [
       ({required now, required dryRun}) => StorageScratchSweep(
         temporaryDirectory: getTemporaryDirectory,
-        supportDirectory: getApplicationSupportDirectory,
+        cacheLocation: cacheLocation,
       ).run(now: now, dryRun: dryRun),
       ({required now, required dryRun}) => RestoreTempSweep(
         temporaryDirectory: getTemporaryDirectory,
       ).run(now: now, dryRun: dryRun),
+      ({required now, required dryRun}) =>
+          ref.read(mediaCacheIndexSweepProvider).run(dryRun: dryRun),
     ],
     localCacheSweep: (now, {required force}) =>
         _localCacheSweepIfDue(ref, now, force: force),

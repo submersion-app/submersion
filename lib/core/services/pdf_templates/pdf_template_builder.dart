@@ -75,6 +75,9 @@ abstract class PdfTemplateBuilder {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    // Each dive's annotation id to its m:ss (#4109), so a linked passage in
+    // the notes prints its time.
+    Map<String, Map<String, String>> annotationTimesByDive = const {},
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,

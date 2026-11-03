@@ -8631,6 +8631,12 @@ abstract class AppLocalizations {
   /// **'Numbered list'**
   String get notesEditor_action_numberedList;
 
+  /// Tooltip for the notes editor button that pins the selected words to a time in the dive (an annotation)
+  ///
+  /// In en, this message translates to:
+  /// **'Annotate'**
+  String get notesEditor_action_annotate;
+
   /// Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed
   ///
   /// In en, this message translates to:
@@ -11054,12 +11060,6 @@ abstract class AppLocalizations {
   /// **'Coordinates found from address'**
   String get diveCenters_snackbar_coordinatesFound;
 
-  /// No description provided for @diveCenters_snackbar_copiedToClipboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Copied to clipboard'**
-  String get diveCenters_snackbar_copiedToClipboard;
-
   /// No description provided for @diveCenters_snackbar_imported.
   ///
   /// In en, this message translates to:
@@ -13246,6 +13246,138 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get diveLog_edit_section_notes;
 
+  /// Title of the sheet that creates an annotation (a notes passage pinned to a time in the dive) when no words were selected
+  ///
+  /// In en, this message translates to:
+  /// **'New annotation'**
+  String get diveLog_annotation_sheetTitle_new;
+
+  /// Title of the sheet that changes when an existing annotation happened; the words appear beneath it
+  ///
+  /// In en, this message translates to:
+  /// **'Change the time'**
+  String get diveLog_annotation_sheetTitle_editTime;
+
+  /// Title of the sheet that pins the selected notes words to a time in the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Annotate \"{words}\"'**
+  String diveLog_annotation_sheetTitle_words(String words);
+
+  /// Label of the words field on the annotation sheet
+  ///
+  /// In en, this message translates to:
+  /// **'What happened'**
+  String get diveLog_annotation_field_words;
+
+  /// Validation message when the annotation words field is left empty
+  ///
+  /// In en, this message translates to:
+  /// **'Say what happened'**
+  String get diveLog_annotation_words_required;
+
+  /// Label of the minutes:seconds field on the annotation sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Time from the start'**
+  String get diveLog_annotation_field_time;
+
+  /// Validation message when the annotation time does not parse as minutes:seconds
+  ///
+  /// In en, this message translates to:
+  /// **'Enter minutes:seconds'**
+  String get diveLog_annotation_time_invalid;
+
+  /// Validation message when the annotation time is later than the dive's runtime
+  ///
+  /// In en, this message translates to:
+  /// **'Must be within the dive'**
+  String get diveLog_annotation_time_outsideDive;
+
+  /// Hint above the small dive profile on the annotation sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Or tap the profile to place it'**
+  String get diveLog_annotation_pickOnProfile;
+
+  /// Shown on the annotation sheet in place of the small profile when the dive has no profile samples
+  ///
+  /// In en, this message translates to:
+  /// **'This dive has no profile to point at. Type the time instead.'**
+  String get diveLog_annotation_noProfile;
+
+  /// Primary button of the annotation sheet when the words were selected in the notes
+  ///
+  /// In en, this message translates to:
+  /// **'Annotate'**
+  String get diveLog_annotation_action_annotate;
+
+  /// Primary button of the annotation sheet when it also asked for the words
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get diveLog_annotation_action_add;
+
+  /// Tooltip of the pin button on the dive profile card that starts placing an annotation
+  ///
+  /// In en, this message translates to:
+  /// **'Add annotation'**
+  String get diveLog_annotation_add;
+
+  /// Banner above the dive profile while a new annotation is being placed
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the profile where it happened. Press and hold to fine-tune.'**
+  String get diveLog_annotation_banner_place;
+
+  /// Banner above the dive profile while an existing annotation is being moved
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the new spot for this annotation.'**
+  String get diveLog_annotation_banner_move;
+
+  /// Button on the placement banner that leaves placement mode with nothing added
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get diveLog_annotation_banner_cancel;
+
+  /// Time and depth line of the annotation popup, e.g. 21:30 at 19.6m
+  ///
+  /// In en, this message translates to:
+  /// **'{time} at {depth}'**
+  String diveLog_annotation_popup_meta(String time, String depth);
+
+  /// Annotation popup action that scrolls to the Notes card and highlights the passage
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Notes'**
+  String get diveLog_annotation_popup_openInNotes;
+
+  /// Annotation popup action that re-enters placement mode for this annotation
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get diveLog_annotation_popup_move;
+
+  /// Annotation popup action that deletes the annotation and keeps its words as plain text
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get diveLog_annotation_popup_remove;
+
+  /// Right-click menu item on the dive profile that opens the annotation sheet for that time
+  ///
+  /// In en, this message translates to:
+  /// **'Annotate at {time}'**
+  String diveLog_annotation_contextMenu_annotateAt(String time);
+
+  /// Snack bar shown after an annotation was removed from the profile
+  ///
+  /// In en, this message translates to:
+  /// **'Annotation removed'**
+  String get diveLog_annotation_removed;
+
   /// No description provided for @diveLog_edit_section_rating.
   ///
   /// In en, this message translates to:
@@ -14199,6 +14331,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Events'**
   String get diveLog_legend_label_events;
+
+  /// No description provided for @diveLog_legend_label_annotations.
+  ///
+  /// In en, this message translates to:
+  /// **'Annotations'**
+  String get diveLog_legend_label_annotations;
 
   /// No description provided for @diveLog_legend_label_computedEvents.
   ///
@@ -22083,6 +22221,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Note'**
   String get enum_profileEvent_note;
+
+  /// No description provided for @enum_profileEvent_annotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Annotation'**
+  String get enum_profileEvent_annotation;
 
   /// No description provided for @enum_profileEvent_ppO2High.
   ///
@@ -42567,6 +42711,12 @@ abstract class AppLocalizations {
   /// **'Equipment location'**
   String get settings_conflict_ref_equipmentLocation;
 
+  /// No description provided for @settings_conflict_ref_gearCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-in'**
+  String get settings_conflict_ref_gearCheckIn;
+
   /// No description provided for @settings_conflict_ref_equipmentSet.
   ///
   /// In en, this message translates to:
@@ -43422,7 +43572,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_dataTools_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Fix dive times, link buddies, retype gear, data quality'**
+  /// **'Fix dive times, link buddies, retype gear, data quality, table editor'**
   String get settings_data_dataTools_subtitle;
 
   /// No description provided for @settings_agentAccess_title.
@@ -53374,6 +53524,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View All'**
   String get trips_photos_viewAll;
+
+  /// No description provided for @trips_dateStretch_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive saved, but the trip\'s dates couldn\'t be updated'**
+  String get trips_dateStretch_failed;
+
+  /// No description provided for @trips_dateStretch_message.
+  ///
+  /// In en, this message translates to:
+  /// **'{trip} now runs {dates}'**
+  String trips_dateStretch_message(String trip, String dates);
 
   /// No description provided for @trips_picker_alreadyPacked.
   ///
@@ -64239,6 +64401,12 @@ abstract class AppLocalizations {
   /// **'Linked to a dive'**
   String get incidents_linkedDive;
 
+  /// No description provided for @incidents_linkedCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to a check-in'**
+  String get incidents_linkedCheckIn;
+
   /// No description provided for @incidents_delete_confirm.
   ///
   /// In en, this message translates to:
@@ -64364,6 +64532,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All gear'**
   String get incidentEdit_equipment_allGear;
+
+  /// No description provided for @incidentEdit_checkIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-in'**
+  String get incidentEdit_checkIn;
+
+  /// No description provided for @incidentEdit_checkIn_others.
+  ///
+  /// In en, this message translates to:
+  /// **'Other check-ins'**
+  String get incidentEdit_checkIn_others;
 
   /// No description provided for @incidentCategory_buoyancy.
   ///
@@ -65484,6 +65664,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add check-in'**
   String get equipmentObservation_card_add;
+
+  /// No description provided for @equipmentObservation_card_nearMissLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Near-miss linked} other{{count} near-misses linked}}'**
+  String equipmentObservation_card_nearMissLinked(int count);
 
   /// No description provided for @equipmentObservation_card_onDive.
   ///
@@ -67648,6 +67834,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Humid'**
   String get enum_diveField_humidity_short;
+
+  /// No description provided for @tableEditor_skip_ambiguousRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{key} names more than one row'**
+  String tableEditor_skip_ambiguousRow(String key);
+
+  /// No description provided for @tableEditor_skip_readOnlyCell.
+  ///
+  /// In en, this message translates to:
+  /// **'{key}: that cell is read-only'**
+  String tableEditor_skip_readOnlyCell(String key);
+
+  /// No description provided for @tableEditor_discardDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard change'**
+  String get tableEditor_discardDraft;
+
+  /// No description provided for @tableEditor_changeLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Change log'**
+  String get tableEditor_changeLog;
+
+  /// No description provided for @settings_tableEditor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get settings_tableEditor_title;
+
+  /// No description provided for @settings_tableEditor_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit many dives, sites or centers in a spreadsheet'**
+  String get settings_tableEditor_subtitle;
+
+  /// No description provided for @tableEditor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get tableEditor_title;
+
+  /// No description provided for @tableEditor_tab_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get tableEditor_tab_dives;
+
+  /// No description provided for @tableEditor_tab_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get tableEditor_tab_sites;
+
+  /// No description provided for @tableEditor_tab_centers.
+  ///
+  /// In en, this message translates to:
+  /// **'Centers'**
+  String get tableEditor_tab_centers;
+
+  /// No description provided for @tableEditor_needsWiderScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'The table editor needs a wider window. Open it on a tablet or a computer.'**
+  String get tableEditor_needsWiderScreen;
+
+  /// No description provided for @tableEditor_saveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all'**
+  String get tableEditor_saveAll;
+
+  /// No description provided for @tableEditor_paste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get tableEditor_paste;
+
+  /// No description provided for @tableEditor_clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get tableEditor_clearFilters;
+
+  /// No description provided for @tableEditor_draftCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} unsaved} other{{count} unsaved}}'**
+  String tableEditor_draftCount(int count);
+
+  /// No description provided for @tableEditor_summary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes?'**
+  String get tableEditor_summary_title;
+
+  /// No description provided for @tableEditor_summary_changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} cell changes} other{{count} cells change}}'**
+  String tableEditor_summary_changed(int count);
+
+  /// No description provided for @tableEditor_summary_attention.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} needs attention and will not be saved} other{{count} need attention and will not be saved}}'**
+  String tableEditor_summary_attention(int count);
+
+  /// No description provided for @tableEditor_summary_overwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} replaces an existing value} other{{count} replace an existing value}}'**
+  String tableEditor_summary_overwrite(int count);
+
+  /// No description provided for @tableEditor_summary_changedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} changed elsewhere since you edited it} other{{count} changed elsewhere since you edited them}}'**
+  String tableEditor_summary_changedElsewhere(int count);
+
+  /// No description provided for @tableEditor_summary_matching_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows matched by dive number'**
+  String get tableEditor_summary_matching_number;
+
+  /// No description provided for @tableEditor_summary_matching_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows matched by name'**
+  String get tableEditor_summary_matching_name;
+
+  /// No description provided for @tableEditor_summary_matching_position.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows placed by position'**
+  String get tableEditor_summary_matching_position;
+
+  /// No description provided for @tableEditor_skip_readOnlyColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'{column} is read-only'**
+  String tableEditor_skip_readOnlyColumn(String column);
+
+  /// No description provided for @tableEditor_skip_unknownRow.
+  ///
+  /// In en, this message translates to:
+  /// **'No row for {key}'**
+  String tableEditor_skip_unknownRow(String key);
+
+  /// No description provided for @tableEditor_skip_hiddenRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{key} is hidden by the filter'**
+  String tableEditor_skip_hiddenRow(String key);
+
+  /// No description provided for @tableEditor_skip_truncated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} row past the end of the sheet} other{{count} rows past the end of the sheet}}'**
+  String tableEditor_skip_truncated(int count);
+
+  /// No description provided for @tableEditor_skip_unknownColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'No column named {header}'**
+  String tableEditor_skip_unknownColumn(String header);
+
+  /// No description provided for @tableEditor_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} change saved} other{{count} changes saved}}'**
+  String tableEditor_saved(int count);
+
+  /// No description provided for @tableEditor_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was saved. Fix the error and try again.'**
+  String get tableEditor_saveFailed;
+
+  /// No description provided for @tableEditor_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get tableEditor_undo;
+
+  /// No description provided for @tableEditor_undoneAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes undone'**
+  String get tableEditor_undoneAll;
+
+  /// No description provided for @tableEditor_undonePartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Undid {reverted} of {total} changes'**
+  String tableEditor_undonePartial(int reverted, int total);
+
+  /// No description provided for @tableEditor_open_saveAndOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all and open'**
+  String get tableEditor_open_saveAndOpen;
+
+  /// No description provided for @tableEditor_open_discardAndOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard and open'**
+  String get tableEditor_open_discardAndOpen;
+
+  /// No description provided for @tableEditor_open_stay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get tableEditor_open_stay;
+
+  /// No description provided for @tableEditor_original.
+  ///
+  /// In en, this message translates to:
+  /// **'Was: {value}'**
+  String tableEditor_original(String value);
+
+  /// No description provided for @tableEditor_flag_unparsable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid value'**
+  String get tableEditor_flag_unparsable;
+
+  /// No description provided for @tableEditor_flag_unknownValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the list'**
+  String get tableEditor_flag_unknownValue;
+
+  /// No description provided for @tableEditor_flag_pairIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs both latitude and longitude'**
+  String get tableEditor_flag_pairIncomplete;
+
+  /// No description provided for @tableEditor_flag_scrubberNeedsType.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a scrubber type'**
+  String get tableEditor_flag_scrubberNeedsType;
+
+  /// No description provided for @tableEditor_flag_changedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed elsewhere since you edited it'**
+  String get tableEditor_flag_changedElsewhere;
+
+  /// No description provided for @tableEditor_multiChoice_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tableEditor_multiChoice_done;
+
+  /// No description provided for @tableEditor_libraryReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Library site: only notes and rating can be edited here'**
+  String get tableEditor_libraryReadOnly;
+
+  /// No description provided for @tableEditor_summary_pairClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clearing one coordinate clears both'**
+  String get tableEditor_summary_pairClear;
+
+  /// No description provided for @tableEditor_weightRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}'**
+  String tableEditor_weightRows(int count);
+
+  /// No description provided for @tableEditor_summary_siteSnap.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting a site also sets its water type, entry, exit and dive types on the dive'**
+  String get tableEditor_summary_siteSnap;
+
+  /// No description provided for @enum_diveField_excludedFromStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from Stats'**
+  String get enum_diveField_excludedFromStats;
+
+  /// No description provided for @enum_diveField_excludedFromStats_short.
+  ///
+  /// In en, this message translates to:
+  /// **'No Stats'**
+  String get enum_diveField_excludedFromStats_short;
+
+  /// No description provided for @enum_diveField_excludedFromGasStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from Gas Stats'**
+  String get enum_diveField_excludedFromGasStats;
+
+  /// No description provided for @enum_diveField_excludedFromGasStats_short.
+  ///
+  /// In en, this message translates to:
+  /// **'No Gas Stats'**
+  String get enum_diveField_excludedFromGasStats_short;
+
+  /// No description provided for @enum_diveField_windDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Direction'**
+  String get enum_diveField_windDirection;
+
+  /// No description provided for @enum_diveField_windDirection_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Dir'**
+  String get enum_diveField_windDirection_short;
+
+  /// No description provided for @enum_diveField_scrubberType.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Type'**
+  String get enum_diveField_scrubberType;
+
+  /// No description provided for @enum_diveField_scrubberType_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber'**
+  String get enum_diveField_scrubberType_short;
+
+  /// No description provided for @enum_diveField_scrubberDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Duration'**
+  String get enum_diveField_scrubberDuration;
+
+  /// No description provided for @enum_diveField_scrubberDuration_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber Min'**
+  String get enum_diveField_scrubberDuration_short;
 
   /// No description provided for @enum_diveField_weatherDescription_short.
   ///
@@ -80223,6 +80751,12 @@ abstract class AppLocalizations {
   /// **'Copy'**
   String get common_action_copy;
 
+  /// No description provided for @common_snackbar_copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get common_snackbar_copiedToClipboard;
+
   /// Title of the dialog for picking a two-colour card gradient.
   ///
   /// In en, this message translates to:
@@ -87294,11 +87828,11 @@ abstract class AppLocalizations {
   /// **'Duration: {hours}h {minutes}min'**
   String navTrack_detail_duration(int hours, int minutes);
 
-  /// No description provided for @navTrack_detail_battery.
+  /// The recording console's battery over the track: first reading, last reading, and the signed change between them.
   ///
   /// In en, this message translates to:
-  /// **'Battery: {start} V -> {end} V'**
-  String navTrack_detail_battery(String start, String end);
+  /// **'Battery: {start} V → {end} V ({change} V)'**
+  String navTrack_detail_battery(String start, String end, String change);
 
   /// No description provided for @navTrack_detail_noDiveLinked.
   ///
@@ -93282,6 +93816,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Library restored from a backup'**
   String get changeLog_label_libraryRestored;
+
+  /// No description provided for @changeLog_label_tableEditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get changeLog_label_tableEditor;
 
   /// No description provided for @changeLog_label_reparse.
   ///

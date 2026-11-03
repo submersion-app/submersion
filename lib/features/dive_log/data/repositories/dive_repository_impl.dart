@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
@@ -109,6 +110,7 @@ import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
@@ -5766,6 +5768,73 @@ class DiveRepository {
     return byDive;
   }
 
+  /// Weights for [diveIds] grouped by dive, for a sheet that shows many
+  /// dives at once (issue #3422). A dive with no weights has no entry.
+  Future<Map<String, List<domain.DiveWeight>>> getWeightsForDives(
+    List<String> diveIds, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async => {
+    for (final chunk in seriesIdChunks(diveIds, size: chunkSize))
+      ...await _weightsForDives(chunk),
+  };
+
+  /// The type of the weight row on [diverId]'s most recent dive that has one,
+  /// or null when they have none (issue #3422). Asks the log rather than a
+  /// sheet, since a sheet filtered to weightless dives holds no answer.
+  Future<WeightType?> latestWeightType(String? diverId) async {
+    final query =
+        _db.select(_db.diveWeights).join([
+            innerJoin(
+              _db.dives,
+              _db.dives.id.equalsExp(_db.diveWeights.diveId),
+            ),
+          ])
+          ..orderBy([OrderingTerm.desc(_db.dives.diveDateTime)])
+          ..limit(1);
+    if (diverId != null) query.where(_db.dives.diverId.equals(diverId));
+    final row = await query.getSingleOrNull();
+    return row == null
+        ? null
+        : _mapWeightRow(row.readTable(_db.diveWeights)).weightType;
+  }
+
+  /// Sets the amount of a dive's single weight row in place, keeping its id
+  /// (issue #3422). No rows: inserts one of [newRowType]. One row: updates
+  /// it, or deletes it (tombstoned) when [amountKg] is null. Two or more
+  /// rows: throws [StateError], since the cell cannot say which row it
+  /// means. No transaction, no notify: the caller owns those.
+  Future<void> setSingleWeightAmount(
+    String diveId,
+    double? amountKg, {
+    required WeightType newRowType,
+  }) async {
+    final existing = await _loadWeightsForDive(diveId);
+    if (existing.length > 1) {
+      throw StateError(
+        'Dive $diveId has ${existing.length} weight rows; '
+        'a single amount cannot choose one',
+      );
+    }
+    final List<domain.DiveWeight> desired;
+    if (amountKg == null) {
+      desired = const [];
+    } else if (existing.isEmpty) {
+      desired = [
+        domain.DiveWeight(
+          id: '',
+          diveId: diveId,
+          weightType: newRowType,
+          amountKg: amountKg,
+        ),
+      ];
+    } else {
+      desired = [existing.single.copyWith(amountKg: amountKg)];
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _writeWeightDiff(diveId, desired, now);
+    await _bumpDives([diveId], now);
+  }
+
   domain.DiveWeight _mapWeightRow(DiveWeight row) => domain.DiveWeight(
     id: row.id,
     diveId: row.diveId,
@@ -6065,7 +6134,15 @@ class DiveRepository {
   // Profile Event Operations
   // ============================================================================
 
-  /// Bulk insert profile events (for dive computer imports and analysis results)
+  /// Which of [ids] already name a profile event row, on any dive. A backup
+  /// restore carries each event's own id (#4109), and gives its new dive a
+  /// fresh one in place of any of these.
+  Future<Set<String>> existingProfileEventIds(Iterable<String> ids) =>
+      takenProfileEventIds(_db, ids);
+
+  /// Bulk insert profile events (for dive computer imports and analysis
+  /// results). Duplicate ids throw, so a write that must be all or nothing
+  /// fails loudly.
   Future<void> insertProfileEvents(List<ProfileEvent> events) async {
     if (events.isEmpty) return;
 
@@ -6075,11 +6152,8 @@ class DiveRepository {
       for (final event in events) {
         final id = event.id.isEmpty ? _uuid.v4() : event.id;
         diveIds.add(event.diveId);
-        // Drift's default conflict mode is `insertOrFail` — duplicate IDs
-        // throw. Callers are expected to pass unique IDs (either freshly
-        // generated via _uuid.v4() or from domain entities that assigned them);
-        // the `event.id.isEmpty ? _uuid.v4()` guard above covers the most
-        // common case where the caller hasn't assigned an ID yet.
+        // Drift's default conflict mode is `insertOrFail`: callers pass unique
+        // ids (fresh, or a domain entity's own).
         await _db
             .into(_db.diveProfileEvents)
             .insert(
@@ -8526,6 +8600,14 @@ class DiveRepository {
             _syncRepository,
             diveId,
             tripId: tripId,
+            now: now,
+          );
+        }
+        if (tripId != null) {
+          await stretchTripsToCoverDives(
+            _db,
+            _syncRepository,
+            diveIds,
             now: now,
           );
         }

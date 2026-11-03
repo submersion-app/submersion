@@ -20,6 +20,14 @@ final observationsForEquipmentProvider =
       return repo.getForEquipment(equipmentId);
     });
 
+/// One check-in by id, or null when it no longer exists.
+final observationProvider = FutureProvider.autoDispose
+    .family<EquipmentObservation?, String>((ref, id) async {
+      final repo = ref.watch(equipmentObservationRepositoryProvider);
+      ref.invalidateSelfWhen(repo.watchChanges());
+      return repo.getById(id);
+    });
+
 /// Every check-in on one dive, across items; the dive detail rows derive
 /// their chip from it with one read per dive rather than one per row.
 final observationsForDiveProvider =

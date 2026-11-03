@@ -78,6 +78,32 @@ void main() {
       );
     });
 
+    test('a re-download keeps a user annotation and re-stamps it newer than '
+        'the scope', () async {
+      final repo = DiveComputerRepository();
+      final diveId = await download(repo);
+      await db.customStatement(
+        'INSERT INTO dive_profile_events '
+        '(id, dive_id, timestamp, event_type, source, created_at) '
+        "VALUES ('ann-1', ?, 45, 'annotation', 'user', 1)",
+        [diveId],
+      );
+
+      await repo.clearSourceAndProfiles(diveId: diveId, computerId: 'comp-1');
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(events.map((e) => e.id), ['ann-1']);
+      final scope = (await db.select(db.deletionLog).get()).singleWhere(
+        (t) => t.entityType == EventScopeTombstone.entityType,
+      );
+      expect(
+        Hlc.parse(events.single.hlc!).compareTo(Hlc.parse(scope.originHlc!)),
+        greaterThan(0),
+      );
+    });
+
     test('downloaded events carry a clock', () async {
       final diveId = await download(DiveComputerRepository());
 

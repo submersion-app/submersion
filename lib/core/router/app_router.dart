@@ -161,6 +161,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
+import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
 import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
@@ -1401,6 +1402,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'incidentNew',
                 builder: (context, state) => IncidentEditPage(
                   diveId: state.uri.queryParameters['diveId'],
+                  observationId: state.uri.queryParameters['observationId'],
                 ),
               ),
               GoRoute(
@@ -1511,6 +1513,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'data-quality',
                 name: 'dataQualitySettings',
                 builder: (context, state) => const DataQualitySettingsPage(),
+              ),
+              GoRoute(
+                path: 'table-editor',
+                name: 'tableEditor',
+                onExit: confirmLeaveTableEditor,
+                builder: (context, state) => const TableEditorPage(),
               ),
               GoRoute(
                 path: 'appearance',

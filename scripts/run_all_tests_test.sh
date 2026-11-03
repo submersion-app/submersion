@@ -194,7 +194,7 @@ rm -rf "$root/test/.bundles"
 # --- Test 3: options, coverage and concurrency --------------------------------
 
 run_script "$tmp" TEST_CONCURRENCY=3 -- --coverage --reporter compact
-assert_contains has "$flutter_args" '--concurrency=3 --coverage --reporter compact test/.bundles/' \
+assert_contains has "$flutter_args" '--concurrency=3 --timeout=5m --coverage --reporter compact test/.bundles/' \
     'honours TEST_CONCURRENCY and passes options before the paths'
 if [ "$flutter_calls" -eq 1 ]; then
     pass 'a --coverage run is one call, so one report covers every bundle'
@@ -365,6 +365,198 @@ if [ "$run_status" -eq 0 ] && [ "$flutter_calls" -eq 1 ]; then
 else
     fail 'falls back to separate test files' "exit $run_status; flutter test args: '$flutter_args'"
 fi
+
+# --- Test 10: TEST_FILES_FROM runs only the listed files, bundled -----------
+#
+# The pre-push hook hands its scoped selection to this script so that the
+# selection runs bundled, with the same command-line-limit handling, failure
+# report and cleanup as the whole suite (issue #4117). The list has one test
+# path per line; blank lines and CRLF endings are tolerated.
+
+rm -f "$tmp/bin/python3"   # test 9 left its unusable stub on PATH
+printf 'test/a_test.dart\r\n\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -eq 0 ] && [ "$flutter_calls" -eq 1 ]; then
+    assert_contains has "$flutter_args" 'test/.bundles/' \
+        'TEST_FILES_FROM runs the listed files as bundles in one call'
+else
+    fail 'TEST_FILES_FROM runs the listed files as bundles in one call' \
+        "exit $run_status, $flutter_calls calls: $flutter_args"
+fi
+assert_contains has "$run_output" '1 selected test file' \
+    'announces how many files were selected'
+if [ ! -e "$root/test/.bundles" ]; then
+    pass 'the selection bundles are removed afterwards'
+else
+    fail 'the selection bundles are removed afterwards' "left behind: $(ls -R "$root/test/.bundles" 2>&1)"
+fi
+
+printf 'test/nope_test.dart\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -ne 0 ] && [ "$flutter_calls" -eq 0 ]; then
+    assert_contains has "$run_output" 'test/nope_test.dart' \
+        'a list naming a missing test file is refused before anything runs'
+else
+    fail 'a list naming a missing test file is refused before anything runs' \
+        "exit $run_status, $flutter_calls calls: $run_output"
+fi
+
+cat > "$tmp/bin/python3" <<'STUB'
+#!/bin/bash
+echo 'python3: not usable here' >&2
+exit 127
+STUB
+chmod +x "$tmp/bin/python3"
+printf 'test/a_test.dart\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -eq 0 ] && [ "$flutter_calls" -eq 1 ]; then
+    case "$flutter_args" in
+        *bundle_*) fail 'without python3 the listed files run unbundled' "$flutter_args" ;;
+        *'test/a_test.dart'*) assert_contains lacks "$flutter_args" 'test/b_test.dart' \
+            'without python3 the listed files run unbundled' ;;
+        *) fail 'without python3 the listed files run unbundled' "$flutter_args" ;;
+    esac
+else
+    fail 'without python3 the listed files run unbundled' \
+        "exit $run_status, $flutter_calls calls: $flutter_args"
+fi
+rm "$tmp/bin/python3"
+
+# --- Test 11: a selection's bundles are sized to the workers ------------------
+#
+# A bundle runs its files one after another, so 86 files in 4 bundles of 40 took
+# about 180s at -j 16, three times as long as separate files, with 12 workers
+# idle. Sized to the workers (86 / 16, so 6 files each) they took the same as
+# separate files, and 522 files took a third of the time (issue #4117).
+
+cat > "$tmp/bin/python3" <<STUB
+#!/bin/bash
+printf '%s\n' "\$*" >> "$tmp/python_args"
+exec "$REAL_PYTHON" "\$@"
+STUB
+chmod +x "$tmp/bin/python3"
+
+mkdir -p "$root/test/many"
+: > "$tmp/many.txt"
+for i in $(seq 1 41); do
+    printf "import 'package:flutter_test/flutter_test.dart';\n\nvoid main() {\n  test('m', () {});\n}\n" \
+        > "$root/test/many/m${i}_test.dart"
+    printf 'test/many/m%s_test.dart\n' "$i" >> "$tmp/many.txt"
+done
+
+: > "$tmp/python_args"
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" TEST_CONCURRENCY=8
+assert_contains has "$(cat "$tmp/python_args")" '--max-files 6 ' \
+    'sizes bundles to files over concurrency, rounded up'
+
+: > "$tmp/python_args"
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" TEST_CONCURRENCY=1
+assert_contains has "$(cat "$tmp/python_args")" '--max-files 40 ' \
+    'never makes a bundle larger than the 40 files used for the suite'
+
+: > "$tmp/python_args"
+run_script "$tmp" TEST_CONCURRENCY=8
+assert_contains has "$(cat "$tmp/python_args")" '--max-files 40 ' \
+    'the whole suite keeps bundles of 40'
+
+rm -rf "$root/test/many" "$tmp/bin/python3"
+
+# --- Test 12: a list may name only files under test/ -----------------------
+#
+# The bundler refuses anything else, and its error goes nowhere, so without
+# this check the file reached flutter test with a message blaming python3.
+
+printf 'scripts/run_all_tests.sh\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -eq 2 ] && [ "$flutter_calls" -eq 0 ]; then
+    assert_contains has "$run_output" 'scripts/run_all_tests.sh' \
+        'a list naming a file outside test/ is refused before anything runs'
+else
+    fail 'a list naming a file outside test/ is refused before anything runs' \
+        "exit $run_status, $flutter_calls calls: $run_output"
+fi
+
+printf 'test/../scripts/run_all_tests.sh\n' > "$tmp/selection.txt"
+run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
+if [ "$run_status" -eq 2 ] && [ "$flutter_calls" -eq 0 ]; then
+    pass 'a list path climbing out of test/ is refused before anything runs'
+else
+    fail 'a list path climbing out of test/ is refused before anything runs' \
+        "exit $run_status, $flutter_calls calls: $run_output"
+fi
+
+# --- Test 13: an unbundled selection fits the command line -------------------
+#
+# Without python3 the selection falls back to the files themselves, and a list
+# too long for the Windows command line fails before any test runs. A fixed 100
+# files does not settle it: the mean path in this repository is 68 characters,
+# so that is about 7,000 of the 8,000 allowed, and paths run to 107. The files go
+# in as many calls as the limit needs.
+
+cat > "$tmp/bin/python3" <<'STUB'
+#!/bin/bash
+echo 'python3: not usable here' >&2
+exit 127
+STUB
+chmod +x "$tmp/bin/python3"
+mkdir -p "$root/test/many"
+: > "$tmp/many.txt"
+for i in $(seq 1 250); do
+    printf 'void main() {}\n' > "$root/test/many/m${i}_test.dart"
+    printf 'test/many/m%s_test.dart\n' "$i" >> "$tmp/many.txt"
+done
+
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" RUN_ALL_TESTS_ARG_LIMIT=1000
+paths_run="$(printf '%s\n' "$flutter_args" | awk '
+    {
+        length_here = 0
+        for (i = 1; i <= NF; i++) {
+            if ($i ~ /^test\/many\//) { total++; length_here += length($i) + 1 }
+        }
+        if (length_here > longest) longest = length_here
+    }
+    END { print total, longest }')"
+limited_calls="$flutter_calls"
+if [ "$run_status" -eq 0 ] && [ "$limited_calls" -gt 1 ] \
+    && [ "${paths_run% *}" -eq 250 ] && [ "${paths_run#* }" -le 1000 ]; then
+    pass 'an unbundled selection runs in calls that fit the command line'
+else
+    fail 'an unbundled selection runs in calls that fit the command line' \
+        "exit $run_status, $limited_calls calls, files and longest: $paths_run"
+fi
+
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" RUN_ALL_TESTS_ARG_LIMIT=1000 FLUTTER_TEST_FAIL=test
+if [ "$run_status" -ne 0 ] && [ "$flutter_calls" -eq "$limited_calls" ]; then
+    pass 'a failing call does not stop the later ones'
+else
+    fail 'a failing call does not stop the later ones' \
+        "exit $run_status, $flutter_calls calls of $limited_calls"
+fi
+
+run_script "$tmp" TEST_FILES_FROM="$tmp/many.txt" RUN_ALL_TESTS_ARG_LIMIT=0
+if [ "$run_status" -eq 0 ] && [ "$flutter_calls" -eq 1 ]; then
+    pass 'with no command-line limit the selection is one call'
+else
+    fail 'with no command-line limit the selection is one call' \
+        "exit $run_status, $flutter_calls calls"
+fi
+rm -rf "$root/test/many" "$tmp/bin/python3"
+
+# --- Test 14: every run gets the longer test limit --------------------------
+#
+# Issue #4117: at load 35-55 a migration test reached the 2m limit in a bundle,
+# twice, and never as separate files, which blocked a push over nothing. The
+# script owns the bundling, so it owns the limit, for the suite as well.
+
+run_script "$tmp"
+assert_contains has "$flutter_args" '--timeout=5m' \
+    'the whole suite gets the longer test limit'
+
+run_script "$tmp" -- --timeout=1m
+case "$flutter_args" in
+    *'--timeout=5m '*'--timeout=1m'*) pass 'a timeout option from the caller wins' ;;
+    *) fail 'a timeout option from the caller wins' "$flutter_args" ;;
+esac
 
 rm -rf "$tmp"
 

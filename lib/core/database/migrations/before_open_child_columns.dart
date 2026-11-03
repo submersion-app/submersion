@@ -52,5 +52,8 @@ extension BeforeOpenChildColumns on AppDatabase {
 
     // v334: equipment_locations.buddy_id (issue #3790), for the same reason.
     await _assertEquipmentLocationBuddyColumn();
+
+    // v338: incidents.observation_id (issue #3062), for the same reason.
+    await _assertIncidentObservationColumn();
   }
 }

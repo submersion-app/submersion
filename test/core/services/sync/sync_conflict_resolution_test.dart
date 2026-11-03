@@ -12,6 +12,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
@@ -456,6 +457,152 @@ void main() {
             )
             .get();
         expect(copies.map((r) => r.read<String?>('diver_id')), ['buddy']);
+      });
+    });
+
+    group('a near-miss naming a check-in', () {
+      Map<String, dynamic> incident({
+        String? observationId,
+        String narrative = 'local',
+      }) => {
+        'id': 'i1',
+        'equipmentId': 'reg',
+        'observationId': observationId,
+        'occurredAt': 1000,
+        'category': 'equipment',
+        'severity': 'minor',
+        'narrative': narrative,
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      };
+
+      Map<String, dynamic> checkIn({String status = 'issue'}) => {
+        'id': 'o1',
+        'equipmentId': 'reg',
+        'observedAt': 1000,
+        'status': status,
+        'issueTags': '[]',
+        'note': '',
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      };
+
+      setUp(() async {
+        await SyncDataSerializer().upsertRecord('equipment', {
+          'id': 'reg',
+          'name': 'reg',
+          'type': 'regulator',
+          'status': 'active',
+          'purchaseCurrency': 'USD',
+          'notes': '',
+          'isActive': true,
+          'createdAt': 1000,
+          'updatedAt': 1000,
+        });
+      });
+
+      test('keepRemote takes the peer\'s edit of a near-miss whose check-in '
+          'this device deleted, without the dead link', () async {
+        // Deleting a check-in stages its near-miss, so a peer's edit of that
+        // report conflicts here while still naming the deleted check-in.
+        await SyncDataSerializer().upsertRecord('incidents', incident());
+        await raiseConflict(
+          'incidents',
+          'i1',
+          incident(observationId: 'gone', narrative: 'peer'),
+        );
+
+        await buildService().resolveConflict(
+          'incidents',
+          'i1',
+          ConflictResolution.keepRemote,
+        );
+
+        final back = await SyncDataSerializer().fetchRecord('incidents', 'i1');
+        expect(back!['narrative'], 'peer');
+        expect(back['observationId'], isNull);
+        expect(await buildService().getConflicts(), isEmpty);
+      });
+
+      test('keepBoth copies that near-miss without the dead link', () async {
+        await SyncDataSerializer().upsertRecord('incidents', incident());
+        await raiseConflict(
+          'incidents',
+          'i1',
+          incident(observationId: 'gone', narrative: 'peer'),
+        );
+
+        await buildService().resolveConflict(
+          'incidents',
+          'i1',
+          ConflictResolution.keepBoth,
+        );
+
+        final rows = await DatabaseService.instance.database
+            .customSelect(
+              "SELECT observation_id FROM incidents WHERE id != 'i1'",
+            )
+            .get();
+        expect(rows.map((r) => r.read<String?>('observation_id')), [null]);
+        expect(await buildService().getConflicts(), isEmpty);
+      });
+
+      test('keepRemote of a check-in that became OK reads as no link at once, '
+          'and the report stays as its peers hold it', () async {
+        final serializer = SyncDataSerializer();
+        await serializer.upsertRecord('equipmentObservations', checkIn());
+        await serializer.upsertRecord(
+          'incidents',
+          incident(observationId: 'o1'),
+        );
+        await raiseConflict(
+          'equipmentObservations',
+          'o1',
+          checkIn(status: 'ok'),
+        );
+
+        await buildService().resolveConflict(
+          'equipmentObservations',
+          'o1',
+          ConflictResolution.keepRemote,
+        );
+
+        final back = await serializer.fetchRecord('incidents', 'i1');
+        expect(back!['observationId'], 'o1');
+        final read = await IncidentRepository().getIncidentById('i1');
+        expect(read!.observationId, isNull);
+      });
+
+      test('keeping a peer\'s row checks only that row\'s table: a diver '
+          'resolving a list must not scan the database once per row', () async {
+        final db = DatabaseService.instance.database;
+        final serializer = SyncDataSerializer();
+        await serializer.upsertRecord('equipmentObservations', checkIn());
+        await serializer.upsertRecord('incidents', incident());
+        // A dangling row in another table: the full repair would clear it, and
+        // a row this write did not touch cannot fail this write's COMMIT.
+        await db.customStatement('PRAGMA foreign_keys = OFF');
+        await db.customStatement(
+          "UPDATE incidents SET observation_id = 'gone' WHERE id = 'i1'",
+        );
+        await db.customStatement('PRAGMA foreign_keys = ON');
+        await raiseConflict(
+          'equipmentObservations',
+          'o1',
+          checkIn(status: 'issue'),
+        );
+
+        await buildService().resolveConflict(
+          'equipmentObservations',
+          'o1',
+          ConflictResolution.keepRemote,
+        );
+
+        expect(
+          (await serializer.fetchRecord('incidents', 'i1'))!['observationId'],
+          'gone',
+        );
+        expect(await buildService().getConflicts(), isEmpty);
       });
     });
 

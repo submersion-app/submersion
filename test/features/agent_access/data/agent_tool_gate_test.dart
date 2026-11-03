@@ -74,6 +74,9 @@ void main() {
         'unknown_diver',
         'not_found',
         'too_many_ids',
+        'sql_refused',
+        'sql_error',
+        'sql_busy',
         'internal',
       ]);
     });

@@ -88,4 +88,36 @@ void main() {
     final rows = await db.select(db.diveDataSources).get();
     expect(rows.map((r) => r.computerModel), ['Suunto D5']);
   });
+
+  test('a second computer takes no annotation from the file', () async {
+    // Nothing links a copy here, so it could only ever be a hidden row.
+    await AdditionalComputerWriter(diveRepository: DiveRepository()).write(
+      computers: [
+        {
+          ...computer('Suunto D5'),
+          'events': [
+            {
+              'eventType': 'annotation',
+              'id': 'a1',
+              'source': 'user',
+              'timestamp': 60,
+              'description': 'felt sick',
+            },
+            {'eventType': 'bookmark', 'timestamp': 90},
+          ],
+        },
+      ],
+      diveId: 'dive-1',
+      entryTime: null,
+      tankIds: const [],
+      usedComputerIds: const [],
+      computerIdFor: (_) => null,
+      sourceFileName: 'log.uddf',
+      sourceFileFormat: 'uddf',
+      now: DateTime.utc(2025, 3, 10),
+    );
+
+    final rows = await db.select(db.diveProfileEvents).get();
+    expect(rows.map((r) => r.eventType), ['bookmark']);
+  });
 }

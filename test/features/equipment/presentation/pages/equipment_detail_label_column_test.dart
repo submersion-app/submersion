@@ -19,6 +19,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 import '../../../../helpers/detail_row_finders.dart';
+import '../../../../support/clipboard_recorder.dart';
 
 /// The Details card's values sit beside their labels on one shared column
 /// instead of at the card's far edge (issue #3678).
@@ -113,6 +114,27 @@ void main() {
     }
     // Beside the labels, not out at the far edge of a 1400 px window.
     expect(column, lessThan(700));
+  });
+
+  testWidgets('only the serial number offers to be copied (issue #3362)', (
+    tester,
+  ) async {
+    final calls = recordClipboardCalls();
+    await pumpWide(tester);
+
+    expect(find.byTooltip('Copy'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: detailRowFor('Serial Number'),
+        matching: find.byTooltip('Copy'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.longPress(find.text('AX-55120'));
+    await tester.pump();
+
+    expect(copiedText(calls), 'AX-55120');
   });
 
   testWidgets('Dive Time sits between Dives and Trips, on the shared column', (

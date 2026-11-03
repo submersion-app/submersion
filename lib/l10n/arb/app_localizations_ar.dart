@@ -5595,6 +5595,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesEditor_action_numberedList => 'قائمة مرقمة';
 
   @override
+  String get notesEditor_action_annotate => 'تعليق';
+
+  @override
   String get notesEditor_action_preview => 'معاينة';
 
   @override
@@ -7111,9 +7114,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم العثور على الإحداثيات من العنوان';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard => 'تم النسخ إلى الحافظة';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'تم استيراد \"$name\"';
   }
@@ -8503,6 +8503,82 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_section_notes => 'الملاحظات';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'تعليق جديد';
+
+  @override
+  String get diveLog_annotation_sheetTitle_editTime => 'تغيير الوقت';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return 'التعليق على «$words»';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'ماذا حدث';
+
+  @override
+  String get diveLog_annotation_words_required => 'اذكر ما حدث';
+
+  @override
+  String get diveLog_annotation_field_time => 'الوقت منذ البداية';
+
+  @override
+  String get diveLog_annotation_time_invalid => 'أدخل الدقائق:الثواني';
+
+  @override
+  String get diveLog_annotation_time_outsideDive => 'يجب أن يكون ضمن الغوصة';
+
+  @override
+  String get diveLog_annotation_pickOnProfile =>
+      'أو انقر على ملف الغوصة لتحديد الموضع';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'لا يوجد ملف غوصة للإشارة إليه في هذه الغوصة. أدخل الوقت بدلًا من ذلك.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'تعليق';
+
+  @override
+  String get diveLog_annotation_action_add => 'إضافة';
+
+  @override
+  String get diveLog_annotation_add => 'إضافة تعليق';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'انقر على ملف الغوصة حيث حدث الأمر. اضغط مطولًا للضبط الدقيق.';
+
+  @override
+  String get diveLog_annotation_banner_move =>
+      'انقر على الموضع الجديد لهذا التعليق.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'إلغاء';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time عند $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'فتح في الملاحظات';
+
+  @override
+  String get diveLog_annotation_popup_move => 'نقل';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'إزالة';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'تعليق عند $time';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'تمت إزالة التعليق';
+
+  @override
   String get diveLog_edit_section_rating => 'التقييم';
 
   @override
@@ -9089,6 +9165,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'الأحداث';
+
+  @override
+  String get diveLog_legend_label_annotations => 'التعليقات';
 
   @override
   String get diveLog_legend_label_computedEvents => 'الأحداث المحسوبة';
@@ -13905,6 +13984,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => 'ملاحظة';
+
+  @override
+  String get enum_profileEvent_annotation => 'تعليق';
 
   @override
   String get enum_profileEvent_ppO2High => 'ppO2 مرتفع';
@@ -26824,6 +26906,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => 'موقع المعدات';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'فحص المعدات';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'طقم المعدات';
 
   @override
@@ -27326,7 +27411,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'تصحيح أوقات الغوص، ربط الرفقاء، إعادة تصنيف المعدات، جودة البيانات';
+      'تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول';
 
   @override
   String get settings_agentAccess_title => 'وصول الوكلاء';
@@ -33995,6 +34080,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'عرض الكل';
+
+  @override
+  String get trips_dateStretch_failed =>
+      'تم حفظ الغوصة، لكن تعذّر تحديث تواريخ الرحلة';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return 'أصبحت مدة $trip $dates';
+  }
 
   @override
   String get trips_picker_alreadyPacked => 'مجهزة بالفعل';
@@ -41128,6 +41222,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incidents_linkedDive => 'مرتبط بغطسة';
 
   @override
+  String get incidents_linkedCheckIn => 'مرتبط بفحص';
+
+  @override
   String get incidents_delete_confirm => 'حذف تقرير الحادث الوشيك هذا؟';
 
   @override
@@ -41192,6 +41289,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'كل المعدات';
+
+  @override
+  String get incidentEdit_checkIn => 'فحص المعدات';
+
+  @override
+  String get incidentEdit_checkIn_others => 'فحوصات أخرى';
 
   @override
   String get incidentCategory_buoyancy => 'الطفو';
@@ -42042,6 +42145,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'إضافة فحص';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حادث وشيك مرتبط',
+      many: '$count حادثًا وشيكًا مرتبطًا',
+      few: '$count حوادث وشيكة مرتبطة',
+      two: 'حادثان وشيكان مرتبطان',
+      one: 'حادث وشيك مرتبط',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {
@@ -43468,6 +43585,290 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_diveField_humidity_short => 'الرطوبة';
+
+  @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key يطابق أكثر من صف';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: تلك الخلية للقراءة فقط';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'تجاهل التغيير';
+
+  @override
+  String get tableEditor_changeLog => 'سجل التغييرات';
+
+  @override
+  String get settings_tableEditor_title => 'محرر الجدول';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'تعديل غطسات ومواقع ومراكز كثيرة في جدول';
+
+  @override
+  String get tableEditor_title => 'محرر الجدول';
+
+  @override
+  String get tableEditor_tab_dives => 'الغطسات';
+
+  @override
+  String get tableEditor_tab_sites => 'المواقع';
+
+  @override
+  String get tableEditor_tab_centers => 'المراكز';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'يحتاج محرر الجدول إلى نافذة أعرض. افتحه على جهاز لوحي أو حاسوب.';
+
+  @override
+  String get tableEditor_saveAll => 'حفظ الكل';
+
+  @override
+  String get tableEditor_paste => 'لصق';
+
+  @override
+  String get tableEditor_clearFilters => 'مسح عوامل التصفية';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غير محفوظ',
+      many: '$count غير محفوظًا',
+      few: '$count غير محفوظة',
+      two: '$count غير محفوظين',
+      one: '$count غير محفوظ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'حفظ التغييرات؟';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count خلية تتغير',
+      many: '$count خلية تتغير',
+      few: '$count خلايا تتغير',
+      two: 'خليتان تتغيران',
+      one: '$count خلية تتغير',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يحتاج إلى مراجعة ولن يُحفظ',
+      many: '$count تحتاج إلى مراجعة ولن تُحفظ',
+      few: '$count تحتاج إلى مراجعة ولن تُحفظ',
+      two: '$count يحتاجان إلى مراجعة ولن يُحفظا',
+      one: '$count يحتاج إلى مراجعة ولن يُحفظ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يستبدل قيمة موجودة',
+      many: '$count تستبدل قيمة موجودة',
+      few: '$count تستبدل قيمة موجودة',
+      two: '$count يستبدلان قيمة موجودة',
+      one: '$count يستبدل قيمة موجودة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تغيّر في مكان آخر بعد تعديلك',
+      many: '$count تغيّرت في مكان آخر بعد تعديلك',
+      few: '$count تغيّرت في مكان آخر بعد تعديلك',
+      two: '$count تغيّرا في مكان آخر بعد تعديلك',
+      one: '$count تغيّر في مكان آخر بعد تعديلك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'تمت مطابقة الصفوف الملصقة برقم الغطسة';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'تمت مطابقة الصفوف الملصقة بالاسم';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'تم وضع الصفوف الملصقة حسب الموضع';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column للقراءة فقط';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'لا يوجد صف لـ $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key مخفي بواسطة عامل التصفية';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف بعد نهاية الجدول',
+      many: '$count صفًا بعد نهاية الجدول',
+      few: '$count صفوف بعد نهاية الجدول',
+      two: 'صفان بعد نهاية الجدول',
+      one: '$count صف بعد نهاية الجدول',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'لا يوجد عمود باسم $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم حفظ $count تغيير',
+      many: 'تم حفظ $count تغييرًا',
+      few: 'تم حفظ $count تغييرات',
+      two: 'تم حفظ تغييرين',
+      one: 'تم حفظ $count تغيير',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'لم يُحفظ شيء. أصلح الخطأ وحاول مرة أخرى.';
+
+  @override
+  String get tableEditor_undo => 'تراجع';
+
+  @override
+  String get tableEditor_undoneAll => 'تم التراجع عن التغييرات';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return 'تم التراجع عن $reverted من $total تغييرات';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'حفظ الكل وفتح';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'تجاهل وفتح';
+
+  @override
+  String get tableEditor_open_stay => 'البقاء';
+
+  @override
+  String tableEditor_original(String value) {
+    return 'كان: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'قيمة غير صالحة';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'ليست في القائمة';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'يلزم خط العرض وخط الطول معًا';
+
+  @override
+  String get tableEditor_flag_scrubberNeedsType => 'يتطلب نوع الممتص';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'تغيّر في مكان آخر بعد تعديلك';
+
+  @override
+  String get tableEditor_multiChoice_done => 'تم';
+
+  @override
+  String get tableEditor_libraryReadOnly =>
+      'موقع من المكتبة: يمكن هنا تعديل الملاحظات والتقييم فقط';
+
+  @override
+  String get tableEditor_summary_pairClear => 'مسح إحداثي واحد يمسح الاثنين';
+
+  @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف وزن، عدّله في الغطسة',
+      many: '$count صفًا من الوزن، عدّلها في الغطسة',
+      few: '$count صفوف وزن، عدّلها في الغطسة',
+      two: 'صفا وزن، عدّلهما في الغطسة',
+      one: '$count صف وزن، عدّله في الغطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'تعيين الموقع يضبط أيضًا نوع الماء والدخول والخروج وأنواع الغطس على الغطسة';
+
+  @override
+  String get enum_diveField_excludedFromStats => 'مستبعدة من الإحصائيات';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'بلا إحصاء';
+
+  @override
+  String get enum_diveField_excludedFromGasStats => 'مستبعدة من إحصائيات الغاز';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'بلا إحصاء غاز';
+
+  @override
+  String get enum_diveField_windDirection => 'اتجاه الرياح';
+
+  @override
+  String get enum_diveField_windDirection_short => 'اتجاه الرياح';
+
+  @override
+  String get enum_diveField_scrubberType => 'نوع الممتص';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'الممتص';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'مدة الممتص';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'دقائق الممتص';
 
   @override
   String get enum_diveField_weatherDescription_short => 'الطقس';
@@ -51301,6 +51702,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_action_copy => 'نسخ';
 
   @override
+  String get common_snackbar_copiedToClipboard => 'تم النسخ إلى الحافظة';
+
+  @override
   String get settings_appearance_customGradient_title => 'تدرج مخصص';
 
   @override
@@ -55903,8 +56307,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return 'البطارية: $start فولت -> $end فولت';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return 'البطارية: $start فولت ← $end فولت ($change فولت)';
   }
 
   @override
@@ -59872,6 +60276,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get changeLog_label_libraryRestored =>
       'تمت استعادة المكتبة من نسخة احتياطية';
+
+  @override
+  String get changeLog_label_tableEditor => 'محرر الجدول';
 
   @override
   String get changeLog_label_reparse => 'تمت إعادة تحليل الغطسات';

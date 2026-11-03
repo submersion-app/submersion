@@ -13,6 +13,45 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_header_cell.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
 
+/// The rows in the order the table shows them for [config]: the sort field
+/// ascending or descending, nulls last, text through the collator. Public so
+/// an editor can walk cells in that order (#3422).
+List<T> sortTableEntities<T, F extends EntityField>(
+  List<T> entities,
+  EntityFieldAdapter<T, F> adapter,
+  EntityTableViewConfig<F> config,
+  UnitFormatter units,
+) {
+  final field = config.sortField;
+  if (field == null) return entities;
+  final ascending = config.sortAscending;
+  // Each row's value is read and formatted once, not once per comparison.
+  final rows = <(T, Object?)>[
+    for (final entity in entities)
+      (entity, adapter.extractValue(field, entity)),
+  ];
+  final collator = TextCollator();
+  final formattedValues = <Object, String>{};
+  rows.sort((a, b) {
+    final va = a.$2;
+    final vb = b.$2;
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    final cmp = compareTableValues(
+      va,
+      vb,
+      collator: collator,
+      formatted: (value) => formattedValues.putIfAbsent(
+        value,
+        () => adapter.formatValue(field, value, units),
+      ),
+    );
+    return ascending ? cmp : -cmp;
+  });
+  return [for (final row in rows) row.$1];
+}
+
 /// Row height for each row in the table.
 const double kEntityTableRowHeight = 38.0;
 const double _kCheckboxWidth = 48.0;
@@ -108,6 +147,34 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// their text when this is null.
   final Widget? Function(T entity, F field)? cellTrailingBuilder;
 
+  /// A tap on a cell, with its entity and column. When set (and selection
+  /// mode is off) a cell tap goes here instead of [onEntityTap], so an
+  /// editor can open the cell (#3422). Double taps stay the row's, unless
+  /// [cellDoubleTap] is set.
+  final void Function(T entity, F field)? onCellTap;
+
+  /// What a double tap on a cell does, or null for a cell that has none, so
+  /// its single tap lands at once rather than waiting to see if a second
+  /// follows (#3422). Used with [onCellTap], in place of [onEntityDoubleTap].
+  final VoidCallback? Function(T entity, F field)? cellDoubleTap;
+
+  /// Shown in brackets after a column's label, such as its unit (#3422).
+  final String? Function(F field)? headerSuffix;
+
+  /// Replaces a cell's text with the widget it returns, filling the cell's
+  /// box with no padding; null keeps the formatted text (#3422).
+  final Widget? Function(
+    BuildContext context,
+    T entity,
+    F field,
+    String formatted,
+  )?
+  cellBuilder;
+
+  /// A colour painted behind one cell, above the row background, such as a
+  /// pending edit; null paints nothing (#3422).
+  final Color? Function(T entity, F field)? cellBackground;
+
   const EntityTableView({
     super.key,
     required this.entities,
@@ -131,6 +198,11 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     this.hasCellMenu,
     this.isEntityMuted,
     this.cellTrailingBuilder,
+    this.onCellTap,
+    this.cellDoubleTap,
+    this.headerSuffix,
+    this.cellBuilder,
+    this.cellBackground,
   });
 
   @override
@@ -290,48 +362,21 @@ class _EntityTableViewState<T, F extends EntityField>
     final config = widget.config;
     final field = config.sortField;
     if (field == null) return widget.entities;
-
-    final ascending = config.sortAscending;
-
     final inputs = (
       widget.entities,
       widget.adapter,
       widget.units,
       field,
-      ascending,
+      config.sortAscending,
     );
     if (inputs == _sortInputs) return _sorted;
-
-    // Each row's value is read and formatted once, not once per comparison.
-    final rows = <(T, Object?)>[
-      for (final entity in widget.entities)
-        (entity, widget.adapter.extractValue(field, entity)),
-    ];
-    final collator = TextCollator();
-    final formattedValues = <Object, String>{};
-    rows.sort((a, b) {
-      final va = a.$2;
-      final vb = b.$2;
-
-      if (va == null && vb == null) return 0;
-      if (va == null) return 1;
-      if (vb == null) return -1;
-
-      final cmp = compareTableValues(
-        va,
-        vb,
-        collator: collator,
-        formatted: (value) => formattedValues.putIfAbsent(
-          value,
-          () => widget.adapter.formatValue(field, value, widget.units),
-        ),
-      );
-
-      return ascending ? cmp : -cmp;
-    });
-
     _sortInputs = inputs;
-    _sorted = [for (final row in rows) row.$1];
+    _sorted = sortTableEntities(
+      widget.entities,
+      widget.adapter,
+      config,
+      widget.units,
+    );
     return _sorted;
   }
 
@@ -412,6 +457,7 @@ class _EntityTableViewState<T, F extends EntityField>
       onResize: (w) => _resizeLive(col.field, w),
       onResizeEnd: () => _resizeCommit(col.field),
       isFiltered: widget.isColumnFiltered?.call(col.field) ?? false,
+      labelSuffix: widget.headerSuffix?.call(col.field),
       onOpenMenu: _hasHeaderMenu
           ? (position) => _openHeaderMenu(context, col.field, position)
           : null,
@@ -437,11 +483,19 @@ class _EntityTableViewState<T, F extends EntityField>
       ),
     );
     final trailing = widget.cellTrailingBuilder?.call(entity, column.field);
+    final custom = widget.cellBuilder?.call(
+      context,
+      entity,
+      column.field,
+      text,
+    );
 
     final box = Container(
       width: _widthOf(column),
       height: kEntityTableRowHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: custom == null
+          ? const EdgeInsets.symmetric(horizontal: 8)
+          : EdgeInsets.zero,
       alignment: column.field.isRightAligned
           ? Alignment.centerRight
           : Alignment.centerLeft,
@@ -459,25 +513,40 @@ class _EntityTableViewState<T, F extends EntityField>
       // The trailing widget keeps its natural width up to half the cell, so
       // a long tag ellipsizes rather than overflowing a narrow column, and a
       // right-aligned column stays right-aligned.
-      child: trailing == null
-          ? label
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(child: label),
-                const SizedBox(width: 6),
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: math.max(0, (_widthOf(column) - 16 - 6) / 2),
-                  ),
-                  child: trailing,
-                ),
-              ],
-            ),
+      child:
+          custom ??
+          (trailing == null
+              ? label
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(child: label),
+                    const SizedBox(width: 6),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: math.max(0, (_widthOf(column) - 16 - 6) / 2),
+                      ),
+                      child: trailing,
+                    ),
+                  ],
+                )),
     );
-    final cell = (widget.isEntityMuted?.call(entity) ?? false)
-        ? Opacity(opacity: kEntityTableMutedOpacity, child: box)
-        : box;
+    final background = widget.cellBackground?.call(entity, column.field);
+    final painted = background == null
+        ? box
+        : ColoredBox(color: background, child: box);
+    final muted = (widget.isEntityMuted?.call(entity) ?? false)
+        ? Opacity(opacity: kEntityTableMutedOpacity, child: painted)
+        : painted;
+    final onCellTap = widget.onCellTap;
+    final cell = onCellTap == null || widget.isSelectionMode
+        ? muted
+        : GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => onCellTap(entity, column.field),
+            onDoubleTap: widget.cellDoubleTap?.call(entity, column.field),
+            child: muted,
+          );
     final menu = widget.cellMenuBuilder;
     if (menu == null ||
         !(widget.hasCellMenu?.call(entity, column.field) ?? true)) {

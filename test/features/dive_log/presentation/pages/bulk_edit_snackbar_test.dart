@@ -7,6 +7,8 @@ import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -43,17 +45,9 @@ void main() {
       ];
     }
 
-    /// Pumps the real (non-embedded) bulk-edit flow inside a router whose
-    /// `/dives` destination mirrors production navigation, enables the Favorite
-    /// field, then Saves + confirms. Returns with the snackbar on screen.
-    Future<void> pumpBulkSaveFlow(WidgetTester tester) async {
-      final d1 = await repository.createDive(
-        createTestDiveWithBottomTime().copyWith(id: 'snack-1'),
-      );
-      final d2 = await repository.createDive(
-        createTestDiveWithBottomTime().copyWith(id: 'snack-2'),
-      );
-
+    /// The bulk-edit route inside a router whose `/dives` destination mirrors
+    /// production navigation.
+    Future<GoRouter> pumpHarness(WidgetTester tester) async {
       final router = GoRouter(
         initialLocation: '/dives',
         routes: [
@@ -97,6 +91,21 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      return router;
+    }
+
+    /// Pumps the real (non-embedded) bulk-edit flow inside a router whose
+    /// `/dives` destination mirrors production navigation, enables the Favorite
+    /// field, then Saves + confirms. Returns with the snackbar on screen.
+    Future<void> pumpBulkSaveFlow(WidgetTester tester) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'snack-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'snack-2'),
+      );
+
+      final router = await pumpHarness(tester);
 
       router.go('/dives/bulk-edit', extra: [d1.id, d2.id]);
       await tester.pumpAndSettle();
@@ -124,6 +133,76 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
     }
+
+    /// Sets the Trip row to a trip that does not cover the dives, as in
+    /// issue #3351, then Saves and confirms.
+    Future<void> pumpTripSaveFlow(WidgetTester tester) async {
+      final now = DateTime(2025, 3, 1);
+      await TripRepository().createTrip(
+        Trip(
+          id: 'roatan',
+          name: 'Roatan',
+          startDate: DateTime(2025, 3, 11),
+          endDate: DateTime(2025, 3, 13),
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'snack-1',
+          dateTime: DateTime.utc(2025, 3, 10, 9),
+          entryTime: DateTime.utc(2025, 3, 10, 9),
+        ),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'snack-2',
+          dateTime: DateTime.utc(2025, 3, 14, 9),
+          entryTime: DateTime.utc(2025, 3, 14, 9),
+        ),
+      );
+      final router = await pumpHarness(tester);
+      router.go('/dives/bulk-edit', extra: [d1.id, d2.id]);
+      await tester.pumpAndSettle();
+      final gate = find.ancestor(
+        of: find.text('Trip'),
+        matching: find.byType(BulkFieldGate),
+      );
+      await tester.ensureVisible(gate);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: gate, matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Trip'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Roatan'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    testWidgets('a stretched trip adds a line and keeps Undo (#3351)', (
+      tester,
+    ) async {
+      await pumpTripSaveFlow(tester);
+
+      expect(find.textContaining('Updated 2 dives'), findsOneWidget);
+      expect(find.textContaining('Roatan now runs'), findsOneWidget);
+      expect(find.text('Undo'), findsOneWidget);
+    });
+
+    testWidgets('no stretch keeps the single line (#3351)', (tester) async {
+      await pumpBulkSaveFlow(tester);
+
+      expect(find.text('Updated 2 dives'), findsOneWidget);
+      expect(find.textContaining('now runs'), findsNothing);
+    });
 
     testWidgets('auto-hides after its duration', (tester) async {
       await pumpBulkSaveFlow(tester);

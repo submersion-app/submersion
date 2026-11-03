@@ -19,6 +19,7 @@ import 'package:submersion/features/divers/data/repositories/profile_hides_repos
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
 import 'package:submersion/features/trips/data/repositories/trip_day_weather_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/trips/data/repositories/trip_row_mapper.dart
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
@@ -449,6 +451,7 @@ class TripRepository {
   Future<void> assignDiveToTrip(String diveId, String tripId) async {
     try {
       _log.info('Assigning dive $diveId to trip $tripId');
+      final now = DateTime.now().millisecondsSinceEpoch;
       // One transaction: a move that fails (an unknown trip id trips the
       // foreign key) must not leave the tank links cleared.
       await _db.transaction(() async {
@@ -457,15 +460,26 @@ class TripRepository {
           _syncRepository,
           diveId,
           tripId: tripId,
-          now: DateTime.now().millisecondsSinceEpoch,
+          now: now,
         );
         await _db.customUpdate(
-          'UPDATE dives SET trip_id = ? WHERE id = ?',
-          variables: [Variable.withString(tripId), Variable.withString(diveId)],
+          'UPDATE dives SET trip_id = ?, updated_at = ? WHERE id = ?',
+          variables: [
+            Variable.withString(tripId),
+            Variable.withInt(now),
+            Variable.withString(diveId),
+          ],
           updates: {_db.dives},
         );
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+        await stretchTripsToCoverDives(_db, _syncRepository, [
+          diveId,
+        ], now: now);
       });
-      // The cleared tank links are staged; tell auto-sync.
       SyncEventBus.notifyLocalChange();
       _log.info('Assigned dive to trip');
     } catch (e, stackTrace) {
@@ -623,6 +637,7 @@ class TripRepository {
             updates: {_db.dives},
           );
         }
+        await stretchTripsToCoverDives(_db, _syncRepository, diveIds, now: now);
       });
 
       // Mark dives as pending sync
@@ -639,6 +654,33 @@ class TripRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to batch assign dives to trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Stretches the trips of the dives [diveIds] to cover them (issue #3351),
+  /// for a save that put a dive on a trip or moved it to another day. Returns
+  /// the trips that moved.
+  Future<List<TripDateStretch>> stretchToCoverDives(
+    List<String> diveIds,
+  ) async {
+    try {
+      final stretches = await _db.transaction(
+        () => stretchTripsToCoverDives(
+          _db,
+          _syncRepository,
+          diveIds,
+          now: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      if (stretches.isNotEmpty) SyncEventBus.notifyLocalChange();
+      return stretches;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to stretch trips to cover dives',
         error: e,
         stackTrace: stackTrace,
       );

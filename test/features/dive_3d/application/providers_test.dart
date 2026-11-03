@@ -3,8 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/application/providers.dart';
 import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -17,6 +20,8 @@ DiveProfilePoint point(int t, double d, {double? temp}) =>
 
 Future<ProviderContainer> makeContainer({
   Map<String, SourceProfile> sourceProfiles = const {},
+  List<ProfileEvent> events = const [],
+  List<ProfileEvent> linkedAnnotations = const [],
 }) async {
   final base = await getBaseOverrides();
   final container = ProviderContainer(
@@ -25,7 +30,10 @@ Future<ProviderContainer> makeContainer({
       sourceProfilesProvider('d1').overrideWith((ref) async => sourceProfiles),
       tankPressuresProvider('d1').overrideWith((ref) async => const {}),
       gasSwitchesProvider('d1').overrideWith((ref) async => const []),
-      diveComputerEventsProvider('d1').overrideWith((ref) async => const []),
+      diveComputerEventsProvider('d1').overrideWith((ref) async => events),
+      diveAnnotationsProvider(
+        'd1',
+      ).overrideWith((ref) async => linkedAnnotations),
       mediaForDiveProvider('d1').overrideWith((ref) async => const []),
     ],
   );
@@ -148,5 +156,45 @@ void main() {
       scene!.layers.where((l) => l.overlay == SceneOverlay.shadows),
       hasLength(2),
     );
+  });
+
+  test('an annotation its Notes no longer link is not drawn', () async {
+    final linked = ProfileEvent.annotation(
+      id: 'linked',
+      diveId: 'd1',
+      timestamp: 30,
+      words: 'felt sick',
+      createdAt: DateTime(2026),
+    );
+    final orphan = ProfileEvent.annotation(
+      id: 'orphan',
+      diveId: 'd1',
+      timestamp: 60,
+      words: 'gone',
+      createdAt: DateTime(2026),
+    );
+    final bookmark = ProfileEvent(
+      id: 'bookmark',
+      diveId: 'd1',
+      timestamp: 90,
+      eventType: ProfileEventType.bookmark,
+      createdAt: DateTime(2026),
+    );
+    final container = await makeContainer(
+      sourceProfiles: {
+        'src-primary': SourceProfile(
+          sourceId: 'src-primary',
+          computerId: 'c1',
+          isEdited: false,
+          points: [point(0, 0), point(60, 18), point(120, 0)],
+        ),
+      },
+      events: [linked, orphan, bookmark],
+      linkedAnnotations: [linked],
+    );
+
+    final data = await container.read(dive3dSceneDataProvider('d1').future);
+
+    expect(data!.bookmarkEvents.map((e) => e.id), ['bookmark', 'linked']);
   });
 }

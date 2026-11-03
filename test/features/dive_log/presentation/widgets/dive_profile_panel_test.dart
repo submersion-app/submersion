@@ -9,9 +9,11 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
@@ -427,6 +429,41 @@ void main() {
     // -----------------------------------------------------------------------
     // Renders DiveProfileChart when profile data exists
     // -----------------------------------------------------------------------
+
+    testWidgets('draws only the annotations its Notes still link (#4109)', (
+      tester,
+    ) async {
+      ProfileEvent annotation(String id) => ProfileEvent.annotation(
+        id: id,
+        diveId: 'dive-1',
+        timestamp: 60,
+        words: id,
+        createdAt: DateTime(2026),
+      );
+      final linked = annotation('linked');
+      await tester.pumpWidget(
+        _buildPanel(
+          highlightedDiveId: 'dive-1',
+          diveToReturn: _makeDiveWithProfile(id: 'dive-1'),
+          analysis: _makeAnalysis().copyWith(
+            events: [annotation('orphan'), linked],
+          ),
+          extraOverrides: [
+            diveAnnotationsProvider(
+              'dive-1',
+            ).overrideWith((ref) async => [linked]),
+          ],
+        ),
+      );
+      for (var i = 0; i < 4; i++) {
+        await tester.pump();
+      }
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.events, [linked]);
+    });
 
     testWidgets('renders DiveProfileChart widget for dive with profile', (
       tester,

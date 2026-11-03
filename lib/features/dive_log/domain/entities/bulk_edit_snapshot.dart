@@ -2,6 +2,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     show BuddyWithRole;
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 
 /// Captured prior state for undoing one bulk edit. The maps are keyed by
 /// diveId; the tank fields are not, because a tank's undo matches on row id. A
@@ -38,6 +39,10 @@ class BulkEditSnapshot {
   final Map<String, List<DiveWeight>>? priorWeights; // Drift DiveWeights rows
   final Map<String, List<Sighting>>? priorSightings; // Drift Sightings rows
 
+  /// The trips the edit stretched to cover its dives (#3351), for the message
+  /// and for undo to put back.
+  final List<TripDateStretch> tripDateStretches;
+
   const BulkEditSnapshot({
     required this.priorDiveRows,
     this.priorTagIds,
@@ -50,6 +55,7 @@ class BulkEditSnapshot {
     this.priorTankSpecRows,
     this.priorWeights,
     this.priorSightings,
+    this.tripDateStretches = const [],
   });
 }
 

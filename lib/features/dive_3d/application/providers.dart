@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -38,6 +39,7 @@ final dive3dSceneDataProvider = FutureProvider.family<Dive3dSceneData?, String>(
     final tankPressures = await ref.watch(tankPressuresProvider(diveId).future);
     final gasSwitches = await ref.watch(gasSwitchesProvider(diveId).future);
     final events = await ref.watch(diveComputerEventsProvider(diveId).future);
+    final annotations = await ref.watch(diveAnnotationsProvider(diveId).future);
     final photos = await ref.watch(mediaForDiveProvider(diveId).future);
 
     return Dive3dSceneData.fromDomain(
@@ -45,7 +47,7 @@ final dive3dSceneDataProvider = FutureProvider.family<Dive3dSceneData?, String>(
       points: profile,
       tankPressures: tankPressures,
       gasSwitches: gasSwitches,
-      events: events,
+      events: mergeChartEvents(events, annotations) ?? const [],
       photos: photos,
     );
   },

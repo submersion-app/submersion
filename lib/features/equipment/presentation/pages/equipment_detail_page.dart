@@ -662,6 +662,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   context,
                   context.l10n.equipment_detail_serialNumberLabel,
                   equipment.serialNumber!,
+                  copyable: true,
                 ),
               // Curated specs in catalog order, then custom fields. The
               // purchase group is held back to the purchase block below, and
@@ -917,11 +918,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
 
   /// Long values (e.g. free-text custom fields) wrap within the value
   /// column instead of overflowing the row.
-  Widget _buildDetailRow(BuildContext context, String label, String value) {
+  Widget _buildDetailRow(
+    BuildContext context,
+    String label,
+    String value, {
+    bool copyable = false,
+  }) {
     return DetailRow.text(
       label: label,
       value: value,
       valueStyle: Theme.of(context).textTheme.bodyMedium,
+      copyable: copyable,
     );
   }
 
