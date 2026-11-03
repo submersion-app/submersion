@@ -11,6 +11,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_kind_badge.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_list_card.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_stat_row.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -18,6 +20,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_lis
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_list_card.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -59,7 +62,12 @@ NavTrack _route({
   updatedAt: DateTime(2026, 8, 22),
 );
 
-Widget _row(NavTrack route, {Widget? kindBadge}) => Consumer(
+Widget _row(
+  NavTrack route, {
+  Widget? kindBadge,
+  bool selected = false,
+  bool isHighlighted = false,
+}) => Consumer(
   builder: (context, ref, _) => ListView(
     children: [
       NavTrackListRow(
@@ -67,6 +75,8 @@ Widget _row(NavTrack route, {Widget? kindBadge}) => Consumer(
         units: UnitFormatter(ref.watch(settingsProvider)),
         onTap: () {},
         onDelete: () {},
+        selected: selected,
+        isHighlighted: isHighlighted,
         kindBadge: kindBadge,
       ),
     ],
@@ -82,6 +92,8 @@ Future<void> _pumpRow(
   List<Override> extraOverrides = const [],
   Locale? locale,
   Widget? kindBadge,
+  bool selected = false,
+  bool isHighlighted = false,
 }) async {
   final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   await tester.pumpWidget(
@@ -101,7 +113,14 @@ Future<void> _pumpRow(
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: _row(route, kindBadge: kindBadge)),
+        home: Scaffold(
+          body: _row(
+            route,
+            kindBadge: kindBadge,
+            selected: selected,
+            isHighlighted: isHighlighted,
+          ),
+        ),
       ),
     ),
   );
@@ -198,6 +217,73 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.delete_outline), findsNothing);
+  });
+
+  testWidgets('the figures take the dive card accent colour (#4101)', (
+    tester,
+  ) async {
+    await _pumpRow(
+      tester,
+      route: _route(id: 'r1', name: 'Wreck dive', distance: 1050, maxDepth: 38),
+      hydrated: {'r1': _route(id: 'r1').copyWith(points: _hydratedPoints())},
+    );
+    final scheme = Theme.of(
+      tester.element(find.byType(NavTrackListRow)),
+    ).colorScheme;
+    expect(
+      tester.widget<TrackStatRow>(find.byType(TrackStatRow)).color,
+      RecordCardColors.forFill(scheme, null).accent,
+    );
+  });
+
+  group('the live pick and the entry last opened (#4101)', () {
+    Future<ListTile> pumpTile(
+      WidgetTester tester, {
+      bool selected = false,
+      bool isHighlighted = false,
+    }) async {
+      await _pumpRow(
+        tester,
+        route: _route(id: 'r1', name: 'Wreck dive'),
+        selected: selected,
+        isHighlighted: isHighlighted,
+      );
+      return tester.widget<ListTile>(find.byType(ListTile));
+    }
+
+    testWidgets('the live pick is the tile\'s selected state', (tester) async {
+      final tile = await pumpTile(tester, selected: true);
+      expect(tile.selected, isTrue);
+    });
+
+    testWidgets('the entry last opened is filled but not selected', (
+      tester,
+    ) async {
+      final tile = await pumpTile(tester, isHighlighted: true);
+      expect(tile.selected, isFalse);
+      expect(
+        tester.widget<TrackListCard>(find.byType(TrackListCard)).highlighted,
+        isTrue,
+      );
+    });
+
+    testWidgets('a live pick keeps the dive card title colour', (tester) async {
+      await pumpTile(tester, selected: true);
+      final scheme = Theme.of(
+        tester.element(find.byType(NavTrackListRow)),
+      ).colorScheme;
+      expect(
+        tester
+            .renderObject<RenderParagraph>(find.text('Wreck dive'))
+            .text
+            .style
+            ?.color,
+        RecordCardColors.forFill(
+          scheme,
+          recordCardSelectionFill(scheme),
+        ).primaryText,
+      );
+    });
   });
 
   testWidgets('tapping a linked row\'s chip opens the linked dive', (

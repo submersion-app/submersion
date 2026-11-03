@@ -6,7 +6,7 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
-import 'package:submersion/features/tracks/presentation/widgets/track_row_card.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_list_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One row in a list of recorded tracks: thumbnail, title, figures.
@@ -23,7 +23,6 @@ class GpsTrackListTile extends ConsumerWidget {
     this.selected = false,
     this.isHighlighted = false,
     this.onDelete,
-    this.contentPadding,
     this.kindBadge,
   });
 
@@ -38,7 +37,6 @@ class GpsTrackListTile extends ConsumerWidget {
 
   /// Shown as a trailing delete icon when set.
   final VoidCallback? onDelete;
-  final EdgeInsetsGeometry? contentPadding;
 
   /// Shown at the end of the detail line, the same place an
   /// underwater row puts its badge (next to its dive link), so both kinds
@@ -49,15 +47,17 @@ class GpsTrackListTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    return TrackRowCard(
+    return TrackListCard(
       highlighted: selected || isHighlighted,
-      child: ListTile(
-        onTap: onTap,
+      onTap: onTap,
+      builder: (colors) => ListTile(
         selected: selected,
-        contentPadding: contentPadding,
         minLeadingWidth: kTrackThumbnailWidth,
         leading: GpsTrackThumbnail(trackId: track.id),
-        title: Text(formatTrackTitle(units, track)),
+        title: Text(
+          formatTrackTitle(units, track),
+          style: TextStyle(color: colors.primaryText),
+        ),
         subtitle: TrackBadgeLine(
           badge: kindBadge,
           child: Text(formatTrackDetailLine(l10n, units, track)),

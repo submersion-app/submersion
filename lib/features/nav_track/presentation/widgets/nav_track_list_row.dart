@@ -12,7 +12,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_lin
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_row_stats.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
-import 'package:submersion/features/tracks/presentation/widgets/track_row_card.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_list_card.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_stat_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -122,23 +122,26 @@ class NavTrackListRow extends ConsumerWidget {
     // gives the title column whatever is left, so a text-bearing label
     // there starves the file name down to one fragment per line on a phone
     // or in the map view's list pane (issue #2692, same hazard as #935).
-    return TrackRowCard(
+    return TrackListCard(
       highlighted: selected || isHighlighted,
-      child: ListTile(
-        onTap: onTap,
+      onTap: onTap,
+      builder: (colors) => ListTile(
         selected: selected,
         isThreeLine: true,
         leading: anchored
             ? const Icon(Icons.route)
             : NavTrackShapeThumbnail(points: hydratedPoints),
-        title: Text(titleText),
+        title: Text(titleText, style: TextStyle(color: colors.primaryText)),
         subtitle: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (showSiteAsTitle) Text(ownName),
             Text(navTrackMetaLine(units, route)),
-            TrackStatRow(stats: navTrackStats(l10n, units, route)),
+            TrackStatRow(
+              stats: navTrackStats(l10n, units, route),
+              color: colors.accent,
+            ),
             // Same gap the dive list uses between its stat row and its own
             // tag chips (`dive_list_page.dart`, where this chip style came
             // from); without it the link label crowded the stats above it.

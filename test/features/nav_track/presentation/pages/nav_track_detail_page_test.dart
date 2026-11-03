@@ -144,6 +144,13 @@ NavTrack _route({
   updatedAt: DateTime(2026, 8, 22),
 );
 
+/// Room for the cards below the stats card: the page is a lazy list, so a
+/// card past the default viewport's cache extent is never built.
+Future<void> _tallView(WidgetTester tester) async {
+  await tester.binding.setSurfaceSize(const Size(800, 1400));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+}
+
 Future<_RecordingNavTrackRepository> _pump(
   WidgetTester tester, {
   required NavTrack route,
@@ -359,6 +366,7 @@ void main() {
   testWidgets('shows the no-correction sentence when nothing was aligned', (
     tester,
   ) async {
+    await _tallView(tester);
     await _pump(tester, route: _route());
 
     expect(find.text('No correction applied yet.'), findsOneWidget);
@@ -558,11 +566,13 @@ void main() {
     const line = ValueKey('nav-track-detail-scale');
 
     testWidgets('shows the scale away from 100%', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route().copyWith(scaleFactor: 1.38));
       expect(find.text('Track scale: 138%'), findsOneWidget);
     });
 
     testWidgets('shows a decimal scale', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route().copyWith(scaleFactor: 1.035));
       expect(find.text('Track scale: 103.5%'), findsOneWidget);
     });
@@ -570,12 +580,14 @@ void main() {
     testWidgets('a scaled track does not also say nothing was corrected', (
       tester,
     ) async {
+      await _tallView(tester);
       await _pump(tester, route: _route().copyWith(scaleFactor: 1.38));
       expect(find.text('No correction applied yet.'), findsNothing);
       expect(find.text('Track scale: 138%'), findsOneWidget);
     });
 
     testWidgets('an end correction still shows beside a scale', (tester) async {
+      await _tallView(tester);
       await _pump(
         tester,
         route: _route(
@@ -587,6 +599,7 @@ void main() {
     });
 
     testWidgets('no scale line at 100%', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route());
       expect(find.byKey(line), findsNothing);
     });
@@ -750,10 +763,58 @@ void main() {
                 ),
               ],
             );
+        await _tallView(tester);
         await _pump(tester, route: route);
 
-        expect(find.text('Battery: 3.90 V -> 3.78 V'), findsOneWidget);
+        expect(find.text('Battery: 3.90 V → 3.78 V (-0.12 V)'), findsOneWidget);
         expect(find.textContaining('0.00 V'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'sits on the recording-device card under the console\'s name, not '
+      'among the route figures (#4100)',
+      (tester) async {
+        final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3)
+            .copyWith(
+              points: const [
+                NavTrackPoint(
+                  timestamp: 1755856800,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 3.9,
+                ),
+                NavTrackPoint(
+                  timestamp: 1755857000,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 3.78,
+                ),
+              ],
+            );
+        await _tallView(tester);
+        await _pump(tester, route: route);
+
+        final recorder = find.byKey(const ValueKey('nav-track-recorder-card'));
+        expect(recorder, findsOneWidget);
+        expect(
+          find.descendant(of: recorder, matching: find.text('Seacraft ENC')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: recorder,
+            matching: find.textContaining('Battery:'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('Battery:'),
+          findsOneWidget,
+          reason: 'the stats card no longer carries the battery',
+        );
       },
     );
 
@@ -772,9 +833,18 @@ void main() {
           ),
         ],
       );
+      await _tallView(tester);
       await _pump(tester, route: route);
 
       expect(find.textContaining('Battery:'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-recorder-card')),
+          matching: find.text('Seacraft ENC'),
+        ),
+        findsOneWidget,
+        reason: 'without a reading the card still names the source',
+      );
     });
   });
 
@@ -1062,21 +1132,25 @@ void main() {
 
   group('correction status text per end mode', () {
     testWidgets('none', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route());
       expect(find.text('No correction applied yet.'), findsOneWidget);
     });
 
     testWidgets('sameAsStart', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route(endMode: NavTrackEndMode.sameAsStart));
       expect(find.text('End set to same as start.'), findsOneWidget);
     });
 
     testWidgets('point', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route(endMode: NavTrackEndMode.point));
       expect(find.text('End point set on the map.'), findsOneWidget);
     });
 
     testWidgets('gpsFix', (tester) async {
+      await _tallView(tester);
       await _pump(tester, route: _route(endMode: NavTrackEndMode.gpsFix));
       expect(
         find.text('End set from the recording\'s GPS fix.'),
