@@ -13,10 +13,22 @@ const int kPresenceAll = 1;
 const int kPresenceBitmap = 2;
 
 /// The most negative value [ByteWriter.writeVarInt] can zigzag-map.
-const int minVarInt = -(1 << 62);
+///
+/// A literal, not `-(1 << 62)`: compiled to JavaScript a shift by 32 or more
+/// is zero, which made this 0 and [maxVarInt] -1 in the web app, so every
+/// value fell outside the range (#4194). 2^62 is exact as a double.
+const int minVarInt = -0x4000000000000000;
 
-/// The most positive value [ByteWriter.writeVarInt] can zigzag-map.
-const int maxVarInt = (1 << 62) - 1;
+/// The most positive value [ByteWriter.writeVarInt] can zigzag-map. In
+/// JavaScript this rounds to 2^62, past every int a double holds exactly.
+const int maxVarInt = -minVarInt - 1;
+
+// The varints below use arithmetic where a bit trick would be shorter.
+// Compiled to JavaScript an int is a double, and `<<`, `>>`, `^` and `|`
+// work on its low 32 bits and return them unsigned, so `x ^ -1` reads a
+// small negative delta as about 2^32 (#4194). On the VM the arithmetic gives
+// the same bits, so the wire format is unchanged; in JavaScript it is exact
+// up to 2^53.
 
 /// Append-only little-endian byte sink for the series codecs.
 class ByteWriter {
@@ -49,8 +61,8 @@ class ByteWriter {
     }
     var remaining = value;
     while (remaining >= 0x80) {
-      _builder.addByte((remaining & 0x7F) | 0x80);
-      remaining >>= 7;
+      _builder.addByte(remaining % 0x80 + 0x80);
+      remaining ~/= 0x80;
     }
     _builder.addByte(remaining);
   }
@@ -58,16 +70,16 @@ class ByteWriter {
   /// Zigzag-mapped signed varint, so small negatives stay small: 0, -1, 1,
   /// -2, 2 map to 0, 1, 2, 3, 4.
   ///
-  /// Dart's int is 64-bit two's complement, so `value << 1` wraps into the
-  /// sign bit outside [minVarInt] .. [maxVarInt] and the mapping would hand
-  /// [writeVarUint] a negative. Throws [ArgumentError] rather than encode a
-  /// value the reader, which refuses a payload reaching bit 63, could not
-  /// read back.
+  /// Dart's int is 64-bit two's complement on the VM, so doubling wraps into
+  /// the sign bit outside [minVarInt] .. [maxVarInt] and the mapping would
+  /// hand [writeVarUint] a negative. Throws [ArgumentError] rather than
+  /// encode a value the reader, which refuses a payload reaching bit 63,
+  /// could not read back.
   void writeVarInt(int value) {
     if (value < minVarInt || value > maxVarInt) {
       throw ArgumentError.value(value, 'value', 'varint out of zigzag range');
     }
-    writeVarUint((value << 1) ^ (value >> 63));
+    writeVarUint(value < 0 ? -value * 2 - 1 : value * 2);
   }
 
   /// IEEE-754 binary64, little-endian, bit-exact.
@@ -112,12 +124,15 @@ class ByteReader {
   int readVarUint() {
     var result = 0;
     var shift = 0;
+    // 2^shift. On the VM it wraps to the sign bit at shift 63, where the
+    // guard below has already required a zero payload.
+    var scale = 1;
     while (true) {
       final byte = readByte();
       if (shift == 63 && (byte & 0x7F) != 0) {
         throw const ProfileSeriesCodecException('varint overflows 63 bits');
       }
-      result |= (byte & 0x7F) << shift;
+      result += (byte & 0x7F) * scale;
       if ((byte & 0x80) == 0) {
         if (shift > 0 && (byte & 0x7F) == 0) {
           throw const ProfileSeriesCodecException(
@@ -127,6 +142,7 @@ class ByteReader {
         return result;
       }
       shift += 7;
+      scale *= 0x80;
       if (shift > 63) {
         throw const ProfileSeriesCodecException('varint longer than 64 bits');
       }
@@ -135,7 +151,7 @@ class ByteReader {
 
   int readVarInt() {
     final zigzag = readVarUint();
-    return (zigzag >>> 1) ^ -(zigzag & 1);
+    return zigzag.isEven ? zigzag ~/ 2 : -(zigzag ~/ 2) - 1;
   }
 
   double readFloat64() {
