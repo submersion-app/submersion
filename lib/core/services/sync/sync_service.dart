@@ -9,6 +9,7 @@ import 'package:drift/drift.dart' show TableUpdate, Variable;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
+import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
@@ -1461,11 +1462,14 @@ class SyncService {
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
   /// dive's computer tissue snapshot, with the dive's own columns empty
   /// (issue #2555). One below v337 publishes `weather_fetched_at` in
-  /// milliseconds, as does a sync store written before it (issue #4119).
+  /// milliseconds, as does a sync store written before it (issue #4119). One
+  /// below v340 publishes a combined dive with its first segment's water
+  /// temperature, CNS and OTU (issue #4136).
   Future<void> _repairLegacyPeerRows() async {
     try {
       final db = DatabaseService.instance.database;
       await repairWeatherFetchedAtSeconds(db);
+      await repairCombinedDiveSummaries(db);
       await moveComputerTissueScalars(db);
     } catch (e, st) {
       // The applied rows are already in place; losing this repair costs only

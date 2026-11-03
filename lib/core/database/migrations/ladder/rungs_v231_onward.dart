@@ -789,5 +789,11 @@ extension RungsFromV231 on AppDatabase {
     // claimed first for issue #3062.
     if (from < 339) await _assertDiveComputerAutoDownloadDisabledColumn();
     if (from < 339) await reportProgress();
+
+    // v340: a combined dive's water temperature, CNS at the end and OTU
+    // describe the whole dive again rather than its first segment (issue
+    // #4136). Data only, so the compatibility floor does not move.
+    if (from < 340) await repairCombinedDiveSummaries(this);
+    if (from < 340) await reportProgress();
   }
 }
