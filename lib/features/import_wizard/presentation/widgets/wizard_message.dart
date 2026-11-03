@@ -50,6 +50,9 @@ class WizardMessage extends StatelessWidget {
               tooltip: context.l10n.common_action_copy,
               onPressed: () =>
                   copyToClipboardWithConfirmation(context, message),
+              // The copy gives its own haptic, so Android does not get a
+              // second one.
+              enableFeedback: false,
               iconSize: 18,
               color: foreground,
               icon: const Icon(Icons.content_copy),

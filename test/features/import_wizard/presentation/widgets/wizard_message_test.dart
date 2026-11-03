@@ -91,6 +91,24 @@ void main() {
       expect(find.text('Copied to clipboard'), findsNothing);
       expect(find.byType(SnackBar), findsOneWidget);
     });
+
+    testWidgets('the copy button leaves the haptic to the copy', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const WizardMessage(
+          message: _error,
+          icon: Icons.error_outline,
+          isError: true,
+        ),
+      );
+
+      final button = tester.widget<IconButton>(
+        find.ancestor(of: _copyButton, matching: find.byType(IconButton)),
+      );
+      expect(button.enableFeedback, isFalse);
+    });
   });
 
   testWidgets('a warning can be selected but has no copy button', (
