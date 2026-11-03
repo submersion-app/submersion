@@ -13,7 +13,7 @@ Submersion is a free, open-source dive log for scuba divers: one app for iOS, An
 
 - **You own your data.** Every dive is stored locally on your device in a standard SQLite database. The app works fully offline, and there is no Submersion server in the middle.
 - **No account, no lock-in.** Use the app the moment you install it: no sign-up, no email, no tracking. Export your entire logbook to UDDF or CSV whenever you want and take it elsewhere.
-- **Truly cross-platform.** The same logbook, with the same details and analytics, runs on iOS, Android, macOS, Windows, and Linux, and in a web browser you host yourself (see [Submersion in a Browser](web-app.md)). Optional, opt-in sync keeps your devices in step using cloud storage you control (see [Multi-Device Sync](multi-device-sync.md)).
+- **Truly cross-platform.** The same logbook, with the same details and analytics, runs on iOS, Android, macOS, Windows, and Linux, and in a web browser at <https://web.submersion.app> or on a copy you host yourself (see [Submersion in a Browser](web-app.md)). Optional, opt-in sync keeps your devices in step using cloud storage you control (see [Multi-Device Sync](multi-device-sync.md)).
 - **Free and open-source, forever.** Released under GPL-3.0. No premium tiers for core features, no ads.
 
 ## The app at a glance

@@ -131,9 +131,10 @@ app when a new version is available.
 
 ## In a web browser
 
-Submersion also runs as a web page you host yourself, reading your dives
-from your own sync store: for the machines where you cannot install it.
-See [Submersion in a Browser](web-app.md).
+Submersion also runs as a web page, reading your dives from your own sync
+store: for the machines where you cannot install it. Open
+<https://web.submersion.app>, or host a copy yourself. See
+[Submersion in a Browser](web-app.md).
 
 ## Keeping the app up to date
 

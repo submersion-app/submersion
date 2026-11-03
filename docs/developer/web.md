@@ -110,6 +110,10 @@ to the project (`GoogleDriveClientConfig`), with each address in
 build uses it only at those addresses; anywhere else, and in a build
 without it, the connect step asks for a client id of the user's own.
 
+The release build does this: `build-all.yml` passes the repository
+variable `GOOGLE_WEB_CLIENT_ID` with `https://web.submersion.app` as the
+origin, so every release zip carries the client and uses it only there.
+
 To run the app in a browser during development:
 
 ```bash
@@ -128,6 +132,18 @@ cross-origin isolation headers, `application/wasm`):
 ```bash
 python3 scripts/web/serve_bundle.py --dir build/web --port 8080
 ```
+
+## Submersion's own site
+
+Each stable release deploys its `Web.zip`, as it is, to
+<https://web.submersion.app>: `deploy-web.yml`, called by `promote.yml`
+(and by `release.yml` for a stable tag pushed by hand), stages it with
+`scripts/web/stage_hosted_site.py` and force-pushes it to the GitHub Pages
+repository `submersion-app/web`. A manual run redeploys a tag, and refuses
+an older release than the site serves unless `force` is set, since an
+older release cannot open the newer schema visitors' browsers already
+hold. Setup, the deploy token and rolling back:
+[Submersion's Own Web Site](web-site-setup.md).
 
 ## Storage
 
