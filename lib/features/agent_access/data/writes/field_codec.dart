@@ -55,8 +55,11 @@ abstract class FieldCodec {
 
   /// A list of short texts in order, such as a dive center's affiliations.
   /// The parsed value is the list as JSON, so it compares with a document's.
-  const factory FieldCodec.textList({int maxItems, int maxLength}) =
-      _TextListCodec;
+  const factory FieldCodec.textList({
+    int maxItems,
+    int maxLength,
+    String? separator,
+  }) = _TextListCodec;
 
   /// A wall clock, written as documents write it, with a nominal `Z`.
   const factory FieldCodec.wallClock() = _WallClockCodec;
@@ -246,10 +249,17 @@ class _EnumSetCodec extends FieldCodec {
 }
 
 class _TextListCodec extends FieldCodec {
-  const _TextListCodec({this.maxItems = 20, this.maxLength = 100});
+  const _TextListCodec({
+    this.maxItems = 20,
+    this.maxLength = 100,
+    this.separator,
+  });
 
   final int maxItems;
   final int maxLength;
+
+  /// What the column joins the items with, which no item may hold.
+  final String? separator;
 
   @override
   String get describe => 'a list of texts';
@@ -267,8 +277,12 @@ class _TextListCodec extends FieldCodec {
       if (item.length > maxLength) {
         throw FieldRefusal('Each item holds at most $maxLength characters.');
       }
+      if (separator case final s? when item.contains(s)) {
+        throw FieldRefusal('An item cannot hold "$s".');
+      }
     }
-    return jsonEncode(raw);
+    // Trimmed, as the readers of these columns trim each item.
+    return jsonEncode([for (final item in raw) (item as String).trim()]);
   }
 
   @override

@@ -531,6 +531,44 @@ void main() {
     await _close(tester);
   });
 
+  // A weight preset's entries and a cylinder config's cylinders are lists of
+  // objects; each value inside reads as it would on its own.
+  testWidgets('values inside a list of objects respect the diver units', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      settings: const AppSettings(weightUnit: WeightUnit.pounds),
+    );
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            _item(
+              fields: const {
+                'entries': FieldChange(null, [
+                  {'type': 'integrated', 'amount_kg': 4.0, 'label': 'Trim'},
+                ]),
+                'items': FieldChange(null, [
+                  {'role': 'deco', 'o2_fraction': 0.5, 'label': null},
+                ]),
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('8.8 lb'), findsOneWidget);
+    expect(find.textContaining('50%'), findsOneWidget);
+    expect(find.textContaining('amount_kg: 4.0'), findsNothing);
+    expect(find.textContaining('label: null'), findsNothing);
+    await _close(tester);
+  });
+
   testWidgets('tank and weight values respect the diver units', (tester) async {
     await _pump(
       tester,

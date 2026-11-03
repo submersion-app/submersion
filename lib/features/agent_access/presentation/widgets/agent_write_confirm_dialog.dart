@@ -323,6 +323,29 @@ String agentValueText(
   num? workingPressureBar,
 }) {
   if (value == null) return l.settings_agentAccess_confirm_none;
+  // A list written whole, such as a preset's entries: each item reads as it
+  // would alone, and each value of an object by its own key.
+  if (value is List) {
+    return value
+        .map(
+          (item) => agentValueText(
+            l,
+            units,
+            key,
+            item,
+            workingPressureBar: workingPressureBar,
+          ),
+        )
+        .join(value.any((item) => item is Map) ? '; ' : ', ');
+  }
+  if (value is Map) {
+    final pressure = value['working_pressure_bar'] as num?;
+    return [
+      for (final MapEntry(:key, :value) in value.entries)
+        if (value != null && value != '')
+          '$key: ${agentValueText(l, units, '$key', value, workingPressureBar: pressure)}',
+    ].join(', ');
+  }
   // A time into the dive, such as a switch's or an annotation's.
   if (key.endsWith('_s') && value is int) return formatMinutesSeconds(value);
   if (value is num) {

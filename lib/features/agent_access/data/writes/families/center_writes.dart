@@ -37,7 +37,11 @@ class CenterWrites extends WritableEntry {
       'website',
     ])
       key: const FieldCodec.text(maxLength: 200, nullable: true),
-    'affiliations': const FieldCodec.textList(maxItems: 20, maxLength: 60),
+    'affiliations': const FieldCodec.textList(
+      maxItems: 20,
+      maxLength: 60,
+      separator: ',',
+    ),
     'latitude': const FieldCodec.number(min: -90, max: 90, nullable: true),
     'longitude': const FieldCodec.number(min: -180, max: 180, nullable: true),
     'rating': const FieldCodec.number(min: 0, max: 5, nullable: true),

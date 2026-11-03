@@ -47,6 +47,29 @@ void main() {
     expect(await h.one('tank_presets', id), isNull);
   });
 
+  // A manifolded pair is one cylinder of their combined volume, as a dive's
+  // tanks and the preset editor take it.
+  test('a twin set\'s combined volume is accepted', () async {
+    final plan = await h.preview([
+      createOp('tank_presets', {
+        'display_name': 'Double 18',
+        'volume_l': 36.0,
+        'working_pressure_bar': 232.0,
+        'material': 'steel',
+      }),
+      createOp('cylinder_configs', {
+        'name': 'Twins',
+        'items': [
+          {'role': 'twinSet', 'volume_l': 36.0},
+        ],
+      }),
+    ]);
+
+    for (final item in plan.items) {
+      expect(item.block, isNull, reason: item.entity);
+    }
+  });
+
   Map<String, Object?> lead(double kg, {String label = ''}) => {
     'type': 'integrated',
     'amount_kg': kg,

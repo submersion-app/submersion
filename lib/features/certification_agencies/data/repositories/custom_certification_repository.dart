@@ -121,7 +121,7 @@ class CustomCertificationRepository {
           );
       await _markPending(agencyEntityType, id, now);
       _log.info('Created custom agency $id for diver $diverId');
-      return (await _agency(id))!;
+      return (await getAgencyById(id))!;
     } catch (e, st) {
       _log.error('Failed to create agency', error: e, stackTrace: st);
       rethrow;
@@ -133,7 +133,7 @@ class CustomCertificationRepository {
     required String actingDiverId,
   }) async {
     try {
-      final existing = await _agency(agency.id);
+      final existing = await getAgencyById(agency.id);
       if (existing == null || existing.diverId != actingDiverId) {
         throw CertificationNotOwnerException(agency.id);
       }
@@ -165,7 +165,7 @@ class CustomCertificationRepository {
         ),
       );
       await _markPending(agencyEntityType, agency.id, now);
-      return (await _agency(agency.id))!;
+      return (await getAgencyById(agency.id))!;
     } catch (e, st) {
       _log.error(
         'Failed to update agency ${agency.id}',
@@ -186,7 +186,7 @@ class CustomCertificationRepository {
     try {
       // A custom agency's certifications belong to its owner; anyone may
       // add their own under a built-in agency.
-      final parent = await _agency(agencyId);
+      final parent = await getAgencyById(agencyId);
       if (parent != null && parent.diverId != diverId) {
         throw CertificationNotOwnerException(agencyId);
       }
@@ -217,7 +217,7 @@ class CustomCertificationRepository {
           );
       await _markPending(levelEntityType, id, now);
       _log.info('Created custom level $id under $agencyId for $diverId');
-      return (await _level(id))!;
+      return (await getLevelById(id))!;
     } catch (e, st) {
       _log.error('Failed to create level', error: e, stackTrace: st);
       rethrow;
@@ -229,7 +229,7 @@ class CustomCertificationRepository {
     required String actingDiverId,
   }) async {
     try {
-      final existing = await _level(level.id);
+      final existing = await getLevelById(level.id);
       if (existing == null || existing.diverId != actingDiverId) {
         throw CertificationNotOwnerException(level.id);
       }
@@ -266,7 +266,7 @@ class CustomCertificationRepository {
         ),
       );
       await _markPending(levelEntityType, level.id, now);
-      return (await _level(level.id))!;
+      return (await getLevelById(level.id))!;
     } catch (e, st) {
       _log.error(
         'Failed to update level ${level.id}',
@@ -290,7 +290,7 @@ class CustomCertificationRepository {
         final now = DateTime.now().millisecondsSinceEpoch;
         final slots = <int>[];
         for (final id in orderedIds) {
-          final existing = await _level(id);
+          final existing = await getLevelById(id);
           if (existing == null ||
               existing.diverId != actingDiverId ||
               existing.agencyId != agencyId) {
@@ -368,7 +368,7 @@ class CustomCertificationRepository {
     required String actingDiverId,
   }) async {
     try {
-      final existing = await _agency(id);
+      final existing = await getAgencyById(id);
       if (existing == null) return null;
       if (existing.diverId != actingDiverId) {
         throw CertificationNotOwnerException(id);
@@ -417,7 +417,7 @@ class CustomCertificationRepository {
     required String actingDiverId,
   }) async {
     try {
-      final existing = await _level(id);
+      final existing = await getLevelById(id);
       if (existing == null) return null;
       if (existing.diverId != actingDiverId) {
         throw CertificationNotOwnerException(id);
@@ -460,14 +460,16 @@ class CustomCertificationRepository {
     return trimmed;
   }
 
-  Future<CustomCertificationAgency?> _agency(String id) async {
+  /// The custom agency [id], or null when there is none.
+  Future<CustomCertificationAgency?> getAgencyById(String id) async {
     final row = await (_db.select(
       _db.customCertificationAgencies,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     return row == null ? null : mapCustomAgencyRow(row);
   }
 
-  Future<CustomCertificationLevel?> _level(String id) async {
+  /// The custom level [id], or null when there is none.
+  Future<CustomCertificationLevel?> getLevelById(String id) async {
     final row = await (_db.select(
       _db.customCertificationLevels,
     )..where((t) => t.id.equals(id))).getSingleOrNull();

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/app_sql_functions.dart';
@@ -8,7 +6,7 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
 /// A diver's tags, through the repository the tag page uses. A name is the
@@ -135,31 +133,16 @@ class TagWrites extends WritableEntry {
         parts[junction] = row.read<int>('gone');
       }
     }
-    final albums = await _albumsNaming(id);
+    final albums = await countSmartAlbumsNaming(
+      db,
+      (filter) => filter.tagIds.contains(id),
+    );
     if (albums > 0) moved['media_smart_albums'] = albums;
     return DeleteReach(
       moved: moved,
       parts: parts,
       survivor: await _widenedScopes(intoId, [id, ...mergedBefore]),
     );
-  }
-
-  /// The saved smart albums whose filter names [id], read as
-  /// `repointSmartAlbumTags` reads them: one it cannot parse is left alone.
-  Future<int> _albumsNaming(String id) async {
-    final db = DatabaseService.instance.database;
-    var count = 0;
-    for (final row in await db.select(db.mediaSmartAlbums).get()) {
-      final Object? decoded;
-      try {
-        decoded = jsonDecode(row.filterJson);
-      } on FormatException {
-        continue;
-      }
-      if (decoded is! Map<String, dynamic>) continue;
-      if (MediaLibraryFilter.fromJson(decoded).tagIds.contains(id)) count++;
-    }
-    return count;
   }
 
   /// The survivor's scopes after a merge takes the union of the merged

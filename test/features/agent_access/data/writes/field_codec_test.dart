@@ -178,6 +178,14 @@ void main() {
     expect(parsed, isNot(codec.canonical(['SSI', 'PADI'])));
   });
 
+  // A column keeping the list joined by a separator splits an item holding
+  // it, and its reader trims each item.
+  test('textList trims items and refuses its separator inside one', () {
+    const codec = FieldCodec.textList(maxLength: 20, separator: ',');
+    expect(codec.wire(codec.parse([' PADI ', 'SSI'])), ['PADI', 'SSI']);
+    expect(() => codec.parse(['PADI, Inc']), _refused(','));
+  });
+
   test('textList refuses a blank, a long item or too many', () {
     const codec = FieldCodec.textList(maxItems: 2, maxLength: 5);
     expect(() => codec.parse(['PADI', ' ']), _refused('blank'));

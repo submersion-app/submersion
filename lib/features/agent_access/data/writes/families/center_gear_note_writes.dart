@@ -38,7 +38,7 @@ class CenterGearNoteWrites extends WritableEntry {
       max: 30,
       nullable: true,
     ),
-    'volume_l': const FieldCodec.number(min: 0, max: 30, nullable: true),
+    'volume_l': const FieldCodec.number(min: 0, max: 60, nullable: true),
     'note': const FieldCodec.text(allowBlank: true),
     'dive_id': const FieldCodec.reference('dives', nullable: true),
   };

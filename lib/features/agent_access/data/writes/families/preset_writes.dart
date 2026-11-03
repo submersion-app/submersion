@@ -26,7 +26,7 @@ class TankPresetWrites extends WritableEntry {
   @override
   late final Map<String, FieldCodec> fields = {
     'display_name': const FieldCodec.text(maxLength: 100),
-    'volume_l': const FieldCodec.number(min: 0.1, max: 30),
+    'volume_l': const FieldCodec.number(min: 0.1, max: 60),
     'working_pressure_bar': const FieldCodec.number(min: 1, max: 450),
     'material': FieldCodec.enumName(TankMaterial.values),
     'description': const FieldCodec.text(allowBlank: true),

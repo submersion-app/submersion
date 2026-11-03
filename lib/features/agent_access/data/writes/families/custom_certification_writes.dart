@@ -147,9 +147,7 @@ class CustomAgencyWrites extends WritableEntry {
   }
 
   Future<CustomCertificationAgency> _agency(String id) async =>
-      (await _r.customCertifications.getAllAgencies())
-          .where((a) => a.id == id)
-          .firstOrNull ??
+      await _r.customCertifications.getAgencyById(id) ??
       _refused('Agency $id no longer exists.', id);
 }
 
@@ -351,9 +349,7 @@ class CustomLevelWrites extends WritableEntry {
   ]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
   Future<CustomCertificationLevel> _level(String id) async =>
-      (await _r.customCertifications.getAllLevels())
-          .where((l) => l.id == id)
-          .firstOrNull ??
+      await _r.customCertifications.getLevelById(id) ??
       _refused('Level $id no longer exists.', id);
 }
 

@@ -34,7 +34,7 @@ class CylinderConfigWrites extends WritableEntry {
       {
         'role': FieldCodec.enumName(TankRole.values),
         'label': const FieldCodec.text(maxLength: 60, nullable: true),
-        'volume_l': const FieldCodec.number(min: 0.1, max: 30, nullable: true),
+        'volume_l': const FieldCodec.number(min: 0.1, max: 60, nullable: true),
         'working_pressure_bar': const FieldCodec.number(
           min: 1,
           max: 450,
