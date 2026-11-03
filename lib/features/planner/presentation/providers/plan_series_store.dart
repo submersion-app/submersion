@@ -84,6 +84,25 @@ Future<void> _saveAsPlainPlan(
   if (notifier.mounted) notifier.leaveSavedSeries();
 }
 
+/// Gives the planner the name [name] just stored from elsewhere for the
+/// saved series [seriesId], or for the plan [planId] when it is in none, if
+/// that is what the planner holds. Without it the planner's next save would
+/// write back the name it opened with.
+void adoptRenameInPlanner(
+  ProviderContainer container, {
+  required String? seriesId,
+  required String planId,
+  required String name,
+}) {
+  final series = container.read(planSeriesNotifierProvider);
+  final open = seriesId != null
+      ? series.id == seriesId
+      : series.id == null && series.dives.any((d) => d.state.id == planId);
+  if (open) {
+    container.read(planSeriesNotifierProvider.notifier).adoptStoredName(name);
+  }
+}
+
 /// The series in the editor as it would be stored, for saving or sharing.
 Future<StoredSeries> currentStoredSeries(ProviderContainer container) async {
   final plans = container.read(divePlanRepositoryProvider);
