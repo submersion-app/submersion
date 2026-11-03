@@ -524,13 +524,35 @@ jobs:
     secrets:
       WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
 
+  # A failed web app deploy gets its own issue, so the store-upload alert
+  # below keeps its timing (it would otherwise wait for validate-release and
+  # the deploy).
+  notify-web-deploy-failure:
+    name: Notify Web Deploy Failure
+    runs-on: ubuntu-latest
+    needs: deploy-web
+    if: always() && needs.deploy-web.result == 'failure'
+    permissions:
+      issues: write
+    steps:
+      - name: Open tracking issue
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create --repo "${{ github.repository }}" \
+            --title "Web app deploy failed for ${TAG_NAME}" \
+            --label ci \
+            --body "The GitHub Release for \`${TAG_NAME}\` was created, but deploying it to https://web.submersion.app failed: ${RUN_URL}. Rerun the Deploy Web App workflow with this tag once the cause is fixed (docs/developer/web-site-setup.md)."
+
   # ============================================================================
-  # Notify on Store Upload and Web Deploy Failures
+  # Notify on Store Upload Failures
   # ============================================================================
   notify-upload-failures:
     name: Notify Upload Failures
     runs-on: ubuntu-latest
-    needs: [upload-macos, upload-ios, upload-android, deploy-web]
+    needs: [upload-macos, upload-ios, upload-android]
     if: always() && contains(needs.*.result, 'failure')
     permissions:
       issues: write
@@ -542,7 +564,6 @@ jobs:
           MACOS_RESULT: ${{ needs.upload-macos.result }}
           IOS_RESULT: ${{ needs.upload-ios.result }}
           ANDROID_RESULT: ${{ needs.upload-android.result }}
-          WEB_RESULT: ${{ needs.deploy-web.result }}
         run: |
           FAILURES=""
           if [ "$MACOS_RESULT" = "failure" ]; then
@@ -553,9 +574,6 @@ jobs:
           fi
           if [ "$ANDROID_RESULT" = "failure" ]; then
             FAILURES="${FAILURES}- **Android** Google Play upload failed\n"
-          fi
-          if [ "$WEB_RESULT" = "failure" ]; then
-            FAILURES="${FAILURES}- **Web app** deploy to web.submersion.app failed (rerun the Deploy Web App workflow with this tag)\n"
           fi
           echo "failures<<EOF" >> "$GITHUB_OUTPUT"
           echo -e "$FAILURES" >> "$GITHUB_OUTPUT"
@@ -575,10 +593,10 @@ jobs:
         run: |
           gh issue create \
             --repo "${{ github.repository }}" \
-            --title "Store upload or web deploy failures for ${TAG_NAME}" \
+            --title "Store upload failures for ${TAG_NAME}" \
             --label "ci" \
             --body "$(cat <<EOF
-          The GitHub Release for \`${TAG_NAME}\` was created successfully, but one or more store uploads or the web app deploy failed:
+          The GitHub Release for \`${TAG_NAME}\` was created successfully, but one or more store uploads failed:
 
           ${FAILURES}
           **Workflow run:** ${RUN_URL}

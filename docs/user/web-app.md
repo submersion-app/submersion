@@ -8,7 +8,7 @@ machine. You look at your dives, refine them, and the changes sync back to
 your phone and your computer.
 
 Open it at **<https://web.submersion.app>**, Submersion's own copy, which
-always runs the latest release.
+always runs the latest stable release.
 
 Nothing runs on a server. The site is a folder of static files, and your
 data travels only between the browser and your own store, on Submersion's

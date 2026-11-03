@@ -62,12 +62,16 @@ env:
   PAGES_REMOTE: git@github.com:submersion-app/web.git
 
 jobs:
-  deploy:
-    name: Deploy to web.submersion.app
+  # Its own job so the deploy below is skipped whole: a secret cannot be
+  # read in a job-level `if`, but this job's output can.
+  configured:
+    name: Check the site is set up
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
+    outputs:
+      deploy: ${{ steps.configured.outputs.deploy }}
     steps:
-      - name: Check the site is set up
+      - name: Check for the deploy key
         id: configured
         env:
           WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
@@ -79,8 +83,14 @@ jobs:
             echo "deploy=true" >> "$GITHUB_OUTPUT"
           fi
 
+  deploy:
+    name: Deploy to web.submersion.app
+    needs: configured
+    if: needs.configured.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
       - name: Refuse a pre-release or unknown tag
-        if: steps.configured.outputs.deploy == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
@@ -99,7 +109,6 @@ jobs:
       # sqlite3.wasm lock comes from the release's tag: the module in its
       # bundle is checked against the build that release pinned.
       - name: Checkout the staging scripts
-        if: steps.configured.outputs.deploy == 'true'
         uses: actions/checkout@v7
         with:
           sparse-checkout: |
@@ -108,7 +117,6 @@ jobs:
           sparse-checkout-cone-mode: false
 
       - name: Read the release's sqlite3.wasm lock
-        if: steps.configured.outputs.deploy == 'true'
         env:
           TAG: ${{ inputs.tag }}
         run: |
@@ -117,7 +125,6 @@ jobs:
           git show "${TAG}:scripts/web/sqlite3_wasm.lock" > "$RUNNER_TEMP/sqlite3_wasm.lock"
 
       - name: Download the release's web bundle
-        if: steps.configured.outputs.deploy == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
@@ -130,7 +137,6 @@ jobs:
           fi
 
       - name: Stage the site
-        if: steps.configured.outputs.deploy == 'true'
         env:
           TAG: ${{ inputs.tag }}
           CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
@@ -143,7 +149,6 @@ jobs:
       # GitHub's host keys from its own API rather than ssh-keyscan, so the
       # first connection is not trust-on-first-use.
       - name: Set up the deploy key
-        if: steps.configured.outputs.deploy == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           WEB_DEPLOY_KEY: ${{ secrets.WEB_DEPLOY_KEY }}
@@ -156,7 +161,6 @@ jobs:
           echo "GIT_SSH_COMMAND=ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
 
       - name: Read the version the site serves
-        if: steps.configured.outputs.deploy == 'true'
         run: |
           set -euo pipefail
           current="$RUNNER_TEMP/current-version.json"
@@ -176,7 +180,6 @@ jobs:
           fi
 
       - name: Refuse an older release unless forced
-        if: steps.configured.outputs.deploy == 'true'
         env:
           FORCE: ${{ inputs.force }}
         run: |
@@ -188,7 +191,6 @@ jobs:
           python3 scripts/web/stage_hosted_site.py check-newer "${args[@]}"
 
       - name: Publish
-        if: steps.configured.outputs.deploy == 'true'
         env:
           TAG: ${{ inputs.tag }}
         working-directory: ${{ runner.temp }}/site
