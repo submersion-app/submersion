@@ -40,7 +40,6 @@ Future<void> bootstrapApp() async {
   // the current proxy snapshot (#3217). Must run before the first network
   // request; the snapshot stays direct until the saved choice loads below.
   // (Inside main(), so not reachable from the test host.)
-  // coverage:ignore-start
   final proxyController = ProxyController(
     resolver: SystemProxyResolver.forPlatform(),
   );
@@ -48,7 +47,6 @@ Future<void> bootstrapApp() async {
   HttpOverrides.global = AppHttpOverrides(
     currentProxy: () => proxyController.current,
   );
-  // coverage:ignore-end
 
   // Relocate the Windows app-data trees off the legacy "Eric Griffin" company
   // directory. MUST precede SharedPreferences.getInstance(): on Windows
@@ -57,9 +55,7 @@ Future<void> bootstrapApp() async {
   // would strand the user's real settings under the old company name. Never
   // throws; the reports are logged once file logging is up.
   // (Windows-only and inside main(), so not reachable from the test host.)
-  // coverage:ignore-start
   final appDataMigrations = await migrateWindowsAppDataDirectories();
-  // coverage:ignore-end
 
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();
@@ -71,10 +67,8 @@ Future<void> bootstrapApp() async {
   // Load the proxy choice and, in system mode, ask the OS (at most 3 s, so
   // a slow PAC server cannot hold up launch), then keep it current as the
   // network changes and the app resumes.
-  // coverage:ignore-start
   await proxyController.initialize(ProxySettingsStore(prefs));
   ProxyRefreshTriggers(proxyController);
-  // coverage:ignore-end
 
   // Attach the log file now that prefs and the app-support directory are
   // known; see [attachFileLogging] for why it is unconditional.
@@ -88,7 +82,6 @@ Future<void> bootstrapApp() async {
   // Anything other than "no legacy data" is worth a line in a shared log:
   // a failure here is the difference between a user's settings surviving an
   // upgrade and appearing to reset.
-  // coverage:ignore-start
   const migrationLogger = LoggerService('AppDataMigration');
   for (final report in appDataMigrations) {
     if (report.outcome == AppDataMigrationOutcome.noLegacyData) continue;
@@ -98,7 +91,6 @@ Future<void> bootstrapApp() async {
       migrationLogger.info('Windows app-data migration: $report');
     }
   }
-  // coverage:ignore-end
 
   // Create location service and get storage config
   final locationService = DatabaseLocationService(prefs);
