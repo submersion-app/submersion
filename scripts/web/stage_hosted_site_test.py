@@ -214,6 +214,7 @@ class MainTest(_TempDirTest):
         code, output = self._run(["check-newer", staged, current])
         self.assertEqual(code, 1)
         self.assertIn("force", output)
+        self.assertTrue(output.startswith("::error::"), output)
         self.assertEqual(self._run(["check-newer", staged, current, "--force"])[0], 0)
         absent = os.path.join(self.root, "absent.json")
         self.assertEqual(self._run(["check-newer", staged, absent])[0], 0)
@@ -244,7 +245,8 @@ class MainTest(_TempDirTest):
             ["stage", self.zip, self.out, "--domain", DOMAIN, "--lock", self.lock]
         )
         self.assertEqual(code, 1)
-        self.assertIn("FAIL:", output)
+        self.assertTrue(output.startswith("::error::"), output)
+        self.assertIn("missing sqlite3.wasm", output)
 
 
 if __name__ == "__main__":

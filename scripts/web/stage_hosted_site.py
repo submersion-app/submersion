@@ -26,7 +26,8 @@ lets the deploy go ahead.
 Usage:
   stage_hosted_site.py stage ZIP OUT --domain DOMAIN [--client-id ID] [--lock LOCK]
   stage_hosted_site.py check-newer STAGED_VERSION_JSON CURRENT_VERSION_JSON [--force]
-Prints OK, ::warning:: or FAIL lines; exits 1 when the deploy must stop.
+Prints OK lines and ::warning:: or ::error:: annotations; exits 1 when the
+deploy must stop.
 """
 
 import argparse
@@ -83,6 +84,9 @@ def client_warnings(bundle_dir, client_id, origin):
             "Google Drive on the site asks for a client id until a release "
             "built with it is deployed"
         ]
+    # A plain substring: the origin is the GOOGLE_WEB_CLIENT_ORIGINS define,
+    # and nothing else in lib/ spells the site's address today. A literal of
+    # it added elsewhere would let a bundle built for another origin pass.
     if origin not in compiled:
         return [
             f"the bundle's Google client is not authorised for {origin}; "
@@ -134,7 +138,7 @@ def _label(version):
 def _check_newer(staged_path, current_path, force):
     staged = read_version(staged_path)
     if staged is None:
-        print(f"FAIL: {staged_path} does not hold a version and build number")
+        print(f"::error::{staged_path} does not hold a version and build number")
         return 1
     current = read_version(current_path)
     if current is None:
@@ -145,7 +149,7 @@ def _check_newer(staged_path, current_path, force):
         print(f"OK: deploying {_label(staged)} over {_label(current)}{note}")
         return 0
     print(
-        f"FAIL: the site serves {_label(current)}, newer than {_label(staged)}. "
+        f"::error::The site serves {_label(current)}, newer than {_label(staged)}. "
         "Visitors' libraries are already on the newer release's schema, which "
         "an older release cannot open. Rerun with force only when both "
         "releases share a schema."
@@ -173,7 +177,7 @@ def main(argv=None):
     try:
         warnings = stage_site(args.zip, args.out, args.domain, args.client_id, args.lock)
     except StageError as exc:
-        print(f"FAIL: {exc}")
+        print(f"::error::{exc}")
         return 1
     for warning in warnings:
         print(f"::warning::{warning}")

@@ -47,7 +47,12 @@ on:
 permissions:
   contents: read
 
-# One deploy at a time, and never cancelled halfway through a push.
+# One deploy at a time: a new run waits for the running one rather than
+# cancelling it. GitHub keeps only one waiting run per group, so a third
+# run replaces a waiting second; and a caller's own cancellation (release.yml
+# cancels a run when the same tag is pushed again) still stops this one.
+# Either way the push itself is atomic: the site holds the old commit or
+# the new one, never a mix.
 concurrency:
   group: deploy-web
   cancel-in-progress: false
@@ -74,13 +79,18 @@ jobs:
             echo "deploy=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Refuse a pre-release tag
+      - name: Refuse a pre-release or unknown tag
         if: steps.configured.outputs.deploy == 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
         run: |
           if [[ "$TAG" == *-* ]]; then
             echo "::error::${TAG} is a pre-release tag; only stable releases deploy to ${SITE_DOMAIN}."
+            exit 1
+          fi
+          if ! gh release view "$TAG" --repo "${{ github.repository }}" --json tagName >/dev/null; then
+            echo "::error::There is no release ${TAG} in ${{ github.repository }}; check the tag."
             exit 1
           fi
 
