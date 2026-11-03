@@ -216,7 +216,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
         Row(
           children: [
             Text(
-              context.l10n.diveLog_profileEditor_outlierDetection,
+              context.l10n.diveLog_profileEditor_cleanup,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             if (count > 0) ...[

@@ -51681,8 +51681,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Aplicar a la selección';
 
   @override
-  String get diveLog_profileEditor_outlierDetection =>
-      'Detección de valores atípicos';
+  String get diveLog_profileEditor_cleanup => 'Limpieza';
 
   @override
   String get diveLog_profileEditor_detect => 'Detectar';
@@ -51777,7 +51776,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Seleccionar';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Atípico';
+  String get diveLog_profileEditor_mode_cleanup => 'Limpiar';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Dibujar';

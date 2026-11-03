@@ -81702,11 +81702,11 @@ abstract class AppLocalizations {
   /// **'Apply to Selection'**
   String get diveLog_profileEditor_applyToSelection;
 
-  /// No description provided for @diveLog_profileEditor_outlierDetection.
+  /// No description provided for @diveLog_profileEditor_cleanup.
   ///
   /// In en, this message translates to:
-  /// **'Outlier Detection'**
-  String get diveLog_profileEditor_outlierDetection;
+  /// **'Cleanup'**
+  String get diveLog_profileEditor_cleanup;
 
   /// No description provided for @diveLog_profileEditor_detect.
   ///
@@ -81856,7 +81856,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Outlier'**
-  String get diveLog_profileEditor_mode_outlier;
+  String get diveLog_profileEditor_mode_cleanup;
 
   /// Profile editor mode: draw the depth curve by placing waypoints.
   ///

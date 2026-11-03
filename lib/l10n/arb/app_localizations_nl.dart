@@ -51306,7 +51306,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Op selectie toepassen';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Uitschieterdetectie';
+  String get diveLog_profileEditor_cleanup => 'Opschoning';
 
   @override
   String get diveLog_profileEditor_detect => 'Detecteren';
@@ -51401,7 +51401,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Selecteren';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Uitschieter';
+  String get diveLog_profileEditor_mode_cleanup => 'Opschonen';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Tekenen';

@@ -48445,7 +48445,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => '应用到所选范围';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => '异常值检测';
+  String get diveLog_profileEditor_cleanup => '清理';
 
   @override
   String get diveLog_profileEditor_detect => '检测';
@@ -48532,7 +48532,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => '选择';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => '异常值';
+  String get diveLog_profileEditor_mode_cleanup => '清理';
 
   @override
   String get diveLog_profileEditor_mode_draw => '绘制';

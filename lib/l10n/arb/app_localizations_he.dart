@@ -50553,7 +50553,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'החלה על הבחירה';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'זיהוי חריגות';
+  String get diveLog_profileEditor_cleanup => 'ניקוי';
 
   @override
   String get diveLog_profileEditor_detect => 'זיהוי';
@@ -50648,7 +50648,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'בחירה';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'חריגה';
+  String get diveLog_profileEditor_mode_cleanup => 'לנקות';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'ציור';

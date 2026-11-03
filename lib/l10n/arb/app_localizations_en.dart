@@ -50836,7 +50836,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Apply to Selection';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Outlier Detection';
+  String get diveLog_profileEditor_cleanup => 'Cleanup';
 
   @override
   String get diveLog_profileEditor_detect => 'Detect';
@@ -50930,7 +50930,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Select';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Outlier';
+  String get diveLog_profileEditor_mode_cleanup => 'Outlier';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Draw';

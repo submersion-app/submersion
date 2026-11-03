@@ -51753,8 +51753,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Appliquer à la sélection';
 
   @override
-  String get diveLog_profileEditor_outlierDetection =>
-      'Détection des valeurs aberrantes';
+  String get diveLog_profileEditor_cleanup => 'Nettoyage';
 
   @override
   String get diveLog_profileEditor_detect => 'Détecter';
@@ -51849,7 +51848,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Sélectionner';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Aberrant';
+  String get diveLog_profileEditor_mode_cleanup => 'Nettoyer';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Dessiner';

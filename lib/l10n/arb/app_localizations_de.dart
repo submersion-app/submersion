@@ -51516,7 +51516,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Auf Auswahl anwenden';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Ausreißererkennung';
+  String get diveLog_profileEditor_cleanup => 'Bereinigung';
 
   @override
   String get diveLog_profileEditor_detect => 'Erkennen';
@@ -51611,7 +51611,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Auswählen';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Ausreißer';
+  String get diveLog_profileEditor_mode_cleanup => 'Bereinigen';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Zeichnen';

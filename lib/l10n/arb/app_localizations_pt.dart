@@ -51632,7 +51632,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Aplicar à seleção';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Detecção de anomalias';
+  String get diveLog_profileEditor_cleanup => 'Limpeza';
 
   @override
   String get diveLog_profileEditor_detect => 'Detectar';
@@ -51727,7 +51727,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Selecionar';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Anomalia';
+  String get diveLog_profileEditor_mode_cleanup => 'Limpar';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Desenhar';

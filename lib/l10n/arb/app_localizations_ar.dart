@@ -52302,7 +52302,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'تطبيق على التحديد';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'كشف القيم الشاذة';
+  String get diveLog_profileEditor_cleanup => 'تنظيف';
 
   @override
   String get diveLog_profileEditor_detect => 'كشف';
@@ -52400,7 +52400,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'تحديد';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'قيمة شاذة';
+  String get diveLog_profileEditor_mode_cleanup => 'نظف';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'رسم';

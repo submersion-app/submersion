@@ -51346,8 +51346,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alkalmazás a kijelölésre';
 
   @override
-  String get diveLog_profileEditor_outlierDetection =>
-      'Kiugró értékek keresése';
+  String get diveLog_profileEditor_cleanup => 'Takarítás';
 
   @override
   String get diveLog_profileEditor_detect => 'Keresés';
@@ -51441,7 +51440,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Kijelölés';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Kiugró érték';
+  String get diveLog_profileEditor_mode_cleanup => 'Tisztít';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Rajzolás';
