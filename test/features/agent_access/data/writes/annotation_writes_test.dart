@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -131,6 +132,29 @@ void main() {
 
     expect(plan.items.last.block!.reason, BlockReason.referenceChanged);
   });
+
+  test(
+    'with no profile, a time is capped by the runtime, else a day',
+    () async {
+      await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+        const DivesCompanion(runtime: Value(1800)),
+      );
+
+      Future<PlanBlock?> at(String diveId, int t) async => (await h.preview([
+        createOp('dive_events', {
+          'dive_id': diveId,
+          't_s': t,
+          'description': 'Turtle',
+        }),
+      ])).items.single.block;
+
+      expect(await at('d1', 1800), isNull);
+      expect((await at('d1', 1801))!.reason, BlockReason.invalidValue);
+      // d2 says nothing about its length, so any time within a day stands.
+      expect(await at('d2', 86400), isNull);
+      expect((await at('d2', 86401))!.reason, BlockReason.invalidValue);
+    },
+  );
 
   test('a create beside an update that leaves the Notes alone runs', () async {
     final plan = await h.preview([
