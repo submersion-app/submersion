@@ -29,16 +29,21 @@ import 'package:submersion/core/database/table_columns.dart';
 /// Combine already wrote, no longer matches it, so the repair never touches
 /// either and a second run finds nothing to do.
 ///
-/// Cheap enough to run again after every inbound sync apply, which is how a
-/// dive combined on a peer below v340, or held in a sync store written before
-/// it, gets the same repair. The sync stamp (`updated_at`, `hlc`) does not
-/// move: every device runs this same rewrite, so they agree without a sync
-/// round.
+/// Runs again after an inbound sync apply, which is how a dive combined on a
+/// peer below v340, or held in a sync store written before it, gets the same
+/// repair. A repaired dive keeps the shape that qualifies it, so a sweep never
+/// runs out of dives to read; [diveIds] limits it to the dives a payload
+/// touched, and null sweeps the whole library, as the rung and a base file
+/// adoption do. The sync stamp (`updated_at`, `hlc`) does not move: every
+/// device runs this same rewrite, so they agree without a sync round.
 ///
 /// Raw SQL, as the other ladder helpers, so it keeps compiling against any
 /// later shape of the generated classes. Guarded on the columns it reads, for
 /// migration fixtures that build only part of the schema.
-Future<int> repairCombinedDiveSummaries(DatabaseConnectionUser db) async {
+Future<int> repairCombinedDiveSummaries(
+  DatabaseConnectionUser db, {
+  Iterable<String>? diveIds,
+}) async {
   final sourceColumns = await tableColumnNames(db, 'dive_data_sources');
   final diveColumns = await tableColumnNames(db, 'dives');
   if (!sourceColumns.containsAll(const {
@@ -56,7 +61,30 @@ Future<int> repairCombinedDiveSummaries(DatabaseConnectionUser db) async {
     return 0;
   }
 
-  final rows = await db.customSelect('''
+  if (diveIds == null) return _repairDives(db, null);
+  final ids = diveIds.toSet().toList();
+  var rewritten = 0;
+  // Chunked well below SQLite's bound-variable limit: one payload can carry
+  // a whole library.
+  for (var i = 0; i < ids.length; i += _idChunk) {
+    final end = i + _idChunk < ids.length ? i + _idChunk : ids.length;
+    rewritten += await _repairDives(db, ids.sublist(i, end));
+  }
+  return rewritten;
+}
+
+const _idChunk = 500;
+
+/// Repairs the qualifying dives among [ids], or every one when null.
+Future<int> _repairDives(DatabaseConnectionUser db, List<String>? ids) async {
+  final placeholders = ids == null
+      ? ''
+      : List.filled(ids.length, '?').join(', ');
+  String scoped(String column, String keyword) =>
+      ids == null ? '' : '$keyword $column IN ($placeholders)';
+  final rows = await db
+      .customSelect(
+        '''
     SELECT s.dive_id, s.water_temp, s.cns, s.otu,
            d.water_temp AS dive_water_temp, d.cns_end AS dive_cns_end,
            d.otu AS dive_otu
@@ -64,6 +92,7 @@ Future<int> repairCombinedDiveSummaries(DatabaseConnectionUser db) async {
     JOIN dives d ON d.id = s.dive_id
     WHERE s.dive_id IN (
       SELECT dive_id FROM dive_data_sources
+      ${scoped('dive_id', 'WHERE')}
       GROUP BY dive_id
       HAVING COUNT(*) >= 2
          AND SUM(CASE WHEN is_primary THEN 1 ELSE 0 END) = 0
@@ -77,9 +106,17 @@ Future<int> repairCombinedDiveSummaries(DatabaseConnectionUser db) async {
       SELECT a.dive_id FROM dive_data_sources a
       JOIN dive_data_sources b ON b.dive_id = a.dive_id AND b.id <> a.id
       WHERE a.entry_time < b.exit_time AND b.entry_time < a.exit_time
+      ${scoped('a.dive_id', 'AND')}
     )
     ORDER BY s.dive_id, s.entry_time, s.id
-  ''').get();
+  ''',
+        variables: [
+          if (ids != null)
+            for (var pass = 0; pass < 2; pass++)
+              for (final id in ids) Variable<String>(id),
+        ],
+      )
+      .get();
 
   final byDive = <String, List<QueryRow>>{};
   for (final row in rows) {

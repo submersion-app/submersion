@@ -1447,7 +1447,13 @@ class SyncService {
           remotePayload,
           localLastSync,
         );
-        await _repairLegacyPeerRows();
+        await _repairLegacyPeerRows(
+          combinedDiveIds: {
+            for (final dive in remotePayload.data.dives) ?dive['id'] as String?,
+            for (final source in remotePayload.data.diveDataSources)
+              ?source['diveId'] as String?,
+          },
+        );
         return result;
       }),
     );
@@ -1455,11 +1461,12 @@ class SyncService {
 
   /// Runs the data rungs over what was just applied, because this database
   /// ran them before those rows arrived, or never ran them if it is new. Each
-  /// writes only rows still in the old shape, so it changes nothing once every
-  /// peer is current; the combined dive repair still reads every combined
-  /// dive's sources to tell, an indexed scan. Each leaves the sync stamp
-  /// alone, as its rung does:
-  /// the sending peer makes the same change when it upgrades.
+  /// reads only rows still in the old shape, so it is a cheap no-op once every
+  /// peer is current, and each leaves the sync stamp alone, as its rung does:
+  /// the sending peer makes the same change when it upgrades. A combined dive
+  /// keeps its shape once repaired, so that repair reads only
+  /// [combinedDiveIds], the dives a payload touched; null, for a base file,
+  /// sweeps them all.
   ///
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
   /// dive's computer tissue snapshot, with the dive's own columns empty
@@ -1467,11 +1474,13 @@ class SyncService {
   /// milliseconds, as does a sync store written before it (issue #4119). One
   /// below v340 publishes a combined dive with its first segment's water
   /// temperature, CNS and OTU (issue #4136).
-  Future<void> _repairLegacyPeerRows() async {
+  Future<void> _repairLegacyPeerRows({
+    Iterable<String>? combinedDiveIds,
+  }) async {
     try {
       final db = DatabaseService.instance.database;
       await repairWeatherFetchedAtSeconds(db);
-      await repairCombinedDiveSummaries(db);
+      await repairCombinedDiveSummaries(db, diveIds: combinedDiveIds);
       await moveComputerTissueScalars(db);
     } catch (e, st) {
       // The applied rows are already in place; losing this repair costs only

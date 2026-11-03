@@ -142,6 +142,24 @@ void main() {
       expect(row['otu'], 80);
     });
 
+    test('a scoped run reads only the dives it names', () async {
+      await seedCombined(db, 'named');
+      await seedCombined(db, 'other');
+
+      expect(await repairCombinedDiveSummaries(db, diveIds: ['named']), 1);
+      expect((await dive(db, 'named'))['water_temp'], 8);
+      expect((await dive(db, 'other'))['water_temp'], 16);
+      expect(await repairCombinedDiveSummaries(db, diveIds: const []), 0);
+    });
+
+    test('a scoped run larger than one chunk reaches every dive', () async {
+      await seedCombined(db, 'combined');
+      final ids = [for (var i = 0; i < 1200; i++) 'absent-$i', 'combined'];
+
+      expect(await repairCombinedDiveSummaries(db, diveIds: ids), 1);
+      expect((await dive(db, 'combined'))['otu'], 75);
+    });
+
     test('a second run finds nothing to do', () async {
       await seedCombined(db, 'combined');
 
