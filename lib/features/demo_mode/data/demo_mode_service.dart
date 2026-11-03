@@ -258,20 +258,21 @@ class DemoModeService {
   /// Leaves demo mode and restarts. Never throws: whatever is left half done
   /// is finished by `DemoStartup` on the restart.
   Future<void> exit() async {
-    await _leaveLogged();
-    announceSwitch?.call();
+    await _leaveLogged(announce: true);
     restart();
   }
 
-  Future<void> _leaveLogged() async {
+  /// [announce] tells the site's other tabs (see [announceSwitch]); a
+  /// failed entry has nothing to tell them.
+  Future<void> _leaveLogged({bool announce = false}) async {
     try {
-      await _leave();
+      await _leave(announce: announce);
     } catch (e, st) {
       _log.error('Leaving demo mode failed', error: e, stackTrace: st);
     }
   }
 
-  Future<void> _leave() async {
+  Future<void> _leave({required bool announce}) async {
     final current = await store.read();
     if (current != null) {
       await store.write(current.copyWith(phase: DemoPhase.exiting));
@@ -288,6 +289,9 @@ class DemoModeService {
     // On failure the state stays exiting: startup finishes the exit on the
     // restart, and shows its own screens if the logbook still cannot open.
     await switcher.openAt(await realDatabasePath(), keyHex: realKeyHex());
+    // Before the sample logbook goes: another tab holding it lets go once
+    // it reloads, instead of holding up its deletion.
+    if (announce) announceSwitch?.call();
     await store.deleteAll();
     DemoModeGate.instance.markActive(false);
   }

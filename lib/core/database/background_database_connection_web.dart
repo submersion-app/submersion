@@ -177,10 +177,16 @@ class BackgroundDatabaseConnection {
     return names..addAll(await _indexedDbNames());
   }
 
+  /// The app's IndexedDB databases. The listing holds every database on
+  /// the origin, and only the app's own are named `submersion...`; another
+  /// library's, held open elsewhere, would stop Forget this device.
   static Future<Set<String>> _indexedDbNames() async {
     try {
       final listed = await web.window.indexedDB.databases().toDart;
-      return {for (final info in listed.toDart) info.name};
+      return {
+        for (final info in listed.toDart)
+          if (info.name.startsWith('submersion')) info.name,
+      };
     } catch (_) {
       // A browser without the listing: the probes above stand in.
       return const {};

@@ -1,8 +1,12 @@
 @TestOn('browser')
 library;
 
+import 'dart:async';
+import 'dart:js_interop';
+
 import 'package:drift/wasm.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:web/web.dart' as web;
 
 import 'package:submersion/core/database/background_database_connection_web.dart';
 import 'package:submersion/core/database/database.dart';
@@ -55,7 +59,7 @@ void main() {
 
   test('deleteAllStoredDatabases removes every database the site keeps, '
       'restored libraries included', () async {
-    for (final name in ['wipe-a', 'submersion_1700']) {
+    for (final name in ['submersion_wipe', 'submersion_1700']) {
       final connection = await BackgroundDatabaseConnection.open(
         '/opfs/Submersion/$name.db',
       );
@@ -68,4 +72,23 @@ void main() {
 
     expect(await BackgroundDatabaseConnection.storedDatabaseNames(), isEmpty);
   });
+
+  test(
+    'a database another library keeps is not the app\'s to delete',
+    () async {
+      final opened = Completer<void>();
+      final request = web.window.indexedDB.open('other-library', 1);
+      request.onsuccess = ((web.Event _) {
+        (request.result as web.IDBDatabase).close();
+        opened.complete();
+      }).toJS;
+      await opened.future;
+      addTearDown(() => web.window.indexedDB.deleteDatabase('other-library'));
+
+      expect(
+        await BackgroundDatabaseConnection.storedDatabaseNames(),
+        isNot(contains('other-library')),
+      );
+    },
+  );
 }

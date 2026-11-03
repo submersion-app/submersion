@@ -28,7 +28,16 @@ extension DatabaseServiceBrowserRestore on DatabaseService {
     try {
       await _reinitializeAtPath(target);
     } catch (_) {
-      await _reinitializeAtPath(previous);
+      // Best effort: the error to report is the one that stopped the open.
+      try {
+        await _reinitializeAtPath(previous);
+      } catch (e, stackTrace) {
+        _log.error(
+          'Could not reopen the library after a failed restore',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
       await _deleteWebLibrary(target);
       rethrow;
     }
