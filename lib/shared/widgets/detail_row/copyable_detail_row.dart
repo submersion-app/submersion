@@ -27,6 +27,7 @@ class CopyableDetailRow extends StatelessWidget {
   static const double buttonWidth = 36;
 
   static const double _iconSize = 18;
+
   final String copyValue;
   final String semanticsLabel;
 
