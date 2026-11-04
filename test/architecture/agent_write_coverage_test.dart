@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Every editable record must be writable by an agent before release (spec,
@@ -601,6 +603,45 @@ void main() {
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':
           'pre_dive_templates',
+    // The same record changed by another path the app also takes.
+    'lib/features/buddies/data/repositories/buddy_repository.dart:setFavorite':
+        'buddies',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite':
+        'buddies',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:updateBuddy':
+        'buddies',
+    'lib/features/dive_log/data/repositories/dive_custom_field_repository.dart:replaceFieldsForDive':
+        'dive_custom_fields',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createGasSwitch':
+        'gas_switches',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteDive':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteGasSwitch':
+        'gas_switches',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:insertGasSwitches':
+        'gas_switches',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setFavorite':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setSite':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:shiftDiveTimes':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:toggleFavorite':
+        'dives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:updateDive':
+        'dives',
+    'lib/features/tags/data/repositories/tag_link_repository.dart:addTags':
+        'dives',
+    'lib/features/tags/data/repositories/tag_link_repository.dart:removeTags':
+        'dives',
+    'lib/features/tags/data/repositories/tag_repository.dart:addTagToDive':
+        'dives',
+    'lib/features/tags/data/repositories/tag_repository.dart:removeTagFromDive':
+        'dives',
+    'lib/features/tags/data/repositories/tag_repository.dart:setTagsForDive':
+        'dives',
+    'lib/features/trips/data/repositories/trip_repository.dart:assignDiveToTrip':
+        'trips',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
@@ -700,6 +741,291 @@ void main() {
     '$gear/equipment_repository_impl.dart:markAsServiced':
         'a legacy field with no caller in the app, and a write that skips '
         'sync; service_records covers servicing',
+    // Imports, devices and derived values.
+    for (final method in const [
+      'lib/features/buddies/data/repositories/buddy_conversion_repository.dart:apply',
+      'lib/features/buddies/data/repositories/buddy_conversion_repository.dart:undo',
+      'lib/features/buddies/data/repositories/buddy_repository.dart:applyLegacyConversion',
+      'lib/features/dive_log/data/repositories/derived_metrics_repository.dart:saveMetrics',
+      'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:addProfileEvent',
+      'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearEventsForDive',
+      'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearSourceAndProfiles',
+      'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:insertTanks',
+      'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateLastDownload',
+      'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateLastFingerprint',
+      'lib/features/dive_log/data/repositories/dive_fill_if_empty_repository.dart:addCustomFieldsIfMissing',
+      'lib/features/dive_log/data/repositories/dive_fill_if_empty_repository.dart:fillCurrentStrengthIfEmpty',
+      'lib/features/dive_log/data/repositories/dive_fill_if_empty_repository.dart:fillVisibilityRangeIfEmpty',
+      'lib/features/dive_log/data/repositories/dive_fill_if_empty_repository.dart:linkDiveCenterIfNone',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:addWeightIfNone',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:applyImportedMetadata',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteComputerReading',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:fillDiveConditions',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:fillNotesIfEmpty',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:insertProfileEvents',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:saveAdditionalComputerReading',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:saveComputerReading',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:saveComputerReadings',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setDiveGps',
+      'lib/features/dive_log/data/repositories/safety_findings_repository.dart:saveReview',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyImportedMetadata',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyLocationDetails',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteAltitude',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteCoordinates',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteWithImportedMetadata',
+      'lib/features/gps_log/data/repositories/gps_track_repository.dart:insertImportedTrack',
+      'lib/features/gps_log/data/repositories/gps_track_repository.dart:startTrack',
+      'lib/features/media/data/repositories/media_repository.dart:applyRepairWrites',
+      'lib/features/media/data/repositories/media_repository.dart:createPendingSuggestion',
+      'lib/features/media/data/repositories/media_repository.dart:deleteOrphanedMedia',
+      'lib/features/media/data/repositories/media_repository.dart:deleteSuggestionsForRemoteAsset',
+      'lib/features/media/data/repositories/media_repository.dart:markAsOrphaned',
+      'lib/features/media/data/repositories/media_repository.dart:markAsVerified',
+      'lib/features/media/data/repositories/media_repository.dart:markOrphaned',
+      'lib/features/media/data/repositories/media_repository.dart:markVerified',
+      'lib/features/media/data/repositories/media_repository.dart:saveEnrichment',
+      'lib/features/media/data/repositories/media_repository.dart:saveEnrichments',
+      'lib/features/nav_track/data/repositories/nav_track_repository.dart:insertImportedRoute',
+      'lib/features/nav_track/data/repositories/nav_track_repository.dart:replace',
+      'lib/features/rules/data/repositories/rule_run_repository.dart:deleteAllRuns',
+      'lib/features/rules/data/repositories/rule_run_repository.dart:deleteRun',
+      'lib/features/rules/data/repositories/rule_run_repository.dart:insertRun',
+      'lib/features/rules/data/repositories/rule_run_repository.dart:markUndone',
+      'lib/features/tides/data/repositories/tide_record_repository.dart:createFromStatus',
+      'lib/features/tides/data/repositories/tide_record_repository.dart:deleteTideRecordForDive',
+      'lib/features/tides/data/repositories/tide_record_repository.dart:saveTideRecord',
+      'lib/features/trips/data/repositories/trip_day_weather_repository.dart:upsert',
+    ])
+      method:
+          'written by an import, a download, a device or the app\'s own derivation, not a diver\'s edit',
+    // Bulk shortcuts.
+    for (final method in const [
+      'lib/features/buddies/data/repositories/buddy_merge_repository.dart:bulkDeleteBuddies',
+      'lib/features/buddies/data/repositories/buddy_repository.dart:bulkDeleteBuddies',
+      'lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:duplicateScenario',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:assignMissingDiveNumbers',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddTank',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddTanks',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddWeights',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAppendNotes',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceCourses',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceDiveTypes',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceEquipment',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceTags',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceTanks',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkReplaceWeights',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRestoreTankRows',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateTankSpecs',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateTrip',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setSingleWeightAmount',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setTankRoles',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:updateTankRecordPressures',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:bulkDeleteSites',
+      'lib/features/marine_life/data/repositories/species_repository.dart:bulkAddSightings',
+      'lib/features/marine_life/data/repositories/species_repository.dart:bulkReplaceSightings',
+      'lib/features/marine_life/data/repositories/species_repository.dart:removeAllExpectedSpeciesForSite',
+    ])
+      method: 'a bulk shortcut for a write an agent makes record by record',
+    // Inner steps.
+    for (final method in const [
+      'lib/features/buddies/data/repositories/buddy_merge_repository.dart:undoMerge',
+      'lib/features/buddies/data/repositories/buddy_repository.dart:undoLegacyConversion',
+      'lib/features/buddies/data/repositories/buddy_repository.dart:undoMerge',
+      'lib/features/connections/data/repositories/connection_map_repository.dart:restore',
+      'lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:relinkToEquipment',
+      'lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:unlinkFromDeletedEquipment',
+      'lib/features/dive_log/data/repositories/dive_parent_links.dart:clearDiveCenterLinks',
+      'lib/features/dive_log/data/repositories/dive_parent_links.dart:clearDiveSiteLinks',
+      'lib/features/dive_log/data/repositories/dive_parent_links.dart:clearDiveTripLinks',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteGasSwitchesForDive',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteProfileEventsForDive',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:replaceGearRows',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:replaceSetEquipment',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:restoreDiveTimes',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:restoreOriginalProfile',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:restoreSourceProfiles',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:restoreTankAttribution',
+      'lib/features/dive_log/data/repositories/source_clock_repository.dart:restore',
+      'lib/features/dive_log/data/repositories/source_clock_repository.dart:shift',
+      'lib/features/dive_log/data/repositories/tank_computer_links.dart:clearTankComputerLinks',
+      'lib/features/dive_log/data/repositories/tank_role_repair_repository.dart:undoUseAsBailout',
+      'lib/features/dive_log/data/repositories/tank_source_links.dart:clearTankSourceLinks',
+      'lib/features/dive_log/data/repositories/tank_source_links.dart:restoreTankLinks',
+      'lib/features/dive_log/data/repositories/trip_cylinder_links.dart:clearForeignTripCylinderLinks',
+      'lib/features/dive_log/data/repositories/trip_cylinder_links.dart:clearTripCylinderEquipmentLinks',
+      'lib/features/dive_log/data/repositories/trip_cylinder_links.dart:clearTripCylinderEventCenterLinks',
+      'lib/features/dive_log/data/repositories/trip_cylinder_links.dart:clearTripCylinderLinks',
+      'lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:deleteBuddyRoles',
+      'lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:deleteBuddyRolesOnDives',
+      'lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:restoreRows',
+      'lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeBuddyRoles',
+      'lib/features/dive_sites/data/repositories/site_children.dart:restore',
+      'lib/features/dive_sites/data/repositories/site_children.dart:restoreSiteChildren',
+      'lib/features/dive_sites/data/repositories/site_links.dart:restoreLinksToSites',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:relinkSiteReferences',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:restoreSiteLinks',
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart:undoMerge',
+      'lib/features/divers/data/repositories/item_shares_repository.dart:deleteShares',
+      'lib/features/divers/data/repositories/item_shares_repository.dart:restoreShares',
+      'lib/features/divers/data/repositories/profile_hides_repository.dart:deleteHides',
+      'lib/features/divers/data/repositories/profile_hides_repository.dart:restoreHides',
+      'lib/features/documents/data/repositories/document_repository.dart:reassignOwner',
+      'lib/features/documents/data/repositories/document_repository.dart:restoreOwners',
+      'lib/features/documents/data/repositories/document_repository.dart:restoreSnapshot',
+      'lib/features/equipment/data/repositories/equipment_observation_repository.dart:unlinkFromDeletedDives',
+      'lib/features/marine_life/data/repositories/species_repository.dart:deleteSightingsForDive',
+      'lib/features/media/data/repositories/media_color_adjustment_repository.dart:restoreColorAdjustments',
+      'lib/features/media/data/repositories/media_parent_cascade.dart:unlinkMediaFromDeletedParents',
+      'lib/features/media/data/repositories/media_people_buddy_merge.dart:undoMediaPeopleMerge',
+      'lib/features/media/data/repositories/media_people_repository.dart:deleteForBuddies',
+      'lib/features/media/data/repositories/media_people_repository.dart:deleteForMedia',
+      'lib/features/media/data/repositories/media_repository.dart:unlinkMediaFromDeletedDives',
+      'lib/features/media/data/repositories/media_repository.dart:unlinkMediaFromDeletedEquipment',
+      'lib/features/media/data/repositories/media_repository.dart:unlinkMediaFromDeletedSites',
+      'lib/features/media/data/repositories/media_row_restore.dart:relinkMediaToSites',
+      'lib/features/media/data/repositories/media_row_restore.dart:restoreMediaRows',
+      'lib/features/nav_track/data/repositories/nav_track_repository.dart:moveLinks',
+      'lib/features/nav_track/data/repositories/nav_track_repository.dart:restoreLinks',
+      'lib/features/planner/data/repositories/dive_plan_dive_links.dart:clearPlanLinksToDiverRows',
+      'lib/features/planner/data/repositories/dive_plan_dive_links.dart:clearPlanLinksToDiverSeries',
+      'lib/features/planner/data/repositories/dive_plan_series_repository.dart:restoreSeries',
+      'lib/features/tags/data/repositories/tag_link_repository.dart:deleteLinksFor',
+      'lib/features/transmitters/data/repositories/transmitter_repository.dart:detachFromDeletedComputer',
+      'lib/features/transmitters/data/repositories/transmitter_repository.dart:unlinkFromDeletedEquipment',
+      'lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteBarePlanDaysOutside',
+      'lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteByTripId',
+      'lib/features/trips/data/repositories/liveaboard_details_repository.dart:deleteByTripId',
+      'lib/features/trips/data/repositories/side_trip_links.dart:detachSideTripsForDelete',
+      'lib/features/trips/data/repositories/trip_date_stretch.dart:restoreStretchedTripDates',
+      'lib/features/trips/data/repositories/trip_day_weather_repository.dart:deleteByTripId',
+      'lib/features/trips/data/repositories/trip_equipment_repository.dart:deleteByTripId',
+      'lib/features/trips/data/repositories/trip_equipment_repository.dart:deleteForEquipment',
+    ])
+      method:
+          'an inner step of another write, run by the repository an agent write calls',
+    // Planned dives.
+    for (final method in const [
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deletePlannedDive',
+    ])
+      method:
+          'a planned dive is made and removed by the planner, from its plan',
+    // Profile samples.
+    for (final method in const [
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:saveEditedProfile',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:saveEditedProfileWithKind',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setActiveProfileSeries',
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setPrimaryDataSource',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:clearComputer',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:clearComputersOfDiverForForeignDives',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:clearSource',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteByComputer',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteByIds',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteEditedSeries',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteForDive',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteOwnedBy',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteRevisionsForDives',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteUndoneEdit',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:insertSeries',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:promoteAll',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:promoteByComputer',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:promoteOwnedBy',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:promoteWinnerOwnedBy',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:relinkComputer',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:repointComputer',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:restoreRevisions',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:restoreSeriesRow',
+      'lib/features/dive_log/data/repositories/profile_series_repository.dart:shiftSamples',
+      'lib/features/dive_log/data/repositories/tank_pressure_repository.dart:deleteTankPressuresForDive',
+      'lib/features/dive_log/data/repositories/tank_pressure_repository.dart:insertTankPressures',
+      'lib/features/dive_log/data/repositories/tank_pressure_repository.dart:insertTankSeries',
+      'lib/features/dive_log/data/repositories/tank_pressure_repository.dart:reassignTankPressureSeries',
+      'lib/features/dive_log/data/repositories/tank_pressure_repository.dart:replaceTankPressures',
+      'lib/features/dive_log/data/repositories/tank_pressure_repository.dart:replaceTankSeriesForTanks',
+      'lib/features/dive_log/data/repositories/tank_pressure_repository.dart:stampSourceWhereNull',
+      'lib/features/dive_log/data/repositories/tank_pressure_repository.dart:swapTankPressureSeries',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:clearComputer',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:clearComputersOfDiverForForeignDives',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:deleteByIds',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:deleteForDive',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:deleteForTank',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:deleteOwnedByComputer',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:insertSeries',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:reassignTank',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:repointComputer',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:restoreSeriesRow',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:shiftSamples',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:stampComputerWhereNull',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:stampSourceWhereNull',
+      'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:swapTanks',
+    ])
+      method:
+          'a dive profile\'s samples, edited in the profile editor; samples are not agent fields',
+    // Settings and view state.
+    for (final method in const [
+      'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setSiteSuggestionDismissed',
+      'lib/features/dive_log/data/repositories/view_config_repository.dart:deletePreset',
+      'lib/features/dive_log/data/repositories/view_config_repository.dart:saveCardConfig',
+      'lib/features/dive_log/data/repositories/view_config_repository.dart:savePreset',
+      'lib/features/dive_log/data/repositories/view_config_repository.dart:saveRawConfig',
+      'lib/features/dive_log/data/repositories/view_config_repository.dart:saveTableConfig',
+      'lib/features/universal_import/data/repositories/csv_preset_repository.dart:deletePreset',
+      'lib/features/universal_import/data/repositories/csv_preset_repository.dart:savePreset',
+    ])
+      method: 'app settings and view state, not logbook records',
+    // Device storage and bookkeeping.
+    for (final method in const [
+      'lib/features/media/data/repositories/local_asset_cache_repository.dart:applyResolutionHints',
+      'lib/features/media/data/repositories/local_asset_cache_repository.dart:clearEntries',
+      'lib/features/media/data/repositories/local_asset_cache_repository.dart:clearEntry',
+      'lib/features/media/data/repositories/local_asset_cache_repository.dart:clearUnresolved',
+      'lib/features/media/data/repositories/manifest_subscription_repository.dart:createSubscription',
+      'lib/features/media/data/repositories/manifest_subscription_repository.dart:deleteById',
+      'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollFailure',
+      'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollNotModified',
+      'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollSuccess',
+      'lib/features/media/data/repositories/manifest_subscription_repository.dart:setActive',
+      'lib/features/media/data/repositories/manifest_subscription_repository.dart:updateUrlAndDisplayName',
+      'lib/features/media/data/repositories/media_repair_log_repository.dart:record',
+      'lib/features/media/data/repositories/media_repository.dart:clearRemoteCompressed',
+      'lib/features/media/data/repositories/media_repository.dart:clearRemoteThumbUploaded',
+      'lib/features/media/data/repositories/media_repository.dart:clearRemoteUploaded',
+      'lib/features/media/data/repositories/media_repository.dart:stampCloudAssetIds',
+      'lib/features/media/data/repositories/media_repository.dart:stampContentIdentity',
+      'lib/features/media/data/repositories/media_repository.dart:stampOriginDevice',
+      'lib/features/media/data/repositories/media_repository.dart:stampRemoteCompressedUploaded',
+      'lib/features/media/data/repositories/media_repository.dart:stampRemoteThumbUploaded',
+      'lib/features/media/data/repositories/media_repository.dart:stampRemoteUploaded',
+      'lib/features/media/data/repositories/media_repository.dart:stampVerification',
+      'lib/features/media/data/repositories/network_credentials_repository.dart:delete',
+      'lib/features/media/data/repositories/network_credentials_repository.dart:updateDisplayName',
+      'lib/features/media/data/repositories/network_credentials_repository.dart:upsert',
+      'lib/features/media/data/repositories/watched_folder_repository.dart:addRoot',
+      'lib/features/media/data/repositories/watched_folder_repository.dart:deleteIndexed',
+      'lib/features/media/data/repositories/watched_folder_repository.dart:removeRoot',
+      'lib/features/media/data/repositories/watched_folder_repository.dart:stampScanned',
+      'lib/features/media/data/repositories/watched_folder_repository.dart:upsertIndexed',
+    ])
+      method:
+          'device storage, credentials and sync bookkeeping, which an agent does not change',
+    // Media attached in the app.
+    for (final method in const [
+      'lib/features/media/data/repositories/media_repository.dart:createMedia',
+      'lib/features/media/data/repositories/media_repository.dart:dismissPendingSuggestion',
+      'lib/features/media/data/repositories/media_repository.dart:linkMediaToEquipment',
+      'lib/features/media/data/repositories/media_repository.dart:linkMediaToSite',
+      'lib/features/media/data/repositories/media_repository.dart:unlinkFromEquipment',
+      'lib/features/media/data/repositories/media_repository.dart:unlinkFromSite',
+      'lib/features/media/data/repositories/media_repository.dart:updateMedia',
+    ])
+      method:
+          'media is attached, linked to gear or a site, and captioned in the app; an agent edits what the media writer lists',
+    // Trip removal.
+    for (final method in const [
+      'lib/features/trips/data/repositories/trip_repository.dart:removeDiveFromTrip',
+    ])
+      method:
+          'a dive leaves its trip through the dive\'s trip link; this path does not mark the dive for sync',
   };
 
   /// A public `Future` method on a repository. The return type may sit on the
@@ -821,6 +1147,20 @@ void main() {
 
   test('every covered method exists', () {
     expect(covered.keys.toSet().difference(scanRepositories()), isEmpty);
+  });
+
+  // Every write is covered or exempt, so a new one fails here until it is
+  // given a change set entity or a reason.
+  test('the baseline is empty', () {
+    expect(readBaseline(), isEmpty);
+  });
+
+  test('every covered method names an entity an agent can write', () {
+    final writable = {
+      for (final entry in WriteCatalog(RecordRepositories()).all) entry.name,
+    };
+
+    expect(covered.values.toSet().difference(writable), isEmpty);
   });
 }
 
