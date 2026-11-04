@@ -246,4 +246,35 @@ void main() {
     );
     expect(clocks, hasLength(1));
   });
+
+  test('an edit cannot leave a clock with nothing to count', () async {
+    final bare = await kind(days: null);
+    final id = (await h.run([
+      createOp('service_schedules', {
+        ...clock('suit', bare),
+        'interval_days': 365,
+      }),
+    ])).created.single.id;
+
+    final plan = await h.preview([
+      updateOp('service_schedules', id, {'interval_days': null}),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
+  // The rules read the type as stored, so a type the set changes earlier is
+  // given its clocks in a set of its own.
+  test('a clock of a type the set changes earlier is refused', () async {
+    final seals = await kind();
+
+    final plan = await h.preview([
+      updateOp('service_kinds', seals, {
+        'applicable_types': ['wetsuit'],
+      }),
+      createOp('service_schedules', clock('suit', seals)),
+    ]);
+
+    expect(plan.items.last.block!.reason, BlockReason.invalidValue);
+  });
 }

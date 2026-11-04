@@ -5,7 +5,6 @@ import 'package:submersion/features/agent_access/data/writes/families/service_le
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
 /// An item's service clocks, through the repository its clocks card uses.
@@ -97,13 +96,17 @@ class ServiceScheduleWrites extends WritableEntry {
       final fixed = check.values.keys
           .where(const {'service_kind_id', 'equipment_id'}.contains)
           .toList();
-      return fixed.isEmpty
-          ? null
-          : PlanBlock(
-              BlockReason.invalidValue,
-              '${fixed.join(', ')}: a clock keeps its type and its item; '
-              'remove it and add another instead.',
-            );
+      if (fixed.isNotEmpty) {
+        return PlanBlock(
+          BlockReason.invalidValue,
+          '${fixed.join(', ')}: a clock keeps its type and its item; '
+          'remove it and add another instead.',
+        );
+      }
+      return _intervalBlock(
+        check,
+        check.document!['service_kind_id']! as String,
+      );
     }
     return _createBlock(check);
   }
@@ -120,10 +123,16 @@ class ServiceScheduleWrites extends WritableEntry {
       final String name => EquipmentType.values.byName(name),
       _ => item.type,
     };
-    final status = earlier?['status'] as String? ?? item.status.name;
     PlanBlock invalid(String why) =>
         PlanBlock(BlockReason.invalidValue, 'service_kind_id: $why');
-    if (status == EquipmentStatus.wanted.name) {
+    // The rules below read the type as stored.
+    if (check.soFar.values.containsKey(('service_kinds', kindId))) {
+      return invalid(
+        'this set changes ${kind.name} earlier; add its clocks in a change '
+        'set of its own.',
+      );
+    }
+    if (await _wanted(check, itemId)) {
       return const PlanBlock(
         BlockReason.invalidValue,
         'equipment_id: gear not bought yet has no service clocks.',
@@ -145,12 +154,7 @@ class ServiceScheduleWrites extends WritableEntry {
         '${kind.name} is hidden in Settings; show it there first.',
       );
     }
-    if (!_hasInterval(kind, check.values)) {
-      return invalid(
-        '${kind.name} has no interval of its own; name interval_days, '
-        'interval_dives, interval_hours or exposure_intervals.',
-      );
-    }
+    if (await _intervalBlock(check, kindId) case final block?) return block;
     final gone = check.soFar.deleted[name] ?? const <String>{};
     final stored = await _r.serviceSchedules.getSchedulesForEquipment(itemId);
     if (stored.any((s) => s.serviceKindId == kindId && !gone.contains(s.id))) {
@@ -171,16 +175,36 @@ class ServiceScheduleWrites extends WritableEntry {
     return status == EquipmentStatus.wanted.name;
   }
 
-  /// Whether a clock of [kind] with [values] counts anything down.
-  static bool _hasInterval(ServiceKind kind, Map<String, Object?> values) =>
-      kind.defaultIntervalDays != null ||
-      kind.defaultIntervalDives != null ||
-      kind.defaultIntervalHours != null ||
-      kind.exposureIntervals.isNotEmpty ||
-      values['interval_days'] != null ||
-      values['interval_dives'] != null ||
-      values['interval_hours'] != null ||
-      exposureFrom(values['exposure_intervals']).isNotEmpty;
+  /// A block for a clock of type [kindId] that would count nothing down, as
+  /// [check] leaves its overrides: the clock dialog asks for an interval
+  /// when the type has none.
+  Future<PlanBlock?> _intervalBlock(WriteCheck check, String kindId) async {
+    final kind = await _r.serviceKinds.getKindById(kindId);
+    if (kind == null ||
+        kind.defaultIntervalDays != null ||
+        kind.defaultIntervalDives != null ||
+        kind.defaultIntervalHours != null ||
+        kind.exposureIntervals.isNotEmpty) {
+      return null;
+    }
+    Object? held(String key) => check.values.containsKey(key)
+        ? check.values[key]
+        : check.document?[key];
+    final exposure = check.values.containsKey('exposure_intervals')
+        ? exposureFrom(check.values['exposure_intervals']).isNotEmpty
+        : (check.document?['exposure_intervals'] as Map?)?.isNotEmpty ?? false;
+    if (held('interval_days') != null ||
+        held('interval_dives') != null ||
+        held('interval_hours') != null ||
+        exposure) {
+      return null;
+    }
+    return PlanBlock(
+      BlockReason.invalidValue,
+      'service_kind_id: ${kind.name} has no interval of its own; name '
+      'interval_days, interval_dives, interval_hours or exposure_intervals.',
+    );
+  }
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
