@@ -34,7 +34,7 @@ class _HeldPages extends ChangeLogRepository {
   Stream<void> watchChanges() => changes.stream;
 
   @override
-  Future<void> settleAll() async {}
+  Future<void> settleAll({Duration budget = Duration.zero}) async {}
 
   @override
   Future<List<ChangeLogOperation>> getFeed({

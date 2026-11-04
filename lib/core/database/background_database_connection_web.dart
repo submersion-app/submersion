@@ -9,6 +9,7 @@ import 'package:web/web.dart' as web;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
 import 'package:submersion/core/database/database_image_header.dart';
+import 'package:submersion/core/database/statement_trace_interceptor.dart';
 import 'package:submersion/core/platform/web_database_status.dart';
 
 /// Closes [db] for page unload.
@@ -99,7 +100,26 @@ class BackgroundDatabaseConnection {
         missingFeatures: {for (final f in result.missingFeatures) f.name},
       ),
     );
-    return BackgroundDatabaseConnection._(result.resolvedExecutor);
+    final connection = result.resolvedExecutor;
+    return BackgroundDatabaseConnection._(
+      _traceRequested()
+          ? connection.interceptWith(StatementTraceInterceptor(print))
+          : connection,
+    );
+  }
+
+  /// The local storage key that turns on [StatementTraceInterceptor] for
+  /// the page's database, printing to the browser console. The web smoke
+  /// test sets it to find a transaction that never ends (issue #4186).
+  static const traceStorageKey = 'submersion.trace-db';
+
+  static bool _traceRequested() {
+    try {
+      return web.window.localStorage.getItem(traceStorageKey) == '1';
+    } catch (_) {
+      // Storage blocked (a private window, site data refused): no trace.
+      return false;
+    }
   }
 
   /// Opens the database at [path] with no main-database setup. In a browser
