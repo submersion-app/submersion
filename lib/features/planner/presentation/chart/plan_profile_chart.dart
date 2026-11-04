@@ -13,16 +13,18 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_backdr
 import 'package:submersion/features/planner/presentation/chart/plan_chart_empty_state.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_controller.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_keyboard.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_overlay_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_palette.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_top_readouts.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_issue_marker_layer.dart';
-import 'package:submersion/features/planner/presentation/chart/plan_scrub_readout.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_worst_case_marker_layer.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_issue_marker_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_worst_case_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Precision Instrument plan chart: three painter layers split by repaint
@@ -72,6 +74,13 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   int? _hoverMarker;
   int? _markerPress;
 
+  /// The worst-case bailout pill under the mouse, a press begun on it, and
+  /// the plan whose card a tap pinned open (#4211). A press on the pill is
+  /// handled as one on a warning marker is.
+  bool _hoverWorstCase = false;
+  bool _worstCasePress = false;
+  String? _worstCasePinnedFor;
+
   @override
   void dispose() {
     _longPressTimer?.cancel();
@@ -104,6 +113,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   /// scrolling the list to them, or clears them when they are already
   /// picked.
   void _toggleMarker(PlacedIssueMarker placed) {
+    if (_worstCasePinnedFor != null) {
+      setState(() => _worstCasePinnedFor = null);
+    }
     final highlighted = ref.read(highlightedPlanIssuesProvider.notifier);
     final keys = placed.marker.keys;
     if (setEquals(highlighted.state, keys)) {
@@ -112,6 +124,16 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     }
     highlighted.state = keys;
     ref.read(planIssueRevealRequestProvider.notifier).state++;
+  }
+
+  /// Pins the worst-case card open for the plan on screen, or lets it go,
+  /// letting go of picked warnings too so only one card shows.
+  void _toggleWorstCase() {
+    final planId = ref.read(divePlanNotifierProvider).id;
+    setState(
+      () => _worstCasePinnedFor = _worstCasePinnedFor == planId ? null : planId,
+    );
+    ref.read(highlightedPlanIssuesProvider.notifier).state = const {};
   }
 
   void _applyDrag(PlanChartGeometry geometry, Offset local) {
@@ -216,71 +238,21 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   }
 
   KeyEventResult _onKey(KeyEvent event, PlanChartGeometry geometry) {
-    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-      return KeyEventResult.ignored;
-    }
     if (_readOnly) return KeyEventResult.ignored;
-    final selectedId = ref.read(selectedSegmentIdProvider);
-    if (selectedId == null) return KeyEventResult.ignored;
-    final ordered = _orderedSegments;
-    final index = ordered.indexWhere((s) => s.id == selectedId);
-    if (index < 0) return KeyEventResult.ignored;
-    final notifier = ref.read(divePlanNotifierProvider.notifier);
-    final segment = ordered[index];
-    final unitMeters = 1 / geometry.depthUnitScale;
-    final key = event.logicalKey;
-
-    if (key == LogicalKeyboardKey.delete ||
-        key == LogicalKeyboardKey.backspace) {
-      _removeWaypoint(selectedId);
-      return KeyEventResult.handled;
-    }
-    // Depth axis grows downward: ArrowDown deepens.
-    if (key == LogicalKeyboardKey.arrowDown ||
-        key == LogicalKeyboardKey.arrowUp) {
-      final delta = key == LogicalKeyboardKey.arrowDown
-          ? unitMeters
-          : -unitMeters;
-      final result = dragVertex(
-        ordered: ordered,
-        vertexIndex: index,
-        newDepthMeters: segment.targetDepth + delta,
-        newTimeSeconds: _endTimeOf(ordered, index),
-        depthUnitScale: geometry.depthUnitScale,
-      );
-      for (final (id, updated) in result.updates) {
-        notifier.updateSegment(id, updated);
-      }
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.arrowLeft ||
-        key == LogicalKeyboardKey.arrowRight) {
-      final delta = key == LogicalKeyboardKey.arrowRight ? 60 : -60;
-      final newDuration = (segment.durationSeconds + delta).clamp(
-        60,
-        6000 * 60,
-      );
-      notifier.updateSegment(
-        selectedId,
-        segment.copyWith(durationSeconds: newDuration),
-      );
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
+    return planChartKeyEdit(
+      event,
+      ordered: _orderedSegments,
+      selectedId: ref.read(selectedSegmentIdProvider),
+      depthUnitScale: geometry.depthUnitScale,
+      updateSegment: ref.read(divePlanNotifierProvider.notifier).updateSegment,
+      removeWaypoint: _removeWaypoint,
+    );
   }
 
   /// A DPV mission generates the profile from its route, so the chart only
   /// scrubs it: an edit here would disagree with the route and be replaced
   /// by the next mission edit.
   bool get _readOnly => ref.read(divePlanNotifierProvider).mission != null;
-
-  static double _endTimeOf(List<PlanSegment> ordered, int index) {
-    var t = 0.0;
-    for (var i = 0; i <= index; i++) {
-      t += ordered[i].durationSeconds;
-    }
-    return t;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -300,6 +272,8 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       _hoverVertex = null;
       _hoverMarker = null;
       _markerPress = null;
+      _hoverWorstCase = false;
+      _worstCasePress = false;
       _frozenAxes = null;
       return PlanChartEmptyState(theme: theme);
     }
@@ -342,6 +316,8 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
     final issueMarkers = ref.watch(planIssueMarkersProvider);
     final highlightedIssues = ref.watch(highlightedPlanIssuesProvider);
+    final worstCase = ref.watch(planChartWorstCaseProvider);
+    final worstCaseLabel = context.l10n.plannerCanvas_chart_worstCase;
 
     final frozen = _frozenAxes;
     if (frozen != null) {
@@ -380,6 +356,33 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           final picked = placedMarkers.indexWhere((p) => p.highlighted);
           if (picked >= 0) activeMarker = picked;
         }
+
+        // On the line that is drawn, live plan or bailout picture alike.
+        final placedWorstCase = worstCase == null
+            ? null
+            : placeWorstCaseMarker(
+                worstCase: worstCase,
+                geometry: geometry,
+                depthAt: series.depthAt,
+                pillSize: worstCasePillSize(
+                  worstCaseLabel,
+                  tagStyle,
+                  direction,
+                ),
+              );
+        // One card at a time: the warnings' wins.
+        final worstCaseActive =
+            !dragging &&
+            activeMarker == null &&
+            (_hoverWorstCase || _worstCasePinnedFor == plan.id);
+        bool onWorstCase(Offset position, {required bool mouse}) =>
+            pointerOnWorstCase(
+              placedWorstCase,
+              placedMarkers,
+              position,
+              pillRadius: mouse ? 4 : 16,
+              signRadius: mouse ? 16 : 24,
+            );
 
         final handleOffsets = [
           for (final v in vertices)
@@ -446,13 +449,17 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           );
           final hit = _dragVertex;
           _dragSegmentId = hit == null ? null : vertices[hit].segmentId;
-          _markerPress = hitTestIssueMarker(
-            placedMarkers,
-            event.localPosition,
-            radius: event.kind == PointerDeviceKind.mouse ? 16 : 24,
-          );
+          final mouse = event.kind == PointerDeviceKind.mouse;
+          _worstCasePress = onWorstCase(event.localPosition, mouse: mouse);
+          _markerPress = _worstCasePress
+              ? null
+              : hitTestIssueMarker(
+                  placedMarkers,
+                  event.localPosition,
+                  radius: mouse ? 16 : 24,
+                );
           if (hit == null) {
-            if (_markerPress != null) {
+            if (_markerPress != null || _worstCasePress) {
               _clearScrub();
             } else {
               _scrubTo(geometry, event.localPosition);
@@ -469,6 +476,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                 if (!mounted || _dragSegmentId != segmentId) return;
                 _pressHandled = true;
                 _markerPress = null;
+                _worstCasePress = false;
                 endDrag();
                 _clearScrub();
                 Feedback.forLongPress(context);
@@ -484,6 +492,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
               !_moved &&
               (event.localPosition - down).distance > 6) {
             _markerPress = null;
+            _worstCasePress = false;
             _cancelLongPress();
             // The warnings go before the waypoint moves. A touch shows them
             // only once it lifts, so a drag never flashes them up.
@@ -492,7 +501,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
               if (_dragVertex != null) _hoverMarker = null;
             });
           }
-          if (_markerPress != null) return;
+          if (_markerPress != null || _worstCasePress) return;
           // A touch still inside the slop may yet become a long-press, so
           // finger jitter must not edit the waypoint. The drag maps the
           // absolute position, so nothing is lost once it starts.
@@ -508,19 +517,29 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           _cancelLongPress();
           final wasDrag = _dragVertex != null;
           final markerTap = _markerPress;
+          final worstCaseTap = _worstCasePress && placedWorstCase != null;
           _markerPress = null;
+          _worstCasePress = false;
           endDrag();
           _clearScrub();
-          if (markerTap != null && markerTap < placedMarkers.length) {
-            _toggleMarker(placedMarkers[markerTap]);
+          if (worstCaseTap ||
+              (markerTap != null && markerTap < placedMarkers.length)) {
+            if (worstCaseTap) {
+              _toggleWorstCase();
+            } else {
+              _toggleMarker(placedMarkers[markerTap!]);
+            }
             _downPosition = null;
             _lastTapAt = null;
             _lastTapPosition = null;
             return;
           }
           if (!wasDrag && !_moved && !_pressHandled) {
-            // A tap anywhere else lets go of a picked marker.
+            // A tap anywhere else lets go of a picked marker or card.
             ref.read(highlightedPlanIssuesProvider.notifier).state = const {};
+            if (_worstCasePinnedFor != null) {
+              setState(() => _worstCasePinnedFor = null);
+            }
           }
           if (wasDrag || _moved || _readOnly || _pressHandled) {
             _pressHandled = false;
@@ -571,11 +590,19 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                 )?.timeSeconds;
           // A warning marker on a waypoint or a deco stop shows its
           // warnings while the line stays locked onto that point (#3738).
-          final marker = hitTestIssueMarker(placedMarkers, event.localPosition);
-          if (marker != _hoverMarker) setState(() => _hoverMarker = marker);
+          final onPill = onWorstCase(event.localPosition, mouse: true);
+          final marker = onPill
+              ? null
+              : hitTestIssueMarker(placedMarkers, event.localPosition);
+          if (marker != _hoverMarker || onPill != _hoverWorstCase) {
+            setState(() {
+              _hoverMarker = marker;
+              _hoverWorstCase = onPill;
+            });
+          }
           if (lockTime != null) {
             ref.read(scrubTimeProvider.notifier).state = lockTime;
-          } else if (marker != null) {
+          } else if (marker != null || onPill) {
             _clearScrub();
           } else {
             _scrubTo(geometry, event.localPosition);
@@ -587,10 +614,13 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           onKeyEvent: (_, event) => _onKey(event, geometry),
           child: MouseRegion(
             onExit: (_) {
-              if (_hoverVertex != null || _hoverMarker != null) {
+              if (_hoverVertex != null ||
+                  _hoverMarker != null ||
+                  _hoverWorstCase) {
                 setState(() {
                   _hoverVertex = null;
                   _hoverMarker = null;
+                  _hoverWorstCase = false;
                 });
               }
               _clearScrub();
@@ -603,6 +633,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
               onPointerCancel: (_) {
                 _cancelLongPress();
                 _pressHandled = false;
+                _worstCasePress = false;
                 endDrag();
                 _clearScrub();
                 _downPosition = null;
@@ -699,6 +730,19 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                   ),
                                 ),
                               ),
+                              // Under the warnings, so their card covers it.
+                              if (placedWorstCase != null)
+                                Positioned.fill(
+                                  child: PlanWorstCaseMarkerLayer(
+                                    placed: placedWorstCase,
+                                    label: worstCaseLabel,
+                                    active: worstCaseActive,
+                                    palette: palette,
+                                    units: units,
+                                    labelStyle: tagStyle,
+                                    onActivate: _toggleWorstCase,
+                                  ),
+                                ),
                               Positioned.fill(
                                 child: PlanIssueMarkerLayer(
                                   placed: placedMarkers,
@@ -709,42 +753,11 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                       _toggleMarker(placedMarkers[i]),
                                 ),
                               ),
-                              // The bailout status goes top centre: on a phone
-                              // the corners hold the readouts and the bottom
-                              // edge holds the chips. In one column with the
-                              // scrub readout, which reaches past the centre
-                              // on a narrow chart, so it clears the readout at
-                              // any text size.
-                              Positioned(
-                                top: 12,
-                                left: 0,
-                                right: 0,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  spacing: 2,
-                                  children: [
-                                    if (scrubTime != null)
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            left:
-                                                PlanChartGeometry.leftGutter +
-                                                4,
-                                          ),
-                                          child: PlanScrubReadout(
-                                            runtimeSeconds: scrubTime,
-                                            depthMeters: series.depthAt(
-                                              scrubTime,
-                                            ),
-                                            units: units,
-                                            palette: palette,
-                                          ),
-                                        ),
-                                      ),
-                                    const PlanChartBailoutStatus(),
-                                  ],
-                                ),
+                              PlanChartTopReadouts(
+                                scrubTime: scrubTime,
+                                series: series,
+                                units: units,
+                                palette: palette,
                               ),
                             ],
                           );

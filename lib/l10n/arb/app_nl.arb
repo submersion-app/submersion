@@ -5991,6 +5991,7 @@
     }
   },
   "plannerCanvas_chart_removeWaypoint": "Punt verwijderen",
+  "plannerCanvas_chart_worstCase": "Slechtste geval",
   "plannerCanvas_contingency_title": "Noodplannen",
   "plannerCanvas_contingency_turnFraction": "Keerfractie",
   "plannerCanvas_contingency_turnRule": "Keerdruk-regel",

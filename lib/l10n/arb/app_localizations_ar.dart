@@ -21247,6 +21247,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'إزالة نقطة الطريق';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'أسوأ حالة';
+
+  @override
   String get plannerCanvas_contingency_title => 'خطط الطوارئ';
 
   @override

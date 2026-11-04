@@ -20952,6 +20952,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Rimuovi punto';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Caso peggiore';
+
+  @override
   String get plannerCanvas_contingency_title => 'Contingenze';
 
   @override
