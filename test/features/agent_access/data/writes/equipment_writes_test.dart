@@ -358,6 +358,24 @@ void main() {
     expect(await rows('equipment_shares', 'diver_id', id), isEmpty);
   });
 
+  // Each share and unshare writes an event to the item's ownership log.
+  test('a share change lists the ownership events it writes', () async {
+    final id = await created({'name': 'Wing', 'type': 'wing'});
+
+    final share = await h.preview([
+      link(id, 'shared_with', add: [kDiverB]),
+    ]);
+    expect(share.items.single.alsoChanges, {'equipment_ownership_events': 1});
+    await h.apply(share);
+
+    final unshare = await h.preview([
+      link(id, 'shared_with', remove: [kDiverB]),
+    ]);
+    expect(unshare.items.single.alsoChanges, {
+      'equipment_ownership_events': 1,
+    });
+  });
+
   test('sharing with the owner, an unknown profile or from an ownerless '
       'item is blocked', () async {
     final id = await created({'name': 'Wing', 'type': 'wing'});

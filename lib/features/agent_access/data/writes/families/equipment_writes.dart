@@ -183,9 +183,20 @@ class EquipmentWrites extends WritableEntry {
     final current = await _r.equipment.getEquipmentById(id);
     if (current == null) return const SideEffects();
     final next = await _next(current, update.values);
+    // Each share and unshare writes an event to the item's ownership log.
+    var events = 0;
+    if (update.relations['shared_with'] case final shares?) {
+      final now = await currentRelation(id, 'shared_with');
+      events =
+          shares.add.difference(now).length +
+          shares.remove.intersection(now).length;
+    }
     return SideEffects(
       fields: derivedFields(current, next, update.values),
-      touched: await touchedBy(current, next),
+      touched: {
+        ...await touchedBy(current, next),
+        if (events > 0) 'equipment_ownership_events': events,
+      },
     );
   }
 
