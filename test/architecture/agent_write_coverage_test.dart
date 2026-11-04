@@ -248,6 +248,15 @@ void main() {
       '$passports/cylinder_fill_repository.dart:$method': 'cylinder_fills',
     '$passports/cylinder_passport_repository.dart:assignPassportId':
         'equipment',
+    for (final method in const [
+      'create',
+      'update',
+      'delete',
+      'saveSetup',
+      'applyToExistingDives',
+    ])
+      'lib/features/transmitters/data/repositories/transmitter_repository.dart:$method':
+          'transmitters',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

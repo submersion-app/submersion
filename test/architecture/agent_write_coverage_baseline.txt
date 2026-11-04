@@ -443,13 +443,8 @@ lib/features/tags/data/repositories/tag_repository.dart:setTagsForDive
 lib/features/tides/data/repositories/tide_record_repository.dart:createFromStatus
 lib/features/tides/data/repositories/tide_record_repository.dart:deleteTideRecordForDive
 lib/features/tides/data/repositories/tide_record_repository.dart:saveTideRecord
-lib/features/transmitters/data/repositories/transmitter_repository.dart:applyToExistingDives
-lib/features/transmitters/data/repositories/transmitter_repository.dart:create
-lib/features/transmitters/data/repositories/transmitter_repository.dart:delete
 lib/features/transmitters/data/repositories/transmitter_repository.dart:detachFromDeletedComputer
-lib/features/transmitters/data/repositories/transmitter_repository.dart:saveSetup
 lib/features/transmitters/data/repositories/transmitter_repository.dart:unlinkFromDeletedEquipment
-lib/features/transmitters/data/repositories/transmitter_repository.dart:update
 lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteBarePlanDaysOutside
 lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteByTripId
 lib/features/trips/data/repositories/itinerary_day_repository.dart:saveAll
