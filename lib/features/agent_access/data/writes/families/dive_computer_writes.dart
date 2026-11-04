@@ -134,7 +134,7 @@ class DiveComputerWrites extends WritableEntry {
     String intoId, {
     Set<String> mergedBefore = const {},
   }) async {
-    final links = await linksMoved('dive_computers', id);
+    final links = await linksMoved('dive_computers', id, intoId);
     final survivor = await _r.computers.getComputerById(intoId);
     final duplicate = await _r.computers.getComputerById(id);
     if (survivor == null || duplicate == null) return links;
@@ -153,6 +153,7 @@ class DiveComputerWrites extends WritableEntry {
         ? await linksMoved(
             'equipment',
             folded,
+            merged.equipmentId!,
             except: const {'dive_computers'},
           )
         : const DeleteReach();

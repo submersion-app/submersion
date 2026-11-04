@@ -332,7 +332,7 @@ class SiteWrites extends WritableEntry {
     String id,
     String intoId, {
     Set<String> mergedBefore = const {},
-  }) => linksMoved('dive_sites', id);
+  }) => linksMoved('dive_sites', id, intoId);
 
   @override
   Future<void> merge(String id, String intoId, String? ownerId) async {

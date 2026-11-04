@@ -130,7 +130,7 @@ class BuddyWrites extends WritableEntry {
     String id,
     String intoId, {
     Set<String> mergedBefore = const {},
-  }) => linksMoved('buddies', id);
+  }) => linksMoved('buddies', id, intoId);
 
   @override
   Future<void> merge(String id, String intoId, String? ownerId) async {

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -209,5 +210,31 @@ void main() {
     await h.revert(result);
 
     expect((await h.one('buddies', dupe))!['name'], 'Rui S.');
+  });
+
+  // The counts stay the same when a link moves between dives, or the
+  // survivor gains one, but the merge then moves or collapses other rows
+  // than the preview described.
+  test('a link that moves after the preview refuses the merge', () async {
+    final stale = isA<AgentToolException>().having(
+      (e) => e.code,
+      'code',
+      AgentToolErrorCode.planStale,
+    );
+    await h.dive('d3');
+    final keep = await make('buddies', {'name': 'Rui'});
+    final dupe = await make('buddies', {'name': 'Rui S.'});
+    await h.run([onDive('d1', 'buddies', dupe)]);
+
+    final moved = await h.preview([deleteOp('buddies', dupe, mergeInto: keep)]);
+    await (db.update(db.diveBuddies)..where((l) => l.buddyId.equals(dupe)))
+        .write(const DiveBuddiesCompanion(diveId: Value('d3')));
+    await expectLater(h.apply(moved), throwsA(stale));
+
+    final gained = await h.preview([
+      deleteOp('buddies', dupe, mergeInto: keep),
+    ]);
+    await h.run([onDive('d1', 'buddies', keep)]);
+    await expectLater(h.apply(gained), throwsA(stale));
   });
 }

@@ -1,3 +1,7 @@
+import 'dart:collection';
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/database/database.dart' show AppDatabase;
@@ -96,6 +100,52 @@ Future<({Map<String, int> parts, Map<String, int> unlinked})> countDeleted(
     parts: await _counted(deleted, id, except),
     unlinked: await _counted(unlinked, id, {...except, ...deleted.keys}),
   );
+}
+
+/// A digest of every row that links to [id] of [table] or is part of it,
+/// with what each row holds, in a stable order: a link that moves to
+/// another record after a preview changes it while the counts stay the
+/// same. A digest, so a plan does not hold every row of a busy record.
+Future<String> linkRowsDigest(
+  String table,
+  String id, {
+  Set<String> except = const {},
+}) async {
+  final keys = await _foreignKeys();
+  final conditions = <String, Set<String>>{};
+  void walk(String parent, String? scope, Set<String> path) {
+    for (final key in keys) {
+      if (key.parent != parent) continue;
+      if (scope != null && !key.cascades) continue;
+      if (key.cascades && path.contains(key.child)) continue;
+      final condition = scope == null
+          ? '"${key.column}" = ?1'
+          : '"${key.column}" IN '
+                '(SELECT "${key.target}" FROM "$parent" WHERE $scope)';
+      (conditions[key.child] ??= {}).add(condition);
+      if (key.cascades) walk(key.child, condition, {...path, key.child});
+    }
+  }
+
+  walk(table, null, {table});
+  final db = DatabaseService.instance.database;
+  final rows = <String>[];
+  for (final child in conditions.keys.toList()..sort()) {
+    if (except.contains(child)) continue;
+    final found = await db
+        .customSelect(
+          'SELECT * FROM "$child" WHERE ${conditions[child]!.join(' OR ')}',
+          variables: [Variable.withString(id)],
+        )
+        .get();
+    rows.addAll(
+      [
+        for (final row in found)
+          '$child:${jsonEncode(SplayTreeMap<String, Object?>.of(row.data))}',
+      ]..sort(),
+    );
+  }
+  return sha256.convert(utf8.encode(rows.join('\n'))).toString();
 }
 
 /// Rows that stay when [id] of [table] goes but lose their link to it, by
