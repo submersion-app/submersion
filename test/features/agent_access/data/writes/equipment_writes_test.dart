@@ -137,7 +137,9 @@ void main() {
     expect((await doc(id))['custom_reminder_enabled'], isNull);
 
     final refused = await h.preview([
-      updateOp('equipment', id, {'custom_reminder_days': [7]}),
+      updateOp('equipment', id, {
+        'custom_reminder_days': [7],
+      }),
     ]);
     expect(refused.items.single.block!.reason, BlockReason.invalidValue);
   });

@@ -3,8 +3,8 @@ import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
@@ -117,6 +117,21 @@ class WriteApplier {
         if (_catalog.named(item.entity)!.parent?.entity == 'dives')
           item.parentId!,
     });
+    for (final item in plan.items) {
+      if (item.kind != ChangeKind.update) continue;
+      try {
+        await _catalog
+            .named(item.entity)!
+            .afterApply(item.id!, item.fields.keys.toSet());
+      } catch (e, stackTrace) {
+        _log.error(
+          'Follow-up work after ${item.entity} ${item.id} failed; the change '
+          'itself was applied',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
     // The settler files another diver's records under `operation:diver`, and
     // a revert straight after this needs the entries settled anyway.
     await _changeLog.settleAll();

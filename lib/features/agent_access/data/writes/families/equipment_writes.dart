@@ -261,6 +261,16 @@ class EquipmentWrites extends WritableEntry {
     return null;
   }
 
+  /// A transmitter item's serial feeds the stored gear-serial mismatch
+  /// finding (issue #3367), so its dives are rescanned, as the edit page's
+  /// save does.
+  @override
+  Future<void> afterApply(String id, Set<String> changed) async {
+    if (changed.contains('serial_number')) {
+      await _r.transmitters.rescanDivesForTransmitterItem(id);
+    }
+  }
+
   /// Every agent write acts as the record's owner, so the owner's delete.
   @override
   Future<void> delete(String id, String? ownerId) async {

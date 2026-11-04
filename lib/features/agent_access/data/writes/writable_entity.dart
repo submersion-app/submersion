@@ -341,6 +341,12 @@ abstract class WritableEntry {
   /// A block when this change may not happen, null when it may.
   Future<PlanBlock?> refuse(WriteCheck check) async => null;
 
+  /// Work the app does after a save of this record, run once the apply has
+  /// committed and outside its transaction, where a scheduled scan can read
+  /// the saved rows: [changed] are the document keys an update of [id]
+  /// changed. A failure here cannot undo the apply, so it is logged.
+  Future<void> afterApply(String id, Set<String> changed) async {}
+
   /// Rows of other tables a create of [values] for [diverId] adds alongside
   /// the record, by table, such as the service clocks a gear item gets.
   Future<Map<String, int>> alsoCreates(

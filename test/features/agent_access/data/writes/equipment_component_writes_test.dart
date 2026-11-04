@@ -116,9 +116,7 @@ void main() {
     ])).created.single.id;
     final swap = await h.preview([
       createOp('equipment_components', part('reg', 'octo')),
-      updateOp('equipment_components', id, {
-        'component_equipment_id': 'octo',
-      }),
+      updateOp('equipment_components', id, {'component_equipment_id': 'octo'}),
     ]);
     expect(swap.items.last.block!.reason, BlockReason.duplicateRecord);
   });
