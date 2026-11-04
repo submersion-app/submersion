@@ -27,11 +27,11 @@ class PlannedDivesLogState {
     required this.outOfDate,
   });
 
-  /// Before the first read settles: offered, as it was before this existed.
-  static const unknown = PlannedDivesLogState(
-    entriesExist: false,
-    outOfDate: true,
-  );
+  /// Before the first read settles: offered, and worded by the links the
+  /// series holds in memory, which an update sets the moment it links its
+  /// entries.
+  factory PlannedDivesLogState.unsettled({required bool linked}) =>
+      PlannedDivesLogState(entriesExist: linked, outOfDate: true);
 }
 
 /// The plan's dives against their entries in the log. Watched by the

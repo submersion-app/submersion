@@ -158,7 +158,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
     // rebuild, so it must open on a value already settled.
     final logState =
         ref.watch(plannedDivesLogStateProvider).valueOrNull ??
-        PlannedDivesLogState.unknown;
+        PlannedDivesLogState.unsettled(
+          linked: ref.watch(
+            planSeriesNotifierProvider.select(
+              (s) => s.dives.any((d) => d.state.linkedDiveId != null),
+            ),
+          ),
+        );
     final isSeries = ref.watch(
       planSeriesNotifierProvider.select((s) => s.isSeries),
     );
