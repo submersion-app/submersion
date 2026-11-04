@@ -193,6 +193,37 @@ void main() {
 
   // The diver allowed what the preview listed, so an apply that would add
   // a different set of clocks is a different change.
+  test('a stale record is named before a create whose clocks moved', () async {
+    final id = await created({'name': 'Mask', 'type': 'mask'});
+    final plan = await h.preview([
+      createOp('equipment', {'name': 'AL80', 'type': 'tank'}),
+      updateOp('equipment', id, {'notes': 'New strap'}),
+    ]);
+    final kinds = await ServiceScheduleRepository().autoAttachKindsFor(
+      type: EquipmentType.tank,
+      diverId: kDiverA,
+    );
+    await db.customStatement(
+      'UPDATE service_kinds SET auto_attach = 0 WHERE id = ?',
+      [kinds.first.id],
+    );
+    await db.customStatement(
+      'UPDATE equipment SET updated_at = updated_at + 1 WHERE id = ?',
+      [id],
+    );
+
+    await expectLater(
+      h.apply(plan),
+      throwsA(
+        isA<AgentToolException>().having(
+          (e) => e.details?.keys,
+          'details',
+          contains('records'),
+        ),
+      ),
+    );
+  });
+
   test('a create whose clocks changed after the preview is stale', () async {
     final plan = await h.preview([
       createOp('equipment', {'name': 'AL80', 'type': 'tank'}),

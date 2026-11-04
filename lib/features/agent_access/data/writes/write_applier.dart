@@ -3,8 +3,8 @@ import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
@@ -309,20 +309,22 @@ class WriteApplier {
         }
       }
     }
+    if (stale.isNotEmpty) {
+      // Several items can mark one row, as tanks of one dive mark the dive.
+      final named = {for (final marker in stale) (marker.table, marker.id)};
+      throw AgentToolException(
+        AgentToolErrorCode.planStale,
+        'These records changed after the preview, so nothing was applied. '
+        'Read them and preview again.',
+        details: {
+          'records': [
+            for (final (table, id) in named) {'table': table, 'id': id},
+          ],
+        },
+      );
+    }
+    // After the records, whose list says what to read again.
     await _ensureAlsoCreates(plan);
-    if (stale.isEmpty) return;
-    // Several items can mark one row, as tanks of one dive mark the dive.
-    final named = {for (final marker in stale) (marker.table, marker.id)};
-    throw AgentToolException(
-      AgentToolErrorCode.planStale,
-      'These records changed after the preview, so nothing was applied. '
-      'Read them and preview again.',
-      details: {
-        'records': [
-          for (final (table, id) in named) {'table': table, 'id': id},
-        ],
-      },
-    );
   }
 
   /// Refuses a plan whose creates would now add other records than the
