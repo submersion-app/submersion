@@ -5,6 +5,7 @@ import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/enums.dart' show EquipmentType;
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 
@@ -179,5 +180,25 @@ void main() {
     ]);
 
     expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
+  test('a clock change re-arms its item\'s reminders', () async {
+    final asked = <String>[];
+    final watched = ChildWriteHarness(
+      db,
+      catalog: (repositories) => WriteCatalog(
+        repositories,
+        refreshReminders: (itemId) async => asked.add(itemId),
+      ),
+    );
+    final seals = await kind();
+    final id = (await watched.run([
+      createOp('service_schedules', clock('suit', seals)),
+    ])).created.single.id;
+    await watched.run([
+      updateOp('service_schedules', id, {'interval_days': 90}),
+    ]);
+
+    expect(asked, ['suit', 'suit']);
   });
 }

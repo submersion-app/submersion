@@ -5,6 +5,7 @@ import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/enums.dart' show EquipmentType;
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
@@ -166,4 +167,31 @@ void main() {
       );
     },
   );
+
+  // The log service dialog re-arms the item's reminders after a save.
+  test('a record re-arms its item\'s reminders, and a failure there '
+      'leaves it saved', () async {
+    final asked = <String>[];
+    final watched = ChildWriteHarness(
+      db,
+      catalog: (repositories) => WriteCatalog(
+        repositories,
+        refreshReminders: (itemId) async => asked.add(itemId),
+      ),
+    );
+    await watched.run([createOp('service_records', record('2026-03-01'))]);
+    expect(asked, ['suit']);
+
+    final failing = ChildWriteHarness(
+      db,
+      catalog: (repositories) => WriteCatalog(
+        repositories,
+        refreshReminders: (_) async => throw StateError('no scheduler'),
+      ),
+    );
+    final result = await failing.run([
+      createOp('service_records', record('2026-04-01')),
+    ]);
+    expect(await h.one('service_records', result.created.single.id), isNotNull);
+  });
 }

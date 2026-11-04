@@ -25,6 +25,7 @@ import 'package:submersion/features/agent_access/data/writes/families/site_write
 import 'package:submersion/features/agent_access/data/writes/families/species_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tag_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_kind_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_record_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_schedule_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
@@ -34,8 +35,13 @@ import 'package:submersion/features/dive_log/data/repositories/dive_child_row_re
 
 /// Every entity an agent can change, by the read catalogue's names.
 class WriteCatalog {
-  WriteCatalog(RecordRepositories repositories, {LibraryEditStamper? stamper})
-    : all = _entries(repositories, stamper);
+  /// [refreshReminders] re-arms an item's service reminders after a write
+  /// to its clocks or history, as the service dialogs do.
+  WriteCatalog(
+    RecordRepositories repositories, {
+    LibraryEditStamper? stamper,
+    GearReminderRefresh? refreshReminders,
+  }) : all = _entries(repositories, stamper, refreshReminders);
 
   /// A catalog of exactly [entries], for a test that swaps one writer.
   @visibleForTesting
@@ -46,6 +52,7 @@ class WriteCatalog {
   static List<WritableEntry> _entries(
     RecordRepositories repositories,
     LibraryEditStamper? stamper,
+    GearReminderRefresh? refreshReminders,
   ) {
     final rows = DiveChildRowRepository();
     return List.unmodifiable(<WritableEntry>[
@@ -77,8 +84,8 @@ class WriteCatalog {
       EquipmentLocationMoveWrites(repositories),
       EquipmentComponentWrites(repositories),
       ServiceKindWrites(repositories),
-      ServiceScheduleWrites(repositories),
-      ServiceRecordWrites(repositories),
+      ServiceScheduleWrites(repositories, refreshReminders: refreshReminders),
+      ServiceRecordWrites(repositories, refreshReminders: refreshReminders),
     ]);
   }
 
