@@ -78,9 +78,13 @@ only when a finding in scope references one, like the computer names today.
   conflict.
 - Gas: air and oxygen use the localized gas names, other mixes
   `GasMix.name`. The ppO2 and hypoxic findings also store `hePercent`, so
-  trimix keeps its helium; findings written before fall back to He 0.
-  No detector version bump: the next scan rewrites params anyway, and a bump
-  would raise the "new checks" banner for a wording change.
+  trimix keeps its helium. `GasModDetector` moves from version 3 to 4: the
+  bump raises the "new checks" banner, and the rescan it offers rewrites the
+  stored findings with `hePercent`. Until then, a finding without
+  `hePercent` names its oxygen share alone ("21% O2") rather than assuming
+  He 0, which would call a Tx 21/35 "Air". (The first draft left the version
+  alone; review showed stored findings would then keep misnaming trimix with
+  no prompt to rescan.)
 
 ## Tests (written first)
 
