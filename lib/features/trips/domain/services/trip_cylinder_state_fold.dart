@@ -227,8 +227,11 @@ TripCylinder? suggestTripCylinder({
   return pool.first.cylinder;
 }
 
-/// Sorts a slot with no fill after every filled one.
-const int _neverFilled = 1 << 62;
+/// Sorts a slot with no fill after every filled one: a millisecond past the
+/// latest instant a DateTime holds, so no real fill ties with it. Not
+/// `1 << 62`, which is zero compiled to JavaScript and sorted such a slot
+/// first in the web app (#4194).
+const int _neverFilled = 8640000000000001;
 
 /// Pure. Every slot as it stood at [atMillis]: its fills and adjustments
 /// up to that instant (see [tripCylinderEventsUpTo]), and the dives before
