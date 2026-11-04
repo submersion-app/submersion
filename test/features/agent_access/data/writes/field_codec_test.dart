@@ -216,6 +216,33 @@ void main() {
     expect(() => codec.parse('Ann'), _refused('object'));
   });
 
+  test('id lists by id compare whatever their order', () {
+    const codec = FieldCodec.idLists();
+    final parsed = codec.parse({
+      'b': ['y', 'x'],
+      'a': <String>[],
+    });
+    expect(
+      parsed,
+      codec.canonical({
+        'a': <String>[],
+        'b': ['x', 'y'],
+      }),
+    );
+    expect(codec.wire(parsed), {
+      'a': <String>[],
+      'b': ['x', 'y'],
+    });
+    expect(() => codec.parse({'a': 'x'}), _refused('list'));
+    expect(
+      () => codec.parse({
+        'a': ['x', 'x'],
+      }),
+      _refused('more than once'),
+    );
+    expect(() => codec.parse(['a']), _refused('object'));
+  });
+
   test('a date that does not exist is refused', () {
     expect(
       () => const FieldCodec.wallClock().parse('2024-02-31T10:00:00Z'),

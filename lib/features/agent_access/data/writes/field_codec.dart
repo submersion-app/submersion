@@ -101,6 +101,11 @@ abstract class FieldCodec {
     int maxLength,
   }) = _TextObjectCodec;
 
+  /// An object of ids, each to a list of ids, such as a dive's buddies to
+  /// their roles. The parsed value is the map as JSON, keys and lists
+  /// sorted, so it compares with a document's whatever order either is in.
+  const factory FieldCodec.idLists({int maxKeys, int maxItems}) = _IdListsCodec;
+
   /// The id of a record of [refEntity]. The planner checks it as it checks
   /// a relation's links: the record must exist and be the owner's to use.
   const factory FieldCodec.reference(String refEntity, {bool nullable}) =
@@ -480,6 +485,56 @@ class _TextObjectCodec extends FieldCodec {
           SplayTreeMap<String, Object?>.of({
             for (final MapEntry(:key, :value) in documentValue.entries)
               '$key': value,
+          }),
+        )
+      : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
+}
+
+class _IdListsCodec extends FieldCodec {
+  const _IdListsCodec({this.maxKeys = 100, this.maxItems = 20});
+
+  final int maxKeys;
+  final int maxItems;
+
+  @override
+  String get describe => 'an object of ids, each to a list of ids';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! Map || raw.length > maxKeys) {
+      throw FieldRefusal(
+        'This field takes an object of at most $maxKeys ids, each to a list '
+        'of ids.',
+      );
+    }
+    final sorted = SplayTreeMap<String, List<String>>();
+    for (final MapEntry(:key, :value) in raw.entries) {
+      if (key is! String || key.isEmpty || value is! List) {
+        throw const FieldRefusal('Each id takes a list of ids.');
+      }
+      if (value.length > maxItems || value.any((v) => v is! String)) {
+        throw FieldRefusal('$key takes at most $maxItems ids.');
+      }
+      final ids = {for (final v in value) v as String};
+      if (ids.length != value.length) {
+        throw FieldRefusal('$key names an id more than once.');
+      }
+      sorted[key] = ids.toList()..sort();
+    }
+    return jsonEncode(sorted);
+  }
+
+  @override
+  Object? canonical(Object? documentValue) => documentValue is Map
+      ? jsonEncode(
+          SplayTreeMap<String, Object?>.of({
+            for (final MapEntry(:key, :value) in documentValue.entries)
+              '$key': value is List
+                  ? ([for (final v in value) '$v']..sort())
+                  : value,
           }),
         )
       : documentValue;

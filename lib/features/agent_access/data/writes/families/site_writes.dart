@@ -1,9 +1,12 @@
 import 'package:drift/drift.dart' show QueryRow, Variable;
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart'
+    show SharedItemKind;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/item_share_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -58,16 +61,25 @@ class SiteWrites extends WritableEntry {
   final Map<String, RelationSpec> relations = const {
     'tags': RelationSpec(refEntity: 'tags'),
     'expected_species': RelationSpec(refEntity: 'species'),
+    'types': RelationSpec(refEntity: 'site_types'),
+    ...shareRelations,
   };
+
+  @override
+  String get note => shareNote;
 
   /// The link table and column of each relation.
   static const _links = {
     'tags': ('site_tags', 'tag_id'),
     'expected_species': ('site_species', 'species_id'),
+    'types': ('site_site_types', 'site_type_id'),
   };
 
   @override
   Future<Set<String>> currentRelation(String id, String relation) async {
+    if (shareRelations.containsKey(relation)) {
+      return shareRelation(_r, SharedItemKind.site, id, relation);
+    }
     final (table, column) = _links[relation]!;
     final rows = await DatabaseService.instance.database
         .customSelect(
@@ -131,6 +143,16 @@ class SiteWrites extends WritableEntry {
     if (point != null) return point;
     if (check.kind == ChangeKind.create) return null;
     final library = check.document?['shared_library_id'] != null;
+    if (check.kind == ChangeKind.update) {
+      final share = await shareProblem(
+        _r,
+        SharedItemKind.site,
+        check,
+        everyone: check.document?['is_shared'] == true,
+        library: library,
+      );
+      if (share != null) return share;
+    }
     if (!library) return null;
     // A local delete would drop the row for every profile here and leave the
     // library holding it. The app removes these through the library itself.
@@ -243,6 +265,22 @@ class SiteWrites extends WritableEntry {
         ...tags.add,
       ], actingDiverId: ownerId);
     }
+    if (update.relations['types'] case final types? when !types.isEmpty) {
+      final now = await currentRelation(id, 'types');
+      await _r.siteClassification.replaceTypes(id, [
+        ...now.difference(types.remove),
+        ...types.add,
+      ], actingDiverId: ownerId);
+    }
+    final site = await _r.sites.getSiteById(id);
+    await applyShares(
+      _r,
+      SharedItemKind.site,
+      id,
+      ownerId,
+      update,
+      everyone: site?.isShared ?? false,
+    );
     if (update.relations['expected_species'] case final species?) {
       for (final speciesId in species.add) {
         await _r.species.addExpectedSpecies(

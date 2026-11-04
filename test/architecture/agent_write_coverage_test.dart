@@ -373,6 +373,33 @@ void main() {
     ])
       '$courses/course_requirement_repository.dart:$method':
           'course_requirements',
+    // A dive's buddy list, as the edit page sets it whole and the bulk form
+    // adds, removes and re-roles buddies.
+    for (final method in const [
+      'setBuddiesForDive',
+      'bulkUpdateBuddyRoles',
+      'bulkReplaceBuddies',
+      'addBuddyToDive',
+      'addBuddyToDiveWithRoles',
+      'removeBuddyFromDive',
+    ])
+      'lib/features/buddies/data/repositories/buddy_repository.dart:$method':
+          'dives',
+    for (final method in const [
+      'replaceTypes',
+      'addTypes',
+      'addTypesToSites',
+      'removeTypesFromSites',
+      'addTags',
+      'removeTagsFromSites',
+    ])
+      'lib/features/dive_sites/data/repositories/'
+              'site_classification_repository.dart:$method':
+          'sites',
+    for (final method in const ['setSharing', 'shareWith', 'addSharing'])
+      '$divers/item_shares_repository.dart:$method': 'trips',
+    for (final method in const ['hide', 'hideAll', 'unhide'])
+      '$divers/profile_hides_repository.dart:$method': 'sites',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

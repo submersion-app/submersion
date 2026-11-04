@@ -1,8 +1,11 @@
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/constants/enums.dart' show TripType;
+import 'package:submersion/core/data/visibility/shared_item_policy.dart'
+    show SharedItemKind;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/item_share_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -60,10 +63,17 @@ class TripWrites extends WritableEntry {
   final Map<String, RelationSpec> relations = const {
     'dive_ids': RelationSpec(refEntity: 'dives'),
     'equipment_ids': RelationSpec(refEntity: 'equipment'),
+    ...shareRelations,
   };
 
   @override
+  String get note => shareNote;
+
+  @override
   Future<Set<String>> currentRelation(String id, String relation) async {
+    if (shareRelations.containsKey(relation)) {
+      return shareRelation(_r, SharedItemKind.trip, id, relation);
+    }
     final (table, column, key) = relation == 'dive_ids'
         ? ('dives', 'id', 'trip_id')
         : ('trip_equipment', 'equipment_id', 'trip_id');
@@ -82,7 +92,15 @@ class TripWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
-    return tripProblem(check);
+    final problem = await tripProblem(check);
+    if (problem != null || check.kind != ChangeKind.update) return problem;
+    return shareProblem(
+      _r,
+      SharedItemKind.trip,
+      check,
+      everyone:
+          (check.values['is_shared'] ?? check.document?['is_shared']) == true,
+    );
   }
 
   /// What the page starts a new trip with: one diver to a cylinder, a shore
@@ -199,6 +217,14 @@ class TripWrites extends WritableEntry {
         await LiveaboardDetailsRepository().deleteByTripId(id);
       }
     }
+    await applyShares(
+      _r,
+      SharedItemKind.trip,
+      id,
+      ownerId,
+      update,
+      everyone: update.values['is_shared'] as bool? ?? current.isShared,
+    );
     if (update.relations['dive_ids']?.add case final add? when add.isNotEmpty) {
       await _r.trips.assignDivesToTrip(add.toList(), id);
     }
