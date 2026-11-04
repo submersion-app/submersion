@@ -41657,6 +41657,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'העומק, המשך והפרופיל של הצלילה יגיעו מהמקור הזה. אפשר לשנות זאת שוב במקורות הנתונים של הצלילה.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'הגדרה כראשי';
 
   @override

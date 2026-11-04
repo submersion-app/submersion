@@ -12866,6 +12866,7 @@
   "dataQuality_repairLabel_splitNamed": "Séparer {source} en une plongée distincte",
   "dataQuality_setPrimary_title": "Définir {source} comme source principale ?",
   "dataQuality_setPrimary_body": "La profondeur, la durée et le profil de la plongée proviendront de {source}. Vous pourrez le modifier à nouveau dans les sources de données de la plongée.",
+  "dataQuality_setPrimary_bodyUnnamed": "La profondeur, la durée et le profil de la plongée proviendront de cette source. Vous pourrez le modifier à nouveau dans les sources de données de la plongée.",
   "dataQuality_setPrimary_confirm": "Définir comme principale",
   "dataQuality_repairLabel_compare": "Comparer les profils",
   "dataQuality_settings_title": "Qualité des données",

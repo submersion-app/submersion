@@ -42612,6 +42612,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'Tiefe, Dauer und Profil des Tauchgangs stammen danach von dieser Quelle. Du kannst das bei den Datenquellen des Tauchgangs wieder ändern.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'Als primär festlegen';
 
   @override

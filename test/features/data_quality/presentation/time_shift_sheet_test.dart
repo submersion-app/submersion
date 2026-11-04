@@ -14,6 +14,7 @@ void main() {
     WidgetTester tester, {
     Duration suggestedOffset = Duration.zero,
     String? widenLabel,
+    String? subject,
   }) async {
     Intl.defaultLocale = 'en_US';
     final results = <({Duration offset, bool widen})?>[];
@@ -28,6 +29,7 @@ void main() {
                   context,
                   suggestedOffset: suggestedOffset,
                   widenLabel: widenLabel,
+                  subject: subject,
                 ),
               ),
               child: const Text('open'),
@@ -69,6 +71,22 @@ void main() {
   testWidgets('no widen label, no checkbox', (tester) async {
     await pumpSheet(tester, suggestedOffset: const Duration(hours: -1));
     expect(find.byType(CheckboxListTile), findsNothing);
+  });
+
+  // Which computer's clock is corrected is a decision, not a detail, so the
+  // sheet says it rather than leaving it to the card behind (issue #4209).
+  testWidgets('a subject heads the sheet', (tester) async {
+    await pumpSheet(
+      tester,
+      suggestedOffset: const Duration(hours: -1),
+      subject: 'Recorded by Suunto EON Core',
+    );
+    expect(find.text('Recorded by Suunto EON Core'), findsOneWidget);
+  });
+
+  testWidgets('no subject, no heading', (tester) async {
+    await pumpSheet(tester, suggestedOffset: const Duration(hours: -1));
+    expect(find.textContaining('Recorded by'), findsNothing);
   });
 
   testWidgets('the widen checkbox carries its label and its answer', (

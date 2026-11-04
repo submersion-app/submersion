@@ -41987,6 +41987,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'The dive\'s depth, duration and profile will come from this source. You can change this again under the dive\'s data sources.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'Make primary';
 
   @override

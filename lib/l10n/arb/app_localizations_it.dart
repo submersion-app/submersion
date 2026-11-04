@@ -42703,6 +42703,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'Profondità, durata e profilo dell\'immersione verranno da questa fonte. Puoi cambiarlo di nuovo nelle fonti dati dell\'immersione.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'Rendi principale';
 
   @override

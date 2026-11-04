@@ -12866,6 +12866,7 @@
   "dataQuality_repairLabel_splitNamed": "{source} afsplitsen als eigen duik",
   "dataQuality_setPrimary_title": "{source} als primaire bron instellen?",
   "dataQuality_setPrimary_body": "Diepte, duur en profiel van de duik komen dan van {source}. Je kunt dit weer wijzigen bij de gegevensbronnen van de duik.",
+  "dataQuality_setPrimary_bodyUnnamed": "Diepte, duur en profiel van de duik komen dan van deze bron. Je kunt dit weer wijzigen bij de gegevensbronnen van de duik.",
   "dataQuality_setPrimary_confirm": "Als primair instellen",
   "dataQuality_repairLabel_compare": "Profielen vergelijken",
   "dataQuality_settings_title": "Datakwaliteit",

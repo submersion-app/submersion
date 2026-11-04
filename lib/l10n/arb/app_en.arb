@@ -26071,6 +26071,7 @@
       }
     }
   },
+  "dataQuality_setPrimary_bodyUnnamed": "The dive's depth, duration and profile will come from this source. You can change this again under the dive's data sources.",
   "dataQuality_setPrimary_confirm": "Make primary",
   "dataQuality_repairLabel_compare": "Compare profiles",
   "dataQuality_settings_title": "Data quality",

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
 import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/dive_identity_label.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class QualityFindingCard extends StatefulWidget {
@@ -17,6 +19,7 @@ class QualityFindingCard extends StatefulWidget {
     required this.onGoToDive,
     this.relatedDive,
     this.computerName,
+    this.tanks = const [],
     this.evidence,
     this.foreignDiveId,
   });
@@ -36,8 +39,14 @@ class QualityFindingCard extends StatefulWidget {
 
   /// Display name of the computer that recorded the flagged data, when the
   /// finding records one. This is what makes "same computer resumed after an
-  /// 8 min surface interval" checkable.
+  /// 8 min surface interval" checkable. For a finding about one data source
+  /// it also names the repairs acting on that source, so the row and the
+  /// button never disagree about which recording they mean (issue #4209).
   final String? computerName;
+
+  /// The tank or tanks the finding is about, as the dive numbers them. Empty
+  /// for a finding that names no tank, or whose tanks no longer exist.
+  final List<QualityTankRef> tanks;
 
   /// Optional expanded-state evidence (before/after chart, sparklines...),
   /// injected by the page so this widget stays synchronous.
@@ -75,20 +84,32 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
 
   String _repairLabel(BuildContext context, QualityRepairAction action) {
     final l10n = context.l10n;
+    final source = widget.computerName;
     return switch (action) {
       TimeShiftRepair(:final suggestedOffset) =>
         l10n.dataQuality_repairLabel_shiftLogbookTime(
           _offsetLabel(suggestedOffset),
         ),
       SourceClockShiftRepair(:final suggestedOffset) =>
-        l10n.dataQuality_repairLabel_fixSourceClock(
-          _offsetLabel(suggestedOffset),
-        ),
+        source == null
+            ? l10n.dataQuality_repairLabel_fixSourceClock(
+                _offsetLabel(suggestedOffset),
+              )
+            : l10n.dataQuality_repairLabel_fixSourceClockNamed(
+                source,
+                _offsetLabel(suggestedOffset),
+              ),
       ConsolidateDuplicateRepair() => l10n.dataQuality_repairLabel_consolidate,
       DeleteDuplicateRepair() => l10n.dataQuality_repairLabel_deleteDuplicate,
       CombineSplitRepair() => l10n.dataQuality_repairLabel_combine,
-      SetPrimarySourceRepair() => l10n.dataQuality_repairLabel_setPrimary,
-      SplitSourceRepair() => l10n.dataQuality_repairLabel_split,
+      SetPrimarySourceRepair() =>
+        source == null
+            ? l10n.dataQuality_repairLabel_setPrimary
+            : l10n.dataQuality_repairLabel_setPrimaryNamed(source),
+      SplitSourceRepair() =>
+        source == null
+            ? l10n.dataQuality_repairLabel_split
+            : l10n.dataQuality_repairLabel_splitNamed(source),
       DespikeRepair() => l10n.dataQuality_repairLabel_despike,
       SmoothRatesRepair() => l10n.dataQuality_repairLabel_smoothRates,
       ClampNegativeDepthsRepair() => l10n.dataQuality_repairLabel_clampNegative,
@@ -187,6 +208,15 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
               icon: Icons.watch_outlined,
               text: context.l10n.dataQuality_dive_recordedBy(computerName),
             ),
+          if (widget.tanks.isNotEmpty)
+            _ContextRow(
+              icon: Icons.propane_tank_outlined,
+              text: context.l10n.dataQuality_dive_tanks(
+                widget.tanks
+                    .map((t) => qualityTankLabel(context.l10n, t))
+                    .join(', '),
+              ),
+            ),
           // Some findings are a judgment call the app must not make for the
           // diver, so no repair converges and the trailing button is absent.
           // Say that plainly: an unexplained bare row reads as a broken
@@ -225,6 +255,14 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       ),
     );
   }
+}
+
+/// A tank as the dive's own screens number it ("Tank 2"), with the diver's
+/// name for it when there is one ("Tank 2 · Stage").
+String qualityTankLabel(AppLocalizations l10n, QualityTankRef tank) {
+  final number = l10n.diveLog_tank_title(tank.number);
+  final name = tank.name;
+  return name == null ? number : '$number · $name';
 }
 
 /// A quiet, icon-led line of context under a finding's message: which dive it

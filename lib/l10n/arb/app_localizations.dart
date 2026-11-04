@@ -67166,6 +67166,12 @@ abstract class AppLocalizations {
   /// **'The dive\'s depth, duration and profile will come from {source}. You can change this again under the dive\'s data sources.'**
   String dataQuality_setPrimary_body(String source);
 
+  /// No description provided for @dataQuality_setPrimary_bodyUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive\'s depth, duration and profile will come from this source. You can change this again under the dive\'s data sources.'**
+  String get dataQuality_setPrimary_bodyUnnamed;
+
   /// No description provided for @dataQuality_setPrimary_confirm.
   ///
   /// In en, this message translates to:

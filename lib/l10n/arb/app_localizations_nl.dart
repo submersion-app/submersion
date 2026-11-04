@@ -42412,6 +42412,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'Diepte, duur en profiel van de duik komen dan van deze bron. Je kunt dit weer wijzigen bij de gegevensbronnen van de duik.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'Als primair instellen';
 
   @override

@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/diver_data_query.dart';
 import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
 import 'package:submersion/features/data_quality/domain/entities/diver_data_summary.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
 import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
@@ -21,6 +23,7 @@ import 'package:submersion/features/data_quality/presentation/widgets/dive_ident
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_unit_formatters.dart';
+import 'package:submersion/features/data_quality/presentation/widgets/set_primary_source_dialog.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/time_shift_sheet.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/use_as_bailout_flow.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -96,6 +99,8 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     });
     final service = ref.read(qualityScanServiceProvider);
     final store = ref.read(qualityScanStateStoreProvider);
+    final findings = ref.read(qualityFindingsRepositoryProvider);
+    final diverId = ref.read(validatedCurrentDiverIdProvider.future);
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -111,13 +116,14 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
       // checks banner while the checks had not reached the whole library.
       if (summary.cancelled) return;
       await store.recordFullScan(DateTime.now(), qualityDetectorVersions());
+      final open = await _openFindingsAfterScan(findings, diverId, summary);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
             summary.detectorErrors > 0
-                ? '${l10n.dataQuality_scan_done(summary.findingsProduced)} '
+                ? '${l10n.dataQuality_scan_done(open)} '
                       '${l10n.dataQuality_scan_errors(summary.detectorErrors)}'
-                : l10n.dataQuality_scan_done(summary.findingsProduced),
+                : l10n.dataQuality_scan_done(open),
           ),
         ),
       );
@@ -126,13 +132,34 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     }
   }
 
+  /// The open findings the scan leaves for the active diver: the same count
+  /// as the Dives badge and the dashboard chip, so the three never disagree.
+  /// The scan's own `findingsProduced` also counts dismissed findings it
+  /// detected again, and a pair seen from both of its batches twice (issue
+  /// #4209). A failed count falls back to it rather than hiding the result.
+  Future<int> _openFindingsAfterScan(
+    QualityFindingsRepository findings,
+    Future<String?> diverId,
+    QualityScanSummary summary,
+  ) async {
+    try {
+      return await findings.watchOpenCount(diverId: await diverId).first;
+    } catch (_) {
+      return summary.findingsProduced;
+    }
+  }
+
   /// [identityOf] names a dive the way the page's headers do; it comes from
   /// build, where the identity lookup is already watched, so a confirmation
   /// can name both dives of a pair without a second read.
+  ///
+  /// [sourceName] names the data source a source finding is about, as the
+  /// card's "Recorded by" row does; null when it has no name.
   Future<void> _runAction(
     QualityFinding f,
     QualityRepairAction action, {
     required DiveIdentityLabel? Function(String? diveId) identityOf,
+    String? sourceName,
   }) async {
     // An undone duplicate delete restores the dive's documents through the
     // mutations, which re-arm their expiry reminders too.
@@ -218,6 +245,9 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           widenLabel: offerComputerWide
               ? l10n.dataQuality_repairLabel_fixSourceClockAll
               : null,
+          subject: sourceName == null
+              ? null
+              : l10n.dataQuality_dive_recordedBy(sourceName),
         );
         if (choice == null) return;
         await withUndo(
@@ -281,6 +311,9 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         await showCombineDivesDialog(context: context, diveIds: diveIds);
         scheduleQualityScan(diveIds);
       case SetPrimarySourceRepair(:final diveId, :final sourceId):
+        if (!await confirmSetPrimarySource(context, source: sourceName)) {
+          return;
+        }
         await withUndo(
           () => executor.setPrimarySource(
             diveId: diveId,
@@ -541,6 +574,28 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           final computerNames = scoped.any((f) => f.computerId != null)
               ? ref.watch(qualityComputerNamesProvider).value ?? const {}
               : const <String, String>{};
+          // Which source or tank a finding is about (issue #4209). Each lookup
+          // runs only when a finding in scope names one, and only the context
+          // rows and button labels wait on it.
+          final sourceKey = qualitySourceIdsKey(scoped);
+          final sourceLabels = sourceKey.isEmpty
+              ? const <String, String>{}
+              : ref.watch(qualitySourceLabelsProvider(sourceKey)).value ??
+                    const <String, String>{};
+          final tankKey = qualityTankIdsKey(scoped);
+          final tankRefs = tankKey.isEmpty
+              ? const <String, QualityTankRef>{}
+              : ref.watch(qualityTankRefsProvider(tankKey)).value ??
+                    const <String, QualityTankRef>{};
+          final subjects = QualityFindingSubjects(
+            sourceLabels: sourceLabels,
+            tanks: tankRefs,
+          );
+          // The saved computer's name leads, as before; a source finding
+          // whose source names no saved computer falls back to the source's
+          // own label, so the row and the repair still say which recording.
+          String? recordedBy(QualityFinding f) =>
+              computerNames[f.computerId] ?? subjects.sourceLabelOf(f);
           // Only the identity lines wait on that lookup; the findings
           // themselves render immediately from the stream that already
           // resolved.
@@ -605,9 +660,14 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                                   diveSidesOf(f, foreignOf(f)).paired,
                                 ),
                                 foreignDiveId: foreignOf(f),
-                                computerName: computerNames[f.computerId],
-                                onRepair: (a) =>
-                                    _runAction(f, a, identityOf: identity),
+                                computerName: recordedBy(f),
+                                tanks: subjects.tanksOf(f),
+                                onRepair: (a) => _runAction(
+                                  f,
+                                  a,
+                                  identityOf: identity,
+                                  sourceName: recordedBy(f),
+                                ),
                                 onDismiss: () => ref
                                     .read(qualityFindingsRepositoryProvider)
                                     .setStatus(f.id, QualityStatus.dismissed),

@@ -12866,6 +12866,7 @@
   "dataQuality_repairLabel_splitNamed": "将 {source} 拆分为单独的潜水",
   "dataQuality_setPrimary_title": "将 {source} 设为主要来源？",
   "dataQuality_setPrimary_body": "潜水的深度、时长和剖面将来自 {source}。你可以在潜水的数据来源中再次更改。",
+  "dataQuality_setPrimary_bodyUnnamed": "潜水的深度、时长和剖面将来自此来源。你可以在潜水的数据来源中再次更改。",
   "dataQuality_setPrimary_confirm": "设为主要来源",
   "dataQuality_repairLabel_compare": "比较剖面",
   "dataQuality_settings_title": "数据质量",

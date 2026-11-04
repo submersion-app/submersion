@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
+import 'package:submersion/features/data_quality/data/services/quality_finding_subject_query.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -74,6 +76,29 @@ final qualityComputerNamesProvider =
       final computers = await ref.watch(allDiveComputersProvider.future);
       return {for (final c in computers) c.id: c.displayName};
     });
+
+final qualityFindingSubjectQueryProvider = Provider<QualityFindingSubjectQuery>(
+  (ref) => QualityFindingSubjectQuery(),
+);
+
+/// Labels for the data sources the inbox's findings name, keyed by
+/// [qualitySourceIdsKey]: which computer a clock or source finding is about,
+/// for the card, its repair button and the follow-up sheet (issue #4209).
+final qualitySourceLabelsProvider = StreamProvider.autoDispose
+    .family<Map<String, String>, String>(
+      (ref, key) => ref
+          .watch(qualityFindingSubjectQueryProvider)
+          .watchSourceLabels(idsOfSubjectKey(key)),
+    );
+
+/// Position and name of the tanks the inbox's findings name, keyed by
+/// [qualityTankIdsKey], so a pressure or tank finding says which tank.
+final qualityTankRefsProvider = StreamProvider.autoDispose
+    .family<Map<String, QualityTankRef>, String>(
+      (ref, key) => ref
+          .watch(qualityFindingSubjectQueryProvider)
+          .watchTanks(idsOfSubjectKey(key)),
+    );
 
 final diveOpenFindingsCountProvider = StreamProvider.autoDispose
     .family<int, String>(

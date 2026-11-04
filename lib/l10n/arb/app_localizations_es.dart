@@ -42724,6 +42724,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'La profundidad, la duración y el perfil de la inmersión procederán de esta fuente. Puedes volver a cambiarlo en las fuentes de datos de la inmersión.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'Hacer principal';
 
   @override

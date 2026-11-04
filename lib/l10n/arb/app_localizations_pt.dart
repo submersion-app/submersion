@@ -42674,6 +42674,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'A profundidade, a duração e o perfil do mergulho passarão a vir desta fonte. Pode voltar a alterar isto nas fontes de dados do mergulho.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'Tornar principal';
 
   @override

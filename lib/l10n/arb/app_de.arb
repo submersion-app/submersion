@@ -13020,6 +13020,7 @@
   "dataQuality_repairLabel_splitNamed": "{source} als eigenen Tauchgang abtrennen",
   "dataQuality_setPrimary_title": "{source} als primäre Quelle festlegen?",
   "dataQuality_setPrimary_body": "Tiefe, Dauer und Profil des Tauchgangs stammen danach von {source}. Du kannst das bei den Datenquellen des Tauchgangs wieder ändern.",
+  "dataQuality_setPrimary_bodyUnnamed": "Tiefe, Dauer und Profil des Tauchgangs stammen danach von dieser Quelle. Du kannst das bei den Datenquellen des Tauchgangs wieder ändern.",
   "dataQuality_setPrimary_confirm": "Als primär festlegen",
   "dataQuality_repairLabel_compare": "Profile vergleichen",
   "dataQuality_settings_title": "Datenqualität",

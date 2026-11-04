@@ -43251,6 +43251,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'سيأتي عمق الغوصة ومدتها ومخططها من هذا المصدر. يمكنك تغيير ذلك مرة أخرى من مصادر بيانات الغوصة.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'جعله أساسيًا';
 
   @override

@@ -12866,6 +12866,7 @@
   "dataQuality_repairLabel_splitNamed": "{source} leválasztása külön merülésként",
   "dataQuality_setPrimary_title": "Beállítja elsődleges forrásként ezt: {source}?",
   "dataQuality_setPrimary_body": "A merülés mélysége, időtartama és profilja ezután innen származik: {source}. Ezt a merülés adatforrásainál később módosíthatja.",
+  "dataQuality_setPrimary_bodyUnnamed": "A merülés mélysége, időtartama és profilja ezután ebből a forrásból származik. Ezt a merülés adatforrásainál később módosíthatja.",
   "dataQuality_setPrimary_confirm": "Beállítás elsődlegesként",
   "dataQuality_repairLabel_compare": "Profilok összehasonlítása",
   "dataQuality_settings_title": "Adatminőség",

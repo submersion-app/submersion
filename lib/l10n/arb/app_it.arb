@@ -12866,6 +12866,7 @@
   "dataQuality_repairLabel_splitNamed": "Separa {source} in un'immersione a sé",
   "dataQuality_setPrimary_title": "Rendere {source} la fonte principale?",
   "dataQuality_setPrimary_body": "Profondità, durata e profilo dell'immersione verranno da {source}. Puoi cambiarlo di nuovo nelle fonti dati dell'immersione.",
+  "dataQuality_setPrimary_bodyUnnamed": "Profondità, durata e profilo dell'immersione verranno da questa fonte. Puoi cambiarlo di nuovo nelle fonti dati dell'immersione.",
   "dataQuality_setPrimary_confirm": "Rendi principale",
   "dataQuality_repairLabel_compare": "Confronta i profili",
   "dataQuality_settings_title": "Qualità dei dati",

@@ -40211,6 +40211,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      '潜水的深度、时长和剖面将来自此来源。你可以在潜水的数据来源中再次更改。';
+
+  @override
   String get dataQuality_setPrimary_confirm => '设为主要来源';
 
   @override

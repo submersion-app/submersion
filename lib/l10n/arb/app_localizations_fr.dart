@@ -42812,6 +42812,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'La profondeur, la durée et le profil de la plongée proviendront de cette source. Vous pourrez le modifier à nouveau dans les sources de données de la plongée.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'Définir comme principale';
 
   @override

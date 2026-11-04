@@ -42456,6 +42456,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'A merülés mélysége, időtartama és profilja ezután ebből a forrásból származik. Ezt a merülés adatforrásainál később módosíthatja.';
+
+  @override
   String get dataQuality_setPrimary_confirm => 'Beállítás elsődlegesként';
 
   @override

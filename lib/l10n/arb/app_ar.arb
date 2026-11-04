@@ -12866,6 +12866,7 @@
   "dataQuality_repairLabel_splitNamed": "فصل {source} في غوصة مستقلة",
   "dataQuality_setPrimary_title": "جعل {source} المصدر الأساسي؟",
   "dataQuality_setPrimary_body": "سيأتي عمق الغوصة ومدتها ومخططها من {source}. يمكنك تغيير ذلك مرة أخرى من مصادر بيانات الغوصة.",
+  "dataQuality_setPrimary_bodyUnnamed": "سيأتي عمق الغوصة ومدتها ومخططها من هذا المصدر. يمكنك تغيير ذلك مرة أخرى من مصادر بيانات الغوصة.",
   "dataQuality_setPrimary_confirm": "جعله أساسيًا",
   "dataQuality_repairLabel_compare": "مقارنة المخططات",
   "dataQuality_settings_title": "جودة البيانات",
