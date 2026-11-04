@@ -58686,6 +58686,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Um navegador mostra as cópias de fotos que os seus outros dispositivos guardam, mas não as pode iniciar. Inicie-as na app num telemóvel ou computador.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Enviado para';
 
   @override
@@ -59471,11 +59475,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Continuar sem um armazenamento de sincronização';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Lembrar neste dispositivo';
+  String get web_rememberOnThisDevice_title =>
+      'Lembrar o acesso neste dispositivo';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Guarda os dados de acesso e a frase-passe neste navegador. Desligado, são esquecidos quando o separador fecha.';
+      'Guarda os dados de acesso e a frase-passe neste navegador. Desligado, são esquecidos quando o separador fecha. Os seus mergulhos ficam neste navegador em qualquer caso, até esquecer este dispositivo.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Guarda os dados de acesso e a frase-passe neste navegador. Desligado, são esquecidos quando o separador fecha. Este navegador não guarda mergulhos depois de o separador fechar, esteja ligado ou desligado.';
 
   @override
   String get web_unavailable_offer_icloud =>

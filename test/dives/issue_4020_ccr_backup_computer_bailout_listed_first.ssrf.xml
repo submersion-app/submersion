@@ -1,0 +1,146 @@
+<divelog program='subsurface' version='3'>
+<settings>
+</settings>
+<divesites>
+</divesites>
+<dives>
+<dive number='1' date='2026-01-15' time='10:00:00' duration='65:00 min'>
+  <cylinder o2='40.0%' use='stage' />
+  <cylinder o2='15.0%' he='50.0%' use='bailout' />
+  <cylinder use='diluent' />
+  <divecomputer model='Shearwater Perdix 2' deviceid='00000000' diveid='00004020' dctype='CCR'>
+  <depth max='42.0 m' />
+  <sample time='0:30 min' depth='6.7 m' temp='20.7 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='1:00 min' depth='13.3 m' temp='20.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='1:30 min' depth='20.0 m' temp='20.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='2:00 min' depth='26.7 m' temp='19.7 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='2:30 min' depth='33.3 m' temp='19.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='3:00 min' depth='40.0 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='3:30 min' depth='40.0 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='4:00 min' depth='40.1 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='4:30 min' depth='40.1 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='5:00 min' depth='40.1 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='5:30 min' depth='40.2 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='6:00 min' depth='40.2 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='6:30 min' depth='40.3 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='7:00 min' depth='40.3 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='7:30 min' depth='40.3 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='8:00 min' depth='40.4 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='8:30 min' depth='40.4 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='9:00 min' depth='40.4 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='9:30 min' depth='40.5 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='10:00 min' depth='40.5 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='10:30 min' depth='40.6 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='11:00 min' depth='40.6 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='11:30 min' depth='40.6 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='12:00 min' depth='40.7 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='12:30 min' depth='40.7 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='13:00 min' depth='40.7 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='13:30 min' depth='40.8 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='14:00 min' depth='40.8 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='14:30 min' depth='40.9 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='15:00 min' depth='40.9 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='15:30 min' depth='40.9 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='16:00 min' depth='41.0 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='16:30 min' depth='41.0 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='17:00 min' depth='41.0 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='17:30 min' depth='41.1 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='18:00 min' depth='41.1 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='18:30 min' depth='41.1 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='19:00 min' depth='41.2 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='19:30 min' depth='41.2 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='20:00 min' depth='41.3 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='20:30 min' depth='41.3 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='21:00 min' depth='41.3 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='21:30 min' depth='41.4 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='22:00 min' depth='41.4 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='22:30 min' depth='41.4 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='23:00 min' depth='41.5 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='23:30 min' depth='41.5 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='24:00 min' depth='41.6 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='24:30 min' depth='41.6 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='25:00 min' depth='41.6 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='25:30 min' depth='41.7 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='26:00 min' depth='41.7 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='26:30 min' depth='41.7 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='27:00 min' depth='41.8 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='27:30 min' depth='41.8 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='28:00 min' depth='41.9 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='28:30 min' depth='41.9 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='29:00 min' depth='41.9 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='29:30 min' depth='42.0 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='30:00 min' depth='42.0 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='30:30 min' depth='39.9 m' temp='19.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='31:00 min' depth='37.8 m' temp='19.1 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='31:30 min' depth='35.7 m' temp='19.2 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='32:00 min' depth='33.6 m' temp='19.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='32:30 min' depth='31.5 m' temp='19.4 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='33:00 min' depth='29.4 m' temp='19.5 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='33:30 min' depth='27.3 m' temp='19.6 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='34:00 min' depth='25.2 m' temp='19.7 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='34:30 min' depth='23.1 m' temp='19.8 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='35:00 min' depth='21.0 m' temp='19.9 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='35:30 min' depth='20.4 m' temp='20.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='36:00 min' depth='19.8 m' temp='20.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='36:30 min' depth='19.2 m' temp='20.0 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='37:00 min' depth='18.6 m' temp='20.1 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='37:30 min' depth='18.0 m' temp='20.1 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='38:00 min' depth='17.4 m' temp='20.1 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='38:30 min' depth='16.8 m' temp='20.2 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='39:00 min' depth='16.2 m' temp='20.2 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='39:30 min' depth='15.6 m' temp='20.2 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='40:00 min' depth='15.0 m' temp='20.2 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='40:30 min' depth='14.7 m' temp='20.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='41:00 min' depth='14.4 m' temp='20.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='41:30 min' depth='14.1 m' temp='20.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='42:00 min' depth='13.8 m' temp='20.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='42:30 min' depth='13.5 m' temp='20.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='43:00 min' depth='13.2 m' temp='20.3 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='43:30 min' depth='12.9 m' temp='20.4 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='44:00 min' depth='12.6 m' temp='20.4 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='44:30 min' depth='12.3 m' temp='20.4 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='45:00 min' depth='12.0 m' temp='20.4 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='45:30 min' depth='11.7 m' temp='20.4 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='46:00 min' depth='11.4 m' temp='20.4 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='46:30 min' depth='11.1 m' temp='20.4 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='47:00 min' depth='10.8 m' temp='20.5 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='47:30 min' depth='10.5 m' temp='20.5 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='48:00 min' depth='10.2 m' temp='20.5 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='48:30 min' depth='9.9 m' temp='20.5 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='49:00 min' depth='9.6 m' temp='20.5 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='49:30 min' depth='9.3 m' temp='20.5 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='50:00 min' depth='9.0 m' temp='20.6 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='50:30 min' depth='8.7 m' temp='20.6 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='51:00 min' depth='8.4 m' temp='20.6 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='51:30 min' depth='8.1 m' temp='20.6 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='52:00 min' depth='7.8 m' temp='20.6 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='52:30 min' depth='7.5 m' temp='20.6 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='53:00 min' depth='7.2 m' temp='20.6 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='53:30 min' depth='6.9 m' temp='20.7 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='54:00 min' depth='6.6 m' temp='20.7 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='54:30 min' depth='6.3 m' temp='20.7 C' dc_supplied_ppo2='1.3 bar' po2='1.3 bar' />
+  <sample time='55:00 min' depth='6.0 m' temp='20.7 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='55:30 min' depth='5.8 m' temp='20.7 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='56:00 min' depth='5.7 m' temp='20.7 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='56:30 min' depth='5.5 m' temp='20.7 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='57:00 min' depth='5.3 m' temp='20.7 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='57:30 min' depth='5.2 m' temp='20.7 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='58:00 min' depth='5.0 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='58:30 min' depth='4.8 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='59:00 min' depth='4.7 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='59:30 min' depth='4.5 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='60:00 min' depth='4.3 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='60:30 min' depth='4.2 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='61:00 min' depth='4.0 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='61:30 min' depth='3.8 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='62:00 min' depth='3.7 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='62:30 min' depth='3.5 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='63:00 min' depth='3.3 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='63:30 min' depth='3.2 m' temp='20.8 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='64:00 min' depth='3.0 m' temp='20.9 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='64:30 min' depth='1.5 m' temp='20.9 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  <sample time='65:00 min' depth='0.0 m' temp='21.0 C' dc_supplied_ppo2='0.7 bar' po2='0.7 bar' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>

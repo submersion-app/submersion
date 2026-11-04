@@ -53,8 +53,12 @@ extension _GasSwitchEditing on _DiveEditPageState {
     return null;
   }
 
-  DiveTank? get _gasSwitchStartingTank =>
-      startingTankOf(tanks: _tanks, switches: _gasSwitches, diveStart: 0);
+  DiveTank? get _gasSwitchStartingTank => startingTankOf(
+    tanks: _tanks,
+    switches: _gasSwitches,
+    diveStart: 0,
+    onLoop: _diveMode == DiveMode.ccr || _diveMode == DiveMode.scr,
+  );
 
   Widget? _buildGasSwitchesChild(UnitFormatter units) {
     if (!_gasSwitchesVisible) return null;

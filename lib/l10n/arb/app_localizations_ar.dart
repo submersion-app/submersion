@@ -59458,6 +59458,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'يعرض المتصفح نسخ الصور التي تحتفظ بها أجهزتك الأخرى، لكنه لا يستطيع بدءها. ابدأها في التطبيق على هاتف أو حاسوب.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'تم الرفع إلى';
 
   @override
@@ -60292,11 +60296,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get web_continueWithoutSync => 'المتابعة بدون مخزن مزامنة';
 
   @override
-  String get web_rememberOnThisDevice_title => 'تذكّر على هذا الجهاز';
+  String get web_rememberOnThisDevice_title =>
+      'تذكّر تسجيل الدخول على هذا الجهاز';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب.';
+      'احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب. تبقى غوصاتك في هذا المتصفح في الحالتين حتى تنسى هذا الجهاز.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'احتفظ ببيانات تسجيل الدخول وعبارة المرور في هذا المتصفح. عند الإيقاف تُنسى عند إغلاق علامة التبويب. لا يحتفظ هذا المتصفح بأي غوصات بعد إغلاق علامة التبويب، سواء كان هذا مفعّلاً أم لا.';
 
   @override
   String get web_unavailable_offer_icloud =>

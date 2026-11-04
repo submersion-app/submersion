@@ -203,6 +203,72 @@ void main() {
     ]);
   });
 
+  // The computer is gear: with gear left out the export declares none, and
+  // the source rows must not name it either. Raw data unticked as well used
+  // to write no sources at all; since #4180 they always travel, so this is
+  // the only thing keeping a gear-off share free of the computers' serials.
+  for (final includeRawData in [true, false]) {
+    test('leaving gear out names no computer in the sources, '
+        'includeRawData $includeRawData', () async {
+      final source = DiveSourceExport(
+        id: 'src-a',
+        diveId: 'd1',
+        ordinal: 0,
+        isPrimary: true,
+        importedAt: DateTime(2026, 3, 1, 18),
+        createdAt: DateTime(2026, 3, 1, 18),
+        rawData: Uint8List.fromList([1, 2, 3, 4]),
+        computerModel: 'Perdix AI',
+        computerSerial: 'SN1',
+        sourceFileName: 'Perdix_SN1_0042.bin',
+        // A FIT import's id embeds the watch's serial.
+        sourceUuid: 'garmin-SN1-1772388000000',
+        descriptorVendor: 'Shearwater',
+        descriptorProduct: 'Perdix',
+        descriptorModel: 5,
+        maxDepth: 31.5,
+      );
+      Future<String> share({required bool includeGear}) =>
+          UddfExportService().generateDivesUddfContent(
+            [_dive, _other],
+            extras: _extras,
+            dataSources: [source],
+            options: UddfExportOptions(
+              includeGear: includeGear,
+              includeRawData: includeRawData,
+            ),
+          );
+
+      final withoutGear = await share(includeGear: false);
+      final written = XmlDocument.parse(
+        withoutGear,
+      ).findAllElements('source').single;
+      expect(withoutGear, isNot(contains('SN1')));
+      expect(withoutGear, isNot(contains('Perdix AI')));
+      expect(written.findElements('computermodel'), isEmpty);
+      expect(written.findElements('computerserial'), isEmpty);
+      expect(written.findElements('sourcefilename'), isEmpty);
+      expect(written.findElements('sourceuuid'), isEmpty);
+      // The row's own values still travel. The descriptor goes only with
+      // the bytes, which a re-parse needs it for; without them it would only
+      // name the computer.
+      expect(
+        written.findElements('descriptor').map((d) => d.getAttribute('vendor')),
+        includeRawData ? ['Shearwater'] : isEmpty,
+      );
+      expect(written.getElement('maxdepth')?.innerText, '31.5');
+
+      final withGear = XmlDocument.parse(
+        await share(includeGear: true),
+      ).findAllElements('source').single;
+      expect(withGear.getElement('computerserial')?.innerText, 'SN1');
+      expect(
+        withGear.getElement('sourcefilename')?.innerText,
+        'Perdix_SN1_0042.bin',
+      );
+    });
+  }
+
   test('provenance names only what the file declares', () async {
     // No equipment set is ever declared by this export, and a parent
     // assembly is declared only when it is itself on an exported dive.

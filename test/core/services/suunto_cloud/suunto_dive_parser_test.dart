@@ -1045,6 +1045,36 @@ void main() {
         expect(profile[2].tts, 120);
       });
 
+      test('a sample takes the nearer of two temperature readings', () {
+        final result = SuuntoDiveParser.parse(
+          header: eonHeader(),
+          samples: [
+            {
+              'TimeISO8601': '2024-05-01T10:00:00.000Z',
+              'DiveEvents': {'DiveStatus': true},
+              'Depth': 0.5,
+              'Temperature': 300.0,
+            },
+            {'TimeISO8601': '2024-05-01T10:00:02.000Z', 'Depth': 3.0},
+            {'TimeISO8601': '2024-05-01T10:00:08.000Z', 'Depth': 6.0},
+            {
+              'TimeISO8601': '2024-05-01T10:00:12.000Z',
+              'Depth': 6.0,
+              'Temperature': 296.5,
+            },
+          ],
+        );
+        final kelvin = [
+          for (final s in result.dive.profile) s.temperature! + 273.15,
+        ];
+        // 2 s is nearer the first reading (2 s off, not 10); 8 s is nearer
+        // the second (4 s off, not 8).
+        expect(kelvin[0], closeTo(300.0, 1e-9));
+        expect(kelvin[1], closeTo(300.0, 1e-9));
+        expect(kelvin[2], closeTo(296.5, 1e-9));
+        expect(kelvin[3], closeTo(296.5, 1e-9));
+      });
+
       test('reads cylinder pressure with the 1-indexed gas offset', () {
         final result = SuuntoDiveParser.parse(
           header: eonHeader(),

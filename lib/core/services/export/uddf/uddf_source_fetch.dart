@@ -19,21 +19,21 @@ typedef UddfSourceFetch =
 /// this is how such a test opts out, the same way they already override
 /// `exportServiceProvider`, and it keeps the rule itself in one place.
 final uddfSourceFetchProvider = Provider<UddfSourceFetch>((ref) {
-  return (diveIds, options) =>
-      resolveDataSources(ref.read(diveRepositoryProvider), diveIds, options);
+  return (diveIds, options) => resolveDataSources(
+    ref.read(diveRepositoryProvider),
+    diveIds,
+    includeRawData: options.includeRawData,
+  );
 });
 
-/// Whether a UDDF export fetches data source rows, and the fetch itself.
+/// The data source rows a UDDF export carries for [diveIds].
 ///
-/// One rule rather than four copies of it: the settings notifier and the three
-/// page level export actions all go through here. A share with the raw data
-/// box unchecked must not pay for a query it will not use, which is the whole
-/// point of the toggle on the dives only paths.
+/// Every export needs them, with the raw data box ticked or not: they are a
+/// dive's computers, each one's own samples and its per-source values. The box
+/// decides only whether each row's original bytes come too (issue #4180), so
+/// the rows are fetched either way, and the bytes only when [includeRawData].
 Future<List<DiveSourceExport>> resolveDataSources(
   DiveRepository repository,
-  List<String> diveIds,
-  UddfExportOptions options,
-) async {
-  if (!options.includeRawData) return const [];
-  return repository.getSourcesForExport(diveIds);
-}
+  List<String> diveIds, {
+  bool includeRawData = true,
+}) => repository.getSourcesForExport(diveIds, includeRawData: includeRawData);

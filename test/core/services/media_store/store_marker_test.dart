@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:submersion/core/services/media_store/media_object_store.dart';
-import 'dart:convert';
 
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/core/services/media_store/store_marker.dart';
@@ -22,19 +24,36 @@ class _InvisibleUntilListed extends InMemoryMediaObjectStore {
   }
 
   @override
-  Future<void> getFile(
-    String key,
-    File destination, {
-    TransferProgressCallback? onProgress,
-  }) async {
+  Future<Uint8List> getBytes(String key) async {
     if (!listed) {
       throw MediaStoreException(
         'not found: $key',
         kind: MediaStoreErrorKind.notFound,
       );
     }
-    return super.getFile(key, destination, onProgress: onProgress);
+    return super.getBytes(key);
   }
+}
+
+/// A store a browser reaches: it can hand over bytes but has no file to
+/// download into or upload from (issue #4193).
+class _NoFiles extends InMemoryMediaObjectStore {
+  @override
+  Future<void> getFile(
+    String key,
+    File destination, {
+    TransferProgressCallback? onProgress,
+  }) => throw UnsupportedError('no files in a browser');
+
+  @override
+  Future<void> putFile(
+    String key,
+    File source, {
+    required String contentType,
+    TransferProgressCallback? onProgress,
+    String? resumeStateJson,
+    void Function(String resumeStateJson)? onResumeStateChanged,
+  }) => throw UnsupportedError('no files in a browser');
 }
 
 void main() {
@@ -101,5 +120,52 @@ void main() {
     final ensured = await StoreMarkerStore(store: store).ensure();
     expect(ensured.created, isTrue);
     expect(store.objects.containsKey(StoreKeys.markerKey), isTrue);
+  });
+
+  group('a device that only reads the store (issue #4193)', () {
+    void seed(InMemoryMediaObjectStore store) {
+      store.objects[StoreKeys.markerKey] = utf8.encode(
+        jsonEncode({
+          'storeId': 'store-from-a-phone',
+          'formatVersion': 1,
+          'createdAt': '',
+        }),
+      );
+    }
+
+    test('reads the marker in memory, with no file to download into', () async {
+      final store = _NoFiles();
+      seed(store);
+
+      final marker = await StoreMarkerStore(store: store).read();
+
+      expect(marker?.storeId, 'store-from-a-phone');
+    });
+
+    test('joins the marker that is there', () async {
+      final store = _NoFiles();
+      seed(store);
+
+      final ensured = await StoreMarkerStore(
+        store: store,
+        canWrite: false,
+      ).ensure();
+
+      expect(ensured.created, isFalse);
+      expect(ensured.marker.storeId, 'store-from-a-phone');
+    });
+
+    test(
+      'refuses to start a store where there is none, writing nothing',
+      () async {
+        final store = _NoFiles();
+
+        await expectLater(
+          StoreMarkerStore(store: store, canWrite: false).ensure(),
+          throwsA(isA<MediaStoreReadOnly>()),
+        );
+        expect(store.objects, isEmpty);
+      },
+    );
   });
 }

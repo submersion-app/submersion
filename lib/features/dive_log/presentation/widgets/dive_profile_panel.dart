@@ -14,7 +14,6 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
-import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -453,11 +452,11 @@ class _DiveProfilePanelContentState
                   gasSwitches: gasSwitches,
                   gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
                       ? null
-                      : buildGasUsageSegments(
-                          tanks: dive.tanks,
-                          gasSwitches: gasSwitches ?? const [],
-                          diveDurationSeconds: chartProfile.last.timestamp,
-                          firstSampleSeconds: chartProfile.first.timestamp,
+                      : activeGasUsageSegments(
+                          dive,
+                          gasSwitches: gasSwitches,
+                          profile: chartProfile,
+                          computerId: activeSourceProfile?.computerId,
                         ),
                   diveDurationSeconds: chartProfile.isEmpty
                       ? null

@@ -55105,6 +55105,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      '浏览器可以显示你的其他设备保存的照片副本，但无法开始副本。请在手机或电脑上的应用中开始。';
+
+  @override
   String get settings_conflict_field_remoteStoreId => '上传至';
 
   @override
@@ -55842,11 +55846,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get web_continueWithoutSync => '不使用同步存储继续';
 
   @override
-  String get web_rememberOnThisDevice_title => '在此设备上记住';
+  String get web_rememberOnThisDevice_title => '在此设备上记住登录信息';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      '将登录信息和密码短语保存在此浏览器中。关闭后，关闭标签页时即被忘记。';
+      '将登录信息和密码短语保存在此浏览器中。关闭后，关闭标签页时即被忘记。无论开关与否，您的潜水记录都会保存在此浏览器中，直到您忘记此设备。';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      '将登录信息和密码短语保存在此浏览器中。关闭后，关闭标签页时即被忘记。无论开关与否，此浏览器在关闭标签页后都不会保留任何潜水记录。';
 
   @override
   String get web_unavailable_offer_icloud =>
