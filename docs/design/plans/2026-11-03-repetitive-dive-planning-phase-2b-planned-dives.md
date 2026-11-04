@@ -109,3 +109,25 @@ Each one commit, tests first, analyze and tests passing, pushed when done.
 Then l10n in all 11 locales, `dart format .`, `flutter analyze`, the full
 suite with `scripts/run_all_tests.sh`, screenshots through the gist, and
 `Refs #3565`.
+
+## As built (2026-11-04)
+
+Where the build met something already on `main`, `main`'s approach was kept:
+
+- **Links.** `DivePlanSeriesRepository.saveSeries` never writes a link; only
+  the link actions do. New entries are linked after the save through
+  `linkPlanToDive`, and existing links are read from the plan rows rather
+  than the series in memory.
+- **A single plan linked to a dived dive.** Convert to Dive asked before its
+  new dive took the link (#4058's `confirmLinkMove`), so "Create planned
+  dive" does the same. A dived dive of a series still keeps its link.
+- **Saved plans list.** #4058's link badge already shows each dive's state
+  ("Waiting for the dive", "Dived as #N"), so stage 5 makes it open the entry
+  in the log rather than adding a second state display. The "2 of 3 dived"
+  count is phase 5's.
+- **Rebreather plans** go in the log as rebreather dives with their setpoints
+  and diluent, so #4174's diluent-first start applies; Convert to Dive logged
+  them as open circuit.
+- **Sampling** is every 10 seconds, not 30 (decided 2026-11-04).
+- **Menu wording** follows the entries still only planned, read from the
+  saved rows, so a single plan linked to a dived dive offers "Create".

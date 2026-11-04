@@ -22,6 +22,9 @@ record covers what the phases agreed and the decisions made for phases 1 to
 2. **Shared settings** (built): start time and site per dive, settings and
    tanks shared across the series with per-dive overrides, series warnings,
    keyboard shortcuts. The series results summary was dropped.
+   - **2b, planned dives in the log** (built, after phase 4): "Create /
+     Update planned dives" writes the whole series to the log as planned
+     dives, replacing Convert to Dive, with links back from the log.
 3. **Persistence** (built): a `dive_plan_series` table (synced), the saved
    plans list grouped by series, sharing a series in a `.subplan` file.
    Existing plans are not migrated: a plan with no series is a one-dive
@@ -91,9 +94,9 @@ Dive A is computed as given unless the series follows a logged dive (phase
 
 ### Saving
 
-Phase 3 below replaced this: a series saves as a whole. Convert to dive stays
-off for a series, or a plan following a logged dive, until the update of
-planned dives in the log is built.
+Phase 3 below replaced this: a series saves as a whole. Phase 2b replaced
+Convert to Dive with "Create / Update planned dives", which works on a series
+and on a plan following a logged dive (see "Planned dives in the log").
 
 ## Phase 3 behaviour
 
@@ -154,7 +157,8 @@ planned dives in the log is built.
   (`PlanSeries.follow`), in memory like the rest of the series, and
   `sourceDiveId` is a replan's alone: its compare strip and overlay, and the
   reset when the planner closes, apply to replans only. A plan following a
-  logged dive saves with its series (phase 3) but cannot be converted yet.
+  logged dive saves with its series (phase 3), and phase 2b writes it to the
+  log like any series.
   Plans saved before keep their `sourceDiveId` and open as replans, as they
   did.
 - **What is followed.** The followed dive and the logged dives before it,
@@ -261,7 +265,8 @@ Phase 2; the plan is
   (`DateTime.utc` of the digits shown). The arithmetic runs on true instants
   (`fromWallClockUtc`), so a daylight saving change inside an interval does
   not move a dive by an hour. Saved plans store the start the same way, and
-  Convert to Dive writes it, or the clock time now, straight into the dive.
+  "Create / Update planned dives" writes it, or the clock time now, straight
+  into the dive.
 - **Saved and shared.** A saved dive keeps its start and whether it was
   fixed (`dive_plans.fixed_start`, schema v342). A `.subplan` file carries a
   plan's start as clock digits with no offset, and a series dive's
@@ -334,6 +339,47 @@ A series summary card, with no-fly time, was built and removed: the results
 pane has little room, and the deco schedule matters more there. The planner shows
 no no-fly time.
 
+## Planned dives in the log
+
+Phase 2b; the plan is
+`docs/design/plans/2026-11-03-repetitive-dive-planning-phase-2b-planned-dives.md`.
+
+- **The menu item.** "Create planned dive(s)" until some dive of the plan has
+  an entry still only planned in the log, then "Update planned dive(s)",
+  worded for one dive or several. It replaces Convert to Dive and acts on the
+  whole plan. The log is written only by this action, never by Save. A series
+  with no start asks for the first dive's.
+- **Each dive** (`plan_log_update.dart`). No entry: a new planned entry with
+  its start, site, name, tanks, profile and gas switches. A planned entry: the
+  same row rewritten under its own id, so its link holds. A dived entry: left
+  alone, link and all. The one exception is a single plan linked to a dived
+  dive, as Convert to Dive was (#4058): the diver is asked first, then a new
+  entry takes the link. A dive that cannot be logged stops the action with
+  nothing written, and is named.
+- **Links.** Saving never writes a link, so the new entries are linked after
+  the save through `linkPlanToDive`, as the link actions do. Existing links
+  are read from the plan rows, so a dive linked by hand while another was in
+  the editor is not overwritten. The plan row's `linkedDiveId` is the only
+  link; no column was added.
+- **Names.** A series' entry takes its dive's own name, else none, so a dived
+  one goes by its number. A single plan's entry takes the plan's name.
+- **Removed dives.** A dive removed from the series is remembered for the
+  session. Once the plan is saved, its entry is offered for deletion if it is
+  still planned and no plan links it any more. It is offered once.
+- **The entry matches its plan.** The profile is sampled every 10 seconds with
+  every corner kept, so the log's analysis agrees with the plan. An open
+  circuit plan's gas switches are written from its schedule, on the fly as
+  well as at stops, naming no computer. A rebreather plan is logged as a
+  rebreather dive with its setpoints and diluent, so it starts on the diluent
+  (#4174), with no switches. Profile and export titles read "Planned dive".
+  A download clears the planned switches with the planned profile; undoing
+  it restores them.
+- **Back from the log.** `planForLoggedDiveProvider` finds the plan linked to
+  a dive. A planned dive's banner has "Open in planner" and a dived dive's
+  menu "View in planner" while the plan exists; both go through
+  `openSavedPlanInPlanner`. In the saved plans list, a dive's link badge
+  opens its entry in the log.
+
 ## Keyboard
 
 Alt+Left and Alt+Right select the previous and next dive, and stand down
@@ -365,6 +411,5 @@ Windows beeps at Alt+letter, and it is not a convention in the app.
 
 ## Out of scope
 
-Everything in phase 5, writing a series to the log as planned dives,
-plus (as in #3700) a whole-day timeline chart, series PDF export, and inserting
+Everything in phase 5, plus (as in #3700) a whole-day timeline chart, series PDF export, and inserting
 or reordering dives.

@@ -75,8 +75,8 @@ is measured from the end of the dive before. Whichever you set last holds
 when an earlier dive gets longer or shorter. A later dive's start can be set
 once the first dive has one, or follows a logged dive.
 
-The planner doesn't use the site; a dive you convert from the plan takes it,
-with the start time (or now, if there is none).
+The planner doesn't use the site; the planned dive you create from the plan
+takes it, with the start time (or now, if there is none).
 
 With a keyboard, Alt+Left and Alt+Right move to the previous and next dive of
 a series, except while you are typing in a field.
@@ -214,8 +214,7 @@ From the menu you can also:
   interval set to the time since it ended, so the plan starts now. A dive that
   ended less than an hour ago gets an hour. The dive needs a recorded profile.
   A plan following a dive saves with it, and reopens from that dive's tissue
-  loading, CNS and OTU. It can't be converted to a dive yet; **Stop
-  following** gives that back.
+  loading, CNS and OTU. **Stop following** takes the logged dive away again.
 - **Logged dives in the series bar.** The dives a plan follows lead the bar.
   Tap one to see it in the planner's own layout, read-only: its profile where
   the plan's chart was, its details and tanks, and in the results what it
@@ -231,10 +230,21 @@ From the menu you can also:
   The results then compare the plan with what you actually did, and can show the
   original on the chart. A replan is discarded when you leave unless you save
   it.
-- **Convert to Dive** turns the plan into a planned dive in your log, with its
-  full computed profile, linked back to the plan. It is not offered for a plan
-  with no segments or with critical warnings. A download from your dive computer
-  on that day or the next fills the planned dive in place.
+- **Create planned dives** puts every dive of the plan in your log as a
+  planned dive, each at its own start time and site, with its full computed
+  profile and gas switches, linked back to the plan. A series with no start
+  time asks for the first dive's. Once they are there the menu says **Update
+  planned dives**, which rewrites the planned dives in place after you change
+  the plan; a dive you have already dived is left alone. Saving the plan never
+  changes your log. A dive you remove from the series is offered for deletion
+  from the log the next time you update, if it is still only planned. Nothing
+  is written while any dive has critical warnings; the message names it. A
+  download from your dive computer on that day or the next fills the planned
+  dive in place.
+- **Open in planner** on a planned dive's banner, and **View in planner** in a
+  dived dive's menu, take you back to the plan it came from, on that dive.
+  In the saved plans list, tap a dive's **Waiting for the dive** or **Dived
+  as #N** to open it in your log.
 - **Link to a logged dive** joins a saved plan to a dive you have already
   logged, from the saved plans list or the plan's menu. The dive's
   [Compare](compare.md) section then shows the plan beside what you did, and the
