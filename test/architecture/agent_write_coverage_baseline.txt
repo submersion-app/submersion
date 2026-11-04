@@ -278,10 +278,7 @@ lib/features/documents/data/repositories/document_repository.dart:restoreOwners
 lib/features/documents/data/repositories/document_repository.dart:restoreSnapshot
 lib/features/documents/data/repositories/document_repository.dart:save
 lib/features/documents/data/repositories/document_repository.dart:saveCardImages
-lib/features/equipment/data/repositories/equipment_observation_repository.dart:create
-lib/features/equipment/data/repositories/equipment_observation_repository.dart:delete
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:unlinkFromDeletedDives
-lib/features/equipment/data/repositories/equipment_observation_repository.dart:update
 lib/features/gps_log/data/repositories/gps_track_repository.dart:clearTrim
 lib/features/gps_log/data/repositories/gps_track_repository.dart:deleteTrack
 lib/features/gps_log/data/repositories/gps_track_repository.dart:insertImportedTrack

@@ -240,6 +240,9 @@ void main() {
     for (final method in const ['createRecord', 'updateRecord', 'deleteRecord'])
       '$gear/service_record_repository.dart:$method': 'service_records',
     '$gear/equipment_repository_impl.dart:replaceChild': 'equipment',
+    for (final method in const ['create', 'update', 'delete'])
+      '$gear/equipment_observation_repository.dart:$method':
+          'equipment_observations',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

@@ -16,16 +16,10 @@ import 'package:submersion/features/equipment/presentation/widgets/observation_n
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
+import 'package:submersion/features/equipment/domain/services/observation_defaults.dart';
 
-/// The default observed-at for a check-in on [dive]: the exit time when the
-/// log has one, else the start plus the runtime, else the start.
-DateTime defaultObservedAt(Dive dive) {
-  final exit = dive.exitTime;
-  if (exit != null) return exit;
-  final runtime = dive.effectiveRuntime;
-  if (runtime != null) return dive.dateTime.add(runtime);
-  return dive.dateTime;
-}
+export 'package:submersion/features/equipment/domain/services/observation_defaults.dart'
+    show defaultObservedAt;
 
 /// Opens the check-in sheet for [equipment]. With [dive], the sheet lists
 /// and adds observations on that dive; without it (the item page) each new

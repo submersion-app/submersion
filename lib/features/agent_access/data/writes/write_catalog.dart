@@ -14,6 +14,7 @@ import 'package:submersion/features/agent_access/data/writes/families/dive_type_
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_component_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_location_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_observation_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_set_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/gas_switch_writes.dart';
@@ -41,7 +42,8 @@ class WriteCatalog {
     RecordRepositories repositories, {
     LibraryEditStamper? stamper,
     GearReminderRefresh? refreshReminders,
-  }) : all = _entries(repositories, stamper, refreshReminders);
+    ConditionFindingsRefresh? refreshFindings,
+  }) : all = _entries(repositories, stamper, refreshReminders, refreshFindings);
 
   /// A catalog of exactly [entries], for a test that swaps one writer.
   @visibleForTesting
@@ -53,6 +55,7 @@ class WriteCatalog {
     RecordRepositories repositories,
     LibraryEditStamper? stamper,
     GearReminderRefresh? refreshReminders,
+    ConditionFindingsRefresh? refreshFindings,
   ) {
     final rows = DiveChildRowRepository();
     return List.unmodifiable(<WritableEntry>[
@@ -86,6 +89,10 @@ class WriteCatalog {
       ServiceKindWrites(repositories),
       ServiceScheduleWrites(repositories, refreshReminders: refreshReminders),
       ServiceRecordWrites(repositories, refreshReminders: refreshReminders),
+      EquipmentObservationWrites(
+        repositories,
+        refreshFindings: refreshFindings,
+      ),
     ]);
   }
 
