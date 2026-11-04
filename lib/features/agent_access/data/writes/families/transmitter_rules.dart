@@ -74,6 +74,24 @@ Future<PlanBlock?> transmitterConflict(
   );
   final computer = keyValue(check, 'dive_computer_id') as String?;
   final channel = keyValue(check, 'channel_index') as int?;
+  // Keys earlier in the set claim theirs too, whichever of the two they name.
+  for (final earlier in check.soFar.created['transmitters'] ?? const []) {
+    final sameSerial =
+        serial != null &&
+        normalizeTransmitterSerial(earlier['transmitter_serial'] as String?) ==
+            serial;
+    final sameChannel =
+        computer != null &&
+        earlier['dive_computer_id'] == computer &&
+        earlier['channel_index'] == channel;
+    if (sameSerial || sameChannel) {
+      return PlanBlock(
+        BlockReason.duplicateRecord,
+        '${sameSerial ? 'transmitter_serial' : 'channel_index'}: a key '
+        'earlier in this set holds it.',
+      );
+    }
+  }
   final gone = check.soFar.deleted['transmitters'] ?? const <String>{};
   for (final other in await r.transmitters.getForDiver(check.ownerId)) {
     if (other.id == check.id || gone.contains(other.id)) continue;

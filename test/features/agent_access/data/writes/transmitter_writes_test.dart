@@ -212,4 +212,27 @@ void main() {
       expect(item.block!.reason, BlockReason.invalidValue);
     }
   });
+
+  test('two new keys on one computer channel are a duplicate', () async {
+    final plan = await h.preview([
+      createOp(
+        'transmitters',
+        key({
+          'transmitter_serial': '1',
+          'dive_computer_id': 'perdix',
+          'channel_index': 2,
+        }),
+      ),
+      createOp(
+        'transmitters',
+        key({
+          'transmitter_serial': '2',
+          'dive_computer_id': 'perdix',
+          'channel_index': 2,
+        }),
+      ),
+    ]);
+
+    expect(plan.items.last.block!.reason, BlockReason.duplicateRecord);
+  });
 }
