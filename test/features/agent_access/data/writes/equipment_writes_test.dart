@@ -358,6 +358,34 @@ void main() {
     expect(await h.one('equipment', 'theirs', diverId: kDiverB), isNull);
   });
 
+  // A photo only of the item goes with it; one a dive also holds stays and
+  // loses its link to the item, as the repository's media split decides.
+  test('a delete lists the photos it takes and the ones it keeps', () async {
+    final id = await created({'name': 'Camera', 'type': 'camera'});
+    Future<void> photo(String photoId, {String? dive}) => db
+        .into(db.media)
+        .insert(
+          MediaCompanion.insert(
+            id: photoId,
+            filePath: '/$photoId.jpg',
+            takenAt: const Value(t),
+            createdAt: t,
+            updatedAt: t,
+            equipmentId: Value(id),
+            diveId: Value(dive),
+          ),
+        );
+    await photo('only-gear');
+    await photo('on-dive', dive: 'd1');
+
+    final plan = await h.preview([deleteOp('equipment', id)]);
+
+    expect(plan.items.single.reach.records['media'], 1);
+    expect(plan.items.single.reach.unlinked['media'], 1);
+    await h.apply(plan);
+    expect(await (db.select(db.media)).get(), hasLength(1));
+  });
+
   test('a delete lists everything it takes', () async {
     final id = await created({'name': 'AL80', 'type': 'tank'});
     final plan = await h.preview([deleteOp('equipment', id)]);

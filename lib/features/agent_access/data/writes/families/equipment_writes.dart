@@ -260,7 +260,12 @@ class EquipmentWrites extends WritableEntry {
   /// Every agent write acts as the record's owner, so the owner's delete.
   @override
   Future<void> delete(String id, String? ownerId) async {
-    await _r.equipment.deleteOwnedEquipment(id, actingDiverId: ownerId);
+    await _r.equipment.deleteOwnedEquipment(
+      id,
+      actingDiverId: ownerId,
+      // A revert restores the rows, and its media needs the blobs still there.
+      holdRemoteMedia: true,
+    );
   }
 
   @override
@@ -278,6 +283,8 @@ class EquipmentWrites extends WritableEntry {
     Map<String, Set<String>> alongside = const {},
   }) async {
     final documents = await countDocuments(await deletedDocumentOwners(id));
+    // A photo only of the item goes; one a dive or site also holds stays.
+    final media = await _r.media.partitionMediaForEquipmentDeletion([id]);
     final computers = await countRows(
       'dive_computers',
       'equipment_id = ?1',
@@ -299,15 +306,22 @@ class EquipmentWrites extends WritableEntry {
         if (documents > 0) 'documents': documents,
         if (computers > 0) 'dive_computers': computers,
         if (keys > 0) 'transmitters': keys,
+        if (media.doomed.isNotEmpty) 'media': media.doomed.length,
       },
       parts: await countCascaded('equipment', id, except: const {'documents'}),
       unlinked: {
         ...await countUnlinked(
           'equipment',
           id,
-          except: const {'dive_computers', 'transmitters', 'documents'},
+          except: const {
+            'dive_computers',
+            'transmitters',
+            'documents',
+            'media',
+          },
         ),
         if (cylinderKeys > 0) 'transmitters': cylinderKeys,
+        if (media.unlinkIds.isNotEmpty) 'media': media.unlinkIds.length,
       },
     );
   }
