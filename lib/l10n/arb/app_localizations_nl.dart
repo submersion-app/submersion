@@ -27194,6 +27194,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Samenvoegen met $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Verplaatst $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'Deze wijziging toestaan?';
 
   @override

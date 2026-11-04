@@ -7888,6 +7888,8 @@
   "settings_agentAccess_confirm_linkedDives": "צלילות שיאבדו את הקישור הזה ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "מוחק גם {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "מנתק גם {kind}: {count}",
+  "settings_agentAccess_confirm_merge": "מיזוג לתוך {name}",
+  "settings_agentAccess_confirm_moves": "מעביר {kind}: {count}",
   "settings_agentAccess_confirm_title": "לאשר את השינוי הזה?",
   "settings_agentAccess_confirm_client": "{client} רוצה לשנות את יומן הצלילות שלך.",
   "settings_agentAccess_confirm_unknownClient": "סוכן רוצה לשנות את יומן הצלילות שלך.",

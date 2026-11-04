@@ -41,6 +41,8 @@ class PlanItem {
     this.date,
     this.context = const {},
     this.reach = const DeleteReach(),
+    this.mergeInto,
+    this.mergeTitle,
     this.block,
   });
 
@@ -90,6 +92,11 @@ class PlanItem {
 
   /// What a delete takes with it.
   final DeleteReach reach;
+
+  /// For a delete that merges: the record taking over this one's links, and
+  /// what the diver knows it by.
+  final String? mergeInto;
+  final String? mergeTitle;
   final PlanBlock? block;
 
   Map<String, Object?> toJson() => {
@@ -100,6 +107,8 @@ class PlanItem {
     'diver_id': diverId,
     'parent_id': ?parentId,
     'title': ?title,
+    'merge_into': ?mergeInto,
+    'merge_title': ?mergeTitle,
     if (fields.isNotEmpty)
       'fields': {
         for (final MapEntry(:key, :value) in fields.entries)
@@ -123,6 +132,7 @@ class PlanItem {
         'linked_dives_by_diver': reach.linkedDives,
         'deleted_records': {...reach.records, ...reach.parts},
         'unlinked_records': reach.unlinked,
+        if (reach.moved.isNotEmpty) 'moved_to_merge_target': reach.moved,
       },
     if (block case final block?)
       'blocked': {'reason': block.reason.wire, 'detail': block.detail},

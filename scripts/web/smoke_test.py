@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Three-browser smoke of the built web bundle against an S3 store.
+"""Browser smoke of the built web bundle against an S3 store.
 
-For each of Chromium, Firefox and WebKit: open the bundle with semantics on
+For each browser (Firefox and WebKit unless SMOKE_BROWSERS names others):
+open the bundle with semantics on
 (`?a11y=1`), connect to the S3 store the environment names, let the first
 sync pull the seeded library, reach the dive list with its seeded dives,
 edit one dive, sync, and check in the bucket that this browser published
@@ -13,11 +14,19 @@ language that is not a language tag, as Linux does under LANG=C.UTF-8.
 A browser that never renders fails on the wait for the semantics tree
 rather than passing on nothing.
 
+Chromium is left out by default (issue #4186). On GitHub's four-core
+runners it draws in software, and how long a step takes there swings with
+the load, so its failures moved from step to step rather than pointing at
+anything. It is the only browser where drift uses its locked OPFS storage,
+so run it locally (SMOKE_BROWSERS=chromium,firefox,webkit) after changing
+how the web app uses its database.
+
 Environment: SMOKE_BASE_URL (default http://127.0.0.1:8080), SMOKE_BUNDLE_DIR
-(default build/web), MINIO_ENDPOINT, MINIO_BUCKET, MINIO_ACCESS_KEY,
-MINIO_SECRET_KEY. Run with
+(default build/web), SMOKE_BROWSERS (default firefox,webkit), MINIO_ENDPOINT,
+MINIO_BUCKET, MINIO_ACCESS_KEY, MINIO_SECRET_KEY. Run with
 `python -m pytest scripts/web/smoke_test.py -v`, after
-`python -m playwright install --with-deps chromium firefox webkit`.
+`python -m playwright install --with-deps firefox webkit` (and chromium to
+run it).
 """
 
 import gzip
@@ -25,6 +34,7 @@ import os
 import re
 import sqlite3
 import time
+from contextlib import contextmanager
 
 import boto3
 import pytest
@@ -49,6 +59,7 @@ OBJECT = re.compile(r"^ssv1\.(?P<device>[^.]+)\.")
 
 RENDER_TIMEOUT_MS = 60_000
 STEP_TIMEOUT_MS = 30_000
+BROWSERS = os.environ.get("SMOKE_BROWSERS", "firefox,webkit").split(",")
 # The seed files three of its five dives under the diver the app opens on.
 SEEDED_DIVES = 3
 SEED_SITE = "Seed Reef"
@@ -140,6 +151,16 @@ def wait_for_browser_object(marker, timeout_s=90, besides=frozenset()):
     )
 
 
+@contextmanager
+def timed(label):
+    """Prints how long the block took, kept for passes too (-rP)."""
+    started = time.monotonic()
+    try:
+        yield
+    finally:
+        print("[timing] %s: %.1fs" % (label, time.monotonic() - started))
+
+
 def exact(text):
     """A whole-name match: Flutter composes a tile's name from its texts."""
     return re.compile(r"^%s$" % re.escape(text))
@@ -156,8 +177,8 @@ def by_text(page, text):
     ).first
 
 
-def click_text(page, text, timeout=STEP_TIMEOUT_MS):
-    by_text(page, text).click(timeout=timeout)
+def click_text(page, text):
+    by_text(page, text).click(timeout=STEP_TIMEOUT_MS)
 
 
 def fill_field(page, label, value):
@@ -172,23 +193,35 @@ def fill_field(page, label, value):
     page.wait_for_timeout(300)
 
 
+def trace_database(page):
+    """Has the page print each database statement as it starts and ends
+    (StatementTraceInterceptor), set before the page loads. A step that
+    waits on the database too long then names the statement it waits on:
+    the last `start` with no `done` (#4186)."""
+    page.add_init_script(
+        "try { localStorage.setItem('submersion.trace-db', '1') } catch (e) {}"
+    )
+
+
 def wait_for_flutter(page):
     """The semantics tree is the sign that Flutter rendered."""
     page.goto(BASE_URL + "/?a11y=1", wait_until="load")
-    page.locator("flt-semantics-host, [role=application]").first.wait_for(
-        state="attached", timeout=RENDER_TIMEOUT_MS
-    )
-    page.locator("flt-semantics").first.wait_for(
-        state="attached", timeout=RENDER_TIMEOUT_MS
-    )
+    with timed("first frame"):
+        page.locator("flt-semantics-host, [role=application]").first.wait_for(
+            state="attached", timeout=RENDER_TIMEOUT_MS
+        )
+        page.locator("flt-semantics").first.wait_for(
+            state="attached", timeout=RENDER_TIMEOUT_MS
+        )
 
 
 
 def continue_without_store(page):
     """The connect step's offer on a browser's first run."""
-    button(page, exact("Continue without a sync store")).click(
-        timeout=STEP_TIMEOUT_MS
-    )
+    with timed("welcome screen"):
+        button(page, exact("Continue without a sync store")).click(
+            timeout=STEP_TIMEOUT_MS
+        )
 
 
 def finish_first_run(page, max_steps=12):
@@ -205,7 +238,8 @@ def finish_first_run(page, max_steps=12):
             ):
                 candidate.click()
                 if action in FINISH_ACTIONS:
-                    page.wait_for_url(dashboard, timeout=STEP_TIMEOUT_MS)
+                    with timed("dashboard after %s" % action):
+                        page.wait_for_url(dashboard, timeout=STEP_TIMEOUT_MS)
                     return
                 page.wait_for_timeout(1500)
                 break
@@ -229,12 +263,14 @@ def connect_to_store(page):
 def download_library(page):
     """The sync step offers the seeded library; an empty browser downloads
     it, which runs the first sync."""
-    button(page, exact("Download library")).click(timeout=STEP_TIMEOUT_MS)
+    with timed("download offer"):
+        button(page, exact("Download library")).click(timeout=STEP_TIMEOUT_MS)
 
 
 def open_dive_list(page):
-    button(page, exact("Get started")).click(timeout=STEP_TIMEOUT_MS)
-    page.wait_for_url(re.compile(r"#/dashboard"), timeout=STEP_TIMEOUT_MS)
+    with timed("download and dashboard"):
+        button(page, exact("Get started")).click(timeout=STEP_TIMEOUT_MS)
+        page.wait_for_url(re.compile(r"#/dashboard"), timeout=STEP_TIMEOUT_MS)
     page.goto(BASE_URL + "/?a11y=1#/dives", wait_until="load")
     rows = page.get_by_text(re.compile(SEED_SITE)).or_(
         page.get_by_role("button", name=re.compile(SEED_SITE))
@@ -295,9 +331,11 @@ def continue_past_safety_review(page):
     shows; the restore is done once Continue appears."""
     proceed = button(page, exact("Continue"))
     skip = button(page, exact("Skip"))
-    deadline = time.monotonic() + SAMPLE_TIMEOUT_MS / 1000
+    started = time.monotonic()
+    deadline = started + SAMPLE_TIMEOUT_MS / 1000
     while time.monotonic() < deadline:
         if proceed.count() and proceed.is_visible():
+            print("[timing] restore: %.1fs" % (time.monotonic() - started))
             proceed.click()
             return
         if skip.count() and skip.is_visible():
@@ -428,7 +466,9 @@ def report_failure(page, request, heard):
     watched, with a screenshot under SMOKE_ARTIFACT_DIR when that is set."""
     print("\n--- what the page reported (%s) ---" % request.node.name)
     print("url: %s" % page.url)
-    print("\n".join(heard[-40:]) or "(nothing)")
+    # The tail is what matters: with the database trace on, the last
+    # statement that started and never finished.
+    print("\n".join(heard[-80:]) or "(nothing)")
     print("workers: %s" % ([w.url for w in page.workers] or "(none)"))
     try:
         print("probe: %s" % page.evaluate(PAGE_PROBE))
@@ -444,8 +484,7 @@ def report_failure(page, request, heard):
 # Firefox on the runner has no WebGL, and Flutter's CPU-only fallback is too
 # slow there for any step's timeout. Headless Firefox on Linux finds no GL
 # driver at all, so where a display is set (CI runs the smoke under
-# xvfb-run) it runs headed and gets Mesa's software GL, as Chromium gets
-# SwiftShader. (A browser without WebGL still starts: the ocean background
+# xvfb-run) it runs headed and gets Mesa's software GL. (A browser without WebGL still starts: the ocean background
 # stops animating once its frames run over budget, which its widget tests
 # cover.)
 LAUNCH_OPTIONS = {
@@ -485,12 +524,12 @@ def open_page(request, locale):
             browser.close()
 
 
-@pytest.fixture(params=["chromium", "firefox", "webkit"])
+@pytest.fixture(params=BROWSERS)
 def page(request):
     yield from open_page(request, TEST_LOCALE)
 
 
-@pytest.fixture(params=["chromium", "firefox", "webkit"])
+@pytest.fixture(params=BROWSERS)
 def unparseable_locale_page(request):
     yield from open_page(request, UNPARSEABLE_LOCALE)
 
@@ -508,7 +547,8 @@ def test_fresh_first_run(page):
     """No store: the offer on the connect step, a name, the remaining steps,
     then the first write (the diver) landing on the dashboard. drift 2.34.3
     hung that commit on the locked OPFS mode, which is what an isolated page
-    gets in Chromium (drift issue #3870)."""
+    gets in Chromium (drift issue #3870), which CI leaves out (#4186)."""
+    trace_database(page)
     wait_for_flutter(page)
     continue_without_store(page)
     fill_field(page, "Your Name", "Smoke Diver")
@@ -527,6 +567,7 @@ def test_unparseable_browser_locale(unparseable_locale_page):
 
 
 def test_round_trip(page, clean_store):
+    trace_database(page)
     wait_for_flutter(page)
     connect_to_store(page)
     download_library(page)

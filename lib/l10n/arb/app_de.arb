@@ -8018,6 +8018,8 @@
   "settings_agentAccess_confirm_linkedDives": "Tauchgänge, die diese Verknüpfung verlieren ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Löscht außerdem {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Löst außerdem {kind}: {count}",
+  "settings_agentAccess_confirm_merge": "Zusammenführen mit {name}",
+  "settings_agentAccess_confirm_moves": "Verschiebt {kind}: {count}",
   "settings_agentAccess_confirm_title": "Diese Änderung zulassen?",
   "settings_agentAccess_confirm_client": "{client} möchte dein Logbuch ändern.",
   "settings_agentAccess_confirm_unknownClient": "Ein Agent möchte dein Logbuch ändern.",

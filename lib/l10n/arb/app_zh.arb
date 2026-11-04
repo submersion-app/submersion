@@ -8049,6 +8049,8 @@
   "settings_agentAccess_confirm_linkedDives": "将失去此关联的潜水({diver}):{count}",
   "settings_agentAccess_confirm_alsoDeletes": "同时删除 {kind}:{count}",
   "settings_agentAccess_confirm_alsoUnlinks": "同时取消关联 {kind}:{count}",
+  "settings_agentAccess_confirm_merge": "合并到 {name}",
+  "settings_agentAccess_confirm_moves": "移动 {kind}:{count}",
   "settings_agentAccess_confirm_title": "允许此更改吗?",
   "settings_agentAccess_confirm_client": "{client} 想要更改您的潜水日志。",
   "settings_agentAccess_confirm_unknownClient": "一个智能体想要更改您的潜水日志。",

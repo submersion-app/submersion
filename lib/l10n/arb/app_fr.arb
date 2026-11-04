@@ -7783,6 +7783,8 @@
   "settings_agentAccess_confirm_linkedDives": "Plongées qui perdent ce lien ({diver}) : {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Supprime aussi {kind} : {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Dissocie aussi {kind} : {count}",
+  "settings_agentAccess_confirm_merge": "Fusionner avec {name}",
+  "settings_agentAccess_confirm_moves": "Déplace {kind} : {count}",
   "settings_agentAccess_confirm_title": "Autoriser cette modification ?",
   "settings_agentAccess_confirm_client": "{client} veut modifier votre carnet de plongée.",
   "settings_agentAccess_confirm_unknownClient": "Un agent veut modifier votre carnet de plongée.",

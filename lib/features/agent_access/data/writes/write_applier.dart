@@ -208,7 +208,11 @@ class WriteApplier {
             RecordUpdate(values: item.values, relations: item.relations),
           );
         case ChangeKind.delete:
-          await entry.delete(item.id!, item.diverId);
+          if (item.mergeInto case final into?) {
+            await entry.merge(item.id!, into, item.diverId);
+          } else {
+            await entry.delete(item.id!, item.diverId);
+          }
       }
     } on AgentToolException catch (refusal) {
       throw AgentToolException(

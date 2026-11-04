@@ -8801,9 +8801,16 @@ class DiveRepository {
   ///
   /// The ordering is part of the contract: it defines the ordinals that pair
   /// a `<source>` entry with its `<divecomputerdump>`.
+  ///
+  /// With [includeRawData] false the rows come back without their bytes, and
+  /// the `raw_data` column is never read, so an export with the raw data box
+  /// unticked does not load every dump only to drop it (issue #4180). That
+  /// query is a typed `selectOnly`, and the table's own `map` builds each
+  /// row, so the converter rule above still holds for every other column.
   Future<List<DiveSourceExport>> getSourcesForExport(
-    List<String> diveIds,
-  ) async {
+    List<String> diveIds, {
+    bool includeRawData = true,
+  }) async {
     if (diveIds.isEmpty) return const [];
     try {
       // Chunked because this binds one SQL variable per id and the full
@@ -8823,17 +8830,34 @@ class DiveRepository {
       // caller's order.
       final uniqueIds = diveIds.toSet().toList(growable: false);
 
+      final table = _db.diveDataSources;
+      final order = [
+        OrderingTerm.asc(table.diveId),
+        OrderingTerm.desc(table.isPrimary),
+        OrderingTerm.asc(table.createdAt),
+        OrderingTerm.asc(table.id),
+      ];
       final rows = <DiveDataSourcesData>[];
       for (final chunk in seriesIdChunks(uniqueIds)) {
-        final query = _db.select(_db.diveDataSources)
-          ..where((t) => t.diveId.isIn(chunk))
-          ..orderBy([
-            (t) => OrderingTerm.asc(t.diveId),
-            (t) => OrderingTerm.desc(t.isPrimary),
-            (t) => OrderingTerm.asc(t.createdAt),
-            (t) => OrderingTerm.asc(t.id),
-          ]);
-        rows.addAll(await query.get());
+        if (includeRawData) {
+          final query = _db.select(table)
+            ..where((t) => t.diveId.isIn(chunk))
+            ..orderBy([for (final term in order) (_) => term]);
+          rows.addAll(await query.get());
+          continue;
+        }
+        final query = _db.selectOnly(table)
+          ..addColumns([
+            for (final column in table.$columns)
+              if (column != table.rawData) column,
+          ])
+          ..where(table.diveId.isIn(chunk))
+          ..orderBy(order);
+        for (final result in await query.get()) {
+          rows.add(
+            table.map(result.rawData.data, tablePrefix: table.actualTableName),
+          );
+        }
       }
 
       final seriesByRow = await _liveSeriesOfMultiSourceDives(rows);

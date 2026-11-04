@@ -14,6 +14,14 @@ Future<Map<String, Object?>> _readDocument(
     ], RecordLoad(include: const {}, diverId: diverId)))[id] ??
     const {};
 
+/// What [stored] holds that [read] does not, as text: the data an entry adds
+/// to a plain read, such as a cylinder config's cylinders.
+String _storedExtras(Map<String, Object?> read, Map<String, Object?> stored) =>
+    jsonEncode({
+      for (final MapEntry(:key, :value) in stored.entries)
+        if (!read.containsKey(key)) key: value,
+    });
+
 /// Whether [table] still holds [id], read from the current database for the
 /// same reason.
 Future<String> _presence(String table, String id) async {
@@ -32,15 +40,24 @@ Future<String> _presence(String table, String id) async {
 extension _ChildRules on _Pass {
   /// Reads `id`, `diver_id`, `updated_at` and `parent_id` of [entry]'s rows,
   /// aliased `r`. A child's owner and version are its parent's.
-  String _rowSelect(WritableEntry entry) {
+  Future<String> _rowSelect(WritableEntry entry) async {
     final parent = entry.parent;
     if (parent == null) {
-      return 'SELECT r.id, r.diver_id, r.updated_at, NULL AS parent_id '
+      // A record no diver owns, such as a species, has no owner column, and
+      // one with no version column is marked by its document instead.
+      final columns = await _columnsOf(entry.table);
+      final owner = columns.contains('diver_id')
+          ? 'r.diver_id'
+          : 'NULL AS diver_id';
+      final version = columns.contains('updated_at')
+          ? 'r.updated_at'
+          : '0 AS updated_at';
+      return 'SELECT r.id, $owner, $version, NULL AS parent_id '
           'FROM ${entry.table} r';
     }
-    return 'SELECT r.id, p.diver_id, p.updated_at, r.${parent.field} AS '
+    return 'SELECT r.id, p.diver_id, p.updated_at, r.${parent.column} AS '
         'parent_id FROM ${entry.table} r JOIN ${_parentTable(entry)} p '
-        'ON p.id = r.${parent.field}';
+        'ON p.id = r.${parent.column}';
   }
 
   String _parentTable(WritableEntry entry) =>
@@ -119,6 +136,25 @@ extension _ChildRules on _Pass {
   }) async {
     Future<Set<String>> readRelation(String relation) =>
         entry.currentRelation(id, relation);
+    if (entry.parent == null && !await _versioned(entry.table)) {
+      // No version to compare, so the record's own document is the marker,
+      // as a child's is.
+      final reader = records.named(entry.name);
+      final diverId = row.ownerId ?? await resolveDiver(null);
+      return RecordMarker(
+        table: entry.table,
+        id: id,
+        updatedAt: null,
+        versioned: false,
+        relations: relations,
+        readRelation: readRelation,
+        footprint: '$footprint ${jsonEncode(document)}',
+        readFootprint: () async {
+          final now = await _readDocument(reader, id, diverId);
+          return '${await readFootprint()} ${jsonEncode(now)}';
+        },
+      );
+    }
     if (entry.parent == null) {
       return RecordMarker(
         table: entry.table,

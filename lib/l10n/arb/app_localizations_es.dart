@@ -27388,6 +27388,16 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Fusionar con $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Mueve $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => '¿Permitir este cambio?';
 
   @override

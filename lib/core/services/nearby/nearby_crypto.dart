@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
+import 'package:submersion/core/utils/uint64_halves.dart';
+
 /// A box did not authenticate, a public key was malformed, or a nonce
 /// counter ran out. The link ends the session on any of these.
 class NearbyAuthFailure implements Exception {
@@ -180,7 +182,7 @@ class NearbySessionCipher {
     final nonce = Uint8List(12);
     final view = ByteData.sublistView(nonce);
     view.setUint32(0, direction);
-    view.setUint64(4, counter);
+    view.setUint64Halves(4, counter);
     return nonce;
   }
 

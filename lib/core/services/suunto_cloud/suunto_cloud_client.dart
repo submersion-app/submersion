@@ -153,7 +153,8 @@ class SuuntoCloudClient {
   /// server, without pulling any real data.
   Future<bool> verifySession() async {
     try {
-      await _listWorkouts(sinceMs: 1 << 53, limit: 1, offset: 0);
+      // 2^53 as a literal: `1 << 53` is zero compiled to JavaScript (#4194).
+      await _listWorkouts(sinceMs: 9007199254740992, limit: 1, offset: 0);
       return true;
     } on SuuntoApiException {
       return false;

@@ -27614,6 +27614,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'دمج في $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'ينقل $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'هل تسمح بهذا التغيير؟';
 
   @override

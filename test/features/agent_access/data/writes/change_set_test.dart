@@ -217,4 +217,30 @@ void main() {
       throwsA(_refused('fields')),
     );
   });
+
+  test('a delete may name merge_into', () {
+    final set = ChangeSet.parse(
+      _set([
+        {'op': 'delete', 'entity': 'tags', 'id': 't1', 'merge_into': 't2'},
+        {'op': 'delete', 'entity': 'tags', 'id': 't3'},
+      ]),
+    );
+
+    expect((set.operations[0] as DeleteOp).mergeInto, 't2');
+    expect((set.operations[1] as DeleteOp).mergeInto, isNull);
+  });
+
+  test('merge_into must be a non-empty string', () {
+    for (final bad in <Object?>['', 3, null]) {
+      expect(
+        () => ChangeSet.parse(
+          _set([
+            {'op': 'delete', 'entity': 'tags', 'id': 't1', 'merge_into': bad},
+          ]),
+        ),
+        throwsA(_refused('merge_into')),
+        reason: '$bad',
+      );
+    }
+  });
 }
