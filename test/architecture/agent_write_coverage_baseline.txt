@@ -468,13 +468,7 @@ lib/features/trips/data/repositories/trip_day_weather_repository.dart:deleteByTr
 lib/features/trips/data/repositories/trip_day_weather_repository.dart:upsert
 lib/features/trips/data/repositories/trip_equipment_repository.dart:deleteByTripId
 lib/features/trips/data/repositories/trip_equipment_repository.dart:deleteForEquipment
-lib/features/trips/data/repositories/trip_equipment_repository.dart:pack
-lib/features/trips/data/repositories/trip_equipment_repository.dart:unpack
 lib/features/trips/data/repositories/trip_repository.dart:assignDiveToTrip
-lib/features/trips/data/repositories/trip_repository.dart:assignDivesToTrip
-lib/features/trips/data/repositories/trip_repository.dart:createTrip
-lib/features/trips/data/repositories/trip_repository.dart:deleteTrip
 lib/features/trips/data/repositories/trip_repository.dart:removeDiveFromTrip
-lib/features/trips/data/repositories/trip_repository.dart:updateTrip
 lib/features/universal_import/data/repositories/csv_preset_repository.dart:deletePreset
 lib/features/universal_import/data/repositories/csv_preset_repository.dart:savePreset

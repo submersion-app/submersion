@@ -32,6 +32,7 @@ import 'package:submersion/features/agent_access/data/writes/families/service_re
 import 'package:submersion/features/agent_access/data/writes/families/service_schedule_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/transmitter_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/trip_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/weight_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_child_row_repository.dart';
@@ -97,6 +98,7 @@ class WriteCatalog {
       ),
       CylinderFillWrites(repositories),
       TransmitterWrites(repositories, refreshFindings: refreshFindings),
+      TripWrites(repositories),
     ]);
   }
 

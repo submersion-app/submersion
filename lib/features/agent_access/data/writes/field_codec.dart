@@ -63,7 +63,7 @@ abstract class FieldCodec {
   }) = _TextListCodec;
 
   /// A wall clock, written as documents write it, with a nominal `Z`.
-  const factory FieldCodec.wallClock() = _WallClockCodec;
+  const factory FieldCodec.wallClock({bool nullable}) = _WallClockCodec;
 
   /// A true moment, written as a read lists one, in UTC with a `Z`: when a
   /// gear item moved, not a local time of day.
@@ -475,7 +475,7 @@ class _InstantCodec extends _WallClockCodec {
 }
 
 class _WallClockCodec extends FieldCodec {
-  const _WallClockCodec();
+  const _WallClockCodec({super.nullable});
 
   /// Date, time to the second or finer, and a literal Z. An offset or a
   /// missing suffix would mean the agent thinks of a zone, and a wall clock

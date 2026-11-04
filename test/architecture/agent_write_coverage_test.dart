@@ -16,6 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const gear = 'lib/features/equipment/data/repositories';
   const passports = 'lib/features/cylinder_passports/data/repositories';
+  const trips = 'lib/features/trips/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -257,6 +258,15 @@ void main() {
     ])
       'lib/features/transmitters/data/repositories/transmitter_repository.dart:$method':
           'transmitters',
+    for (final method in const [
+      'createTrip',
+      'updateTrip',
+      'deleteTrip',
+      'assignDivesToTrip',
+    ])
+      '$trips/trip_repository.dart:$method': 'trips',
+    for (final method in const ['pack', 'unpack'])
+      '$trips/trip_equipment_repository.dart:$method': 'trips',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
