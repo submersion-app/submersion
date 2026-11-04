@@ -35,6 +35,7 @@ import 'package:submersion/features/agent_access/data/writes/families/transmitte
 import 'package:submersion/features/agent_access/data/writes/families/certification_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/checklist_template_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/course_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/media_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/pre_dive_session_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/rule_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/saved_view_writes.dart';
@@ -163,6 +164,7 @@ class WriteCatalog {
       NavTrackWrites(repositories),
       DocumentWrites(repositories, rearm: rearmDocuments),
       SmartAlbumWrites(repositories),
+      MediaWrites(repositories),
     ]);
   }
 

@@ -24,6 +24,7 @@ void main() {
   const planner = 'lib/features/planner/data/repositories';
   const safety = 'lib/features/safety/data/repositories';
   const diveLog = 'lib/features/dive_log/data/repositories';
+  const media = 'lib/features/media/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -560,6 +561,23 @@ void main() {
       'lib/features/media/data/repositories/smart_album_tag_repoint.dart:'
               '$method':
           'tags',
+    for (final (file, method) in const [
+      ('media_repository.dart', 'setManualElapsedSeconds'),
+      ('media_repository.dart', 'reassignMediaToDive'),
+      ('media_repository.dart', 'unlinkFromDive'),
+      ('media_repository.dart', 'deleteMedia'),
+      ('media_repository.dart', 'deleteMultipleMedia'),
+      ('media_people_repository.dart', 'addTag'),
+      ('media_people_repository.dart', 'updateTag'),
+      ('media_people_repository.dart', 'removeTag'),
+      ('media_species_repository.dart', 'addTag'),
+      ('media_species_repository.dart', 'removeTag'),
+      ('media_color_adjustment_repository.dart', 'setColorAdjustment'),
+      ('media_color_adjustment_repository.dart', 'applySlidersToDive'),
+      ('site_attachment_repository.dart', 'setAttachmentDetails'),
+      ('site_attachment_repository.dart', 'setSiteCategory'),
+    ])
+      '$media/$file:$method': 'media',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':

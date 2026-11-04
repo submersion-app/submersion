@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
@@ -30,5 +32,11 @@ Map<String, Object?> mediaDocument(MediaItem m) {
     'is_orphaned': m.isOrphaned,
     'signer_id': m.signerId,
     'signer_name': m.signerName,
+    'manual_elapsed_s': m.manualElapsedSeconds,
+    'color_adjustment': m.colorAdjustment == null
+        ? null
+        : jsonDecode(m.colorAdjustment!.toJsonString()),
+    'attachment_category': m.siteCategory?.name,
+    'attachment_display_size': m.displaySizeOverride?.name,
   };
 }
