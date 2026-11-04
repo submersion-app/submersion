@@ -62,7 +62,8 @@ List<PlanIssue> seriesIssuesFor(
         type: PlanIssueType.startsBeforePreviousEnds,
         severity: PlanIssueSeverity.critical,
         message: 'Starts before the previous dive ends',
-        value: overlap.inMinutes.toDouble(),
+        // Fractional, so the message rounds a part minute up, not to zero.
+        value: overlap.inSeconds / 60,
       ),
     );
   } else if (interval != null && interval < shortSurfaceIntervalLimit) {

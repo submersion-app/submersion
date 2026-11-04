@@ -108,6 +108,55 @@ void main() {
     expect(series.dives[0].settingOverrides, isEmpty);
   });
 
+  test(
+    'the dives sharing the series take the new first dive\'s own values',
+    () {
+      // As the notifier removes Dive A: the values Dive B kept its own become
+      // the series', and Dive C, which shared the series', takes them.
+      final before = _editGf(_threeDives(), 1, 50, 85);
+      var series = removeDive(before, 0);
+      series = followFirstDive(
+        series,
+        before.dives[1].settingOverrides,
+        newId: idSequence('x'),
+      );
+
+      expect(series.dives[1].state.gfLow, 50);
+      expect(series.dives[1].state.gfHigh, 85);
+    },
+  );
+
+  group('a dive saved before series shared settings', () {
+    test('keeps values that differ from the first dive as its own', () {
+      final series = _threeDives();
+      // Saved by a build that knew no overrides: its own GF, none said.
+      final b = series.dives[1].copyWith(
+        state: series.dives[1].state.copyWith(gfLow: 30, gfHigh: 70),
+      );
+
+      expect(ownSettingGroups(series.dives[0].state, b), {
+        PlanSettingGroup.deco,
+      });
+    });
+
+    test('takes the series\' values where they are the same', () {
+      final series = _threeDives();
+
+      expect(ownSettingGroups(series.dives[0].state, series.dives[1]), isEmpty);
+    });
+
+    test('keeps what it said it overrides', () {
+      final series = _editGf(_threeDives(), 1, 40, 80);
+      final b = series.dives[1].copyWith(
+        settingOverrides: {PlanSettingGroup.gas},
+      );
+
+      expect(ownSettingGroups(series.dives[0].state, b), {
+        PlanSettingGroup.gas,
+      });
+    });
+  });
+
   test('a new dive takes the overrides of the dive it copies', () {
     var series = _editGf(_threeDives(), 2, 50, 85);
     series = appendDive(series, newId: idSequence('d'));

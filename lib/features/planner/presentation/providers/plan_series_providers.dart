@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -86,11 +87,17 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     if (previous?.name != next.name) {
       state = edits.setPlanName(state, next.name);
     }
+    final carries = index > 0 || state.follow != null;
     // The diver set the interval, so it leads and the start follows from it.
     // The OTU carried in depends on how long ago each earlier dive ended.
-    if ((index > 0 || state.follow != null) &&
-        previous?.surfaceInterval != next.surfaceInterval) {
-      state = edits.anchorInterval(state, index);
+    final intervalChanged =
+        carries && previous?.surfaceInterval != next.surfaceInterval;
+    // A tank changed to another size or gas no longer carries what was left
+    // in the one before, so its start pressure is worked out again.
+    final tanksChanged =
+        carries && !sameGroup(PlanSettingGroup.tanks, before, next);
+    if (intervalChanged) state = edits.anchorInterval(state, index);
+    if (intervalChanged || tanksChanged) {
       final carried = calculator.carriedState(
         state.dives,
         index,
@@ -98,16 +105,26 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
         follow: state.follow,
       );
       if (carried.initialOtu != next.initialOtu ||
-          carried.startDateTime != next.startDateTime) {
+          carried.startDateTime != next.startDateTime ||
+          !_sameStartPressures(carried.tanks, next.tanks)) {
         _push(
           next.copyWith(
             initialOtu: carried.initialOtu,
             startDateTime: carried.startDateTime,
             clearStartDateTime: carried.startDateTime == null,
+            tanks: carried.tanks,
           ),
         );
       }
     }
+  }
+
+  static bool _sameStartPressures(List<DiveTank> a, List<DiveTank> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].startPressure != b[i].startPressure) return false;
+    }
+    return true;
   }
 
   /// Re-seeds the selected dive after the engine settings changed. What a
@@ -141,6 +158,15 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     final before = state;
     state = edits.removeDive(state, index);
     if (identical(before, state)) return;
+    // The dive after a removed first dive is the first now, so the values
+    // it kept its own are the series', and the dives sharing them take them.
+    if (index == 0) {
+      state = settings.followFirstDive(
+        state,
+        before.dives[1].settingOverrides,
+        newId: _newId,
+      );
+    }
     state = state.copyWith(structureChanged: true);
     _loadSelected();
   }

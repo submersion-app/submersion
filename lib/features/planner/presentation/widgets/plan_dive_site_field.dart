@@ -59,6 +59,8 @@ class PlanDiveSiteField extends ConsumerWidget {
       // Planning a dive is no reason to ask where the diver is now.
       useDeviceLocation: false,
     );
+    // The field may have gone while the picker was open (a layout change).
+    if (!context.mounted) return;
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     switch (result) {
       case SitePicked(:final site):

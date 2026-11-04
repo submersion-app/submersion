@@ -76,6 +76,23 @@ void main() {
     expect(scope(), findsNothing);
   });
 
+  testWidgets('a single dive\'s shared Setup headers stay one line high', (
+    tester,
+  ) async {
+    await pumpPlan(tester);
+    double headerHeight(String title) => tester
+        .getSize(
+          find
+              .ancestor(of: find.text(title), matching: find.byType(ListTile))
+              .first,
+        )
+        .height;
+
+    // Decompression is shared in a series; Gear & Weights never is. With no
+    // series, neither has a subtitle to make room for.
+    expect(headerHeight('Decompression'), headerHeight('Gear & Weights'));
+  });
+
   testWidgets('labels follow the dive and its edits', (tester) async {
     await pumpPlan(tester);
     series(tester).addDive();

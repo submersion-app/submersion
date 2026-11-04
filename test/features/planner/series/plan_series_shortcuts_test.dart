@@ -52,7 +52,7 @@ void main() {
   ProviderContainer containerOf(WidgetTester tester) =>
       ProviderScope.containerOf(tester.element(find.byType(PlanCanvasPage)));
 
-  Future<void> pumpPlan(WidgetTester tester) async {
+  Future<void> pumpPlan(WidgetTester tester, {bool focus = true}) async {
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -62,6 +62,7 @@ void main() {
         .read(divePlanNotifierProvider.notifier)
         .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
     await tester.pumpAndSettle();
+    if (!focus) return;
     // Somewhere in the planner, not in a text field.
     await tester.tap(find.byType(PlanSeriesShortcuts), warnIfMissed: false);
     Focus.of(tester.element(find.byType(LayoutBuilder).first)).requestFocus();
@@ -92,6 +93,16 @@ void main() {
 
     await alt(tester, LogicalKeyboardKey.arrowRight);
     expect(selected(tester), 1);
+  });
+
+  testWidgets('they work as soon as the planner opens', (tester) async {
+    await pumpPlan(tester, focus: false);
+    addDive(tester);
+    await tester.pumpAndSettle();
+
+    await alt(tester, LogicalKeyboardKey.arrowLeft);
+
+    expect(selected(tester), 0);
   });
 
   testWidgets('Alt+N does nothing', (tester) async {

@@ -39,7 +39,7 @@ class LoggedDiveDetailsCard extends ConsumerWidget {
     final isFollowed = index == follow.loggedDives.length - 1;
     // The gap since the logged dive before it; the first has none shown.
     final Duration? interval = index > 0
-        ? _gap(follow.loggedDives[index - 1], logged)
+        ? loggedSurfaceInterval(follow.loggedDives[index - 1], logged)
         : null;
 
     final label = seriesLoggedDiveLabel(logged, units);
@@ -136,11 +136,6 @@ class LoggedDiveDetailsCard extends ConsumerWidget {
     minimumSize: const Size(36, 36),
     padding: const EdgeInsets.all(6),
   );
-
-  static Duration _gap(SeriesLoggedDive before, SeriesLoggedDive dive) {
-    final gap = dive.start.difference(before.end);
-    return gap.isNegative ? Duration.zero : gap;
-  }
 }
 
 /// A field shown as a planned dive's is, but not editable. A null [value]

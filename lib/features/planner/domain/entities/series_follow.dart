@@ -69,6 +69,17 @@ class SeriesLoggedDive extends Equatable {
   ];
 }
 
+/// The surface interval between the logged dives [before] and [after], as
+/// the series bar and the planner's logged-dive cards show it: none when
+/// their logged times overlap.
+Duration loggedSurfaceInterval(
+  SeriesLoggedDive before,
+  SeriesLoggedDive after,
+) {
+  final gap = after.start.difference(before.end);
+  return gap.isNegative ? Duration.zero : gap;
+}
+
 /// The logged dives a series follows (issue #3565): the followed dive, last,
 /// and the dives before it back to the first gap of
 /// [followLookback] or more, with what the followed dive leaves behind for

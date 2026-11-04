@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 
 /// The planner's shortcut category, and the labels its entries are listed
@@ -57,15 +58,31 @@ class _PlanSeriesShortcutsState extends ConsumerState<PlanSeriesShortcuts> {
     super.dispose();
   }
 
+  /// Moves [step] dives along the planned dives. A logged dive in view sits
+  /// before the first planned one, so the next dive from it is Dive A and
+  /// there is none before it; the view is left, so the screen shows the
+  /// dive the series has selected.
+  void _move(int step) {
+    final series = ref.read(planSeriesNotifierProvider.notifier);
+    if (ref.read(viewedLoggedDiveProvider) != null) {
+      if (step < 0) return;
+      ref.read(viewedLoggedDiveIdProvider.notifier).state = null;
+      series.select(0);
+      return;
+    }
+    step < 0 ? series.previous() : series.next();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final series = ref.read(planSeriesNotifierProvider.notifier);
     return CallbackShortcuts(
       bindings: {
-        const NotWhileTypingActivator(_previous): series.previous,
-        const NotWhileTypingActivator(_next): series.next,
+        const NotWhileTypingActivator(_previous): () => _move(-1),
+        const NotWhileTypingActivator(_next): () => _move(1),
       },
-      child: Focus(child: widget.child),
+      // Focused when the planner opens, so the shortcuts work before the
+      // diver has focused anything in it; not a Tab stop of its own.
+      child: Focus(autofocus: true, skipTraversal: true, child: widget.child),
     );
   }
 }

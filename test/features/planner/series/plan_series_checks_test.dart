@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
@@ -119,6 +120,30 @@ void main() {
         _types(results[1]),
         isNot(contains(PlanIssueType.shortSurfaceInterval)),
       );
+    });
+
+    test('an overlap under a minute is not reported as none', () {
+      final start = DateTime.utc(2026, 10, 27, 9);
+      final unfixed = _two(start: start);
+      final runtime = Duration(
+        seconds: compute(unfixed)[0].outcome.runtimeSeconds,
+      );
+      // 40 seconds before Dive A surfaces.
+      final series = setDiveStart(
+        unfixed,
+        1,
+        asWallClockUtc(
+          fromWallClockUtc(
+            start,
+          ).add(runtime).subtract(const Duration(seconds: 40)),
+        ),
+      );
+
+      final issue = compute(series)[1].seriesIssues.firstWhere(
+        (i) => i.type == PlanIssueType.startsBeforePreviousEnds,
+      );
+
+      expect(issue.value, closeTo(40 / 60, 0.001));
     });
 
     test('a planned dive before it cannot leave deco owed: stops clear it', () {

@@ -25,8 +25,9 @@ class LoggedDiveStatusChips extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final dive = ref.watch(diveProvider(logged.id)).value;
     final findings = ref.watch(viewedLoggedDiveFindingsProvider);
-    final runtime =
-        dive?.effectiveRuntime ?? logged.end.difference(logged.start);
+    // The measured runtime, as the dive log reports it: never the bottom
+    // time a dive with no runtime falls back to for time windows (#3304).
+    final runtime = dive?.measuredRuntime;
     final depth = dive?.maxDepth ?? logged.maxDepth;
 
     return Wrap(
@@ -35,7 +36,7 @@ class LoggedDiveStatusChips extends ConsumerWidget {
       children: [
         PlanChip(
           label: l10n.divePlanner_label_runtime,
-          value: '${runtime.inMinutes}′',
+          value: runtime == null ? '--' : '${runtime.inMinutes}′',
           emphasized: true,
         ),
         if (depth != null)

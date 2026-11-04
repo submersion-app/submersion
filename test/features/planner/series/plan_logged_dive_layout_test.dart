@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -159,6 +160,29 @@ void main() {
     expect(find.descendant(of: tile, matching: find.text('1')), findsOneWidget);
     expect(find.text('1 issue'), findsOneWidget);
     expect(find.byType(LoggedDiveResults), findsOneWidget);
+  });
+
+  testWidgets('Alt+Right from a logged dive shows Dive A; Alt+Left stays', (
+    tester,
+  ) async {
+    await pumpLogged(tester, planned: false);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    );
+    Future<void> alt(LogicalKeyboardKey key) async {
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
+      await tester.sendKeyEvent(key);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
+      await tester.pumpAndSettle();
+    }
+
+    await alt(LogicalKeyboardKey.arrowLeft);
+    expect(container.read(viewedLoggedDiveIdProvider), 'd42');
+
+    await alt(LogicalKeyboardKey.arrowRight);
+    expect(container.read(viewedLoggedDiveIdProvider), isNull);
+    expect(container.read(planSeriesNotifierProvider).selectedIndex, 0);
+    expect(find.byType(LoggedDiveResults), findsNothing);
   });
 
   testWidgets('on a phone, a planned dive opens its Plan tab', (tester) async {

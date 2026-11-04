@@ -594,11 +594,12 @@ final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
 /// deco time, CNS, issues) are shown: the selected contingency's outcome when
 /// one is being previewed, else the live plan's outcome.
 final activePlanOutcomeProvider = Provider<PlanOutcome>((ref) {
+  // What the series raises about the dive (its interval, the tissues it
+  // starts with) holds for a previewed contingency of it too.
+  final seriesIssues = ref.watch(selectedSeriesIssuesProvider);
   final preview = ref.watch(selectedContingencyProvider)?.outcome;
-  if (preview != null) return preview;
-  return ref
-      .watch(planOutcomeProvider)
-      .withIssues(ref.watch(selectedSeriesIssuesProvider));
+  final outcome = preview ?? ref.watch<PlanOutcome>(planOutcomeProvider);
+  return outcome.withIssues(seriesIssues);
 });
 
 /// The logged dive a "What if..." plan was converted from, plus its profile:

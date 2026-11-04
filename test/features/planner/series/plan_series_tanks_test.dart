@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_edits.dart';
@@ -257,6 +258,41 @@ void main() {
       // Dive C still has the stage, which Dive B did not carry.
       expect(results[2].state.tanks[1].startPressure, 200);
     });
+  });
+
+  test('following a logged dive, a tank with nothing to carry fills to its '
+      'own pressure, not what the logged dive left', () {
+    final base = threeDives();
+    final a = base.dives[0];
+    // Dive A follows a logged dive that left the stage at 80 bar; the stage
+    // fills to 200.
+    final following = base.copyWith(
+      follow: SeriesFollow(
+        loggedDives: [seriesLoggedDive('d1', DateTime(2026, 10, 27, 8))],
+        ownStartPressures: {
+          for (final tank in a.state.tanks) tank.id: tank.startPressure!,
+        },
+      ),
+      dives: [
+        a.copyWith(
+          state: a.state.copyWith(
+            tanks: [
+              a.state.tanks[0],
+              a.state.tanks[1].copyWith(startPressure: 80),
+            ],
+          ),
+        ),
+        ...base.dives.skip(1),
+      ],
+    );
+    // Dive B drops the stage, so Dive C's has nothing to carry; then a new
+    // gas on Dive A shares the series' tanks again.
+    var series = editTanks(following, 1, (tanks) => [tanks[0]]);
+    series = editTanks(series, 0, (tanks) {
+      return [tanks[0].copyWith(gasMix: _air), tanks[1]];
+    });
+
+    expect(series.dives[2].state.tanks[1].startPressure, 200);
   });
 
   test('a dive on another circuit keeps its own tanks', () {

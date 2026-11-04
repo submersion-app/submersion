@@ -32,15 +32,47 @@ PlanSeries shareSettingEdits(
       ),
     );
   }
+  return followFirstDive(series, changed, newId: newId);
+}
+
+/// [series] with every later dive that does not override them taking the
+/// first dive's values of [groups]: after the first dive's values change,
+/// or after another dive becomes the first and its own values the series'.
+PlanSeries followFirstDive(
+  PlanSeries series,
+  Set<PlanSettingGroup> groups, {
+  required String Function() newId,
+}) {
+  if (groups.isEmpty || series.dives.length < 2) return series;
+  final first = series.dives.first;
   final shared = series.copyWith(
     dives: [
-      edited,
-      for (final dive in series.dives.skip(1)) _follow(dive, edited, changed),
+      first,
+      for (final dive in series.dives.skip(1)) _follow(dive, first, groups),
     ],
   );
-  return changed.contains(PlanSettingGroup.tanks)
+  return groups.contains(PlanSettingGroup.tanks)
       ? followSeriesTanks(shared, newId: newId)
       : shared;
+}
+
+/// The groups [dive], a later dive of a series whose first dive is [first],
+/// keeps its own: those it says it overrides, and any whose values differ
+/// from the first dive's. A dive saved before a series shared its settings
+/// (or read from such a file) says nothing yet may hold values of its own;
+/// taking them for the series' would lose them at the next edit of the
+/// first dive. Tanks on another circuit are never shared, so they are left
+/// as the dive says.
+Set<PlanSettingGroup> ownSettingGroups(
+  DivePlanState first,
+  PlanSeriesDive dive,
+) {
+  final sameCircuit = dive.state.mode == first.mode;
+  return {
+    ...dive.settingOverrides,
+    for (final group in changedGroups(first, dive.state))
+      if (group != PlanSettingGroup.tanks || sameCircuit) group,
+  };
 }
 
 /// The dive at [index] back on the series' values of [group].

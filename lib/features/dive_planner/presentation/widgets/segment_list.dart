@@ -17,7 +17,7 @@ import 'package:submersion/features/planner/domain/services/dive_plan_state_mapp
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart'
-    show resolvedPlanEngineConfigProvider;
+    show planEngineConfigProvider, resolvedPlanEngineConfigProvider;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -59,13 +59,15 @@ class SegmentList extends ConsumerWidget {
     final resolvedPlan = const TankRoleResolver().apply(
       divePlanFromState(planState),
     );
+    // A plan shown read-only resolves its own settings, not the editor's.
+    final config = readOnly
+        ? ref.watch(planEngineConfigProvider).resolvedFor(resolvedPlan)
+        : ref.watch(resolvedPlanEngineConfigProvider);
     final adjustedLegs = const SegmentChain().resolve(
       withDiluentSwitchTime(
         resolvedPlan.segments,
         resolvedPlan,
-        gasSwitchStopSeconds: ref
-            .watch(resolvedPlanEngineConfigProvider)
-            .gasSwitchStopSeconds,
+        gasSwitchStopSeconds: config.gasSwitchStopSeconds,
       ),
     );
     int runtimeSecondsFor(String segmentId) => adjustedLegs

@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
+import 'package:submersion/features/planner/domain/services/plan_series_edits.dart';
 
 /// The tanks a repetitive series shares (issue #3565). What a tank is (its
 /// size, gas and role) is the series', from the first dive; each dive keeps
@@ -21,6 +22,12 @@ PlanSeries followSeriesTanks(
   final roots = <Map<String, String>>[
     {for (final tank in first.state.tanks) tank.id: tank.id},
   ];
+  // What each first-dive tank fills to. Following a logged dive, its start
+  // pressure is what that dive left in it, not its fill.
+  final fills = {
+    for (final tank in first.state.tanks)
+      tank.id: ?fullPressureFor(series, 0, tank.id),
+  };
 
   for (final dive in series.dives.skip(1)) {
     final previous = roots.last;
@@ -51,7 +58,7 @@ PlanSeries followSeriesTanks(
         _withLinks(taken.dive, {
           for (final e in rootOf.entries) e.key: ?previousOf[e.value],
         }),
-        first,
+        fills,
         rootOf,
       ),
     );
@@ -162,13 +169,13 @@ DiveTank _fallback(List<DiveTank> tanks, GasMix gas) =>
     tanks.firstWhereOrNull((tank) => _sameGas(tank.gasMix, gas)) ?? tanks.first;
 
 /// [dive] with each tank the dive before does not have, unless pinned, at
-/// the first dive's pressure for it: with nothing to carry, it starts full.
+/// the [fills] of the first-dive tank it is: with nothing to carry, it
+/// starts full.
 PlanSeriesDive _startFullWithoutLink(
   PlanSeriesDive dive,
-  PlanSeriesDive first,
+  Map<String, double> fills,
   Map<String, String> rootOf,
 ) {
-  final fills = {for (final t in first.state.tanks) t.id: t.startPressure};
   final tanks = [
     for (final tank in dive.state.tanks)
       if (dive.sourceTankIds[tank.id] == null &&

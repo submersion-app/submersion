@@ -85,7 +85,7 @@ Alt+Left and Alt+Right select the previous and next dive, registered in
 
 - The first dive's settings are the series'. A later dive takes them until
   one of its groups is changed. Groups, from the Setup accordion: deco (GF,
-  air breaks), rates (rates, last stop), gas (SAC, reserve, gas options,
+  last stop, air breaks), rates (rates), gas (SAC, reserve, gas options,
   ppO2 bands), environment (altitude, water, salinity), contingencies.
 - Not shared: mode and setpoints, stop minimums, gear and weights, the DPV
   mission, the site, the pSCR ratio.

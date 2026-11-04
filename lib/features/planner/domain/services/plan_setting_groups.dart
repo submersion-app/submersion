@@ -10,9 +10,12 @@ const _equality = DeepCollectionEquality();
 /// The settings of [group] in [state], for comparing two dives.
 List<Object?> _values(PlanSettingGroup group, DivePlanState state) =>
     switch (group) {
+      // The last stop is set in the Decompression section, so it is shared
+      // and reset with it, not with the rates that read it.
       PlanSettingGroup.deco => [
         state.gfLow,
         state.gfHigh,
+        state.lastStopDepth,
         state.airBreaks,
         state.airBreaksExplicitlyOff,
       ],
@@ -22,7 +25,6 @@ List<Object?> _values(PlanSettingGroup group, DivePlanState state) =>
         state.intermediateAscentRate,
         state.shallowAscentRate,
         state.finalAscentRate,
-        state.lastStopDepth,
       ],
       PlanSettingGroup.gas => [
         state.sacRate,
@@ -104,6 +106,8 @@ DivePlanState applyGroup(
       clearGfLow: from.gfLow == null,
       gfHigh: from.gfHigh,
       clearGfHigh: from.gfHigh == null,
+      lastStopDepth: from.lastStopDepth,
+      clearLastStopDepth: from.lastStopDepth == null,
       airBreaks: from.airBreaks,
       clearAirBreaks: from.airBreaks == null,
       airBreaksExplicitlyOff: from.airBreaksExplicitlyOff,
@@ -119,8 +123,6 @@ DivePlanState applyGroup(
       clearShallowAscentRate: from.shallowAscentRate == null,
       finalAscentRate: from.finalAscentRate,
       clearFinalAscentRate: from.finalAscentRate == null,
-      lastStopDepth: from.lastStopDepth,
-      clearLastStopDepth: from.lastStopDepth == null,
     ),
     PlanSettingGroup.gas => to.copyWith(
       sacRate: from.sacRate,

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/utils/hours_minutes.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
@@ -45,8 +46,7 @@ class LoggedDiveCarryCard extends ConsumerWidget {
     } else {
       final next = follow.loggedDives[index + 1];
       nextLabel = seriesLoggedDiveLabel(next, units);
-      final gap = next.start.difference(logged.end);
-      interval = gap.isNegative ? Duration.zero : gap;
+      interval = loggedSurfaceInterval(logged, next);
     }
     final tanks = [
       for (final tank in dive?.tanks ?? const <DiveTank>[])

@@ -34,6 +34,18 @@ void main() {
     });
   });
 
+  test('the last stop goes with Decompression, where it is set', () {
+    expect(changedGroups(base, base.copyWith(lastStopDepth: 6)), {
+      PlanSettingGroup.deco,
+    });
+    final applied = applyGroup(
+      PlanSettingGroup.deco,
+      from: base.copyWith(lastStopDepth: 6),
+      to: base,
+    );
+    expect(applied.lastStopDepth, 6);
+  });
+
   group('applyGroup', () {
     test('copies the group and nothing else', () {
       final from = base.copyWith(

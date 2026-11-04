@@ -28,13 +28,19 @@ class PlanDiveStartField extends ConsumerWidget {
     final fixed = ref.watch(
       planSeriesNotifierProvider.select((s) => s.selected.fixedStart),
     );
+    final following = ref.watch(
+      planSeriesNotifierProvider.select((s) => s.follow != null),
+    );
     final start = ref.watch(
       divePlanNotifierProvider.select((s) => s.startDateTime),
     );
     // A later dive has a start only when the dive before it has an end.
     final enabled = index == 0 || start != null;
-    // A first dive's start is always its own; a later one's only when fixed.
-    final clearable = start != null && (index == 0 || fixed);
+    // A later dive's start, or a first dive's that follows a logged dive,
+    // comes from the dive before it unless the diver fixed it; clearing one
+    // that was not fixed would only work it out again.
+    final derived = index > 0 || following;
+    final clearable = start != null && (fixed || !derived);
 
     final field = InkWell(
       key: const Key('diveStartField'),
@@ -69,7 +75,7 @@ class PlanDiveStartField extends ConsumerWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (index > 0 && fixed)
+            if (derived && fixed)
               Tooltip(
                 message: l10n.plannerSeries_start_fixed,
                 child: const Icon(Icons.push_pin_outlined, size: 18),
