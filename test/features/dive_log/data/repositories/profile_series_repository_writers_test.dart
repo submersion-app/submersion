@@ -207,9 +207,21 @@ void main() {
         samples: const [ProfileSample(timestamp: 0, depth: 2.0)],
         now: 1000,
       );
+      final c = await repo.insertSeries(
+        diveId: 'dive-1',
+        samples: const [ProfileSample(timestamp: 0, depth: 3.0)],
+        now: 1000,
+      );
+
       expect(await repo.deleteByIds(const []), isEmpty);
-      expect(await repo.deleteByIds([a]), [a]);
+      expect(await repo.deleteByIds([a, c]), [a, c]);
       expect((await repo.getSeriesForDive('dive-1')).map((s) => s.id), [b]);
+
+      final tombstones = await db.select(db.deletionLog).get();
+      expect(tombstones.map((t) => t.recordId).toSet(), {a, c});
+      expect(tombstones.map((t) => t.entityType).toSet(), {
+        'diveProfileSeries',
+      });
     },
   );
 

@@ -722,4 +722,71 @@ void main() {
       );
     },
   );
+
+  test(
+    'deleteProfileSeriesWithHistoryForDive deletes the active primary and promotes the newest remaining revision',
+    () async {
+      await dives.createDive(
+        dive('dive-1', const [
+          domain.DiveProfilePoint(timestamp: 0, depth: 1.0),
+        ]),
+      );
+      final primary = (await series.getSeriesForDive('dive-1')).single.id;
+      final replacement = await series.insertSeries(
+        diveId: 'dive-1',
+        samples: const [ProfileSample(timestamp: 10, depth: 2.0)],
+        isPrimary: false,
+        now: 1000,
+      );
+
+      await dives.deleteProfileSeriesWithHistoryForDive('dive-1', primary);
+
+      final rows = await series.getSeriesForDive('dive-1');
+      expect(rows.map((s) => s.id), [replacement]);
+      expect(rows.single.isPrimary, isTrue);
+      expect(await series.primarySeriesIdForDive('dive-1'), replacement);
+      expect((await dives.getProfileHistory('dive-1')).map((r) => r.seriesId), [
+        replacement,
+      ]);
+    },
+  );
+
+  test(
+    'deleteProfileSeriesWithHistoryForDive rejects deleting the only revision',
+    () async {
+      await dives.createDive(
+        dive('dive-1', const [
+          domain.DiveProfilePoint(timestamp: 0, depth: 1.0),
+        ]),
+      );
+      final id = (await series.getSeriesForDive('dive-1')).single.id;
+
+      await expectLater(
+        dives.deleteProfileSeriesWithHistoryForDive('dive-1', id),
+        throwsA(isA<ArgumentError>()),
+      );
+    },
+  );
+
+  test(
+    'deleteProfileSeriesWithHistoryForDive rejects deleting an unknown series',
+    () async {
+      await dives.createDive(
+        dive('dive-1', const [
+          domain.DiveProfilePoint(timestamp: 0, depth: 1.0),
+        ]),
+      );
+      await series.insertSeries(
+        diveId: 'dive-1',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 0, depth: 2.0)],
+        now: 1000,
+      );
+
+      await expectLater(
+        dives.deleteProfileSeriesWithHistoryForDive('dive-1', 'missing-series'),
+        throwsA(isA<ArgumentError>()),
+      );
+    },
+  );
 }

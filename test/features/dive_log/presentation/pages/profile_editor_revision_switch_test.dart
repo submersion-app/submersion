@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
@@ -123,5 +124,159 @@ void main() {
 
     // Verify history icon and selector are not shown when no revision history
     expect(find.byIcon(Icons.history), findsNothing);
+  });
+
+  testWidgets('deletes the active profile series after confirmation', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(2000, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final dive = diveWithProfile();
+    final base = await getBaseOverrides();
+    final mockRepo = MockDiveRepository();
+
+    when(
+      mockRepo.deleteProfileSeriesWithHistoryForDive(any, any),
+    ).thenAnswer((_) async {});
+
+    final revisions = [
+      ProfileSeriesRevision(
+        seriesId: 'series-newest',
+        diveId: dive.id,
+        parentSeriesId: null,
+        rootSeriesId: 'series-newest',
+        contentHash: 'hash-newest',
+        revisionKind: 'computer_import',
+        createdAt: 2000,
+        isActive: true,
+      ),
+      ProfileSeriesRevision(
+        seriesId: 'series-older',
+        diveId: dive.id,
+        parentSeriesId: 'series-newest',
+        rootSeriesId: 'series-newest',
+        contentHash: 'hash-older',
+        revisionKind: 'manual_edit',
+        createdAt: 1000,
+        isActive: false,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          diveRepositoryProvider.overrideWithValue(mockRepo),
+          diveProvider(dive.id).overrideWith((ref) async => dive),
+          profileSeriesHistoryProvider(
+            dive.id,
+          ).overrideWith((ref) async => revisions),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ProfileEditorPage(diveId: dive.id),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.tap(find.text('Cleanup'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete Entire Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete Permanently Now'), findsOneWidget);
+    expect(
+      find.text(
+        'This profile was imported from a dive computer and likely contains the original source data.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Delete Permanently Now'));
+    await tester.pumpAndSettle();
+
+    verify(
+      mockRepo.deleteProfileSeriesWithHistoryForDive(dive.id, 'series-newest'),
+    ).called(1);
+  });
+
+  testWidgets('shows a snackbar when deleting a profile series fails', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(2000, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final dive = diveWithProfile();
+    final base = await getBaseOverrides();
+    final mockRepo = MockDiveRepository();
+
+    when(
+      mockRepo.deleteProfileSeriesWithHistoryForDive(any, any),
+    ).thenThrow(StateError('boom'));
+
+    final revisions = [
+      ProfileSeriesRevision(
+        seriesId: 'series-newest',
+        diveId: dive.id,
+        parentSeriesId: null,
+        rootSeriesId: 'series-newest',
+        contentHash: 'hash-newest',
+        revisionKind: 'manual_edit',
+        createdAt: 2000,
+        isActive: true,
+      ),
+      ProfileSeriesRevision(
+        seriesId: 'series-older',
+        diveId: dive.id,
+        parentSeriesId: 'series-newest',
+        rootSeriesId: 'series-newest',
+        contentHash: 'hash-older',
+        revisionKind: 'computer_import',
+        createdAt: 1000,
+        isActive: false,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          diveRepositoryProvider.overrideWithValue(mockRepo),
+          diveProvider(dive.id).overrideWith((ref) async => dive),
+          profileSeriesHistoryProvider(
+            dive.id,
+          ).overrideWith((ref) async => revisions),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ProfileEditorPage(diveId: dive.id),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.tap(find.text('Cleanup'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete Entire Profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete Permanently Now'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not switch profile revision.'), findsOneWidget);
+    verify(
+      mockRepo.deleteProfileSeriesWithHistoryForDive(dive.id, 'series-newest'),
+    ).called(1);
   });
 }
