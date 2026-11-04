@@ -182,7 +182,11 @@ void main() {
       await pumpBriefly(tester);
 
       expect(find.byType(TransferComputersPage), findsNothing);
-      expect(hostApi.stopDiscoveryCalls, 1);
+      // Replacing the page reaches the section twice, as the new page lands
+      // on top (didPushNext) and again as it is disposed; release() is
+      // idempotent, so what matters is that the scan stopped and stays so.
+      expect(hostApi.stopDiscoveryCalls, greaterThanOrEqualTo(1));
+      expect(hostApi.startDiscoveryCalls, 1);
     });
   });
 }
