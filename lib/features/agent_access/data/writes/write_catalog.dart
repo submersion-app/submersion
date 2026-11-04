@@ -38,6 +38,8 @@ import 'package:submersion/features/agent_access/data/writes/families/course_wri
 import 'package:submersion/features/agent_access/data/writes/families/pre_dive_session_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/pre_dive_template_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/currency_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_plan_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/diver_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_checklist_part_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/weight_entry_writes.dart';
@@ -130,6 +132,8 @@ class WriteCatalog {
       PreDiveTemplateWrites(repositories),
       PreDiveSessionWrites(repositories),
       PreDiveSessionItemWrites(repositories),
+      DivePlanWrites(repositories),
+      DivePlanSeriesWrites(repositories),
     ]);
   }
 

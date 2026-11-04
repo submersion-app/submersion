@@ -21,6 +21,7 @@ void main() {
   const divers = 'lib/features/divers/data/repositories';
   const certs = 'lib/features/certifications/data/repositories';
   const courses = 'lib/features/courses/data/repositories';
+  const planner = 'lib/features/planner/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -433,6 +434,32 @@ void main() {
     'lib/features/pre_dive/data/repositories/'
             'pre_dive_session_repository.dart:updateItemState':
         'pre_dive_session_items',
+    for (final method in const [
+      'savePlan',
+      'deletePlan',
+      'duplicatePlan',
+      'linkPlanToDive',
+      'unlinkPlan',
+    ])
+      '$planner/dive_plan_repository.dart:$method': 'dive_plans',
+    // The scooter mission rows a plan save and delete write with the plan.
+    for (final method in const [
+      'write',
+      'recordWrite',
+      'deleteAll',
+      'recordDeletion',
+    ])
+      '$planner/dive_plan_mission_store.dart:$method': 'dive_plans',
+    '$planner/dive_plan_dive_links.dart:clearPlanLinksToDives': 'dives',
+    '$planner/dive_plan_dive_links.dart:clearPlanLinksToSites': 'sites',
+    for (final method in const [
+      'saveSeries',
+      'renameSeries',
+      'deleteSeries',
+      'duplicateSeries',
+      'dissolveSeries',
+    ])
+      '$planner/dive_plan_series_repository.dart:$method': 'dive_plan_series',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':
