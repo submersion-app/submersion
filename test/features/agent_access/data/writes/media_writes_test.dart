@@ -259,4 +259,63 @@ void main() {
     expect(await queue.hasHeldDelete('hash-1'), isTrue);
     expect(kicks, 0);
   });
+
+  // FaceBox takes all four, so a partial box is the op's refusal, not a
+  // failed apply.
+  test('a person box names all four of its sides', () async {
+    final plan = await h.preview([
+      updateOp('media', 'm1', {
+        'people': [
+          {
+            'diver_id': kDiverA,
+            'box': {'x': 0.1},
+          },
+        ],
+      }),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
+  // The picker offers the photo's own profile as Me.
+  test('a photo cannot tag another profile as Me', () async {
+    final plan = await h.preview([
+      updateOp('media', 'm1', {
+        'people': [
+          {'diver_id': kDiverB},
+        ],
+      }),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.otherProfileReference);
+  });
+
+  // A video tags one person at each moment they appear.
+  test('a video keeps every moment a person is tagged at', () async {
+    await db
+        .into(db.media)
+        .insert(
+          MediaCompanion.insert(
+            id: 'v1',
+            filePath: 'v1.mp4',
+            fileType: const Value('video'),
+            takenAt: const Value(kSeedTime),
+            createdAt: kSeedTime,
+            updatedAt: kSeedTime,
+            diveId: const Value('d1'),
+          ),
+        );
+
+    await h.run([
+      updateOp('media', 'v1', {
+        'people': [
+          {'diver_id': kDiverA, 'video_position_ms': 1000},
+          {'diver_id': kDiverA, 'video_position_ms': 5000},
+        ],
+      }),
+    ]);
+
+    final tags = await db.select(db.mediaPeople).get();
+    expect({for (final t in tags) t.videoPositionMs}, {1000, 5000});
+  });
 }

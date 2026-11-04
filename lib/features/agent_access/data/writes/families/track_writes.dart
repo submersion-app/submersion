@@ -286,8 +286,13 @@ class NavTrackWrites extends WritableEntry {
         }
       }
     }
-    if (v['is_primary'] == true && !wasPrimary && wasOn != null) {
-      touched += await _primaries(wasOn, id);
+    // setPrimary demotes the primary of the dive the route ends on: the
+    // one it moves to, or the one it stays on unless it is primary there.
+    final endsOn = v.containsKey('dive_id') ? v['dive_id'] as String? : wasOn;
+    if (v['is_primary'] == true &&
+        endsOn != null &&
+        (endsOn != wasOn || !wasPrimary)) {
+      touched += await _primaries(endsOn, id);
     }
     if (v['equipment_id'] case final String itemId) {
       final item = await _r.equipment.getEquipmentById(itemId);

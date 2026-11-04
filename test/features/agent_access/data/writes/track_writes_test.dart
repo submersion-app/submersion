@@ -162,4 +162,21 @@ void main() {
 
     expect((await h.one('nav_tracks', 'r2'))!['is_primary'], isTrue);
   });
+
+  // setPrimary demotes the destination dive's primary, so a move made
+  // primary lists that route as changed, not only the old dive's.
+  test('a route moved and made primary lists the primary it demotes', () async {
+    await h.dive('d3');
+    await route('r1', dive: 'd3', primary: false);
+    await route('r2', dive: 'd1');
+
+    final plan = await h.preview([
+      updateOp('nav_tracks', 'r1', {'dive_id': 'd1', 'is_primary': true}),
+    ]);
+    expect(plan.items.single.alsoChanges, {'nav_tracks': 1});
+    await h.apply(plan);
+
+    expect((await h.one('nav_tracks', 'r1'))!['is_primary'], isTrue);
+    expect((await h.one('nav_tracks', 'r2'))!['is_primary'], isFalse);
+  });
 }

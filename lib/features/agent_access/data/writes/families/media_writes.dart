@@ -369,6 +369,19 @@ class MediaWrites extends WritableEntry {
           'people: item $i names a buddy_id or a diver_id, not both.',
         );
       }
+      if (p['box'] case final Map box when box.length != 4) {
+        return PlanBlock(
+          BlockReason.invalidValue,
+          'people: item $i, box names x, y, width and height, or is null.',
+        );
+      }
+      // The picker offers the photo's own profile as Me.
+      if (diver != null && owner != null && diver != owner) {
+        return PlanBlock(
+          BlockReason.otherProfileReference,
+          'people: item $i, diver_id $diver is not the photo\'s profile.',
+        );
+      }
       final table = buddy != null ? 'buddies' : 'divers';
       if (await countRows(table, 'id = ?1', buddy ?? diver!) == 0) {
         return PlanBlock(
@@ -413,14 +426,21 @@ class MediaWrites extends WritableEntry {
     List<Map<String, Object?>> people,
   ) async {
     final current = await _people.getTagsForMedia(mediaId, diverId: null);
-    String keyOf(String? buddy, String? diver) =>
-        '${buddy ?? ''}|${diver ?? ''}';
+    // A person once on a photo, and once at each moment on a video.
+    String keyOf(String? buddy, String? diver, int? at) =>
+        '${buddy ?? ''}|${diver ?? ''}|${at ?? ''}';
+    String tagKey(MediaPersonTag t) =>
+        keyOf(t.buddyId, t.diverId, t.videoPosition?.inMilliseconds);
     final wanted = {
       for (final p in people)
-        keyOf(p['buddy_id'] as String?, p['diver_id'] as String?): p,
+        keyOf(
+          p['buddy_id'] as String?,
+          p['diver_id'] as String?,
+          p['video_position_ms'] as int?,
+        ): p,
     };
     for (final tag in current) {
-      if (!wanted.containsKey(keyOf(tag.buddyId, tag.diverId))) {
+      if (!wanted.containsKey(tagKey(tag))) {
         await _people.removeTag(tag.id);
       }
     }
@@ -430,9 +450,7 @@ class MediaWrites extends WritableEntry {
         final int ms => Duration(milliseconds: ms),
         _ => null,
       };
-      final existing = current
-          .where((t) => keyOf(t.buddyId, t.diverId) == key)
-          .firstOrNull;
+      final existing = current.where((t) => tagKey(t) == key).firstOrNull;
       if (existing == null) {
         await _people.addTag(
           mediaId: mediaId,
