@@ -24,7 +24,7 @@ class _Probe extends TankWrites {
   Future<Map<String, Object?>> createDefaults(
     String diverId,
     Map<String, Object?> values,
-  ) async => {'volume_l': 10.0};
+  ) async => {'volume_l': 10.0, 'not_a_field': 1};
 
   @override
   Future<Map<String, int>> createTouched(
@@ -97,6 +97,7 @@ void main() {
     final plan = await h.preview([
       createOp('dive_tanks', {'dive_id': 'd1'}),
     ]);
+    expect(plan.items.single.fields.containsKey('not_a_field'), isFalse);
     final volume = plan.items.single.fields['volume_l']!;
     expect([volume.newValue, volume.indirect], [10.0, true]);
 

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
@@ -98,11 +99,9 @@ PlanBlock? dayRangeProblem(
 }) {
   final day = calendarDay(check.values[key]);
   if (day == null || (!day.isBefore(from) && !day.isAfter(to))) return null;
-  String shown(DateTime d) =>
-      '${d.year}-${'${d.month}'.padLeft(2, '0')}-${'${d.day}'.padLeft(2, '0')}';
   return PlanBlock(
     BlockReason.invalidValue,
-    '$key: a day from ${shown(from)} to ${shown(to)}.',
+    '$key: a day from ${calendarDate(from)} to ${calendarDate(to)}.',
   );
 }
 

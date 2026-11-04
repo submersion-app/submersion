@@ -286,7 +286,9 @@ class _Pass {
         diverId,
         parsed.values,
       )).entries)
-        if (!parsed.values.containsKey(key)) key: value,
+        // Only a field the entry writes, so a stray key cannot break a plan.
+        if (!parsed.values.containsKey(key) && entry.fields.containsKey(key))
+          key: value,
     };
     final values = {...parsed.values, ...filled};
     final changes = {
