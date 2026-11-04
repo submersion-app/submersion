@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
     show ProfileAnalysis;
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
@@ -439,11 +438,11 @@ class DiveProfileChartHost extends ConsumerWidget {
         gasSwitches: gasSwitches,
         gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
             ? null
-            : buildGasUsageSegments(
-                tanks: dive.tanks,
-                gasSwitches: gasSwitches ?? const [],
-                diveDurationSeconds: chartProfile.last.timestamp,
-                firstSampleSeconds: chartProfile.first.timestamp,
+            : activeGasUsageSegments(
+                dive,
+                gasSwitches: gasSwitches,
+                profile: chartProfile,
+                computerId: resolvedActive?.computerId,
               ),
         diveDurationSeconds: chartProfile.isEmpty
             ? null

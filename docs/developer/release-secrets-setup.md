@@ -7,6 +7,10 @@ multi-platform release workflow.
 
 Go to: Repository Settings > Secrets and variables > Actions > New repository secret
 
+The web app's own site, <https://web.submersion.app>, needs the secret
+`WEB_DEPLOY_TOKEN` and the variable `GOOGLE_WEB_CLIENT_ID`; its setup is in
+[Submersion's Own Web Site](web-site-setup.md).
+
 ### App Store Connect API Key
 
 These are shared by both iOS and macOS Fastlane builds for automatic signing

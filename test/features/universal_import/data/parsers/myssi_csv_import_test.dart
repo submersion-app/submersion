@@ -9,7 +9,8 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/parsers/csv_import_parser.dart';
 
 void main() {
-  // Rows in the shape my.divessi.com really exports them (#3629): the date
+  // Rows in the shape my.divessi.com really exports them (#3629), checked
+  // against a diver's own export of 20 dives, all of which import: the date
   // has a dotted day and a month name, depth is feet with metres in brackets
   // padded by tabs, and the people column runs a buddy, an SSI pro and the
   // dive centre together with runs of tabs and spaces.
@@ -21,7 +22,8 @@ void main() {
       '"Dive Buddy / Instructor / Center"\n'
       '"22","Kelp Point","United States","29. Sep 2024 10:11","Scuba",'
       '"Boat Dive","Fun Dive","31 min","35 ft  \t\t\t\t\t\t\t\t\t\t\t(11 m)",""\n'
-      '"20","Blue Reef","United States","14. Sep 2024 14:53","Scuba",'
+      '"20","Robin’s Pinnacle","United States","14. Sep 2024 14:53",'
+      '"Scuba",'
       '"Boat Dive, Dive Computer","Fun Dive","10 min",'
       '"47 ft  \t\t\t\t\t\t\t\t\t\t\t(14 m)",'
       '"Alex Diver$tabs${indent}Example Dive Centre"\n'
@@ -57,6 +59,12 @@ void main() {
       const Duration(minutes: 29),
       const Duration(minutes: 51),
     ]);
+
+    // The real export writes a curly apostrophe in UTF-8.
+    expect(
+      result.entitiesOf(ImportEntityType.sites).map((s) => s['name']),
+      unorderedEquals(['Kelp Point', 'Robin’s Pinnacle', 'Blue Reef']),
+    );
 
     final buddies = result.entitiesOf(ImportEntityType.buddies);
     final buddyIds = {for (final b in buddies) b['name']: b['id']};

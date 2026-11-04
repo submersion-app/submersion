@@ -1,5 +1,7 @@
+import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
 
 /// Where a sealed screen sends the user while demo mode is on.
 const demoUnavailableLocation = '/demo-unavailable';
@@ -31,8 +33,17 @@ const demoSealedRoutePrefixes = <String, DemoSealedFeature>{
 };
 
 /// The feature [location] belongs to when it is sealed in demo mode, or null.
+/// A nav shortcut's alias location is sealed as the page it opens is
+/// (#4187): a pinned Cloud Sync is still Cloud Sync.
 DemoSealedFeature? demoSealedFeatureFor(String location) {
-  final path = Uri.tryParse(location)?.path ?? location;
+  var path = Uri.tryParse(location)?.path ?? location;
+  const shortcutPrefix = '$kShortcutLocationPrefix/';
+  if (path.startsWith(shortcutPrefix)) {
+    final id = path.substring(shortcutPrefix.length).split('/').first;
+    final shortcut = navShortcutById(id);
+    if (shortcut == null) return null;
+    path = Uri.parse(shortcut.canonicalPath).path;
+  }
   final segments = path.split('/').where((s) => s.isNotEmpty).toList();
   for (final MapEntry(key: route, value: feature)
       in demoSealedRoutePrefixes.entries) {

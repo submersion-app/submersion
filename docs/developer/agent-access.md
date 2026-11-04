@@ -186,6 +186,71 @@ row has come back, so a rollback or revert before the drain loses nothing.
 Dive and site deletes pass `holdRemoteMedia`, so a coordinator wired to start
 the worker would still wait.
 
+### Catalogs and merges
+
+The diver's catalogs are writable as records of their own: `tags`,
+`dive_types`, `dive_roles`, `site_types`, `species`, `centers` with their
+`center_gear_notes`, `custom_agencies`, `custom_levels`, `tank_presets`,
+`weight_presets` and `cylinder_configs`. Each keeps the rules its own screen
+keeps, and blocks in the preview what the repository would otherwise do
+quietly:
+
+- A built-in dive type, role or site type is a constant of the app, so only
+  its visibility can change. A built-in species can be edited but not
+  deleted, and nor can a species, dive type, role, agency or level in use.
+- A tag name is unique per diver, trimmed and ignoring case. The app reuses
+  the old tag on a clash, so a writer would merge two tags without saying so;
+  the plan blocks it as `duplicate_record` instead. Turning a tag's scope off
+  unlinks it from that scope's records, which the plan lists.
+- A custom agency or level name must be free, checked by the same
+  `agencyNameTaken` and `levelNameTaken` the repository's own saves call. A
+  level's `agency_id` may name a built-in agency, which has no row.
+- A tank preset's internal name follows its display name, as the editor sets
+  it.
+
+A weight preset's `entries` and a cylinder config's `items` are written whole
+through `ObjectListCodec`, which compares a list as canonical JSON, so an
+unchanged list is no change. A read lists them only on request, so the entry
+fills them in through `stored`. A cylinder keeps the id of the one at its
+place before, and gas goes in as fractions and is stored as percent.
+
+Two relations join sites: `tags`, whose tags must apply to sites, and
+`expected_species`.
+
+A delete can name `merge_into` instead of going alone. The survivor takes the
+record's links, the plan's JSON lists them under `moved_to_merge_target` and
+the dialog says which record it merges into. What the merge changes on the
+survivor itself, such as the scopes a tag gains, comes back from `mergeReach`
+in `DeleteReach.survivor` and is listed as indirect field changes on the
+merge's item. Only `tags` can merge so far: an entry opts in with
+`mergeable`, `mergeReach` and `merge`. The planner blocks a merge into the
+record itself, into a record that is gone or another profile's, into one the
+same set deletes, beside an update that changes links to the same entity, and
+beside an update of a survivor field the merge changes. Several merges into
+one survivor are counted one after another through `mergedBefore`. The
+survivor is marked, so one that changes after the preview refuses the plan.
+
+A plan lists what is stored, not what was sent. A name the repository trims
+uses `FieldCodec.text(trim: true)`, and a number its column keeps to fewer
+places uses `FieldCodec.number(fractionDigits:)`, so an unchanged value
+compares equal. A create naming `sort_order` 0 is blocked where the
+repository reads 0 as "after the last".
+
+Two rules look past a single change. `uniqueKey` returns a `UniqueClaim`: what no two records
+of one owner may share, such as a tag's folded name, and whether the claim
+is shared, as a shared agency's name is taken for every profile. The planner
+blocks a second claim within one set, which `refuse` cannot see in the
+database: a shared claim clashes with any other, an unshared one with a
+shared claim or the same owner's. A merge's `DeleteReach.basis` carries the
+exact links it moves, so a link that moves after the preview refuses the
+plan even when the counts stay the same.
+`WriteCheck.soFar` carries what the changes earlier in the set delete, write
+and unlink, counting only those the plan keeps, since a set applies in
+order. A rule that reads stored rows counts them too: a site may take a tag
+the set first opens to sites, a tag may take a name an earlier rename frees,
+and a dive type or species whose dives or sightings the set first removes
+may be deleted.
+
 ### Adding a writable entity
 
 1. Add a `WritableEntry` under `data/writes/families/` and list it in
@@ -223,10 +288,22 @@ the worker would still wait.
    any other field a create sets and an update may not change in
    `createOnly`, as a sighting's species. Write one row at a time: a
    repository's bulk replace re-inserts every sibling under a fresh id.
-9. Move the repository's methods from
+9. If a change also writes the parent, as an annotation's create rewrites
+   its dive's Notes, list those kinds in `writesParent`: the planner blocks
+   them beside an update of that parent. Say what an agent must know beyond
+   the fields in `note`, which the `preview_changes` description carries.
+   Write through the service the app's own screen uses, as gas switches go
+   through `DiverGasSwitchWriter`, so the agent's change does what the
+   diver's does.
+10. Move the repository's methods from
    `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
    `agent_write_coverage_test.dart`. That guard fails on a new repository
-   write no entity reaches, and on a baseline line that has gone.
+   write no entity reaches, and on a baseline line that has gone. A write
+   that changes no record a diver keeps, such as a setting, a cache, a
+   backup or a dismissed finding, goes in the same file's `exempt` map
+   instead, as `path:method` or `path:*` for a whole repository, with the
+   reason. A shortcut that does what a covered method does, as
+   `createFromWeights` does, belongs there too.
 
 ### Known limits
 

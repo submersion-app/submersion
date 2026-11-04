@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_durations.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
@@ -2708,6 +2709,12 @@ class UddfFullImportService {
         sensorReadings.forEach((index, value) {
           point['o2Sensor${index + 1}'] = value;
         });
+        UddfImportParsers.parseO2SensorMillivolts(
+          waypoint,
+          o2SensorOrder,
+        ).forEach((index, value) {
+          point['o2SensorMv${index + 1}'] = value;
+        });
 
         // Shearwater and other computers mark the circuit per sample rather
         // than on the dive. A dive that runs closed circuit for any part of
@@ -2896,16 +2903,13 @@ class UddfFullImportService {
         diveData['avgDepth'] = double.tryParse(avgDepthText);
       }
 
-      // UDDF diveduration is total dive time (runtime), not bottom time
-      final durationText = UddfImportParsers.getElementText(
-        afterElement,
-        'diveduration',
-      );
-      if (durationText != null) {
-        final seconds = UddfImportParsers.parseUddfInt(durationText);
-        if (seconds != null) {
-          diveData['runtime'] = Duration(seconds: seconds);
-        }
+      // UDDF diveduration is total dive time (runtime), not bottom time.
+      final durations = UddfDiveDurations.read(afterElement);
+      if (durations.runtime case final runtime?) {
+        diveData['runtime'] = runtime;
+      }
+      if (durations.bottomTime case final bottomTime?) {
+        diveData['bottomTime'] = bottomTime;
       }
 
       final waterTempText = UddfImportParsers.getElementText(

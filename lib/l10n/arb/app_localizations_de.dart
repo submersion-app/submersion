@@ -26797,6 +26797,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Gewicht';
 
   @override
+  String get settings_conflict_ref_customField => 'Eigenes Feld';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Gaswechsel';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Ereignis';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Szenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Sender';
 
   @override
@@ -27215,6 +27227,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
     return 'Löst außerdem $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Zusammenführen mit $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Verschiebt $kind: $count';
   }
 
   @override
@@ -58553,6 +58575,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Ein Browser zeigt die Fotokopien an, die Ihre anderen Geräte aufbewahren, kann sie aber nicht beginnen. Beginnen Sie sie in der App auf einem Telefon oder Computer.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Hochgeladen in';
 
   @override
@@ -59331,11 +59357,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get web_continueWithoutSync => 'Ohne Sync-Speicher fortfahren';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Auf diesem Gerät merken';
+  String get web_rememberOnThisDevice_title =>
+      'Anmeldung auf diesem Gerät merken';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird.';
+      'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird. Deine Tauchgänge bleiben so oder so in diesem Browser, bis du dieses Gerät vergisst.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Anmeldedaten und Passphrase in diesem Browser behalten. Ausgeschaltet werden sie vergessen, sobald der Tab geschlossen wird. Dieser Browser behält nach dem Schließen des Tabs keine Tauchgänge, egal ob dies an oder aus ist.';
 
   @override
   String get web_unavailable_offer_icloud =>

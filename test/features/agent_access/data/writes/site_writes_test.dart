@@ -195,6 +195,26 @@ void main() {
       expect(block?.reason, BlockReason.notPermitted);
     });
 
+    // replaceTags and removeExpectedSpecies skip such a site without a word,
+    // so its links are refused in the preview.
+    test('is refused for a tag or expected species change', () async {
+      for (final relation in ['tags', 'expected_species']) {
+        final block = await readOnly.refuse(
+          WriteCheck(
+            kind: ChangeKind.update,
+            id: 's1',
+            ownerId: kDiverA,
+            relations: {
+              relation: const RelationDelta(remove: {'x1'}),
+            },
+            document: document,
+          ),
+        );
+
+        expect(block?.reason, BlockReason.notPermitted, reason: relation);
+      }
+    });
+
     test('keeps the profile\'s own notes and rating', () async {
       final block = await readOnly.refuse(
         WriteCheck(

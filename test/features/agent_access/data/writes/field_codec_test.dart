@@ -66,6 +66,38 @@ void main() {
     expect(const FieldCodec.text().parse('Blue  Hole\n2'), 'Blue  Hole\n2');
   });
 
+  // A repository that trims a name stores it trimmed, so the plan shows it so.
+  test('a trimming text parses to the trimmed value', () {
+    const codec = FieldCodec.text(trim: true);
+    expect(codec.parse('  Wreck '), 'Wreck');
+    expect(const FieldCodec.text().parse(' Wreck '), ' Wreck ');
+  });
+
+  // What is stored is the trimmed text, so that is what must fit.
+  test('a trimming text measures its length after trimming', () {
+    expect(
+      const FieldCodec.text(maxLength: 3, trim: true).parse('  abc '),
+      'abc',
+    );
+    const list = FieldCodec.textList(maxLength: 3);
+    expect(list.wire(list.parse([' abc '])), ['abc']);
+  });
+
+  // A repository that trims a nullable text stores a blank one as null.
+  test('a trimming nullable text reads a blank as null', () {
+    const codec = FieldCodec.text(nullable: true, trim: true);
+    expect(codec.parse('   '), isNull);
+    expect(codec.parse(' L '), 'L');
+  });
+
+  // A table that keeps a tenth of a percent cannot hold a finer fraction.
+  test('a number with fraction digits parses rounded', () {
+    const codec = FieldCodec.number(min: 0, max: 1, fractionDigits: 3);
+    expect(codec.parse(0.3214), 0.321);
+    expect(codec.parse(0.3216), 0.322);
+    expect(codec.canonical(0.052000000000000005), 0.052);
+  });
+
   test('text over its limit is refused', () {
     expect(
       () => const FieldCodec.text(maxLength: 3).parse('abcd'),
@@ -143,5 +175,47 @@ void main() {
       clock.parse('2024-03-14T09:30:00Z'),
     );
     expect(clock.canonical(null), isNull);
+  });
+
+  // A set compares by its members, whatever order a document lists them in.
+  test('enumSet parses names into a sorted list', () {
+    final codec = FieldCodec.enumSet(_Mood.values);
+    final parsed = codec.parse(['rough', 'calm']);
+    expect(codec.wire(parsed), ['calm', 'rough']);
+    expect(parsed, codec.canonical(['calm', 'rough']));
+    expect(parsed, codec.canonical(['rough', 'calm']));
+    expect(codec.wire(codec.parse(<String>[])), isEmpty);
+  });
+
+  test('textList keeps the order and compares with a document list', () {
+    const codec = FieldCodec.textList(maxItems: 3, maxLength: 10);
+    final parsed = codec.parse(['PADI', 'SSI']);
+    expect(codec.wire(parsed), ['PADI', 'SSI']);
+    expect(parsed, codec.canonical(['PADI', 'SSI']));
+    expect(parsed, isNot(codec.canonical(['SSI', 'PADI'])));
+  });
+
+  // A column keeping the list joined by a separator splits an item holding
+  // it, and its reader trims each item.
+  test('textList trims items and refuses its separator inside one', () {
+    const codec = FieldCodec.textList(maxLength: 20, separator: ',');
+    expect(codec.wire(codec.parse([' PADI ', 'SSI'])), ['PADI', 'SSI']);
+    expect(() => codec.parse(['PADI, Inc']), _refused(','));
+  });
+
+  test('textList refuses a blank, a long item or too many', () {
+    const codec = FieldCodec.textList(maxItems: 2, maxLength: 5);
+    expect(() => codec.parse(['PADI', ' ']), _refused('blank'));
+    expect(() => codec.parse(['TOOLONG']), _refused('5'));
+    expect(() => codec.parse(['A', 'B', 'C']), _refused('2'));
+    expect(() => codec.parse('PADI'), _refused('list'));
+  });
+
+  test('enumSet refuses an unknown name, a repeat or too few', () {
+    final codec = FieldCodec.enumSet(_Mood.values, min: 1);
+    expect(() => codec.parse(['calm', 'stormy']), _refused('calm, rough'));
+    expect(() => codec.parse(['calm', 'calm']), _refused('more than once'));
+    expect(() => codec.parse(<String>[]), _refused('at least 1'));
+    expect(() => codec.parse('calm'), _refused('list'));
   });
 }

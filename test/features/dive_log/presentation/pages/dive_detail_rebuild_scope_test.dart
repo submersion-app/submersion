@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -354,6 +355,20 @@ void main() {
         'calculateSacNormalizationFactor',
         'watchChartProfile',
       },
+    );
+  });
+
+  test('a changed dive-level diluent redraws the chart (#4020)', () {
+    Dive diveWith(GasMix diluent) => Dive(
+      id: 'dive',
+      dateTime: DateTime.utc(2026),
+      diveMode: DiveMode.ccr,
+      diluentGas: diluent,
+    );
+
+    expect(
+      DiveChartInputs(diveWith(const GasMix())),
+      isNot(DiveChartInputs(diveWith(const GasMix(o2: 18, he: 45)))),
     );
   });
 

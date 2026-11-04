@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart' as cryptography;
 
+import 'package:submersion/core/utils/uint64_halves.dart';
+
 /// Request-signing for the undocumented Suunto/Sports-Tracker cloud API
 /// (api.sports-tracker.com).
 ///
@@ -103,7 +105,7 @@ class SuuntoCrypto {
 
     final counter =
         ((nowMs ?? DateTime.now().millisecondsSinceEpoch) + offsetMs) ~/ 30000;
-    final counterBytes = ByteData(8)..setInt64(0, counter, Endian.big);
+    final counterBytes = ByteData(8)..setUint64Halves(0, counter);
 
     final mac = Hmac(sha1, key).convert(counterBytes.buffer.asUint8List());
     final digest = mac.bytes;

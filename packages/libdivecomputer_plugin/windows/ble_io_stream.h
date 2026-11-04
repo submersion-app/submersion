@@ -20,6 +20,7 @@
 #include <winrt/Windows.Storage.Streams.h>
 
 #include "ble_connect_failure.h"
+#include "bluetooth_route_policy.h"
 #include "ble_read_poll.h"
 
 extern "C" {
@@ -40,8 +41,11 @@ class BleIoStream {
   ~BleIoStream();
 
   // Connect to a BLE device by address and discover GATT characteristics.
-  // Blocks until ready or timeout. Returns true on success.
-  bool ConnectAndDiscover(uint64_t bluetooth_address);
+  // Blocks until ready or timeout. Returns true on success. A transient
+  // failure is retried within kConnectRetryWindowMs (issue #4094), checking
+  // `cancelled` between attempts so a cancelled download stops waiting.
+  bool ConnectAndDiscover(uint64_t bluetooth_address,
+                          const std::function<bool()>& cancelled = {});
 
   // Build the libdc_io_callbacks_t struct pointing to this instance.
   // The caller must keep this BleIoStream alive while the callbacks are
@@ -70,7 +74,13 @@ class BleIoStream {
  private:
   // Logs `detail` as the connect failure, records why, and returns false so
   // a failure path can end in `return Fail(...)`.
-  bool Fail(BleConnectFailure failure, const std::string& detail);
+  // `hresult` is the code of the winrt::hresult_error behind it, or 0 for a
+  // GattCommunicationStatus, so the retry policy can tell them apart.
+  bool Fail(BleConnectFailure failure, const std::string& detail,
+            int32_t hresult = 0);
+
+  // One connect and discovery attempt; ConnectAndDiscover repeats it.
+  bool ConnectAndDiscoverOnce(uint64_t bluetooth_address);
 
   // Discover GATT services and find the best write/notify characteristic
   // pair.
@@ -95,17 +105,29 @@ class BleIoStream {
   int PerformRead(void* data, size_t size, size_t* actual);
   int PerformWrite(const void* data, size_t size, size_t* actual);
 
-  // GATT notification handler.
+  // Defined below with the credit state; declared here for the handlers.
+  struct CreditBalance;
+
+  // GATT notification handler. `generation` is the connect attempt that
+  // subscribed it and `credits` that attempt's balance; a callback from an
+  // earlier attempt is dropped and can only ever touch its own, closed,
+  // balance.
   void OnCharacteristicValueChanged(
       winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
           GattCharacteristic const& sender,
       winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
-          GattValueChangedEventArgs const& args);
+          GattValueChangedEventArgs const& args,
+      uint32_t generation, const std::shared_ptr<CreditBalance>& credits);
+
+  // Subscribes OnCharacteristicValueChanged for the current attempt.
+  winrt::event_token SubscribeValueChanged(
+      winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
+          GattCharacteristic const& characteristic);
 
   // Telit/Stollmann Terminal I/O credit handshake. See the block comment in
   // ble_io_stream.cc and darwin's BleCharacteristicSelector.
   bool GrantInitialCredits();
-  void ReplenishCredits();
+  void ReplenishCredits(const std::shared_ptr<CreditBalance>& credits);
   // Unsubscribe from and forget the credit characteristics.
   void ReleaseCreditCharacteristics();
 
@@ -143,6 +165,10 @@ class BleIoStream {
   winrt::Windows::Devices::Bluetooth::
       BluetoothLEPreferredConnectionParametersRequest
           preferred_connection_request_{nullptr};
+  // Held with MaintainConnection while connected, so Windows keeps the link
+  // between GATT calls (issue #4094); released in Close().
+  winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::GattSession
+      gatt_session_{nullptr};
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
       GattCharacteristic write_characteristic_{nullptr};
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
@@ -195,6 +221,11 @@ class BleIoStream {
   // require each read to return bytes from at most one notification;
   // coalescing them into a flat buffer loses packet boundaries.
   std::deque<std::vector<uint8_t>> read_chunks_;
+  // Which connect attempt owns read_chunks_, guarded by read_mutex_. A retry
+  // reconnects to the same device, so the new data characteristic usually
+  // has the same attribute handle as the old one and the handle check alone
+  // would admit a late notification from the failed attempt (issue #4094).
+  uint32_t link_generation_ = 0;
 
   // Non-null only when the read-poll tier was selected. Read, poll and purge
   // go to it instead of read_chunks_, which stays empty in that mode.
@@ -204,6 +235,9 @@ class BleIoStream {
   std::string device_name_;
   BleConnectFailure connect_failure_ = BleConnectFailure::kNone;
   std::string connect_failure_detail_;
+  int32_t connect_failure_hresult_ = 0;
+  // The WinRT call in flight, named in the log when one throws.
+  std::string connect_step_;
 
   // PIN code authentication support.
   std::mutex pin_mutex_;

@@ -5,6 +5,7 @@
 #include <flutter/plugin_registrar.h>
 #include <windows.h>
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -15,6 +16,7 @@
 
 #include "ble_io_stream.h"
 #include "ble_scanner.h"
+#include "bluetooth_classic_io_stream.h"
 #include "dive_computer_api.g.h"
 #include "serial_io_stream.h"
 #include "serial_scanner.h"
@@ -66,6 +68,22 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
                        const std::optional<std::string>& fingerprint = std::nullopt,
                        bool sync_clock = false);
 
+  // The outcome of ConnectBluetooth: which stream to download through, or
+  // the DiveComputerError to report when neither connected.
+  struct BluetoothConnection {
+    bool connected = false;
+    // Bluetooth Classic RFCOMM (classic_stream_) rather than LE (ble_stream_).
+    bool classic = false;
+    std::string error_code;
+    std::string error_message;
+  };
+
+  // Opens ble_stream_ or, for a dual-mode computer such as the Petrel 2,
+  // classic_stream_, choosing and ordering the routes per
+  // bluetooth_route_policy.h (issue #4094). Runs on the download thread.
+  // Defined in bluetooth_connect.cc.
+  BluetoothConnection ConnectBluetooth(const DiscoveredDevice& device);
+
   // Scanner and transport callbacks arrive on WinRT thread-pool threads and
   // the download thread, not the platform thread Flutter requires pigeon
   // calls to run on (issue #4086). Every call into |flutter_api_| that can
@@ -97,9 +115,14 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   std::unique_ptr<BleScanner> ble_scanner_;
   std::unique_ptr<SerialScanner> serial_scanner_;
   std::unique_ptr<BleIoStream> ble_stream_;
+  std::unique_ptr<BluetoothClassicIoStream> classic_stream_;
   std::unique_ptr<SerialIoStream> serial_stream_;
   std::unique_ptr<UsbHidIoStream> usbhid_stream_;
   libdc_download_session_t* download_session_ = nullptr;
+  // Set by CancelDownload, so a Bluetooth connect still in its retry window
+  // stops instead of waiting it out; the libdc session only sees a cancel
+  // once the download has started. Cleared when a download starts.
+  std::atomic<bool> connect_cancelled_{false};
   std::thread download_thread_;
 };
 

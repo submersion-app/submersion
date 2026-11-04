@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart' show QueryRow, Variable;
+
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -52,6 +55,30 @@ class SiteWrites extends WritableEntry {
   Set<String> get requiredOnCreate => const {'name'};
 
   @override
+  final Map<String, RelationSpec> relations = const {
+    'tags': RelationSpec(refEntity: 'tags'),
+    'expected_species': RelationSpec(refEntity: 'species'),
+  };
+
+  /// The link table and column of each relation.
+  static const _links = {
+    'tags': ('site_tags', 'tag_id'),
+    'expected_species': ('site_species', 'species_id'),
+  };
+
+  @override
+  Future<Set<String>> currentRelation(String id, String relation) async {
+    final (table, column) = _links[relation]!;
+    final rows = await DatabaseService.instance.database
+        .customSelect(
+          'SELECT $column AS linked FROM $table WHERE site_id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .get();
+    return {for (final row in rows) row.read<String>('linked')};
+  }
+
+  @override
   Future<DeleteReach> deleteReach(
     String id, {
     Map<String, Set<String>> alongside = const {},
@@ -100,7 +127,7 @@ class SiteWrites extends WritableEntry {
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
-    final point = _pointBlock(check);
+    final point = _pointBlock(check) ?? await _siteTagBlock(check);
     if (point != null) return point;
     if (check.kind == ChangeKind.create) return null;
     final library = check.document?['shared_library_id'] != null;
@@ -120,8 +147,10 @@ class SiteWrites extends WritableEntry {
     );
     if (mayEdit) return null;
     // updateSite would quietly keep the library's values and report success,
-    // so the refusal has to happen here.
+    // and the link writes would quietly skip, so the refusal has to happen
+    // here.
     if (check.kind == ChangeKind.update &&
+        check.relations.values.every((delta) => delta.isEmpty) &&
         check.values.keys.every(_privateKeys.contains)) {
       return null;
     }
@@ -129,6 +158,38 @@ class SiteWrites extends WritableEntry {
       BlockReason.notPermitted,
       'This profile may only change its own notes and rating on this '
       'shared library site.',
+    );
+  }
+
+  /// A block for a tag the site editor would not offer: one not used for
+  /// sites.
+  Future<PlanBlock?> _siteTagBlock(WriteCheck check) async {
+    final added = check.relations['tags']?.add ?? const <String>{};
+    if (added.isEmpty) return null;
+    final rows = await DatabaseService.instance.database
+        .customSelect(
+          'SELECT id, applies_to_sites FROM tags WHERE id IN '
+          '(${List.filled(added.length, '?').join(', ')})',
+          variables: [for (final id in added) Variable.withString(id)],
+        )
+        .get();
+    // A change earlier in the set to a tag's scopes is what the link meets.
+    bool forSites(QueryRow row) => switch (check.soFar.values[(
+      'tags',
+      row.read<String>('id'),
+    )]?['scopes']) {
+      final String scopes => scopes.split(',').contains('sites'),
+      _ => row.read<bool>('applies_to_sites'),
+    };
+    final other = [
+      for (final row in rows)
+        if (!forSites(row)) row.read<String>('id'),
+    ];
+    if (other.isEmpty) return null;
+    return PlanBlock(
+      BlockReason.invalidValue,
+      'tags: ${other.join(', ')} is not used for sites. Add sites to its '
+      'scopes first.',
     );
   }
 
@@ -160,18 +221,44 @@ class SiteWrites extends WritableEntry {
 
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
-    final site = await _r.sites.getSiteById(id);
-    if (site == null) {
-      throw AgentToolException(
-        AgentToolErrorCode.writeRefused,
-        'Site $id no longer exists.',
-        details: {'id': id},
+    if (update.values.isNotEmpty) {
+      final site = await _r.sites.getSiteById(id);
+      if (site == null) {
+        throw AgentToolException(
+          AgentToolErrorCode.writeRefused,
+          'Site $id no longer exists.',
+          details: {'id': id},
+        );
+      }
+      await _r.sites.updateSite(
+        _applied(site, update.values),
+        actingDiverId: ownerId,
       );
     }
-    await _r.sites.updateSite(
-      _applied(site, update.values),
-      actingDiverId: ownerId,
-    );
+    // Tags as the site editor saves them, the whole list at once.
+    if (update.relations['tags'] case final tags? when !tags.isEmpty) {
+      final now = await currentRelation(id, 'tags');
+      await _r.siteClassification.replaceTags(id, [
+        ...now.difference(tags.remove),
+        ...tags.add,
+      ], actingDiverId: ownerId);
+    }
+    if (update.relations['expected_species'] case final species?) {
+      for (final speciesId in species.add) {
+        await _r.species.addExpectedSpecies(
+          siteId: id,
+          speciesId: speciesId,
+          actingDiverId: ownerId,
+        );
+      }
+      for (final speciesId in species.remove) {
+        await _r.species.removeExpectedSpecies(
+          id,
+          speciesId,
+          actingDiverId: ownerId,
+        );
+      }
+    }
   }
 
   @override

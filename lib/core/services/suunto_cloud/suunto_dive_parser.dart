@@ -673,15 +673,17 @@ class SuuntoDiveParser {
     int sampleMs,
   ) {
     double? bestKelvin;
-    var bestDiff = 1 << 62;
+    // Null until the first reading: a `1 << 62` start is zero compiled to
+    // JavaScript, and no reading was ever nearer in the web app (#4194).
+    int? bestDiff;
     for (final reading in readings) {
       final diff = (reading.timestampMs - sampleMs).abs();
-      if (diff < bestDiff) {
+      if (bestDiff == null || diff < bestDiff) {
         bestDiff = diff;
         bestKelvin = reading.kelvin;
       }
     }
-    if (bestKelvin == null || bestDiff >= 15000) return null;
+    if (bestKelvin == null || bestDiff! >= 15000) return null;
     return _kelvinToCelsius(bestKelvin);
   }
 

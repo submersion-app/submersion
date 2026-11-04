@@ -7,15 +7,20 @@ or cannot install it: a work laptop, a friend's computer, a dive centre's
 machine. You look at your dives, refine them, and the changes sync back to
 your phone and your computer.
 
-Nothing runs on a server. The site is a folder of static files that you,
-or someone you trust, host; your data travels only between the browser
-and your own store. Hosting it is described in the guide shipped inside
+Open it at **<https://web.submersion.app>**, Submersion's own copy, which
+always runs the latest stable release.
+
+Nothing runs on a server. The site is a folder of static files, and your
+data travels only between the browser and your own store, on Submersion's
+site as on any other. You can also host a copy yourself, or use one
+someone you trust hosts; that is described in the guide shipped inside
 the bundle (`HOSTING.md` in `Submersion-<version>-Web.zip` on the
 [releases page](https://github.com/submersion-app/submersion/releases)).
 
 ## Opening it
 
-Open the address your self-hosted copy is served from. The first visit
+Open <https://web.submersion.app>, or the address your self-hosted copy
+is served from. The first visit
 asks which store holds your dives and how to reach it (below); after the
 first sync the app opens on your dive list, as on any device.
 
@@ -158,7 +163,8 @@ Dropbox shows, and paste it back. Nothing to configure on Dropbox's side.
 
 ### Google Drive
 
-On Submersion's own site, choose Google Drive and sign in: the site carries
+On Submersion's own site, <https://web.submersion.app>, choose Google
+Drive and sign in: the site carries
 Submersion's Google client, so it opens the same library your phone and
 computer sync to Google Drive.
 
@@ -201,23 +207,30 @@ quietly, and when it cannot, the sync status asks you to sign in again.
 
 If your library is [encrypted](encrypted-sync.md), the connect screen asks
 for the passphrase, as a new device does. It is kept only while the tab is
-open unless you turn on Remember on this device (next).
+open unless you turn on Remember sign-in on this device (next).
 
-## Remember on this device
+## Remember sign-in on this device
 
 By default the browser forgets your store's credentials, and the
-passphrase, when the tab closes: the next visit asks again. **Remember on
-this device**, on the connect screen and in Settings, Cloud Sync, keeps
-them in the browser's storage for this site instead, lightly obscured,
-not encrypted. Leave it off on a shared machine. For Google Drive the
-remembered part is the client id; the sign-in itself cannot be kept.
+passphrase, when the tab closes: the next visit asks again. **Remember
+sign-in on this device**, on the connect screen and in Settings, Cloud
+Sync, keeps them in the browser's storage for this site instead, lightly
+obscured, not encrypted. Leave it off on a shared machine. For Google
+Drive the remembered part is the client id; the sign-in itself cannot be
+kept.
+
+The switch covers only the sign-in. Your dives stay in the browser
+whether it is on or off, so closing the tab does not remove them; Forget
+this device does (below). The exception is a browser that gives the site
+no lasting storage (next): there nothing is kept after the tab closes,
+and the switch says so.
 
 ## Where your dives live in the browser
 
 The browser keeps your dives in storage the browser reserves for this
 site, so they are there on the next visit without a fresh download.
 Settings, Cloud Sync shows a **Browser storage** row naming what is in
-use:
+use, and Settings, Data says the same on its **Database storage** row:
 
 - *Browser file storage*: the fastest. Chrome uses it when the site sends
   the two headers the hosting guide describes.
@@ -237,13 +250,17 @@ what Forget this device is for.
 
 ## Forget this device
 
-**Forget this device**, in Settings, Cloud Sync, removes everything
-Submersion keeps in that browser: the dive log, the credentials and
-passphrase, and the device's identity in your sync mesh. Your other
-devices keep their copies and their stores. Use it before you leave a
-machine that is not yours. If the browser kept the database (another tab
-still had it open), the page says so rather than pretending; close the
-other Submersion tabs and try again.
+**Forget this device**, in Settings, Data (under Advanced) and in
+Settings, Cloud Sync, removes everything Submersion keeps in that
+browser: the dive log, the credentials and passphrase, and the device's
+identity in your sync mesh. Your other devices keep their copies and
+their stores. Use it before you leave a machine that is not yours. If the
+browser kept the database (another tab still had it open), the page says
+so rather than pretending; close the other Submersion tabs and try again.
+
+Clearing this site's data in the browser's own settings removes the same
+things. Close every Submersion tab first: as with Forget this device, a
+database another tab still has open may be kept.
 
 Your other devices list the browser like any other peer, named after the
 browser and operating system ("Chrome on Windows"); an iPad's Safari

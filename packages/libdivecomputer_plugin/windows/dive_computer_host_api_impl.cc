@@ -282,6 +282,11 @@ void DiveComputerHostApiImpl::StartDownload(
     if (download_thread_.joinable()) {
         download_thread_.join();
     }
+    // Cleared here, before the thread exists, rather than inside it: a
+    // cancel that arrives before the download thread reaches its connect
+    // would otherwise be wiped out and the connect would wait out its
+    // retry window anyway.
+    connect_cancelled_.store(false);
 
     // Copy device and fingerprint for the background thread (pointer would dangle).
     DiscoveredDevice device_copy = device;
@@ -294,6 +299,7 @@ void DiveComputerHostApiImpl::StartDownload(
 }
 
 std::optional<FlutterError> DiveComputerHostApiImpl::CancelDownload() {
+    connect_cancelled_.store(true);
     if (download_session_) {
         libdc_download_cancel(download_session_);
     }
@@ -647,51 +653,37 @@ void DiveComputerHostApiImpl::PerformDownload(
         dl_ctx.buffered_dives.clear();
         dl_ctx.buffer_dives = false;
     } else {
-        // BLE transport.
+        // Bluetooth: LE, or Classic RFCOMM for a dual-mode computer whose LE
+        // side Windows will not finish discovering (issue #4094).
         if (ble_scanner_) {
             ble_scanner_->Stop();
             ble_scanner_.reset();
         }
 
-        uint64_t ble_address = std::strtoull(
-            device.address().c_str(), nullptr, 16);
-        ble_stream_ = std::make_unique<BleIoStream>();
-        ble_stream_->SetDeviceAddress(device.address());
-        ble_stream_->SetOnPinCodeRequired(
-            [this](const std::string& address) {
-                PostToPlatformThread([this, address] {
-                    flutter_api_->OnPinCodeRequired(
-                        address, [] {}, [](const auto&) {});
-                });
-            });
-        if (!ble_stream_->ConnectAndDiscover(ble_address)) {
-            // Name the step that broke. A fixed "Failed to connect to
-            // device" here was all a Windows report could carry (issue
-            // #4094); the Dart layer localizes the codes a diver can act on
-            // and shows the detail for the rest. Read before posting, since
-            // ble_stream_ is reset below.
-            const BleConnectFailure failure = ble_stream_->connect_failure();
-            std::string code = BleConnectFailureCode(failure);
-            std::string message = BleConnectFailureMessage(
-                failure, ble_stream_->connect_failure_detail());
-            PostToPlatformThread([this, code, message] {
+        const BluetoothConnection connection = ConnectBluetooth(device);
+        if (!connection.connected) {
+            PostToPlatformThread([this, connection] {
                 flutter_api_->OnError(
-                    DiveComputerError(code, message),
+                    DiveComputerError(connection.error_code,
+                                      connection.error_message),
                     [] {}, [](const auto&) {});
             });
             libdc_download_session_free(session);
             download_session_ = nullptr;
-            ble_stream_.reset();
             return;
         }
 
-        libdc_io_callbacks_t io_callbacks = ble_stream_->MakeCallbacks();
+        libdc_io_callbacks_t io_callbacks =
+            connection.classic ? classic_stream_->MakeCallbacks()
+                               : ble_stream_->MakeCallbacks();
 
+        // The Shearwater driver frames packets differently over BLE, so the
+        // Classic stream has to be run as Bluetooth Classic.
         rc = libdc_download_run(
             session,
             device.vendor().c_str(), device.product().c_str(),
             static_cast<unsigned int>(device.model()),
-            transport_value,
+            connection.classic ? LIBDC_TRANSPORT_BLUETOOTH : transport_value,
             &io_callbacks,
             fp_bytes.empty() ? nullptr : fp_bytes.data(),
             static_cast<unsigned int>(fp_bytes.size()),
@@ -701,6 +693,7 @@ void DiveComputerHostApiImpl::PerformDownload(
             error_buf, sizeof(error_buf));
 
         ble_stream_.reset();
+        classic_stream_.reset();
     }
 
     // Format device info.

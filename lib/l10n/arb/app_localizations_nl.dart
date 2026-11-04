@@ -26675,6 +26675,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Gewicht';
 
   @override
+  String get settings_conflict_ref_customField => 'Eigen veld';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Gaswisseling';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Gebeurtenis';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Scenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Zender';
 
   @override
@@ -27092,6 +27104,16 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
     return 'Ontkoppelt ook $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Samenvoegen met $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Verplaatst $kind: $count';
   }
 
   @override
@@ -58311,6 +58333,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Een browser toont de fotokopieën die je andere apparaten bewaren, maar kan er niet mee beginnen. Begin ermee in de app op een telefoon of computer.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Geüpload naar';
 
   @override
@@ -59086,11 +59112,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get web_continueWithoutSync => 'Doorgaan zonder synchronisatieopslag';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Onthouden op dit apparaat';
+  String get web_rememberOnThisDevice_title =>
+      'Aanmelding onthouden op dit apparaat';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Bewaar de aanmeldgegevens en wachtwoordzin in deze browser. Uit: ze worden vergeten zodra het tabblad sluit.';
+      'Bewaar de aanmeldgegevens en wachtwoordzin in deze browser. Uit: ze worden vergeten zodra het tabblad sluit. Je duiken blijven hoe dan ook in deze browser tot je dit apparaat vergeet.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Bewaar de aanmeldgegevens en wachtwoordzin in deze browser. Uit: ze worden vergeten zodra het tabblad sluit. Deze browser bewaart geen duiken nadat het tabblad sluit, of dit nu aan of uit staat.';
 
   @override
   String get web_unavailable_offer_icloud =>

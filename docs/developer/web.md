@@ -110,6 +110,10 @@ to the project (`GoogleDriveClientConfig`), with each address in
 build uses it only at those addresses; anywhere else, and in a build
 without it, the connect step asks for a client id of the user's own.
 
+The release build does this: `build-all.yml` passes the repository
+variable `GOOGLE_WEB_CLIENT_ID` with `https://web.submersion.app` as the
+origin, so every release zip carries the client and uses it only there.
+
 To run the app in a browser during development:
 
 ```bash
@@ -128,6 +132,18 @@ cross-origin isolation headers, `application/wasm`):
 ```bash
 python3 scripts/web/serve_bundle.py --dir build/web --port 8080
 ```
+
+## Submersion's own site
+
+Each stable release deploys its `Web.zip`, as it is, to
+<https://web.submersion.app>: `deploy-web.yml`, called by `promote.yml`
+(and by `release.yml` for a stable tag pushed by hand), stages it with
+`scripts/web/stage_hosted_site.py` and force-pushes it to the GitHub Pages
+repository `submersion-app/web`. A manual run redeploys a tag, and refuses
+an older release than the site serves unless `force` is set, since an
+older release cannot open the newer schema visitors' browsers already
+hold. Setup, the deploy token and rolling back:
+[Submersion's Own Web Site](web-site-setup.md).
 
 ## Storage
 
@@ -257,8 +273,8 @@ scripts/web/test_web.sh \
 The seeder is a Flutter test run as a tool, like `tool/demo_data/`,
 because the sync stack needs the Flutter binding.
 
-The three-browser smoke (`scripts/web/smoke_test.py`) drives Chromium,
-Firefox and WebKit with Playwright through two first runs against a served
+The browser smoke (`scripts/web/smoke_test.py`) drives Firefox and WebKit
+with Playwright through two first runs against a served
 bundle: one with no store (the connect step's offer, a name, the remaining
 steps, and the first write landing on the dashboard, which is the commit
 drift 2.34.3 hung on the locked OPFS mode), and one that connects to the
@@ -277,6 +293,13 @@ It opens the page with `?a11y=1`, which the web bootstrap reads to keep
 Flutter's semantics tree on from the first frame; Playwright finds every
 tile, field and button through that tree.
 
+Chromium is left out unless `SMOKE_BROWSERS` names it
+(`SMOKE_BROWSERS=chromium,firefox,webkit`). CI's runners give it only
+software drawing on four cores, and there a step's time swung with the
+load, so its failures moved from step to step (issue #4186). It is the
+only browser that runs drift's locked OPFS mode, so run it locally after
+changing how the web app uses its database.
+
 ## CI
 
 - `web-build` runs `scripts/build_web.sh`, builds the bundle's Dockerfile
@@ -287,9 +310,9 @@ tile, field and button through that tree.
   shape in a real browser), seeds the library and runs the browser suite,
   failing on any skipped test.
 - `web-smoke` serves `web-build`'s artifact and runs the Playwright smoke
-  in the three browsers, failing on a junit file with no tests. It is
+  in Firefox and WebKit, failing on a junit file with no tests. It is
   advisory for now (exempt in `scripts/check_ci_success_gate.py`) until it
-  passes in Chromium and Firefox on the runner, issue #4186.
+  has passed on several runs, issue #4186.
 - `build-all`'s `build-web` job zips the bundle as
   `Submersion-<tag>-Web.zip`, which the release workflow attaches and
   validates like every other asset.

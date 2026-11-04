@@ -128,6 +128,8 @@ void main() {
     await _tapNext(tester);
 
     expect(find.text('No data could be parsed from the file'), findsOneWidget);
+    // It can be copied into a report rather than screenshotted (#3629).
+    expect(find.byTooltip('Copy'), findsOneWidget);
     // Still on the acquisition step: a failed step must not advance.
     expect(find.text('Step 1'), findsOneWidget);
     expect(adapter.buildBundleCalls, 0);
