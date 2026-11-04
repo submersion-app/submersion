@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart' show Variable;
+
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
@@ -97,6 +100,21 @@ PlanBlock? dayRangeProblem(
     BlockReason.invalidValue,
     '$key: a day from ${shown(from)} to ${shown(to)}.',
   );
+}
+
+/// The currency [diverId] works in when none is named: their default, as
+/// the edit page and the service dialog start one, else USD.
+Future<String> defaultCurrencyOf(String diverId) async {
+  final row = await DatabaseService.instance.database
+      .customSelect(
+        'SELECT default_currency FROM diver_settings WHERE diver_id = ?',
+        variables: [Variable.withString(diverId)],
+      )
+      .getSingleOrNull();
+  final code = (row?.read<String?>('default_currency') ?? '')
+      .trim()
+      .toUpperCase();
+  return code.isEmpty ? 'USD' : code;
 }
 
 /// Today, as a day.

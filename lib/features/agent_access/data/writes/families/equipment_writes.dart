@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart'
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_item_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -223,7 +224,7 @@ class EquipmentWrites extends WritableEntry {
       status: EquipmentStatus.active,
       purchaseCurrency:
           values['purchase_currency'] as String? ??
-          await _defaultCurrency(diverId),
+          await defaultCurrencyOf(diverId),
     );
     return (await _r.equipment.createEquipment(await _next(blank, values))).id;
   }
@@ -400,20 +401,5 @@ class EquipmentWrites extends WritableEntry {
         if (media.unlinkIds.isNotEmpty) 'media': media.unlinkIds.length,
       },
     );
-  }
-
-  /// The currency a new item takes when none is named: the diver's default,
-  /// as the edit page starts one.
-  Future<String> _defaultCurrency(String diverId) async {
-    final row = await DatabaseService.instance.database
-        .customSelect(
-          'SELECT default_currency FROM diver_settings WHERE diver_id = ?',
-          variables: [Variable.withString(diverId)],
-        )
-        .getSingleOrNull();
-    final code = (row?.read<String?>('default_currency') ?? '')
-        .trim()
-        .toUpperCase();
-    return code.isEmpty ? 'USD' : code;
   }
 }
