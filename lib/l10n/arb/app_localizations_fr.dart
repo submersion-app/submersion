@@ -41327,6 +41327,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'En attente des données de l\'ordinateur. Marquez-la comme enregistrée si vous avez plongé sans ordinateur.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Ouvrir dans le planificateur';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Voir dans le planificateur';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Marquer comme enregistrée';
 
   @override

@@ -41238,6 +41238,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'A la espera de los datos del ordenador. Márcala como registrada si buceaste sin ordenador.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Abrir en el planificador';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Ver en el planificador';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Marcar como registrada';
 
   @override

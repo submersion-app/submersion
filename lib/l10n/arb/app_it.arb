@@ -12226,6 +12226,8 @@
   "diveLog_planned_chip": "Pianificata",
   "diveLog_planned_bannerTitle": "Immersione pianificata",
   "diveLog_planned_bannerBody": "In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.",
+  "diveLog_planned_openInPlanner": "Apri nel pianificatore",
+  "diveLog_detail_menu_viewInPlanner": "Visualizza nel pianificatore",
   "diveLog_detail_menu_markLogged": "Segna come registrata",
   "diveLog_planned_markedLogged": "Segnata come registrata",
   "diveLog_planned_markLoggedFailed": "Impossibile contrassegnare l'immersione come registrata.",

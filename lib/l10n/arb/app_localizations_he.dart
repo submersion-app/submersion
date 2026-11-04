@@ -40202,6 +40202,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'פתיחה במתכנן';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'הצגה במתכנן';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'סימון כנרשמה';
 
   @override

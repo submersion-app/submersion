@@ -41218,6 +41218,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Apri nel pianificatore';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner =>
+      'Visualizza nel pianificatore';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Segna come registrata';
 
   @override

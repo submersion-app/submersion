@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_links.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
@@ -488,6 +489,25 @@ void main() {
       c.read(divePlanNotifierProvider.notifier).newPlan();
 
       expect(series().removedLinkedDiveIds, isEmpty);
+    });
+  });
+
+  group('the link back from the log', () {
+    test('finds the plan, and goes when the plan does', () async {
+      twoDives();
+      await updatePlannedDives(c);
+      final dive = c.read(planSeriesNotifierProvider).dives[1].state;
+      final link = planForLoggedDiveProvider(dive.linkedDiveId!);
+
+      expect(await c.read(link.future), dive.id);
+
+      await c.read(divePlanRepositoryProvider).deletePlan(dive.id);
+      c.invalidate(link);
+      expect(await c.read(link.future), isNull);
+    });
+
+    test('is nothing for a dive with no plan', () async {
+      expect(await c.read(planForLoggedDiveProvider('none').future), isNull);
     });
   });
 }

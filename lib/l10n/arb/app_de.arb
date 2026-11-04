@@ -12380,6 +12380,8 @@
   "diveLog_planned_chip": "Geplant",
   "diveLog_planned_bannerTitle": "Geplanter Tauchgang",
   "diveLog_planned_bannerBody": "Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.",
+  "diveLog_planned_openInPlanner": "Im Planer öffnen",
+  "diveLog_detail_menu_viewInPlanner": "Im Planer ansehen",
   "diveLog_detail_menu_markLogged": "Als protokolliert markieren",
   "diveLog_planned_markedLogged": "Als protokolliert markiert",
   "diveLog_planned_markLoggedFailed": "Der Tauchgang konnte nicht als protokolliert markiert werden.",

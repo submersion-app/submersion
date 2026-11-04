@@ -12226,6 +12226,8 @@
   "diveLog_planned_chip": "Planifiée",
   "diveLog_planned_bannerTitle": "Plongée planifiée",
   "diveLog_planned_bannerBody": "En attente des données de l'ordinateur. Marquez-la comme enregistrée si vous avez plongé sans ordinateur.",
+  "diveLog_planned_openInPlanner": "Ouvrir dans le planificateur",
+  "diveLog_detail_menu_viewInPlanner": "Voir dans le planificateur",
   "diveLog_detail_menu_markLogged": "Marquer comme enregistrée",
   "diveLog_planned_markedLogged": "Marquée comme enregistrée",
   "diveLog_planned_markLoggedFailed": "Impossible de marquer la plongée comme enregistrée.",

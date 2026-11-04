@@ -12226,6 +12226,8 @@
   "diveLog_planned_chip": "Planificada",
   "diveLog_planned_bannerTitle": "Inmersión planificada",
   "diveLog_planned_bannerBody": "A la espera de los datos del ordenador. Márcala como registrada si buceaste sin ordenador.",
+  "diveLog_planned_openInPlanner": "Abrir en el planificador",
+  "diveLog_detail_menu_viewInPlanner": "Ver en el planificador",
   "diveLog_detail_menu_markLogged": "Marcar como registrada",
   "diveLog_planned_markedLogged": "Marcada como registrada",
   "diveLog_planned_markLoggedFailed": "No se pudo marcar la inmersión como registrada.",

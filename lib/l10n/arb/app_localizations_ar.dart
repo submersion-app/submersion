@@ -41705,6 +41705,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'فتح في المخطط';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'عرض في المخطط';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'وضع علامة مسجلة';
 
   @override

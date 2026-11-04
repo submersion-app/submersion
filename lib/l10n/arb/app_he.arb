@@ -12226,6 +12226,8 @@
   "diveLog_planned_chip": "מתוכננת",
   "diveLog_planned_bannerTitle": "צלילה מתוכננת",
   "diveLog_planned_bannerBody": "ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.",
+  "diveLog_planned_openInPlanner": "פתיחה במתכנן",
+  "diveLog_detail_menu_viewInPlanner": "הצגה במתכנן",
   "diveLog_detail_menu_markLogged": "סימון כנרשמה",
   "diveLog_planned_markedLogged": "סומנה כנרשמה",
   "diveLog_planned_markLoggedFailed": "לא ניתן היה לסמן את הצלילה כרשומה.",

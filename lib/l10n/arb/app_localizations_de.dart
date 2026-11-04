@@ -41130,6 +41130,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Im Planer öffnen';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Im Planer ansehen';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Als protokolliert markieren';
 
   @override

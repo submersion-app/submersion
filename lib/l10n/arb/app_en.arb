@@ -24859,6 +24859,8 @@
   "diveLog_planned_chip": "Planned",
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
+  "diveLog_planned_openInPlanner": "Open in planner",
+  "diveLog_detail_menu_viewInPlanner": "View in planner",
   "diveLog_detail_menu_markLogged": "Mark as logged",
   "diveLog_planned_markedLogged": "Marked as logged",
   "diveLog_planned_markLoggedFailed": "Couldn't mark the dive as logged.",

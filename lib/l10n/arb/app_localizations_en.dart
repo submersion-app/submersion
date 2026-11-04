@@ -40524,6 +40524,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Awaiting dive computer data. Mark it as logged if you dived without one.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Open in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'View in planner';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Mark as logged';
 
   @override

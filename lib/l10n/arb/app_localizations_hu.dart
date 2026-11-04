@@ -40977,6 +40977,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Megnyitás a tervezőben';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Megtekintés a tervezőben';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Naplózottnak jelölés';
 
   @override

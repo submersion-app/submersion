@@ -40935,6 +40935,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Openen in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Bekijken in planner';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Markeren als gelogd';
 
   @override

@@ -12226,6 +12226,8 @@
   "diveLog_planned_chip": "Gepland",
   "diveLog_planned_bannerTitle": "Geplande duik",
   "diveLog_planned_bannerBody": "Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.",
+  "diveLog_planned_openInPlanner": "Openen in planner",
+  "diveLog_detail_menu_viewInPlanner": "Bekijken in planner",
   "diveLog_detail_menu_markLogged": "Markeren als gelogd",
   "diveLog_planned_markedLogged": "Gemarkeerd als gelogd",
   "diveLog_planned_markLoggedFailed": "Kon de duik niet als gelogd markeren.",

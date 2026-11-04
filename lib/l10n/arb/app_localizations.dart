@@ -65145,6 +65145,18 @@ abstract class AppLocalizations {
   /// **'Awaiting dive computer data. Mark it as logged if you dived without one.'**
   String get diveLog_planned_bannerBody;
 
+  /// No description provided for @diveLog_planned_openInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in planner'**
+  String get diveLog_planned_openInPlanner;
+
+  /// No description provided for @diveLog_detail_menu_viewInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'View in planner'**
+  String get diveLog_detail_menu_viewInPlanner;
+
   /// No description provided for @diveLog_detail_menu_markLogged.
   ///
   /// In en, this message translates to:

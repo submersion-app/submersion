@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_properties_menu.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_links.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -49,6 +50,11 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A dived dive's plan, while that plan exists (issue #3565); a planned
+    // one offers it on its banner.
+    final linkedPlanId = dive.isPlanned
+        ? null
+        : ref.watch(planForLoggedDiveProvider(dive.id)).value;
     // Re-parsing runs the native parser, which a browser lacks (#4121).
     final canReparse =
         ref.watch(deviceCapabilitiesProvider).diveComputerDownload &&
@@ -160,6 +166,15 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
               child: ListTile(
                 leading: const Icon(Icons.tune),
                 title: Text(context.l10n.diveLog_detail_menu_whatIf),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          if (linkedPlanId != null)
+            PopupMenuItem(
+              value: 'viewInPlanner',
+              child: ListTile(
+                leading: const Icon(Icons.route),
+                title: Text(context.l10n.diveLog_detail_menu_viewInPlanner),
                 contentPadding: EdgeInsets.zero,
               ),
             ),

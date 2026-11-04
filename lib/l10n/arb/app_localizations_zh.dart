@@ -38795,6 +38795,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_planned_bannerBody => '等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。';
 
   @override
+  String get diveLog_planned_openInPlanner => '在计划器中打开';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => '在计划器中查看';
+
+  @override
   String get diveLog_detail_menu_markLogged => '标记为已记录';
 
   @override

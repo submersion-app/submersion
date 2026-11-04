@@ -41188,6 +41188,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Aguardando os dados do computador. Marque como registrado se mergulhou sem computador.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Abrir no planeador';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Ver no planeador';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Marcar como registrado';
 
   @override

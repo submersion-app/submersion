@@ -12226,6 +12226,8 @@
   "diveLog_planned_chip": "Tervezett",
   "diveLog_planned_bannerTitle": "Tervezett merülés",
   "diveLog_planned_bannerBody": "Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.",
+  "diveLog_planned_openInPlanner": "Megnyitás a tervezőben",
+  "diveLog_detail_menu_viewInPlanner": "Megtekintés a tervezőben",
   "diveLog_detail_menu_markLogged": "Naplózottnak jelölés",
   "diveLog_planned_markedLogged": "Naplózottnak jelölve",
   "diveLog_planned_markLoggedFailed": "Nem sikerült naplózottként megjelölni a merülést.",

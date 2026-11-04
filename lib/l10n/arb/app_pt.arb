@@ -12226,6 +12226,8 @@
   "diveLog_planned_chip": "Planejado",
   "diveLog_planned_bannerTitle": "Mergulho planejado",
   "diveLog_planned_bannerBody": "Aguardando os dados do computador. Marque como registrado se mergulhou sem computador.",
+  "diveLog_planned_openInPlanner": "Abrir no planeador",
+  "diveLog_detail_menu_viewInPlanner": "Ver no planeador",
   "diveLog_detail_menu_markLogged": "Marcar como registrado",
   "diveLog_planned_markedLogged": "Marcado como registrado",
   "diveLog_planned_markLoggedFailed": "Não foi possível marcar o mergulho como registrado.",

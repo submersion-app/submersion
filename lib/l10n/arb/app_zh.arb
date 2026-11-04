@@ -12226,6 +12226,8 @@
   "diveLog_planned_chip": "计划中",
   "diveLog_planned_bannerTitle": "计划的潜水",
   "diveLog_planned_bannerBody": "等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。",
+  "diveLog_planned_openInPlanner": "在计划器中打开",
+  "diveLog_detail_menu_viewInPlanner": "在计划器中查看",
   "diveLog_detail_menu_markLogged": "标记为已记录",
   "diveLog_planned_markedLogged": "已标记为已记录",
   "diveLog_planned_markLoggedFailed": "无法将该潜水标记为已记录。",
