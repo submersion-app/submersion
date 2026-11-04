@@ -400,6 +400,29 @@ void main() {
       '$divers/item_shares_repository.dart:$method': 'trips',
     for (final method in const ['hide', 'hideAll', 'unhide'])
       '$divers/profile_hides_repository.dart:$method': 'sites',
+    // Templates are written whole; the editor's one-section steps reach the
+    // same lists.
+    for (final method in const [
+      'createTemplate',
+      'updateTemplate',
+      'deleteTemplate',
+      'saveSections',
+      'saveItems',
+      'createSection',
+      'renameSection',
+      'reorderSections',
+      'deleteSection',
+    ]) ...{
+      '$checklists/checklist_template_repository.dart:$method':
+          'checklist_templates',
+      'lib/features/pre_dive/data/repositories/'
+              'pre_dive_template_repository.dart:$method':
+          'pre_dive_templates',
+    },
+    for (final method in const ['cloneTemplate', 'updateItemEquipment'])
+      'lib/features/pre_dive/data/repositories/'
+              'pre_dive_template_repository.dart:$method':
+          'pre_dive_templates',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
