@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -190,6 +191,34 @@ void main() {
     expect(clocks, hasLength(kinds.length));
   });
 
+  // The diver allowed what the preview listed, so an apply that would add
+  // a different set of clocks is a different change.
+  test('a create whose clocks changed after the preview is stale', () async {
+    final plan = await h.preview([
+      createOp('equipment', {'name': 'AL80', 'type': 'tank'}),
+    ]);
+    final kinds = await ServiceScheduleRepository().autoAttachKindsFor(
+      type: EquipmentType.tank,
+      diverId: kDiverA,
+    );
+    await db.customStatement(
+      'UPDATE service_kinds SET auto_attach = 0 WHERE id = ?',
+      [kinds.first.id],
+    );
+
+    await expectLater(
+      h.apply(plan),
+      throwsA(
+        isA<AgentToolException>().having(
+          (e) => e.code,
+          'code',
+          AgentToolErrorCode.planStale,
+        ),
+      ),
+    );
+    expect(await db.select(db.equipment).get(), isEmpty);
+  });
+
   test('renaming a device item lists the device it renames', () async {
     final id = await created({'name': 'Perdix', 'type': 'computer'});
     await db
@@ -371,9 +400,7 @@ void main() {
     final unshare = await h.preview([
       link(id, 'shared_with', remove: [kDiverB]),
     ]);
-    expect(unshare.items.single.alsoChanges, {
-      'equipment_ownership_events': 1,
-    });
+    expect(unshare.items.single.alsoChanges, {'equipment_ownership_events': 1});
   });
 
   test('sharing with the owner, an unknown profile or from an ownerless '

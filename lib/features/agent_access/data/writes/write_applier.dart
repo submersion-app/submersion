@@ -309,6 +309,7 @@ class WriteApplier {
         }
       }
     }
+    await _ensureAlsoCreates(plan);
     if (stale.isEmpty) return;
     // Several items can mark one row, as tanks of one dive mark the dive.
     final named = {for (final marker in stale) (marker.table, marker.id)};
@@ -321,6 +322,34 @@ class WriteApplier {
           for (final (table, id) in named) {'table': table, 'id': id},
         ],
       },
+    );
+  }
+
+  /// Refuses a plan whose creates would now add other records than the
+  /// preview listed, such as the service clocks a new item gets: the diver
+  /// allowed what the preview said.
+  Future<void> _ensureAlsoCreates(WritePlan plan) async {
+    final moved = <Map<String, Object?>>[];
+    for (final item in plan.items) {
+      if (item.kind != ChangeKind.create || item.block != null) continue;
+      final now = await _catalog
+          .named(item.entity)!
+          .alsoCreates(item.diverId!, item.values);
+      if (!const MapEquality<String, int>().equals(now, item.alsoCreates)) {
+        moved.add({
+          'operation': item.operation,
+          'entity': item.entity,
+          'previewed': item.alsoCreates,
+          'now': now,
+        });
+      }
+    }
+    if (moved.isEmpty) return;
+    throw AgentToolException(
+      AgentToolErrorCode.planStale,
+      'What these creates also add changed after the preview, so nothing was '
+      'applied. Preview again.',
+      details: {'creates': moved},
     );
   }
 
