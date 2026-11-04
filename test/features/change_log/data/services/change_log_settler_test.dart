@@ -53,6 +53,36 @@ void main() {
   });
   tearDown(() => db.close());
 
+  // In a browser drawing without a GPU each statement waited about a frame,
+  // and a 500-event pass held the database for minutes while every other
+  // query queued behind it (#4186). A pass now stops once its time is spent.
+  group('time budget', () {
+    test('a spent budget settles one event a pass', () async {
+      await _editNotes(db, 'One');
+      await _editNotes(db, 'Two');
+
+      expect(await settler.settle(budget: Duration.zero), 1);
+      expect((await logEvents(db)).map((e) => e['settled']).toList(), [1, 0]);
+      expect(await settler.settle(budget: Duration.zero), 1);
+      expect(await settler.settle(budget: Duration.zero), 0);
+    });
+
+    test('events settled across passes group as in one pass', () async {
+      await _editNotes(db, 'One');
+      await _editNotes(db, 'Two');
+      await _stampEvents(db, [1000, 5000]);
+
+      await settler.settle(budget: Duration.zero);
+      await settler.settle(budget: Duration.zero);
+
+      final operation = (await _operations(db)).single;
+      expect(operation.eventCount, 2);
+      expect(operation.startedAt, 1000);
+      expect(operation.endedAt, 5000);
+      expect(operation.rootId, 'dive');
+    });
+  });
+
   test('two saves within five seconds on one dive are one operation', () async {
     await _editNotes(db, 'One');
     await _editNotes(db, 'Two');

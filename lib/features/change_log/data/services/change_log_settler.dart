@@ -22,9 +22,15 @@ class ChangeLogSettler {
   final Map<String, ChangeLogTableSpec> _specs;
 
   /// Settles up to [batch] events, oldest first, and returns how many.
-  Future<int> settle({int batch = 500}) async {
+  ///
+  /// With a [budget], the pass also ends after the first event that finds
+  /// it spent, and settles at least one. A pass is one transaction, and
+  /// nothing else reaches the database until it commits: in a browser
+  /// drawing without a GPU each statement waited about a frame, and a full
+  /// batch held the database for minutes (#4186).
+  Future<int> settle({int batch = 500, Duration? budget}) async {
     final settled = await _db.transaction(
-      () => _SettlePass(_db, _specs).run(batch),
+      () => _SettlePass(_db, _specs).run(batch, budget),
     );
     if (settled > 0) {
       _db.notifyUpdates({
@@ -140,7 +146,7 @@ class _SettlePass {
   final _latestManual = <ChangeLogRoot, String>{};
   final _columns = <String, Object?>{};
 
-  Future<int> run(int batch) async {
+  Future<int> run(int batch, Duration? budget) async {
     final rows = await _db
         .customSelect(
           'SELECT * FROM change_log_events WHERE settled = 0 '
@@ -148,12 +154,16 @@ class _SettlePass {
           variables: [Variable.withInt(batch)],
         )
         .get();
+    final clock = Stopwatch()..start();
+    var settled = 0;
     for (final row in rows) {
       await _settle(_Event(row.data));
+      settled++;
+      if (budget != null && clock.elapsed >= budget) break;
     }
     await _writeOperations();
     await _deleteEmptyOperations();
-    return rows.length;
+    return settled;
   }
 
   Future<void> _settle(_Event event) async {

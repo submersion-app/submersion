@@ -17,6 +17,9 @@ import 'package:submersion/features/change_log/domain/entities/change_log_operat
 
 const int _settleBatch = 500;
 
+/// How long one settle pass may hold the database.
+const Duration _settleBudget = Duration(milliseconds: 100);
+
 /// How much of an entry a preview reads. An entry about one record is small.
 const int _previewEvents = 200;
 
@@ -32,10 +35,15 @@ class ChangeLogRepository {
       _db.tableUpdates(TableUpdateQuery.onTable(_db.changeLogOperations));
 
   /// Settles everything waiting. A failure is logged and tried again later.
-  Future<void> settleAll() async {
+  ///
+  /// Each pass is one transaction that ends after [budget], so a long
+  /// backlog (the first sync of a library) does not hold the database
+  /// while the rest of the app waits on it (#4186). Every event a pass
+  /// takes is settled or deleted, so passes run until one finds nothing.
+  Future<void> settleAll({Duration budget = _settleBudget}) async {
     try {
       final settler = ChangeLogSettler(_db);
-      while (await settler.settle(batch: _settleBatch) == _settleBatch) {
+      while (await settler.settle(batch: _settleBatch, budget: budget) > 0) {
         await Future<void>.delayed(Duration.zero);
       }
     } catch (error, stackTrace) {
