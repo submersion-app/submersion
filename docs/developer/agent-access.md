@@ -251,6 +251,44 @@ the set first opens to sites, a tag may take a name an earlier rename frees,
 and a dive type or species whose dives or sightings the set first removes
 may be deleted.
 
+### Gear
+
+Gear is writable as `equipment`, `equipment_sets`, `equipment_locations`,
+`equipment_location_moves` (a child of the item) and `equipment_components`
+(a child of the assembly). An item is saved whole, as the edit page saves
+it, through one function, `nextItem`, that the plan's side effects and the
+save both use:
+
+- `is_active` follows `status` (retired, sold and wanted are out of the
+  kit) and is not writable; leaving `wanted` fills an empty purchase date,
+  as Mark purchased does.
+- A type change drops the built-in attributes and the fitting the new type
+  has no place for. `attributes` is the whole list; the app's own system
+  attributes are left out and kept by the save.
+- A part fits only a type that holds it (`parentTypesFor`, shared with the
+  edit page), so a chain of fitted parts cannot loop.
+- `last_service_date` and `service_interval_days` are legacy, with no
+  editor, and are not writable.
+- `tags` and `shared_with` are relations, written through `replaceTags` and
+  `setShares`. An ownerless item cannot be shared.
+
+Two reports say what a write does beyond its record. `alsoCreates` names the
+rows a create adds alongside it, such as the service clocks an item's type
+attaches (`autoAttachKindsFor`, the list `autoAttachForEquipment` uses), and
+`SideEffects.touched` the rows of other records an update rewrites, such as
+the dive computer a device item's rename renames, the service clocks an
+inspection date anchors, or the set a new default takes the flag from. The
+dialog shows both as "Also adds" and "Also changes", and the plan's JSON as
+`also_creates` and `also_changes`.
+
+A set's default, figure and geofences go through `setAsDefault`,
+`setShowFigure` and the geofence writes; a new set becomes the default by an
+update once it exists. A place a move names is archived, never deleted. A
+component that would make an item part of itself is blocked before
+`addComponent` would throw. Status shortcuts, bulk share and move shortcuts,
+and the inner steps of an item delete are in the coverage guard's `exempt`
+map.
+
 ### Adding a writable entity
 
 1. Add a `WritableEntry` under `data/writes/families/` and list it in
