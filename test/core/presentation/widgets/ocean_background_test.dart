@@ -77,6 +77,38 @@ void main() {
     expect(_gradientOf(tester).colors.first, _abyssTop);
   });
 
+  // The caustic gradients are transparent beyond their radius, so filling
+  // more than their squares draws nothing. A browser drawing without WebGL
+  // rasterises every picture on every frame, and two full-screen fills made
+  // each spinner frame cost 134 ms on the page's thread, which starved
+  // drift's replies until setup stalled (#4186).
+  test('fills only the squares the caustic shimmer reaches', () {
+    const size = Size(1280, 900);
+    final painter = OceanEffectPainter(
+      animationValue: 0,
+      bubbleColor: Colors.white,
+      causticOpacity: 0.12,
+    );
+
+    // At the start of the cycle each patch sits 4 points off its rest.
+    expect(
+      (Canvas canvas) => painter.paint(canvas, size),
+      paints
+        ..rect(
+          rect: Rect.fromCircle(
+            center: Offset(size.width * 0.3, size.height * 0.4 + 4),
+            radius: 80,
+          ),
+        )
+        ..rect(
+          rect: Rect.fromCircle(
+            center: Offset(size.width * 0.7, size.height * 0.6 - 4),
+            radius: 60,
+          ),
+        ),
+    );
+  });
+
   group('frame budget (#3044)', () {
     double animationValueOf(WidgetTester tester) {
       final paint = tester.widget<CustomPaint>(
