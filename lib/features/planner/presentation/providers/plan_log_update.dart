@@ -1,15 +1,8 @@
-import 'package:clock/clock.dart';
-import 'package:uuid/uuid.dart';
-
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
-import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
@@ -18,21 +11,15 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_reposito
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
-import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
-import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
-import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
-import 'package:submersion/features/planner/domain/services/plan_profile_samples.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
     show SeriesDiveResult;
-import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
-
-const _uuid = Uuid();
+import 'package:submersion/features/planner/presentation/providers/planned_log_entry.dart';
 
 /// What "Create / Update planned dives" did (issue #3565).
 class PlannedDivesUpdate {
@@ -109,16 +96,18 @@ Future<PlannedDivesUpdate> updatePlannedDives(
   for (final dive in container.read(planSeriesNotifierProvider).dives) {
     final id = dive.state.siteId;
     if (id != null && !sites.containsKey(id)) {
-      sites[id] = await _visibleSite(container, id, diverId);
+      sites[id] = await visiblePlanSite(
+        await container.read(siteProvider(id).future),
+        diverId,
+        container.read(itemSharesRepositoryProvider),
+      );
     }
   }
-  final linked = <int, Dive?>{};
-  for (final (i, dive)
-      in container.read(planSeriesNotifierProvider).dives.indexed) {
-    final row = await plans.getPlan(dive.state.id);
-    final id = row == null ? dive.state.linkedDiveId : row.linkedDiveId;
-    linked[i] = id == null ? null : await repository.getDiveById(id);
-  }
+  final linked = await linkedEntries(
+    container.read(planSeriesNotifierProvider),
+    plans,
+    repository,
+  );
 
   final series = container.read(planSeriesNotifierProvider);
   final results = container.read(planSeriesResultsProvider);
@@ -151,7 +140,7 @@ Future<PlannedDivesUpdate> updatePlannedDives(
     }
     final dive = series.dives[i];
     final result = results[i];
-    final entry = _PlannedEntry.of(
+    final entry = PlannedLogEntry.of(
       result,
       name: series.isSeries ? dive.name : result.state.name,
       config: config,
@@ -238,98 +227,6 @@ Future<List<Dive>> _orphans(
   return orphans;
 }
 
-/// What a dive's entry in the log is made of, worked out from its result.
-class _PlannedEntry {
-  final String? name;
-  final PlanOutcome outcome;
-  final List<DiveProfilePoint> profile;
-  final double avgDepth;
-
-  const _PlannedEntry({
-    required this.name,
-    required this.outcome,
-    required this.profile,
-    required this.avgDepth,
-  });
-
-  /// The state's segments stop at the bottom; the engine computes the
-  /// ascent. The entry takes the full computed profile so the log shows the
-  /// deco schedule the plan produced, sampled every 10 seconds like a dive
-  /// computer's: the log analyses a dive only at its samples.
-  factory _PlannedEntry.of(
-    SeriesDiveResult result, {
-    required String? name,
-    required PlanEngineConfig config,
-  }) {
-    final canvas = buildCanvasSeries(
-      plan: divePlanFromState(result.state),
-      outcome: result.outcome,
-      config: config,
-    );
-    return _PlannedEntry(
-      name: name,
-      outcome: result.outcome,
-      profile: sampledPlanProfile([
-        for (final point in canvas.profile)
-          DiveProfilePoint(
-            timestamp: point.timeSeconds.round(),
-            depth: point.depth,
-          ),
-      ]),
-      avgDepth: PlanChartGeometry.meanDepthMeters(canvas.profile),
-    );
-  }
-
-  /// A planned, unnumbered entry until the diver's download fills it or they
-  /// mark it as logged (issue #2002).
-  Dive newDive(DivePlanState state, DiveSite? site) => Dive(
-    id: _uuid.v4(),
-    name: name,
-    dateTime: _start(state),
-    runtime: Duration(seconds: outcome.runtimeSeconds),
-    maxDepth: outcome.maxDepth,
-    avgDepth: avgDepth,
-    site: site,
-    tanks: [for (final tank in state.tanks) tank.copyWith(id: '')],
-    profile: profile,
-    notes: state.notes,
-    altitude: state.altitude,
-    waterType: state.waterType,
-    gradientFactorLow: state.gfLow,
-    gradientFactorHigh: state.gfHigh,
-    diveMode: _diveMode(state.mode),
-    setpointLow: _onLoop(state) ? state.setpointLow : null,
-    setpointHigh: _onLoop(state) ? state.setpointHigh : null,
-    diluentGas: _diluent(state),
-    isPlanned: true,
-  );
-
-  /// [existing] rewritten to the plan, under its own id.
-  Dive update(Dive existing, DivePlanState state, DiveSite? site) =>
-      existing.copyWith(
-        name: name,
-        clearName: name == null,
-        dateTime: _start(state),
-        runtime: Duration(seconds: outcome.runtimeSeconds),
-        maxDepth: outcome.maxDepth,
-        avgDepth: avgDepth,
-        site: site,
-        clearSite: site == null,
-        notes: state.notes,
-        altitude: state.altitude,
-        waterType: state.waterType,
-        gradientFactorLow: state.gfLow,
-        gradientFactorHigh: state.gfHigh,
-        diveMode: _diveMode(state.mode),
-        setpointLow: _onLoop(state) ? state.setpointLow : null,
-        setpointHigh: _onLoop(state) ? state.setpointHigh : null,
-        clearSetpoints: !_onLoop(state),
-        diluentGas: _diluent(state),
-        clearDiluentGas: _diluent(state) == null,
-        tanks: _tanksFor(existing, state),
-      );
-}
-
 /// Writes the plan's gas switches onto its entry in the log, so the log's
 /// analysis breathes what the plan breathes. They name no computer, so a
 /// download clears them with the plan's profile. A loop's gas drifts with
@@ -351,63 +248,4 @@ Future<void> _writeGasSwitches(
       createdAt: DateTime.now(),
     ),
   );
-}
-
-/// The log's mode for a plan's: every rebreather but a closed circuit is
-/// semi-closed there.
-DiveMode _diveMode(PlanMode mode) => switch (mode) {
-  PlanMode.oc => DiveMode.oc,
-  PlanMode.ccr => DiveMode.ccr,
-  PlanMode.scr || PlanMode.pscr => DiveMode.scr,
-};
-
-bool _onLoop(DivePlanState state) => state.mode == PlanMode.ccr;
-
-/// A rebreather plan's diluent, the first diluent cylinder's mix, which the
-/// log's deco model and gas timeline breathe on the loop.
-GasMix? _diluent(DivePlanState state) {
-  if (state.mode == PlanMode.oc) return null;
-  for (final tank in state.tanks) {
-    if (tank.role == TankRole.diluent) return tank.gasMix;
-  }
-  return null;
-}
-
-/// When [state]'s dive goes in the log. Dive times are clock digits stamped
-/// UTC; so is the plan's start.
-DateTime _start(DivePlanState state) =>
-    state.startDateTime ?? asWallClockUtc(clock.now());
-
-/// [state]'s tanks under the ids of [existing]'s, by position: an update
-/// must name each tank, and matching ids keeps those rows rather than
-/// replacing them.
-List<DiveTank> _tanksFor(Dive existing, DivePlanState state) => [
-  for (final (index, tank) in state.tanks.indexed)
-    tank.copyWith(
-      id: index < existing.tanks.length ? existing.tanks[index].id : _uuid.v4(),
-    ),
-];
-
-/// The site [id] when it may go on a dive of [diverId]. Saved plans are not
-/// diver-scoped, so the plan may name a site private to another diver. A
-/// shared site or one the diver owns qualifies, the rule the site list
-/// applies (a site shared with this diver by name, or in a shared site
-/// library, counts too, issue #2151), except that with no diver the dive is
-/// unowned, where only an unowned site does. A site deleted since the plan
-/// was saved resolves to null and is left off.
-Future<DiveSite?> _visibleSite(
-  ProviderContainer container,
-  String id,
-  String? diverId,
-) async {
-  final site = await container.read(siteProvider(id).future);
-  if (site == null) return null;
-  if (diverId == null) {
-    return site.isShared || site.diverId == null ? site : null;
-  }
-  if (site.diverId == diverId || site.isShared) return site;
-  final shared = await container
-      .read(itemSharesRepositoryProvider)
-      .isVisibleTo(SharedItemKind.site, site.id, diverId);
-  return shared ? site : null;
 }

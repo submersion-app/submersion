@@ -130,4 +130,13 @@ Where the build met something already on `main`, `main`'s approach was kept:
   them as open circuit.
 - **Sampling** is every 10 seconds, not 30 (decided 2026-11-04).
 - **Menu wording** follows the entries still only planned, read from the
-  saved rows, so a single plan linked to a dived dive offers "Create".
+  plan rows and the log, so a single plan linked to a dived dive offers
+  "Create". It was first read from the saved plans list in the menu's
+  builder, which showed "Create" after the entries were made whenever that
+  list had not reloaded when the menu opened (found in review, 2026-11-05).
+- **Update is disabled when there is nothing to write** (decided
+  2026-11-05): it follows whether the log is behind the plan, not the save
+  icon, so a plan saved after a change still offers it. The check compares
+  each entry with what an update would write; no column was added. Depth
+  stats are left out of it, since the log works them out again from the
+  stored profile.

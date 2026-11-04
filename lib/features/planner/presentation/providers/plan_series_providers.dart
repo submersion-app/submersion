@@ -4,8 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
-    show DivePlanSummary;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
@@ -20,7 +18,6 @@ import 'package:submersion/features/planner/domain/services/plan_series_tanks.da
     as series_tanks;
 import 'package:submersion/features/planner/domain/services/plan_setting_groups.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
 const _uuid = Uuid();
 
@@ -490,31 +487,6 @@ final planConvertAllowedProvider = Provider<bool>(
   (ref) =>
       !ref.watch(planSeriesNotifierProvider.select((s) => s.savesAsSeries)),
 );
-
-/// Whether any dive of the plan has an entry in the log still only planned,
-/// so the menu offers to update the planned dives rather than create them.
-/// A saved dive's row says, as the link actions keep it; a dived entry is the
-/// log's now and is not updated.
-final plannedDivesExistProvider = Provider<bool>((ref) {
-  final links = ref.watch(
-    planSeriesNotifierProvider.select(
-      (s) => [
-        for (final dive in s.dives) (dive.state.id, dive.state.linkedDiveId),
-      ],
-    ),
-  );
-  final summaries = {
-    for (final summary
-        in ref.watch(divePlanSummariesProvider).valueOrNull ??
-            const <DivePlanSummary>[])
-      summary.id: summary,
-  };
-  return links.any((link) {
-    final summary = summaries[link.$1];
-    if (summary == null) return link.$2 != null;
-    return summary.linkedDiveId != null && summary.linkedDiveIsPlanned;
-  });
-});
 
 /// Whether the plan saves as a series rather than an ordinary plan.
 final planSeriesSavesAsSeriesProvider = Provider<bool>(

@@ -35,6 +35,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_name_dialo
 import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_dialog.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_state.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_start_field.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -153,6 +154,14 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
         : null;
     final units = ref.watch(unitFormatterProvider);
     final followAllowed = ref.watch(followAllowedProvider);
+    // Watched here rather than in the menu's builder: an open menu does not
+    // rebuild, so it must open on a value already settled.
+    final logState =
+        ref.watch(plannedDivesLogStateProvider).valueOrNull ??
+        PlannedDivesLogState.unknown;
+    final isSeries = ref.watch(
+      planSeriesNotifierProvider.select((s) => s.isSeries),
+    );
     // A plan opened via the :planId route is known-persisted, so short-circuit
     // before watching the (DB-backed) summaries provider; that avoids an
     // avoidable subscription/fetch in the common edit-a-saved-plan case. The
@@ -281,11 +290,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
                   Icons.scuba_diving,
                   _PlanCanvasLogFlows._plannedDivesLabel(
                     context.l10n,
-                    exist: ref.watch(plannedDivesExistProvider),
-                    isSeries: ref.watch(
-                      planSeriesNotifierProvider.select((s) => s.isSeries),
-                    ),
+                    exist: logState.entriesExist,
+                    isSeries: isSeries,
                   ),
+                  // Nothing to write while the log matches the plan.
+                  enabled: logState.outOfDate,
                 ),
                 ..._linkMenuItems(context),
                 _menuItem(

@@ -235,7 +235,10 @@ From the menu you can also:
   profile and gas switches, linked back to the plan. A series with no start
   time asks for the first dive's. Once they are there the menu says **Update
   planned dives**, which rewrites the planned dives in place after you change
-  the plan; a dive you have already dived is left alone. Saving the plan never
+  the plan; a dive you have already dived is left alone. It is greyed out
+  while your log already matches the plan, and comes back as soon as you
+  change a dive, add one, remove one, or edit a planned dive in the log.
+  Saving the plan never
   changes your log. A dive you remove from the series is offered for deletion
   from the log the next time you update, if it is still only planned. Nothing
   is written while any dive has critical warnings; the message names it. A

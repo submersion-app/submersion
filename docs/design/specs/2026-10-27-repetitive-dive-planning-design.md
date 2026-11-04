@@ -348,7 +348,14 @@ Phase 2b; the plan is
   an entry still only planned in the log, then "Update planned dive(s)",
   worded for one dive or several. It replaces Convert to Dive and acts on the
   whole plan. The log is written only by this action, never by Save. A series
-  with no start asks for the first dive's.
+  with no start asks for the first dive's. It is disabled while it has
+  nothing to write: every dive has an entry, each one matches what its dive
+  would write now (name, start, runtime, site, notes, conditions, gradient
+  factors, mode, tanks and profile samples), and no removed dive's planned
+  entry is waiting to be offered for deletion. Unsaved edits count, and so
+  does an entry edited in the log. `plannedDivesLogStateProvider` works this
+  out from the plan and dive tables and the series in memory; the page
+  watches it in `build`, since an open menu does not rebuild.
 - **Each dive** (`plan_log_update.dart`). No entry: a new planned entry with
   its start, site, name, tanks, profile and gas switches. A planned entry: the
   same row rewritten under its own id, so its link holds. A dived entry: left

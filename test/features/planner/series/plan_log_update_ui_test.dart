@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_state.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -40,7 +41,7 @@ void main() {
     DatabaseService.instance.resetForTesting();
   });
 
-  Widget harness() => testApp(
+  Widget harness({String? planId, Key? key}) => testApp(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       currentDiverIdProvider.overrideWith(
@@ -48,7 +49,7 @@ void main() {
       ),
     ],
     locale: const Locale('en'),
-    child: const PlanCanvasPage(),
+    child: PlanCanvasPage(key: key, planId: planId),
   );
 
   ProviderContainer containerOf(WidgetTester tester) =>
@@ -98,6 +99,37 @@ void main() {
     }
     expect(condition(), isTrue);
   }
+
+  /// The menu item for the planned dives, opened from the menu.
+  Future<PopupMenuItem<String>> plannedDivesItem(
+    WidgetTester tester,
+    String label,
+  ) async {
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    final item = tester.widget<PopupMenuItem<String>>(
+      find.ancestor(
+        of: find.text(label),
+        matching: find.byType(PopupMenuItem<String>),
+      ),
+    );
+    await tester.tapAt(Offset.zero);
+    await tester.pumpAndSettle();
+    return item;
+  }
+
+  /// Waits until the planner knows whether the log is behind the plan.
+  Future<void> logStateSettles(
+    WidgetTester tester, {
+    required bool outOfDate,
+  }) => settleUntil(
+    tester,
+    () =>
+        containerOf(
+          tester,
+        ).read(plannedDivesLogStateProvider).valueOrNull?.outOfDate ==
+        outOfDate,
+  );
 
   Future<List<String>> loggedIds(WidgetTester tester) async {
     final dives = await tester.runAsync(() => DiveRepository().getAllDives());
@@ -172,5 +204,61 @@ void main() {
     final left = await loggedIds(tester);
     expect(left, hasLength(2));
     expect(left, isNot(contains(removed)));
+  });
+
+  testWidgets(
+    'once created, the menu offers Update, greyed out until the plan changes',
+    (tester) async {
+      await pumpPlan(tester);
+      await twoDives(tester, start: nine);
+      await tapMenu(tester, 'Create planned dives');
+      await settleUntil(
+        tester,
+        () => find.byType(SnackBar).evaluate().isNotEmpty,
+      );
+      await logStateSettles(tester, outOfDate: false);
+
+      expect(
+        (await plannedDivesItem(tester, 'Update planned dives')).enabled,
+        isFalse,
+      );
+
+      series(tester).renameSelected('Night dive');
+      await logStateSettles(tester, outOfDate: true);
+
+      expect(
+        (await plannedDivesItem(tester, 'Update planned dives')).enabled,
+        isTrue,
+      );
+    },
+  );
+
+  testWidgets('reopened from the log, the series offers Update', (
+    tester,
+  ) async {
+    await pumpPlan(tester);
+    await twoDives(tester, start: nine);
+    await tapMenu(tester, 'Create planned dives');
+    await settleUntil(
+      tester,
+      () => find.byType(SnackBar).evaluate().isNotEmpty,
+    );
+    final planId = containerOf(
+      tester,
+    ).read(planSeriesNotifierProvider).dives[1].state.id;
+
+    // "Open in planner": the same app, a planner opened on the saved dive.
+    await tester.pumpWidget(harness(planId: planId, key: UniqueKey()));
+    await settleUntil(
+      tester,
+      () =>
+          containerOf(tester).read(planSeriesNotifierProvider).dives.length ==
+          2,
+    );
+    await logStateSettles(tester, outOfDate: false);
+
+    final item = await plannedDivesItem(tester, 'Update planned dives');
+    expect(item.enabled, isFalse);
+    expect(find.text('Create planned dives'), findsNothing);
   });
 }
